@@ -381,10 +381,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
-    const workflows = await getAllWorkflowsFromEventType(booking.eventType);
-    const workflowsToTriggerForRejected = workflows.filter(
-      (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_REJECTED
-    );
+    const workflowsToTriggerForRejected = await getAllWorkflowsFromEventType(booking.eventType, undefined, [
+      WorkflowTriggerEvents.BOOKING_REJECTED,
+    ]);
 
     if (workflowsToTriggerForRejected.length > 0) {
       await scheduleWorkflowReminders({

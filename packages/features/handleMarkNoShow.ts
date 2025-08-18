@@ -1,7 +1,9 @@
 import { type TFunction } from "i18next";
 
+import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -9,7 +11,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
@@ -121,6 +123,11 @@ const handleMarkNoShow = async ({
           eventType: {
             include: {
               owner: true,
+              team: {
+                select: {
+                  parentId: true,
+                },
+              },
             },
           },
           attendees: true,
@@ -136,7 +143,9 @@ const handleMarkNoShow = async ({
         if (noShowUpdatedworkflows.length > 0) {
           try {
             const organizer = booking.user || booking.eventType.owner;
-            const calendarEvent = {
+            const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata);
+            const bookerUrl = await getBookerBaseUrl(booking.eventType?.team?.parentId ?? null);
+            const calendarEvent: ExtendedCalendarEvent = {
               type: booking.eventType.title,
               title: booking.eventType.title,
               startTime: booking.startTime.toISOString(),
@@ -145,13 +154,19 @@ const handleMarkNoShow = async ({
                 email: organizer?.email || "",
                 name: organizer?.name || "",
                 timeZone: organizer?.timeZone || "UTC",
-                language: { translate: (key: string) => key, locale: organizer?.locale || "en" },
+                language: {
+                  translate: t,
+                  locale: organizer?.locale || "en",
+                },
               },
               attendees: booking.attendees.map((attendee) => ({
                 email: attendee.email,
                 name: attendee.name,
                 timeZone: attendee.timeZone || "UTC",
-                language: { translate: (key: string) => key, locale: attendee.locale || "en" },
+                language: {
+                  translate: t,
+                  locale: attendee.locale || "en",
+                },
               })),
               uid: booking.uid,
               location: booking.location || "",
@@ -160,8 +175,10 @@ const handleMarkNoShow = async ({
                 schedulingType: booking.eventType.schedulingType,
                 hosts: [],
               },
-              bookerUrl: "",
-              metadata: {},
+              bookerUrl,
+              ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
+                ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
+                : {}),
               rescheduleReason: null,
               cancellationReason: null,
             };
@@ -169,7 +186,7 @@ const handleMarkNoShow = async ({
             await scheduleWorkflowReminders({
               workflows: noShowUpdatedworkflows,
               smsReminderNumber: null,
-              calendarEvent: calendarEvent as any,
+              calendarEvent,
             });
           } catch (error) {
             logger.error("Error while scheduling workflow reminders for booking no-show updated", error);

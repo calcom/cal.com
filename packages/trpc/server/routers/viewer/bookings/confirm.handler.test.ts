@@ -10,10 +10,12 @@ import {
   mockSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { expectWorkflowToBeTriggered } from "@calcom/web/test/utils/bookingScenario/expects";
 
-import { describe, it, beforeEach, vi, expect } from "vitest";
+import { describe, beforeEach, vi, expect } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import type { TrpcSessionUser } from "../../../types";
 import { confirmHandler } from "./confirm.handler";
@@ -25,7 +27,9 @@ describe("confirmHandler", () => {
     mockNoTranslations();
   });
 
-  it("should successfully confirm booking when event type doesn't have any default location", async () => {
+  test("should successfully confirm booking when event type doesn't have any default location", async ({
+    emails,
+  }) => {
     const attendeeUser = getOrganizer({
       email: "test@example.com",
       name: "test name",
@@ -60,8 +64,8 @@ describe("confirmHandler", () => {
         workflows: [
           {
             userId: organizer.id,
-            trigger: "BOOKING_REJECTED",
-            action: "EMAIL_ATTENDEE",
+            trigger: "NEW_EVENT",
+            action: "EMAIL_HOST",
             template: "REMINDER",
             activeOn: [1],
           },
@@ -92,6 +96,7 @@ describe("confirmHandler", () => {
             location: "integrations:daily",
             attendees: [attendeeUser],
             responses: { name: attendeeUser.name, email: attendeeUser.email, guests: [] },
+            userPrimaryEmail: organizer.email,
           },
         ],
         organizer,
@@ -118,9 +123,10 @@ describe("confirmHandler", () => {
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
+    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 
-  it("should trigger BOOKING_REJECTED workflow when booking is rejected", async () => {
+  test("should trigger BOOKING_REJECTED workflow when booking is rejected", async ({ emails }) => {
     const attendeeUser = getOrganizer({
       email: "test@example.com",
       name: "test name",
@@ -145,8 +151,8 @@ describe("confirmHandler", () => {
         workflows: [
           {
             userId: organizer.id,
-            trigger: "BOOKING_REJECTED",
-            action: "EMAIL_ATTENDEE",
+            trigger: "NEW_EVENT",
+            action: "EMAIL_HOST",
             template: "REMINDER",
             activeOn: [1],
           },
@@ -177,6 +183,7 @@ describe("confirmHandler", () => {
             location: "integrations:daily",
             attendees: [attendeeUser],
             responses: { name: attendeeUser.name, email: attendeeUser.email, guests: [] },
+            userPrimaryEmail: organizer.email,
           },
         ],
         organizer,
@@ -203,5 +210,6 @@ describe("confirmHandler", () => {
     });
 
     expect(res?.status).toBe(BookingStatus.REJECTED);
+    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 });
