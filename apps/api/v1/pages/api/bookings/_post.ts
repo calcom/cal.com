@@ -249,14 +249,6 @@ async function handler(req: NextApiRequest) {
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       },
-      actor:
-        isSystemWideAdmin || isOrganizationOwnerOrAdmin
-          ? {
-              id: req.userId,
-              email: req.user?.email || "",
-              isAdmin: true,
-            }
-          : undefined,
       schemaGetter: getBookingDataSchemaForApi,
     });
   } catch (error: unknown) {

@@ -46,8 +46,6 @@ import { v4 as uuidv4 } from "uuid";
 import { X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
-  handleNewRecurringBooking,
-  handleNewBooking,
   BookingResponse,
   HttpError,
   handleInstantMeeting,
@@ -57,6 +55,7 @@ import {
   handleCancelBooking,
   getBookingForReschedule,
   ErrorCode,
+  getBookingCreateService,
 } from "@calcom/platform-libraries";
 import {
   GetBookingsInput_2024_04_15,
@@ -187,7 +186,8 @@ export class BookingsController_2024_04_15 {
     const { orgSlug, locationUrl } = body;
     try {
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
-      const booking = await handleNewBooking({
+      const bookingService = getBookingCreateService();
+      const booking = await bookingService.create({
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
         hostname: bookingRequest.headers?.host || "",
@@ -315,7 +315,8 @@ export class BookingsController_2024_04_15 {
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
 
-      const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+      const bookingService = getBookingCreateService();
+      const createdBookings: BookingResponse[] = await bookingService.createRecurringBooking({
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
         hostname: bookingRequest.headers?.host || "",

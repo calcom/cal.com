@@ -1,88 +1,69 @@
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import type { HandleNewBookingService } from "@calcom/features/bookings/lib/handleNewBooking";
 import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
-import type {
-  CreateBookingInput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
-} from "@calcom/platform-types";
 
+import type {
+  CreateBookingInput,
+  CreateRecurringBookingInput,
+  CreateInstantBookingInput,
+} from "./BookingCreateTypes";
 import type { IBookingCreateService } from "./IBookingCreateService";
 
+export interface IBookingCreateServiceDependencies {
+  handleNewBookingService: HandleNewBookingService;
+}
+
 export class BookingCreateService implements IBookingCreateService {
-  constructor() {
-    // No dependencies needed for now since we're just wrapping existing functions
+  constructor(private readonly dependencies: IBookingCreateServiceDependencies) {}
+
+  async createBooking(input: { bookingData: any; schemaGetter?: any }) {
+    const { bookingData, schemaGetter } = input;
+
+    return this.dependencies.handleNewBookingService.handle({ bookingData }, schemaGetter);
   }
 
-  async createBooking(input: { bookingData: any; actor?: any; schemaGetter?: any }) {
-    const { bookingData, actor, schemaGetter } = input;
+  async createRecurringBooking(input: { bookingData: CreateRecurringBookingInput }) {
+    const { bookingData } = input;
 
-    // Audit log if actor is provided
-    if (actor) {
-      console.log("[AUDIT] Booking created by actor:", actor);
-    }
-
-    // If schemaGetter is provided, use it (for API v1 compatibility)
-    if (schemaGetter) {
-      return handleNewBooking(bookingData, schemaGetter);
-    }
-
-    return handleNewBooking(bookingData);
+    // handleNewRecurringBooking expects the data in a specific format
+    // We cast to any here as we're adapting between our internal types and the external API
+    return handleNewRecurringBooking(bookingData as any);
   }
 
-  async createRecurringBooking(input: { bookingData: CreateRecurringBookingInput_2024_08_13; actor?: any }) {
-    const { bookingData, actor } = input;
+  async createInstantBooking(input: { bookingData: CreateInstantBookingInput }) {
+    const { bookingData } = input;
 
-    // Audit log if actor is provided
-    if (actor) {
-      console.log("[AUDIT] Recurring booking created by actor:", actor);
-    }
-
-    return handleNewRecurringBooking(bookingData);
+    // handleInstantMeeting expects a NextApiRequest-like object
+    // We cast to any here as we're adapting between our internal types and the external API
+    return handleInstantMeeting(bookingData as any);
   }
 
-  async createInstantBooking(input: { bookingData: CreateInstantBookingInput_2024_08_13; actor?: any }) {
-    const { bookingData, actor } = input;
-
-    // Audit log if actor is provided
-    if (actor) {
-      console.log("[AUDIT] Instant booking created by actor:", actor);
-    }
-
-    return handleInstantMeeting(bookingData);
-  }
-
-  async createSeatedBooking(input: { bookingData: CreateBookingInput_2024_08_13; actor?: any }) {
-    const { bookingData, actor } = input;
-
-    // Audit log if actor is provided
-    if (actor) {
-      console.log("[AUDIT] Seated booking created by actor:", actor);
-    }
+  async createSeatedBooking(input: { bookingData: CreateBookingInput }) {
+    const { bookingData } = input;
 
     // Seated bookings use the same handler as regular bookings
-    return handleNewBooking(bookingData);
+    return this.dependencies.handleNewBookingService.handle({ bookingData });
   }
 
-  async create(input: { bookingData: any; actor?: any; schemaGetter?: any }) {
-    const { bookingData, actor, schemaGetter } = input;
+  async create(input: { bookingData: any; schemaGetter?: any }) {
+    const { bookingData, schemaGetter } = input;
 
     // Check if bookingData is the wrapper object from handleNewBooking
     const actualBookingData = bookingData.bookingData || bookingData;
 
     // Auto-route based on booking data properties
     if ("recurringCount" in actualBookingData && actualBookingData.recurringCount) {
-      return this.createRecurringBooking({ bookingData, actor });
+      return this.createRecurringBooking({ bookingData });
     }
 
     if (!("start" in actualBookingData)) {
-      return this.createInstantBooking({ bookingData, actor });
+      return this.createInstantBooking({ bookingData });
     }
 
     if ("bookingUid" in actualBookingData && actualBookingData.bookingUid) {
-      return this.createSeatedBooking({ bookingData, actor });
+      return this.createSeatedBooking({ bookingData });
     }
 
-    return this.createBooking({ bookingData, actor, schemaGetter });
+    return this.createBooking({ bookingData, schemaGetter });
   }
 }

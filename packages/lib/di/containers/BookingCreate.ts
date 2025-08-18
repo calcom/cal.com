@@ -1,12 +1,29 @@
-import { BookingCreateService } from "@calcom/lib/server/service/booking/BookingCreateService";
-import type { IBookingCreateService } from "@calcom/lib/server/service/booking/IBookingCreateService";
+import { createContainer } from "@evyweb/ioctopus";
 
-// Since the service doesn't require dependencies for now, we can create a singleton instance
-let serviceInstance: IBookingCreateService | null = null;
+import type { BookingCreateService } from "@calcom/lib/server/service/booking/BookingCreateService";
+import type { IBookingCreateService } from "@calcom/lib/server/service/booking/IBookingCreateService";
+import { prismaModule } from "@calcom/prisma/prisma.module";
+
+import { bookingRepositoryModule } from "../modules/Booking";
+import { bookingCreateModule } from "../modules/BookingCreate";
+import { cacheModule } from "../modules/Cache";
+import { checkBookingAndDurationLimitsModule } from "../modules/CheckBookingAndDurationLimits";
+import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
+import { handleNewBookingModule } from "../modules/HandleNewBooking";
+import { DI_TOKENS } from "../tokens";
+
+const container = createContainer();
+container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
+container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
+container.load(DI_TOKENS.CACHE_SERVICE_MODULE, cacheModule);
+container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimitsModule);
+container.load(
+  DI_TOKENS.CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE_MODULE,
+  checkBookingAndDurationLimitsModule
+);
+container.load(DI_TOKENS.HANDLE_NEW_BOOKING_SERVICE_MODULE, handleNewBookingModule);
+container.load(DI_TOKENS.BOOKING_CREATE_SERVICE_MODULE, bookingCreateModule);
 
 export function getBookingCreateService(): IBookingCreateService {
-  if (!serviceInstance) {
-    serviceInstance = new BookingCreateService();
-  }
-  return serviceInstance;
+  return container.get<BookingCreateService>(DI_TOKENS.BOOKING_CREATE_SERVICE);
 }

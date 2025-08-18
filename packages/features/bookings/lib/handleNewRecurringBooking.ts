@@ -1,5 +1,5 @@
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
@@ -22,6 +22,7 @@ export type BookingHandlerInput = {
 } & PlatformParams;
 
 export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
+  const bookingService = getBookingCreateService();
   const data = input.bookingData;
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
@@ -61,11 +62,13 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
       noEmail: input.noEmail !== undefined ? input.noEmail : false,
     };
 
-    const firstBookingResult = await handleNewBooking({
-      bookingData: recurringEventData,
-      hostname: input.hostname || "",
-      forcedSlug: input.forcedSlug as string | undefined,
-      ...handleBookingMeta,
+    const firstBookingResult = await bookingService.createBooking({
+      bookingData: {
+        bookingData: recurringEventData,
+        hostname: input.hostname || "",
+        forcedSlug: input.forcedSlug as string | undefined,
+        ...handleBookingMeta,
+      },
     });
     luckyUsers = firstBookingResult.luckyUsers;
   }
@@ -102,11 +105,13 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
       luckyUsers,
     };
 
-    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking({
-      hostname: input.hostname || "",
-      forcedSlug: input.forcedSlug as string | undefined,
-      bookingData: recurringEventData,
-      ...handleBookingMeta,
+    const promiseEachRecurringBooking = bookingService.createBooking({
+      bookingData: {
+        hostname: input.hostname || "",
+        forcedSlug: input.forcedSlug as string | undefined,
+        bookingData: recurringEventData,
+        ...handleBookingMeta,
+      },
     });
 
     const eachRecurringBooking = await promiseEachRecurringBooking;
