@@ -22,7 +22,7 @@ export interface BookingRouting {
 
 export interface BookingLocation {
   type: string;
-  [key: string]: any; // Allow flexible location data based on type
+  [key: string]: unknown; // Allow flexible location data based on type
 }
 
 export interface BaseBookingInput {
@@ -79,18 +79,33 @@ export type BookingData =
 /**
  * Type guards for identifying booking types
  */
-export function isRecurringBooking(data: any): data is CreateRecurringBookingInput {
-  return "recurrenceCount" in data && data.recurrenceCount;
+export function isRecurringBooking(data: unknown): data is CreateRecurringBookingInput {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "recurrenceCount" in data &&
+    Boolean((data as Record<string, unknown>).recurrenceCount)
+  );
 }
 
-export function isInstantBooking(data: any): data is CreateInstantBookingInput {
-  return "instant" in data && data.instant === true;
+export function isInstantBooking(data: unknown): data is CreateInstantBookingInput {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "instant" in data &&
+    (data as Record<string, unknown>).instant === true
+  );
 }
 
-export function isSeatedBooking(data: any): data is CreateSeatedBookingInput {
-  return "bookingUid" in data && data.bookingUid;
+export function isSeatedBooking(data: unknown): data is CreateSeatedBookingInput {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "bookingUid" in data &&
+    Boolean((data as Record<string, unknown>).bookingUid)
+  );
 }
 
-export function hasStartTime(data: any): boolean {
-  return "start" in data;
+export function hasStartTime(data: unknown): boolean {
+  return typeof data === "object" && data !== null && "start" in data;
 }
