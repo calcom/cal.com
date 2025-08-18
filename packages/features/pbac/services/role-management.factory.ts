@@ -11,7 +11,7 @@ import { RoleService } from "./role.service";
 
 interface IRoleManager {
   isPBACEnabled: boolean;
-  checkPermissionToChangeRole(userId: number, targetId: number, checkAtTeamLevel?: boolean): Promise<void>;
+  checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void>;
   assignRole(
     userId: number,
     organizationId: number,
@@ -30,15 +30,11 @@ class PBACRoleManager implements IRoleManager {
     private readonly permissionCheckService: PermissionCheckService
   ) {}
 
-  async checkPermissionToChangeRole(
-    userId: number,
-    targetId: number,
-    checkAtTeamLevel?: boolean
-  ): Promise<void> {
+  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
       userId,
       teamId: targetId,
-      permission: checkAtTeamLevel ? "team.changeMemberRole" : "organization.changeMemberRole",
+      permission: scope === "team" ? "team.changeMemberRole" : "organization.changeMemberRole",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
@@ -100,14 +96,11 @@ class PBACRoleManager implements IRoleManager {
 
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
-  async checkPermissionToChangeRole(
-    userId: number,
-    targetId: number,
-    checkAtTeamLevel?: boolean
-  ): Promise<void> {
-    const membership = checkAtTeamLevel
-      ? !!(await isTeamAdmin(userId, targetId))
-      : !!(await isOrganisationAdmin(userId, targetId));
+  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
+    const membership =
+      scope === "team"
+        ? !!(await isTeamAdmin(userId, targetId))
+        : !!(await isOrganisationAdmin(userId, targetId));
     // Only OWNER/ADMIN can update role
     if (!membership) {
       throw new RoleManagementError(

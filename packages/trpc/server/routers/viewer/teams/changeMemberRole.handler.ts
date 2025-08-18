@@ -32,7 +32,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
 
   // Check permission to change roles
   try {
-    await roleManager.checkPermissionToChangeRole(ctx.user.id, input.teamId, true);
+    await roleManager.checkPermissionToChangeRole(ctx.user.id, input.teamId, "team");
   } catch (error) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
