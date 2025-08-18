@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { unstable_cache } from "next/cache";
 
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import {
   getEventTypeHosts,
@@ -157,4 +158,21 @@ export async function getCRMData(
     crmAppSlug,
     crmRecordId,
   };
+}
+
+export async function getTeamId(teamSlug: string, orgSlug: string | null): Promise<number | null> {
+  const team = await prisma.team.findFirst({
+    where: {
+      ...getSlugOrRequestedSlug(teamSlug),
+      parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
+    },
+    orderBy: {
+      slug: { sort: "asc", nulls: "last" },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return team?.id ?? null;
 }
