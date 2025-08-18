@@ -670,7 +670,7 @@ export default class Office365CalendarService implements Calendar {
       return new Promise((resolve) => resolve({} as Type));
     }
 
-    if (!response.ok || response.status < 200 || response.status >= 300) {
+    if (!response.ok && (response.status < 200 || response.status >= 300)) {
       response.json().then(console.log);
       throw Error(response.statusText);
     }
