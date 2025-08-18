@@ -7,9 +7,10 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -141,16 +142,20 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
       role: MembershipRole;
     }[];
     creationSource: CreationSource;
+    /**
+     * Whether invitation is a direct user action or not i.e. we need to show them User based errors like inviting existing users or not.
+     */
+    isDirectUserAction?: boolean;
   } & TargetTeam
 ) => {
-  const { inviterName, orgSlug, invitations, language, creationSource } = data;
+  const { inviterName, orgSlug, invitations, language, creationSource, isDirectUserAction = true } = data;
   const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
   const translation = await getTranslation(language ?? "en", "common");
   const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
   const isTeamAnOrg = team.isOrganization;
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
-  const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations);
+  const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations) || !isDirectUserAction;
   const existingUsersToBeInvited = await findUsersWithInviteStatus({
     invitations: uniqueInvitations,
     team,
@@ -262,7 +267,10 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   if (isPlatform) {
     inviterOrgId = team.id;
     orgSlug = team ? team.slug || requestedSlugForTeam : null;
-    isInviterOrgAdmin = await UserRepository.isAdminOrOwnerOfTeam({ userId: inviter.id, teamId: team.id });
+    isInviterOrgAdmin = await new UserRepository(prisma).isAdminOrOwnerOfTeam({
+      userId: inviter.id,
+      teamId: team.id,
+    });
   }
 
   await ensureAtleastAdminPermissions({

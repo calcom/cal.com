@@ -3,25 +3,24 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Avatar,
-  Badge,
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
-  DropdownActions,
-  Icon,
-  showToast,
-  Table,
-  TextField,
-} from "@calcom/ui";
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { DropdownActions, Table } from "@calcom/ui/components/table";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -120,6 +119,22 @@ function UsersTableBare() {
     },
   });
 
+  const verifyWorkflows = trpc.viewer.admin.verifyWorkflows.useMutation({
+    onSuccess: () => {
+      showToast("Workflows verified", "success");
+      utils.viewer.admin.listPaginated.invalidate();
+    },
+  });
+  const whitelistUserWorkflows = trpc.viewer.admin.whitelistUserWorkflows.useMutation({
+    onSuccess: (data) => {
+      showToast(
+        data.whitelistWorkflows ? t("user_workflows_whitelisted") : t("user_workflows_unwhitelisted"),
+        "success"
+      );
+      utils.viewer.admin.listPaginated.invalidate();
+    },
+  });
+
   const handleImpersonateUser = async (username: string | null) => {
     await signIn("impersonation-auth", { username: username, callbackUrl: `${WEBAPP_URL}/event-types` });
   };
@@ -187,14 +202,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <div className="flex flex-row">
+                      <div className="flex gap-3">
                         <span className="text-default">{user.name}</span>
-                        <span className="ml-3">/{user.username}</span>
-                        {user.locked && (
-                          <span className="ml-3">
-                            <Icon name="lock" />
+                        <span>/{user.username}</span>
+                        {user.profiles[0]?.username && (
+                          <span className="flex items-center gap-1">
+                            <Icon name="building" className="text-subtle size-5" />
+                            <span>{user.profiles[0]?.username}</span>
                           </span>
                         )}
+                        {user.locked && <Icon name="lock" />}
                         <br />
                       </div>
                       <span className="break-all">{user.email}</span>
@@ -234,6 +251,25 @@ function UsersTableBare() {
                           label: user.locked ? "Unlock User Account" : "Lock User Account",
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
                           icon: "lock",
+                        },
+                        {
+                          id: "verify-workflows",
+                          label: "Verify workflows",
+                          onClick: () => verifyWorkflows.mutate({ userId: user.id }),
+                          icon: "check",
+                        },
+                        {
+                          id: "whitelist-user-workflows",
+                          label: user.whitelistWorkflows
+                            ? t("remove_whitelist_status")
+                            : t("whitelist_user_workflows"),
+                          onClick: () => {
+                            whitelistUserWorkflows.mutate({
+                              userId: user.id,
+                              whitelistWorkflows: !user.whitelistWorkflows,
+                            });
+                          },
+                          icon: "check",
                         },
                         {
                           id: "impersonation",

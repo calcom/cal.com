@@ -1,5 +1,5 @@
 import type { BookingReference, EventType } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import dayjs from "@calcom/dayjs";
@@ -8,7 +8,6 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
@@ -17,19 +16,20 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
 import { deleteMeeting } from "@calcom/lib/videoClient";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
 
@@ -44,7 +44,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
-  const bookingToReschedule = await prisma.booking.findFirstOrThrow({
+  const bookingToReschedule = await prisma.booking.findUniqueOrThrow({
     select: {
       id: true,
       uid: true,
@@ -109,7 +109,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
     const userTeamIds = userTeams.teams.map((item) => item.teamId);
-    if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
+    if (userTeamIds.indexOf(bookingToReschedule.eventType?.teamId) === -1) {
       throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
     }
     log.debug(
@@ -127,7 +127,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   let event: Partial<EventType> = {};
   if (bookingToReschedule.eventTypeId) {
-    event = await prisma.eventType.findFirstOrThrow({
+    event = await prisma.eventType.findUniqueOrThrow({
       select: {
         title: true,
         schedulingType: true,
@@ -182,7 +182,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const [userAsPeopleType] = usersToPeopleType([user], userTranslation);
   const organizer = {
     ...userAsPeopleType,
-    email: bookingToReschedule?.userPrimaryEmail ?? userAsPeopleType.email,
+    email: bookingToReschedule.userPrimaryEmail ?? userAsPeopleType.email,
   };
 
   const builder = new CalendarEventBuilder();
@@ -195,6 +195,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
+    hideOrganizerEmail: eventType?.hideOrganizerEmail,
     attendees: usersToPeopleType(
       // username field doesn't exists on attendee but could be in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
@@ -202,6 +203,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     ),
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
+    customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: !!bookingToReschedule.eventType?.team
       ? {
           name: bookingToReschedule.eventType.team.name,
@@ -224,7 +226,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentials(user);
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
   const credentialsMap = new Map();
   credentials.forEach((credential) => {
     credentialsMap.set(credential.type, credential);
@@ -274,31 +276,38 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     eventType?.metadata as EventTypeMetadata
   );
 
-  const evt: CalendarEvent = {
-    title: bookingToReschedule?.title,
-    type: event && event.slug ? event.slug : bookingToReschedule.title,
-    description: bookingToReschedule?.description || "",
-    customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
-    ...getCalEventResponses({
-      booking: bookingToReschedule,
-      bookingFields: bookingToReschedule.eventType?.bookingFields ?? null,
-    }),
-    startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
-    endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
+  const calEventResponses = getCalEventResponses({
+    booking: bookingToReschedule,
+    bookingFields: bookingToReschedule.eventType?.bookingFields ?? null,
+  });
+
+  const webhookFactory = new BookingWebhookFactory();
+  const payload = webhookFactory.createCancelledEventPayload({
+    bookingId: bookingToReschedule.id,
+    title: bookingToReschedule.title,
+    eventSlug: event.slug ?? null,
+    description: bookingToReschedule.description,
+    customInputs: bookingToReschedule.customInputs,
+    responses: calEventResponses.responses,
+    userFieldsResponses: calEventResponses.userFieldsResponses,
+    startTime: bookingToReschedule.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
+    endTime: bookingToReschedule.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
     organizer,
     attendees: usersToPeopleType(
       // username field doesn't exists on attendee but could be in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
       tAttendees
     ),
-    uid: bookingToReschedule?.uid,
-    location: bookingToReschedule?.location,
-    destinationCalendar: bookingToReschedule?.destinationCalendar
-      ? [bookingToReschedule?.destinationCalendar]
-      : [],
+    uid: bookingToReschedule.uid,
+    location: bookingToReschedule.location,
+    destinationCalendar: bookingToReschedule.destinationCalendar,
     cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
-    iCalUID: bookingToReschedule?.iCalUID,
-  };
+    iCalUID: bookingToReschedule.iCalUID,
+    ...(bookingToReschedule.smsReminderNumber && {
+      smsReminderNumber: bookingToReschedule.smsReminderNumber,
+    }),
+    cancelledBy: user.email,
+  });
 
   // Send webhook
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
@@ -306,7 +315,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const teamId = await getTeamIdFromEventType({
     eventType: {
       team: { id: bookingToReschedule.eventType?.teamId ?? null },
-      parentId: bookingToReschedule?.eventType?.parentId ?? null,
+      parentId: bookingToReschedule.eventType?.parentId ?? null,
     },
   });
 
@@ -325,13 +334,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const webhooks = await getWebhooks(subscriberOptions);
 
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
-      cancelledBy: user.email,
-    }).catch((e) => {
+    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
       log.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${payload.bookingId}, bookingUid: ${payload.uid}`,
         safeStringify(e)
       );
     })

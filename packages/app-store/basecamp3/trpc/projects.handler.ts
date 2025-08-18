@@ -1,12 +1,12 @@
 import type { PrismaClient } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import type { BasecampToken } from "../lib/CalendarService";
 import { refreshAccessToken } from "../lib/helpers";
+import type { BasecampToken } from "../lib/types";
 
 interface ProjectsHandlerOptions {
   ctx: {

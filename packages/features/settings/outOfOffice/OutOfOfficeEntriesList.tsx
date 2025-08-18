@@ -7,7 +7,6 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Trans } from "next-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
@@ -17,20 +16,31 @@ import {
   DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
+  useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
+  DataTableSegment,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, Tooltip } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
-import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -54,17 +64,28 @@ interface OutOfOfficeEntry {
 }
 
 export default function OutOfOfficeEntriesList() {
+  const { t } = useLocale();
+
   return (
-    <DataTableProvider>
-      <OutOfOfficeEntriesListContent />
-    </DataTableProvider>
+    <SettingsHeader
+      title={t("out_of_office")}
+      description={t("out_of_office_description")}
+      CTA={
+        <div className="flex gap-2">
+          <OutOfOfficeToggleGroup />
+          <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
+        </div>
+      }>
+      <DataTableProvider useSegments={useSegments}>
+        <OutOfOfficeEntriesListContent />
+      </DataTableProvider>
+    </SettingsHeader>
   );
 }
 
 function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
@@ -74,13 +95,14 @@ function OutOfOfficeEntriesListContent() {
     setOpenModal(true);
   };
 
+  const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
   const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
-    trpc.viewer.outOfOfficeEntriesList.useInfiniteQuery(
+    trpc.viewer.ooo.outOfOfficeEntriesList.useInfiniteQuery(
       {
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
@@ -191,14 +213,13 @@ function OutOfOfficeEntriesListContent() {
                       </p>
                       <p className="px-2">
                         {item.toUser?.username ? (
-                          <Trans
+                          <ServerTrans
+                            t={t}
                             i18nKey="ooo_forwarding_to"
                             values={{
                               username: item.toUser?.username,
                             }}
-                            components={{
-                              span: <span className="text-subtle font-bold" />,
-                            }}
+                            components={[<span key="ooo-username" className="text-subtle font-bold" />]}
                           />
                         ) : (
                           <>{t("ooo_not_forwarding")}</>
@@ -230,7 +251,7 @@ function OutOfOfficeEntriesListContent() {
           return (
             <>
               {row.original && !isPending && !isFetching ? (
-                <div className="flex flex-row items-center justify-end gap-x-2">
+                <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
                       className="self-center rounded-lg border"
@@ -240,14 +261,16 @@ function OutOfOfficeEntriesListContent() {
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
-                        const offset = dayjs().utcOffset();
+                        const startDateOffset = -1 * item.start.getTimezoneOffset();
+                        const endDateOffset = -1 * item.end.getTimezoneOffset();
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
+                            startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
                           },
-                          offset,
+                          startDateOffset,
+                          endDateOffset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,
@@ -314,7 +337,7 @@ function OutOfOfficeEntriesListContent() {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);
@@ -329,7 +352,7 @@ function OutOfOfficeEntriesListContent() {
     <>
       <DataTableWrapper
         testId="ooo-list-data-table"
-        hideHeader={selectedTab === OutOfOfficeTab.MINE}
+        rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
         table={table}
         isPending={isPending}
         hasNextPage={hasNextPage}
@@ -338,12 +361,17 @@ function OutOfOfficeEntriesListContent() {
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
-        ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
         ToolbarRight={
           <>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }
         EmptyView={
@@ -367,9 +395,11 @@ function OutOfOfficeEntriesListContent() {
                       <div className="w-12" />
                     </div>
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                      <Icon name="clock" size={28} />
+                      <Icon name="clock" size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
-                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
+                        z
+                      </span>
                     </div>
                   </div>
                 </div>

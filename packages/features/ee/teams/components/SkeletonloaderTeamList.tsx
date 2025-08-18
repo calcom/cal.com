@@ -1,14 +1,16 @@
-import { SkeletonText } from "@calcom/ui";
+"use client";
+
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 function SkeletonLoaderTeamList() {
   return (
-    <>
-      <ul className="border-subtle bg-default divide-subtle -mx-4 animate-pulse divide-y rounded-md border sm:mx-0 sm:overflow-hidden">
+    <div className="w-full">
+      <ul className="bg-default divide-subtle border-subtle divide-y overflow-hidden rounded-md border">
         <SkeletonItem />
         <SkeletonItem />
         <SkeletonItem />
       </ul>
-    </>
+    </div>
   );
 }
 
@@ -16,21 +18,21 @@ export default SkeletonLoaderTeamList;
 
 function SkeletonItem() {
   return (
-    <li className="group flex w-full items-center justify-between px-3 py-4">
-      <div className="flex-grow truncate text-sm">
-        <div className="flex justify-start space-x-2 px-2 rtl:space-x-reverse">
-          <SkeletonText className="h-10 w-10 rounded-full" />
-          <div className="flex flex-col space-y-2">
-            <SkeletonText className="h-4 w-32" />
-            <SkeletonText className="h-4 w-16" />
-          </div>
+    <li className="flex w-full items-center justify-between">
+      <div className="flex items-center space-x-3 p-5 rtl:space-x-reverse">
+        <SkeletonText className="h-8 w-8 rounded-full" />
+        <div className="flex flex-col space-y-2">
+          <SkeletonText className="h-4 w-32" />
+          <SkeletonText className="h-3 w-24" />
         </div>
       </div>
-      <div className="mt-4 hidden flex-shrink-0 pr-4 sm:ml-5 sm:mt-0 lg:flex">
-        <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <SkeletonText className="h-4 w-12" />
-          <SkeletonText className="h-4 w-4" />
-          <SkeletonText className="h-4 w-4" />
+      <div className="p-5">
+        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          <SkeletonText className="h-4 w-16" />
+          <div className="flex space-x-2 rtl:space-x-reverse">
+            <SkeletonText className="h-8 w-8 rounded" />
+            <SkeletonText className="h-8 w-8 rounded" />
+          </div>
         </div>
       </div>
     </li>

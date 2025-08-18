@@ -11,32 +11,30 @@ import { z } from "zod";
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import cs from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
-  EmptyScreen,
-  Form,
-  Icon,
-  List,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  Switch,
-  TextField,
-} from "@calcom/ui";
-import cs from "@calcom/ui/classNames";
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { List } from "@calcom/ui/components/list";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
-type App = RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
+type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 
 const IntegrationContainer = ({
   app,
@@ -66,9 +64,9 @@ const IntegrationContainer = ({
     }
   };
 
-  const enableAppMutation = trpc.viewer.appsRouter.toggle.useMutation({
+  const enableAppMutation = trpc.viewer.apps.toggle.useMutation({
     onSuccess: (enabled) => {
-      utils.viewer.appsRouter.listLocal.invalidate({ category });
+      utils.viewer.apps.listLocal.invalidate({ category });
       setDisableDialog(false);
       showToast(
         enabled ? t("app_is_enabled", { appName: app.name }) : t("app_is_disabled", { appName: app.name }),
@@ -141,6 +139,7 @@ const AdminAppsList = ({
   useQueryParam = false,
   classNames,
   onSubmit = noop,
+  nav,
   ...rest
 }: {
   baseURL: string;
@@ -153,7 +152,9 @@ const AdminAppsList = ({
   className?: string;
   useQueryParam?: boolean;
   onSubmit?: () => void;
+  nav?: { onNext: () => void; onPrev: () => void };
 } & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
+  const { t } = useLocale();
   return (
     <form
       {...rest}
@@ -163,6 +164,7 @@ const AdminAppsList = ({
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
+        nav?.onNext();
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}
@@ -174,6 +176,16 @@ const AdminAppsList = ({
         }}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
+      <div className="flex justify-end gap-2 px-4 py-4">
+        {nav && (
+          <Button type="button" color="secondary" onClick={nav.onPrev}>
+            {t("prev_step")}
+          </Button>
+        )}
+        <Button type="submit" color="primary">
+          {t("finish")}
+        </Button>
+      </div>
     </form>
   );
 };
@@ -197,10 +209,10 @@ const EditKeysModal: FC<{
     resolver: zodResolver(appKeySchema),
   });
 
-  const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.saveKeys.useMutation({
     onSuccess: () => {
       showToast(fromEnabled ? t("app_is_enabled", { appName }) : t("keys_have_been_saved"), "success");
-      utils.viewer.appsRouter.listLocal.invalidate();
+      utils.viewer.apps.listLocal.invalidate();
       handleModelClose();
     },
     onError: (error) => {
@@ -271,7 +283,7 @@ const AdminAppsListContainer = () => {
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
 
-  const { data: apps, isPending } = trpc.viewer.appsRouter.listLocal.useQuery(
+  const { data: apps, isPending } = trpc.viewer.apps.listLocal.useQuery(
     { category },
     { enabled: searchParams !== null }
   );

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -43,6 +43,7 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
+  const billingService = new StripeBillingService();
 
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
@@ -130,7 +131,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
-      await stripe.customers.update(userMetadataParsed.stripeCustomerId, {
+      await billingService.updateCustomer({
+        customerId: userMetadataParsed.stripeCustomerId,
         email: updatedEmail,
       });
     }

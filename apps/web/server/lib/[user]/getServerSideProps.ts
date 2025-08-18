@@ -1,4 +1,3 @@
-import type { DehydratedState } from "@tanstack/react-query";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
@@ -14,17 +13,15 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
+import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-
-import { ssrInit } from "@server/lib/ssr";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
-  trpcState: DehydratedState;
   profile: {
     name: string;
     image: string;
@@ -63,6 +60,7 @@ type UserPageProps = {
     | "length"
     | "hidden"
     | "lockTimeZoneToggleOnBookingPage"
+    | "lockedTimeZone"
     | "requiresConfirmation"
     | "canSendCalVideoTranscriptionEmails"
     | "requiresBookerEmailVerification"
@@ -74,33 +72,27 @@ type UserPageProps = {
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
-  const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
-  const isOrgContext = isValidOrgDomain && !!currentOrgDomain;
-
   const dataFetchStart = Date.now();
 
-  if (!isOrgContext) {
-    // If there is no org context, see if some redirect is setup due to org migration
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernameList,
-      redirectType: RedirectType.User,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
+  const redirect = await handleOrgRedirect({
+    slugs: usernameList,
+    redirectType: RedirectType.User,
+    eventTypeSlug: null,
+    context,
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+  });
 
-    if (redirect) {
-      return redirect;
-    }
+  if (redirect) {
+    return redirect;
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const usersInOrgContext = await getUsersInOrgContext(
     usernameList,
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
+    isValidOrgDomain ? currentOrgDomain : null
+  );
 
   const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
@@ -197,9 +189,29 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
-      trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
     },
   };
 };
+
+export async function getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
+  const userRepo = new UserRepository(prisma);
+
+  const usersInOrgContext = await userRepo.findUsersByUsername({
+    usernameList,
+    orgSlug,
+  });
+
+  if (usersInOrgContext.length) {
+    return usersInOrgContext;
+  }
+
+  // note(Lauris): platform members (people who run platform) are part of platform organization while
+  // the platform organization does not have a domain. In this case there is no org domain but also platform member
+  // "User.organization" is not null so "UserRepository.findUsersByUsername" returns empty array and we do this as a last resort
+  // call to find platform member.
+  return await userRepo.findPlatformMembersByUsernames({
+    usernameList,
+  });
+}

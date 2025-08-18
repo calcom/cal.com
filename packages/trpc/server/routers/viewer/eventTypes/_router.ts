@@ -8,6 +8,8 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
+import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
+import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -29,25 +31,17 @@ type BookingsRouterHandlerCache = {
   bulkUpdateToDefaultLocation?: typeof import("./bulkUpdateToDefaultLocation.handler").bulkUpdateToDefaultLocationHandler;
 };
 
+// Init the handler cache
 const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
   getByViewer: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
-      UNSTABLE_HANDLER_CACHE.getByViewer = await import("./getByViewer.handler").then(
-        (mod) => mod.getByViewerHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
-      throw new Error("Failed to load handler");
-    }
+    const { getByViewerHandler } = await import("./getByViewer.handler");
 
     const timer = logP(`getByViewer(${ctx.user.id})`);
 
-    const result = await UNSTABLE_HANDLER_CACHE.getByViewer({
+    const result = await getByViewerHandler({
       ctx,
       input,
     });
@@ -57,20 +51,11 @@ export const eventTypesRouter = router({
     return result;
   }),
   getUserEventGroups: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getUserEventGroups) {
-      UNSTABLE_HANDLER_CACHE.getUserEventGroups = await import("./getUserEventGroups.handler").then(
-        (mod) => mod.getUserEventGroups
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getUserEventGroups) {
-      throw new Error("Failed to load handler");
-    }
+    const { getUserEventGroups } = await import("./getUserEventGroups.handler");
 
     const timer = logP(`getUserEventGroups(${ctx.user.id})`);
 
-    const result = await UNSTABLE_HANDLER_CACHE.getUserEventGroups({
+    const result = await getUserEventGroups({
       ctx,
       input,
     });
@@ -83,20 +68,11 @@ export const eventTypesRouter = router({
   getEventTypesFromGroup: authedProcedure
     .input(ZGetEventTypesFromGroupSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup) {
-        UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup = await import("./getEventTypesFromGroup.handler").then(
-          (mod) => mod.getEventTypesFromGroup
-        );
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup) {
-        throw new Error("Failed to load handler");
-      }
+      const { getEventTypesFromGroup } = await import("./getEventTypesFromGroup.handler");
 
       const timer = logP(`getEventTypesFromGroup(${ctx.user.id})`);
 
-      const result = await UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup({
+      const result = await getEventTypesFromGroup({
         ctx,
         input,
       });
@@ -109,20 +85,11 @@ export const eventTypesRouter = router({
   getTeamAndEventTypeOptions: authedProcedure
     .input(ZGetTeamAndEventTypeOptionsSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions) {
-        UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions = await import(
-          "./getTeamAndEventTypeOptions.handler"
-        ).then((mod) => mod.getTeamAndEventTypeOptions);
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions) {
-        throw new Error("Failed to load handler");
-      }
+      const { getTeamAndEventTypeOptions } = await import("./getTeamAndEventTypeOptions.handler");
 
       const timer = logP(`getTeamAndEventTypeOptions(${ctx.user.id})`);
 
-      const result = await UNSTABLE_HANDLER_CACHE.getTeamAndEventTypeOptions({
+      const result = await getTeamAndEventTypeOptions({
         ctx,
         input,
       });
@@ -133,48 +100,25 @@ export const eventTypesRouter = router({
     }),
 
   list: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
-    }
+    const { listHandler } = await import("./list.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.list({
+    return listHandler({
       ctx,
     });
   }),
 
   listWithTeam: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listWithTeam) {
-      UNSTABLE_HANDLER_CACHE.listWithTeam = await import("./listWithTeam.handler").then(
-        (mod) => mod.listWithTeamHandler
-      );
-    }
+    const { listWithTeamHandler } = await import("./listWithTeam.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listWithTeam) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.listWithTeam({
+    return listWithTeamHandler({
       ctx,
     });
   }),
 
   create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
-    }
+    const { createHandler } = await import("./create.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.create({
+    return createHandler({
       ctx,
       input,
     });
@@ -183,68 +127,36 @@ export const eventTypesRouter = router({
   get,
 
   update: eventOwnerProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
-    }
+    const { updateHandler } = await import("./update.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.update({
+    return updateHandler({
       ctx,
       input,
     });
   }),
 
   delete: eventOwnerProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
-    }
+    const { deleteHandler } = await import("./delete.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.delete({
+    return deleteHandler({
       ctx,
       input,
     });
   }),
 
   duplicate: eventOwnerProcedure.input(ZDuplicateInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
-      UNSTABLE_HANDLER_CACHE.duplicate = await import("./duplicate.handler").then(
-        (mod) => mod.duplicateHandler
-      );
-    }
+    const { duplicateHandler } = await import("./duplicate.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.duplicate({
+    return duplicateHandler({
       ctx,
       input,
     });
   }),
 
   bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.bulkEventFetch) {
-      UNSTABLE_HANDLER_CACHE.bulkEventFetch = await import("./bulkEventFetch.handler").then(
-        (mod) => mod.bulkEventFetchHandler
-      );
-    }
+    const { bulkEventFetchHandler } = await import("./bulkEventFetch.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.bulkEventFetch) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.bulkEventFetch({
+    return bulkEventFetchHandler({
       ctx,
     });
   }),
@@ -256,20 +168,29 @@ export const eventTypesRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultLocation) {
-        UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultLocation = await import(
-          "./bulkUpdateToDefaultLocation.handler"
-        ).then((mod) => mod.bulkUpdateToDefaultLocationHandler);
-      }
+      const { bulkUpdateToDefaultLocationHandler } = await import("./bulkUpdateToDefaultLocation.handler");
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultLocation) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultLocation({
+      return bulkUpdateToDefaultLocationHandler({
         ctx,
         input,
       });
     }),
+
+  getHashedLink: authedProcedure.input(ZGetHashedLinkInputSchema).query(async ({ ctx, input }) => {
+    const { getHashedLinkHandler } = await import("./getHashedLink.handler");
+
+    return getHashedLinkHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  getHashedLinks: authedProcedure.input(ZGetHashedLinksInputSchema).query(async ({ ctx, input }) => {
+    const { getHashedLinksHandler } = await import("./getHashedLinks.handler");
+
+    return getHashedLinksHandler({
+      ctx,
+      input,
+    });
+  }),
 });

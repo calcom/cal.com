@@ -8,6 +8,12 @@ export const isVisitorWithinPercentage = ({ percentage }: { percentage: number }
   if (process.env.NEXT_PUBLIC_IS_E2E) {
     return true;
   }
+
+  // Because uid cookie is known to be not accessible in third party context inside embed(in some cases), we could just return true if the feature is 100% enabled
+  // It ensures that when the feature is 100% enabled, it is enabled in embeds too
+  if (percentage >= 100) {
+    return true;
+  }
   // TODO: The cookie is currently set when a timeslot is selected but we plan to create it on visitor's visit itself
   // Current purpose is to identify the visitor who reserved a timeslot but could be used for feature rollout and other UX improvements(like if duplicate booking is attempted by the same person)
   const visitorId = getCookie("uid");

@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  MAX_SEATS_PER_TIME_SLOT,
+  MAX_EVENT_DURATION_MINUTES,
+  MIN_EVENT_DURATION_MINUTES,
+} from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -79,7 +84,7 @@ const schemaEventTypeCreateParams = z
     title: z.string(),
     slug: z.string().transform((s) => slugify(s)),
     description: z.string().optional().nullable(),
-    length: z.number().int(),
+    length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
     metadata: z.any().optional(),
     recurringEvent: recurringEventInputSchema.optional(),
     seatsPerTimeSlot: z.number().optional(),
@@ -103,7 +108,7 @@ const schemaEventTypeEditParams = z
       .transform((s) => slugify(s))
       .optional(),
     length: z.number().int().optional(),
-    seatsPerTimeSlot: z.number().optional(),
+    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
     seatsShowAttendees: z.boolean().optional(),
     seatsShowAvailabilityCount: z.boolean().optional(),
     bookingFields: eventTypeBookingFields.optional(),

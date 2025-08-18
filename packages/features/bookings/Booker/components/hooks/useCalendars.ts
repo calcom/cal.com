@@ -60,7 +60,7 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
     [isError]
   );
 
-  const { data, isPending } = trpc.viewer.connectedCalendars.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
     enabled: !!calendarSettingsOverlay || Boolean(searchParams?.get("overlayCalendar")),
   });
 

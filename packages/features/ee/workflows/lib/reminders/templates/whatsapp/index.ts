@@ -1,4 +1,4 @@
-export * from "./whatsappEventCancelledTemplate";
-export * from "./whatsappEventCompletedTemplate";
-export * from "./whatsappEventReminderTemplate";
-export * from "./whatsappEventRescheduledTemplate";
+export { whatsappEventCancelledTemplate } from "./whatsappEventCancelledTemplate";
+export { whatsappEventCompletedTemplate } from "./whatsappEventCompletedTemplate";
+export { whatsappReminderTemplate } from "./whatsappEventReminderTemplate";
+export { whatsappEventRescheduledTemplate } from "./whatsappEventRescheduledTemplate";

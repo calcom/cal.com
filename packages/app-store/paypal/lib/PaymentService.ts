@@ -37,7 +37,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookingId: Booking["id"]
   ) {
     try {
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findUnique({
         select: {
           uid: true,
           title: true,
@@ -113,7 +113,7 @@ export class PaymentService implements IAbstractPaymentService {
       throw new Error("Payment option is not compatible with create method");
     }
     try {
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findUnique({
         select: {
           uid: true,
           title: true,

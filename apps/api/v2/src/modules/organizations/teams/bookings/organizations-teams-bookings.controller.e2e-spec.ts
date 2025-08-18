@@ -265,7 +265,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
     });
 
     describe("get team bookings", () => {
-      it("should should get bookings by teamId", async () => {
+      it("should get bookings by teamId", async () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/teams/${team1.id}/bookings`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -313,18 +313,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/teams/${team1.id}/bookings?eventTypeId=90909`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            const data: (
-              | BookingOutput_2024_08_13
-              | RecurringBookingOutput_2024_08_13
-              | GetSeatedBookingOutput_2024_08_13
-            )[] = responseBody.data;
-            expect(data.length).toEqual(0);
-          });
+          .expect(400);
       });
 
       it("should not get bookings by non existing teamId", async () => {

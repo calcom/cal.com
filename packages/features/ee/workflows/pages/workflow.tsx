@@ -10,15 +10,18 @@ import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Badge, Button, Form, showToast } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
@@ -39,17 +42,9 @@ export type FormValues = {
 
 type PageProps = {
   workflow: number;
-  workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
-  verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
-  verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
 };
 
-function WorkflowPage({
-  workflow: workflowId,
-  workflowData: workflowDataProp,
-  verifiedNumbers: verifiedNumbersProp,
-  verifiedEmails: verifiedEmailsProp,
-}: PageProps) {
+function WorkflowPage({ workflow: workflowId }: PageProps) {
   const { t, i18n } = useLocale();
   const session = useSession();
 
@@ -69,35 +64,23 @@ function WorkflowPage({
 
   const {
     data: workflowData,
-    isError: _isError,
+    isError,
     error,
-    isPending: _isPendingWorkflow,
-  } = trpc.viewer.workflows.get.useQuery(
-    { id: +workflowId },
-    {
-      enabled: workflowDataProp ? false : !!workflowId,
-    }
-  );
+    isPending: isPendingWorkflow,
+  } = trpc.viewer.workflows.get.useQuery({ id: +workflowId });
 
-  const workflow = workflowDataProp || workflowData;
-  const isPendingWorkflow = workflowDataProp ? false : _isPendingWorkflow;
-  const isError = workflowDataProp ? false : _isError;
+  const workflow = workflowData;
 
-  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
-      enabled: verifiedNumbersProp ? false : !!workflow?.id,
+      enabled: !!workflow?.id,
     }
   );
-  const verifiedNumbers = verifiedNumbersProp || verifiedNumbersData;
 
-  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
-    {
-      teamId: workflow?.team?.id,
-    },
-    { enabled: !verifiedEmailsProp }
-  );
-  const verifiedEmails = verifiedEmailsProp || verifiedEmailsData;
+  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
+    teamId: workflow?.team?.id,
+  });
 
   const isOrg = workflow?.team?.isOrganization ?? false;
 
@@ -122,9 +105,7 @@ function WorkflowPage({
     });
   }
 
-  const readOnly =
-    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
-    MembershipRole.MEMBER;
+  const readOnly = !workflow?.permissions.canUpdate;
 
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
@@ -206,8 +187,8 @@ function WorkflowPage({
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
-        setFormData(workflow);
+        await utils.viewer.workflows.get.invalidate({ id: +workflow.id });
+
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
@@ -225,7 +206,7 @@ function WorkflowPage({
   });
 
   return session.data ? (
-    <Shell withoutSeo={true} withoutMain backPath="/workflows">
+    <Shell withoutMain backPath="/workflows">
       <LicenseRequired>
         <Form
           form={form}
@@ -344,6 +325,7 @@ function WorkflowPage({
                 {isAllDataLoaded && user ? (
                   <>
                     <WorkflowDetailsPage
+                      permissions={workflow?.permissions}
                       form={form}
                       workflowId={+workflowId}
                       user={user}

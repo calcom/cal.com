@@ -26,7 +26,7 @@ export class OrganizationsEventTypesService {
     private readonly usersService: UsersService
   ) {}
 
-  async createTeamEventType(
+  async createOrganizationTeamEventType(
     user: UserWithProfile,
     teamId: number,
     orgId: number,
@@ -48,7 +48,7 @@ export class OrganizationsEventTypesService {
       },
     });
 
-    return this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user);
+    return this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user, true);
   }
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
@@ -91,13 +91,13 @@ export class OrganizationsEventTypesService {
     return await this.organizationEventTypesRepository.getOrganizationTeamsEventTypes(orgId, skip, take);
   }
 
-  async updateTeamEventType(
+  async updateOrganizationTeamEventType(
     eventTypeId: number,
     teamId: number,
     body: TransformedUpdateTeamEventTypeInput,
     user: UserWithProfile
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
-    return this.teamsEventTypesService.updateTeamEventType(eventTypeId, teamId, body, user);
+    return this.teamsEventTypesService.updateTeamEventType(eventTypeId, teamId, body, user, true);
   }
 
   async deleteTeamEventType(teamId: number, eventTypeId: number) {

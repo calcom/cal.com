@@ -1,3 +1,4 @@
+import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
@@ -40,8 +41,10 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const requestId = request.headers["X-Request-Id"];
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+    response.setHeader("X-Request-Id", requestId.toString());
 
+    const userContext = extractUserContext(request);
     this.logger.error(`PrismaError: ${error.message}`, {
       error,
       body: request.body,
@@ -49,6 +52,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       url: request.url,
       method: request.method,
       requestId,
+      ...userContext,
     });
 
     let message = "There was an error, please try again later.";

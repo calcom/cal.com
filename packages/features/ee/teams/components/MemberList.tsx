@@ -5,7 +5,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  getFacetedUniqueValues,
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
@@ -16,14 +15,18 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
-  DataTable,
   DataTableProvider,
   DataTableToolbar,
   DataTableFilters,
+  DataTableWrapper,
   DataTableSelectionBar,
+  useDataTable,
   useFetchMoreOnBottomReached,
   useColumnFilters,
+  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
@@ -33,17 +36,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
-  Avatar,
-  Badge,
-  Button,
-  ButtonGroup,
-  Checkbox,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import {
   Dropdown,
   DropdownItem,
   DropdownMenuPortal,
@@ -51,9 +54,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
-  Tooltip,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Checkbox } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
@@ -148,6 +152,17 @@ interface Props {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
   isOrgAdminOrOwner: boolean | undefined;
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
+  facetedTeamValues?: {
+    roles: { id: string; name: string }[];
+    teams: RouterOutputs["viewer"]["teams"]["get"][];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
 }
 
 export default function MemberList(props: Props) {
@@ -159,6 +174,7 @@ export default function MemberList(props: Props) {
 }
 
 function MemberListContent(props: Props) {
+  const { facetedTeamValues } = props;
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
@@ -169,13 +185,14 @@ function MemberListContent(props: Props) {
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const { searchTerm } = useDataTable();
 
   const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
     trpc.viewer.teams.listMembers.useInfiniteQuery(
       {
         limit: 10,
-        searchTerm: debouncedSearchTerm,
+        searchTerm,
         teamId: props.team.id,
         // TODO: send `columnFilters` to server for server side filtering
         // filters: columnFilters,
@@ -235,7 +252,7 @@ function MemberListContent(props: Props) {
       const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
-        searchTerm: debouncedSearchTerm,
+        searchTerm,
       });
 
       if (previousValue) {
@@ -243,7 +260,7 @@ function MemberListContent(props: Props) {
           utils,
           memberId: state.deleteMember.user?.id as number,
           teamId: teamIds[0],
-          searchTerm: debouncedSearchTerm,
+          searchTerm,
         });
       }
       return { previousValue };
@@ -275,9 +292,7 @@ function MemberListContent(props: Props) {
   //   return owners.length;
   // };
 
-  const isAdminOrOwner =
-    props.team.membership.role === MembershipRole.OWNER ||
-    props.team.membership.role === MembershipRole.ADMIN;
+  const isAdminOrOwner = checkAdminOrOwner(props.team.membership.role);
 
   const removeMember = () =>
     removeMemberMutation.mutate({
@@ -302,7 +317,6 @@ function MemberListContent(props: Props) {
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (
@@ -362,7 +376,9 @@ function MemberListContent(props: Props) {
         header: "Role",
         size: 100,
         cell: ({ row, table }) => {
-          const { role, accepted } = row.original;
+          const { role, accepted, customRole } = row.original;
+          const roleName = customRole?.name || role;
+          const roleIdentifier = customRole?.id || role;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {!accepted && (
@@ -380,22 +396,25 @@ function MemberListContent(props: Props) {
                 data-testid="member-role"
                 variant={role === "MEMBER" ? "gray" : "blue"}
                 onClick={() => {
-                  table.getColumn("role")?.setFilterValue([role]);
+                  table.getColumn("role")?.setFilterValue([roleIdentifier]);
                 }}>
-                {role}
+                {roleName}
               </Badge>
             </div>
           );
         },
         filterFn: (rows, id, filterValue) => {
           const { data } = filterValue;
+          const { role, accepted, customRole } = rows.original;
+          const roleIdentifier = customRole?.id || role;
+
           if (data.includes("PENDING")) {
-            if (data.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || data.includes(rows.getValue(id));
+            if (data.length === 1) return !accepted;
+            else return !accepted || data.includes(roleIdentifier);
           }
 
-          // Show only the selected roles
-          return data.includes(rows.getValue(id));
+          // Show only the selected roles (check both traditional role and custom role ID)
+          return data.includes(roleIdentifier);
         },
       },
       {
@@ -642,7 +661,23 @@ function MemberListContent(props: Props) {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedUniqueValues: (_, columnId) => () => {
+      if (facetedTeamValues) {
+        switch (columnId) {
+          case "role":
+            // Include both traditional roles and PBAC custom roles
+            const allRoles = facetedTeamValues.roles.map((role) => ({
+              label: role.name,
+              value: role.id,
+            }));
+
+            return convertFacetedValuesToMap(allRoles);
+          default:
+            return new Map();
+        }
+      }
+      return new Map();
+    },
     getRowId: (row) => `${row.id}`,
   });
 
@@ -657,18 +692,27 @@ function MemberListContent(props: Props) {
 
   return (
     <>
-      <DataTable
+      <DataTableWrapper
         testId="team-member-list-container"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
         enableColumnResizing={true}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root>
-          <div className="flex w-full gap-2">
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            <DataTableFilters.AddFilterButton table={table} />
+        paginationMode="infinite"
+        hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
+        totalRowCount={totalRowCount}
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
+        ToolbarRight={
+          <>
+            <DataTableFilters.ClearFiltersButton />
             {isAdminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
@@ -679,19 +723,15 @@ function MemberListContent(props: Props) {
                 {t("add")}
               </DataTableToolbar.CTA>
             )}
-          </div>
-          <div className="flex gap-2 justify-self-start">
-            <DataTableFilters.ActiveFilters table={table} />
-          </div>
-        </DataTableToolbar.Root>
-
+          </>
+        }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
+          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
@@ -712,7 +752,7 @@ function MemberListContent(props: Props) {
             />
           </DataTableSelectionBar.Root>
         )}
-      </DataTable>
+      </DataTableWrapper>
       {state.deleteMember.showModal && (
         <Dialog
           open={true}

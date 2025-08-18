@@ -10,16 +10,18 @@ import {
 import {
   AverageEventDurationChart,
   BookingKPICards,
-  BookingStatusLineChart,
-  LeastBookedTeamMembersTable,
-  MostBookedTeamMembersTable,
-  PopularEventsTable,
+  BookingsByHourChart,
+  EventTrendsChart,
   HighestNoShowHostTable,
-  RecentFeedbackTable,
   HighestRatedMembersTable,
+  LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
-} from "@calcom/features/insights/components";
-import "@calcom/features/insights/components/tremor.css";
+  MostBookedTeamMembersTable,
+  MostCancelledBookingsTables,
+  PopularEventsTable,
+  RecentFeedbackTable,
+  TimezoneBadge,
+} from "@calcom/features/insights/components/booking";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
@@ -27,9 +29,9 @@ import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsights
 import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function InsightsPage() {
+export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider>
+    <DataTableProvider timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
@@ -61,27 +63,43 @@ function InsightsPageContent() {
         <div className="grow" />
         <Download />
         <DateRangeFilter column={createdAtColumn} />
+        <TimezoneBadge />
       </div>
 
       <div className="my-4 space-y-4">
         <BookingKPICards />
 
-        <BookingStatusLineChart />
+        <EventTrendsChart />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <PopularEventsTable />
-          <AverageEventDurationChart />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <BookingsByHourChart />
+          </div>
+          <div className="sm:col-span-2">
+            <AverageEventDurationChart />
+          </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
+          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
         </div>
-        <RecentFeedbackTable />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <MostCancelledBookingsTables />
           <HighestNoShowHostTable />
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
         </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <RecentFeedbackTable />
+          </div>
+        </div>
+
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}
           <a

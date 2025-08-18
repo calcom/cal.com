@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import { buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
   CommandInput,
@@ -11,10 +13,8 @@ import {
   CommandItem,
   CommandSeparator,
   CommandGroup,
-  buttonClasses,
-  Icon,
-} from "@calcom/ui";
-import classNames from "@calcom/ui/classNames";
+} from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type {
@@ -123,7 +123,7 @@ export function BaseSelectFilterOptions<
 
   return (
     <Command data-testid={`${testIdPrefix}-${column.id}`}>
-      <CommandInput placeholder={t("search")} />
+      <CommandInput placeholder={t("search")} data-testid={`select-filter-options-search-${column.id}`} />
       <CommandList>
         <CommandEmpty>{t("no_options_available")}</CommandEmpty>
         {options.map((option, index) => {

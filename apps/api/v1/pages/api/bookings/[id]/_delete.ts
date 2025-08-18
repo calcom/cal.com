@@ -79,9 +79,10 @@ async function handler(req: NextApiRequest) {
       allRemainingBookings: req.query.allRemainingBookings === "true",
     });
 
-  // Normalizing for universal handler
-  req.body = { id, allRemainingBookings, cancellationReason, cancelledBy };
-  return await handleCancelBooking(req);
+  return await handleCancelBooking({
+    bookingData: { id, allRemainingBookings, cancellationReason, cancelledBy },
+    userId: req.userId,
+  });
 }
 
 export default defaultResponder(handler);

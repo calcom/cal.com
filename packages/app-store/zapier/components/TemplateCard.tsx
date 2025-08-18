@@ -1,6 +1,6 @@
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
-import type { Template } from "./AppSettingsInterface";
+import type { Template } from "./types";
 
 export default function TemplateCard({ template }: { template: Template }) {
   return (

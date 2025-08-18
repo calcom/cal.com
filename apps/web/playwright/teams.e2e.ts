@@ -215,7 +215,7 @@ test.describe("Teams - NonOrg", () => {
     const { team } = await owner.getFirstTeamMembership();
 
     // Mark team as private
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
     await Promise.all([
       page.click("[data-testid=make-team-private-check]"),
       expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible(),

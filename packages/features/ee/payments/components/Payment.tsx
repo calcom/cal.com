@@ -1,3 +1,5 @@
+"use client";
+
 import type { EventType, Payment } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
@@ -11,7 +13,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PaymentOption } from "@calcom/prisma/enums";
-import { Button, CheckboxField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { CheckboxField } from "@calcom/ui/components/form";
 
 import type { PaymentPageProps } from "../pages/payment";
 

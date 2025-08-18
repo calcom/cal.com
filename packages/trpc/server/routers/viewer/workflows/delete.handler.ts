@@ -1,6 +1,6 @@
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -17,7 +17,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const workflowToDelete = await prisma.workflow.findFirst({
+  const workflowToDelete = await prisma.workflow.findUnique({
     where: {
       id,
     },
@@ -32,7 +32,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     },
   });
 
-  const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.user.id, true);
+  const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.user.id, "workflow.delete");
 
   if (!isUserAuthorized || !workflowToDelete) {
     throw new TRPCError({ code: "UNAUTHORIZED" });

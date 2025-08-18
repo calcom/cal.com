@@ -80,6 +80,9 @@
   <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" ></path>
   <circle cx="12" cy="8" r="2" ></circle>
 </symbol>
+<symbol class="lucide lucide-bookmark" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bookmark">
+  <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" ></path>
+</symbol>
 <symbol class="lucide lucide-building" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="building">
   <rect width="16" height="20" x="4" y="2" rx="2" ry="2" ></rect>
   <path d="M9 22v-4h6v4" ></path>
@@ -418,6 +421,11 @@
   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" ></path>
   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" ></path>
 </symbol>
+<symbol class="lucide lucide-list-filter" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="list-filter">
+  <path d="M3 6h18" ></path>
+  <path d="M7 12h10" ></path>
+  <path d="M10 18h4" ></path>
+</symbol>
 <symbol class="lucide lucide-loader" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="loader">
   <path d="M12 2v4" ></path>
   <path d="m16.2 7.8 2.9-2.9" ></path>
@@ -604,6 +612,10 @@
 <symbol class="lucide lucide-square-check" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="square-check">
   <rect width="18" height="18" x="3" y="3" rx="2" ></rect>
   <path d="m9 12 2 2 4-4" ></path>
+</symbol>
+<symbol class="lucide lucide-square-pen" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="square-pen">
+  <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" ></path>
+  <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" ></path>
 </symbol>
 <symbol class="lucide lucide-star" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="star">
   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" ></polygon>

@@ -3,7 +3,7 @@ import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";
 
-import { UpgradeTeamsBadge } from "../../badge";
+import { CreditsBadge, UpgradeTeamsBadge } from "../../badge";
 import { Icon } from "../../icon";
 import type { SelectProps } from "./types";
 
@@ -31,6 +31,8 @@ type ExtendedOption = {
   value: string | number;
   label: string;
   needsTeamsUpgrade?: boolean;
+  needsCredits?: boolean;
+  creditsTeamId?: number;
 };
 
 export const OptionComponent = <
@@ -43,12 +45,14 @@ export const OptionComponent = <
   return (
     // This gets styled in the select classNames prop now - handles overrides with styles vs className here doesn't
     <reactSelectComponents.Option {...props}>
-      <div className="flex">
-        <span className="mr-auto" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
+      <div className="flex items-center justify-between">
+        <span className="w-full" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {props.label || <>&nbsp;</>}
         </span>
         {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
           <UpgradeTeamsBadge checkForActiveStatus={true} />
+        ) : (props.data as unknown as ExtendedOption).needsCredits ? (
+          <CreditsBadge teamId={(props.data as unknown as ExtendedOption).creditsTeamId} />
         ) : (
           <></>
         )}

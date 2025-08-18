@@ -5,8 +5,11 @@ import SectionBottomActions from "@calcom/features/settings/SectionBottomActions
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ColorPicker, SettingsToggle, Alert } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { ColorPicker } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 type BrandColorsFormValues = {
   brandColor: string;

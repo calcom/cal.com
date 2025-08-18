@@ -1,15 +1,10 @@
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { cache } from "react";
 import { z } from "zod";
 
 // import { cookies, headers } from "next/headers";
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 
 const querySchema = z.object({
   workflow: z
@@ -20,30 +15,11 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-const getWorkflow = cache((id: number) => WorkflowRepository.getById({ id }));
-
-export const generateMetadata = async ({ params }: PageProps): Promise<Metadata | null> => {
-  const parsed = querySchema.safeParse(params);
-  if (!parsed.success) {
-    notFound();
-  }
-  const workflow = await getWorkflow(parsed.data.workflow);
-  if (!workflow) {
-    notFound();
-  }
-  return await _generateMetadata(
-    (t) => (workflow && workflow.name ? workflow.name : t("untitled")),
-    () => ""
-  );
-};
-
 const Page = async ({ params }: PageProps) => {
-  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const user = session?.user;
-  const parsed = querySchema.safeParse(params);
-  if (!parsed.success) {
-    notFound();
-  }
+  const parsed = querySchema.safeParse(await params);
+  if (!parsed.success) throw new Error("Invalid workflow id");
 
   // const workflow = await WorkflowRepository.getById({ id: +parsed.data.workflow });
   // let verifiedEmails, verifiedNumbers;

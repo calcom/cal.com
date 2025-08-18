@@ -49,11 +49,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     const nonOrgUserEmailOne = `slots-2024-09-04-non-org-user-one-${randomString()}@api.com`;
 
+    const orgSlug = `slots-2024-09-04-organization-${randomString()}`;
     let organization: Team;
+    const teamSlug = `slots-2024-09-04-organization-team-${randomString()}`;
     let team: Team;
     let orgUserOne: User;
     let orgUserTwo: User;
     let collectiveEventTypeId: number;
+    let collectiveEventTypeSlug: string;
     let roundRobinEventTypeId: number;
     let collectiveBookingId: number;
     let roundRobinBookingId: number;
@@ -91,7 +94,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
 
-      const orgSlug = `slots-2024-09-04-organization-${randomString()}`;
       organization = await organizationsRepositoryFixture.create({
         name: orgSlug,
         isOrganization: true,
@@ -143,7 +145,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       team = await teamRepositoryFixture.create({
-        name: `slots-2024-09-04-team-${randomString()}`,
+        name: teamSlug,
+        slug: teamSlug,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
       });
@@ -178,6 +181,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
       collectiveEventTypeId = collectiveEventType.id;
+      collectiveEventTypeSlug = collectiveEventType.slug;
 
       const roundRobinEventType = await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "ROUND_ROBIN",
@@ -280,6 +284,34 @@ describe("Slots 2024-09-04 Endpoints", () => {
           expect(days.length).toEqual(5);
           expect(slots).toEqual(expectedSlotsUTC);
         });
+    });
+
+    it("should get collective team event slots in UTC using teamSlug, eventTypeSlug and organizationSlug", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?organizationSlug=${orgSlug}&teamSlug=${teamSlug}&eventTypeSlug=${collectiveEventTypeSlug}&start=2050-09-05&end=2050-09-09`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const slots = responseBody.data;
+
+          expect(slots).toBeDefined();
+          const days = Object.keys(slots);
+          expect(days.length).toEqual(5);
+          expect(slots).toEqual(expectedSlotsUTC);
+        });
+    });
+
+    it("should not get collective team event slots in UTC using teamSlug, eventTypeSlug if organizationSlug is missing", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?teamSlug=${teamSlug}&eventTypeSlug=${collectiveEventTypeSlug}&start=2050-09-05&end=2050-09-09`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(404);
     });
 
     it("should get round robin team event slots in UTC", async () => {

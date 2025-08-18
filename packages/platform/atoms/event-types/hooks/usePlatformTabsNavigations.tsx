@@ -2,7 +2,7 @@
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -10,7 +10,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import type { PlatformTabs } from "../../event-types/wrappers/types";
 
@@ -85,15 +85,15 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
         info:
           isManagedEventType || isChildrenManagedEventType
             ? formMethods.getValues("schedule") === null
-              ? "members_default_schedule"
+              ? t("members_default_schedule")
               : isChildrenManagedEventType
               ? `${
                   formMethods.getValues("scheduleName")
                     ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                    : `default_schedule_name`
+                    : t("default_schedule_name")
                 }`
-              : formMethods.getValues("scheduleName") ?? `default_schedule_name`
-            : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
+              : formMethods.getValues("scheduleName") ?? t("default_schedule_name")
+            : formMethods.getValues("scheduleName") ?? t("default_schedule_name"),
         "data-testid": "availability",
       });
 

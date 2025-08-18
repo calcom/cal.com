@@ -5,6 +5,8 @@ import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
+import type { DatePickerProps } from "../calendars/DatePicker";
+
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 
 export type BookerEventQuery = {
@@ -26,6 +28,9 @@ type BookerEventUser = Pick<
 
 type BookerEventProfile = Pick<PublicEvent["profile"], "name" | "image" | "bookerLayouts">;
 
+// marked as required to keep responsibility on consumers to handle the case where slots is undefined
+export type Slots = Required<NonNullable<DatePickerProps["slots"]>>;
+
 export type BookerEvent = Pick<
   PublicEvent,
   | "id"
@@ -41,6 +46,7 @@ export type BookerEvent = Pick<
   | "price"
   | "currency"
   | "lockTimeZoneToggleOnBookingPage"
+  | "lockedTimeZone"
   | "schedule"
   | "seatsPerTimeSlot"
   | "title"
@@ -54,6 +60,9 @@ export type BookerEvent = Pick<
   | "instantMeetingParameters"
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "interfaceLanguage"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

@@ -3,7 +3,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
-import type { UnstyledSelect } from "../../../form/Select";
+import type { UnstyledSelect } from "../../address/Select";
 import { EmailField, TextAreaField, PasswordField, NumberInput, FilterSearchField } from "./Input";
 import { InputFieldWithSelect } from "./InputFieldWithSelect";
 import { InputField } from "./TextField";

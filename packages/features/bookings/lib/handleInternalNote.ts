@@ -1,7 +1,7 @@
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
-import { type BookingToDelete } from "./handleCancelBooking";
+import type { BookingToDelete } from "./getBookingToDelete";
 
 type InternalNote = {
   id: number;

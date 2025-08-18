@@ -13,13 +13,16 @@ import CreateANewLicenseKeyForm, { LayoutWrapper } from "~/settings/license-key/
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("set_up_your_organization"),
-    (t) => t("organizations_description")
+    (t) => t("organizations_description"),
+    undefined,
+    undefined,
+    "/settings/license-key/new"
   );
 
 const getData = withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
   return (
     <LayoutWrapper>
       <CreateANewLicenseKeyForm />

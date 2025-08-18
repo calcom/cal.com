@@ -11,6 +11,8 @@ import type { GetBookingsInput_2024_08_13 } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
+const QUERY_KEY = "use-bookings";
+
 export const useBookings = (input: GetBookingsInput_2024_08_13) => {
   const pathname = `/${V2_ENDPOINTS.bookings}`;
   const headers = {
@@ -18,23 +20,7 @@ export const useBookings = (input: GetBookingsInput_2024_08_13) => {
   };
 
   const bookingsQuery = useQuery({
-    queryKey: [
-      "use-bookings",
-      input.status,
-      input.attendeeEmail,
-      input.attendeeName,
-      input.eventTypeIds,
-      input.eventTypeId,
-      input.teamsIds,
-      input.teamId,
-      input.afterStart,
-      input.beforeEnd,
-      input.sortStart,
-      input.sortEnd,
-      input.sortCreated,
-      input.take,
-      input.skip,
-    ],
+    queryKey: [QUERY_KEY, ...extractBookingsQueryKeys(input)],
     queryFn: async () => {
       return http
         .get<GetBookingsOutput_2024_08_13>(pathname, {
@@ -52,3 +38,27 @@ export const useBookings = (input: GetBookingsInput_2024_08_13) => {
 
   return bookingsQuery;
 };
+
+export function extractBookingsQueryKeys(query: GetBookingsInput_2024_08_13) {
+  return [
+    query.status,
+    query.attendeeEmail,
+    query.attendeeName,
+    query.eventTypeIds,
+    query.eventTypeId,
+    query.teamsIds,
+    query.teamId,
+    query.afterStart,
+    query.beforeEnd,
+    query.afterCreatedAt,
+    query.beforeCreatedAt,
+    query.afterUpdatedAt,
+    query.beforeUpdatedAt,
+    query.sortStart,
+    query.sortEnd,
+    query.sortCreated,
+    query.sortUpdatedAt,
+    query.take,
+    query.skip,
+  ];
+}

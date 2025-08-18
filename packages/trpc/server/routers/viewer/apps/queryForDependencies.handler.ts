@@ -2,7 +2,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getAllDelegationCredentialsForUserByAppSlug } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 
 type QueryForDependenciesOptions = {

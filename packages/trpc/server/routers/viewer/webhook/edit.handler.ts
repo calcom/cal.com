@@ -3,7 +3,7 @@ import {
   deleteWebhookScheduledTriggers,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,7 +19,7 @@ type EditOptions = {
 export const editHandler = async ({ input, ctx }: EditOptions) => {
   const { id, ...data } = input;
 
-  const webhook = await prisma.webhook.findFirst({
+  const webhook = await prisma.webhook.findUnique({
     where: {
       id,
     },

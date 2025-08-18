@@ -213,12 +213,21 @@ import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
  *         description: Authorization information is missing or invalid.
  */
 async function handler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
+  const { isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
+  let userId = req.userId;
+
   req.body = {
     ...req.body,
     creationSource: CreationSource.API_V1,
   };
-  if (isSystemWideAdmin) req.userId = req.body.userId || userId;
+  if (isSystemWideAdmin) userId = req.body.userId || userId;
+
+  if (req.body.eventTypeId !== undefined && typeof req.body.eventTypeId !== "number") {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Bad request, eventTypeId must be a number",
+    });
+  }
 
   if (isOrganizationOwnerOrAdmin) {
     const accessibleUsersIds = await getAccessibleUsers({
@@ -226,14 +235,30 @@ async function handler(req: NextApiRequest) {
       memberUserIds: [req.body.userId || userId],
     });
     const [requestedUserId] = accessibleUsersIds;
-    req.userId = requestedUserId || userId;
+    userId = requestedUserId || userId;
   }
 
   try {
-    return await handleNewBooking(req, getBookingDataSchemaForApi);
+    return await handleNewBooking(
+      {
+        bookingData: req.body,
+        userId,
+        hostname: req.headers.host || "",
+        forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      },
+      getBookingDataSchemaForApi
+    );
   } catch (error: unknown) {
     const knownError = error as Error;
     if (knownError?.message === ErrorCode.NoAvailableUsersFound) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    if (knownError?.message === ErrorCode.RequestBodyInvalid) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    if (knownError?.message === ErrorCode.EventTypeNotFound) {
       throw new HttpError({ statusCode: 400, message: knownError.message });
     }
 

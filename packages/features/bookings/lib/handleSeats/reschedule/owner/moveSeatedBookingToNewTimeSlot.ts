@@ -6,11 +6,11 @@ import type EventManager from "@calcom/lib/EventManager";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
+import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
-import type { Booking } from "../../../handleNewBooking/types";
+import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
 const moveSeatedBookingToNewTimeSlot = async (

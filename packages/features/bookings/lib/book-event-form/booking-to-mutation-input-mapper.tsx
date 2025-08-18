@@ -7,6 +7,7 @@ import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 
 import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
+import type { Tracking } from "../handleNewBooking/types";
 
 export type BookingOptions = {
   values: Record<string, unknown>;
@@ -26,8 +27,10 @@ export type BookingOptions = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   orgSlug?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
+  isDryRunProp?: boolean;
 };
 
 export const mapBookingToMutationInput = ({
@@ -47,8 +50,10 @@ export const mapBookingToMutationInput = ({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  crmRecordId,
   orgSlug,
   routingFormSearchParams,
+  isDryRunProp,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -56,9 +61,10 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
-  const _isDryRun = isBookingDryRun(searchParams);
+  const _isDryRun = isDryRunProp !== undefined ? isDryRunProp : isBookingDryRun(searchParams);
   const _cacheParam = searchParams?.get("cal.cache");
   const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+  const dub_id = searchParams?.get("dub_id");
 
   return {
     ...values,
@@ -82,6 +88,7 @@ export const mapBookingToMutationInput = ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    crmRecordId,
     orgSlug,
     routedTeamMemberIds,
     routingFormResponseId,
@@ -90,6 +97,7 @@ export const mapBookingToMutationInput = ({
     reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
     _isDryRun,
     _shouldServeCache,
+    dub_id,
   };
 };
 
@@ -99,7 +107,8 @@ export const mapBookingToMutationInput = ({
 // Other than that it forwards the mapping to mapBookingToMutationInput.
 export const mapRecurringBookingToMutationInput = (
   booking: BookingOptions,
-  recurringCount: number
+  recurringCount: number,
+  tracking?: Tracking
 ): RecurringBookingCreateBody[] => {
   const recurringEventId = uuidv4();
   const [, recurringDates] = parseRecurringDates(
@@ -124,5 +133,6 @@ export const mapRecurringBookingToMutationInput = (
     recurringEventId,
     schedulingType: booking.event.schedulingType || undefined,
     recurringCount: recurringDates.length,
+    tracking,
   }));
 };

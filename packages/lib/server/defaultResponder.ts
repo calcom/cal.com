@@ -1,4 +1,5 @@
 import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
+import { captureException } from "@sentry/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
@@ -28,12 +29,11 @@ export function defaultResponder<T>(
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
         console.error(error);
-        const captureException = (await import("@sentry/nextjs")).captureException;
         captureException(error);
       }
       return res
         .status(error.statusCode)
-        .json({ message: error.message, url: error.url, method: error.method });
+        .json({ message: error.message, url: error.url, method: error.method, data: error?.data || null });
     } finally {
       performance.mark("End");
       performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");

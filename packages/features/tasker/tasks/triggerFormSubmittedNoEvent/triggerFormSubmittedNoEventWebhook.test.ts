@@ -41,6 +41,7 @@ function expectFormSubmittedNoEventWebhookToBeCalled(
   const webhookPayload = {
     responses: payload.responses,
     formId: payload.form.id,
+    responseId: payload.responseId,
     formName: payload.form.name,
     teamId: null,
   };

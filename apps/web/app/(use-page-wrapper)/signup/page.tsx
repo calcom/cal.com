@@ -12,13 +12,16 @@ import Signup from "~/signup-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("sign_up"),
-    (t) => t("sign_up")
+    (t) => t("sign_up"),
+    undefined,
+    undefined,
+    "/signup"
   );
 
 const getData = withAppDirSsr<SignupProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   const props = await getData(context);
   return <Signup {...props} />;

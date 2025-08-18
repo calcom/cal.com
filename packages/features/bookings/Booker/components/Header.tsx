@@ -4,13 +4,17 @@ import { shallow } from "zustand/shallow";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ButtonGroup, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
-import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
 
 export function Header({
@@ -32,13 +36,13 @@ export function Header({
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
-  const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
-  const selectedDateString = useBookerStore((state) => state.selectedDate);
-  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
-  const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
+  const [layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
+  const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
+  const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
+  const addToSelectedDate = useBookerStoreContext((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
-  const selectedDate = dayjs(selectedDateString);
   const today = dayjs();
+  const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;
   const selectedDateMin3DaysDifference = useMemo(() => {
     const diff = today.diff(selectedDate, "days");
     return diff > 3 || diff < -3;
@@ -126,7 +130,7 @@ export function Header({
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
-              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
+              onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}>
               {t("today")}
             </Button>
           )}

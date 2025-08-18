@@ -1,4 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -33,7 +38,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -47,6 +52,9 @@ import { Team } from "@calcom/prisma/client";
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @UseGuards(IsOrgGuard)
 @DocsTags("Orgs / Users")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsUsersController {
   constructor(private readonly organizationsUsersService: OrganizationsUsersService) {}
 
@@ -58,9 +66,11 @@ export class OrganizationsUsersController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: GetOrganizationsUsersInput
   ): Promise<GetOrganizationUsersResponseDTO> {
+    const { emails, assignedOptionIds, attributeQueryOperator, teamIds } = query ?? {};
     const users = await this.organizationsUsersService.getUsers(
       orgId,
-      query.emails,
+      emails,
+      { assignedOptionIds, attributeQueryOperator, teamIds },
       query.skip ?? 0,
       query.take ?? 250
     );
@@ -82,7 +92,6 @@ export class OrganizationsUsersController {
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a user" })
   async createOrganizationUser(
-    @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput,
     @GetUser() inviter: UserWithProfile
@@ -110,7 +119,6 @@ export class OrganizationsUsersController {
   async updateOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
-    @GetOrg() org: Team,
     @Body() input: UpdateOrganizationUserInput
   ): Promise<GetOrganizationUserOutput> {
     const user = await this.organizationsUsersService.updateUser(orgId, userId, input);

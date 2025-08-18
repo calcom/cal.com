@@ -42,15 +42,17 @@ $ yarn prisma generate
 
 Copy `.env.example` to `.env` and fill values.
 
-## Add license Key to deployments table in DB
+## Add license Key to Deployment table in DB
 
-id, logo theme licenseKey agreedLicenseAt
-1, null, null, 'c4234812-12ab-42s6-a1e3-55bedd4a5bb7', '2023-05-15 21:39:47.611'
+id, logo, theme, licenseKey, agreedLicenseAt:-
+1, null, null, '00000000-0000-0000-0000-000000000000', '2023-05-15 21:39:47.611'
+
+Replace with your actual license key.
 
 your CALCOM_LICENSE_KEY env var need to contain the same value
 
 .env
-CALCOM_LICENSE_KEY=c4234812-12ab-42s6-a1e3-55bedd4a5bb
+CALCOM_LICENSE_KEY=00000000-0000-0000-0000-000000000000
 
 ## Running the app
 
@@ -106,6 +108,14 @@ $ yarn test:e2e:watch --testPathPattern=filePath
 # test coverage
 $ yarn run test:cov
 ```
+
+## Conventions
+
+### Guards
+1. In case a guard would return "false" for "canActivate" instead throw ForbiddenException with an error message containing guard name and the error.
+2. In case a guard would return "false" for "canActivate" DO NOT cache the result in redis, because we don't want that someone is forbidden, updates whatever was the problem, and then has to wait for cache to expire. We only cache in redis guard results where "canAccess" is "true".
+3. If you use ApiAuthGuard but want that only specific auth method is allowed, for example, api key, then you also need to add `@ApiAuthGuardOnlyAllow(["API_KEY"])` under the `@UseGuards(ApiAuthGuard)`. Shortly, use `ApiAuthGuardOnlyAllow` to specify which auth methods are allowed by `ApiAuthGuard`. If `ApiAuthGuardOnlyAllow` is not used or nothing is passed to it or empty array it means that
+all auth methods are allowed.
 
 ## Support
 

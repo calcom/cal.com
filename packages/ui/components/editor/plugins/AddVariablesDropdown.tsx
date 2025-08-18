@@ -15,7 +15,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
 
   return (
     <Dropdown>
-      <DropdownMenuTrigger className="focus:bg-muted pt-[6px]">
+      <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-muted pt-[6px]">
         <div className="items-center ">
           {props.isTextEditor ? (
             <>

@@ -7,6 +7,7 @@ import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetReq
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import prisma from "@calcom/prisma";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
@@ -28,7 +29,7 @@ async function handler(req: NextRequest) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: ip,
+    identifier: piiHasher.hash(ip),
   });
 
   try {
@@ -37,8 +38,7 @@ async function handler(req: NextRequest) {
       select: { name: true, email: true, locale: true },
     });
     // Don't leak info about whether the user exists
-    if (!user) return NextResponse.json({ message: "password_reset_email_sent" }, { status: 201 });
-    await passwordResetRequest(user);
+    if (user) passwordResetRequest(user).catch(console.error);
     return NextResponse.json({ message: "password_reset_email_sent" }, { status: 201 });
   } catch (reason) {
     console.error(reason);

@@ -5,12 +5,13 @@ import { useMemo } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { dataTableFilter, ColumnFilterType } from "@calcom/features/data-table";
+import { ColumnFilterType } from "@calcom/features/data-table";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import { Badge, Icon } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -49,10 +50,6 @@ export const useInsightsColumns = ({
           filter: { type: ColumnFilterType.SINGLE_SELECT },
         },
         cell: () => null,
-        filterFn: (row, id, filterValue) => {
-          const cellValue = row.original.formId;
-          return dataTableFilter(cellValue, filterValue);
-        },
       }),
       columnHelper.accessor("bookingUserId", {
         id: "bookingUserId",
@@ -65,17 +62,21 @@ export const useInsightsColumns = ({
           },
         },
         cell: () => null,
-        filterFn: (row, id, filterValue) => {
-          const cellValue = row.original.bookingUserId;
-          return dataTableFilter(cellValue, filterValue);
-        },
       }),
       columnHelper.accessor("bookingUid", {
         id: "bookingUid",
         header: t("uid"),
         size: 100,
-        enableColumnFilter: false,
+        enableColumnFilter: true,
         enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
+          },
+        },
         cell: (info) => {
           const bookingUid = info.getValue();
           if (!bookingUid) return null;
@@ -102,6 +103,14 @@ export const useInsightsColumns = ({
         size: 200,
         enableColumnFilter: false,
         enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              placeholder: t("name_or_email"),
+            },
+          },
+        },
         cell: (info) => {
           return <BookedByCell attendees={info.getValue()} rowId={info.row.original.id} />;
         },
@@ -169,10 +178,6 @@ export const useInsightsColumns = ({
           meta: {
             filter: { type: filterType },
           },
-          filterFn: (row, id, filterValue) => {
-            const cellValue = row.original.response[id]?.value;
-            return dataTableFilter(cellValue, filterValue);
-          },
         });
       }) ?? []),
       columnHelper.accessor("bookingStatusOrder", {
@@ -187,15 +192,6 @@ export const useInsightsColumns = ({
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT, icon: "circle" },
         },
-        filterFn: (row, id, filterValue) => {
-          const cellValue = row.original.bookingStatusOrder;
-          return dataTableFilter(cellValue, filterValue);
-        },
-        sortingFn: (rowA, rowB) => {
-          const statusA = rowA.original.bookingStatusOrder ?? 6; // put it at the end if bookingStatusOrder is null
-          const statusB = rowB.original.bookingStatusOrder ?? 6;
-          return statusA - statusB;
-        },
       }),
       columnHelper.accessor("bookingCreatedAt", {
         id: "bookingCreatedAt",
@@ -206,16 +202,6 @@ export const useInsightsColumns = ({
             <BookingAtCell row={info.row.original} rowId={info.row.original.id} />
           </div>
         ),
-        sortingFn: (rowA, rowB) => {
-          const dateA = rowA.original.bookingCreatedAt;
-          const dateB = rowB.original.bookingCreatedAt;
-          if (!dateA && !dateB) return 0;
-          if (!dateA) return -1;
-          if (!dateB) return 1;
-          if (!(dateA instanceof Date) || !(dateB instanceof Date)) return 0;
-
-          return dateA.getTime() - dateB.getTime();
-        },
       }),
       columnHelper.accessor("bookingAssignmentReason", {
         id: "bookingAssignmentReason",
@@ -229,9 +215,75 @@ export const useInsightsColumns = ({
           const assignmentReason = info.getValue();
           return <div className="max-w-[250px]">{assignmentReason}</div>;
         },
-        filterFn: (row, id, filterValue) => {
-          const reason = row.original.bookingAssignmentReason;
-          return dataTableFilter(reason, filterValue);
+      }),
+      columnHelper.accessor("utm_source", {
+        id: "utm_source",
+        header: t("utm_source"),
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_medium", {
+        id: "utm_medium",
+        header: "utm_medium",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_term", {
+        id: "utm_term",
+        header: "utm_term",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_content", {
+        id: "utm_content",
+        header: "utm_content",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("utm_campaign", {
+        id: "utm_campaign",
+        header: "utm_campaign",
+        size: 100,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <div className="truncate">
+              <span>{info.getValue()}</span>
+            </div>
+          );
         },
       }),
       columnHelper.accessor("createdAt", {
@@ -245,10 +297,6 @@ export const useInsightsColumns = ({
             <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
           </div>
         ),
-        filterFn: (row, id, filterValue) => {
-          const createdAt = row.original.createdAt;
-          return dataTableFilter(createdAt, filterValue);
-        },
       }),
     ];
   }, [isHeadersSuccess, headers]);

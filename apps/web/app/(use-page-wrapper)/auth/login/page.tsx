@@ -13,14 +13,19 @@ import Login from "~/auth/login-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("login"),
-    (t) => t("login")
+    (t) => t("login"),
+    undefined,
+    undefined,
+    "/auth/login"
   );
 };
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  const props = await getData(
+    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+  );
   return <Login {...props} />;
 };
 

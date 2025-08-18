@@ -1,4 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -9,6 +14,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
 import {
@@ -30,10 +36,11 @@ import {
   Patch,
   Post,
   Body,
-  Headers,
+  Req,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
+import { Request } from "express";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { OrgTeamOutputDto } from "@calcom/platform-types";
@@ -46,11 +53,16 @@ import { Team } from "@calcom/prisma/client";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsController {
-  constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
+  constructor(
+    private organizationsTeamsService: OrganizationsTeamsService,
+    private organizationsMembershipService: OrganizationsMembershipService
+  ) {}
 
   @Get()
-  @DocsTags("Teams")
   @ApiOperation({ summary: "Get all teams" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -76,12 +88,11 @@ export class OrganizationsTeamsController {
     @GetUser() user: UserWithProfile
   ): Promise<OrgMeTeamsOutputResponseDto> {
     const { skip, take } = queryParams;
-    const teams = await this.organizationsTeamsService.getPaginatedOrgUserTeams(
-      orgId,
-      user.id,
-      skip ?? 0,
-      take ?? 250
-    );
+    const isOrgAdminOrOwner = await this.organizationsMembershipService.isOrgAdminOrOwner(orgId, user.id);
+    const teams = isOrgAdminOrOwner
+      ? await this.organizationsTeamsService.getPaginatedOrgTeamsWithMembers(orgId, skip ?? 0, take ?? 250)
+      : await this.organizationsTeamsService.getPaginatedOrgUserTeams(orgId, user.id, skip ?? 0, take ?? 250);
+
     return {
       status: SUCCESS_STATUS,
       data: teams.map((team) => {
@@ -148,8 +159,9 @@ export class OrganizationsTeamsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgTeamDto,
     @GetUser() user: UserWithProfile,
-    @Headers(X_CAL_CLIENT_ID) oAuthClientId?: string
+    @Req() req: Request
   ): Promise<OrgTeamOutputResponseDto> {
+    const oAuthClientId = req.headers[X_CAL_CLIENT_ID] as string | undefined;
     const team = oAuthClientId
       ? await this.organizationsTeamsService.createPlatformOrgTeam(orgId, oAuthClientId, body, user)
       : await this.organizationsTeamsService.createOrgTeam(orgId, body, user);

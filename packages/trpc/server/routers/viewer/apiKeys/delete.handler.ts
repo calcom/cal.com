@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TDeleteInputSchema } from "./delete.schema";
 
 type DeleteOptions = {
@@ -13,7 +13,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const apiKeyToDelete = await prisma.apiKey.findFirst({
+  const apiKeyToDelete = await prisma.apiKey.findUnique({
     where: {
       id,
     },

@@ -7,11 +7,12 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -36,9 +37,12 @@ import type {
 
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
+import { isDelegationCredential } from "./delegationCredential/clientAndServer";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
+const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+const CALDAV_CALENDAR_TYPE = "caldav_calendar";
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
@@ -151,12 +155,12 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      // This sorting is mostly applicable for fallback which happens when there is no explicity destinationCalendar set. That could be true for really old accounts but not for new
+      // This sorting is mostly applicable for fallback which happens when there is no explicit destinationCalendar set.
+      // That could be true for really old accounts but not for new
       .sort(latestCredentialFirst)
-      // TODO: Change it to delegatedCredentialFirst in a followup PR.
-      // We are keeping delegated credentials at the end so that there is no impact on existing users connections as we still use their existing credentials
-      // Soon after DelegationCredential is released and stable, we switch it. Could be an env variable also to toggle this.
-      .sort(delegatedCredentialLast);
+      // Keep Delegation Credentials first so because those credentials never expire and are preferred.
+      // Also, those credentials have consistent permission for all the members avoiding the scenario where user doesn't give all permissions
+      .sort(delegatedCredentialFirst);
 
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
@@ -171,6 +175,108 @@ export default class EventManager {
     this.appOptions = eventTypeAppMetadata;
   }
 
+  private extractServerUrlFromCredential(credential: CredentialForCalendarService): string | null {
+    try {
+      if (credential.type !== CALDAV_CALENDAR_TYPE) {
+        return null;
+      }
+
+      const decryptedData = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+
+      if (!decryptedData.url) {
+        return null;
+      }
+
+      const url = new URL(decryptedData.url);
+      return `${url.protocol}//${url.host}`;
+    } catch (error) {
+      log.warn("Failed to extract server URL from CalDAV credential", {
+        credentialId: credential.id,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return null;
+    }
+  }
+
+  private extractServerUrlFromDestination(destination: DestinationCalendar): string | null {
+    try {
+      if (destination.integration !== CALDAV_CALENDAR_TYPE || !destination.externalId) {
+        return null;
+      }
+
+      const url = new URL(destination.externalId);
+      return `${url.protocol}//${url.host}`;
+    } catch (error) {
+      log.warn("Failed to extract server URL from destination calendar", {
+        destinationId: destination.id,
+        externalId: destination.externalId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return null;
+    }
+  }
+
+  private credentialMatchesDestination(
+    credential: CredentialForCalendarService,
+    destination: DestinationCalendar
+  ): boolean {
+    if (credential.type !== CALDAV_CALENDAR_TYPE || destination.integration !== CALDAV_CALENDAR_TYPE) {
+      return true;
+    }
+
+    const credentialServerUrl = this.extractServerUrlFromCredential(credential);
+    const destinationServerUrl = this.extractServerUrlFromDestination(destination);
+
+    if (!credentialServerUrl || !destinationServerUrl) {
+      log.warn("Could not extract server URLs for CalDAV credential validation", {
+        credentialId: credential.id,
+        destinationId: destination.id,
+        credentialServerUrl,
+        destinationServerUrl,
+      });
+      return false;
+    }
+
+    const matches = credentialServerUrl === destinationServerUrl;
+
+    if (!matches) {
+      log.warn("CalDAV credential server URL does not match destination calendar server URL", {
+        credentialId: credential.id,
+        destinationId: destination.id,
+        credentialServerUrl,
+        destinationServerUrl,
+      });
+    }
+
+    return matches;
+  }
+
+  private updateMSTeamsVideoCallData(
+    evt: CalendarEvent,
+    results: Array<EventResult<Exclude<Event, AdditionalInformation>>>
+  ) {
+    const office365CalendarWithTeams = results.find(
+      (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+    );
+    if (office365CalendarWithTeams) {
+      evt.videoCallData = {
+        type: "office365_video",
+        id: office365CalendarWithTeams.createdEvent?.id,
+        password: "",
+        url: office365CalendarWithTeams.createdEvent?.url,
+      };
+      if (evt.location && evt.responses) {
+        evt.responses["location"] = {
+          ...(evt.responses["location"] ?? {}),
+          value: {
+            optionValue: "",
+            value: evt.location,
+          },
+        };
+      }
+    }
+  }
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
@@ -179,12 +285,13 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findFirst({
+      const calVideo = await prisma.app.findUnique({
         where: {
           slug: "daily-video",
         },
@@ -200,21 +307,35 @@ export default class EventManager {
       log.warn("Falling back to cal video as no location is set");
     }
 
-    // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
-    // @NOTE: destinationCalendar it's an array now so as a fallback we will only check the first one
     const [mainHostDestinationCalendar] =
       (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
+
+    // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
     if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
-      log.warn("Falling back to Cal Video integration as Google Calendar is not set as destination calendar");
-      evt["location"] = "integrations:daily";
-      evt["conferenceCredentialId"] = undefined;
+      const [googleCalendarCredential] = this.calendarCredentials.filter(
+        (cred) => cred.type === "google_calendar"
+      );
+      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Google Calendar credential would be used. Identify that case.
+      // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
+      if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
+        log.warn(
+          "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
+        );
+        evt["location"] = "integrations:daily";
+        evt["conferenceCredentialId"] = undefined;
+      }
     }
+
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+    const isMSTeamsWithOutlookCalendar =
+      evt.location === MSTeamsLocationType &&
+      mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
-    if (isDedicated) {
+    // If the event is a Microsoft Teams meeting with Outlook Calendar, do not create a MSTeams video event, create calendar event will take care.
+    if (isDedicated && !isMSTeamsWithOutlookCalendar) {
       const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
@@ -241,6 +362,10 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
+    if (evt.location === MSTeamsLocationType) {
+      this.updateMSTeamsVideoCallData(evt, results);
+    }
+
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
     const isCalendarResult = (
@@ -249,7 +374,7 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    const createdCRMEvents = await this.createAllCRMEvents(clonedCalEvent);
+    const createdCRMEvents = await this.createAllCRMEvents(evt);
 
     results.push(...createdCRMEvents);
 
@@ -315,6 +440,10 @@ export default class EventManager {
     const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+      if (evt.location === MSTeamsLocationType) {
+        this.updateMSTeamsVideoCallData(evt, results);
+      }
     }
 
     const referencesToCreate = results.map((result) => {
@@ -325,7 +454,7 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
-        credentialId: result.credentialId ?? undefined,
+        ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
     });
 
@@ -440,7 +569,9 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    previousHostDestinationCalendar?: DestinationCalendar[] | null
+    previousHostDestinationCalendar?: DestinationCalendar[] | null,
+    isBookingRequestedReschedule?: boolean,
+    skipDeleteEventsAndMeetings?: boolean
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -449,7 +580,7 @@ export default class EventManager {
     }
 
     // Get details of existing booking.
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUnique({
       where: {
         uid: rescheduleUid,
       },
@@ -457,6 +588,8 @@ export default class EventManager {
         id: true,
         userId: true,
         attendees: true,
+        location: true,
+        endTime: true,
         references: {
           where: {
             deleted: null,
@@ -490,9 +623,22 @@ export default class EventManager {
     }
 
     const results: Array<EventResult<Event>> = [];
-    const bookingReferenceChangedOrganizer: Array<PartialReference> = [];
+    const updatedBookingReferences: Array<PartialReference> = [];
+    const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
 
-    if (evt.requiresConfirmation) {
+    let isDailyVideoRoomExpired = false;
+
+    if (evt.location === "integrations:daily") {
+      const originalBookingEndTime = new Date(booking.endTime);
+      const roomExpiryTime = new Date(originalBookingEndTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      isDailyVideoRoomExpired = now > roomExpiryTime;
+    }
+
+    const shouldUpdateBookingReferences =
+      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
+
+    if (evt.requiresConfirmation && !skipDeleteEventsAndMeetings) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
       await this.deleteEventsAndMeetings({
@@ -501,41 +647,48 @@ export default class EventManager {
       });
     } else {
       if (changedOrganizer) {
-        log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
-        await this.deleteEventsAndMeetings({
-          event: { ...event, destinationCalendar: previousHostDestinationCalendar },
-          bookingReferences: booking.references,
-        });
-
-        log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
-
-        const createdEvent = await this.create(originalEvt);
-        results.push(...createdEvent.results);
-        bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
-      } else {
-        // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-        // If and only if event type is a dedicated meeting, update the dedicated video meeting.
-        if (isDedicated) {
-          const result = await this.updateVideoEvent(evt, booking);
-          const [updatedEvent] = Array.isArray(result.updatedEvent)
-            ? result.updatedEvent
-            : [result.updatedEvent];
-
-          if (updatedEvent) {
-            evt.videoCallData = updatedEvent;
-            evt.location = updatedEvent.url;
-          }
-          results.push(result);
+        if (!skipDeleteEventsAndMeetings) {
+          log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+          await this.deleteEventsAndMeetings({
+            event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+            bookingReferences: booking.references,
+          });
         }
 
-        const bookingCalendarReference = booking.references.find((reference) =>
-          reference.type.includes("_calendar")
-        );
-        // There was a case that booking didn't had any reference and we don't want to throw error on function
-        if (bookingCalendarReference) {
-          // Update all calendar events.
-          results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+        log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
+        const createdEvent = await this.create(originalEvt);
+        results.push(...createdEvent.results);
+        updatedBookingReferences.push(...createdEvent.referencesToCreate);
+      } else {
+        // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
+        if (isLocationChanged || isBookingRequestedReschedule || isDailyVideoRoomExpired) {
+          const updatedLocation = await this.updateLocation(evt, booking);
+          results.push(...updatedLocation.results);
+          updatedBookingReferences.push(...updatedLocation.referencesToCreate);
+        } else {
+          const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+          // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+          if (isDedicated) {
+            const result = await this.updateVideoEvent(evt, booking);
+            const [updatedEvent] = Array.isArray(result.updatedEvent)
+              ? result.updatedEvent
+              : [result.updatedEvent];
+
+            if (updatedEvent) {
+              evt.videoCallData = updatedEvent;
+              evt.location = updatedEvent.url;
+            }
+            results.push(result);
+          }
+
+          const bookingCalendarReference = booking.references.find((reference) =>
+            reference.type.includes("_calendar")
+          );
+          // There was a case that booking didn't had any reference and we don't want to throw error on function
+          if (bookingCalendarReference) {
+            // Update all calendar events.
+            results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          }
         }
 
         results.push(...(await this.updateAllCRMEvents(evt, booking)));
@@ -560,7 +713,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
+      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
     };
   }
 
@@ -579,7 +732,7 @@ export default class EventManager {
     });
   }
 
-  private async deleteEventsAndMeetings({
+  public async deleteEventsAndMeetings({
     event,
     bookingReferences,
     isBookingInRecurringSeries,
@@ -588,6 +741,7 @@ export default class EventManager {
     bookingReferences: PartialReference[];
     isBookingInRecurringSeries?: boolean;
   }) {
+    const log = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
     const calendarReferences = [],
       videoReferences = [],
       crmReferences = [],
@@ -616,7 +770,7 @@ export default class EventManager {
 
       if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
         crmReferences.push(reference);
-        allPromises.push(this.deleteCRMEvent({ reference }));
+        allPromises.push(this.deleteCRMEvent({ reference, event }));
       }
     }
 
@@ -663,12 +817,13 @@ export default class EventManager {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
 
     const fallbackToFirstCalendarInTheList = async () => {
-      /**
-       *  Not ideal but, if we don't find a destination calendar,
-       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
-       */
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
+        if (!isDelegationCredential({ credentialId: credential.id })) {
+          log.warn("Check the User setup, it isn't normal to fallback for regular credential.");
+        } else {
+          // It is completely normal to fallback for delegation credential as in that case by default no destination calendar would be set.
+        }
         const createdEvent = await createEvent(credential, event);
         log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
         if (createdEvent) {
@@ -727,6 +882,7 @@ export default class EventManager {
                   user: credentialFromDB.user,
                   delegatedToId: credentialFromDB.delegatedToId,
                   delegatedTo: credentialFromDB.delegatedTo,
+                  delegationCredentialId: credentialFromDB.delegationCredentialId,
                 };
               }
             } else if (destination.delegationCredentialId) {
@@ -749,18 +905,33 @@ export default class EventManager {
             }
           }
         } else {
-          const destinationCalendarCredentials = this.calendarCredentials.filter(
-            (c) => c.type === destination.integration
-          );
+          const destinationCalendarCredentials = this.calendarCredentials.filter((c) => {
+            if (c.type !== destination.integration) return false;
+
+            if (c.type === CALDAV_CALENDAR_TYPE) {
+              return this.credentialMatchesDestination(c, destination);
+            }
+
+            return true;
+          });
           // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
           const firstCalendarCredential = destinationCalendarCredentials[0] as
             | (typeof destinationCalendarCredentials)[number]
             | undefined;
 
           if (!firstCalendarCredential) {
-            log.warn(
-              "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
-            );
+            if (destination.integration === CALDAV_CALENDAR_TYPE) {
+              log.warn(
+                "No CalDAV credentials found with matching server URL for destination calendar. This prevents credential leakage.",
+                safeStringify({
+                  destination: getPiiFreeDestinationCalendar(destination),
+                })
+              );
+            } else {
+              log.warn(
+                "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
+              );
+            }
             await fallbackToFirstCalendarInTheList();
           } else {
             log.warn(
@@ -927,6 +1098,7 @@ export default class EventManager {
                 user: credentialFromDB.user,
                 delegatedToId: credentialFromDB.delegatedToId,
                 delegatedTo: credentialFromDB.delegatedTo,
+                delegationCredentialId: credentialFromDB.delegationCredentialId,
               };
             }
           }
@@ -1022,7 +1194,7 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
 
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = new FeaturesRepository(prisma);
     const isTaskerEnabledForSalesforceCrm = event.team?.id
       ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
       : false;
@@ -1046,7 +1218,7 @@ export default class EventManager {
       const crm = new CrmManager(credential, currentAppOption);
 
       let success = true;
-      const createdEvent = await crm.createEvent(event, currentAppOption).catch((error) => {
+      const createdEvent = await crm.createEvent(event).catch((error) => {
         success = false;
         // We don't know the type of the error here, so for an Error instance we can read message but otherwise we stringify the error
         const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
@@ -1100,11 +1272,12 @@ export default class EventManager {
     return updatedEvents;
   }
 
-  private async deleteCRMEvent({ reference }: { reference: PartialReference }) {
+  private async deleteCRMEvent({ reference, event }: { reference: PartialReference; event: CalendarEvent }) {
     const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
     if (credential) {
-      const crm = new CrmManager(credential);
-      await crm.deleteEvent(reference.uid);
+      const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+      const crm = new CrmManager(credential, currentAppOption);
+      await crm.deleteEvent(reference.uid, event);
     }
   }
 
@@ -1115,3 +1288,5 @@ export default class EventManager {
       return this.appOptions[credential.appId as keyof typeof this.appOptions];
   }
 }
+
+export const placeholderCreatedEvent = { results: [], referencesToCreate: [] };

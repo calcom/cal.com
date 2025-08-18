@@ -1,16 +1,33 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui";
+import { Label } from "@calcom/ui/components/form";
 
 import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
 import { DestinationCalendarSelector } from "./DestinationCalendarSelector";
 
-export const DestinationCalendarSettings = (props: DestinationCalendarProps & { classNames?: string }) => {
+type DestinationHeaderClassnames = {
+  container?: string;
+  title?: string;
+  description?: string;
+};
+
+export type DestinationCalendarClassNames = {
+  container?: string;
+  header?: DestinationHeaderClassnames;
+};
+
+export const DestinationCalendarSettings = (
+  props: DestinationCalendarProps & { classNames?: string; classNamesObject?: DestinationCalendarClassNames }
+) => {
   const { t } = useLocale();
 
   return (
-    <div className={cn("border-subtle mb-6 mt-8 rounded-lg border", props?.classNames)}>
-      <DestinationCalendarSettingsHeading />
+    <div
+      className={cn(
+        "border-subtle mb-6 mt-8 rounded-lg border",
+        props?.classNames || props?.classNamesObject?.container
+      )}>
+      <DestinationCalendarSettingsHeading classNames={props.classNamesObject?.header} />
       <div className="border-t">
         <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">
           <div>
@@ -23,15 +40,17 @@ export const DestinationCalendarSettings = (props: DestinationCalendarProps & { 
   );
 };
 
-const DestinationCalendarSettingsHeading = () => {
+const DestinationCalendarSettingsHeading = ({ classNames }: { classNames?: DestinationHeaderClassnames }) => {
   const { t } = useLocale();
 
   return (
-    <div className="p-6">
-      <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
+    <div className={cn("p-6", classNames?.container)}>
+      <h2 className={cn("text-emphasis mb-1 text-base font-bold leading-5 tracking-wide", classNames?.title)}>
         {t("add_to_calendar")}
       </h2>
-      <p className="text-subtle text-sm leading-tight">{t("add_to_calendar_description")}</p>
+      <p className={cn("text-subtle text-sm leading-tight", classNames?.description)}>
+        {t("add_to_calendar_description")}
+      </p>
     </div>
   );
 };

@@ -35,14 +35,14 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
   const eventTypes = await prisma.$queryRaw<RawEventType[]>`
     SELECT data."id", data."title", data."description", data."length", data."schedulingType"::text,
       data."recurringEvent", data."slug", data."hidden", data."price", data."currency",
-      data."lockTimeZoneToggleOnBookingPage", data."requiresConfirmation", data."requiresBookerEmailVerification",
+      data."lockTimeZoneToggleOnBookingPage", data."lockedTimeZone", data."requiresConfirmation", data."requiresBookerEmailVerification",
       data."metadata", data."canSendCalVideoTranscriptionEmails"
       FROM (
         SELECT "EventType"."id", "EventType"."title", "EventType"."description",
           "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
           "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
           "EventType"."price", "EventType"."currency",
-          "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
+          "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
           "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
           "EventType"."canSendCalVideoTranscriptionEmails"
         FROM "EventType"
@@ -52,11 +52,12 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
         "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
         "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
         "EventType"."price", "EventType"."currency",
-        "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
+        "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
         "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
         "EventType"."canSendCalVideoTranscriptionEmails"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL
+        AND "EventType"."userId" IS NOT NULL
         AND "EventType"."id" IN (
           SELECT "uet1"."A" FROM "_user_eventtype" AS "uet1"
           INNER JOIN "users" AS "u1" ON "u1"."id" = "uet1"."B"

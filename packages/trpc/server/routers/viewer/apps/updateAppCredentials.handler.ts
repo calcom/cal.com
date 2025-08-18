@@ -3,7 +3,7 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
 
 export type UpdateAppCredentialsOptions = {
@@ -30,7 +30,10 @@ export const handleCustomValidations = async ({
     const validator = (await validatorGetter()).default;
     return await validator({ input, ctx });
   } catch (error) {
-    throw new TRPCError({ code: "BAD_REQUEST" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: error instanceof Error ? error.message : "Validation failed",
+    });
   }
 };
 

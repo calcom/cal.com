@@ -19,7 +19,6 @@ import {
   getMockPassingAppStatus,
   getDefaultBookingFields,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectBookingToBeInDatabase,
@@ -183,12 +182,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -424,12 +420,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           /**
            *  Booking Time should be new time
@@ -623,12 +616,9 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
           });
-
-          const createdBooking = await handleNewBooking(req);
 
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
@@ -819,12 +809,9 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
             });
-
-            const createdBooking = await handleNewBooking(req);
             expect(createdBooking.responses).toEqual(
               expect.objectContaining({
                 email: booker.email,
@@ -1052,15 +1039,10 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              userId: organizer.id,
             });
-
-            // Fake the request to be from organizer
-            req.userId = organizer.id;
-
-            const createdBooking = await handleNewBooking(req);
 
             /**
              *  Booking Time should be new time
@@ -1305,15 +1287,11 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              // Fake the request to be from organizer
+              userId: organizer.id,
             });
-
-            // Fake the request to be from organizer
-            req.userId = organizer.id;
-
-            const createdBooking = await handleNewBooking(req);
 
             /**
              *  Booking Time should be new time
@@ -1524,15 +1502,11 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              // Fake the request to be from organizer
+              userId: organizer.id,
             });
-
-            // Fake the request to be from organizer
-            req.userId = organizer.id;
-
-            const createdBooking = await handleNewBooking(req);
             expect(createdBooking.responses).toEqual(
               expect.objectContaining({
                 email: booker.email,
@@ -1772,15 +1746,11 @@ describe("handleNewBooking", () => {
               },
             });
 
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+              // Fake the request to be from organizer
+              userId: previousOrganizerIdForTheBooking,
             });
-
-            // Fake the request to be from organizer
-            req.userId = previousOrganizerIdForTheBooking;
-
-            const createdBooking = await handleNewBooking(req);
 
             /**
              *  Booking Time should be new time
@@ -1878,6 +1848,161 @@ describe("handleNewBooking", () => {
           timeout
         );
       });
+      test(
+        `should reschedule a booking successfully with a different location option (change to Cal Video)
+          1. Should cancel the existing booking
+          2. Should create a new booking with the new location
+          3. Should send appropriate notifications
+          4. Should update/create necessary video conference links
+        `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getGoogleMeetCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
+
+          // Original booking has a different location (Google Meet)
+          await createBookingScenario(
+            getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  locations: [{ type: BookingLocations.GoogleMeet }, { type: BookingLocations.CalVideo }],
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  location: BookingLocations.GoogleMeet,
+                  metadata: {
+                    videoCallUrl: "https://meet.google.com/existing-meeting",
+                  },
+                  references: [
+                    {
+                      type: appStoreMetadata.googlevideo.type,
+                      uid: "GOOGLE_MEET_ID",
+                      meetingId: "GOOGLE_MEET_ID",
+                      meetingPassword: "",
+                      meetingUrl: "https://meet.google.com/existing-meeting",
+                    },
+                  ],
+                  iCalUID,
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["daily-video"], TestData.apps["google-meet"]],
+            })
+          );
+
+          // Mock video meeting creation for Cal Video
+          const videoMock = mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          // Request data for rescheduling - with Cal Video as the new location
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          // Verify that previous booking gets cancelled
+          await expectBookingToBeInDatabase({
+            uid: uidOfBookingToBeRescheduled,
+            status: BookingStatus.CANCELLED,
+          });
+
+          // Validate new booking time and location
+          expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
+          expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
+          expect(createdBooking.location).toBe(BookingLocations.CalVideo);
+
+          // Verify booking details in database
+          await expectBookingInDBToBeRescheduledFromTo({
+            from: {
+              uid: uidOfBookingToBeRescheduled,
+              location: BookingLocations.GoogleMeet,
+            },
+            to: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              status: BookingStatus.ACCEPTED,
+              location: BookingLocations.CalVideo,
+              responses: expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              }),
+              references: [
+                {
+                  type: appStoreMetadata.dailyvideo.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASS",
+                  meetingUrl: "http://mock-dailyvideo.example.com",
+                },
+              ],
+            },
+          });
+        },
+        timeout
+      );
     });
     describe("Team event-type", () => {
       test(
@@ -1909,6 +2034,8 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const dynamicEventName = "{Scheduler} and {Organiser}: Team Meeting";
+
           await createBookingScenario(
             getScenarioData({
               eventTypes: [
@@ -1916,6 +2043,7 @@ describe("handleNewBooking", () => {
                   id: 1,
                   slotInterval: 15,
                   length: 15,
+                  eventName: dynamicEventName,
                   users: [
                     {
                       id: 101,
@@ -1975,12 +2103,10 @@ describe("handleNewBooking", () => {
               rescheduledBy: booker.email,
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2007,6 +2133,8 @@ describe("handleNewBooking", () => {
            */
           expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
           expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
+
+          expect(createdBooking.title).toBe(`${booker.name} and ${roundRobinHost1.name}: Team Meeting`);
 
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
@@ -2126,12 +2254,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2328,12 +2454,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2485,12 +2609,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2638,6 +2760,7 @@ describe("handleNewBooking", () => {
               start: `${plus1DateString}T04:00:00.000Z`,
               end: `${plus1DateString}T04:15:00.000Z`,
               routedTeamMemberIds: [101],
+              routingFormResponseId: 12323,
               responses: {
                 email: booker.email,
                 name: booker.name,
@@ -2645,12 +2768,10 @@ describe("handleNewBooking", () => {
               },
             },
           });
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
 
-          const createdBooking = await handleNewBooking(req);
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -2706,5 +2827,133 @@ describe("handleNewBooking", () => {
         timeout
       );
     });
+
+    test(
+      "should use correct credentials when round robin reschedule changes host - original host credentials for deletion, new host for creation",
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const originalHost = getOrganizer({
+          name: "Original Host",
+          email: "originalhost@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstMorningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const newHost = getOrganizer({
+          name: "New Host",
+          email: "newhost@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstEveningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "credential-test-booking-uid";
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                users: [{ id: 101 }, { id: 102 }],
+                schedulingType: SchedulingType.ROUND_ROBIN,
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                  {
+                    type: appStoreMetadata.googlecalendar.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: undefined,
+                  },
+                ],
+              },
+            ],
+            organizer: originalHost,
+            usersApartFromOrganizer: [newHost],
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        const videoMock = mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+        });
+
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: { uid: "NEW_EVENT_ID" },
+          update: { uid: "UPDATED_EVENT_ID" },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: uidOfBookingToBeRescheduled,
+            start: `${plus1DateString}T14:00:00.000Z`,
+            end: `${plus1DateString}T14:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        expectSuccessfulCalendarEventDeletionInCalendar(calendarMock, {
+          externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+          calEvent: {
+            organizer: expect.objectContaining({
+              email: originalHost.email,
+            }),
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            uid: uidOfBookingToBeRescheduled,
+          },
+          uid: "MOCK_ID",
+        });
+
+        // Verify that creation occurred with new host credentials
+        expect(calendarMock.createEventCalls.length).toBe(1);
+        const createCall = calendarMock.createEventCalls[0];
+        expect(createCall.args.calEvent.organizer.email).toBe(newHost.email);
+
+        expect(createdBooking.userId).toBe(newHost.id);
+        expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T14:00:00.000Z`);
+        expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T14:15:00.000Z`);
+      },
+      timeout
+    );
   });
 });

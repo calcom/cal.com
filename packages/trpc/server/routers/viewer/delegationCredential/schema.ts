@@ -22,3 +22,11 @@ export const DelegationCredentialToggleEnabledSchema = z.object({
 export const DelegationCredentialDeleteSchema = z.object({
   id: z.string(),
 });
+
+export const DelegationCredentialGetAffectedMembersForDisableSchema = z.object({
+  id: z.string(),
+});
+
+export type TDelegationCredentialGetAffectedMembersForDisableSchema = z.infer<
+  typeof DelegationCredentialGetAffectedMembersForDisableSchema
+>;

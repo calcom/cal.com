@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
@@ -10,7 +11,9 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
@@ -21,29 +24,19 @@ import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import {
-  Alert,
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger,
-  Editor,
-  Form,
-  Icon,
-  ImageUploader,
-  Label,
-  PasswordField,
-  showToast,
-  SkeletonAvatar,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  TextField,
-  UserAvatar,
-} from "@calcom/ui";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import { Alert } from "@calcom/ui/components/alert";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { showToast } from "@calcom/ui/components/toast";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
@@ -52,24 +45,6 @@ import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
-
-const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-4 py-8">
-        <div className="flex items-center">
-          <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
-          <SkeletonButton className="h-6 w-32 rounded-md p-5" />
-        </div>
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-      </div>
-    </SkeletonContainer>
-  );
-};
 
 interface DeleteAccountValues {
   totpCode: string;
@@ -90,18 +65,20 @@ export type FormValues = {
   bio: string;
   secondaryEmails: Email[];
 };
+type Props = {
+  user: RouterOutputs["viewer"]["me"]["get"];
+};
 
-const ProfileView = () => {
+const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
-
-  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.shouldVerifyEmail.invalidate();
+      utils.viewer.me.shouldVerifyEmail.invalidate();
+      revalidateSettingsProfile();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
@@ -124,21 +101,23 @@ const ProfileView = () => {
       }
     },
   });
-  const unlinkConnectedAccountMutation = trpc.viewer.unlinkConnectedAccount.useMutation({
+  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
     onSuccess: async (res) => {
       showToast(t(res.message), "success");
       utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
     onError: (e) => {
       showToast(t(e.message), "error");
     },
   });
 
-  const addSecondaryEmailMutation = trpc.viewer.addSecondaryEmail.useMutation({
+  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
       setShowSecondaryEmailModalOpen(false);
       setNewlyAddedSecondaryEmail(res?.data?.email);
       utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
     onError: (error) => {
       setSecondaryEmailAddErrorMessage(error?.message || "");
@@ -163,6 +142,8 @@ const ProfileView = () => {
 
   const onDeleteMeSuccessMutation = async () => {
     await utils.viewer.me.invalidate();
+    revalidateSettingsProfile();
+
     showToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
@@ -187,18 +168,20 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
+  const deleteMeMutation = trpc.viewer.me.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
   });
 
@@ -244,10 +227,6 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isPending || !user) {
-    return <SkeletonLoader />;
-  }
-
   const userEmail = user.email || "";
   const defaultValues = {
     username: user.username || "",
@@ -272,7 +251,10 @@ const ProfileView = () => {
   };
 
   return (
-    <>
+    <SettingsHeader
+      title={t("profile")}
+      description={t("profile_description", { appName: APP_NAME })}
+      borderInShellHeader={true}>
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -308,6 +290,7 @@ const ProfileView = () => {
               onSuccessMutation={async () => {
                 showToast(t("settings_updated_successfully"), "success");
                 await utils.viewer.me.invalidate();
+                revalidateSettingsProfile();
               }}
               onErrorMutation={() => {
                 showToast(t("error_updating_settings"), "error");
@@ -476,7 +459,7 @@ const ProfileView = () => {
           onCancel={() => setNewlyAddedSecondaryEmail(undefined)}
         />
       )}
-    </>
+    </SettingsHeader>
   );
 };
 
@@ -511,8 +494,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"];
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
@@ -655,8 +638,9 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
-        <p className="text-subtle mt-1 flex items-center gap-1 text-sm">
-          <Icon name="info" /> {t("tip_username_plus")}
+        <p className="text-subtle mt-1 flex gap-1 text-sm">
+          <Icon name="info" className="mt-0.5 flex-shrink-0" />
+          <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
@@ -710,7 +694,7 @@ const ProfileForm = ({
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
-            height="80px"
+            height="120px"
           />
         </div>
         {usersAttributes && usersAttributes?.length > 0 && (

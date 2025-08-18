@@ -4,9 +4,9 @@ import type { Table } from "@tanstack/react-table";
 import { forwardRef } from "react";
 import { createPortal } from "react-dom";
 
-import { Button, Icon } from "@calcom/ui";
-import type { IconName, ButtonProps } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button, type ButtonProps } from "@calcom/ui/components/button";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 export type ActionItem<TData> =
   | {
@@ -52,7 +52,7 @@ const Root = forwardRef<
     <div
       ref={ref}
       className={classNames(
-        "bg-default text-emphasis shadow-outline-gray-rested fixed bottom-0 left-0 flex w-full items-center space-x-1 overflow-x-auto border px-2 py-2 sm:space-x-2 md:bottom-4 md:left-1/2 md:z-auto md:w-fit md:-translate-x-1/2 md:transform md:space-x-3 md:overflow-x-hidden md:rounded-lg md:px-4",
+        "bg-default text-emphasis shadow-outline-gray-rested border-subtle fixed left-0 right-0 flex items-center space-x-1 overflow-x-auto border px-2 py-2 sm:space-x-2 md:left-1/2 md:z-auto md:w-fit md:-translate-x-1/2 md:transform md:space-x-3 md:overflow-x-hidden md:rounded-lg md:px-4",
         className
       )}
       style={{ ...style }}

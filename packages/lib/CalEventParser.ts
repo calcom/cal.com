@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -32,7 +32,7 @@ export const getWhen = (
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
-    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team"
+    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team" | "hideOrganizerEmail"
   >,
   t: TFunction
 ) => {
@@ -43,13 +43,15 @@ export const getWho = (
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
-        `${attendee?.name || t("guest")}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : attendee.phoneNumber
+        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
+          !isSmsCalEmail(attendee.email) ? attendee.email : ""
         }`
     )
     .join("\n");
 
-  const organizer = `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+  const organizer = calEvent.hideOrganizerEmail
+    ? `${calEvent.organizer.name} - ${t("organizer")}`
+    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
@@ -69,7 +71,10 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
 };
 
-export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValueMapFromResponses>[0]) => {
+export const getUserFieldsResponses = (
+  calEvent: Parameters<typeof getLabelValueMapFromResponses>[0],
+  t: TFunction
+) => {
   const labelValueMap = getLabelValueMapFromResponses(calEvent);
 
   if (!labelValueMap) {
@@ -80,7 +85,7 @@ export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValue
       if (!labelValueMap) return "";
       if (labelValueMap[key] !== "") {
         return `
-${key}:
+${t(key)}:
 ${labelValueMap[key]}
   `;
       }
@@ -309,6 +314,64 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getManageLink>[0] &
   Pick<CalendarEvent, "organizer" | "paymentInfo">;
 
+export const getRichDescriptionHTML = (
+  calEvent: RichDescriptionCalEvent,
+  t_?: TFunction,
+  includeAppStatus = false
+) => {
+  const t = t_ ?? calEvent.organizer.language.translate;
+
+  // Helper function to convert plain text with newlines to HTML paragraphs
+  const textToHtml = (text: string) => {
+    if (!text) return "";
+    const lines = text.split("\n").filter(Boolean);
+    return lines
+      .map((line, index) => {
+        if (index === 0) {
+          return `<p><strong>${line}</strong></p>`;
+        }
+        return `<p>${line}</p>`;
+      })
+      .join("");
+  };
+
+  // Convert the manage link to a clickable hyperlink
+  const manageLinkText = getManageLink(calEvent, t);
+  const manageLinkHtml = manageLinkText
+    ? (() => {
+        const words = manageLinkText.split(" ");
+        const lastWord = words.pop();
+        if (lastWord && lastWord.includes("http")) {
+          const textWithoutLink = words.join(" ").trim();
+          return `<p><strong>${textWithoutLink}</strong> <a href="${lastWord}">Click here</a></p>`;
+        }
+        return `<p>${manageLinkText}</p>`;
+      })()
+    : "";
+
+  // Build the HTML content for each section
+  const parts = [
+    textToHtml(getCancellationReason(calEvent, t)),
+    textToHtml(getWhat(calEvent, t)),
+    textToHtml(getWhen(calEvent, t)),
+    textToHtml(getWho(calEvent, t)),
+    textToHtml(getDescription(calEvent, t)),
+    textToHtml(getAdditionalNotes(calEvent, t)),
+    textToHtml(getUserFieldsResponses(calEvent, t)),
+    includeAppStatus ? textToHtml(getAppsStatus(calEvent, t)) : "",
+    manageLinkHtml,
+    calEvent.paymentInfo
+      ? `<p><strong>${t("pay_now")}:</strong> <a href="${calEvent.paymentInfo.link}">${
+          calEvent.paymentInfo.link
+        }</a></p>`
+      : "",
+  ]
+    .filter(Boolean) // Remove empty strings
+    .join("\n"); // Single newline between sections
+
+  return parts.trim();
+};
+
 export const getRichDescription = (
   calEvent: RichDescriptionCalEvent,
   t_?: TFunction /*, attendee?: Person*/,
@@ -325,7 +388,7 @@ export const getRichDescription = (
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t),
     getAdditionalNotes(calEvent, t),
-    getUserFieldsResponses(calEvent),
+    getUserFieldsResponses(calEvent, t),
     includeAppStatus ? getAppsStatus(calEvent, t) : "",
     // TODO: Only the original attendee can make changes to the event
     // Guests cannot

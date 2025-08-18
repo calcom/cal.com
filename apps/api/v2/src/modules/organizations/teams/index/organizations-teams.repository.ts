@@ -18,6 +18,18 @@ export class OrganizationsTeamsRepository {
     });
   }
 
+  async findOrgTeamBySlug(organizationId: number, teamSlug: string) {
+    return this.dbRead.prisma.team.findUnique({
+      where: {
+        slug_parentId: {
+          slug: teamSlug,
+          parentId: organizationId,
+        },
+        isOrganization: false,
+      },
+    });
+  }
+
   async findOrgTeams(organizationId: number) {
     return this.dbRead.prisma.team.findMany({
       where: {
@@ -87,6 +99,19 @@ export class OrganizationsTeamsRepository {
             userId,
           },
         },
+      },
+      include: {
+        members: { select: { accepted: true, userId: true, role: true } },
+      },
+      skip,
+      take,
+    });
+  }
+
+  async findOrgTeamsPaginatedWithMembers(organizationId: number, skip: number, take: number) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
+        parentId: organizationId,
       },
       include: {
         members: { select: { accepted: true, userId: true, role: true } },

@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
+import { addFilter, openFilter, clearFilters } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -202,33 +203,24 @@ test.describe("Insights", async () => {
     await page.keyboard.press("Escape");
 
     // Choose User filter item from dropdown
-    await page.getByTestId("add-filter-button").click();
-    await page.getByTestId("add-filter-item-bookingUserId").click();
+    await addFilter(page, "userId");
 
-    // Wait for the URL to include bookingUserId
-    await page.waitForURL((url) => url.toString().includes("bookingUserId"));
+    // Wait for the URL to include userId
+    await page.waitForURL((url) => url.toString().includes("userId"));
 
     // Click User filter to see a user list
-    await page.getByTestId("filter-popover-trigger-bookingUserId").click();
+    await openFilter(page, "userId");
 
-    await page
-      .locator('[data-testid="single-select-options-bookingUserId"]')
-      .getByRole("option")
-      .nth(0)
-      .click();
+    await page.locator('[data-testid="select-filter-options-userId"]').getByRole("option").nth(0).click();
 
-    await page
-      .locator('[data-testid="single-select-options-bookingUserId"]')
-      .getByRole("option")
-      .nth(1)
-      .click();
+    await page.locator('[data-testid="select-filter-options-userId"]').getByRole("option").nth(1).click();
 
     // press escape button to close the filter
     await page.keyboard.press("Escape");
 
-    await page.getByTestId("clear-filters-button").click();
+    await clearFilters(page);
 
-    await expect(page.url()).not.toContain("bookingUserId");
+    await expect(page.url()).not.toContain("userId");
   });
 
   test("should test download button", async ({ page, users }) => {

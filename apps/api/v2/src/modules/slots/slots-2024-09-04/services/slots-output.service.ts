@@ -16,7 +16,7 @@ import {
 import { SelectedSlots } from "@calcom/prisma/client";
 
 type GetAvailableSlots = {
-  slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>;
+  slots: Record<string, { time: string; attendees?: number; bookingUid?: string; away?: boolean }[]>;
 };
 
 @Injectable()
@@ -46,34 +46,37 @@ export class SlotsOutputService_2024_09_04 {
 
     const slots: { [key: string]: (Slot_2024_09_04 | SeatedSlot_2024_09_04)[] } = {};
     for (const date in availableSlots.slots) {
-      slots[date] = availableSlots.slots[date].map((slot) => {
-        if (!timeZone) {
+      const availableTimeSlots = availableSlots.slots[date].filter((slot) => !slot.away);
+      if (availableTimeSlots.length > 0) {
+        slots[date] = availableTimeSlots.map((slot) => {
+          if (!timeZone) {
+            if (!eventType?.seatsPerTimeSlot) {
+              return this.getAvailableTimeSlot(slot.time);
+            }
+            return this.getAvailableTimeSlotSeated(
+              slot.time,
+              slot.attendees || 0,
+              eventType.seatsPerTimeSlot || 0,
+              slot.bookingUid
+            );
+          }
+          const slotTimezoneAdjusted = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
+          if (!slotTimezoneAdjusted) {
+            throw new BadRequestException(
+              `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
+            );
+          }
           if (!eventType?.seatsPerTimeSlot) {
-            return this.getAvailableTimeSlot(slot.time);
+            return this.getAvailableTimeSlot(slotTimezoneAdjusted);
           }
           return this.getAvailableTimeSlotSeated(
-            slot.time,
+            slotTimezoneAdjusted,
             slot.attendees || 0,
             eventType.seatsPerTimeSlot || 0,
             slot.bookingUid
           );
-        }
-        const slotTimezoneAdjusted = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
-        if (!slotTimezoneAdjusted) {
-          throw new BadRequestException(
-            `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
-          );
-        }
-        if (!eventType?.seatsPerTimeSlot) {
-          return this.getAvailableTimeSlot(slotTimezoneAdjusted);
-        }
-        return this.getAvailableTimeSlotSeated(
-          slotTimezoneAdjusted,
-          slot.attendees || 0,
-          eventType.seatsPerTimeSlot || 0,
-          slot.bookingUid
-        );
-      });
+        });
+      }
     }
 
     return slots;
@@ -113,56 +116,59 @@ export class SlotsOutputService_2024_09_04 {
     const slots = Object.entries(availableSlots.slots).reduce<
       Record<string, (RangeSlot_2024_09_04 | SeatedRangeSlot_2024_09_04)[]>
     >((acc, [date, slots]) => {
-      acc[date] = slots.map((slot) => {
-        if (timeZone) {
-          const start = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
-          if (!start) {
-            throw new BadRequestException(
-              `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
+      const availableTimeSlots = slots.filter((slot) => !slot.away);
+      if (availableTimeSlots.length > 0) {
+        acc[date] = availableTimeSlots.map((slot) => {
+          if (timeZone) {
+            const start = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
+            if (!start) {
+              throw new BadRequestException(
+                `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
+              );
+            }
+
+            const end = DateTime.fromISO(slot.time, { zone: "utc" })
+              .plus({ minutes: slotDuration })
+              .setZone(timeZone)
+              .toISO();
+
+            if (!end) {
+              throw new BadRequestException(
+                `Could not adjust timezone for slot end time ${slot.time} with timezone ${timeZone}`
+              );
+            }
+
+            if (!eventType?.seatsPerTimeSlot) {
+              return this.getAvailableRangeSlot(start, end);
+            }
+            return this.getAvailableRangeSlotSeated(
+              start,
+              end,
+              slot.attendees || 0,
+              eventType.seatsPerTimeSlot ?? undefined,
+              slot.bookingUid
+            );
+          } else {
+            const start = DateTime.fromISO(slot.time, { zone: "utc" }).toISO();
+            const end = DateTime.fromISO(slot.time, { zone: "utc" }).plus({ minutes: slotDuration }).toISO();
+
+            if (!start || !end) {
+              throw new BadRequestException(`Could not create UTC time for slot ${slot.time}`);
+            }
+
+            if (!eventType?.seatsPerTimeSlot) {
+              return this.getAvailableRangeSlot(start, end);
+            }
+            return this.getAvailableRangeSlotSeated(
+              start,
+              end,
+              slot.attendees || 0,
+              eventType.seatsPerTimeSlot ?? undefined,
+              slot.bookingUid
             );
           }
-
-          const end = DateTime.fromISO(slot.time, { zone: "utc" })
-            .plus({ minutes: slotDuration })
-            .setZone(timeZone)
-            .toISO();
-
-          if (!end) {
-            throw new BadRequestException(
-              `Could not adjust timezone for slot end time ${slot.time} with timezone ${timeZone}`
-            );
-          }
-
-          if (!eventType?.seatsPerTimeSlot) {
-            return this.getAvailableRangeSlot(start, end);
-          }
-          return this.getAvailableRangeSlotSeated(
-            start,
-            end,
-            slot.attendees || 0,
-            eventType.seatsPerTimeSlot ?? undefined,
-            slot.bookingUid
-          );
-        } else {
-          const start = DateTime.fromISO(slot.time, { zone: "utc" }).toISO();
-          const end = DateTime.fromISO(slot.time, { zone: "utc" }).plus({ minutes: slotDuration }).toISO();
-
-          if (!start || !end) {
-            throw new BadRequestException(`Could not create UTC time for slot ${slot.time}`);
-          }
-
-          if (!eventType?.seatsPerTimeSlot) {
-            return this.getAvailableRangeSlot(start, end);
-          }
-          return this.getAvailableRangeSlotSeated(
-            start,
-            end,
-            slot.attendees || 0,
-            eventType.seatsPerTimeSlot ?? undefined,
-            slot.bookingUid
-          );
-        }
-      });
+        });
+      }
       return acc;
     }, {});
 

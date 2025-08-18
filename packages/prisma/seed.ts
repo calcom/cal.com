@@ -122,6 +122,7 @@ const createTeam = async (team: Prisma.TeamCreateInput) => {
 const associateUserAndOrg = async ({ teamId, userId, role, username }: AssociateUserAndOrgProps) => {
   await prisma.membership.create({
     data: {
+      createdAt: new Date(),
       teamId,
       userId,
       role: role as MembershipRole,
@@ -163,20 +164,22 @@ async function createPlatformAndSetupUser({
     `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
   );
 
-  const { role = MembershipRole.OWNER, username } = platformUser;
+  const { username } = platformUser;
+
+  const membershipRole = MembershipRole.OWNER;
 
   if (!!team) {
     await associateUserAndOrg({
       teamId: team.id,
       userId: platformUser.id,
-      role: role as MembershipRole,
+      role: membershipRole,
       username: user.username,
     });
 
     await prisma.platformBilling.create({
       data: {
         id: team?.id,
-        plan: "STARTER",
+        plan: "SCALE",
         customerId: "cus_123",
         subscriptionId: "sub_123",
       },
@@ -194,7 +197,7 @@ async function createPlatformAndSetupUser({
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWNtZSAiLCJwZXJtaXNzaW9ucyI6MTAyMywicmVkaXJlY3RVcmlzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDMyMSJdLCJib29raW5nUmVkaXJlY3RVcmkiOiIiLCJib29raW5nQ2FuY2VsUmVkaXJlY3RVcmkiOiIiLCJib29raW5nUmVzY2hlZHVsZVJlZGlyZWN0VXJpIjoiIiwiYXJlRW1haWxzRW5hYmxlZCI6dHJ1ZSwiaWF0IjoxNzE5NTk1ODA4fQ.L5_jSS14fcKLCD_9_DAOgtGd6lUSZlU5CEpCPaPt41I",
       },
     });
-    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
+    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
   }
 }
 
@@ -248,6 +251,7 @@ async function createTeamAndAddUsers(
     const { role = MembershipRole.OWNER, id, username } = user;
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         teamId: team.id,
         userId: id,
         role: role,
@@ -289,6 +293,19 @@ async function createOrganizationAndAddMembersAndTeams({
   }[];
 }) {
   console.log(`\n🏢 Creating organization "${orgData.name}"`);
+
+  const existingTeam = await prisma.team.findFirst({
+    where: {
+      slug: orgData.slug,
+      parentId: null,
+    },
+  });
+
+  if (existingTeam) {
+    console.log(`Organization with slug '${orgData.slug}' already exists, skipping.`);
+    return;
+  }
+
   const orgMembersInDb: (User & {
     inTeams: { slug: string; role: MembershipRole }[];
     orgMembership: Partial<Membership>;
@@ -308,7 +325,11 @@ async function createOrganizationAndAddMembersAndTeams({
           const newUser = await createUserAndEventType({
             user: {
               ...member.memberData,
-              password: member.memberData.password.create?.hash,
+              theme:
+                member.memberData.theme === "dark" || member.memberData.theme === "light"
+                  ? member.memberData.theme
+                  : undefined,
+              password: member.memberData.password.create?.hash ?? "",
             },
             eventTypes: [
               {
@@ -334,8 +355,19 @@ async function createOrganizationAndAddMembersAndTeams({
             orgProfile: member.orgProfile,
           };
 
-          await prisma.tempOrgRedirect.create({
-            data: {
+          // Create temp org redirect with upsert to handle duplicates
+          await prisma.tempOrgRedirect.upsert({
+            where: {
+              from_type_fromOrgId: {
+                from: member.memberData.username,
+                type: RedirectType.User,
+                fromOrgId: 0,
+              },
+            },
+            update: {
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+            },
+            create: {
               fromOrgId: 0,
               type: RedirectType.User,
               from: member.memberData.username,
@@ -565,6 +597,7 @@ async function createOrganizationAndAddMembersAndTeams({
       }
       await prisma.membership.create({
         data: {
+          createdAt: new Date(),
           teamId: team.id,
           userId: member.id,
           role: role,
@@ -961,7 +994,7 @@ async function main() {
       password: "PLATFORMadmin2024!",
       username: "platform",
       name: "Platform Admin",
-      role: "ADMIN",
+      role: "USER",
     },
   });
 
@@ -1068,6 +1101,104 @@ async function main() {
     ]
   );
 
+  await createTeamAndAddUsers(
+    {
+      name: "Seeded Team (Marketing)",
+      slug: "seeded-team-marketing",
+      eventTypes: {
+        createMany: {
+          data: [
+            {
+              title: "Collective Seeded Team Event",
+              slug: "collective-seeded-team-event",
+              length: 15,
+              schedulingType: "COLLECTIVE",
+            },
+            {
+              title: "Round Robin Seeded Team Event",
+              slug: "round-robin-seeded-team-event",
+              length: 15,
+              schedulingType: "ROUND_ROBIN",
+            },
+          ],
+        },
+      },
+      createdAt: new Date(),
+    },
+    [
+      {
+        id: proUserTeam.id,
+        username: proUserTeam.name || "Unknown",
+      },
+      {
+        id: freeUserTeam.id,
+        username: freeUserTeam.name || "Unknown",
+      },
+      {
+        id: pro2UserTeam.id,
+        username: pro2UserTeam.name || "Unknown",
+        role: "MEMBER",
+      },
+      {
+        id: pro3UserTeam.id,
+        username: pro3UserTeam.name || "Unknown",
+      },
+      {
+        id: pro4UserTeam.id,
+        username: pro4UserTeam.name || "Unknown",
+      },
+    ]
+  );
+
+  await createTeamAndAddUsers(
+    {
+      name: "Seeded Team (Design)",
+      slug: "seeded-team-design",
+      eventTypes: {
+        createMany: {
+          data: [
+            {
+              title: "Collective Seeded Team Event",
+              slug: "collective-seeded-team-event",
+              length: 15,
+              schedulingType: "COLLECTIVE",
+            },
+            {
+              title: "Round Robin Seeded Team Event",
+              slug: "round-robin-seeded-team-event",
+              length: 15,
+              schedulingType: "ROUND_ROBIN",
+            },
+          ],
+        },
+      },
+      createdAt: new Date(),
+    },
+    [
+      {
+        id: proUserTeam.id,
+        username: proUserTeam.name || "Unknown",
+      },
+      {
+        id: freeUserTeam.id,
+        username: freeUserTeam.name || "Unknown",
+      },
+      {
+        id: pro2UserTeam.id,
+        username: pro2UserTeam.name || "Unknown",
+        role: "MEMBER",
+      },
+      {
+        id: pro3UserTeam.id,
+        username: pro3UserTeam.name || "Unknown",
+      },
+      {
+        id: pro4UserTeam.id,
+        username: pro4UserTeam.name || "Unknown",
+      },
+    ]
+  );
+
   await createOrganizationAndAddMembersAndTeams({
     org: {
       orgData: {
@@ -1078,6 +1209,7 @@ async function main() {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
           isAdminAPIEnabled: true,
+          isAdminReviewed: true,
         },
       },
       members: [
@@ -1174,6 +1306,7 @@ async function main() {
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",
+          isAdminReviewed: true,
         },
       },
       members: [

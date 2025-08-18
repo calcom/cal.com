@@ -1,6 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -8,7 +8,8 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { EventTypeRepository } from "./server/repository/eventType";
+import { DestinationCalendarRepository } from "./server/repository/destinationCalendar";
+import { EventTypeRepository } from "./server/repository/eventTypeRepository";
 import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
 
 const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
@@ -17,8 +18,14 @@ type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCal
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
 export type UserWithCalendars = Pick<User, "id" | "email"> & {
-  allSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
-  userLevelSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
+  allSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
+  userLevelSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
   destinationCalendar: DestinationCalendar | null;
 };
 
@@ -134,20 +141,18 @@ async function handleNoDestinationCalendar({
     }
   }
 
-  user.destinationCalendar = await prisma.destinationCalendar.create({
-    data: {
-      userId: user.id,
-      integration,
-      externalId,
-      primaryEmail,
-      ...(!isDelegationCredential({ credentialId })
-        ? {
-            credentialId,
-          }
-        : {
-            delegationCredentialId,
-          }),
-    },
+  user.destinationCalendar = await DestinationCalendarRepository.createIfNotExistsForUser({
+    userId: user.id,
+    integration,
+    externalId,
+    primaryEmail,
+    ...(!isDelegationCredential({ credentialId })
+      ? {
+          credentialId,
+        }
+      : {
+          delegationCredentialId,
+        }),
   });
 
   return {
@@ -285,7 +290,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
-  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { id: user.id, email: user.email, credentials: userCredentials },
   });
 

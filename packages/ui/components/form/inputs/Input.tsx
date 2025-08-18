@@ -22,6 +22,11 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
+type PasswordFieldTranslations = {
+  showPasswordText?: string;
+  hidePasswordText?: string;
+};
+
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
   ref

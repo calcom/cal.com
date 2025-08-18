@@ -2,7 +2,7 @@ export const defaultBookingResponses = {
   name: "unknown",
   email: "unknown",
   guests: [],
-  rescheduleReason: "unknown",
+  rescheduledReason: "unknown",
 };
 
 export const defaultBookingMetadata = { videoCallUrl: "unknown" };

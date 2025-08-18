@@ -26,6 +26,10 @@ export class JwtService {
     // divided by 1000 because iat (issued at time) is in seconds (not milliseconds) as informed by JWT specification
     return Math.floor(Date.now() / 1000);
   }
+
+  decode(token: string): Payload {
+    return this.nestJwtService.decode(token) as Payload;
+  }
 }
 
 type Payload = Record<string | number | symbol, any>;

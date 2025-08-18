@@ -6,6 +6,8 @@ import prisma from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Forgot password", async () => {
@@ -14,9 +16,11 @@ test.describe("Forgot password", async () => {
 
     // Got to reset password flow
     await page.goto("/auth/forgot-password");
+    await page.waitForSelector("text=Forgot Password?");
 
     await page.fill('input[name="email"]', `${user.username}@example.com`);
     await page.press('input[name="email"]', "Enter");
+    await page.waitForLoadState("networkidle");
 
     // wait for confirm page.
     await page.waitForSelector("text=Reset link sent");

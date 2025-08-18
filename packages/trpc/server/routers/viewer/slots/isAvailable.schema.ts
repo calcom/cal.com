@@ -18,6 +18,7 @@ export const ZIsAvailableOutputSchema = z.object({
       utcStartIso: z.string(),
       utcEndIso: z.string(),
       status: z.enum(["available", "reserved", "minBookNoticeViolation", "slotInPast"]),
+      realStatus: z.enum(["available", "reserved", "minBookNoticeViolation", "slotInPast"]).optional(),
     })
   ),
 });

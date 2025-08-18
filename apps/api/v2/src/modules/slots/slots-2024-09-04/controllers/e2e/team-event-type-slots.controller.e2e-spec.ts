@@ -21,7 +21,7 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -44,7 +44,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
-    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
 
     const teammateEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
     let teammateApiKeyString: string;
@@ -54,10 +54,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let outsider: User;
     let outsiderApiKeyString: string;
 
+    const teamSlug = `slots-2024-09-04-team-${randomString()}`;
     let team: Team;
     let teammateOne: User;
     let teammateTwo: User;
     let collectiveEventTypeId: number;
+    let collectiveEventTypeSlug: string;
     let collectiveEventTypeWithoutHostsId: number;
     let roundRobinEventTypeId: number;
     let collectiveBookingId: number;
@@ -91,7 +93,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
-      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotRepositoryFixture(moduleRef);
 
       teammateOne = await userRepositoryFixture.create({
         email: teammateEmailOne,
@@ -121,7 +123,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
       outsiderApiKeyString = unrelatedUserKeyString;
 
       team = await teamRepositoryFixture.create({
-        name: `slots-2024-09-04-team-${randomString()}`,
+        name: teamSlug,
+        slug: teamSlug,
         isOrganization: false,
       });
 
@@ -167,6 +170,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
       collectiveEventTypeId = collectiveEventType.id;
+      collectiveEventTypeSlug = collectiveEventType.slug;
 
       const collectiveEventTypeWithoutHosts = await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "COLLECTIVE",
@@ -232,6 +236,25 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get collective team event slots in UTC", async () => {
       return request(app.getHttpServer())
         .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const slots = responseBody.data;
+
+          expect(slots).toBeDefined();
+          const days = Object.keys(slots);
+          expect(days.length).toEqual(5);
+          expect(slots).toEqual(expectedSlotsUTC);
+        });
+    });
+
+    it("should get collective team event slots in UTC using teamSlug and eventTypeSlug", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?teamSlug=${teamSlug}&eventTypeSlug=${collectiveEventTypeSlug}&start=2050-09-05&end=2050-09-09`
+        )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -345,14 +368,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
         const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       clear();
     });
 

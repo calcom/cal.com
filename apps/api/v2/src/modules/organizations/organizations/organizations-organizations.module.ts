@@ -4,6 +4,7 @@ import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { OrganizationsOrganizationsController } from "@/modules/organizations/organizations/organizations-organizations.controller";
@@ -23,6 +24,7 @@ import { Module } from "@nestjs/common";
     ManagedOrganizationsBillingService,
     OrganizationsRepository,
     OrganizationsMembershipService,
+    OrganizationsMembershipOutputService,
     OrganizationsMembershipRepository,
     ManagedOrganizationsOutputService,
   ],

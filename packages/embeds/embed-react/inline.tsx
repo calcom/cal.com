@@ -90,6 +90,7 @@ function App() {
           notes: "Test Meeting",
           guests: ["janedoe@gmail.com"],
           theme: "dark",
+          "cal.embed.pageType": "user.event.booking.slots",
         }}
       />
     </>

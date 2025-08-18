@@ -2,17 +2,13 @@
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeamPrivateSwitch";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
-const PrivacyView = () => {
+const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit: boolean } }) => {
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOrgAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
   const isInviteOpen = !currentOrg?.user.accepted;
 
-  const isDisabled = isInviteOpen || !isOrgAdminOrOwner;
+  const isDisabled = !permissions.canEdit || isInviteOpen;
 
   if (!currentOrg) return null;
 

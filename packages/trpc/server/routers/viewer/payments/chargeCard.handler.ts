@@ -1,7 +1,12 @@
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -9,7 +14,7 @@ import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentS
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TChargeCardInputSchema } from "./chargeCard.schema";
 
 interface ChargeCardHandlerOptions {
@@ -18,8 +23,9 @@ interface ChargeCardHandlerOptions {
 }
 export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions) => {
   const { prisma } = ctx;
+  const teamRepository = new TeamRepository(prisma);
 
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       id: input.bookingId,
     },
@@ -74,6 +80,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
     attendees: attendeesList,
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     paymentInfo: {
       amount: booking.payment[0].amount,
       currency: booking.payment[0].currency,
@@ -81,19 +88,38 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     },
   };
 
-  const idToSearchObject = booking.eventType?.teamId
-    ? { teamId: booking.eventType.teamId }
-    : { userId: ctx.user.id };
+  const userId = ctx.user.id;
+  const teamId = booking.eventType?.teamId;
+  const appId = booking.payment[0].appId;
 
-  const paymentCredential = await prisma.credential.findFirst({
-    where: {
-      ...idToSearchObject,
-      appId: booking.payment[0].appId,
-    },
-    include: {
-      app: true,
-    },
+  if (teamId) {
+    const userIsInTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      userId,
+      teamId,
+    });
+
+    if (!userIsInTeam) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not in team" });
+    }
+  }
+
+  let paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
+    appId,
+    userId,
+    teamId,
   });
+
+  if (!paymentCredential && teamId) {
+    // See if the team event belongs to an org
+    const org = await teamRepository.findParentOrganizationByTeamId(teamId);
+
+    if (org) {
+      paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndTeamId({
+        appId,
+        teamId: org.id,
+      });
+    }
+  }
 
   if (!paymentCredential?.app) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
@@ -125,9 +151,13 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
 
     return paymentData;
   } catch (err) {
+    let errorMessage = `Error processing payment with error ${err}`;
+    if (err instanceof ErrorWithCode && err.code === ErrorCode.ChargeCardFailure) {
+      errorMessage = err.message;
+    }
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: `Error processing payment with error ${err}`,
+      code: "BAD_REQUEST",
+      message: tOrganizer(errorMessage),
     });
   }
 };

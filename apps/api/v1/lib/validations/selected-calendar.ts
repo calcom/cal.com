@@ -18,6 +18,11 @@ export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyPa
     id: true,
     // No eventTypeId support in API v1
     eventTypeId: true,
+
+    /** No watch related fields support in API v1 */
+    watchAttempts: true,
+    unwatchAttempts: true,
+    maxAttempts: true,
   });
 
 export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams

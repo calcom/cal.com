@@ -1,4 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -13,7 +18,6 @@ import { CreateOrgMembershipOutput } from "@/modules/organizations/memberships/o
 import { DeleteOrgMembership } from "@/modules/organizations/memberships/outputs/delete-membership.output";
 import { GetAllOrgMemberships } from "@/modules/organizations/memberships/outputs/get-all-memberships.output";
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
-import { OrgMembershipOutputDto } from "@/modules/organizations/memberships/outputs/membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import {
@@ -30,8 +34,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
@@ -42,6 +45,9 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Memberships")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsMembershipsController {
   constructor(private organizationsMembershipService: OrganizationsMembershipService) {}
 
@@ -62,9 +68,7 @@ export class OrganizationsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: memberships.map((membership) =>
-        plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" })
-      ),
+      data: memberships,
     };
   }
 
@@ -80,7 +84,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.createOrgMembership(orgId, body);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 
@@ -97,7 +101,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 
@@ -114,7 +118,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.deleteOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 
@@ -136,7 +140,7 @@ export class OrganizationsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 }

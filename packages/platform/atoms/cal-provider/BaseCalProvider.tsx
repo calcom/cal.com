@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCallback } from "react";
 
 import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
-import { IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
 import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import esTranslations from "@calcom/web/public/static/locales/es/common.json";
@@ -60,7 +60,7 @@ export function BaseCalProvider({
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
 
-  const { data: me } = useMe();
+  const { data: me } = useMe(isEmbed);
 
   const { mutateAsync } = useUpdateUserTimezone();
 

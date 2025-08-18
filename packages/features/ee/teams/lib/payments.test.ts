@@ -2,7 +2,8 @@ import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { BillingPeriod } from "@calcom/prisma/zod-utils";
 
 import {
   getTeamWithPaymentMetadata,
@@ -41,7 +42,7 @@ vi.mock("@calcom/lib/constant", () => {
   };
 });
 
-vi.mock("@calcom/app-store/stripepayment/lib/server", () => {
+vi.mock("@calcom/features/ee/payments/server/stripe", () => {
   return {
     default: {
       checkout: {
@@ -182,7 +183,7 @@ describe("purchaseTeamOrOrgSubscription", () => {
         userId: user.id,
         isOrg: true,
         pricePerSeat: 100,
-        billingPeriod: "MONTHLY",
+        billingPeriod: BillingPeriod.MONTHLY,
       })
     ).toEqual({ url: "SESSION_URL" });
 
@@ -253,7 +254,7 @@ describe("purchaseTeamOrOrgSubscription", () => {
         userId: user.id,
         isOrg: true,
         pricePerSeat: 100,
-        billingPeriod: "ANNUALLY",
+        billingPeriod: BillingPeriod.ANNUALLY,
       })
     ).toEqual({ url: "SESSION_URL" });
 
@@ -324,7 +325,8 @@ describe("purchaseTeamOrOrgSubscription", () => {
         seatsToChargeFor,
         userId: user.id,
         isOrg: true,
-        billingPeriod: "ANNUALLY",
+        billingPeriod: BillingPeriod.ANNUALLY,
+        pricePerSeat: null,
       })
     ).toEqual({ url: "SESSION_URL" });
 

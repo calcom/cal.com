@@ -51,6 +51,16 @@ const HitpayPaymentComponent = dynamic(
   }
 );
 
+const BtcpayPaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/btcpayserver/components/BtcpayPaymentComponent").then(
+      (m) => m.BtcpayPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -117,7 +127,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
                       <div className="col-span-2 mb-6">
-                        {date.locale(i18n.language).format("dddd, DD MMMM YYYY")}
+                        {date.locale(i18n.language ?? "en").format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
                         <span className="text-subtle">({timezone})</span>
@@ -165,6 +175,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "hitpay" && !props.payment.success && (
                     <HitpayPaymentComponent payment={props.payment} />
+                  )}
+                  {props.payment.appId === "btcpayserver" && !props.payment.success && (
+                    <BtcpayPaymentComponent payment={props.payment} paymentPageProps={props} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

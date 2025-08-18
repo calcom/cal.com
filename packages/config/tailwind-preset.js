@@ -6,14 +6,14 @@ const colors = require("tailwindcss/colors");
 const subtleColor = "#E5E7EB";
 module.exports = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./modules/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
-    "../../packages/features/**/*.{js,ts,jsx,tsx}",
-    "../../packages/ui/**/*.{js,ts,jsx,tsx}",
-    "../../packages/platform/atoms/**/*.{js,ts,jsx,tsx}",
+    "../../apps/web/pages/**/*.{js,ts,jsx,tsx}",
+    "../../apps/web/app/**/*.{js,ts,jsx,tsx}",
+    "../../apps/web/modules/**/*.{js,ts,jsx,tsx}",
+    "../../apps/web/components/**/*.{js,ts,jsx,tsx}",
+    "../../packages/app-store/!(node_modules)/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
+    "../../packages/features/!(node_modules)/**/*.{js,ts,jsx,tsx}",
+    "../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx}",
+    "../../packages/platform/atoms/!(node_modules)/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {

@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
@@ -60,6 +60,8 @@ export type EventLocationType = DefaultEventLocationType | EventLocationTypeFrom
 export const DailyLocationType = "integrations:daily";
 
 export const MeetLocationType = "integrations:google:meet";
+
+export const MSTeamsLocationType = "integrations:office365_video";
 
 /**
  * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking

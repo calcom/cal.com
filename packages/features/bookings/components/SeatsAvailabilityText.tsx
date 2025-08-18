@@ -1,5 +1,4 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 
 type Props = {
   /**
@@ -34,7 +33,7 @@ export const SeatsAvailabilityText = ({
   const isNearlyFull = bookedSeats / totalSeats >= 0.83;
 
   return (
-    <span className={classNames(showExact && "lowercase", "truncate")}>
+    <span className="truncate">
       {showExact
         ? `${availableSeats}${variant === "fraction" ? ` / ${totalSeats}` : ""} ${t("seats_available", {
             count: availableSeats,

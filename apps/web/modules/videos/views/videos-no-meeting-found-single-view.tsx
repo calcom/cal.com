@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, EmptyScreen } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export default function NoMeetingFound() {
   const { t } = useLocale();

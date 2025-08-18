@@ -1,9 +1,16 @@
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, Dialog, DialogContent, DialogFooter, Form, Label, Select, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 type InvitationLinkSettingsModalProps = {
   isOpen: boolean;
@@ -26,6 +33,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       showToast(t("invite_link_deleted"), "success");
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       props.onExit();
     },
     onError: (e) => {
@@ -38,6 +46,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       showToast(t("invite_link_updated"), "success");
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
+      revalidateTeamsList();
     },
     onError: (e) => {
       showToast(e.message, "error");

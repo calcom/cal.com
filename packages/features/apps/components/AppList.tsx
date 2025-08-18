@@ -17,26 +17,26 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Alert,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  List,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { List } from "@calcom/ui/components/list";
+import { showToast } from "@calcom/ui/components/toast";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["integrations"];
+  data: RouterOutputs["viewer"]["apps"]["integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
-  defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
+  defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
@@ -72,7 +72,7 @@ export const AppList = ({
   const ChildAppCard = ({
     item,
   }: {
-    item: RouterOutputs["viewer"]["integrations"]["items"][number] & {
+    item: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
       credentialOwner?: CredentialOwner;
     };
   }) => {
@@ -99,7 +99,7 @@ export const AppList = ({
                   <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
+                  {!appIsDefault && variant === "conferencing" && (
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"

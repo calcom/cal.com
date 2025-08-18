@@ -5,14 +5,30 @@ import { vi } from "vitest";
 import type { CreateBtnProps } from "./CreateButton";
 import { CreateButtonWithTeamsList } from "./CreateButtonWithTeamsList";
 
+const mockRouter = {
+  push: vi.fn((path: string) => {
+    return;
+  }),
+};
+
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => mockRouter),
+  };
+});
+
 const runtimeMock = async (data: Array<any>) => {
   const updatedTrpc = {
     viewer: {
-      teamsAndUserProfilesQuery: {
-        useQuery() {
-          return {
-            data: data,
-          };
+      loggedInViewerRouter: {
+        teamsAndUserProfilesQuery: {
+          useQuery() {
+            return {
+              data: data,
+            };
+          },
         },
       },
     },
@@ -37,18 +53,20 @@ describe("Create Button Tests", () => {
       vi.mock("@calcom/trpc/react", () => ({
         trpc: {
           viewer: {
-            teamsAndUserProfilesQuery: {
-              useQuery() {
-                return {
-                  data: [
-                    {
-                      teamId: 1,
-                      name: "test",
-                      slug: "create-button-test",
-                      image: "image",
-                    },
-                  ],
-                };
+            loggedInViewerRouter: {
+              teamsAndUserProfilesQuery: {
+                useQuery() {
+                  return {
+                    data: [
+                      {
+                        teamId: 1,
+                        name: "test",
+                        slug: "create-button-test",
+                        image: "image",
+                      },
+                    ],
+                  };
+                },
               },
             },
           },
