@@ -72,10 +72,10 @@ export function SaveFilterSegmentButton() {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
 
   const { mutate: createSegment } = trpc.viewer.filterSegments.create.useMutation({
-    onSuccess: ({ id }) => {
+    onSuccess: (segment) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_saved"), "success");
-      setSegmentId({ id, type: "user" });
+      setSegmentId({ id: segment.id, type: "user" }, segment);
       setIsOpen(false);
     },
     onError: () => {

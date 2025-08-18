@@ -66,7 +66,7 @@ export type DataTableContextType = {
   segments: CombinedFilterSegment[];
   selectedSegment: CombinedFilterSegment | undefined;
   segmentId: SegmentIdentifier | null;
-  setSegmentId: (id: SegmentIdentifier | null) => void;
+  setSegmentId: (id: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => void;
   canSaveSegment: boolean;
   isSegmentEnabled: boolean;
 
@@ -180,7 +180,7 @@ export function DataTableProvider({
   );
 
   const setSegment = useCallback(
-    (segmentId: SegmentIdentifier | null) => {
+    (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
       if (!segmentId) {
         setSegmentId(null);
         setSelectedSegment(undefined);
@@ -191,7 +191,7 @@ export function DataTableProvider({
         return;
       }
 
-      const segment = findSelectedSegment(String(segmentId.id));
+      const segment = providedSegment || findSelectedSegment(String(segmentId.id));
       if (!segment) {
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
         // but we still keep all the other states like activeFilters, etc.
