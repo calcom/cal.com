@@ -46,7 +46,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
     // to throw the error if there arent any other schedules
     if (!scheduleToSetAsDefault) throw new TRPCError({ code: "BAD_REQUEST" });
 
-    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, scheduleToSetAsDefault.id);
+    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, scheduleToSetAsDefault.id, prisma);
 
     await prisma.user.update({
       where: {
@@ -57,7 +57,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
       },
     });
   } else if (user.defaultScheduleId) {
-    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, user.defaultScheduleId);
+    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, user.defaultScheduleId, prisma);
   }
 
   await prisma.schedule.delete({

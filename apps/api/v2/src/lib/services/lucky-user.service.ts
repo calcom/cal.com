@@ -1,16 +1,15 @@
-import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
-import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { Injectable } from "@nestjs/common";
 
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { HostRepository } from "@calcom/lib/server/repository/host";
-import { PrismaOOORepository as PrismaOOORepositoryLib } from "@calcom/lib/server/repository/ooo";
+import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import type { Prisma, User } from "@calcom/prisma/client";
+import type { Prisma, User, PrismaClient } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import { RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
+import { RRTimestampBasis, RRResetInterval, AttributeType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
@@ -76,33 +75,46 @@ interface GetLuckyUserParams<T extends PartialUser> {
 export class LuckyUserService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly bookingRepository: PrismaBookingRepository,
-    private readonly oooRepository: PrismaOOORepository
+    private readonly hostRepository: HostRepository,
+    private readonly bookingRepository: BookingRepository,
+    private readonly oooRepository: PrismaOOORepository,
+    private readonly attributeRepository: PrismaAttributeRepository,
+    private readonly prismaClient: PrismaClient
   ) {}
 
   async getLuckyUser<T extends PartialUser & { priority?: number | null; weight?: number | null }>(
     getLuckyUserParams: GetLuckyUserParams<T>
   ) {
     const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
-    return this.getLuckyUser_requiresDataToBePreFetched({
+    const { attributeWeights, virtualQueuesData } = await this.prepareQueuesAndAttributesData(
+      getLuckyUserParams
+    );
+    const result = this.getLuckyUser_requiresDataToBePreFetched({
       ...getLuckyUserParams,
       ...fetchedData,
+      attributeWeights,
+      virtualQueuesData,
     });
+    return result.luckyUser;
   }
 
-  async getLuckyUser_requiresDataToBePreFetched<
+  getLuckyUser_requiresDataToBePreFetched<
     T extends PartialUser & { priority?: number | null; weight?: number | null }
-  >(params: GetLuckyUserParams<T> & FetchedData) {
+  >(params: GetLuckyUserParams<T> & FetchedData & { attributeWeights: any; virtualQueuesData: any }) {
     const { availableUsers, eventType } = params;
-    const { bookingsOfAvailableUsersOfInterval, allRRHostsBookingsOfInterval, allRRHostsCreatedInInterval } =
-      params;
+    const {
+      bookingsOfAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+    } = params;
 
     if (!availableUsers.length) {
-      return null;
+      return { luckyUser: null, usersAndTheirBookingShortfalls: [] };
     }
 
     if (availableUsers.length === 1) {
-      return availableUsers[0];
+      return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
     }
 
     const usersAndTheirBookingShortfalls = this.getUsersAndTheirBookingShortfalls({
@@ -112,7 +124,10 @@ export class LuckyUserService {
       allRRHostsCreatedInInterval,
     });
 
-    const { remainingUsersAfterWeightFilter } = this.filterUsersBasedOnWeights({
+    const {
+      remainingUsersAfterWeightFilter,
+      usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
+    } = this.filterUsersBasedOnWeights({
       availableUsers,
       eventType,
       usersAndTheirBookingShortfalls,
@@ -120,33 +135,118 @@ export class LuckyUserService {
     });
 
     if (remainingUsersAfterWeightFilter.length === 0) {
-      return null;
+      return { luckyUser: null, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls };
     }
 
     if (remainingUsersAfterWeightFilter.length === 1) {
-      return remainingUsersAfterWeightFilter[0];
+      return {
+        luckyUser: remainingUsersAfterWeightFilter[0],
+        usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
+      };
     }
 
-    return this.leastRecentlyBookedUser({
+    const luckyUser = this.leastRecentlyBookedUser({
       availableUsers: remainingUsersAfterWeightFilter,
       bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval: [],
+      bookingsOfNotAvailableUsersOfInterval,
     });
+
+    return { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls };
   }
 
   async getOrderedListOfLuckyUsers<AvailableUser extends PartialUser>(
     getLuckyUserParams: GetLuckyUserParams<AvailableUser>
   ) {
+    const { availableUsers, eventType } = getLuckyUserParams;
+
     const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
-    return this.getOrderedListOfLuckyUsers_requiresDataToBePreFetched({
-      ...getLuckyUserParams,
-      ...fetchedData,
+    const {
+      bookingsOfAvailableUsersOfInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
+      organizersWithLastCreated,
+      oooData,
+    } = fetchedData;
+
+    const { attributeWeights, virtualQueuesData } = await this.prepareQueuesAndAttributesData(
+      getLuckyUserParams
+    );
+
+    let remainingAvailableUsers = [...availableUsers];
+    let bookingsOfRemainingAvailableUsersOfInterval = [...bookingsOfAvailableUsersOfInterval];
+    const orderedUsersSet = new Set<AvailableUser>();
+    const perUserBookingsCount: Record<number, number> = {};
+
+    let usersAndTheirBookingShortfalls: {
+      id: number;
+      bookingShortfall: number;
+      calibration: number;
+      weight: number;
+    }[] = [];
+
+    // Keep getting lucky users until none remain
+    while (remainingAvailableUsers.length > 0) {
+      const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
+        this.getLuckyUser_requiresDataToBePreFetched({
+          ...getLuckyUserParams,
+          eventType,
+          availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
+          bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
+          bookingsOfNotAvailableUsersOfInterval,
+          allRRHostsBookingsOfInterval,
+          allRRHostsCreatedInInterval,
+          organizersWithLastCreated,
+          attributeWeights,
+          virtualQueuesData,
+          oooData,
+        });
+
+      if (!usersAndTheirBookingShortfalls.length) {
+        usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
+      }
+
+      if (orderedUsersSet.has(luckyUser)) {
+        throw new Error(
+          `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
+        );
+      }
+
+      orderedUsersSet.add(luckyUser);
+      perUserBookingsCount[luckyUser.id] = bookingsOfAvailableUsersOfInterval.filter(
+        (booking) => booking.userId === luckyUser.id
+      ).length;
+      remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
+      bookingsOfRemainingAvailableUsersOfInterval = bookingsOfRemainingAvailableUsersOfInterval.filter(
+        (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
+      );
+    }
+
+    const bookingShortfalls: Record<number, number> = {};
+    const calibrations: Record<number, number> = {};
+    const weights: Record<number, number> = {};
+
+    usersAndTheirBookingShortfalls.forEach((user) => {
+      bookingShortfalls[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
+      calibrations[user.id] = parseFloat(user.calibration.toFixed(2));
+      weights[user.id] = user.weight;
     });
+
+    return {
+      users: Array.from(orderedUsersSet),
+      isUsingAttributeWeights: !!attributeWeights && !!virtualQueuesData,
+      perUserData: {
+        bookingsCount: perUserBookingsCount,
+        bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
+        calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
+        weights: eventType.isRRWeightsEnabled ? weights : null,
+      },
+    };
   }
 
   async getOrderedListOfLuckyUsers_requiresDataToBePreFetched<AvailableUser extends PartialUser>(
     params: GetLuckyUserParams<AvailableUser> & FetchedData
-  ) {
+  ): Promise<AvailableUser[]> {
     const { availableUsers } = params;
     const { bookingsOfAvailableUsersOfInterval, allRRHostsBookingsOfInterval, allRRHostsCreatedInInterval } =
       params;
@@ -187,11 +287,12 @@ export class LuckyUserService {
       return [luckyUser];
     }
 
-    const orderedRemainingUsers = await this.getOrderedListOfLuckyUsers_requiresDataToBePreFetched({
-      ...params,
-      availableUsers: remainingUsers as [AvailableUser, ...AvailableUser[]],
-      bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
-    });
+    const orderedRemainingUsers: AvailableUser[] =
+      await this.getOrderedListOfLuckyUsers_requiresDataToBePreFetched({
+        ...params,
+        availableUsers: remainingUsers as [AvailableUser, ...AvailableUser[]],
+        bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
+      });
 
     return [luckyUser, ...orderedRemainingUsers];
   }
@@ -203,10 +304,8 @@ export class LuckyUserService {
 
     if (!routingFormResponse || !eventType.team?.parentId) {
       return {
-        queuesAndAttributesData: {
-          attributeWeights: null,
-          virtualQueuesData: null,
-        },
+        attributeWeights: null,
+        virtualQueuesData: null,
       };
     }
 
@@ -215,14 +314,10 @@ export class LuckyUserService {
       routingFormResponse,
     });
 
-    const queueAndAtributeWeightData = this.getQueueAndAttributeWeightData({
+    return this.getQueueAndAttributeWeightData({
       routingFormResponse,
       attributeWithEnabledWeights,
     });
-
-    return {
-      queuesAndAttributesData: queueAndAtributeWeightData,
-    };
   }
 
   private async fetchAllDataNeededForCalculations<
@@ -262,13 +357,13 @@ export class LuckyUserService {
           interval,
           rrTimestampBasis,
         }),
-        HostRepository.findHostsCreatedInInterval({
+        this.hostRepository.findHostsCreatedInInterval({
           eventTypeId: eventType.id,
           userIds: allRRHosts.map((host) => host.user.id),
         }),
       ]);
 
-    const oooEntries = await PrismaOOORepositoryLib.findOOOEntriesInInterval({
+    const oooEntries = await this.oooRepository.findOOOEntriesInInterval({
       userIds: availableUsers.map((user) => user.id),
     });
 
@@ -291,7 +386,7 @@ export class LuckyUserService {
   }) {
     const rrResetInterval = eventType.team?.rrResetInterval;
 
-    if (rrResetInterval === RRResetInterval.MONTHLY) {
+    if (rrResetInterval === RRResetInterval.MONTH) {
       return {
         start: this.startOfMonth(meetingStartTime),
         end: this.endOfMonth(meetingStartTime),
@@ -432,10 +527,10 @@ export class LuckyUserService {
       const hostCalibration = allHostsWithCalibration.find((host) => host.userId === user.id);
 
       return {
-        user,
-        bookingCount: userBookings.length,
+        id: user.id,
+        bookingShortfall: (hostCalibration?.calibration || 0) - userBookings.length,
         calibration: hostCalibration?.calibration || 0,
-        shortfall: (hostCalibration?.calibration || 0) - userBookings.length,
+        weight: (user as any).weight || 100,
       };
     });
   }
@@ -551,6 +646,12 @@ export class LuckyUserService {
     }
 
     const routes = zodRoutes.parse(routingFormResponse.form.routes);
+    if (!routes) {
+      return {
+        attributeWeights: null,
+        virtualQueuesData: null,
+      };
+    }
 
     const chosenRoute = routes.find((route) => route.id === routingFormResponse.chosenRouteId);
     if (!chosenRoute) {
