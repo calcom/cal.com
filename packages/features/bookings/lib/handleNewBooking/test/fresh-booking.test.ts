@@ -3281,12 +3281,7 @@ describe("handleNewBooking", () => {
       );
 
       test(
-        `Payment retry scenario - should return existing payment UID instead of creating duplicate booking
-            1. First booking creates unpaid booking with payment record
-            2. Second booking attempt with same details should return existing payment UID
-            3. Should not create duplicate booking in database
-            4. Should set paymentRequired flag correctly
-        `,
+        `Payment retry scenario - should return existing payment UID and prevent duplicate bookings when retrying canceled payment`,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
