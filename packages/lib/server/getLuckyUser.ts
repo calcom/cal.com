@@ -536,68 +536,22 @@ type FetchedData = {
   oooData: OOODataType;
 };
 
-export function getLuckyUser_requiresDataToBePreFetched<
+export async function getLuckyUser_requiresDataToBePreFetched<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
   }
->({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
-  const {
-    eventType,
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    oooData,
-  } = getLuckyUserParams;
-
-  // there is only one user
-  if (availableUsers.length === 1) {
-    return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
-  }
-
-  let usersAndTheirBookingShortfalls: {
-    id: number;
-    bookingShortfall: number;
-    calibration: number;
-    weight: number;
-  }[] = [];
-  if (eventType.isRRWeightsEnabled) {
-    const {
-      remainingUsersAfterWeightFilter,
-      usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
-    } = filterUsersBasedOnWeights({
-      ...getLuckyUserParams,
-      availableUsers,
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      oooData,
-    });
-    availableUsers = remainingUsersAfterWeightFilter;
-    usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
-  }
-
-  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-  // No need to round-robin through the only user, return early also.
-  if (highestPriorityUsers.length === 1) {
-    return {
-      luckyUser: highestPriorityUsers[0],
-      usersAndTheirBookingShortfalls,
-    };
-  }
-  // TS is happy.
-  return {
-    luckyUser: leastRecentlyBookedUser({
-      ...getLuckyUserParams,
-      availableUsers: highestPriorityUsers,
-      bookingsOfAvailableUsers: bookingsOfAvailableUsersOfInterval,
-      organizersWithLastCreated,
-    }),
-    usersAndTheirBookingShortfalls,
-  };
+>(getLuckyUserParams: GetLuckyUserParams<T> & FetchedData) {
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  const { attributeWeights, virtualQueuesData } = await service.prepareQueuesAndAttributesData(
+    getLuckyUserParams
+  );
+  return service.getLuckyUser_requiresDataToBePreFetched({
+    ...getLuckyUserParams,
+    attributeWeights,
+    virtualQueuesData,
+  });
 }
 
 function isFullDayEvent(date1: Date, date2: Date) {
