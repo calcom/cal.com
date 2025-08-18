@@ -66,7 +66,13 @@ export type DataTableContextType = {
   segments: CombinedFilterSegment[];
   selectedSegment: CombinedFilterSegment | undefined;
   segmentId: SegmentIdentifier | null;
-  setSegmentId: (id: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => void;
+  setSegmentId: (
+    id: SegmentIdentifier | null,
+    providedSegment?: Pick<
+      CombinedFilterSegment,
+      "activeFilters" | "sorting" | "columnVisibility" | "columnSizing" | "perPage" | "searchTerm"
+    >
+  ) => void;
   canSaveSegment: boolean;
   isSegmentEnabled: boolean;
 
@@ -180,7 +186,13 @@ export function DataTableProvider({
   );
 
   const setSegment = useCallback(
-    (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
+    (
+      segmentId: SegmentIdentifier | null,
+      providedSegment?: Pick<
+        CombinedFilterSegment,
+        "activeFilters" | "sorting" | "columnVisibility" | "columnSizing" | "perPage" | "searchTerm"
+      >
+    ) => {
       if (!segmentId) {
         setSegmentId(null);
         setSelectedSegment(undefined);

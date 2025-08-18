@@ -31,6 +31,7 @@ export async function applySelectFilter(page: Page, columnId: string, value: str
 }
 
 export async function selectOptionValue(page: Page, columnId: string, value: string) {
+  await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).waitFor();
   await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).click();
 }
 
