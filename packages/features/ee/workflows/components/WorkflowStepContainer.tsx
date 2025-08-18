@@ -641,7 +641,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="bg-muted mt-2 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-emphasis text-sm font-medium leading-none">{t("cal_ai_agent")}</h2>
+                      <h2 className="text-emphasis text-sm font-medium leading-none">
+                        {t("cal_ai_agent")}
+                        <Badge startIcon="info" className="ms-2 rounded-md" variant="warning">
+                          {t("set_up_required")}
+                        </Badge>
+                      </h2>
                       <p className="text-muted mt-2 text-sm font-medium leading-none">
                         {t("no_phone_number_connected")}.
                       </p>

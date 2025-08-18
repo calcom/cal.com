@@ -3398,6 +3398,7 @@
   "pbac_desc_delete_roles": "Delete roles",
   "pbac_desc_manage_roles": "All actions on roles across organization teams",
   "pbac_desc_create_workflows": "Create and set up new workflows",
+  "set_up_required": "Set up required",
   "pbac_desc_view_workflows": "View existing workflows and their configurations",
   "pbac_desc_update_workflows": "Edit and modify workflow settings",
   "pbac_desc_delete_workflows": "Remove workflows from the system",
