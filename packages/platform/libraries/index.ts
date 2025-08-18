@@ -41,6 +41,10 @@ export { handleCreatePhoneCall };
 
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
+// Export the new BookingCreateService for easy access
+export { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
+export type { IBookingCreateService } from "@calcom/lib/server/service/booking/IBookingCreateService";
+
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";

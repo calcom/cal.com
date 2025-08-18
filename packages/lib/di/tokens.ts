@@ -45,4 +45,6 @@ export const DI_TOKENS = {
   NO_SLOTS_NOTIFICATION_SERVICE_MODULE: Symbol("NoSlotsNotificationServiceModule"),
   MEMBERSHIP_REPOSITORY: Symbol("MembershipRepository"),
   MEMBERSHIP_REPOSITORY_MODULE: Symbol("MembershipRepositoryModule"),
+  BOOKING_CREATE_SERVICE: Symbol("BookingCreateService"),
+  BOOKING_CREATE_SERVICE_MODULE: Symbol("BookingCreateServiceModule"),
 };
