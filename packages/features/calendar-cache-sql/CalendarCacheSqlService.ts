@@ -258,10 +258,10 @@ export class CalendarCacheSqlService {
 
       events.push({
         calendarSubscription: { connect: { id: subscriptionId } },
-        googleEventId: event.id!,
+        externalEventId: event.id!,
         iCalUID: event.iCalUID || null,
-        etag: event.etag || "",
-        sequence: event.sequence || 0,
+        externalEtag: event.etag || "",
+        iCalSequence: event.sequence || 0,
         summary: isCalComEvent ? event.summary || null : null,
         description: isCalComEvent ? event.description || null : null,
         location: isCalComEvent ? event.location || null : null,
@@ -280,8 +280,8 @@ export class CalendarCacheSqlService {
           : event.originalStartTime?.date
           ? new Date(event.originalStartTime.date)
           : null,
-        googleCreatedAt: event.created ? new Date(event.created) : null,
-        googleUpdatedAt: event.updated ? new Date(event.updated) : null,
+        externalCreatedAt: event.created ? new Date(event.created) : null,
+        externalUpdatedAt: event.updated ? new Date(event.updated) : null,
       });
     });
 

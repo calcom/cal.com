@@ -21,9 +21,9 @@ export class CalendarEventRepository implements ICalendarEventRepository {
 
     const event = await client.calendarEvent.upsert({
       where: {
-        calendarSubscriptionId_googleEventId: {
+        calendarSubscriptionId_externalEventId: {
           calendarSubscriptionId: subscriptionId,
-          googleEventId: data.googleEventId,
+          externalEventId: (data as any).externalEventId,
         },
       },
       create: {
@@ -36,8 +36,8 @@ export class CalendarEventRepository implements ICalendarEventRepository {
       },
       select: {
         id: true,
-        googleEventId: true,
-        etag: true,
+        externalEventId: true,
+        externalEtag: true,
         start: true,
         end: true,
         summary: true,
@@ -111,12 +111,12 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     });
   }
 
-  async deleteEvent(calendarSubscriptionId: string, googleEventId: string) {
+  async deleteEvent(calendarSubscriptionId: string, externalEventId: string) {
     await this.prismaClient.calendarEvent.delete({
       where: {
-        calendarSubscriptionId_googleEventId: {
+        calendarSubscriptionId_externalEventId: {
           calendarSubscriptionId,
-          googleEventId,
+          externalEventId,
         },
       },
     });

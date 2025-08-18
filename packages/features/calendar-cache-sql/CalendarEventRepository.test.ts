@@ -16,8 +16,8 @@ describe("CalendarEventRepository", () => {
     it("should create new event if not exists", async () => {
       const data = {
         calendarSubscription: { connect: { id: "subscription-id" } },
-        googleEventId: "google-event-id",
-        etag: "test-etag",
+        externalEventId: "ext-event-id",
+        externalEtag: "test-etag",
         summary: "Test Event",
         start: new Date("2024-01-01T10:00:00Z"),
         end: new Date("2024-01-01T11:00:00Z"),
@@ -27,7 +27,7 @@ describe("CalendarEventRepository", () => {
 
       expect(result).toEqual(
         expect.objectContaining({
-          googleEventId: "google-event-id",
+          externalEventId: "ext-event-id",
           summary: "Test Event",
         })
       );
@@ -35,14 +35,14 @@ describe("CalendarEventRepository", () => {
 
     it("should upsert event scalar fields and ignore participants", async () => {
       const subscriptionId = "sub-1";
-      const googleEventId = "g-1";
+      const externalEventId = "g-1";
 
       // Initial create with participants
       const created = await repository.upsertEvent(
         {
           calendarSubscription: { connect: { id: subscriptionId } },
-          googleEventId,
-          etag: "etag-1",
+          externalEventId,
+          externalEtag: "etag-1",
           summary: "Event",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:00:00Z"),
@@ -55,8 +55,8 @@ describe("CalendarEventRepository", () => {
       const updated = await repository.upsertEvent(
         {
           calendarSubscription: { connect: { id: subscriptionId } },
-          googleEventId,
-          etag: "etag-2",
+          externalEventId,
+          externalEtag: "etag-2",
           summary: "Event Updated",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:30:00Z"),
@@ -72,8 +72,8 @@ describe("CalendarEventRepository", () => {
       await repository.upsertEvent(
         {
           calendarSubscription: { connect: { id: subscriptionId } },
-          googleEventId,
-          etag: "etag-3",
+          externalEventId,
+          externalEtag: "etag-3",
           summary: "Event Updated",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:30:00Z"),
@@ -84,9 +84,9 @@ describe("CalendarEventRepository", () => {
 
       const after = await prismock.calendarEvent.findUnique({
         where: {
-          calendarSubscriptionId_googleEventId: {
+          calendarSubscriptionId_externalEventId: {
             calendarSubscriptionId: subscriptionId,
-            googleEventId,
+            externalEventId,
           },
         },
       });
@@ -95,13 +95,13 @@ describe("CalendarEventRepository", () => {
 
     it("should handle omitted participants without error on update", async () => {
       const subscriptionId = "sub-2";
-      const googleEventId = "g-2";
+      const externalEventId = "g-2";
 
       const created2 = await repository.upsertEvent(
         {
           calendarSubscription: { connect: { id: subscriptionId } },
-          googleEventId,
-          etag: "etag-1",
+          externalEventId,
+          externalEtag: "etag-1",
           summary: "Event",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:00:00Z"),
@@ -113,8 +113,8 @@ describe("CalendarEventRepository", () => {
       const updated2 = await repository.upsertEvent(
         {
           calendarSubscription: { connect: { id: subscriptionId } },
-          googleEventId,
-          etag: "etag-2",
+          externalEventId,
+          externalEtag: "etag-2",
           summary: "Event",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:00:00Z"),
@@ -135,8 +135,8 @@ describe("CalendarEventRepository", () => {
       const mockEvent = {
         id: "event-id",
         calendarSubscriptionId: subscriptionId,
-        googleEventId: "google-event-id",
-        etag: "test-etag",
+        externalEventId: "google-event-id",
+        externalEtag: "test-etag",
         summary: "Test Event",
         start: futureDate,
         end: new Date(futureDate.getTime() + 60 * 60 * 1000), // 1 hour later
@@ -168,8 +168,8 @@ describe("CalendarEventRepository", () => {
       const mockEvent = {
         id: "event-id",
         calendarSubscriptionId: subscriptionId,
-        googleEventId: "google-event-id",
-        etag: "test-etag",
+        externalEventId: "google-event-id",
+        externalEtag: "test-etag",
         summary: "Cancelled Event",
         start: futureDate,
         end: new Date(futureDate.getTime() + 60 * 60 * 1000), // 1 hour later
@@ -197,8 +197,8 @@ describe("CalendarEventRepository", () => {
       const mockEvent = {
         id: "event-id",
         calendarSubscriptionId: subscriptionId,
-        googleEventId: "google-event-id",
-        etag: "test-etag",
+        externalEventId: "google-event-id",
+        externalEtag: "test-etag",
         summary: "Test Event",
         start: new Date("2024-01-01T10:00:00Z"),
         end: new Date("2024-01-01T11:00:00Z"),
@@ -212,9 +212,9 @@ describe("CalendarEventRepository", () => {
 
       const deletedEvent = await prismock.calendarEvent.findUnique({
         where: {
-          calendarSubscriptionId_googleEventId: {
+          calendarSubscriptionId_externalEventId: {
             calendarSubscriptionId: subscriptionId,
-            googleEventId: "google-event-id",
+            externalEventId: "google-event-id",
           },
         },
       });
@@ -232,16 +232,16 @@ describe("CalendarEventRepository", () => {
       const events = [
         {
           calendarSubscription: { connect: { id: subscriptionId } },
-          googleEventId: "event-1",
-          etag: "etag-1",
+          externalEventId: "event-1",
+          externalEtag: "etag-1",
           summary: "Event 1",
           start: now,
           end: later,
         },
         {
           calendarSubscription: { connect: { id: subscriptionId } },
-          googleEventId: "event-2",
-          etag: "etag-2",
+          externalEventId: "event-2",
+          externalEtag: "etag-2",
           summary: "Event 2",
           start: now,
           end: later,
@@ -256,22 +256,22 @@ describe("CalendarEventRepository", () => {
       await repository.bulkUpsertEvents(events, subscriptionId);
 
       // Verify count matches input
-      const ids = events.map((e) => e.googleEventId);
+      const ids = events.map((e) => e.externalEventId);
       // Prismock may not support `{ in: [...] }` reliably; fetch and filter in memory
       const allForSubscription = await prismock.calendarEvent.findMany({
         where: { calendarSubscriptionId: subscriptionId },
       });
-      const createdEvents = allForSubscription.filter((e: any) => ids.includes(e.googleEventId));
+      const createdEvents = allForSubscription.filter((e: any) => ids.includes(e.externalEventId));
       expect(createdEvents).toHaveLength(events.length);
 
       // Verify each record has expected properties
-      const byId = new Map(createdEvents.map((e: any) => [e.googleEventId, e]));
+      const byId = new Map(createdEvents.map((e: any) => [e.externalEventId, e]));
       for (const expected of events) {
-        const record = byId.get(expected.googleEventId);
+        const record = byId.get(expected.externalEventId);
         expect(record).toBeTruthy();
         expect(record).toMatchObject({
-          googleEventId: expected.googleEventId,
-          etag: expected.etag,
+          externalEventId: expected.externalEventId,
+          externalEtag: expected.externalEtag,
           summary: expected.summary,
           calendarSubscriptionId: subscriptionId,
         });
@@ -288,8 +288,8 @@ describe("CalendarEventRepository", () => {
       const mockOldEvent = {
         id: "old-event-id",
         calendarSubscriptionId: "subscription-id",
-        googleEventId: "old-google-event-id",
-        etag: "test-etag",
+        externalEventId: "old-google-event-id",
+        externalEtag: "test-etag",
         summary: "Old Cancelled Event",
         start: oldDate,
         end: oldDate,
@@ -318,8 +318,8 @@ describe("CalendarEventRepository", () => {
       const mockPastEvent = {
         id: "past-event-id",
         calendarSubscriptionId: "subscription-id",
-        googleEventId: "past-google-event-id",
-        etag: "test-etag",
+        externalEventId: "past-google-event-id",
+        externalEtag: "test-etag",
         summary: "Past Confirmed Event",
         start: pastDate,
         end: pastDate,

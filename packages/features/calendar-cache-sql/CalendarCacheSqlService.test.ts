@@ -171,12 +171,12 @@ describe("CalendarCacheSqlService", () => {
       expect(mockEventRepo.bulkUpsertEvents).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            googleEventId: "cancelled-event-id",
+            externalEventId: "cancelled-event-id",
             summary: "Cancelled Event",
             status: "cancelled",
           }),
           expect.objectContaining({
-            googleEventId: "active-event-id",
+            externalEventId: "active-event-id",
             summary: "Active Event",
             status: "confirmed",
           }),
@@ -265,7 +265,7 @@ describe("CalendarCacheSqlService", () => {
       expect(mockEventRepo.bulkUpsertEvents).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            googleEventId: "external-event-id",
+            externalEventId: "external-event-id",
             summary: null, // PII filtered out
             description: null, // PII filtered out
             location: null, // PII filtered out
@@ -361,7 +361,7 @@ describe("CalendarCacheSqlService", () => {
       expect(mockEventRepo.bulkUpsertEvents).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            googleEventId: "event-with-participants",
+            externalEventId: "event-with-participants",
             summary: "Meeting with Participants",
             creator: expect.objectContaining({
               create: expect.objectContaining({

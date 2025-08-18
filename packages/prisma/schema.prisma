@@ -1629,11 +1629,11 @@ model CalendarEvent {
   id                     String @id @default(uuid())
   calendarSubscriptionId String
 
-  // Google Calendar event data
-  googleEventId String
-  iCalUID       String?
-  etag          String
-  sequence      Int     @default(0)
+  // External calendar event data (provider-agnostic)
+  externalEventId String
+  iCalUID         String?
+  externalEtag    String
+  iCalSequence    Int     @default(0)
 
   // Event details
   summary     String?
@@ -1655,19 +1655,19 @@ model CalendarEvent {
   originalStartTime DateTime?
 
   // Timestamps
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  googleCreatedAt DateTime?
-  googleUpdatedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  externalCreatedAt DateTime?
+  externalUpdatedAt DateTime?
 
   // Relations
   calendarSubscription CalendarSubscription @relation(fields: [calendarSubscriptionId], references: [id], onDelete: Cascade)
 
-  @@unique([calendarSubscriptionId, googleEventId])
+  @@unique([calendarSubscriptionId, externalEventId])
   @@index([calendarSubscriptionId, start, end])
   @@index([calendarSubscriptionId, iCalUID])
   @@index([start, end, status]) // For availability queries
-  @@index([googleEventId])
+  @@index([externalEventId])
 }
 
 enum FeatureType {

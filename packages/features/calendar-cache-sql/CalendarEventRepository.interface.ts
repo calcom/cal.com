@@ -9,7 +9,7 @@ export type CalendarEventForAvailability = Pick<
 // Minimal fields returned by upsertEvent for performance optimization
 export type CalendarEventUpsertResult = Pick<
   CalendarEvent,
-  "id" | "googleEventId" | "etag" | "start" | "end" | "summary" | "status" | "updatedAt"
+  "id" | "externalEventId" | "externalEtag" | "start" | "end" | "summary" | "status" | "updatedAt"
 >;
 
 export interface ICalendarEventRepository {
@@ -27,7 +27,7 @@ export interface ICalendarEventRepository {
     start: Date,
     end: Date
   ): Promise<CalendarEventForAvailability[]>;
-  deleteEvent(calendarSubscriptionId: string, googleEventId: string): Promise<void>;
+  deleteEvent(calendarSubscriptionId: string, externalEventId: string): Promise<void>;
   bulkUpsertEvents(
     events: Prisma.CalendarEventCreateInput[],
     subscriptionId: string,
