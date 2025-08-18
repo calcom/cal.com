@@ -99,14 +99,12 @@ export async function handleBookingRequested(args: {
     );
     await Promise.all(promises);
 
-    const workflows = await getAllWorkflowsFromEventType(booking.eventType);
-    const workflowsToTrigger = workflows.filter(
-      (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_REQUESTED
-    );
-
-    if (workflowsToTrigger.length > 0) {
+    const bookingRequestedWorkflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId, [
+      WorkflowTriggerEvents.BOOKING_REQUESTED,
+    ]);
+    if (bookingRequestedWorkflows.length > 0) {
       await scheduleWorkflowReminders({
-        workflows: workflowsToTrigger,
+        workflows: bookingRequestedWorkflows,
         smsReminderNumber: null,
         calendarEvent: {
           ...evt,

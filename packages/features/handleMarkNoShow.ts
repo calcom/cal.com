@@ -129,12 +129,11 @@ const handleMarkNoShow = async ({
       });
 
       if (booking?.eventType) {
-        const workflows = await getAllWorkflowsFromEventType(booking.eventType);
-        const workflowsToTriggerForNoShow = workflows.filter(
-          (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED
-        );
+        const noShowUpdatedworkflows = await getAllWorkflowsFromEventType(booking.eventType, userId, [
+          WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+        ]);
 
-        if (workflowsToTriggerForNoShow.length > 0) {
+        if (noShowUpdatedworkflows.length > 0) {
           try {
             const organizer = booking.user || booking.eventType.owner;
             const calendarEvent = {
@@ -168,7 +167,7 @@ const handleMarkNoShow = async ({
             };
 
             await scheduleWorkflowReminders({
-              workflows: workflowsToTriggerForNoShow,
+              workflows: noShowUpdatedworkflows,
               smsReminderNumber: null,
               calendarEvent: calendarEvent as any,
             });

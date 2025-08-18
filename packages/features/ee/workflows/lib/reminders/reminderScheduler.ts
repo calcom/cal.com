@@ -43,9 +43,9 @@ type ProcessWorkflowStepParams = {
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
   workflows: Workflow[];
-  isNotConfirmed?: boolean;
-  isRescheduleEvent?: boolean;
-  isFirstRecurringEvent?: boolean;
+  // isNotConfirmed?: boolean;
+  // isRescheduleEvent?: boolean;
+  // isFirstRecurringEvent?: boolean;
   isDryRun?: boolean;
 }
 
@@ -183,69 +183,21 @@ const processWorkflowStep = async (
   }
 };
 
-const isImmediateTrigger = (trigger: WorkflowTriggerEvents): boolean => {
-  return (
-    trigger === WorkflowTriggerEvents.NEW_EVENT ||
-    trigger === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT ||
-    trigger === WorkflowTriggerEvents.BOOKING_REQUESTED ||
-    trigger === WorkflowTriggerEvents.BOOKING_REJECTED ||
-    trigger === WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED ||
-    trigger === WorkflowTriggerEvents.BOOKING_PAID ||
-    trigger === WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED
-  );
-};
-
-const isTimeBased = (trigger: WorkflowTriggerEvents): boolean => {
-  return trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT;
-};
-
-const shouldProcessWorkflow = (
-  workflow: { trigger: WorkflowTriggerEvents },
-  isRescheduleEvent: boolean,
-  isFirstRecurringEvent: boolean
-): boolean => {
-  if (isImmediateTrigger(workflow.trigger)) {
-    if (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT) {
-      return !isRescheduleEvent && isFirstRecurringEvent;
-    }
-
-    if (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT) {
-      return isRescheduleEvent;
-    }
-
-    return true;
-  }
-
-  if (isTimeBased(workflow.trigger)) {
-    return true;
-  }
-
-  return false;
-};
-
 const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
   const {
     workflows,
     smsReminderNumber,
     calendarEvent: evt,
-    isNotConfirmed = false,
-    isRescheduleEvent = false,
-    isFirstRecurringEvent = true,
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
     isDryRun = false,
   } = args;
-  if (isDryRun) return;
-  if (isNotConfirmed || !workflows.length) return;
+  if (isDryRun || !workflows.length) return;
 
   for (const workflow of workflows) {
     if (workflow.steps.length === 0) continue;
 
-    if (!shouldProcessWorkflow(workflow, isRescheduleEvent, isFirstRecurringEvent)) {
-      continue;
-    }
     for (const step of workflow.steps) {
       await processWorkflowStep(workflow, step, {
         calendarEvent: evt,

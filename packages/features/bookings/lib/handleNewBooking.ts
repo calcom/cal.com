@@ -530,6 +530,9 @@ async function handler(
 
   const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
   const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
+  const isNormalBookingOrFirstRecurringSlot = input.bookingData.allRecurringDates
+    ? input.bookingData.isFirstRecurringSlot
+    : true;
 
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
@@ -2223,19 +2226,16 @@ async function handler(
           bookerUrl,
         };
 
-        await scheduleWorkflowReminders({
-          workflows: workflowsToTriggerForPaymentInitiated,
-          smsReminderNumber: smsReminderNumber || null,
-          calendarEvent: calendarEventForWorkflow,
-          isNotConfirmed: true,
-          isRescheduleEvent: !!rescheduleUid,
-          isFirstRecurringEvent: input.bookingData.allRecurringDates
-            ? input.bookingData.isFirstRecurringSlot
-            : undefined,
-          hideBranding: !!eventType.owner?.hideBranding,
-          seatReferenceUid: evt.attendeeSeatId,
-          isDryRun,
-        });
+        if (isNormalBookingOrFirstRecurringSlot) {
+          await scheduleWorkflowReminders({
+            workflows: workflowsToTriggerForPaymentInitiated,
+            smsReminderNumber: smsReminderNumber || null,
+            calendarEvent: calendarEventForWorkflow,
+            hideBranding: !!eventType.owner?.hideBranding,
+            seatReferenceUid: evt.attendeeSeatId,
+            isDryRun,
+          });
+        }
       } catch (error) {
         loggerWithEventDetails.error(
           "Error while scheduling workflow reminders for booking payment initiated",
@@ -2347,7 +2347,7 @@ async function handler(
       (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_REQUESTED
     );
 
-    if (workflowsToTriggerForRequested.length > 0) {
+    if (workflowsToTriggerForRequested.length > 0 && isNormalBookingOrFirstRecurringSlot) {
       try {
         const calendarEventForWorkflow = {
           ...evt,
@@ -2365,11 +2365,6 @@ async function handler(
           workflows: workflowsToTriggerForRequested,
           smsReminderNumber: smsReminderNumber || null,
           calendarEvent: calendarEventForWorkflow,
-          isNotConfirmed: true,
-          isRescheduleEvent: !!rescheduleUid,
-          isFirstRecurringEvent: input.bookingData.allRecurringDates
-            ? input.bookingData.isFirstRecurringSlot
-            : undefined,
           hideBranding: !!eventType.owner?.hideBranding,
           seatReferenceUid: evt.attendeeSeatId,
           isDryRun,
@@ -2444,19 +2439,31 @@ async function handler(
   }
 
   try {
-    await scheduleWorkflowReminders({
-      workflows,
-      smsReminderNumber: smsReminderNumber || null,
-      calendarEvent: evtWithMetadata,
-      isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
-      isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: input.bookingData.allRecurringDates
-        ? input.bookingData.isFirstRecurringSlot
-        : undefined,
-      hideBranding: !!eventType.owner?.hideBranding,
-      seatReferenceUid: evt.attendeeSeatId,
-      isDryRun,
-    });
+    if (rescheduleUid) {
+      const rescheduledWorkflows = workflows.filter(
+        (workflow) => workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT
+      );
+      await scheduleWorkflowReminders({
+        workflows: rescheduledWorkflows,
+        smsReminderNumber: smsReminderNumber || null,
+        calendarEvent: evtWithMetadata,
+        hideBranding: !!eventType.owner?.hideBranding,
+        seatReferenceUid: evt.attendeeSeatId,
+        isDryRun,
+      });
+    } else if (isConfirmedByDefault && isNormalBookingOrFirstRecurringSlot) {
+      const newBookingWorkflows = workflows.filter(
+        (workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+      );
+      await scheduleWorkflowReminders({
+        workflows: newBookingWorkflows,
+        smsReminderNumber: smsReminderNumber || null,
+        calendarEvent: evtWithMetadata,
+        hideBranding: !!eventType.owner?.hideBranding,
+        seatReferenceUid: evt.attendeeSeatId,
+        isDryRun,
+      });
+    }
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
   }

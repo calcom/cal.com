@@ -92,7 +92,17 @@ export async function handleConfirmation(args: {
   const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
-  const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
+  const allWorkflows = await getAllWorkflowsFromEventType(eventType, booking.userId, [
+    WorkflowTriggerEvents.NEW_EVENT,
+    WorkflowTriggerEvents.BEFORE_EVENT,
+    WorkflowTriggerEvents.BOOKING_PAID,
+  ]);
+  const newEventWorkflows = allWorkflows.filter(
+    (workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+  );
+  const bookingPaidWorkflows = allWorkflows.filter(
+    (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_PAID
+  );
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -114,18 +124,18 @@ export async function handleConfirmation(args: {
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
-      if (workflows) {
+      if (allWorkflows) {
         isHostConfirmationEmailsDisabled =
           eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
         isAttendeeConfirmationEmailDisabled =
           eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
 
         if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(allWorkflows);
         }
 
         if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(allWorkflows);
         }
       }
 
@@ -353,7 +363,7 @@ export async function handleConfirmation(args: {
       if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
         await scheduleMandatoryReminder({
           evt: evtOfBooking,
-          workflows,
+          workflows: allWorkflows,
           requiresConfirmation: false,
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
           seatReferenceUid: evt.attendeeSeatId,
@@ -361,13 +371,14 @@ export async function handleConfirmation(args: {
         });
       }
 
-      await scheduleWorkflowReminders({
-        workflows,
-        smsReminderNumber: updatedBookings[index].smsReminderNumber,
-        calendarEvent: evtOfBooking,
-        isFirstRecurringEvent: isFirstBooking,
-        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-      });
+      if (isFirstBooking) {
+        await scheduleWorkflowReminders({
+          workflows: newEventWorkflows,
+          smsReminderNumber: updatedBookings[index].smsReminderNumber,
+          calendarEvent: evtOfBooking,
+          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        });
+      }
     }
   } catch (error) {
     // Silently fail
@@ -551,64 +562,31 @@ export async function handleConfirmation(args: {
       // I don't need to await for this
       Promise.all(bookingPaidSubscribers);
 
-      const bookingEventType = booking.eventTypeId
-        ? await prisma.eventType.findUnique({
-            where: { id: booking.eventTypeId },
-            include: {
-              hosts: {
-                include: {
-                  user: {
-                    select: {
-                      email: true,
-                      destinationCalendar: {
-                        select: {
-                          primaryEmail: true,
-                        },
-                      },
-                    },
-                  },
+      try {
+        const calendarEventForWorkflow = {
+          ...evt,
+          eventType: {
+            slug: updatedBookings[0].eventType?.slug || "",
+            schedulingType: updatedBookings[0].eventType?.schedulingType,
+            hosts:
+              updatedBookings[0].eventType?.hosts?.map((host) => ({
+                user: {
+                  email: host.user.email,
+                  destinationCalendar: host.user.destinationCalendar,
                 },
-              },
-            },
-          })
-        : null;
+              })) || [],
+          },
+          bookerUrl: evt.bookerUrl || "",
+        };
 
-      if (bookingEventType) {
-        const workflows = await getAllWorkflowsFromEventType(bookingEventType);
-        const workflowsToTriggerForPaid = workflows.filter(
-          (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_PAID
-        );
-
-        if (workflowsToTriggerForPaid.length > 0) {
-          try {
-            const calendarEventForWorkflow = {
-              ...evt,
-              eventType: {
-                slug: bookingEventType.slug,
-                schedulingType: bookingEventType.schedulingType,
-                hosts:
-                  bookingEventType.hosts?.map((host) => ({
-                    user: {
-                      email: host.user.email,
-                      destinationCalendar: host.user.destinationCalendar,
-                    },
-                  })) || [],
-              },
-              bookerUrl: evt.bookerUrl || "",
-            };
-
-            await scheduleWorkflowReminders({
-              workflows: workflowsToTriggerForPaid,
-              smsReminderNumber: null,
-              calendarEvent: calendarEventForWorkflow,
-              isNotConfirmed: false,
-              isRescheduleEvent: false,
-              hideBranding: false,
-            });
-          } catch (error) {
-            log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));
-          }
-        }
+        await scheduleWorkflowReminders({
+          workflows: bookingPaidWorkflows,
+          smsReminderNumber: booking.smsReminderNumber,
+          calendarEvent: calendarEventForWorkflow,
+          hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
+        });
+      } catch (error) {
+        log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));
       }
     }
   } catch (error) {
