@@ -21,10 +21,6 @@ import CachedTeamBooker, {
 } from "./pageWithCachedData";
 import { getTeamId } from "./queries";
 
-async function getTeamIdFromSlug(teamSlug: string, orgSlug: string | null): Promise<number | null> {
-  return await getTeamId(teamSlug, orgSlug);
-}
-
 async function isCachedTeamBookingEnabled(teamId: number, searchParams: SearchParams): Promise<boolean> {
   const featuresRepository = new FeaturesRepository(prisma);
   const isTeamFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(
@@ -38,7 +34,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const { teamSlug, currentOrgDomain, isValidOrgDomain } = await getOrgContext(await params);
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
 
-  const teamId = await getTeamIdFromSlug(teamSlug, orgSlug);
+  const teamId = await getTeamId(teamSlug, orgSlug);
   if (teamId && (await isCachedTeamBookingEnabled(teamId, await searchParams))) {
     return await generateCachedMetadata({ params, searchParams });
   }
@@ -85,7 +81,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   const { teamSlug, currentOrgDomain, isValidOrgDomain } = await getOrgContext(await params);
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
 
-  const teamId = await getTeamIdFromSlug(teamSlug, orgSlug);
+  const teamId = await getTeamId(teamSlug, orgSlug);
   if (teamId && (await isCachedTeamBookingEnabled(teamId, await searchParams))) {
     return await CachedTeamBooker({ params, searchParams });
   }

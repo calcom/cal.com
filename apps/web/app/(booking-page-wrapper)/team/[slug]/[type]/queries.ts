@@ -2,7 +2,6 @@ import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { unstable_cache } from "next/cache";
 
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import {
   getEventTypeHosts,
@@ -14,6 +13,7 @@ import { getTeamEventType } from "@calcom/features/eventtypes/lib/getTeamEventTy
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -161,17 +161,11 @@ export async function getCRMData(
 }
 
 export async function getTeamId(teamSlug: string, orgSlug: string | null): Promise<number | null> {
-  const team = await prisma.team.findFirst({
-    where: {
-      ...getSlugOrRequestedSlug(teamSlug),
-      parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
-    },
-    orderBy: {
-      slug: { sort: "asc", nulls: "last" },
-    },
-    select: {
-      id: true,
-    },
+  const teamRepo = new TeamRepository(prisma);
+  const team = await teamRepo.findFirstBySlugAndParentSlug({
+    slug: teamSlug,
+    parentSlug: orgSlug,
+    select: { id: true },
   });
 
   return team?.id ?? null;
