@@ -45,6 +45,15 @@ type AttributeWithWeights = {
   }[];
 };
 
+interface FetchedData {
+  bookingsOfAvailableUsersOfInterval: PartialBooking[];
+  bookingsOfNotAvailableUsersOfInterval: PartialBooking[];
+  allRRHostsBookingsOfInterval: PartialBooking[];
+  allRRHostsCreatedInInterval: any[];
+  organizersWithLastCreated: any[];
+  oooData: any[];
+}
+
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: [T, ...T[]];
   eventType: {
@@ -100,7 +109,18 @@ export class LuckyUserService {
 
   getLuckyUser_requiresDataToBePreFetched<
     T extends PartialUser & { priority?: number | null; weight?: number | null }
-  >(params: GetLuckyUserParams<T> & FetchedData & { attributeWeights: any; virtualQueuesData: any }) {
+  >(
+    params: GetLuckyUserParams<T> &
+      FetchedData & { attributeWeights: Record<number, number> | null; virtualQueuesData: any | null }
+  ): {
+    luckyUser: T | null;
+    usersAndTheirBookingShortfalls: {
+      id: number;
+      bookingShortfall: number;
+      calibration: number;
+      weight: number;
+    }[];
+  } {
     const { availableUsers, eventType } = params;
     const {
       bookingsOfAvailableUsersOfInterval,
@@ -206,9 +226,11 @@ export class LuckyUserService {
         usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
       }
 
-      if (orderedUsersSet.has(luckyUser)) {
+      if (!luckyUser || orderedUsersSet.has(luckyUser)) {
         throw new Error(
-          `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
+          `Error building ordered list of lucky users. The lucky user ${
+            luckyUser?.email || "unknown"
+          } is already in the set.`
         );
       }
 
@@ -299,7 +321,7 @@ export class LuckyUserService {
 
   async prepareQueuesAndAttributesData<T extends PartialUser>(
     params: Omit<GetLuckyUserParams<T>, "availableUsers">
-  ) {
+  ): Promise<{ attributeWeights: Record<number, number> | null; virtualQueuesData: any | null }> {
     const { eventType, routingFormResponse } = params;
 
     if (!routingFormResponse || !eventType.team?.parentId) {
@@ -322,7 +344,7 @@ export class LuckyUserService {
 
   private async fetchAllDataNeededForCalculations<
     T extends PartialUser & { priority?: number | null; weight?: number | null }
-  >(getLuckyUserParams: GetLuckyUserParams<T>) {
+  >(getLuckyUserParams: GetLuckyUserParams<T>): Promise<FetchedData> {
     const { availableUsers, eventType, allRRHosts, meetingStartTime } = getLuckyUserParams;
 
     if (!availableUsers.length) {
@@ -383,7 +405,7 @@ export class LuckyUserService {
   }: {
     eventType: GetLuckyUserParams<any>["eventType"];
     meetingStartTime: Date;
-  }) {
+  }): { start: Date; end: Date } {
     const rrResetInterval = eventType.team?.rrResetInterval;
 
     if (rrResetInterval === RRResetInterval.MONTH) {
@@ -424,7 +446,7 @@ export class LuckyUserService {
     eventTypeId: number;
     interval: { start: Date; end: Date };
     rrTimestampBasis: RRTimestampBasis;
-  }) {
+  }): Promise<PartialBooking[]> {
     const timestampField = rrTimestampBasis === RRTimestampBasis.CREATED_AT ? "createdAt" : "startTime";
 
     return this.bookingRepository.findManyByUserIdsAndEventTypeId({
@@ -444,7 +466,7 @@ export class LuckyUserService {
     availableUsers: T[];
     bookingsOfAvailableUsersOfInterval: PartialBooking[];
     bookingsOfNotAvailableUsersOfInterval: PartialBooking[];
-  }) {
+  }): T {
     const organizerIdAndAtCreatedPair = bookingsOfAvailableUsersOfInterval.map((booking) => ({
       userId: booking.userId,
       createdAt: booking.createdAt,
@@ -516,7 +538,12 @@ export class LuckyUserService {
     bookingsOfAvailableUsersOfInterval: PartialBooking[];
     allRRHostsBookingsOfInterval: PartialBooking[];
     allRRHostsCreatedInInterval: any[];
-  }) {
+  }): {
+    id: number;
+    bookingShortfall: number;
+    calibration: number;
+    weight: number;
+  }[] {
     const allHostsWithCalibration = this.getHostsWithCalibration({
       allRRHostsCreatedInInterval,
       allRRHostsBookingsOfInterval,
@@ -541,7 +568,7 @@ export class LuckyUserService {
   }: {
     allRRHostsCreatedInInterval: any[];
     allRRHostsBookingsOfInterval: PartialBooking[];
-  }) {
+  }): { userId: number; calibration: number }[] {
     const calculateNewHostCalibration = (hostCreatedAt: Date) => {
       const existingBookingsBeforeAdded = allRRHostsBookingsOfInterval.filter(
         (booking) => booking.createdAt < hostCreatedAt
@@ -572,7 +599,11 @@ export class LuckyUserService {
     eventType: GetLuckyUserParams<any>["eventType"];
     usersAndTheirBookingShortfalls: any[];
     allRRHostsCreatedInInterval: any[];
-  }) {
+  }): {
+    luckyUser: T | null;
+    remainingUsersAfterWeightFilter: T[];
+    usersAndTheirBookingShortfalls: any[];
+  } {
     if (!eventType.isRRWeightsEnabled) {
       const usersWithMaxShortfall = this.getUsersWithHighestPriority(usersAndTheirBookingShortfalls);
       return {
@@ -626,7 +657,9 @@ export class LuckyUserService {
     };
   }
 
-  private getUsersWithHighestPriority<T extends { shortfall: number }>(usersAndTheirBookingShortfalls: T[]) {
+  private getUsersWithHighestPriority<T extends { shortfall: number }>(
+    usersAndTheirBookingShortfalls: T[]
+  ): T[] {
     const maxShortfall = Math.max(...usersAndTheirBookingShortfalls.map((item) => item.shortfall));
     return usersAndTheirBookingShortfalls.filter((item) => item.shortfall === maxShortfall);
   }
@@ -637,7 +670,7 @@ export class LuckyUserService {
   }: {
     routingFormResponse: RoutingFormResponse;
     attributeWithEnabledWeights: AttributeWithWeights | null;
-  }) {
+  }): { attributeWeights: Record<number, number> | null; virtualQueuesData: any | null } {
     if (!attributeWithEnabledWeights || !routingFormResponse) {
       return {
         attributeWeights: null,
@@ -677,12 +710,3 @@ export class LuckyUserService {
     };
   }
 }
-
-type FetchedData = {
-  bookingsOfAvailableUsersOfInterval: PartialBooking[];
-  bookingsOfNotAvailableUsersOfInterval: PartialBooking[];
-  allRRHostsBookingsOfInterval: PartialBooking[];
-  allRRHostsCreatedInInterval: any[];
-  organizersWithLastCreated: any[];
-  oooData: any[];
-};
