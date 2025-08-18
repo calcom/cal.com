@@ -66,11 +66,13 @@ export default function CreateEventTypeForm({
                 !isPlatform ? (
                   <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
                     <span className="max-w-24 md:max-w-56">
-                      /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      {`/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
                     </span>
                   </Tooltip>
                 ) : undefined
               }
+              containerClassName="[&>div]:gap-0"
+              className="pl-0"
               {...register("slug")}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
@@ -91,11 +93,13 @@ export default function CreateEventTypeForm({
                   <Tooltip
                     content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
                     <span className="max-w-24 md:max-w-56">
-                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      {`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
                     </span>
                   </Tooltip>
                 ) : undefined
               }
+              containerClassName="[&>div]:gap-0"
+              className="pl-0"
               {...register("slug")}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });

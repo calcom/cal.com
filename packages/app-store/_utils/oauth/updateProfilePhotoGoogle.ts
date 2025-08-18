@@ -5,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import prisma from "@calcom/prisma";
 
 export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userId: number) {
   try {
@@ -25,11 +26,13 @@ export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userI
         avatar: await resizeBase64Image(avatarUrl),
         userId,
       });
-      await UserRepository.updateAvatar({ id: userId, avatarUrl: resizedAvatarUrl });
+      const userRepo = new UserRepository(prisma);
+      await userRepo.updateAvatar({ id: userId, avatarUrl: resizedAvatarUrl });
       return;
     }
 
-    await UserRepository.updateAvatar({ id: userId, avatarUrl });
+    const userRepo = new UserRepository(prisma);
+    await userRepo.updateAvatar({ id: userId, avatarUrl });
   } catch (error) {
     logger.error("Error updating avatarUrl from google calendar connect", error);
   }
