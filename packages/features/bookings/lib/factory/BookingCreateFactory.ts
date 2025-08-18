@@ -6,11 +6,12 @@ import type {
   CreateBookingMeta,
   CreateRecurringBookingData,
   CreateInstantBookingResponse,
+  BookingDataSchemaGetter,
 } from "@calcom/features/bookings/lib/dto/types";
-import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
-import type { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
-import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+
+import type { BookingCreateService } from "../handleNewBooking";
+import { handleNewRecurringBooking } from "../handleNewRecurringBooking";
 
 interface IBookingCreateFactoryDependencies {
   bookingCreateService: BookingCreateService;

@@ -3,6 +3,7 @@ import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 // TODO: Move this out of here. Importing from app-store is a circular package dependency.
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
+import { CreationSource } from "@calcom/prisma/enums";
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -47,7 +48,8 @@ export const bookingCreateBodySchema = z.object({
     utm_term: z.string().optional(),
     utm_content: z.string().optional(),
   }).optional(),
-  dub_id: z.string().nullish()
+  dub_id: z.string().nullish(),
+  creationSource: z.nativeEnum(CreationSource).optional(),
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
@@ -56,6 +58,11 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
+
+    /** These five props are used only for recurring bookings and they are either all set or none of them are set */
+    isFirstRecurringSlot: z.boolean().optional(),
+    thirdPartyRecurringEventId: z.string().nullish(),
+    numSlotsToCheckForAvailability: z.number().optional(),
     allRecurringDates: z
       .array(
         z.object({
@@ -65,6 +72,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       )
       .optional(),
     currentRecurringIndex: z.number().optional(),
+
     appsStatus: z
       .array(
         z.object({
@@ -79,6 +87,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
+
   })
 );
 
