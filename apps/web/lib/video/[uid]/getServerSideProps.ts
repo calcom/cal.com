@@ -117,7 +117,7 @@ const checkIfUserIsHost = async ({
   });
 
   // If eventType exists, it means user is either owner, host or user
-  return !eventType;
+  return !!eventType;
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
