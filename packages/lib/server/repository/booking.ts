@@ -828,6 +828,7 @@ export class BookingRepository {
         attendees: true,
         references: true,
         user: true,
+        payment: true,
       },
     });
   }
