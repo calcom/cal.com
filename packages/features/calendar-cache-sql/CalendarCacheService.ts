@@ -173,7 +173,7 @@ export class CalendarCacheService implements Calendar {
     return [];
   }
 
-  getCredentialId?(): number {
+  getCredentialId(): number {
     return this.credential.id;
   }
 }
