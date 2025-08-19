@@ -13,8 +13,8 @@ const PushNotificationsView = () => {
     <SettingsHeader
       title={t("push_notifications")}
       description={t("push_notifications_description")}
-      borderInShellHeader={true}>
-      <div className="border-subtle rounded-b-xl border-x border-b px-4 pb-10 pt-8 sm:px-6">
+      borderInShellHeader={false}>
+      <div className="border-subtle rounded-md border px-4 pb-10 pt-8 sm:px-6">
         <Button color="primary" onClick={isSubscribed ? unsubscribe : subscribe} disabled={isLoading}>
           {isSubscribed ? t("disable_browser_notifications") : t("allow_browser_notifications")}
         </Button>
