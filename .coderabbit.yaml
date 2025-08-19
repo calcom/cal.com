@@ -147,11 +147,13 @@ reviews:
       enabled: true
     osvScanner:
       enabled: true
-  instructions: |
-    - Always flag the use of default exports
-    - Suggest named exports as an alternative
-    - Explain the benefits of named exports (tree-shaking, easier refactoring)
-    - Consider exceptions only for main React components or entry points
+  path_instructions:
+    - path: "**/*.{ts,tsx,js,jsx}"
+      instructions:
+        - "Always flag the use of default exports"
+        - "Suggest named exports as an alternative"
+        - "Explain the benefits of named exports (tree-shaking, easier refactoring)"
+        - "Consider exceptions only for main React components or entry points"
 chat:
   art: true
   auto_reply: true
