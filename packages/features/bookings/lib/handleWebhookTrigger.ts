@@ -1,47 +1,67 @@
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import { isEventPayload, type WebhookPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents as WebhookTriggerEventsEnum } from "@calcom/prisma/enums";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
+import { BookingWebhookService, type WebhookTriggerArgs } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
+
+const log = logger.getSubLogger({ prefix: ["[handleWebhookTrigger]"] });
+
+// Re-export the interface for backward compatibility
+export type { WebhookTriggerArgs };
+
 /**
- * @deprecated Use WebhookNotifier.emitWebhook() or BookingWebhookService methods instead
- * This function is maintained for backward compatibility
+ * Webhook trigger handler that uses the refactored architecture
+ * This function delegates to the appropriate service method based on the trigger type
  */
-async function _handleWebhookTrigger(args: {
-  subscriberOptions: GetSubscriberOptions;
-  eventTrigger: string;
-  webhookData: WebhookPayloadType;
-  isDryRun?: boolean;
-}) {
+async function _handleWebhookTrigger(args: WebhookTriggerArgs): Promise<void> {
   try {
-    if (args.isDryRun) return;
-    
-    // Add deprecation warning
-    logger.warn("Using legacy webhook trigger handler - please migrate to new architecture", {
-      eventTrigger: args.eventTrigger,
-      caller: "handleWebhookTrigger",
+    log.debug(`Handling webhook trigger: ${args.trigger}`, {
+      bookingId: args.booking.id,
+      eventTypeId: args.eventType?.id,
+      isDryRun: args.isDryRun,
     });
 
-    const subscribers = await getWebhooks(args.subscriberOptions);
+    switch (args.trigger) {
+      case WebhookTriggerEventsEnum.BOOKING_CREATED:
+        await BookingWebhookService.emitBookingCreatedFromArgs(args);
+        break;
 
-    const promises = subscribers.map((sub) =>
-      sendPayload(sub.secret, args.eventTrigger, new Date().toISOString(), sub, args.webhookData).catch(
-        (e) => {
-          if (isEventPayload(args.webhookData)) {
-            logger.error(
-              `Error executing webhook for event: ${args.eventTrigger}, URL: ${sub.subscriberUrl}, booking id: ${args.webhookData.bookingId}, booking uid: ${args.webhookData.uid}`,
-              safeStringify(e)
-            );
-          }
-        }
-      )
-    );
-    await Promise.all(promises);
+      case WebhookTriggerEventsEnum.BOOKING_CANCELLED:
+        await BookingWebhookService.emitBookingCancelledFromArgs(args);
+        break;
+
+      case WebhookTriggerEventsEnum.BOOKING_REQUESTED:
+        await BookingWebhookService.emitBookingRequestedFromArgs(args);
+        break;
+
+      case WebhookTriggerEventsEnum.BOOKING_RESCHEDULED:
+        await BookingWebhookService.emitBookingRescheduledFromArgs(args);
+        break;
+
+      case WebhookTriggerEventsEnum.BOOKING_PAID:
+        await BookingWebhookService.emitBookingPaidFromArgs(args);
+        break;
+
+      default:
+        log.warn(`Unsupported webhook trigger: ${args.trigger}`, {
+          bookingId: args.booking.id,
+          eventTypeId: args.eventType?.id,
+        });
+        break;
+    }
+
+    log.debug(`Successfully handled webhook trigger: ${args.trigger}`, {
+      bookingId: args.booking.id,
+    });
   } catch (error) {
-    logger.error("Error while sending webhook", error);
+    log.error(`Error handling webhook trigger: ${args.trigger}`, {
+      error: error instanceof Error ? error.message : String(error),
+      bookingId: args.booking.id,
+      eventTypeId: args.eventType?.id,
+    });
+    throw error;
   }
 }
 

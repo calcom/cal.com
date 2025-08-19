@@ -37,6 +37,7 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import {
   deleteWebhookScheduledTriggers,
   scheduleTrigger,
@@ -2027,23 +2028,36 @@ async function handler(
       bookerPhoneNumber,
       isDryRun,
     });
-    const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
+    // Send payment initiated webhook (using legacy approach as this is not part of main booking flow)
+    const subscribersPaymentInitiated = await getWebhooks({
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
       orgId,
       oAuthClientId: platformClientId,
-    };
-    await handleWebhookTrigger({
-      subscriberOptions: subscriberOptionsPaymentInitiated,
-      eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      webhookData: {
-        ...webhookData,
-        paymentId: payment?.id,
-      },
-      isDryRun,
     });
+
+    const paymentWebhookData = {
+      ...webhookData,
+      paymentId: payment?.id,
+    };
+
+    const paymentPromises = subscribersPaymentInitiated.map((sub) =>
+      sendPayload(
+        sub.secret,
+        WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+        new Date().toISOString(),
+        sub,
+        paymentWebhookData
+      ).catch((e) => {
+        loggerWithEventDetails.error(
+          `Error executing payment webhook for event: ${WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED}, URL: ${sub.subscriberUrl}`,
+          safeStringify(e)
+        );
+      })
+    );
+    await Promise.all(paymentPromises);
 
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
@@ -2127,21 +2141,81 @@ async function handler(
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
+      trigger: eventTrigger,
+      evt,
+      booking: {
+        id: booking?.id || 0,
+        eventTypeId: booking?.eventTypeId || null,
+        userId: booking?.userId || null,
+        startTime: booking?.startTime,
+        smsReminderNumber: booking?.smsReminderNumber || null,
+      },
+      eventType: eventType ? {
+        id: eventType.id,
+        title: eventType.title,
+        description: eventType.description,
+        requiresConfirmation: eventType.requiresConfirmation,
+        price: eventType.price,
+        currency: eventType.currency,
+        length: eventType.length,
+        teamId: eventType.teamId,
+      } : null,
+      teamId,
+      orgId,
+      platformClientId,
       isDryRun,
+      status: "ACCEPTED",
+      metadata: metadata,
+      platformParams: platformClientId ? {
+        platformClientId,
+        platformRescheduleUrl,
+        platformCancelUrl,
+        platformBookingUrl,
+      } : undefined,
+      rescheduleId: originalRescheduledBooking?.id,
+      rescheduleUid,
+      rescheduleStartTime: originalRescheduledBooking?.startTime
+        ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+        : undefined,
+      rescheduleEndTime: originalRescheduledBooking?.endTime
+        ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+        : undefined,
+      rescheduledBy: reqBody.rescheduledBy,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
-    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
-    subscriberOptions.triggerEvent = eventTrigger;
-    webhookData.status = "PENDING";
     await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
+      trigger: WebhookTriggerEvents.BOOKING_REQUESTED,
+      evt,
+      booking: {
+        id: booking?.id || 0,
+        eventTypeId: booking?.eventTypeId || null,
+        userId: booking?.userId || null,
+        startTime: booking?.startTime,
+        smsReminderNumber: booking?.smsReminderNumber || null,
+      },
+      eventType: eventType ? {
+        id: eventType.id,
+        title: eventType.title,
+        description: eventType.description,
+        requiresConfirmation: eventType.requiresConfirmation,
+        price: eventType.price,
+        currency: eventType.currency,
+        length: eventType.length,
+        teamId: eventType.teamId,
+      } : null,
+      teamId,
+      orgId,
+      platformClientId,
       isDryRun,
+      status: "PENDING",
+      metadata: metadata,
+      platformParams: platformClientId ? {
+        platformClientId,
+        platformRescheduleUrl,
+        platformCancelUrl,
+        platformBookingUrl,
+      } : undefined,
     });
   }
 

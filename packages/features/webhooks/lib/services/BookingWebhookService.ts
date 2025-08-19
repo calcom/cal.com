@@ -1,4 +1,4 @@
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import dayjs from "@calcom/dayjs";
 
@@ -12,11 +12,143 @@ import type {
 } from "../dto/types";
 import { WebhookNotifier } from "../notifier/WebhookNotifier";
 
+// Simplified interface for webhook trigger args
+export interface WebhookTriggerArgs {
+  trigger: WebhookTriggerEvents;
+  evt: CalendarEvent;
+  booking: {
+    id: number;
+    eventTypeId: number | null;
+    userId: number | null;
+    startTime?: Date;
+    smsReminderNumber?: string | null;
+  };
+  eventType: {
+    id: number;
+    title: string;
+    description: string | null;
+    requiresConfirmation: boolean;
+    price: number;
+    currency: string;
+    length: number;
+    teamId?: number | null;
+  } | null;
+  teamId?: number | null;
+  orgId?: number | null;
+  platformClientId?: string;
+  isDryRun?: boolean;
+  status?: "ACCEPTED" | "PENDING";
+  metadata?: { [key: string]: any };
+  platformParams?: {
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+  };
+  cancelledBy?: string;
+  cancellationReason?: string;
+  rescheduleId?: number;
+  rescheduleUid?: string;
+  rescheduleStartTime?: string;
+  rescheduleEndTime?: string;
+  rescheduledBy?: string;
+  paymentId?: number;
+  paymentData?: any;
+}
+
 /**
  * Service for creating booking-related webhook DTOs and emitting webhook events
  * This is the layer that business logic should interact with
  */
 export class BookingWebhookService {
+  /**
+   * Simplified method to emit booking created webhook from WebhookTriggerArgs
+   */
+  static async emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    return this.emitBookingCreated({
+      evt: args.evt,
+      booking: {
+        ...args.booking,
+        startTime: args.booking.startTime || new Date(),
+      },
+      eventType: args.eventType,
+      status: args.status,
+      metadata: args.metadata,
+      platformParams: args.platformParams,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  /**
+   * Simplified method to emit booking cancelled webhook from WebhookTriggerArgs
+   */
+  static async emitBookingCancelledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    return this.emitBookingCancelled({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      cancelledBy: args.cancelledBy,
+      cancellationReason: args.cancellationReason,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  /**
+   * Simplified method to emit booking requested webhook from WebhookTriggerArgs
+   */
+  static async emitBookingRequestedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    return this.emitBookingRequested({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  /**
+   * Simplified method to emit booking rescheduled webhook from WebhookTriggerArgs
+   */
+  static async emitBookingRescheduledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    return this.emitBookingRescheduled({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      rescheduleId: args.rescheduleId,
+      rescheduleUid: args.rescheduleUid,
+      rescheduleStartTime: args.rescheduleStartTime,
+      rescheduleEndTime: args.rescheduleEndTime,
+      rescheduledBy: args.rescheduledBy,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  /**
+   * Simplified method to emit booking paid webhook from WebhookTriggerArgs
+   */
+  static async emitBookingPaidFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    return this.emitBookingPaid({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      paymentId: args.paymentId,
+      paymentData: args.paymentData,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
   /**
    * Emits a booking created webhook
    */
