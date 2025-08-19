@@ -124,7 +124,7 @@ type AvailabilitySettingsProps = {
     isEventTypesFetching?: boolean;
     handleBulkEditDialogToggle: () => void;
   };
-  callbackRef?: RefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
+  callbacksRef?: React.MutableRefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
 };
 
 const DeleteDialogButton = ({
@@ -340,7 +340,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const handleFormSubmit = useCallback(
       (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
-        if (customCallbacks) {
+        if (callbacksRef && customCallbacks) {
           callbacksRef.current = customCallbacks;
         }
 
@@ -350,14 +350,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           form.handleSubmit(async (data) => {
             try {
               await handleSubmit(data);
-              callbacksRef.current?.onSuccess?.();
+              callbacksRef?.current?.onSuccess?.();
             } catch (error) {
-              callbacksRef.current?.onError?.(error as Error);
+              callbacksRef?.current?.onError?.(error as Error);
             }
           })();
         }
       },
-      [form, handleSubmit]
+      [form, handleSubmit, callbacksRef]
     );
 
     const validateForm = useCallback(async () => {
