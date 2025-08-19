@@ -452,7 +452,7 @@ export class InsightsRoutingBaseService {
           "bookingUserName" as name,
           "bookingUserEmail" as email,
           "bookingUserAvatarUrl" as "avatarUrl"
-        FROM "RoutingFormResponseDenormalized"
+        FROM "RoutingFormResponseDenormalized" rfrd
         WHERE "bookingUid" IS NOT NULL
         AND "createdAt" >= ${startDate}
         AND "createdAt" <= ${endDate}
@@ -521,7 +521,7 @@ export class InsightsRoutingBaseService {
           "bookingUserId",
           date_trunc(${dayjsPeriod}, "createdAt") as period_start,
           COUNT(DISTINCT "bookingId")::integer as total
-        FROM "RoutingFormResponseDenormalized"
+        FROM "RoutingFormResponseDenormalized" rfrd
         WHERE "bookingUserId" IN (SELECT user_id FROM all_users)
         AND date_trunc(${dayjsPeriod}, "createdAt") >= (SELECT MIN(period_start) FROM paginated_periods)
         AND date_trunc(${dayjsPeriod}, "createdAt") <= (SELECT MAX(period_start) FROM paginated_periods)
@@ -549,7 +549,7 @@ export class InsightsRoutingBaseService {
       SELECT
         "bookingUserId" as "userId",
         COUNT(*)::integer as total_bookings
-      FROM "RoutingFormResponseDenormalized"
+      FROM "RoutingFormResponseDenormalized" rfrd
       WHERE "bookingUid" IS NOT NULL
       AND "createdAt" >= ${startDate}
       AND "createdAt" <= ${endDate}
