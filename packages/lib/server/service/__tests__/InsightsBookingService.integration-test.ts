@@ -548,8 +548,8 @@ describe("InsightsBookingService Integration Tests", () => {
             {
               id: "eventTypeId",
               value: {
-                type: ColumnFilterType.SINGLE_SELECT,
-                data: userEventType.id,
+                type: ColumnFilterType.MULTI_SELECT,
+                data: [userEventType.id],
               },
             },
           ],
