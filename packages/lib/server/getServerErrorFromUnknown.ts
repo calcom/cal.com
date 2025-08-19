@@ -11,6 +11,7 @@ import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 import { HttpError } from "../http-error";
+import logger from "../logger";
 import { redactError } from "../redactError";
 
 function hasName(cause: unknown): cause is { name: string } {
@@ -37,25 +38,34 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
     .join("; ");
 }
 
+const twilioErrorLogger = logger.getSubLogger({ prefix: ["TwilioError"] });
+
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
     return new HttpError({ statusCode, message: cause.message });
   }
   if (isTwilioError(cause)) {
-    if (cause.status === 400) {
-      return new HttpError({
-        statusCode: 400,
+    if (cause.status !== 400) {
+      // Don't propagate Twilio's error status - return 202 from our perspective
+      // since our server successfully processed the request, even if Twilio failed
+      // but log the error because errors thrown with 202 are not logged in `defaultResponder` or `defaultResponderForAppDir``
+      twilioErrorLogger.error("Twilio error occurred:", {
+        status: cause.status,
         message: cause.message,
+        code: cause.code,
+        cause: cause,
+      });
+      return new HttpError({
+        statusCode: 202,
+        message: "Twilio request accepted successfully but failed on Twilio's side",
         cause,
       });
     }
 
-    // Don't propagate Twilio's error status if it's not 400 - return 200 from our perspective
-    // since our server successfully processed the request, even if Twilio failed
     return new HttpError({
-      statusCode: 202,
-      message: "Twilio request accepted successfully but failed on Twilio's side",
+      statusCode: 400,
+      message: cause.message,
       cause,
     });
   }
