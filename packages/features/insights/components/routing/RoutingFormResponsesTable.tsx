@@ -16,6 +16,7 @@ import {
   convertMapToFacetedValues,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc";
 
 import { RoutingFormResponsesDownload } from "../../filters/Download";
@@ -35,8 +36,7 @@ const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_R
 };
 
 export function RoutingFormResponsesTable() {
-  const { isAll, teamId, userId, routingFormId, startDate, endDate, columnFilters, scope, selectedTeamId } =
-    useInsightsParameters();
+  const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
 
   const { data: headers, isSuccess: isHeadersSuccess } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
@@ -53,17 +53,14 @@ export function RoutingFormResponsesTable() {
     isAll,
   });
 
+  const insightsRoutingParams = useInsightsRoutingParameters();
   const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
   const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
-    startDate,
-    endDate,
+    ...insightsRoutingParams,
     sorting,
     limit,
     offset,
-    scope,
-    selectedTeamId,
-    columnFilters,
   });
   const processedData = useMemo(() => {
     if (!isHeadersSuccess || !data) return [];
