@@ -101,9 +101,6 @@ reviews:
       enabled: true
     eslint:
       enabled: true
-      config:
-        rules:
-          import/no-default-export: "warn"
     flake8:
       enabled: true
     rubocop:
