@@ -10,9 +10,8 @@ import {
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { RoutingFormStatsInput } from "@calcom/features/insights/server/raw-data.schema";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/insightsRoutingBaseService";
+import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/InsightsRoutingBaseService";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
 type RoutingFormInsightsTeamFilter = {
@@ -21,10 +20,6 @@ type RoutingFormInsightsTeamFilter = {
   isAll: boolean;
   organizationId?: number | null;
   routingFormId?: string | null;
-};
-
-type RoutingFormStatsFilter = RoutingFormStatsInput & {
-  organizationId: number | null;
 };
 
 type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
