@@ -113,6 +113,8 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+
+console.log("isOrganizationsEnabled", isOrganizationsEnabled);
 const orgDomainMatcherConfig = {
   root: nextJsOrgRewriteConfig.disableRootPathRewrite
     ? null
