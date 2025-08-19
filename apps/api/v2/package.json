@@ -38,7 +38,7 @@
     "@axiomhq/winston": "^1.2.0",
     "@calcom/platform-constants": "*",
     "@calcom/platform-enums": "*",
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.312",
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.314",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",
