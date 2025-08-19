@@ -9,7 +9,8 @@ import {
   sendDailyVideoRecordingEmails,
   sendDailyVideoTranscriptEmails,
 } from "@calcom/emails/daily-video-emails";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import tasker from "@calcom/features/tasker";
+import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -36,7 +37,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
-const computeSignature = (hmacSecret: string, reqBody: any, webhookTimestampHeader: string | null) => {
+const computeSignature = (hmacSecret: string, reqBody: unknown, webhookTimestampHeader: string | null) => {
   const signature = `${webhookTimestampHeader}.${JSON.stringify(reqBody)}`;
   const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
   const hmac = createHmac("sha256", base64DecodedSecret);
@@ -138,6 +139,19 @@ export async function postHandler(request: NextRequest) {
 
       // send emails to all attendees only when user has team plan
       await sendDailyVideoRecordingEmails(evt, downloadLink);
+
+      if (IS_CALCOM) {
+        try {
+          await tasker.create("generateVideoGifThumbnail", {
+            recordingId: recording_id,
+            downloadUrl: downloadLink,
+            calEventId: booking.uid,
+          });
+          log.info("GIF generation task created", { recordingId: recording_id });
+        } catch (err) {
+          log.error("Failed to create GIF generation task", { recordingId: recording_id, error: err });
+        }
+      }
 
       return NextResponse.json({ message: "Success" });
     } else if (body.type === "meeting.ended") {
