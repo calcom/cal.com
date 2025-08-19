@@ -157,12 +157,15 @@ export class CalendarSubscriptionService {
         );
 
         if (watchResult?.id && watchResult?.expiration) {
+          const exp = watchResult.expiration;
+          const channelExpiration = /^(\d+)$/.test(exp) ? new Date(Number(exp)) : new Date(exp);
+
           await subscriptionRepo.updateWatchDetails(subscription.id, {
             channelId: watchResult.id,
             channelKind: watchResult.kind || "",
             channelResourceId: watchResult.resourceId || "",
             channelResourceUri: watchResult.resourceUri || "",
-            channelExpiration: watchResult.expiration,
+            channelExpiration,
           });
         }
 

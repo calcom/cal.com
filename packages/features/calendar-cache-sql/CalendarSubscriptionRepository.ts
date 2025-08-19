@@ -204,13 +204,8 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         syncErrors: {
           lt: this.prismaClient.calendarSubscription.fields.maxSyncErrors,
         },
-        OR: [
-          { channelExpiration: null },
-          { channelExpiration: { lt: tomorrow } },
-        ],
-        AND: [
-          { OR: [{ backoffUntil: null }, { backoffUntil: { lte: new Date() } }] },
-        ],
+        OR: [{ channelExpiration: null }, { channelExpiration: { lt: tomorrow } }],
+        AND: [{ OR: [{ backoffUntil: null }, { backoffUntil: { lte: new Date() } }] }],
       },
       select: {
         id: true,
@@ -219,6 +214,8 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         channelKind: true,
         channelResourceId: true,
         channelResourceUri: true,
+        channelResource: true,
+        clientState: true,
         channelExpiration: true,
         syncCursor: true,
         syncErrors: true,
@@ -226,22 +223,6 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         backoffUntil: true,
         createdAt: true,
         updatedAt: true,
-        selectedCalendar: {
-          select: {
-            id: true,
-            externalId: true,
-            integration: true,
-            userId: true,
-            credential: {
-              select: safeCredentialSelectForCalendarCache,
-            },
-          },
-        },
-      },
-    });
-  }
-      },
-      include: {
         selectedCalendar: {
           select: {
             id: true,

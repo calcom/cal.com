@@ -40,7 +40,7 @@ export interface ICalendarSubscriptionRepository {
       channelKind?: string;
       channelResourceId?: string;
       channelResourceUri?: string;
-      channelExpiration: string;
+      channelExpiration: Date;
     }
   ): Promise<void>;
   getSubscriptionsToWatch(limit?: number): Promise<SubscriptionWithSelectedCalendar[]>;
