@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
+import { describe, beforeEach, vi, expect, test } from "vitest";
+
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
