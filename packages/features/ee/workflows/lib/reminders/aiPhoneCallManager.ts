@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 import dayjs from "@calcom/dayjs";
 import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -43,7 +45,7 @@ interface CreateWorkflowReminderAndExtractPhoneArgs {
 }
 
 interface CreateWorkflowReminderAndExtractPhoneResult {
-  workflowReminder: { id: number; uuid: string };
+  workflowReminder: { id: number; uuid: string | null };
   attendeePhoneNumber: string;
 }
 
@@ -52,26 +54,9 @@ const createWorkflowReminderAndExtractPhone = async (
 ): Promise<CreateWorkflowReminderAndExtractPhoneResult> => {
   const { evt, workflowStepId, scheduledDate, seatReferenceUid } = args;
 
-  // Create a workflow reminder record
-  const workflowReminder = await prisma.workflowReminder.create({
-    data: {
-      bookingUid: evt.uid as string,
-      workflowStepId: workflowStepId,
-      method: WorkflowMethods.AI_PHONE_CALL,
-      scheduledDate: scheduledDate.toDate(),
-      scheduled: true,
-      seatReferenceId: seatReferenceUid,
-    },
-    select: {
-      id: true,
-      uuid: true,
-    },
-  });
-
+  // 1) Determine attendee phone first (fail early)
   let attendeePhoneNumber = extractPhoneNumber(evt.responses);
-
   if (!attendeePhoneNumber) {
-    // Try to get phone number from attendees if not found in responses
     const attendeePhone = evt.attendees?.[0]?.phoneNumber;
     if (attendeePhone) {
       attendeePhoneNumber = attendeePhone;
@@ -79,6 +64,17 @@ const createWorkflowReminderAndExtractPhone = async (
       throw new Error(`No attendee phone number found for workflow step ${workflowStepId}`);
     }
   }
+
+  const workflowReminder = await prisma.workflowReminder.create({
+    data: {
+      bookingUid: evt.uid as string,
+      workflowStepId,
+      method: WorkflowMethods.AI_PHONE_CALL,
+      scheduledDate: scheduledDate.toDate(),
+      scheduled: true,
+      seatReferenceId: seatReferenceUid,
+    },
+  });
 
   return { workflowReminder, attendeePhoneNumber };
 };
@@ -184,7 +180,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         userId,
         teamId,
         providerAgentId: workflowStep.agent.providerAgentId,
-        referenceId: workflowReminder.uuid,
+        referenceUid: workflowReminder.uuid || uuidv4(),
       });
 
       logger.info(`AI phone call scheduled for workflow step ${workflowStepId} at ${scheduledDate}`);
@@ -213,7 +209,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         userId,
         teamId,
         providerAgentId: workflowStep.agent.providerAgentId,
-        referenceId: workflowReminder.uuid,
+        referenceUid: workflowReminder.uuid || uuidv4(),
       });
 
       logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
@@ -233,7 +229,7 @@ interface ScheduleAIPhoneCallTaskArgs {
   userId: number | null;
   teamId: number | null;
   providerAgentId: string;
-  referenceId: string;
+  referenceUid: string;
 }
 
 const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
@@ -247,7 +243,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     userId,
     teamId,
     providerAgentId,
-    referenceId,
+    referenceUid,
   } = args;
 
   const featuresRepository = new FeaturesRepository(prisma);
@@ -280,7 +276,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
       {
         scheduledAt: scheduledDate,
         maxAttempts: 1,
-        referenceId,
+        referenceUid,
       }
     );
   } catch (error) {

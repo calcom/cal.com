@@ -1397,7 +1397,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
           <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
             <div className="space-y-4">
-              <p className="text-default text-sm">{t("are_you_still_want_to_unsubscribe")}</p>
+              <p className="text-default text-sm">{t("do_you_still_want_to_unsubscribe")}</p>
               {getActivePhoneNumbers(
                 agentData?.outboundPhoneNumbers?.map((phone) => ({
                   ...phone,
