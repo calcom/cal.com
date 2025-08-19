@@ -43,7 +43,7 @@ interface CreateWorkflowReminderAndExtractPhoneArgs {
 }
 
 interface CreateWorkflowReminderAndExtractPhoneResult {
-  workflowReminder: { id: number };
+  workflowReminder: { id: number; uuid: string };
   attendeePhoneNumber: string;
 }
 
@@ -61,6 +61,10 @@ const createWorkflowReminderAndExtractPhone = async (
       scheduledDate: scheduledDate.toDate(),
       scheduled: true,
       seatReferenceId: seatReferenceUid,
+    },
+    select: {
+      id: true,
+      uuid: true,
     },
   });
 
@@ -180,6 +184,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         userId,
         teamId,
         providerAgentId: workflowStep.agent.providerAgentId,
+        referenceId: workflowReminder.uuid,
       });
 
       logger.info(`AI phone call scheduled for workflow step ${workflowStepId} at ${scheduledDate}`);
@@ -208,6 +213,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         userId,
         teamId,
         providerAgentId: workflowStep.agent.providerAgentId,
+        referenceId: workflowReminder.uuid,
       });
 
       logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
@@ -227,6 +233,7 @@ interface ScheduleAIPhoneCallTaskArgs {
   userId: number | null;
   teamId: number | null;
   providerAgentId: string;
+  referenceId: string;
 }
 
 const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
@@ -240,6 +247,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     userId,
     teamId,
     providerAgentId,
+    referenceId,
   } = args;
 
   const featuresRepository = new FeaturesRepository(prisma);
@@ -272,6 +280,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
       {
         scheduledAt: scheduledDate,
         maxAttempts: 1,
+        referenceId,
       }
     );
   } catch (error) {

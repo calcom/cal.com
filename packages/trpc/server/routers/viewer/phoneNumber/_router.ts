@@ -29,13 +29,11 @@ export const phoneNumberRouter = router({
 
   buy: authedProcedure
     .input(
-      z
-        .object({
-          teamId: z.number().optional(),
-          agentId: z.string(),
-          workflowId: z.string().optional(),
-        })
-        .optional()
+      z.object({
+        teamId: z.number().optional(),
+        agentId: z.string(),
+        workflowId: z.string(),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
@@ -44,8 +42,8 @@ export const phoneNumberRouter = router({
       const checkoutSession = await aiService.generatePhoneNumberCheckoutSession({
         userId,
         teamId: input?.teamId ?? undefined,
-        agentId: input?.agentId,
-        workflowId: input?.workflowId,
+        agentId: input.agentId,
+        workflowId: input.workflowId,
       });
 
       if (checkoutSession) {
