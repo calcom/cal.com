@@ -5,7 +5,6 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
-import { useAtomsContext } from "./useAtomsContext";
 
 export type UseVerifyCodeReturnType = ReturnType<typeof useVerifyCode>;
 
@@ -27,7 +26,6 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
   const [error, setError] = useState("");
   const [value, setValue] = useState("");
   const [hasVerified, setHasVerified] = useState(false);
-  const { isInit } = useAtomsContext();
 
   const verifyCodeWithSessionRequiredMutation = useMutation<
     ApiSuccessResponse<VerifyEmailResponse>,

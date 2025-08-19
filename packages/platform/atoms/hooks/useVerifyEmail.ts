@@ -37,7 +37,7 @@ export const useVerifyEmail = ({
   const { data: user } = useMe();
 
   const { data: isEmailVerificationRequired } = useQuery<boolean>({
-    queryKey: ["isEmailVerificationRequired"],
+    queryKey: ["isEmailVerificationRequired", debouncedEmail],
     queryFn: () => {
       return http
         ?.get<ApiResponse<boolean>>("/atoms/verification/email/check", {
