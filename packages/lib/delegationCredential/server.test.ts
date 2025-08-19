@@ -221,7 +221,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
       buildMockDelegationCredential({
         workspacePlatform: {
           name: "Microsoft",
-          slug: "microsoft",
+          slug: "office365",
         },
       })
     );
