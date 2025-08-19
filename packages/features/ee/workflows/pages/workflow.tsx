@@ -127,9 +127,24 @@ function WorkflowPage({
     });
   }
 
-  const hasPermissions = (w: typeof workflow): w is RouterOutputs["viewer"]["workflows"]["get"] => {
-    return w !== null && w !== undefined && "permissions" in w;
-  };
+  const readOnly = !workflow?.permissions.canUpdate;
+
+  const isPending = isPendingWorkflow || isPendingEventTypes;
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }, [isPending]);
+
+  useEffect(() => {
+    if (!isPending) {
+      setFormData(workflow);
+    }
+  }, [isPending]);
 
   function setFormData(workflowData: RouterOutputs["viewer"]["workflows"]["get"] | undefined) {
     if (workflowData) {
@@ -199,31 +214,6 @@ function WorkflowPage({
       setIsAllDataLoaded(true);
     }
   }
-
-  const readOnly = workflow && hasPermissions(workflow) ? !workflow.permissions?.canUpdate : true;
-
-  const isPending = isPendingWorkflow || _isPendingEventTypes;
-
-  useEffect(() => {
-    if (!isPending) {
-      if (hasPermissions(workflow)) {
-        setFormData(workflow);
-      } else if (workflow) {
-        const workflowWithDefaults = {
-          ...workflow,
-          permissions: {
-            canUpdate: false,
-            canView: false,
-            canDelete: false,
-            canManage: false,
-            readOnly: true,
-          },
-          readOnly: true,
-        } as RouterOutputs["viewer"]["workflows"]["get"];
-        setFormData(workflowWithDefaults);
-      }
-    }
-  }, [isPending]);
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {

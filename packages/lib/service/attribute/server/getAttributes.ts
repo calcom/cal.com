@@ -216,9 +216,11 @@ async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: numb
 }
 
 async function _queryAllData({ orgId, teamId }: { orgId: number; teamId: number }) {
+  const attributeRepo = new PrismaAttributeRepository(prisma);
+
   const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
     _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
-    PrismaAttributeRepository.findManyByOrgId({ orgId }),
+    attributeRepo.findManyByOrgId({ orgId }),
   ]);
 
   const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
