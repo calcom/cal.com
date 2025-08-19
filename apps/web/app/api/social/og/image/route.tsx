@@ -7,6 +7,7 @@ import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 export const runtime = "edge";
+export const revalidate = false;
 
 const meetingSchema = z.object({
   imageType: z.literal("meeting"),
