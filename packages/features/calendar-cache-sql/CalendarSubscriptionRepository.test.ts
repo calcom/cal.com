@@ -104,4 +104,35 @@ describe("CalendarSubscriptionRepository", () => {
       expect(updated?.syncCursor).toBe("new-sync-token");
     });
   });
+
+  describe("updateWatchDetails", () => {
+    it("should update watch details with Date channelExpiration", async () => {
+      const created = await prismock.calendarSubscription.create({
+        data: {
+          id: "watch-id",
+          selectedCalendarId: "selected-calendar-id",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+
+      const expiration = new Date("2030-01-01T00:00:00.000Z");
+
+      await repository.updateWatchDetails(created.id, {
+        channelId: "chan-1",
+        channelKind: "api#channel",
+        channelResourceId: "res-1",
+        channelResourceUri: "https://example.com/resource",
+        channelExpiration: expiration,
+      });
+
+      const updated = await prismock.calendarSubscription.findUnique({ where: { id: created.id } });
+
+      expect(updated?.channelId).toBe("chan-1");
+      expect(updated?.channelKind).toBe("api#channel");
+      expect(updated?.channelResourceId).toBe("res-1");
+      expect(updated?.channelResourceUri).toBe("https://example.com/resource");
+      expect(updated?.channelExpiration?.toISOString()).toBe(expiration.toISOString());
+    });
+  });
 });
