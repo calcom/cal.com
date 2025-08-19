@@ -18,7 +18,7 @@ export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
 
   return (
     <CreateButtonWithTeamsList
-      color="secondary"
+      color="primary"
       subtitle={t("create_for").toUpperCase()}
       isAdmin={isAdmin}
       createFunction={createFunction}

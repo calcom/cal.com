@@ -4,8 +4,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
+import { Badge, Button, Switch, Tooltip } from "@calid/features/ui";
+// import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownItem,
@@ -14,9 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Switch } from "@calcom/ui/components/form";
+// import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+// import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
@@ -88,7 +88,7 @@ export default function WebhookListItem(props: {
             </p>
           </Tooltip>
           {!!props.readOnly && (
-            <Badge variant="gray" className="ml-2 ">
+            <Badge variant="minimal" className="ml-2 ">
               {t("readonly")}
             </Badge>
           )}
@@ -99,7 +99,7 @@ export default function WebhookListItem(props: {
               <Badge
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
-                variant="gray"
+                variant="minimal"
                 startIcon="zap">
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>

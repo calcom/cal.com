@@ -58,7 +58,6 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
           title={t("user_impersonation_heading")}
           description={t("user_impersonation_description")}
           checked={!disableImpersonation}
-          size="sm"
           onCheckedChange={(checked) => {
             mutation.mutate({ disableImpersonation: !checked });
           }}

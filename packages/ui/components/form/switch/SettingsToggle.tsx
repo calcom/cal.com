@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import classNames from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
-import { Switch } from "./Switch";
+import { Switch } from "@calid/features/ui";
 
 type Props = {
   children?: ReactNode;

@@ -79,7 +79,7 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
     <SettingsHeader
       title={t("add_webhook")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
+      borderInShellHeader={false}
       backButton={true}>
       <WebhookForm
         noRoutingFormTriggers={false}

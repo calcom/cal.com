@@ -21,8 +21,8 @@ export default function WebhookTestDisclosure() {
   });
 
   return (
-    <>
-      <div className="border-subtle flex justify-between rounded-t-lg border p-6">
+    <div className="flex flex-col border-subtle justify-between rounded-t-lg border p-6">
+      <div className="flex flex-row w-full justify-between">
         <div>
           <p className="text-emphasis text-sm font-semibold leading-5">{t("webhook_test")}</p>
           <p className="text-default text-sm">{t("test_webhook")}</p>
@@ -54,7 +54,7 @@ export default function WebhookTestDisclosure() {
           {t("ping_test")}
         </Button>
       </div>
-      <div className="border-subtle space-y-0 rounded-b-lg border border-t-0 px-6 py-8 sm:mx-0">
+      <div className="space-y-0 py-4">
         <div className="border-subtle flex justify-between rounded-t-lg border p-4">
           <div className="flex items-center space-x-1">
             <h3 className="text-emphasis self-center text-sm font-semibold leading-4">
@@ -74,6 +74,6 @@ export default function WebhookTestDisclosure() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

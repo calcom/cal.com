@@ -26,7 +26,7 @@ const Page = async ({ params: _params }: PageProps) => {
     <SettingsHeader
       title={t("edit_webhook")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
+      borderInShellHeader={false}
       backButton>
       <EditWebhookView webhook={webhook} />
     </SettingsHeader>

@@ -1,5 +1,7 @@
 "use client";
 
+// import { Button } from "@calcom/ui/components/button";
+import { Button, Textarea as TextArea, TextField, Select, Switch } from "@calid/features/ui";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -9,15 +11,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
+// import { Select } from "@calcom/ui/components/form";
+// import { TextArea } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
 
+// import { TextField } from "@calcom/ui/components/form";
+// import { Switch } from "@calcom/ui/components/form";
 import SectionBottomActions from "../../settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
@@ -155,7 +156,7 @@ const WebhookForm = (props: {
     <Form
       form={formMethods}
       handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-      <div className="border-subtle border p-6">
+      <div className="border-subtle border p-6 rounded-md">
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -351,24 +352,23 @@ const WebhookForm = (props: {
             </>
           )}
         />
+        <div className="flex flex-row mt-4 gap-2">
+          <Button
+            type="button"
+            color="secondary"
+            onClick={props.onCancel}
+            {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
+            {t("cancel")}
+          </Button>
+          <Button
+            type="submit"
+            data-testid="create_webhook"
+            disabled={!formMethods.formState.isDirty && !changeSecret}
+            loading={formMethods.formState.isSubmitting}>
+            {props?.webhook?.id ? t("save") : t("create_webhook")}
+          </Button>
+        </div>
       </div>
-      <SectionBottomActions align="end">
-        <Button
-          type="button"
-          color="minimal"
-          onClick={props.onCancel}
-          {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
-          {t("cancel")}
-        </Button>
-        <Button
-          type="submit"
-          data-testid="create_webhook"
-          disabled={!formMethods.formState.isDirty && !changeSecret}
-          loading={formMethods.formState.isSubmitting}>
-          {props?.webhook?.id ? t("save") : t("create_webhook")}
-        </Button>
-      </SectionBottomActions>
-
       <div className="mb-4 mt-6 rounded-md">
         <WebhookTestDisclosure />
       </div>

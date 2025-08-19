@@ -45,7 +45,7 @@ const WebhooksList = ({
     <SettingsHeader
       title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
+      // CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
       borderInShellHeader={false}>
       {!!webhookGroups.length ? (
         <div className={classNames("mt-6")}>
@@ -64,6 +64,10 @@ const WebhooksList = ({
                   </div>
                 </div>
               )}
+              <div className="flex flex-row justify-end">
+                <CreateNewWebhookButton isAdmin={isAdmin} />
+              </div>
+
               <div className="flex flex-col" key={group.profile.slug}>
                 <div className={classNames("border-subtle mb-8 mt-3 rounded-lg border border-t")}>
                   {group.webhooks.map((webhook, index) => (
