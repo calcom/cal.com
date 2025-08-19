@@ -52,16 +52,18 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 
   return (
     <>
-      <div>
+      <div className="border-subtle my-5 rounded-md border p-6">
         <SettingsToggle
           toggleSwitchAtTheEnd={true}
           title={t("user_impersonation_heading")}
           description={t("user_impersonation_description")}
           checked={!disableImpersonation}
+          size="sm"
           onCheckedChange={(checked) => {
             mutation.mutate({ disableImpersonation: !checked });
           }}
-          switchContainerClassName="rounded-t-none border-t-0"
+          labelClassName="text-base"
+          descriptionClassName="text-sm"
           disabled={mutation.isPending}
         />
       </div>

@@ -21,7 +21,7 @@ const Page = async () => {
     <SettingsHeader
       title={t("impersonation")}
       description={t("impersonation_description")}
-      borderInShellHeader={true}>
+      borderInShellHeader={false}>
       <ProfileImpersonationViewWrapper />
     </SettingsHeader>
   );
