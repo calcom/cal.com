@@ -128,11 +128,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
       ],
     },
-    // {
-    //   name: "teams",
-    //   href: "/teams",
-    //   children: [],
-    // },
+    {
+      name: "teams",
+      href: "/teams",
+      children: [],
+    },
     {
       name: "other_teams",
       href: "/settings/organizations/teams/other",
@@ -378,7 +378,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                 }}>
                 <CollapsibleTrigger asChild>
                   <button
-                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
+                    className="hover:bg-emphasis [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                     aria-controls={`team-content-${team.id}`}
                     aria-expanded={teamMenuState[index].teamMenuOpen}
                     onClick={() => {
@@ -602,23 +602,15 @@ const SettingsSidebarContainer = ({
               {tab.name === "teams" && (
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
-                    <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-cal-active text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition group-hover:text-white [&[aria-current='page']]:text-white">
-                        {tab && tab.icon && (
-                          <Icon
-                            name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
-                          />
-                        )}
-                        <Skeleton
-                          title={tab.name}
-                          as="p"
-                          className="text-subtle truncate text-sm font-medium leading-5"
-                          loadingClassName="ms-3">
-                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
-                        </Skeleton>
-                      </div>
-                    </Link>
+                    <div className="text-default group flex h-9 w-full flex-row items-center px-2 py-[10px] text-sm font-medium leading-none transition group-hover:text-white">
+                      <Skeleton
+                        title={tab.name}
+                        as="p"
+                        className="text-default truncate text-sm font-medium leading-5"
+                        loadingClassName="ms-3">
+                        {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
+                      </Skeleton>
+                    </div>
                     <TeamListCollapsible teamFeatures={teamFeatures} />
                     {(!orgBranding?.id || isOrgAdminOrOwner) && (
                       <VerticalTabItem

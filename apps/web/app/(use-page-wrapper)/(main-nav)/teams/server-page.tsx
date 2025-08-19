@@ -1,9 +1,9 @@
+import { TeamsList } from "@calid/features/teams/TeamsList";
 import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
@@ -34,15 +34,15 @@ export const ServerTeamsListing = async ({
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const userId = session.user.id;
 
-  let teamNameFromInvite,
-    errorMsgFromInvite = null;
+  let teamNameFromInvitation,
+    errorMsgFromInvitation = null;
 
   if (token) {
     try {
-      teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
+      teamNameFromInvitation = await TeamService.inviteMemberByToken(token, userId);
     } catch (e) {
-      errorMsgFromInvite = "Error while fetching teams";
-      if (e instanceof TRPCError) errorMsgFromInvite = e.message;
+      errorMsgFromInvitation = "Error while fetching teams";
+      if (e instanceof TRPCError) errorMsgFromInvitation = e.message;
     }
   }
 
@@ -56,12 +56,10 @@ export const ServerTeamsListing = async ({
 
   return {
     Main: (
-      <TeamsListing
+      <TeamsList
         teams={teams}
-        orgId={orgId ?? null}
-        isOrgAdmin={isOrgAdminOrOwner}
-        teamNameFromInvite={teamNameFromInvite ?? null}
-        errorMsgFromInvite={errorMsgFromInvite}
+        teamNameFromInvitation={teamNameFromInvitation}
+        errorMsgFromInvitation={errorMsgFromInvitation}
       />
     ),
     CTA: !orgId || isOrgAdminOrOwner ? <TeamsCTA /> : null,

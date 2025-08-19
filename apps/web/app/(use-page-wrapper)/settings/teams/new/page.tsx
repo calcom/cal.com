@@ -1,6 +1,6 @@
+import CreateNewTeamPage from "@calid/features/teams/CreateNewTeam";
+import CreateTeamWrapper from "@calid/features/teams/CreateTeamWrapper";
 import { _generateMetadata } from "app/_utils";
-
-import CreateNewTeamView, { LayoutWrapper } from "~/settings/teams/new/create-new-team-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -13,9 +13,9 @@ export const generateMetadata = async () =>
 
 const ServerPage = async () => {
   return (
-    <LayoutWrapper>
-      <CreateNewTeamView />
-    </LayoutWrapper>
+    <CreateTeamWrapper>
+      <CreateNewTeamPage />
+    </CreateTeamWrapper>
   );
 };
 

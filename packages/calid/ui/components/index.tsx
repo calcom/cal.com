@@ -51,6 +51,7 @@ export * from "./HorizontalTabItem";
 export * from "./HorizontalTabs";
 export * from "./Profile";
 export * from "./icon/Icon";
+export * from "./layout/ConfLayout";
 
 // Explicitly re-export 'toast' from './use-toast' with an alias to avoid ambiguity
 export { toast as useToast } from "./use-toast";
