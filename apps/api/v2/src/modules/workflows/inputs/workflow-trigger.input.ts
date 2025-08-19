@@ -10,6 +10,11 @@ export const AFTER_EVENT = "afterEvent";
 export const RESCHEDULE_EVENT = "rescheduleEvent";
 export const AFTER_HOSTS_CAL_VIDEO_NO_SHOW = "afterHostsCalVideoNoShow";
 export const AFTER_GUESTS_CAL_VIDEO_NO_SHOW = "afterGuestsCalVideoNoShow";
+export const BOOKING_REJECTED = "bookingRejected";
+export const BOOKING_REQUESTED = "bookingRequested";
+export const BOOKING_PAYMENT_INITIATED = "bookingPaymentInitiated";
+export const BOOKING_PAID = "bookingPaid";
+export const BOOKING_NO_SHOW_UPDATED = "bookingNoShowUpdated";
 export const WORKFLOW_TRIGGER_TYPES = [
   BEFORE_EVENT,
   EVENT_CANCELLED,
@@ -18,6 +23,11 @@ export const WORKFLOW_TRIGGER_TYPES = [
   RESCHEDULE_EVENT,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  BOOKING_REJECTED,
+  BOOKING_REQUESTED,
+  BOOKING_PAYMENT_INITIATED,
+  BOOKING_PAID,
+  BOOKING_NO_SHOW_UPDATED,
 ] as const;
 
 export const WORKFLOW_TRIGGER_TO_ENUM = {
@@ -28,6 +38,11 @@ export const WORKFLOW_TRIGGER_TO_ENUM = {
   [RESCHEDULE_EVENT]: WorkflowTriggerEvents.RESCHEDULE_EVENT,
   [AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   [AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  [BOOKING_REJECTED]: WorkflowTriggerEvents.BOOKING_REJECTED,
+  [BOOKING_REQUESTED]: WorkflowTriggerEvents.BOOKING_REQUESTED,
+  [BOOKING_PAYMENT_INITIATED]: WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
+  [BOOKING_NO_SHOW_UPDATED]: WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+  [BOOKING_PAID]: WorkflowTriggerEvents.BOOKING_PAID,
 } as const;
 
 export const ENUM_TO_WORKFLOW_TRIGGER = {
@@ -38,6 +53,11 @@ export const ENUM_TO_WORKFLOW_TRIGGER = {
   [WorkflowTriggerEvents.RESCHEDULE_EVENT]: RESCHEDULE_EVENT,
   [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  [WorkflowTriggerEvents.BOOKING_REJECTED]: BOOKING_REJECTED,
+  [WorkflowTriggerEvents.BOOKING_REQUESTED]: BOOKING_REQUESTED,
+  [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED]: BOOKING_PAYMENT_INITIATED,
+  [WorkflowTriggerEvents.BOOKING_PAID]: BOOKING_PAID,
+  [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED]: BOOKING_NO_SHOW_UPDATED,
 } as const;
 
 export const HOUR = "hour";
@@ -96,6 +116,41 @@ export class OnCancelTriggerDto {
     description: "Trigger type for the workflow",
   })
   type: typeof EVENT_CANCELLED = EVENT_CANCELLED;
+}
+
+export class OnRejectedTriggerDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+  })
+  type: typeof BOOKING_REJECTED = BOOKING_REJECTED;
+}
+
+export class OnRequestedTriggerDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+  })
+  type: typeof BOOKING_REQUESTED = BOOKING_REQUESTED;
+}
+
+export class OnPaymentInitiatedTriggerDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+  })
+  type: typeof BOOKING_PAYMENT_INITIATED = BOOKING_PAYMENT_INITIATED;
+}
+
+export class OnPaidTriggerDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+  })
+  type: typeof BOOKING_PAID = BOOKING_PAID;
+}
+
+export class OnNoShowUpdateTriggerDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+  })
+  type: typeof BOOKING_NO_SHOW_UPDATED = BOOKING_NO_SHOW_UPDATED;
 }
 
 export class TriggerOffsetDTO {
