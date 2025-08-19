@@ -1,30 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
-import {
-  createBookingScenario,
-  getOrganizer,
-  getScenarioData,
-  TestData,
-  getDate,
-  mockSuccessfulVideoMeetingCreation,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectWorkflowToBeTriggered } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { describe, beforeEach, vi, expect } from "vitest";
-
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import type { TrpcSessionUser } from "../../../types";
 import { confirmHandler } from "./confirm.handler";
 
-describe("confirmHandler", () => {
+describe.skip("confirmHandler", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
-    mockNoTranslations();
+    // mockNoTranslations();
   });
 
   test("should successfully confirm booking when event type doesn't have any default location", async ({
