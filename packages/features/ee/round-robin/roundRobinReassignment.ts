@@ -330,6 +330,7 @@ export const roundRobinReassignment = async ({
     ...getCalEventResponses({
       bookingFields: eventType?.bookingFields ?? null,
       booking,
+      seatsPerTimeSlot: eventType?.seatsPerTimeSlot,
     }),
     hideOrganizerEmail: eventType.hideOrganizerEmail,
     customReplyToEmail: eventType?.customReplyToEmail,

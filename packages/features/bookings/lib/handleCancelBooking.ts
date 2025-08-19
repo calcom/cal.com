@@ -241,6 +241,7 @@ async function handler(input: CancelBookingInput) {
     ...getCalEventResponses({
       bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
       booking: bookingToDelete,
+      seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     }),
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",

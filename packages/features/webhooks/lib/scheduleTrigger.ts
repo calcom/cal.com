@@ -75,6 +75,7 @@ export async function addSubscription({
           eventType: {
             select: {
               bookingFields: true,
+              seatsPerTimeSlot: true,
             },
           },
           attendees: {
@@ -92,6 +93,7 @@ export async function addSubscription({
           ...getCalEventResponses({
             bookingFields: booking.eventType?.bookingFields ?? null,
             booking,
+            seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
           }),
         };
       });
@@ -225,6 +227,7 @@ export async function listBookings(
             currency: true,
             length: true,
             bookingFields: true,
+            seatsPerTimeSlot: true,
             team: true,
           },
         },
@@ -248,6 +251,7 @@ export async function listBookings(
         ...getCalEventResponses({
           bookingFields: booking.eventType?.bookingFields ?? null,
           booking,
+          seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
         }),
         location: getHumanReadableLocationValue(booking.location || "", t),
       };

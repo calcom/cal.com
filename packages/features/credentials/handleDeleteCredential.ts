@@ -327,6 +327,7 @@ const handleDeleteCredential = async ({
                 ...getCalEventResponses({
                   bookingFields: booking.eventType?.bookingFields ?? null,
                   booking,
+                  seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 }),
                 startTime: booking.startTime.toISOString(),
                 endTime: booking.endTime.toISOString(),

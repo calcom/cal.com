@@ -65,6 +65,7 @@ async function postHandler(request: NextRequest) {
             recurringEvent: true,
             bookingFields: true,
             metadata: true,
+            seatsPerTimeSlot: true,
           },
         },
         responses: true,
@@ -124,6 +125,7 @@ async function postHandler(request: NextRequest) {
         ...getCalEventResponses({
           bookingFields: booking.eventType?.bookingFields ?? null,
           booking,
+          seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
         }),
         location: booking.location ?? "",
         startTime: booking.startTime.toISOString(),

@@ -94,6 +94,7 @@ export async function handler(req: NextRequest) {
         const { responses } = getCalEventResponses({
           bookingFields: reminder.booking.eventType?.bookingFields ?? null,
           booking: reminder.booking,
+          seatsPerTimeSlot: reminder.booking.eventType?.seatsPerTimeSlot,
         });
 
         const organizerOrganizationProfile = await prisma.profile.findFirst({

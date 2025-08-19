@@ -24,6 +24,7 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
         select: {
           slug: true,
           bookingFields: true,
+          seatsPerTimeSlot: true,
         },
       },
       attendees: {
@@ -86,6 +87,7 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
     ...getCalEventResponses({
       bookingFields: booking?.eventType?.bookingFields ?? null,
       booking,
+      seatsPerTimeSlot: booking?.eventType?.seatsPerTimeSlot,
     }),
   };
 
