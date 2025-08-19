@@ -167,10 +167,12 @@ export class CalendarSubscriptionService {
             channelResourceUri: watchResult.resourceUri || "",
             channelExpiration,
           });
-        }
 
-        await subscriptionRepo.clearWatchError(subscription.id);
-        watchedCount++;
+          await subscriptionRepo.clearWatchError(subscription.id);
+          watchedCount++;
+        } else {
+          throw new Error("Invalid watch response: missing channel id or expiration");
+        }
       } catch (error) {
         log.error(`Failed to watch calendar subscription ${subscription.id}:`, safeStringify({ error }));
         await subscriptionRepo.setWatchError(
