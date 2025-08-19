@@ -1020,22 +1020,30 @@ export default class Office365CalendarService implements Calendar {
     );
   };
 
-  private handleErrorJsonOffice365Calendar = <Type>(response: Response): Promise<Type | string> => {
+  private async handleErrorJsonOffice365Calendar<Type>(response: Response): Promise<Type | string> {
     if (response.headers.get("content-encoding") === "gzip") {
       return response.text();
     }
 
     if (response.status === 204) {
-      return new Promise((resolve) => resolve({} as Type));
+      return {} as Type;
     }
 
-    if (!response.ok && response.status < 200 && response.status >= 300) {
-      response.json().then(console.log);
-      throw Error(response.statusText);
+    if (!response.ok) {
+      let errorBody: string | object;
+      try {
+        errorBody = await response.json();
+      } catch (e) {
+        errorBody = await response.text();
+      }
+      this.log.error(
+        `handleErrorJsonOffice365Calendar: Office365 API request failed with status ${response.status}`,
+        errorBody
+      );
     }
 
     return response.json();
-  };
+  }
 
   async getMainTimeZone(): Promise<string> {
     try {
