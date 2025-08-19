@@ -26,7 +26,11 @@ reviews:
   auto_assign_reviewers: false
   poem: false
   labeling_instructions: []
-  path_filters: []
+  path_filters: 
+    - '!**/node_modules/**'
+    - '!**/dist/**'
+    - '!**/build/**' 
+    - '!**/.next/**'
   path_instructions: []
   abort_on_close: true
   disable_cache: false
@@ -67,7 +71,7 @@ reviews:
       enabled: true
     github-checks:
       enabled: true
-      timeout_ms: 90000
+      timeout_ms: 180000
     languagetool:
       enabled: true
       enabled_rules: []
