@@ -1,6 +1,6 @@
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+
 import type { Person } from "@calcom/types/Calendar";
 
 import type {
@@ -49,7 +49,7 @@ export class WebhookPayloadFactory {
       case WebhookTriggerEvents.FORM_SUBMITTED:
         return this.createFormSubmittedPayload(dto as FormSubmittedDTO);
       default:
-        throw new Error(`Unsupported webhook trigger event: ${dto.triggerEvent}`);
+        throw new Error("Unsupported webhook trigger event");
     }
   }
 

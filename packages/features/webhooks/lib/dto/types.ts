@@ -1,5 +1,5 @@
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 export interface BaseEventDTO {
   triggerEvent: WebhookTriggerEvents;
@@ -13,7 +13,7 @@ export interface BaseEventDTO {
 }
 
 export interface BookingCreatedDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.BOOKING_CREATED;
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_CREATED;
   evt: CalendarEvent;
   eventType: {
     id: number;
@@ -42,7 +42,7 @@ export interface BookingCreatedDTO extends BaseEventDTO {
 }
 
 export interface BookingCancelledDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED;
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_CANCELLED;
   evt: CalendarEvent;
   eventType: {
     id: number;
@@ -64,7 +64,7 @@ export interface BookingCancelledDTO extends BaseEventDTO {
 }
 
 export interface BookingRequestedDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED;
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_REQUESTED;
   evt: CalendarEvent;
   eventType: {
     id: number;
@@ -84,7 +84,7 @@ export interface BookingRequestedDTO extends BaseEventDTO {
 }
 
 export interface BookingRescheduledDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED;
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_RESCHEDULED;
   evt: CalendarEvent;
   eventType: {
     id: number;
@@ -109,7 +109,7 @@ export interface BookingRescheduledDTO extends BaseEventDTO {
 }
 
 export interface BookingPaidDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.BOOKING_PAID;
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_PAID;
   evt: CalendarEvent;
   eventType: {
     id: number;
@@ -130,7 +130,7 @@ export interface BookingPaidDTO extends BaseEventDTO {
 }
 
 export interface BookingNoShowDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
   message: string;
   bookingUid: string;
   bookingId?: number;
@@ -138,7 +138,7 @@ export interface BookingNoShowDTO extends BaseEventDTO {
 }
 
 export interface OOOCreatedDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.OOO_CREATED;
+  triggerEvent: typeof WebhookTriggerEvents.OOO_CREATED;
   oooEntry: {
     id: number;
     start: string;
@@ -170,7 +170,7 @@ export interface OOOCreatedDTO extends BaseEventDTO {
 }
 
 export interface FormSubmittedDTO extends BaseEventDTO {
-  triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED;
+  triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED;
   form: {
     id: string;
     name: string;

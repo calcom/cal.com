@@ -48,48 +48,14 @@ export class WebhookRepository {
 
     const managedParentEventTypeId = managedChildEventType?.parentId ?? 0;
 
-    // Fetch webhooks with minimal required fields
-    const webhooks = await this.prisma.webhook.findMany({
-      where: {
-        OR: [
-          {
-            platform: true,
-          },
-          {
-            userId,
-          },
-          {
-            eventTypeId,
-          },
-          {
-            eventTypeId: managedParentEventTypeId,
-          },
-          {
-            teamId: {
-              in: [...teamIds, orgId],
-            },
-          },
-          { platformOAuthClientId: oAuthClientId },
-        ],
-        AND: {
-          eventTriggers: {
-            has: options.triggerEvent,
-          },
-          active: {
-            equals: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-        subscriberUrl: true,
-        payloadTemplate: true,
-        appId: true,
-        secret: true,
-        time: true,
-        timeUnit: true,
-        eventTriggers: true,
-      },
+    // Use raw SQL for better performance with complex OR conditions
+    const webhooks = await this.getSubscribersRaw({
+      userId,
+      eventTypeId,
+      managedParentEventTypeId,
+      teamIds: [...teamIds, orgId],
+      oAuthClientId,
+      triggerEvent: options.triggerEvent,
     });
 
     // Map to our DTO format
@@ -101,8 +67,125 @@ export class WebhookRepository {
       secret: webhook.secret,
       time: webhook.time,
       timeUnit: webhook.timeUnit as string | null,
-      eventTriggers: webhook.eventTriggers,
+      eventTriggers: webhook.eventTriggers as any[],
     }));
+  }
+
+  /**
+   * Raw SQL query using UNION for better index utilization
+   * Each UNION branch can use its own optimal index
+   */
+  private async getSubscribersRaw(params: {
+    userId: number;
+    eventTypeId: number;
+    managedParentEventTypeId: number;
+    teamIds: number[];
+    oAuthClientId: string;
+    triggerEvent: string;
+  }): Promise<any[]> {
+    const { userId, eventTypeId, managedParentEventTypeId, teamIds, oAuthClientId, triggerEvent } = params;
+
+    // Build parameterized team IDs
+    const teamIdParams = teamIds.map((_, index) => `$${6 + index}`).join(',');
+    
+    const query = `
+      -- Platform webhooks (highest priority)
+      SELECT 
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        1 as priority
+      FROM "Webhook"
+      WHERE active = true 
+        AND platform = true 
+        AND $1 = ANY("eventTriggers")
+      
+      UNION ALL
+      
+      -- User-specific webhooks
+      SELECT 
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        2 as priority
+      FROM "Webhook"
+      WHERE active = true 
+        AND "userId" = $2 
+        AND $1 = ANY("eventTriggers")
+        AND platform = false
+      
+      UNION ALL
+      
+      -- Event type webhooks
+      SELECT 
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        3 as priority
+      FROM "Webhook"
+      WHERE active = true 
+        AND "eventTypeId" = $3 
+        AND $1 = ANY("eventTriggers")
+        AND platform = false
+      
+      UNION ALL
+      
+      -- Parent event type webhooks (for managed events)
+      SELECT 
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        4 as priority
+      FROM "Webhook"
+      WHERE active = true 
+        AND "eventTypeId" = $4 
+        AND $1 = ANY("eventTriggers")
+        AND platform = false
+        AND $4 > 0
+      
+      UNION ALL
+      
+      -- Team webhooks
+      SELECT 
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        5 as priority
+      FROM "Webhook"
+      WHERE active = true 
+        AND "teamId" IN (${teamIdParams})
+        AND $1 = ANY("eventTriggers")
+        AND platform = false
+      
+      UNION ALL
+      
+      -- OAuth client webhooks
+      SELECT 
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        6 as priority
+      FROM "Webhook"
+      WHERE active = true 
+        AND "platformOAuthClientId" = $5 
+        AND $1 = ANY("eventTriggers")
+        AND platform = false
+        AND $5 != ''
+      
+      ORDER BY priority, id;
+    `;
+
+    // Build parameters array: triggerEvent, userId, eventTypeId, managedParentEventTypeId, oAuthClientId, ...teamIds
+    const queryParams = [
+      triggerEvent,
+      userId,
+      eventTypeId, 
+      managedParentEventTypeId,
+      oAuthClientId,
+      ...teamIds
+    ];
+
+    const results = await this.prisma.$queryRawUnsafe(query, ...queryParams);
+    
+    // Remove duplicates by ID (in case a webhook matches multiple criteria)
+    const uniqueWebhooks = new Map();
+    for (const webhook of results as any[]) {
+      if (!uniqueWebhooks.has(webhook.id)) {
+        // Remove the priority field before returning
+        const { priority, ...webhookData } = webhook;
+        uniqueWebhooks.set(webhook.id, webhookData);
+      }
+    }
+    
+    return Array.from(uniqueWebhooks.values());
   }
 
   /**
