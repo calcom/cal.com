@@ -1,5 +1,7 @@
 import dynamic from "next/dynamic";
 
+import { getAppSetupMap } from "@calcom/lib/apps/registry";
+
 import { DynamicComponent } from "../../_components/DynamicComponent";
 
 export const AppSetupMap = {
@@ -19,7 +21,7 @@ export const AppSetupMap = {
 };
 
 export const AppSetupPage = (props: { slug: string }) => {
-  return <DynamicComponent<typeof AppSetupMap> componentMap={AppSetupMap} {...props} />;
+  return <DynamicComponent componentMap={getAppSetupMap()} {...props} />;
 };
 
 export default AppSetupPage;

@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import { getInstallAppButtonMap } from "@calcom/lib/apps/registry";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,7 +13,6 @@ import type { App } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
 
 export const InstallAppButtonWithoutPlanCheck = (
@@ -22,6 +22,7 @@ export const InstallAppButtonWithoutPlanCheck = (
   } & InstallAppButtonProps
 ) => {
   const mutation = useAddAppMutation(null, props.options);
+  const InstallAppButtonMap = getInstallAppButtonMap();
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)

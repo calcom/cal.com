@@ -2,7 +2,7 @@ import type z from "zod";
 
 import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
-import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
+import { getEventTypeAddonMap } from "@calcom/lib/apps/registry";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
@@ -32,7 +32,7 @@ export const EventTypeAppCard = (props: {
       <EventTypeAppContext.Provider value={{ getAppData, setAppData, LockedIcon, disabled }}>
         <DynamicComponent
           slug={app.slug === "stripe" ? "stripepayment" : app.slug}
-          componentMap={EventTypeAddonMap}
+          componentMap={getEventTypeAddonMap()}
           {...props}
         />
       </EventTypeAppContext.Provider>
