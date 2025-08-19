@@ -134,6 +134,13 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     return;
   }
 
+  const featuresRepository = new FeaturesRepository(prisma);
+  const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
+  if (!calAIVoiceAgents) {
+    logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
+    return;
+  }
+
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
