@@ -23,11 +23,9 @@ export function BookedByCell({
       {attendees.map((attendee) => {
         const tooltipContent = (
           <div className="space-y-1">
-            {attendee.email && (
-              <div>
-                {t("email")}: {attendee.email}
-              </div>
-            )}
+            <div>
+              {t("email")}: {attendee.email}
+            </div>
             {attendee.phoneNumber && (
               <div>
                 {t("phone")}: {attendee.phoneNumber}
