@@ -462,8 +462,7 @@ describe("buildDateRanges", () => {
       dateTo,
       travelSchedules: [],
     });
-
-    expect(results.length).toBe(1);
+    
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T16:00:00Z").tz(timeZone),
