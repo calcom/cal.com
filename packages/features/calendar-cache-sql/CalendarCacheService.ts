@@ -2,16 +2,18 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   Calendar,
+  CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CalendarServiceEvent, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { Ensure } from "@calcom/types/utils";
 
 import type {
-  ICalendarEventRepository,
   CalendarEventForAvailability,
+  ICalendarEventRepository,
 } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
@@ -56,7 +58,7 @@ class CalendarCachePresenter {
 
   static presentAvailabilityDataWithTimezones(
     events: CalendarEventForAvailability[]
-  ): { start: string; end: string; timeZone: string; title: string; source: string }[] {
+  ): Ensure<EventBusyDate, "timeZone">[] {
     return events.map((event) => ({
       start: event.start.toISOString(),
       end: event.end.toISOString(),
@@ -130,7 +132,7 @@ export class CalendarCacheService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
     _fallbackToPrimary?: boolean
-  ): Promise<{ start: string; end: string; timeZone: string; title: string; source: string }[]> {
+  ): Promise<Ensure<EventBusyDate, "timeZone">[]> {
     log.debug(
       "Getting availability with timezones from cache",
       safeStringify({ dateFrom, dateTo, selectedCalendars })

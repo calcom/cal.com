@@ -58,6 +58,7 @@ export type EventBusyDate = {
   end: Date | string;
   source?: string | null;
   title?: string;
+  timeZone?: string;
 };
 
 export type EventBusyDetails = EventBusyDate & {
