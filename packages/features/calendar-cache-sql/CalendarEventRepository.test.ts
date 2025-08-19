@@ -37,6 +37,16 @@ describe("CalendarEventRepository", () => {
       const subscriptionId = "sub-1";
       const externalEventId = "g-1";
 
+      // Ensure the subscription exists so relation connect sets the FK
+      await prismock.calendarSubscription.create({
+        data: {
+          id: subscriptionId,
+          selectedCalendarId: "sc-1",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+
       // Initial create with participants
       const created = await repository.upsertEvent(
         {

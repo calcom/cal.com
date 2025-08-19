@@ -269,9 +269,6 @@ describe("CalendarCacheSqlService", () => {
             summary: null, // PII filtered out
             description: null, // PII filtered out
             location: null, // PII filtered out
-            creator: undefined, // PII filtered out
-            organizer: undefined, // PII filtered out
-            attendees: undefined, // PII filtered out
             status: "confirmed", // Non-PII field preserved
             iCalUID: "external-event@external-provider.com", // Non-PII field preserved
           }),
@@ -357,47 +354,14 @@ describe("CalendarCacheSqlService", () => {
 
       await service.processWebhookEvents("channel-id", mockCredential as any);
 
-      // Verify that bulkUpsertEvents was called with participant data
+      // Verify that bulkUpsertEvents was called with scalar event data (participants are not persisted)
       expect(mockEventRepo.bulkUpsertEvents).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             externalEventId: "event-with-participants",
             summary: "Meeting with Participants",
-            creator: expect.objectContaining({
-              create: expect.objectContaining({
-                email: "creator@example.com",
-                displayName: "Event Creator",
-                isSelf: false,
-              }),
-            }),
-            organizer: expect.objectContaining({
-              create: expect.objectContaining({
-                email: "organizer@example.com",
-                displayName: "Event Organizer",
-                isSelf: true,
-                isOrganizer: true,
-              }),
-            }),
-            attendees: expect.objectContaining({
-              createMany: expect.objectContaining({
-                data: expect.arrayContaining([
-                  expect.objectContaining({
-                    email: "attendee1@example.com",
-                    displayName: "Attendee One",
-                    responseStatus: "accepted",
-                    isOrganizer: false,
-                    isSelf: false,
-                  }),
-                  expect.objectContaining({
-                    email: "attendee2@example.com",
-                    displayName: "Attendee Two",
-                    responseStatus: "tentative",
-                    isOrganizer: false,
-                    isSelf: false,
-                  }),
-                ]),
-              }),
-            }),
+            iCalUID: "meeting-with-participants@Cal.com",
+            status: "confirmed",
           }),
         ]),
         "subscription-id"

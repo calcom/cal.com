@@ -101,7 +101,7 @@ describe("CalendarSubscriptionRepository", () => {
         where: { id: created.id },
       });
 
-      expect(updated?.nextSyncToken).toBe("new-sync-token");
+      expect(updated?.syncCursor).toBe("new-sync-token");
     });
   });
 });
