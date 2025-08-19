@@ -110,6 +110,15 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }, [isPending]);
+
+  useEffect(() => {
     if (!isPending) {
       setFormData(workflow);
     }
