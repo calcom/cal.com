@@ -3,7 +3,6 @@ import logger from "@calcom/lib/logger";
 
 import type { WebhookEventDTO, WebhookSubscriber } from "../dto/types";
 import { WebhookPayloadFactory } from "../factory/WebhookPayloadFactory";
-import { WebhookRepository } from "../repository/WebhookRepository";
 import { WebhookService } from "../service/WebhookService";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookNotificationHandler]"] });
@@ -13,7 +12,6 @@ const log = logger.getSubLogger({ prefix: ["[WebhookNotificationHandler]"] });
  * Responsible for selecting appropriate logic based on trigger event type
  */
 export class WebhookNotificationHandler {
-  private repository = new WebhookRepository();
   private webhookService = new WebhookService();
 
   /**
@@ -29,8 +27,15 @@ export class WebhookNotificationHandler {
         return;
       }
 
-      // Get subscribers for this event
-      const subscribers = await this.getSubscribersForEvent(trigger, dto);
+      // Get subscribers for this event through WebhookService
+      const subscribers = await this.webhookService.getSubscribers({
+        userId: dto.userId,
+        eventTypeId: dto.eventTypeId,
+        triggerEvent: trigger,
+        teamId: dto.teamId,
+        orgId: dto.orgId,
+        oAuthClientId: dto.platformClientId,
+      });
       
       if (subscribers.length === 0) {
         log.debug(`No subscribers found for event: ${trigger}`, {
@@ -64,31 +69,7 @@ export class WebhookNotificationHandler {
     }
   }
 
-  /**
-   * Gets subscribers for a specific webhook event
-   */
-  private async getSubscribersForEvent(
-    trigger: WebhookTriggerEvents,
-    dto: WebhookEventDTO
-  ): Promise<WebhookSubscriber[]> {
-    const criteria = {
-      userId: dto.userId,
-      eventTypeId: dto.eventTypeId,
-      triggerEvent: trigger,
-      teamId: dto.teamId,
-      orgId: dto.orgId,
-      oAuthClientId: dto.platformClientId,
-    };
 
-    return this.repository.getSubscribers(criteria);
-  }
-
-  /**
-   * Sets a custom repository (useful for testing)
-   */
-  setRepository(repository: WebhookRepository): void {
-    this.repository = repository;
-  }
 
   /**
    * Sets a custom webhook service (useful for testing)

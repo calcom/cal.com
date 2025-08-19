@@ -5,9 +5,8 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
@@ -224,6 +223,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     await director.buildWithoutEventTypeForRescheduleEmail();
   }
 
+  // Get the built CalendarEvent for webhook
+  const evt = director.builder.calendarEvent;
+
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
@@ -309,9 +311,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     cancelledBy: user.email,
   });
 
-  // Send webhook
-  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
-
+  // Send webhook using new architecture
   const teamId = await getTeamIdFromEventType({
     eventType: {
       team: { id: bookingToReschedule.eventType?.teamId ?? null },
@@ -323,23 +323,27 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const userId = triggerForUser ? bookingToReschedule.userId : null;
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscriberOptions = {
-    userId,
-    eventTypeId: bookingToReschedule.eventTypeId as number,
-    triggerEvent: eventTrigger,
-    teamId: teamId ? [teamId] : null,
+  await BookingWebhookService.emitBookingCancelled({
+    evt,
+    booking: {
+      id: bookingToReschedule.id,
+      eventTypeId: bookingToReschedule.eventTypeId,
+      userId: bookingToReschedule.userId,
+      smsReminderNumber: bookingToReschedule.smsReminderNumber,
+    },
+    eventType: bookingToReschedule.eventType ? {
+      id: bookingToReschedule.eventType.id,
+      title: bookingToReschedule.eventType.title,
+      description: bookingToReschedule.eventType.description,
+      requiresConfirmation: bookingToReschedule.eventType.requiresConfirmation,
+      price: bookingToReschedule.eventType.price,
+      currency: bookingToReschedule.eventType.currency,
+      length: bookingToReschedule.eventType.length,
+      teamId: bookingToReschedule.eventType.teamId,
+    } : null,
+    cancelledBy: user.email,
+    cancellationReason: `Please reschedule. ${cancellationReason}`,
+    teamId,
     orgId,
-  };
-  const webhooks = await getWebhooks(subscriberOptions);
-
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${payload.bookingId}, bookingUid: ${payload.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  });
 };

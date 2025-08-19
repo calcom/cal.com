@@ -1,6 +1,6 @@
 import { type TFunction } from "i18next";
 
-import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -100,17 +100,21 @@ const handleMarkNoShow = async ({
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
-      const { webhooks, bookingId } = await getWebhooksService(
+      const { bookingId, eventTypeId, userId: bookingUserId, teamId, orgId } = await getBookingInfo(
         bookingUid,
         platformClientParams?.platformClientId
       );
 
-      await webhooks.sendPayload({
-        ...payload,
-        /** We send webhook message pre-translated, on client we already handle this */
+      await BookingWebhookService.emitBookingNoShow({
+        message: payload.message,
         bookingUid,
         bookingId,
-        ...(platformClientParams ? platformClientParams : {}),
+        attendees: payload.attendees,
+        userId: bookingUserId,
+        eventTypeId,
+        teamId,
+        orgId,
+        platformClientId: platformClientParams?.platformClientId,
       });
 
       responsePayload.setAttendees(payload.attendees);
@@ -189,7 +193,7 @@ const updateAttendees = async (
     .map((x) => ({ email: x.email, noShow: x.noShow }));
 };
 
-const getWebhooksService = async (bookingUid: string, platformClientId?: string) => {
+const getBookingInfo = async (bookingUid: string, platformClientId?: string) => {
   const booking = await prisma.booking.findUnique({
     where: { uid: bookingUid },
     select: {
@@ -208,16 +212,14 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
     memberId: booking?.eventType?.userId,
     teamId: booking?.eventType?.teamId,
   });
-  const webhooks = await WebhookService.init({
-    teamId: booking?.eventType?.teamId,
-    userId: booking?.eventType?.userId,
-    eventTypeId: booking?.eventType?.id,
-    orgId,
-    triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
-    oAuthClientId: platformClientId,
-  });
 
-  return { webhooks, bookingId: booking?.id };
+  return {
+    bookingId: booking?.id,
+    eventTypeId: booking?.eventType?.id,
+    userId: booking?.eventType?.userId,
+    teamId: booking?.eventType?.teamId,
+    orgId,
+  };
 };
 
 const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {

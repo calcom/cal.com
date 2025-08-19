@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
-import { BookingWebhookService } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

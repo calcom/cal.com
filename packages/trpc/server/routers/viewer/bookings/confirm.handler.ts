@@ -376,7 +376,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    // TODO: Migrate to BookingWebhookService.emitBookingRejected() when implemented
+    const getWebhooks = (await import("@calcom/features/webhooks/lib/getWebhooks")).default;
+    const sendPayload = (await import("@calcom/features/webhooks/lib/sendOrSchedulePayload")).default;
+    
+    const webhooks = await getWebhooks(subscriberOptions);
+    const promises = webhooks.map((webhook) =>
+      sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, webhookData).catch((e) => {
+        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
+      })
+    );
+    await Promise.all(promises);
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";

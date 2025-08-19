@@ -38,6 +38,7 @@ import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import {
   deleteWebhookScheduledTriggers,
   scheduleTrigger,
@@ -2028,36 +2029,30 @@ async function handler(
       bookerPhoneNumber,
       isDryRun,
     });
-    // Send payment initiated webhook (using legacy approach as this is not part of main booking flow)
-    const subscribersPaymentInitiated = await getWebhooks({
-      userId: triggerForUser ? organizerUser.id : null,
-      eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+    // Send payment initiated webhook using new architecture
+    await BookingWebhookService.emitBookingPaymentInitiated({
+      evt,
+      booking: {
+        id: booking?.id || 0,
+        eventTypeId: booking?.eventTypeId || null,
+        userId: booking?.userId || null,
+      },
+      eventType: eventType ? {
+        id: eventType.id,
+        title: eventType.title,
+        description: eventType.description,
+        requiresConfirmation: eventType.requiresConfirmation,
+        price: eventType.price,
+        currency: eventType.currency,
+        length: eventType.length,
+        teamId: eventType.teamId,
+      } : null,
+      paymentId: payment?.id,
       teamId,
       orgId,
-      oAuthClientId: platformClientId,
+      platformClientId,
+      isDryRun,
     });
-
-    const paymentWebhookData = {
-      ...webhookData,
-      paymentId: payment?.id,
-    };
-
-    const paymentPromises = subscribersPaymentInitiated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-        new Date().toISOString(),
-        sub,
-        paymentWebhookData
-      ).catch((e) => {
-        loggerWithEventDetails.error(
-          `Error executing payment webhook for event: ${WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED}, URL: ${sub.subscriberUrl}`,
-          safeStringify(e)
-        );
-      })
-    );
-    await Promise.all(paymentPromises);
 
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.

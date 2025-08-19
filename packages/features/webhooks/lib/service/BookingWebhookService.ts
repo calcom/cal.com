@@ -8,6 +8,7 @@ import type {
   BookingRequestedDTO,
   BookingRescheduledDTO,
   BookingPaidDTO,
+  BookingPaymentInitiatedDTO,
   BookingNoShowDTO,
 } from "../dto/types";
 import { WebhookNotifier } from "../notifier/WebhookNotifier";
@@ -148,6 +149,52 @@ export class BookingWebhookService {
       platformClientId: args.platformClientId,
       isDryRun: args.isDryRun,
     });
+  }
+
+  /**
+   * Emits a booking payment initiated webhook
+   */
+  static async emitBookingPaymentInitiated(params: {
+    evt: CalendarEvent;
+    booking: {
+      id: number;
+      eventTypeId: number | null;
+      userId: number | null;
+    };
+    eventType: {
+      id: number;
+      title: string;
+      description: string | null;
+      requiresConfirmation: boolean;
+      price: number;
+      currency: string;
+      length: number;
+      teamId?: number | null;
+    } | null;
+    paymentId?: number;
+    paymentData?: any;
+    teamId?: number | null;
+    orgId?: number | null;
+    platformClientId?: string;
+    isDryRun?: boolean;
+  }): Promise<void> {
+    const dto: BookingPaymentInitiatedDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType?.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+      paymentId: params.paymentId,
+      paymentData: params.paymentData,
+    };
+
+    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, dto, params.isDryRun);
   }
   /**
    * Emits a booking created webhook

@@ -8,10 +8,8 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { EventManagerUser } from "@calcom/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
@@ -375,14 +373,9 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const subscribersBookingCreated = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
+    // Import legacy functions for scheduled webhooks only
+    const getWebhooks = (await import("@calcom/features/webhooks/lib/getWebhooks")).default;
+    
     const subscribersMeetingStarted = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
@@ -453,53 +446,39 @@ export async function handleConfirmation(args: {
       oAuthClientId: platformClientParams?.platformClientId,
     });
 
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType?.title,
-      eventDescription: eventType?.description,
-      requiresConfirmation: eventType?.requiresConfirmation || null,
-      price: eventType?.price,
-      currency: eventType?.currency,
-      length: eventType?.length,
-    };
-
-    const payload: EventPayloadType = {
-      ...evt,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: eventType?.id,
+    // Send BOOKING_CREATED webhook using new architecture
+    await BookingWebhookService.emitBookingCreated({
+      evt,
+      booking: {
+        id: booking.id,
+        eventTypeId: booking.eventTypeId,
+        userId: booking.userId,
+        startTime: booking.startTime,
+        smsReminderNumber: booking.smsReminderNumber,
+      },
+      eventType: eventType ? {
+        id: eventType.id,
+        title: eventType.title,
+        description: eventType.description,
+        requiresConfirmation: eventType.requiresConfirmation,
+        price: eventType.price,
+        currency: eventType.currency,
+        length: eventType.length,
+        teamId: eventType.teamId,
+      } : null,
       status: "ACCEPTED",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
       metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
-      ...(platformClientParams ? platformClientParams : {}),
-    };
-
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        log.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
-      })
-    );
-
-    await Promise.all(promises);
+      platformParams: platformClientParams ? {
+        platformClientId: platformClientParams.platformClientId,
+        platformRescheduleUrl: platformClientParams.platformRescheduleUrl || undefined,
+        platformCancelUrl: platformClientParams.platformCancelUrl || undefined,
+        platformBookingUrl: platformClientParams.platformBookingUrl || undefined,
+      } : undefined,
+      teamId,
+      orgId,
+    });
 
     if (paid) {
-      let paymentExternalId: string | undefined;
-      const subscriberMeetingPaid = await getWebhooks({
-        userId,
-        eventTypeId: booking.eventTypeId,
-        triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
-        teamId: eventType?.teamId,
-        orgId,
-        oAuthClientId: platformClientParams?.platformClientId,
-      });
       const bookingWithPayment = await prisma.booking.findUnique({
         where: {
           id: bookingId,
@@ -515,41 +494,40 @@ export async function handleConfirmation(args: {
         },
       });
       const successPayment = bookingWithPayment?.payment?.find((item) => item.success);
-      if (successPayment) {
-        paymentExternalId = successPayment.externalId;
-      }
-
+      
       const paymentMetadata = {
         identifier: "cal.com",
         bookingId,
         eventTypeId: eventType?.id,
         bookerEmail: evt.attendees[0].email,
         eventTitle: eventType?.title,
-        externalId: paymentExternalId,
+        externalId: successPayment?.externalId,
       };
 
-      payload.paymentId = bookingWithPayment?.payment?.[0].id;
-      payload.metadata = {
-        ...(paid ? paymentMetadata : {}),
-      };
-
-      const bookingPaidSubscribers = subscriberMeetingPaid.map((sub) =>
-        sendPayload(
-          sub.secret,
-          WebhookTriggerEvents.BOOKING_PAID,
-          new Date().toISOString(),
-          sub,
-          payload
-        ).catch((e) => {
-          log.error(
-            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-            safeStringify(e)
-          );
-        })
-      );
-
-      // I don't need to await for this
-      Promise.all(bookingPaidSubscribers);
+      // Send BOOKING_PAID webhook using new architecture
+      await BookingWebhookService.emitBookingPaid({
+        evt,
+        booking: {
+          id: booking.id,
+          eventTypeId: booking.eventTypeId,
+          userId: booking.userId,
+        },
+        eventType: eventType ? {
+          id: eventType.id,
+          title: eventType.title,
+          description: eventType.description,
+          requiresConfirmation: eventType.requiresConfirmation,
+          price: eventType.price,
+          currency: eventType.currency,
+          length: eventType.length,
+          teamId: eventType.teamId,
+        } : null,
+        paymentId: bookingWithPayment?.payment?.[0].id,
+        paymentData: paymentMetadata,
+        teamId,
+        orgId,
+        platformClientId: platformClientParams?.platformClientId,
+      });
     }
   } catch (error) {
     // Silently fail

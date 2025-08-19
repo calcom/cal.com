@@ -129,6 +129,27 @@ export interface BookingPaidDTO extends BaseEventDTO {
   paymentData?: any;
 }
 
+export interface BookingPaymentInitiatedDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED;
+  evt: CalendarEvent;
+  eventType: {
+    id: number;
+    title: string;
+    description: string | null;
+    requiresConfirmation: boolean;
+    price: number;
+    currency: string;
+    length: number;
+  } | null;
+  booking: {
+    id: number;
+    eventTypeId: number | null;
+    userId: number | null;
+  };
+  paymentId?: number;
+  paymentData?: any;
+}
+
 export interface BookingNoShowDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
   message: string;
@@ -181,15 +202,45 @@ export interface FormSubmittedDTO extends BaseEventDTO {
   };
 }
 
+// Recording-specific DTOs
+export interface RecordingReadyDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.RECORDING_READY;
+  evt: CalendarEvent;
+  downloadLink: string;
+}
+
+export interface TranscriptionGeneratedDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED;
+  evt: CalendarEvent;
+  transcriptionUrl: string;
+}
+
+// Form-specific DTOs  
+export interface FormSubmittedNoEventDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
+  form: {
+    id: string;
+    name: string;
+  };
+  response: {
+    id: number;
+    data: Record<string, any>;
+  };
+}
+
 export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
   | BookingRequestedDTO
   | BookingRescheduledDTO
   | BookingPaidDTO
+  | BookingPaymentInitiatedDTO
   | BookingNoShowDTO
   | OOOCreatedDTO
-  | FormSubmittedDTO;
+  | FormSubmittedDTO
+  | FormSubmittedNoEventDTO
+  | RecordingReadyDTO
+  | TranscriptionGeneratedDTO;
 
 export interface WebhookSubscriber {
   id: string;

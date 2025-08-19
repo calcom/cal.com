@@ -7,11 +7,8 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -133,9 +130,6 @@ async function handler(input: CancelBookingInput) {
     }
   }
 
-  // get webhooks
-  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
-
   const teamId = await getTeamIdFromEventType({
     eventType: {
       team: { id: bookingToDelete.eventType?.team?.id ?? null },
@@ -146,26 +140,6 @@ async function handler(input: CancelBookingInput) {
   const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
-
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUserId,
-    eventTypeId: bookingToDelete.eventTypeId as number,
-    triggerEvent: eventTrigger,
-    teamId,
-    orgId,
-    oAuthClientId: platformClientId,
-  };
-
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: bookingToDelete?.eventType?.title || null,
-    eventDescription: bookingToDelete?.eventType?.description || null,
-    requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
-    price: bookingToDelete?.eventType?.price || null,
-    currency: bookingToDelete?.eventType?.currency || null,
-    length: bookingToDelete?.eventType?.length || null,
-  };
-
-  const webhooks = await getWebhooks(subscriberOptions);
 
   const organizer = await prisma.user.findUniqueOrThrow({
     where: {
@@ -287,7 +261,8 @@ async function handler(input: CancelBookingInput) {
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
   };
 
-  const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+  // Legacy data structure for cancelAttendeeSeat compatibility
+  const dataForWebhooks = { evt, webhooks: [], eventTypeInfo: {} };
 
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
@@ -307,21 +282,32 @@ async function handler(input: CancelBookingInput) {
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
 
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      ...eventTypeInfo,
-      status: "CANCELLED",
-      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-      cancelledBy: cancelledBy,
-    }).catch((e) => {
-      logger.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  // Send webhook using new architecture
+  await BookingWebhookService.emitBookingCancelled({
+    evt,
+    booking: {
+      id: bookingToDelete.id,
+      eventTypeId: bookingToDelete.eventTypeId,
+      userId: bookingToDelete.userId,
+      startTime: bookingToDelete.startTime,
+      smsReminderNumber: bookingToDelete.smsReminderNumber,
+    },
+    eventType: bookingToDelete.eventType ? {
+      id: bookingToDelete.eventType.id,
+      title: bookingToDelete.eventType.title,
+      description: bookingToDelete.eventType.description,
+      requiresConfirmation: bookingToDelete.eventType.requiresConfirmation,
+      price: bookingToDelete.eventType.price,
+      currency: bookingToDelete.eventType.currency,
+      length: bookingToDelete.eventType.length,
+      teamId: bookingToDelete.eventType.teamId,
+    } : null,
+    cancelledBy: cancelledBy,
+    cancellationReason: cancellationReason,
+    teamId,
+    orgId,
+    platformClientId,
+  });
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});

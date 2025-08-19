@@ -7,7 +7,7 @@ import type { CalendarEventBuilder } from "./builder";
 
 const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "director"] });
 export class CalendarEventDirector {
-  private builder!: CalendarEventBuilder;
+  public builder!: CalendarEventBuilder;
   private existingBooking!: Partial<Booking>;
   private cancellationReason!: string;
 

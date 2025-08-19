@@ -10,16 +10,37 @@ import type {
   BookingRequestedDTO,
   BookingRescheduledDTO,
   BookingPaidDTO,
+  BookingPaymentInitiatedDTO,
   BookingNoShowDTO,
   OOOCreatedDTO,
   FormSubmittedDTO,
+  FormSubmittedNoEventDTO,
+  RecordingReadyDTO,
+  TranscriptionGeneratedDTO,
 } from "../dto/types";
 import type { EventPayloadType, OOOEntryPayloadType, BookingNoShowUpdatedPayload } from "../sendPayload";
+
+// Form-specific payload types
+export interface FormSubmittedPayload {
+  form: {
+    id: string;
+    name: string;
+  };
+  response: {
+    id: number;
+    data: Record<string, any>;
+  };
+}
+
+export interface RecordingPayload {
+  downloadLink?: string;
+  transcriptionUrl?: string;
+}
 
 export interface WebhookPayload {
   triggerEvent: string;
   createdAt: string;
-  payload: EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
+  payload: EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload | FormSubmittedPayload | RecordingPayload;
 }
 
 /**
@@ -42,12 +63,20 @@ export class WebhookPayloadFactory {
         return this.createBookingRescheduledPayload(dto as BookingRescheduledDTO);
       case WebhookTriggerEvents.BOOKING_PAID:
         return this.createBookingPaidPayload(dto as BookingPaidDTO);
+      case WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED:
+        return this.createBookingPaymentInitiatedPayload(dto as BookingPaymentInitiatedDTO);
       case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED:
         return this.createBookingNoShowPayload(dto as BookingNoShowDTO);
       case WebhookTriggerEvents.OOO_CREATED:
         return this.createOOOCreatedPayload(dto as OOOCreatedDTO);
       case WebhookTriggerEvents.FORM_SUBMITTED:
         return this.createFormSubmittedPayload(dto as FormSubmittedDTO);
+      case WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT:
+        return this.createFormSubmittedNoEventPayload(dto as FormSubmittedNoEventDTO);
+      case WebhookTriggerEvents.RECORDING_READY:
+        return this.createRecordingReadyPayload(dto as RecordingReadyDTO);
+      case WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED:
+        return this.createTranscriptionGeneratedPayload(dto as TranscriptionGeneratedDTO);
       default:
         throw new Error("Unsupported webhook trigger event");
     }
@@ -175,11 +204,10 @@ export class WebhookPayloadFactory {
   }
 
   private static createFormSubmittedPayload(dto: FormSubmittedDTO): WebhookPayload {
-    // For form submissions, we create a custom payload structure
-    const payload = {
+    const payload: FormSubmittedPayload = {
       form: dto.form,
       response: dto.response,
-    } as any; // Form submissions have their own payload structure
+    };
 
     return {
       triggerEvent: dto.triggerEvent,
@@ -256,5 +284,59 @@ export class WebhookPayloadFactory {
     }
 
     return eventWithOffset;
+  }
+
+  private static createBookingPaymentInitiatedPayload(dto: BookingPaymentInitiatedDTO): WebhookPayload {
+    const eventPayload = this.buildEventPayload({
+      evt: dto.evt,
+      eventType: dto.eventType,
+      booking: dto.booking,
+      status: "PENDING",
+      paymentId: dto.paymentId,
+      paymentData: dto.paymentData,
+    });
+
+    return {
+      triggerEvent: dto.triggerEvent,
+      createdAt: dto.createdAt,
+      payload: eventPayload,
+    };
+  }
+
+  private static createFormSubmittedNoEventPayload(dto: FormSubmittedNoEventDTO): WebhookPayload {
+    const payload: FormSubmittedPayload = {
+      form: dto.form,
+      response: dto.response,
+    };
+
+    return {
+      triggerEvent: dto.triggerEvent,
+      createdAt: dto.createdAt,
+      payload,
+    };
+  }
+
+  private static createRecordingReadyPayload(dto: RecordingReadyDTO): WebhookPayload {
+    const payload: RecordingPayload = {
+      downloadLink: dto.downloadLink,
+    };
+
+    return {
+      triggerEvent: dto.triggerEvent,
+      createdAt: dto.createdAt,
+      payload,
+    };
+  }
+
+  private static createTranscriptionGeneratedPayload(dto: TranscriptionGeneratedDTO): WebhookPayload {
+    const payload: RecordingPayload = {
+      transcriptionUrl: dto.transcriptionUrl,
+    };
+
+    return {
+      triggerEvent: dto.triggerEvent,
+      createdAt: dto.createdAt,
+      payload,
+    };
   }
 }

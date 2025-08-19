@@ -5,7 +5,11 @@ export * from "./notifier";
 export * from "./repository";
 export * from "./service";
 export * from "./delivery";
+export * from "./services/BaseWebhookService";
 export * from "./services/BookingWebhookService";
+export * from "./services/RecordingWebhookService";
+export * from "./services/OOOWebhookService";
+export * from "./services/FormWebhookService";
 
 // Legacy Exports (For Backward Compatibility)
 export { default as getWebhooks } from "./getWebhooks";

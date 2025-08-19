@@ -4,7 +4,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
-import { BookingWebhookService, type WebhookTriggerArgs } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
+import { BookingWebhookService, type WebhookTriggerArgs } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 
 const log = logger.getSubLogger({ prefix: ["[handleWebhookTrigger]"] });
 

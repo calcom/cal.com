@@ -3,6 +3,7 @@ import type { App_RoutingForms_Form, User } from "@prisma/client";
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { FormWebhookService } from "@calcom/features/webhooks/lib/service/FormWebhookService";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
@@ -133,32 +134,24 @@ export async function _onFormSubmission(
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
   };
 
-  const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
-  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
-
-  const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
-    sendGenericWebhookPayload({
-      secretKey: webhook.secret,
-      triggerEvent: "FORM_SUBMITTED",
-      createdAt: new Date().toISOString(),
-      webhook,
-      data: {
-        formId: form.id,
-        formName: form.name,
-        teamId: form.teamId,
-        responses: fieldResponsesByIdentifier,
-      },
-      rootData: {
-        // Send responses unwrapped at root level for backwards compatibility
-        ...Object.entries(fieldResponsesByIdentifier).reduce((acc, [key, value]) => {
-          acc[key] = value.value;
-          return acc;
-        }, {} as Record<string, FormResponse[keyof FormResponse]["value"]>),
-      },
-    }).catch((e) => {
-      console.error(`Error executing routing form webhook`, webhook, e);
-    });
+  // Send immediate FORM_SUBMITTED webhooks using new architecture
+  await FormWebhookService.emitFormSubmitted({
+    form: {
+      id: form.id,
+      name: form.name,
+    },
+    response: {
+      id: responseId,
+      data: fieldResponsesByIdentifier,
+    },
+    eventTypeId: undefined, // Routing forms are not tied to specific event types
+    userId,
+    teamId,
+    orgId,
   });
+
+  // Keep legacy approach for FORM_SUBMITTED_NO_EVENT (scheduled webhooks)
+  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
 
   if (typeof window === "undefined") {
     try {
@@ -183,7 +176,7 @@ export async function _onFormSubmission(
         );
       });
 
-      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
+      const promises = [...promisesFormSubmittedNoEvent];
 
       await Promise.all(promises);
       const orderedResponses = form.fields.reduce((acc, field) => {

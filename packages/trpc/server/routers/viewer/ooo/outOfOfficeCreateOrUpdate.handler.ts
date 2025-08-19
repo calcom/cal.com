@@ -4,10 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { OOOWebhookService } from "@calcom/features/webhooks/lib/service/OOOWebhookService";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -315,16 +312,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const teamIds = memberships.map((membership) => membership.teamId);
 
   // Send webhook to notify other services
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: oooUserId,
-    teamId: teamIds,
-    orgId: oooUserOrgId,
-    triggerEvent: WebhookTriggerEvents.OOO_CREATED,
-  };
-
-  const subscribers = await getWebhooks(subscriberOptions);
-
-  const payload: OOOEntryPayloadType = {
+  // Send webhook using new architecture
+  await OOOWebhookService.emitOOOCreated({
     oooEntry: {
       id: createdOrUpdatedOutOfOffice.id,
       start: dayjs(createdOrUpdatedOutOfOffice.start)
@@ -338,42 +327,29 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         emoji: reason?.emoji,
         reason: reason?.reason,
       },
-      reasonId: input.reasonId,
+      reasonId: input.reasonId || 0,
       user: {
         id: oooUserId,
         name: oooUserFullName,
         username: oooUserName,
-        email: oooUserEmail,
         timeZone: oooUserTimeZone,
+        email: oooUserEmail,
       },
       toUser: toUserId
         ? {
             id: toUserId,
-            name: toUser?.name,
-            username: toUser?.username,
-            email: toUser?.email,
-            timeZone: toUser?.timeZone,
+            name: toUser?.name || null,
+            username: toUser?.username || null,
+            email: toUser?.email || "",
+            timeZone: toUser?.timeZone || "",
           }
         : null,
       uuid: createdOrUpdatedOutOfOffice.uuid,
     },
-  };
-
-  await Promise.all(
-    subscribers.map(async (subscriber) => {
-      sendPayload(
-        subscriber.secret,
-        WebhookTriggerEvents.OOO_CREATED,
-        dayjs().toISOString(),
-        {
-          appId: subscriber.appId,
-          subscriberUrl: subscriber.subscriberUrl,
-          payloadTemplate: subscriber.payloadTemplate,
-        },
-        payload
-      );
-    })
-  );
+    userId: oooUserId,
+    teamId: teamIds?.length ? teamIds[0] : undefined, // Take first team ID
+    orgId: oooUserOrgId,
+  });
 
   return {};
 };
