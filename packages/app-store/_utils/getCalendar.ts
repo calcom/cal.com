@@ -2,7 +2,8 @@ import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import appStore from "..";
+import { calendarLoaders } from "./calendars/calendarLoaders";
+import type { CalendarLoaderKey } from "./calendars/calendarLoaders";
 
 interface CalendarApp {
   lib: {
@@ -36,14 +37,15 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
+  const calendarLoaderKey = calendarType.split("_").join("") as CalendarLoaderKey;
+  const calendarAppImportFn = calendarLoaders[calendarLoaderKey];
 
   if (!calendarAppImportFn) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
 
-  const calendarApp = await calendarAppImportFn();
+  const calendarApp = await calendarAppImportFn?.();
 
   if (!isCalendarService(calendarApp)) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
