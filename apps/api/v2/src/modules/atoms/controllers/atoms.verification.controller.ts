@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
 import { SendVerificationEmailOutput } from "@/modules/atoms/outputs/send-verification-email.output";
@@ -6,6 +7,7 @@ import { VerifyEmailCodeOutput } from "@/modules/atoms/outputs/verify-email-code
 import { VerificationAtomsService } from "@/modules/atoms/services/verification-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -16,10 +18,15 @@ import {
   VERSION_NEUTRAL,
   HttpCode,
   HttpStatus,
+  Get,
+  Query,
+  Req,
 } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
+import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/atoms",
@@ -33,18 +40,40 @@ export class AtomsVerificationController {
   @Post("/verification/email/send-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
+  @UseGuards(OptionalApiAuthGuard)
   async sendEmailVerificationCode(
-    @Body() body: SendVerificationEmailInput
+    @Body() body: SendVerificationEmailInput,
+    @Req() req: Request
   ): Promise<SendVerificationEmailOutput> {
-    const result = await this.verificationService.sendEmailVerificationCode({
-      email: body.email,
-      username: body.username,
-      language: body.language,
-      isVerifyingEmail: body.isVerifyingEmail,
-    });
+    const result = await this.verificationService.sendEmailVerificationCode(
+      {
+        email: body.email,
+        username: body.username,
+        language: body.language,
+        isVerifyingEmail: body.isVerifyingEmail,
+      },
+      req
+    );
 
     return {
       data: { sent: result.ok && !result.skipped },
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Get("/verification/email/check")
+  @Version(VERSION_NEUTRAL)
+  @HttpCode(HttpStatus.OK)
+  async checkEmailVerificationRequired(
+    @Query() query: CheckEmailVerificationRequiredParams
+  ): Promise<ApiResponse<boolean>> {
+    const required = await this.verificationService.checkEmailVerificationRequired({
+      email: query.email,
+      userSessionEmail: query.userSessionEmail,
+    });
+
+    return {
+      data: required,
       status: SUCCESS_STATUS,
     };
   }
@@ -72,11 +101,9 @@ export class AtomsVerificationController {
     @Body() body: VerifyEmailCodeInput,
     @GetUser() user: UserWithProfile
   ): Promise<VerifyEmailCodeOutput> {
-    const verified = await this.verificationService.verifyEmailCodeAuthenticated({
+    const verified = await this.verificationService.verifyEmailCodeAuthenticated(user, {
       email: body.email,
       code: body.code,
-      userId: user.id,
-      userRole: user.role,
     });
 
     return {

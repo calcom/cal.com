@@ -122,8 +122,10 @@ export { verifyPhoneNumber, sendVerificationCode };
 
 export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/verifyCodeUnAuthenticated.handler";
 
-export { verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
+export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
 export { sendVerifyEmailCode } from "@calcom/trpc/server/routers/viewer/auth/sendVerifyEmailCode.handler";
+
+export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";

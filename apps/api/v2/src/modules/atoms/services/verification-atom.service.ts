@@ -1,17 +1,24 @@
+import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
+import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
+import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Request } from "express";
 
 import {
   verifyCodeUnAuthenticated,
   verifyCodeAuthenticated,
   sendVerifyEmailCode,
+  checkEmailVerificationRequired,
 } from "@calcom/platform-libraries";
-import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
-import type { TSendVerifyEmailCodeSchema } from "@calcom/trpc/server/routers/viewer/auth/sendVerifyEmailCode.schema";
-import type { VerifyCodeAuthenticatedInput } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
 @Injectable()
 export class VerificationAtomsService {
-  async verifyEmailCodeUnAuthenticated(input: ZVerifyCodeInputSchema) {
+  async checkEmailVerificationRequired(input: CheckEmailVerificationRequiredParams) {
+    return await checkEmailVerificationRequired(input);
+  }
+
+  async verifyEmailCodeUnAuthenticated(input: VerifyEmailCodeInput) {
     try {
       return await verifyCodeUnAuthenticated(input);
     } catch (error) {
@@ -27,9 +34,13 @@ export class VerificationAtomsService {
     }
   }
 
-  async verifyEmailCodeAuthenticated(input: VerifyCodeAuthenticatedInput) {
+  async verifyEmailCodeAuthenticated(user: UserWithProfile, input: VerifyEmailCodeInput) {
     try {
-      return await verifyCodeAuthenticated(input);
+      return await verifyCodeAuthenticated({
+        user,
+        email: input.email,
+        code: input.code,
+      });
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "invalid_code") {
@@ -43,9 +54,9 @@ export class VerificationAtomsService {
     }
   }
 
-  async sendEmailVerificationCode(input: TSendVerifyEmailCodeSchema) {
+  async sendEmailVerificationCode(input: SendVerificationEmailInput, req?: Request) {
     try {
-      return await sendVerifyEmailCode(input);
+      return await sendVerifyEmailCode({ input, identifier: req?.ip });
     } catch (error) {
       if (error instanceof Error && error.message.includes("rate")) {
         throw new BadRequestException("Rate limit exceeded. Please try again later.");

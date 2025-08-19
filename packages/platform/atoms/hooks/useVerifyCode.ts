@@ -29,7 +29,41 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
   const [hasVerified, setHasVerified] = useState(false);
   const { isInit } = useAtomsContext();
 
-  const verifyCodeMutation = useMutation<
+  const verifyCodeWithSessionRequiredMutation = useMutation<
+    ApiSuccessResponse<VerifyEmailResponse>,
+    ApiErrorResponse,
+    VerifyEmailInput
+  >({
+    mutationFn: (props: VerifyEmailInput) => {
+      return http
+        .post<ApiResponse<{ verified: boolean }>>(
+          "/atoms/verification/email/verify-code-authenticated",
+          props
+        )
+        .then((res) => {
+          if (res.data.status === SUCCESS_STATUS) {
+            return res.data;
+          }
+          throw new Error(res.data.error?.message || "Invalid verification code");
+        });
+    },
+    onSuccess: (data) => {
+      setIsPending(false);
+      setHasVerified(data.data.verified);
+      onSuccess(data.data.verified);
+    },
+    onError: (err) => {
+      setIsPending(false);
+      setHasVerified(false);
+      if (err.error?.message?.includes("invalid") || err.error?.message?.includes("Invalid")) {
+        setError("Code provided is invalid");
+      } else {
+        setError(err.error?.message || "Verification failed");
+      }
+    },
+  });
+
+  const verifyCodeWithSessionNotRequiredMutation = useMutation<
     ApiSuccessResponse<VerifyEmailResponse>,
     ApiErrorResponse,
     VerifyEmailInput
@@ -44,7 +78,6 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
           throw new Error(res.data.error?.message || "Invalid verification code");
         });
     },
-    enabled: isInit,
     onSuccess: (data) => {
       setIsPending(false);
       setHasVerified(data.data.verified);
@@ -62,13 +95,11 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
   });
 
   const verifyCodeWithSessionRequired = (code: string, email: string) => {
-    setIsPending(true);
-    setError("");
-    verifyCodeMutation.mutate({ code, email });
+    verifyCodeWithSessionRequiredMutation.mutate({ code, email });
   };
 
   const verifyCodeWithSessionNotRequired = (code: string, email: string) => {
-    verifyCodeWithSessionRequired(code, email);
+    verifyCodeWithSessionNotRequiredMutation.mutate({ code, email });
   };
 
   return {

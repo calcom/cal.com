@@ -17,24 +17,33 @@ type VerifyCodeOptions = {
   input: ZVerifyCodeInputSchema;
 };
 
-export type VerifyCodeAuthenticatedInput = ZVerifyCodeInputSchema & {
-  userId: number;
-  userRole?: string;
+export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
+  return verifyCode({
+    user: ctx.user,
+    email: input.email,
+    code: input.code,
+  });
 };
 
-export const verifyCodeAuthenticated = async (input: VerifyCodeAuthenticatedInput) => {
-  const { email, code, userId, userRole } = input;
-
-  if (!userId || !email || !code) throw new Error("BAD_REQUEST");
+export const verifyCode = async ({
+  user,
+  email,
+  code,
+}: {
+  user?: NonNullable<TrpcSessionUser>;
+  email?: string;
+  code?: string;
+}) => {
+  if (!user || !email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
 
   if (!IS_PRODUCTION || process.env.NEXT_PUBLIC_IS_E2E) {
     logger.warn(`Skipping code verification in dev/E2E environment`);
-    return { verified: true };
+    return true;
   }
 
-  if (userRole === "ADMIN") {
+  if (user.role === "ADMIN") {
     logger.warn(`Skipping code verification for instance admin`);
-    return { verified: true };
+    return true;
   }
 
   await checkRateLimitAndThrowError({
@@ -48,42 +57,9 @@ export const verifyCodeAuthenticated = async (input: VerifyCodeAuthenticatedInpu
 
   const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
-  if (!isValidToken) throw new Error("invalid_code");
+  if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
 
-  return { verified: isValidToken };
-};
-
-export const verifyCode = async ({
-  user,
-  input,
-}: {
-  user: NonNullable<TrpcSessionUser>;
-  input: ZVerifyCodeInputSchema;
-}) => {
-  try {
-    const result = await verifyCodeAuthenticated({
-      ...input,
-      userId: user.id,
-      userRole: user.role,
-    });
-    return result.verified;
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "BAD_REQUEST") {
-        throw new TRPCError({ code: "BAD_REQUEST" });
-      }
-      if (error.message === "invalid_code") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
-      }
-    }
-    throw new TRPCError({ code: "BAD_REQUEST" });
-  }
-};
-
-export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
-  const { user } = ctx;
-
-  return verifyCode({ user, input });
+  return isValidToken;
 };
 
 export default verifyCodeHandler;

@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -6,8 +7,8 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse, ApiSuccessResponseWithoutData } from "@calcom/platform-types";
 
+import { useMe } from "../hooks/useMe";
 import http from "../lib/http";
-import { useAtomsContext } from "./useAtomsContext";
 
 export interface IUseVerifyEmailProps {
   email: string;
@@ -20,6 +21,7 @@ export type UseVerifyEmailReturnType = ReturnType<typeof useVerifyEmail>;
 
 interface RequestEmailVerificationInput {
   email: string;
+  username?: string;
 }
 
 export const useVerifyEmail = ({
@@ -32,7 +34,27 @@ export const useVerifyEmail = ({
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
   const debouncedEmail = useDebounce(email, 600);
-  const { isInit } = useAtomsContext();
+  const { data: user } = useMe();
+
+  const { data: isEmailVerificationRequired } = useQuery<boolean>({
+    queryKey: ["isEmailVerificationRequired"],
+    queryFn: () => {
+      return http
+        ?.get<ApiResponse<boolean>>("/atoms/verification/email/check", {
+          params: {
+            email: debouncedEmail,
+            userSessionEmail: user?.data?.email || "",
+          },
+        })
+        .then((res) => {
+          if (res.data.status === SUCCESS_STATUS) {
+            return res.data.data;
+          }
+          throw new Error(res.data.error.message);
+        });
+    },
+    enabled: !!debouncedEmail,
+  });
 
   const sendEmailVerificationMutation = useMutation<
     ApiSuccessResponseWithoutData,
@@ -49,7 +71,6 @@ export const useVerifyEmail = ({
           throw new Error(res.data.error?.message || "Failed to send verification email");
         });
     },
-    enabled: isInit,
     onSuccess: () => {
       setEmailVerificationModalVisible(true);
     },
@@ -60,13 +81,17 @@ export const useVerifyEmail = ({
 
   const handleVerifyEmail = () => {
     onVerifyEmail?.();
-    sendEmailVerificationMutation.mutate({ email });
+    sendEmailVerificationMutation.mutate({
+      email,
+      username: typeof name === "string" ? name : name?.firstName,
+    });
   };
 
   const isVerificationCodeSending = sendEmailVerificationMutation.isPending;
 
   const renderConfirmNotVerifyEmailButtonCond =
-    !requiresBookerEmailVerification || (email && verifiedEmail && verifiedEmail === email);
+    (!requiresBookerEmailVerification && !isEmailVerificationRequired) ||
+    (email && verifiedEmail && verifiedEmail === email);
 
   return {
     handleVerifyEmail,
