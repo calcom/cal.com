@@ -302,9 +302,11 @@ export const deleteScheduledAIPhoneCall = async (reminderId: number, referenceId
   }
 
   const { uuid } = workflowReminder;
-  if (uuid) {
+  const taskReferenceId = referenceId || uuid;
+
+  if (taskReferenceId) {
     try {
-      const taskId = await tasker.cancelWithReference(uuid, "executeAIPhoneCall");
+      const taskId = await tasker.cancelWithReference(taskReferenceId, "executeAIPhoneCall");
       if (taskId) {
         await prisma.workflowReminder.delete({
           where: {
