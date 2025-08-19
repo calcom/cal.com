@@ -124,6 +124,7 @@ type AvailabilitySettingsProps = {
     isEventTypesFetching?: boolean;
     handleBulkEditDialogToggle: () => void;
   };
+  callbackRef?: RefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
 };
 
 const DeleteDialogButton = ({
@@ -306,6 +307,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       bulkUpdateModalProps,
       allowSetToDefault = true,
       allowDelete = true,
+      callbacksRef,
     } = props;
     const [openSidebar, setOpenSidebar] = useState(false);
     const { t, i18n } = useLocale();
@@ -335,8 +337,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     }, [isPlatform]);
 
     const saveButtonRef = useRef<HTMLButtonElement>(null);
-
-    const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
 
     const handleFormSubmit = useCallback(
       (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
