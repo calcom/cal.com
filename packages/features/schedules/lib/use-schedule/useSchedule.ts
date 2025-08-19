@@ -133,7 +133,11 @@ export const useSchedule = ({
     eventTypeId: eventId ?? undefined,
   });
 
-  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
+  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
+    ...options,
+    // Only enable if we're not using API V2
+    enabled: options.enabled && !isCallingApiV2Slots,
+  });
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
