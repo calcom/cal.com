@@ -43,9 +43,6 @@ type ProcessWorkflowStepParams = {
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
   workflows: Workflow[];
-  // isNotConfirmed?: boolean;
-  // isRescheduleEvent?: boolean;
-  // isFirstRecurringEvent?: boolean;
   isDryRun?: boolean;
 }
 

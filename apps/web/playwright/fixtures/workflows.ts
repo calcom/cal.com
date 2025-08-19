@@ -1,9 +1,9 @@
 import type { Locator } from "@playwright/test";
 import { expect, type Page } from "@playwright/test";
-import type { Fixtures } from "playwright/lib/fixtures";
 
 import prisma from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 
 import { localize } from "../lib/localize";
 
