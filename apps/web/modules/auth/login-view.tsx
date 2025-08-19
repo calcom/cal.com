@@ -254,23 +254,16 @@ export default function Login({
                   autoComplete="email"
                   {...register("email")}
                 />
-                <div className="relative">
-                  <PasswordField
-                    id="password"
-                    autoComplete="current-password"
-                    required={!totpEmail}
-                    className="mb-0"
-                    {...register("password")}
-                  />
-                  <div className="absolute -top-[2px] ltr:right-0 rtl:left-0">
-                    <Link
-                      href="/auth/forgot-password"
-                      tabIndex={-1}
-                      className="text-default text-sm font-medium">
-                      {t("forgot")}
-                    </Link>
-                  </div>
-                </div>
+                <PasswordField
+                  id="password"
+                  autoComplete="current-password"
+                  required={!totpEmail}
+                  className="mb-0 w-full"
+                  {...register("password")}
+                />
+                <Link className="mt-4" href="/auth/forgot-password" tabIndex={-1} className="text-default text-sm font-medium">
+                  {t("forgot")}
+                </Link>
               </div>
 
               {twoFactorRequired ? !twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center /> : null}

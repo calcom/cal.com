@@ -346,231 +346,242 @@ const BookerComponent = ({
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
         )}>
-        <div
-          ref={animationScope}
-          data-testid="booker-container"
-          className={classNames(
-            ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            `bg-default dark:bg-muted grid max-w-full items-start sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row dark:[color-scheme:dark]`,
-            // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
-            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
-            !isEmbed && "sm:transition-[width] sm:duration-300",
-            isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
-            `${customClassNames?.bookerContainer}`
-          )}>
-          <AnimatePresence>
-            {!isInstantMeeting && (
-              <BookerSection
-                area="header"
-                className={classNames(
-                  layout === BookerLayouts.MONTH_VIEW && "w-full fixed top-4 z-10 ltr:right-4 rtl:left-4",
-                  (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                    "w-full bg-default dark:bg-muted top-0 z-10"
-                )}>
-                {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
-                  <></>
-                ) : (
-                  <Header
-                    isMyLink={Boolean(username === sessionUsername)}
-                    eventSlug={eventSlug}
-                    enabledLayouts={bookerLayouts.enabledLayouts}
-                    extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
-                    isMobile={isMobile}
-                    nextSlots={nextSlots}
-                    renderOverlay={() =>
-                      isEmbed ? (
-                        <></>
-                      ) : (
-                        <>
-                          <OverlayCalendar
-                            isOverlayCalendarEnabled={isOverlayCalendarEnabled}
-                            connectedCalendars={connectedCalendars}
-                            loadingConnectedCalendar={loadingConnectedCalendar}
-                            overlayBusyDates={overlayBusyDates}
-                            onToggleCalendar={onToggleCalendar}
-                            hasSession={hasSession}
-                            handleClickContinue={onClickOverlayContinue}
-                            handleSwitchStateChange={onOverlaySwitchStateChange}
-                            handleClickNoCalendar={() => {
-                              onOverlayClickNoCalendar();
-                            }}
-                          />
-                        </>
-                      )
-                    }
-                  />
-                )}
-              </BookerSection>
-            )}
-            <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
-              <BookerSection
-                area="meta"
-                className="bg-default max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                {!hideEventTypeDetails && orgBannerUrl && (
-                  <div
-                    loading="eager"
-                    className="-mb-4 flex h-16 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
-                    alt="org banner"
-                    style={{ backgroundImage: `url(${orgBannerUrl})` }}>
-                  </div>
-                )}
-
-                <EventMeta
-                  classNames={{
-                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                    eventMetaTimezoneSelect:
-                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                  }}
-                  event={event.data}
-                  isPending={event.isPending}
-                  isPlatform={isPlatform}
-                  isPrivateLink={!!hashedLink}
-                  locale={userLocale}
-                  timeZones={timeZones}>
-                  {eventMetaChildren}
-                </EventMeta>
-                {layout !== BookerLayouts.MONTH_VIEW &&
-                  !(layout === "mobile" && bookerState === "booking") && (
-                    <div className="mt-auto px-5 py-3">
-                      <DatePicker
-                        classNames={customClassNames?.datePickerCustomClassNames}
-                        event={event}
-                        slots={schedule?.data?.slots}
-                        isLoading={schedule.isPending}
-                        scrollToTimeSlots={scrollToTimeSlots}
-                      />
-                    </div>
+        <div>
+          <Button
+            onClick={() => {
+              router.back();
+            }}
+            variant="fab"
+            color="secondary"
+            className="h-[16px] mb-2"
+            StartIcon="arrow-left"></Button>
+          <div
+            ref={animationScope}
+            data-testid="booker-container"
+            className={classNames(
+              ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
+              `bg-default dark:bg-muted grid max-w-full items-start sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row dark:[color-scheme:dark]`,
+              // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
+              (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
+              !isEmbed && "sm:transition-[width] sm:duration-300",
+              isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
+              !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
+              `${customClassNames?.bookerContainer}`
+            )}>
+            <AnimatePresence>
+              {!isInstantMeeting && (
+                <BookerSection
+                  area="header"
+                  className={classNames(
+                    layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 w-full ltr:right-4 rtl:left-4",
+                    (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
+                      "bg-default dark:bg-muted top-0 z-10 w-full"
+                  )}>
+                  {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
+                    <></>
+                  ) : (
+                    <Header
+                      isMyLink={Boolean(username === sessionUsername)}
+                      eventSlug={eventSlug}
+                      enabledLayouts={bookerLayouts.enabledLayouts}
+                      extraDays={
+                        layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays
+                      }
+                      isMobile={isMobile}
+                      nextSlots={nextSlots}
+                      renderOverlay={() =>
+                        isEmbed ? (
+                          <></>
+                        ) : (
+                          <>
+                            <OverlayCalendar
+                              isOverlayCalendarEnabled={isOverlayCalendarEnabled}
+                              connectedCalendars={connectedCalendars}
+                              loadingConnectedCalendar={loadingConnectedCalendar}
+                              overlayBusyDates={overlayBusyDates}
+                              onToggleCalendar={onToggleCalendar}
+                              hasSession={hasSession}
+                              handleClickContinue={onClickOverlayContinue}
+                              handleSwitchStateChange={onOverlaySwitchStateChange}
+                              handleClickNoCalendar={() => {
+                                onOverlayClickNoCalendar();
+                              }}
+                            />
+                          </>
+                        )
+                      }
+                    />
                   )}
+                </BookerSection>
+              )}
+              <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
+                <BookerSection
+                  area="meta"
+                  className="bg-default max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                  {!hideEventTypeDetails && orgBannerUrl && (
+                    <div
+                      loading="eager"
+                      className="-mb-4 flex h-16 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
+                      alt="org banner"
+                      style={{ backgroundImage: `url(${orgBannerUrl})` }}></div>
+                  )}
+
+                  <EventMeta
+                    classNames={{
+                      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                      eventMetaTimezoneSelect:
+                        customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                    }}
+                    event={event.data}
+                    isPending={event.isPending}
+                    isPlatform={isPlatform}
+                    isPrivateLink={!!hashedLink}
+                    locale={userLocale}
+                    timeZones={timeZones}>
+                    {eventMetaChildren}
+                  </EventMeta>
+                  {layout !== BookerLayouts.MONTH_VIEW &&
+                    !(layout === "mobile" && bookerState === "booking") && (
+                      <div className="mt-auto px-5 py-3">
+                        <DatePicker
+                          classNames={customClassNames?.datePickerCustomClassNames}
+                          event={event}
+                          slots={schedule?.data?.slots}
+                          isLoading={schedule.isPending}
+                          scrollToTimeSlots={scrollToTimeSlots}
+                        />
+                      </div>
+                    )}
+                </BookerSection>
+              </StickyOnDesktop>
+
+              <BookerSection
+                key="book-event-form"
+                area="main"
+                className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+                {...fadeInLeft}
+                visible={bookerState === "booking" && !shouldShowFormInDialog}>
+                {EventBooker}
               </BookerSection>
-            </StickyOnDesktop>
 
-            <BookerSection
-              key="book-event-form"
-              area="main"
-              className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
-              {...fadeInLeft}
-              visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              {EventBooker}
-            </BookerSection>
+              <BookerSection
+                key="datepicker"
+                area="main"
+                visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
+                {...fadeInLeft}
+                initial="visible"
+                className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+                <DatePicker
+                  classNames={customClassNames?.datePickerCustomClassNames}
+                  event={event}
+                  slots={schedule?.data?.slots}
+                  isLoading={schedule.isPending}
+                  scrollToTimeSlots={scrollToTimeSlots}
+                />
+              </BookerSection>
 
-            <BookerSection
-              key="datepicker"
-              area="main"
-              visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
-              {...fadeInLeft}
-              initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker
-                classNames={customClassNames?.datePickerCustomClassNames}
-                event={event}
-                slots={schedule?.data?.slots}
-                isLoading={schedule.isPending}
-                scrollToTimeSlots={scrollToTimeSlots}
-              />
-            </BookerSection>
+              <BookerSection
+                key="large-calendar"
+                area="main"
+                visible={layout === BookerLayouts.WEEK_VIEW}
+                className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
+                {...fadeInLeft}>
+                <LargeCalendar
+                  extraDays={extraDays}
+                  schedule={schedule.data}
+                  isLoading={schedule.isPending}
+                  event={event}
+                />
+              </BookerSection>
+              <BookerSection
+                key="timeslots"
+                area={{ default: "main", month_view: "timeslots" }}
+                visible={
+                  (layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
+                  layout === BookerLayouts.COLUMN_VIEW
+                }
+                className={classNames(
+                  "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 ltr:md:border-l rtl:border-r",
+                  layout === BookerLayouts.MONTH_VIEW &&
+                    "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
+                  layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
+                )}
+                ref={timeslotsRef}
+                {...fadeInLeft}>
+                <AvailableTimeSlots
+                  customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
+                  extraDays={extraDays}
+                  limitHeight={layout === BookerLayouts.MONTH_VIEW}
+                  schedule={schedule}
+                  isLoading={schedule.isPending}
+                  seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                  unavailableTimeSlots={unavailableTimeSlots}
+                  showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
+                  event={event}
+                  loadingStates={loadingStates}
+                  renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
+                  isVerificationCodeSending={isVerificationCodeSending}
+                  onSubmit={onSubmit}
+                  skipConfirmStep={skipConfirmStep}
+                  shouldRenderCaptcha={shouldRenderCaptcha}
+                  watchedCfToken={watchedCfToken}
+                  confirmButtonDisabled={confirmButtonDisabled}
+                  confirmStepClassNames={customClassNames?.confirmStep}
+                />
+              </BookerSection>
+            </AnimatePresence>
+          </div>
+          <HavingTroubleFindingTime
+            visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
+            dayCount={dayCount}
+            isScheduleLoading={schedule.isLoading}
+            onButtonClick={() => {
+              setDayCount(null);
+            }}
+          />
 
-            <BookerSection
-              key="large-calendar"
-              area="main"
-              visible={layout === BookerLayouts.WEEK_VIEW}
-              className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
-              {...fadeInLeft}>
-              <LargeCalendar
-                extraDays={extraDays}
-                schedule={schedule.data}
-                isLoading={schedule.isPending}
-                event={event}
-              />
-            </BookerSection>
-            <BookerSection
-              key="timeslots"
-              area={{ default: "main", month_view: "timeslots" }}
-              visible={
-                (layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-                layout === BookerLayouts.COLUMN_VIEW
-              }
-              className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 ltr:md:border-l rtl:border-r",
-                layout === BookerLayouts.MONTH_VIEW &&
-                  "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
-                layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
-              )}
-              ref={timeslotsRef}
-              {...fadeInLeft}>
-              <AvailableTimeSlots
-                customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
-                extraDays={extraDays}
-                limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                schedule={schedule}
-                isLoading={schedule.isPending}
-                seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
-                unavailableTimeSlots={unavailableTimeSlots}
-                showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
-                event={event}
-                loadingStates={loadingStates}
-                renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
-                isVerificationCodeSending={isVerificationCodeSending}
-                onSubmit={onSubmit}
-                skipConfirmStep={skipConfirmStep}
-                shouldRenderCaptcha={shouldRenderCaptcha}
-                watchedCfToken={watchedCfToken}
-                confirmButtonDisabled={confirmButtonDisabled}
-                confirmStepClassNames={customClassNames?.confirmStep}
-              />
-            </BookerSection>
-          </AnimatePresence>
-        </div>
-        <HavingTroubleFindingTime
-          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
-          dayCount={dayCount}
-          isScheduleLoading={schedule.isLoading}
-          onButtonClick={() => {
-            setDayCount(null);
-          }}
-        />
+          {bookerState !== "booking" &&
+            event.data?.showInstantEventConnectNowModal &&
+            areInstantMeetingParametersSet && (
+              <div
+                className={classNames(
+                  "animate-fade-in-up  z-40 my-2 opacity-0",
+                  layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
+                )}
+                style={{ animationDelay: "1s" }}>
+                <InstantBooking
+                  event={event.data}
+                  onConnectNow={() => {
+                    onConnectNowInstantMeeting();
+                  }}
+                />
+              </div>
+            )}
 
-        {bookerState !== "booking" &&
-          event.data?.showInstantEventConnectNowModal &&
-          areInstantMeetingParametersSet && (
-            <div
-              className={classNames(
-                "animate-fade-in-up  z-40 my-2 opacity-0",
-                layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
-              )}
-              style={{ animationDelay: "1s" }}>
-              <InstantBooking
-                event={event.data}
-                onConnectNow={() => {
-                  onConnectNowInstantMeeting();
+          {shouldRenderCaptcha && (
+            <div className="mb-6 mt-auto pt-6">
+              <TurnstileCaptcha
+                appearance="interaction-only"
+                onVerify={(token) => {
+                  bookingForm.setValue("cfToken", token);
                 }}
               />
             </div>
           )}
 
-        {shouldRenderCaptcha && (
-          <div className="mb-6 mt-auto pt-6">
-            <TurnstileCaptcha
-              appearance="interaction-only"
-              onVerify={(token) => {
-                bookingForm.setValue("cfToken", token);
-              }}
-            />
-          </div>
-        )}
-
-        {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
-          <m.span
-            key="logo"
-            className={classNames(
-              "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-              hasDarkBackground ? "dark" : "",
-              layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-            )}>
-            <PoweredBy logoOnly hasValidLicense={hasValidLicense} />
-          </m.span>
-        )}
+          {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
+            <m.span
+              key="logo"
+              className={classNames(
+                "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+                hasDarkBackground ? "dark" : "",
+                layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+              )}>
+              <PoweredBy logoOnly hasValidLicense={hasValidLicense} />
+            </m.span>
+          )}
+        </div>
       </div>
 
       <>

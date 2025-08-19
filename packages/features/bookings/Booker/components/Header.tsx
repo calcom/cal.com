@@ -66,14 +66,7 @@ export function Header({
   if (isMonthView) {
     return (
       <div className="flex w-full flex-row items-center gap-2 pl-10">
-        <Button
-          onClick={() => {
-            router.back();
-          }}
-          variant="fab"
-          color="secondary"
-          className="ml-3 h-[16px]"
-          StartIcon="arrow-left"></Button>
+        
         <div className="flex-1"></div>
 
         {isMyLink && !isEmbed ? (

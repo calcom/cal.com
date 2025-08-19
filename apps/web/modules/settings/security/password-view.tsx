@@ -13,7 +13,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
+// import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -166,7 +167,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
   return (
     <>
       {user && user.identityProvider !== IdentityProvider.CAL && !user.passwordAdded ? (
-        <div className="border-subtle rounded-b-xl border border-t-0">
+        <div className="border-subtle rounded-md border">
           <div className="px-4 py-6 sm:px-6">
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
               {t("account_managed_by_identity_provider", {
@@ -189,7 +190,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          <div className="border-subtle border-x px-4 py-6 sm:px-6">
+          <div className="border-subtle rounded-md border px-4 py-6 sm:px-6">
             {formMethods.formState.errors.apiError && (
               <div className="pb-6">
                 <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
@@ -218,17 +219,17 @@ const PasswordView = ({ user }: PasswordViewProps) => {
             <p className="text-default mt-4 w-full text-sm">
               {t("invalid_password_hint", { passwordLength: passwordMinLength })}
             </p>
-          </div>
-          <SectionBottomActions align="end">
+
             <Button
               color="primary"
               type="submit"
+              className="mt-3"
               loading={passwordMutation.isPending}
               onClick={() => formMethods.clearErrors("apiError")}
               disabled={isDisabled || passwordMutation.isPending || sessionMutation.isPending}>
               {t("update")}
             </Button>
-          </SectionBottomActions>
+          </div>
           <div className="mt-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}

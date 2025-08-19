@@ -1917,7 +1917,7 @@ __metadata:
   resolution: "@calcom/base@workspace:packages/platform/examples/base"
   dependencies:
     "@calcom/atoms": "*"
-    "@prisma/client": 5.4.2
+    "@prisma/client": 5.22.0
     "@types/node": ^20.3.1
     "@types/react": ^18
     "@types/react-dom": ^18
@@ -1926,7 +1926,7 @@ __metadata:
     eslint-config-next: 14.0.4
     next: 14.0.4
     postcss: ^8
-    prisma: ^5.7.1
+    prisma: 5.22.0
     react: ^18
     react-dom: ^18
     react-select: ^5.8.0
@@ -2241,7 +2241,7 @@ __metadata:
   resolution: "@calcom/example-app-credential-sync@workspace:example-apps/credential-sync"
   dependencies:
     "@calcom/atoms": "*"
-    "@prisma/client": 5.4.2
+    "@prisma/client": 5.22.0
     "@types/node": ^20.3.1
     "@types/react": ^18
     "@types/react-dom": ^18
@@ -2251,7 +2251,7 @@ __metadata:
     eslint-config-next: 14.0.4
     next: 14.0.4
     postcss: ^8
-    prisma: ^5.7.1
+    prisma: 5.22.0
     react: ^18
     react-dom: ^18
     tailwindcss: ^3.3.0
@@ -2818,11 +2818,11 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@faker-js/faker": 9.2.0
-    "@prisma/client": ^5.4.2
+    "@prisma/client": 5.22.0
     "@prisma/extension-accelerate": ^0.6.2
     "@prisma/generator-helper": ^5.4.2
     npm-run-all: ^4.1.5
-    prisma: ^5.4.2
+    prisma: 5.22.0
     prisma-kysely: ^1.7.1
     ts-node: ^10.9.1
     zod: ^3.22.4
@@ -10090,31 +10090,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:5.4.2":
-  version: 5.4.2
-  resolution: "@prisma/client@npm:5.4.2"
-  dependencies:
-    "@prisma/engines-version": 5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574
+"@prisma/client@npm:5.22.0":
+  version: 5.22.0
+  resolution: "@prisma/client@npm:5.22.0"
   peerDependencies:
     prisma: "*"
   peerDependenciesMeta:
     prisma:
       optional: true
-  checksum: e01aebad95a6168668a214784e036ba4d6c6ac2c7eff35c7c3b1b729d2fc70b7f1addfce8a8550b24ffadf9be45538f2bd8a2257dfac9ec18d1d900437bf6660
-  languageName: node
-  linkType: hard
-
-"@prisma/client@patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch::locator=calcom-monorepo%40workspace%3A.":
-  version: 5.4.2
-  resolution: "@prisma/client@patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch::version=5.4.2&hash=7d32a5&locator=calcom-monorepo%40workspace%3A."
-  dependencies:
-    "@prisma/engines-version": 5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574
-  peerDependencies:
-    prisma: "*"
-  peerDependenciesMeta:
-    prisma:
-      optional: true
-  checksum: 660e842d16c64ca1c1697f3c8ac897eaae81b74a228fc0d80c67df98a59031e3981d879ab5876e98431e04767edf0204b5a9e2abf9a9ba5eeb1031e091983b67
+  checksum: 2a4db1e631528644ad8e726f26fbbcd692fbf3483a872185797cc34ba2531d17288841d7fa753439da29937706d7cd515fa1fc06f01b9e375c2232e2943c169e
   languageName: node
   linkType: hard
 
@@ -10151,13 +10135,6 @@ __metadata:
   version: 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
   resolution: "@prisma/engines-version@npm:5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2"
   checksum: 9ea0689474db5da01d14ec6b24b348c282ce7fc6874a15c7dc7910398a52ef44f67a10b24dee8e41386b4611bdbbc10679145cba5b092f7989cf0543bbf5b078
-  languageName: node
-  linkType: hard
-
-"@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574":
-  version: 5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574
-  resolution: "@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574"
-  checksum: 493f84e8856bf214c64177f879f7009740156492a3e1b42cd02e91eec273a5d290bfdde9ca32c361cd8a0616a33d903163582a51e44a79a6b6b318f72130517f
   languageName: node
   linkType: hard
 
@@ -34553,7 +34530,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prisma@npm:^5.4.2, prisma@npm:^5.7.1":
+"prisma@npm:5.22.0":
   version: 5.22.0
   resolution: "prisma@npm:5.22.0"
   dependencies:

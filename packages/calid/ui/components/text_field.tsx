@@ -2,12 +2,14 @@ import { cn } from "@calid/features/lib/cn";
 import { Input, Label } from "@calid/features/ui";
 import * as React from "react";
 
+type TextFieldProps = {
+  label: string;
+  addOnSuffix?: React.ReactNode;
+};
+
 const TextField = React.forwardRef<
   HTMLInputElement,
-  React.ComponentPropsWithoutRef<"input"> & {
-    label: string;
-    addOnSuffix?: React.ReactNode;
-  }
+  React.ComponentPropsWithoutRef<"input"> & TextFieldProps
 >(({ className, type, addOnSuffix, ...props }, ref) => {
   return (
     <div className={cn("flex flex-col", className)}>
@@ -25,4 +27,4 @@ const TextField = React.forwardRef<
 });
 TextField.displayName = "InputWithLabel";
 
-export { TextField };
+export { TextField, TextFieldProps };
