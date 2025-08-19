@@ -87,7 +87,10 @@ async function handler(req: NextRequest) {
 
           return new Response(img.body, {
             status: 200,
-            headers: { "Content-Type": "image/png", "cache-control": "max-age=0" },
+            headers: {
+              "Content-Type": "image/png",
+              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+            },
           });
         } catch (error) {
           if (error instanceof ZodError) {
@@ -99,7 +102,10 @@ async function handler(req: NextRequest) {
               }),
               {
                 status: 400,
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                  "Content-Type": "application/json",
+                  "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+                },
               }
             );
           }
@@ -126,7 +132,10 @@ async function handler(req: NextRequest) {
               }),
               {
                 status: 400,
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                  "Content-Type": "application/json",
+                  "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+                },
               }
             );
           }
