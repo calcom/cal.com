@@ -12,7 +12,7 @@ import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-
 import dayjs from "@calcom/dayjs";
 import type { RoutingFormStatsInput } from "@calcom/features/insights/server/raw-data.schema";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import type { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
+import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/insightsRoutingBaseService";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
 type RoutingFormInsightsTeamFilter = {
@@ -127,7 +127,7 @@ class RoutingEventsInsights {
     dataPromise,
   }: {
     headersPromise: ReturnType<typeof RoutingEventsInsights.getRoutingFormHeaders>;
-    dataPromise: ReturnType<typeof InsightsRoutingService.prototype.getTableData>;
+    dataPromise: ReturnType<typeof InsightsRoutingBaseService.prototype.getTableData>;
   }) {
     const [headers, data] = await Promise.all([headersPromise, dataPromise]);
 
@@ -178,10 +178,7 @@ class RoutingEventsInsights {
         utm_term: item.utm_term || "",
         utm_content: item.utm_content || "",
         ...((bookingAttendees || [])
-          .filter(
-            (attendee): attendee is { name: string; email: string; timeZone: string | null } =>
-              typeof attendee.name === "string" && typeof attendee.email === "string"
-          )
+          .filter((attendee) => typeof attendee.name === "string" && typeof attendee.email === "string")
           .reduce((acc, attendee, index) => {
             acc[`Attendee ${index + 1}`] = `${attendee.name} (${attendee.email})`;
             return acc;
