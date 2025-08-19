@@ -296,7 +296,8 @@ export const verifier = {
   },
   verifyOptionPrices: ({ identifier, prices }: { identifier: string; prices: number[] }) => {
     const dialog = pageObject.openEditFieldDialog({ identifier });
-    const optionPriceInputs = dialog.getAllByTestId("input-field");
+    const optionsContainer = dialog.getByTestId("options-container");
+    const optionPriceInputs = within(optionsContainer).getAllByRole("spinbutton");
     expect(optionPriceInputs).toHaveLength(prices.length);
 
     prices.forEach((price, index) => {

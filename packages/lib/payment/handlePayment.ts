@@ -74,6 +74,8 @@ const handlePayment = async ({
   const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
   const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
   const paymentCurrency = apps?.[paymentAppCredentials.appId].currency;
+  // Ensure we have a valid currency - fallback to USD if undefined
+  const currency = paymentCurrency || "USD";
 
   let totalAmount = apps?.[paymentAppCredentials.appId].price || 0;
 
@@ -98,22 +100,24 @@ const handlePayment = async ({
       if (!response) return;
 
       switch (field.type) {
-        case "number":
+        case "number": {
           // Multiply the numeric value by the field's price
           const parsedValue = Number((response.value ?? "").toString().trim());
           const safeValue = Number.isFinite(parsedValue) ? parsedValue : 0;
           addonsPrice += safeValue * (typedInput.price || 0);
           break;
+        }
 
-        case "boolean":
+        case "boolean": {
           // Add price if boolean field is true
           if (response.value) {
             addonsPrice += typedInput.price || 0;
           }
           break;
+        }
 
         case "select":
-        case "radio":
+        case "radio": {
           // For select and radio, find the selected option and add its price
           const selectedValue = response.value;
           let selectedOption;
@@ -123,7 +127,7 @@ const handlePayment = async ({
             selectedOption = typedInput.options?.find((opt) => {
               const formattedValue = `${opt.value} (${Intl.NumberFormat(locale, {
                 style: "currency",
-                currency: paymentCurrency,
+                currency: currency,
               }).format(opt.price || 0)})`;
               return formattedValue === selectedValue;
             });
@@ -134,9 +138,10 @@ const handlePayment = async ({
 
           addonsPrice += selectedOption?.price || 0;
           break;
+        }
 
         case "checkbox":
-        case "multiselect":
+        case "multiselect": {
           // For checkbox and multiselect, add prices of all selected options
           const responseValue = response.value;
           const selectedValues = Array.isArray(responseValue)
@@ -150,15 +155,16 @@ const handlePayment = async ({
             addonsPrice += option?.price || 0;
           });
           break;
+        }
       }
     });
 
-    totalAmount += convertToSmallestCurrencyUnit(addonsPrice, paymentCurrency);
+    totalAmount += convertToSmallestCurrencyUnit(addonsPrice, currency);
   }
 
   const paymentPriceAndCurrency = {
     amount: totalAmount,
-    currency: paymentCurrency,
+    currency: currency,
   };
 
   let paymentData;
