@@ -142,11 +142,9 @@ export const phoneNumberRouter = router({
   update: authedProcedure
     .input(
       z.object({
-        phoneNumber: z
-          .string()
-          .refine((val) =>
-            isValidPhoneNumber(val, { message: "Invalid phone number. Use E.164 format like +12025550123." })
-          ),
+        phoneNumber: z.string().refine((val) => isValidPhoneNumber(val), {
+          message: "Invalid phone number. Use E.164 format like +12025550123.",
+        }),
         inboundAgentId: z.union([z.string().trim().min(1), z.literal(null)]).optional(),
         outboundAgentId: z.union([z.string().trim().min(1), z.literal(null)]).optional(),
         teamId: z.number().optional(),

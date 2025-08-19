@@ -156,8 +156,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const stepIndex = step.stepNumber - 1;
         form.setValue(`steps.${stepIndex}.agentId`, data.id);
 
-        step.agentId = data.id;
-
         await utils.viewer.aiVoiceAgent.get.invalidate({ id: data.id });
       }
       setIsAgentConfigurationSheetOpen(true);
