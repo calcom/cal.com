@@ -1,4 +1,6 @@
 {
+  "calendly_import": "Import from calendly",
+  "notify_calendly_import": "Notify past bookers about your migration",
   "schedule": "Schedule",
   "choose_a_meeting_type" : "Choose a meeting type",
   "identity_provider": "Identity provider",
@@ -1079,6 +1081,7 @@
   "last_used": "Last used",
   "you_will_need_to_generate": "You will need to generate an access token from your old scheduling tool.",
   "import": "Import",
+  "import_configuration": "Import configuration from third-party services.",
   "import_from": "Import from",
   "access_token": "Access token",
   "visit_roadmap": "Roadmap",
@@ -2351,6 +2354,7 @@
   "insights_subtitle": "Analytics and performance metrics for your scheduling activities",
   "location_options": "{{locationCount}} location options",
   "location_options_label": "Location options",
+  
   "custom_plan": "Custom Plan",
   "email_embed": "Email Embed",
   "add_times_to_your_email": "Select a few available times and embed them in your Email",

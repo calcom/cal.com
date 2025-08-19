@@ -1,5 +1,7 @@
 "use client";
 
+// import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,8 +15,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-// import { Button } from "@calcom/ui/components/button";
-import { Button } from "@calid/features/ui";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -168,18 +168,20 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     <>
       {user && user.identityProvider !== IdentityProvider.CAL && !user.passwordAdded ? (
         <div className="border-subtle rounded-md border">
-          <div className="px-4 py-6 sm:px-6">
-            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
-              {t("account_managed_by_identity_provider", {
-                provider: identityProviderNameMap[user.identityProvider],
-              })}
-            </h2>
+          <div className="flex flex-row items-center justify-between px-4 py-6 sm:px-6">
+            <div class="flex flex-col">
+              <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
+                {t("account_managed_by_identity_provider", {
+                  provider: identityProviderNameMap[user.identityProvider],
+                })}
+              </h2>
 
-            <p className="text-subtle mt-1 text-sm">
-              {t("account_managed_by_identity_provider_description", {
-                provider: identityProviderNameMap[user.identityProvider],
-              })}
-            </p>
+              <p className="text-subtle mt-1 text-sm">
+                {t("account_managed_by_identity_provider_description", {
+                  provider: identityProviderNameMap[user.identityProvider],
+                })}
+              </p>
+            </div>
             <Button
               className="mt-3"
               onClick={() => createAccountPasswordMutation.mutate()}

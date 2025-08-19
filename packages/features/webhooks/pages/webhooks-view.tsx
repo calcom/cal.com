@@ -45,7 +45,6 @@ const WebhooksList = ({
     <SettingsHeader
       title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      // CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
       borderInShellHeader={false}>
       {!!webhookGroups.length ? (
         <div className={classNames("mt-6")}>
