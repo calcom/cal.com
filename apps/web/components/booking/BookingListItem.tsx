@@ -70,7 +70,14 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
-export type BookingItemProps = BookingItem & {
+type EnrichedBookingItem = BookingItem & {
+  eventType: BookingItem["eventType"] & {
+    isUserHostOrOwner?: boolean;
+    hasTeamOrOrgPermissions?: boolean;
+  };
+};
+
+export type BookingItemProps = EnrichedBookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
   loggedInUser: {
@@ -205,6 +212,9 @@ function BookingListItem(booking: BookingItemProps) {
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
 
+  const isHostOrOwner = booking.eventType?.isUserHostOrOwner || false;
+  const hasTeamOrOrgPermissions = booking.eventType?.hasTeamOrOrgPermissions || false;
+
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
       bookingId: booking.id,
@@ -250,6 +260,8 @@ function BookingListItem(booking: BookingItemProps) {
       (typeof booking.location === "string" && booking.location.trim() === ""),
     showPendingPayment: paymentAppData.enabled && booking.payment.length && !booking.paid,
     cardCharged,
+    isHostOrOwner,
+    hasTeamOrOrgPermissions,
     attendeeList,
     getSeatReferenceUid,
     t,

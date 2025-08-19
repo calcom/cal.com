@@ -839,11 +839,11 @@ export class BookingRepository {
    * @param bookingId - The booking ID to check against
    * @returns boolean - True if the user is a host, false otherwise
    */
-  async checkIfUserIsHost({ userId, bookingId }: { userId: number; bookingId: number }): Promise<boolean> {
+  async checkIfUserIsHost({ userId, bookingId }: { userId: number; bookingId: string }): Promise<boolean> {
     if (!userId || !bookingId) return false;
 
     const booking = await this.prismaClient.booking.findUnique({
-      where: { id: bookingId },
+      where: { uid: bookingId },
       select: {
         userId: true,
         attendees: {

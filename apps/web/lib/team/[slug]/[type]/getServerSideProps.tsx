@@ -63,14 +63,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventData.team?.parentId
   );
 
-  let isHostOrOwner = eventData.owner?.id === userId || hasTeamOrOrgPermissions;
+  let isHostOrOwner = (eventData.owner?.id && eventData.owner?.id === userId) || hasTeamOrOrgPermissions;
 
   // We will only check the database if the user is not the owner or has team or org permissions
-  if (userId && !isHostOrOwner) {
+  if (userId && rescheduleUid && !isHostOrOwner) {
     const bookingRepo = new BookingRepository(prisma);
     const userIsHost = await bookingRepo.checkIfUserIsHost({
       userId,
-      bookingId: eventData.id,
+      bookingId: `${rescheduleUid}`,
     });
     isHostOrOwner = !!userIsHost;
   }
