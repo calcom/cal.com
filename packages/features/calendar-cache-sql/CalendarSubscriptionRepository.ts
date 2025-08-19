@@ -88,7 +88,22 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       where: {
         channelId,
       },
-      include: {
+      select: {
+        id: true,
+        selectedCalendarId: true,
+        channelId: true,
+        channelKind: true,
+        channelResourceId: true,
+        channelResourceUri: true,
+        channelResource: true,
+        clientState: true,
+        channelExpiration: true,
+        syncCursor: true,
+        syncErrors: true,
+        maxSyncErrors: true,
+        backoffUntil: true,
+        createdAt: true,
+        updatedAt: true,
         selectedCalendar: {
           select: {
             id: true,
