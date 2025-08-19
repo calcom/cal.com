@@ -300,6 +300,11 @@ export class InsightsBookingBaseService {
 
     if (id === "eventTypeId" && isMultiSelectFilterValue(value)) {
       const eventTypeIds = value.data.map((id) => Number(id));
+
+      if (eventTypeIds.length === 0) {
+        return null;
+      }
+
       return Prisma.sql`("eventTypeId" IN (${Prisma.join(eventTypeIds)}) OR "eventParentId" IN (${Prisma.join(
         eventTypeIds
       )}))`;
