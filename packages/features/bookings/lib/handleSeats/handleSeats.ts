@@ -6,7 +6,7 @@ import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { BookingStatus, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
@@ -107,34 +107,28 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
       ...reqBodyMetadata,
     };
-    if (!evt.requiresConfirmation) {
-      try {
-        const workflowTrigger = rescheduleUid
-          ? WorkflowTriggerEvents.RESCHEDULE_EVENT
-          : WorkflowTriggerEvents.NEW_EVENT;
-        const workflowsToTrigger = workflows.filter((workflow) => workflow.trigger === workflowTrigger);
-        await scheduleWorkflowReminders({
-          workflows: workflowsToTrigger,
-          smsReminderNumber: smsReminderNumber || null,
-          calendarEvent: {
-            ...evt,
-            rescheduleReason,
-            ...{
-              metadata,
-              eventType: {
-                slug: eventType.slug,
-                schedulingType: eventType.schedulingType,
-                hosts: eventType.hosts,
-              },
+    try {
+      await scheduleWorkflowReminders({
+        workflows: workflows,
+        smsReminderNumber: smsReminderNumber || null,
+        calendarEvent: {
+          ...evt,
+          rescheduleReason,
+          ...{
+            metadata,
+            eventType: {
+              slug: eventType.slug,
+              schedulingType: eventType.schedulingType,
+              hosts: eventType.hosts,
             },
           },
-          emailAttendeeSendToOverride: bookerEmail,
-          seatReferenceUid: evt.attendeeSeatId,
-          isDryRun,
-        });
-      } catch (error) {
-        loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
-      }
+        },
+        emailAttendeeSendToOverride: bookerEmail,
+        seatReferenceUid: evt.attendeeSeatId,
+        isDryRun,
+      });
+    } catch (error) {
+      loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
     const webhookData: EventPayloadType = {

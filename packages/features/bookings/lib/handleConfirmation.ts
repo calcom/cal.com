@@ -96,9 +96,16 @@ export async function handleConfirmation(args: {
     WorkflowTriggerEvents.NEW_EVENT,
     WorkflowTriggerEvents.BEFORE_EVENT,
     WorkflowTriggerEvents.BOOKING_PAID,
+    WorkflowTriggerEvents.BEFORE_EVENT,
+    WorkflowTriggerEvents.AFTER_EVENT,
   ]);
   const newEventWorkflows = allWorkflows.filter(
     (workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+  );
+  const beforeAfterWorkflows = allWorkflows.filter(
+    (workflow) =>
+      workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+      workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT
   );
   const bookingPaidWorkflows = allWorkflows.filter(
     (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_PAID
@@ -371,14 +378,16 @@ export async function handleConfirmation(args: {
         });
       }
 
+      const workflowsToTrigger: Workflow[] = [...beforeAfterWorkflows];
       if (isFirstBooking) {
-        await scheduleWorkflowReminders({
-          workflows: newEventWorkflows,
-          smsReminderNumber: updatedBookings[index].smsReminderNumber,
-          calendarEvent: evtOfBooking,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-        });
+        workflowsToTrigger.push(...newEventWorkflows);
       }
+      await scheduleWorkflowReminders({
+        workflows: workflowsToTrigger,
+        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        calendarEvent: evtOfBooking,
+        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+      });
     }
   } catch (error) {
     // Silently fail
