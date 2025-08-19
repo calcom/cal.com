@@ -124,7 +124,7 @@ export const useSchedule = ({
       enabledProp,
   };
 
-  const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
+  const isCallingApiV2Slots = useApiV2 && options.enabled;
 
   // API V2 query for team events
   const teamScheduleV2 = useApiV2AvailableSlots({
@@ -136,13 +136,7 @@ export const useSchedule = ({
     eventTypeId: eventId ?? undefined,
   });
 
-  const schedule = isTeamEvent
-    ? trpc.viewer.slots.getSchedule.useQuery(input, {
-        ...options,
-        // Only enable if we're not using API V2
-        enabled: options.enabled && !isCallingApiV2Slots,
-      })
-    : trpc.viewer.slots.getSchedule.useQuery(input, options);
+  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
