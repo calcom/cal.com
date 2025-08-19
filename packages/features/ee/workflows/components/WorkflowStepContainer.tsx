@@ -77,6 +77,7 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
+  isOrganization?: boolean;
   onSaveWorkflow?: () => Promise<void>;
 };
 
@@ -473,6 +474,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       value: step.action,
       needsCredits: isSMSOrWhatsappAction(step.action),
       creditsTeamId: teamId ?? creditsTeamId,
+      isOrganization: props.isOrganization,
     };
 
     const selectedTemplate = {
@@ -629,6 +631,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         options={actionOptions?.map((option) => ({
                           ...option,
                           creditsTeamId: teamId ?? creditsTeamId,
+                          isOrganization: props.isOrganization,
                         }))}
                       />
                     );

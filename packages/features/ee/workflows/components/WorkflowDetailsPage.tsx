@@ -210,6 +210,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                isOrganization={isOrg}
                 onSaveWorkflow={props.onSaveWorkflow}
               />
             </div>
@@ -227,6 +228,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    isOrganization={isOrg}
                     onSaveWorkflow={props.onSaveWorkflow}
                   />
                 );
