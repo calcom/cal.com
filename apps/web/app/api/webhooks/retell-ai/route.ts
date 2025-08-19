@@ -85,12 +85,15 @@ async function handleCallAnalyzed(callData: any) {
     return;
   }
 
-  const baseCost = call_cost.combined_cost;
-  // in cents
-  const rawMultiplier = process.env.CAL_AI_CALL_CREDITS_MULTIPLIER ?? "1.8";
-  const multiplier = Number.parseFloat(rawMultiplier);
-  const safeMultiplier = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 1.8;
-  const creditsToDeduct = Math.ceil(baseCost * safeMultiplier);
+  const rawRatePerMinute = process.env.CAL_AI_CALL_RATE_PER_MINUTE ?? "0.29";
+  const ratePerMinute = Number.parseFloat(rawRatePerMinute);
+  const safeRatePerMinute = Number.isFinite(ratePerMinute) && ratePerMinute > 0 ? ratePerMinute : 0.29;
+
+  const durationInMinutes = call_cost.total_duration_seconds / 60;
+  const callCost = durationInMinutes * safeRatePerMinute;
+  // Convert to cents and round up to ensure we don't undercharge
+  const creditsToDeduct = Math.ceil(callCost * 100);
+
   const creditService = new CreditService();
 
   try {

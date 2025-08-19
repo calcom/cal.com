@@ -681,7 +681,7 @@ export function AgentConfigurationSheet({
               <Button
                 StartIcon="external-link"
                 onClick={() => {
-                  if (!agentId) {
+                  if (!agentId || !workflowId) {
                     return;
                   }
                   buyNumberMutation.mutate({
