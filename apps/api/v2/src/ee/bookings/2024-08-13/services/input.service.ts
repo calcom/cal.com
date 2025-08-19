@@ -693,6 +693,7 @@ export class InputBookingsService_2024_08_13 {
     return {
       attendeeEmail: queryParams.attendeeEmail,
       attendeeName: queryParams.attendeeName,
+      bookingUid: queryParams.bookingUid,
       afterStartDate: queryParams.afterStart,
       beforeEndDate: queryParams.beforeEnd,
       teamIds: queryParams.teamsIds || (queryParams.teamId ? [queryParams.teamId] : undefined),

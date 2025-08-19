@@ -521,6 +521,59 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
             expect(data[0].eventTypeId).toEqual(managedOrgEventTypeId);
           });
       });
+
+      it("should get bookings by organizationId and bookingUid", async () => {
+        const allBookingsResponse = await request(app.getHttpServer())
+          .get(`/v2/organizations/${managedOrganization.id}/bookings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200);
+
+        const allBookings = allBookingsResponse.body.data;
+        expect(allBookings.length).toEqual(1);
+        const testBookingUid = allBookings[0].uid;
+
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${managedOrganization.id}/bookings?bookingUid=${testBookingUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(1);
+            expect(data[0].uid).toEqual(testBookingUid);
+            expect(data[0].eventTypeId).toEqual(managedOrgEventTypeId);
+          });
+      });
+
+      it("should return empty results for non-existent bookingUid", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${managedOrganization.id}/bookings?bookingUid=non-existent-uid`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(0);
+          });
+      });
     });
 
     async function createOAuthClient(organizationId: number) {
