@@ -436,7 +436,7 @@ describe("buildDateRanges", () => {
     // this happened only on Europe/Brussels, Europe/Amsterdam was 2023-08-15T17:00:00-10:00 (as it should be)
     expect(result[0].end.format()).not.toBe("2023-08-14T17:00:00-10:00");
   });
-  it("should return correct date ranges with full day unavailable date override", () => {
+  it("should return no date ranges when full day is marked unavailable via date override", () => {
     const items = [
       {
         date: new Date(Date.UTC(2023, 5, 13)),
@@ -463,10 +463,48 @@ describe("buildDateRanges", () => {
       travelSchedules: [],
     });
 
+    expect(results.length).toBe(1);
+    expect(results.length).toBe(1);
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T16:00:00Z").tz(timeZone),
     });
+  });
+  it("should block entire day when marked unavailable despite having continuous working hours", () => {
+    const items = [
+      {
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startTime: new Date(Date.UTC(2023, 9, 1, 0, 0)),
+        endTime: new Date(Date.UTC(2023, 9, 1, 23, 59)),
+      },
+      {
+        date: new Date(Date.UTC(2023, 9, 2)),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+      },
+    ];
+    const timeZone = "Asia/Kolkata";
+
+    const dateFrom = dayjs("2023-10-02T00:00:00Z");
+    const dateTo = dayjs("2023-10-04T00:00:00Z");
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    const oct2Ranges = results.filter((range) => range.start.format("YYYY-MM-DD") === "2023-10-02");
+    const oct3Ranges = results.filter((range) => range.start.format("YYYY-MM-DD") === "2023-10-03");
+
+    expect(oct2Ranges.length).toBe(0);
+    expect(oct3Ranges.length).toBe(1);
+    if (oct3Ranges.length > 0) {
+      expect(oct3Ranges[0].start.format("YYYY-MM-DD HH:mm")).toBe("2023-10-03 00:00");
+      expect(oct3Ranges[0].end.format("YYYY-MM-DD HH:mm")).toBe("2023-10-04 05:30");
+    }
   });
   it("should return correct date ranges for specific time slot in date override", () => {
     const items = [
