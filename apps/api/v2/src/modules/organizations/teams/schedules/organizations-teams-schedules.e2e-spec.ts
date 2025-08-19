@@ -232,13 +232,13 @@ describe("Organizations Teams Schedules Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<GetSchedulesOutput_2024_06_11> = response.body;
+          const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(Array.isArray(responseBody.data.data)).toBe(true);
-          expect(responseBody.data.data.length).toEqual(2);
+          expect(Array.isArray(responseBody.data)).toBe(true);
+          expect(responseBody.data.length).toEqual(2);
 
-          const userOneSchedule = responseBody.data.data.find((schedule) => schedule.id === userSchedule.id);
-          const userTwoSchedule = responseBody.data.data.find((schedule) => schedule.id === user2Schedule.id);
+          const userOneSchedule = responseBody.data.find((schedule) => schedule.id === userSchedule.id);
+          const userTwoSchedule = responseBody.data.find((schedule) => schedule.id === user2Schedule.id);
 
           expect(userOneSchedule).toBeDefined();
           expect(userTwoSchedule).toBeDefined();
