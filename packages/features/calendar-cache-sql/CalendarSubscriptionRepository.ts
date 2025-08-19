@@ -166,7 +166,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       channelKind?: string;
       channelResourceId?: string;
       channelResourceUri?: string;
-      channelExpiration: string;
+      channelExpiration: Date;
     }
   ) {
     await this.prismaClient.calendarSubscription.update({
