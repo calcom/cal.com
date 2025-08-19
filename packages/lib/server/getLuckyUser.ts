@@ -515,30 +515,9 @@ export async function getLuckyUser<
     weight?: number | null;
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
-  const {
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
-
-  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
-    ...getLuckyUserParams,
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  });
-
-  return luckyUser;
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  return service.getLuckyUser(getLuckyUserParams);
 }
 
 type FetchedData = {
@@ -628,7 +607,7 @@ function isFullDayEvent(date1: Date, date2: Date) {
   if (difference % MILLISECONDS_IN_A_DAY === 0) return true;
 }
 
-async function fetchAllDataNeededForCalculations<
+async function _fetchAllDataNeededForCalculations<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
@@ -872,107 +851,9 @@ type AvailableUserBase = PartialUser & {
 export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
   getLuckyUserParams: GetLuckyUserParams<AvailableUser>
 ) {
-  const { availableUsers, eventType } = getLuckyUserParams;
-
-  const {
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
-
-  log.info(
-    "getOrderedListOfLuckyUsers",
-    safeStringify({
-      availableUsers: availableUsers.map((user) => {
-        return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
-      }),
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-    })
-  );
-
-  let remainingAvailableUsers = [...availableUsers];
-  let bookingsOfRemainingAvailableUsersOfInterval = [...bookingsOfAvailableUsersOfInterval];
-  const orderedUsersSet = new Set<AvailableUser>();
-  const perUserBookingsCount: Record<number, number> = {};
-
-  const startTime = performance.now();
-  let usersAndTheirBookingShortfalls: {
-    id: number;
-    bookingShortfall: number;
-    calibration: number;
-    weight: number;
-  }[] = [];
-  // Keep getting lucky users until none remain
-  while (remainingAvailableUsers.length > 0) {
-    const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
-      getLuckyUser_requiresDataToBePreFetched({
-        ...getLuckyUserParams,
-        eventType,
-        availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
-        bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
-        bookingsOfNotAvailableUsersOfInterval,
-        allRRHostsBookingsOfInterval,
-        allRRHostsCreatedInInterval,
-        organizersWithLastCreated,
-        attributeWeights,
-        virtualQueuesData,
-        oooData,
-      });
-
-    if (!usersAndTheirBookingShortfalls.length) {
-      usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
-    }
-
-    if (orderedUsersSet.has(luckyUser)) {
-      // It is helpful in breaking the loop as same user is returned again and again.
-      // Also, it tells a bug in the code.
-      throw new Error(
-        `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
-      );
-    }
-
-    orderedUsersSet.add(luckyUser);
-    perUserBookingsCount[luckyUser.id] = bookingsOfAvailableUsersOfInterval.filter(
-      (booking) => booking.userId === luckyUser.id
-    ).length;
-    remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
-    bookingsOfRemainingAvailableUsersOfInterval = bookingsOfRemainingAvailableUsersOfInterval.filter(
-      (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
-    );
-  }
-
-  const endTime = performance.now();
-  log.info(`getOrderedListOfLuckyUsers took ${endTime - startTime}ms`);
-
-  const bookingShortfalls: Record<number, number> = {};
-  const calibrations: Record<number, number> = {};
-  const weights: Record<number, number> = {};
-
-  usersAndTheirBookingShortfalls.forEach((user) => {
-    bookingShortfalls[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
-    calibrations[user.id] = parseFloat(user.calibration.toFixed(2));
-    weights[user.id] = user.weight;
-  });
-
-  return {
-    users: Array.from(orderedUsersSet),
-    isUsingAttributeWeights: !!attributeWeights && !!virtualQueuesData,
-    perUserData: {
-      bookingsCount: perUserBookingsCount,
-      bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
-      calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
-      weights: eventType.isRRWeightsEnabled ? weights : null,
-    },
-  };
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  return service.getOrderedListOfLuckyUsers(getLuckyUserParams);
 }
 
 export async function prepareQueuesAndAttributesData<T extends PartialUser>({
@@ -980,70 +861,12 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
   routingFormResponse,
   allRRHosts,
 }: Omit<GetLuckyUserParams<T>, "availableUsers">) {
-  let attributeWeights;
-  let virtualQueuesData;
-  const organizationId = eventType.team?.parentId;
-  log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
-  if (routingFormResponse && organizationId) {
-    const routingForm = routingFormResponse?.form;
-    const routes = zodRoutes.parse(routingForm.routes);
-    const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
-
-    if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
-      const attributeIdForWeights = chosenRoute.attributeIdForWeights;
-
-      const attributeWithEnabledWeights = await prisma.attribute.findUnique({
-        where: {
-          id: attributeIdForWeights,
-          teamId: organizationId,
-          isWeightsEnabled: true,
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          type: true,
-          options: {
-            select: {
-              id: true,
-              value: true,
-              slug: true,
-              assignedUsers: {
-                select: {
-                  member: {
-                    select: {
-                      userId: true,
-                    },
-                  },
-                  weight: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (attributeWithEnabledWeights) {
-        // Virtual queues are defined by the attribute that is used for weights
-        const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
-          allRRHosts,
-          routingFormResponse,
-          attributeWithEnabledWeights
-        );
-        if (
-          queueAndAtributeWeightData?.averageWeightsHosts &&
-          queueAndAtributeWeightData?.virtualQueuesData
-        ) {
-          attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
-          virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
-        }
-      }
-    }
-  }
-  return { attributeWeights, virtualQueuesData };
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  return service.prepareQueuesAndAttributesData({ eventType, routingFormResponse, allRRHosts });
 }
 
-async function getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
+async function _getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
   allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
   routingFormResponse: RoutingFormResponse,
   attributeWithWeights: AttributeWithWeights
