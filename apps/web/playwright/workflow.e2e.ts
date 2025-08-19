@@ -42,8 +42,13 @@ test.describe("Workflow Tab - Event Type", () => {
         await assertListCount(1);
       });
 
-      test("Create an action and check if workflow is triggered", async ({ page, users, workflowPage }) => {
-        const { createWorkflow, assertWorkflowReminders } = workflowPage;
+      test("Create an action and check if workflow is triggered", async ({
+        page,
+        users,
+        workflowPage,
+        emails,
+      }) => {
+        const { createWorkflow, assertWorkflowWasTriggered } = workflowPage;
         const [user] = users.get();
         const [eventType] = user.eventTypes;
 
@@ -51,7 +56,7 @@ test.describe("Workflow Tab - Event Type", () => {
         await page.goto(`/${user.username}/${eventType.slug}`);
         await page.click('[data-testid="incrementMonth"]');
         await bookEventOnThisPage(page);
-        await assertWorkflowReminders(eventType.id, 1);
+        await assertWorkflowWasTriggered(emails, ["test@example.com"]);
       });
     });
 
