@@ -6,6 +6,10 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
+/**
+ * @deprecated Use WebhookNotifier.emitWebhook() or BookingWebhookService methods instead
+ * This function is maintained for backward compatibility
+ */
 async function _handleWebhookTrigger(args: {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: string;
@@ -14,6 +18,13 @@ async function _handleWebhookTrigger(args: {
 }) {
   try {
     if (args.isDryRun) return;
+    
+    // Add deprecation warning
+    logger.warn("Using legacy webhook trigger handler - please migrate to new architecture", {
+      eventTrigger: args.eventTrigger,
+      caller: "handleWebhookTrigger",
+    });
+
     const subscribers = await getWebhooks(args.subscriberOptions);
 
     const promises = subscribers.map((sub) =>
