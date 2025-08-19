@@ -227,6 +227,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_remove",
       descriptionI18nKey: "pbac_desc_remove_team_members",
     },
+    [CustomAction.ListMembers]: {
+      description: "List team members",
+      category: "team",
+      i18nKey: "pbac_action_list_members",
+      descriptionI18nKey: "pbac_desc_list_team_members",
+      scope: [Scope.Organization],
+    },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "team",

@@ -1,9 +1,12 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -69,7 +72,38 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
   }
 
-  if (ctx.user.organization.isPrivate && !ctx.user.organization.isOrgAdmin) {
+  // Get user's membership role in the organization
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: organizationId,
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (!membership) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not a member of this organization." });
+  }
+
+  // Check PBAC permissions for listing organization members
+  const permissions = await getSpecificPermissions({
+    userId: ctx.user.id,
+    teamId: organizationId,
+    resource: Resource.Organization,
+    userRole: membership.role,
+    actions: [CustomAction.ListMembers],
+    fallbackRoles: {
+      [CustomAction.ListMembers]: {
+        roles: ctx.user.organization.isPrivate
+          ? [MembershipRole.ADMIN, MembershipRole.OWNER]
+          : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  if (!permissions[CustomAction.ListMembers]) {
     return {
       canUserGetMembers: false,
       rows: [],
@@ -78,7 +112,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       },
     };
   }
-
   const { limit, offset } = input;
 
   const roleFilter = filters.find((filter) => filter.id === "role") as
