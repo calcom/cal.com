@@ -63,7 +63,10 @@ export const getCalEventResponses = ({
 
       // If the guests field is hidden (disableGuests is set on the event type) don't try and infer guests from attendees list
       if (field.name == "guests" && field.hidden) {
-        backwardCompatibleResponses[field.name] = [];
+        const guestsValue = backwardCompatibleResponses[field.name];
+        if (!guestsValue || (Array.isArray(guestsValue) && guestsValue.length === 0)) {
+          backwardCompatibleResponses[field.name] = [];
+        }
       }
 
       if (field.editable === "user" || field.editable === "user-readonly") {
