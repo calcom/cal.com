@@ -46,16 +46,16 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return new HttpError({ statusCode, message: cause.message });
   }
   if (isTwilioError(cause)) {
+    twilioErrorLogger.error("Twilio error occurred:", {
+      status: cause.status,
+      message: cause.message,
+      code: cause.code,
+      cause: cause,
+    });
     if (cause.status !== 400) {
       // Don't propagate Twilio's error status - return 202 from our perspective
       // since our server successfully processed the request, even if Twilio failed
-      // but log the error because errors thrown with 202 are not logged in `defaultResponder` or `defaultResponderForAppDir``
-      twilioErrorLogger.error("Twilio error occurred:", {
-        status: cause.status,
-        message: cause.message,
-        code: cause.code,
-        cause: cause,
-      });
+
       return new HttpError({
         statusCode: 202,
         message: "Twilio request accepted successfully but failed on Twilio's side",
