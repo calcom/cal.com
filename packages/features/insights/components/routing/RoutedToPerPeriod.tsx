@@ -30,15 +30,14 @@ import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingPara
 import { ChartCard } from "../ChartCard";
 
 interface DownloadButtonProps {
-  routingParams: ReturnType<typeof useInsightsRoutingParameters>;
   selectedPeriod: "perDay" | "perWeek" | "perMonth";
   searchQuery?: string;
 }
 
-function DownloadButton({ routingParams, selectedPeriod, searchQuery }: DownloadButtonProps) {
+function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const routingParams = useInsightsRoutingParameters();
   const utils = trpc.useContext();
-  const { t } = useLocale();
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent default form submission
@@ -80,17 +79,9 @@ interface FormCardProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   children: ReactNode;
-  routingParams: ReturnType<typeof useInsightsRoutingParameters>;
 }
 
-function FormCard({
-  selectedPeriod,
-  onPeriodChange,
-  searchQuery,
-  onSearchChange,
-  children,
-  routingParams,
-}: FormCardProps) {
+function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange, children }: FormCardProps) {
   const { t } = useLocale();
 
   return (
@@ -118,11 +109,7 @@ function FormCard({
                   className="w-full"
                 />
               </div>
-              <DownloadButton
-                routingParams={routingParams}
-                selectedPeriod={selectedPeriod}
-                searchQuery={searchQuery}
-              />
+              <DownloadButton selectedPeriod={selectedPeriod} searchQuery={searchQuery} />
             </div>
           </div>
           {children}
@@ -262,8 +249,7 @@ export function RoutedToPerPeriod() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          routingParams={routingParams}>
+          onSearchChange={setSearchQuery}>
           <div className="mt-6">
             <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
           </div>
@@ -298,8 +284,7 @@ export function RoutedToPerPeriod() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          routingParams={routingParams}>
+          onSearchChange={setSearchQuery}>
           <div className="mt-6">
             <div
               className="scrollbar-thin border-subtle relative overflow-auto rounded-md border"
