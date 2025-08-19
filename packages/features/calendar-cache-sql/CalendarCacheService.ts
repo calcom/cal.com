@@ -56,7 +56,7 @@ class CalendarCachePresenter {
 
   static presentAvailabilityDataWithTimezones(
     events: CalendarEventForAvailability[]
-  ): { start: string; end: string; timeZone: string }[] {
+  ): { start: string; end: string; timeZone: string; title: string; source: string }[] {
     return events.map((event) => ({
       start: event.start.toISOString(),
       end: event.end.toISOString(),
@@ -130,7 +130,7 @@ export class CalendarCacheService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
     _fallbackToPrimary?: boolean
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+  ): Promise<{ start: string; end: string; timeZone: string; title: string; source: string }[]> {
     log.debug(
       "Getting availability with timezones from cache",
       safeStringify({ dateFrom, dateTo, selectedCalendars })
