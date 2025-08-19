@@ -436,7 +436,7 @@ describe("buildDateRanges", () => {
     // this happened only on Europe/Brussels, Europe/Amsterdam was 2023-08-15T17:00:00-10:00 (as it should be)
     expect(result[0].end.format()).not.toBe("2023-08-14T17:00:00-10:00");
   });
-  it("should return no date ranges when full day is marked unavailable via date override", () => {
+  it("should return correct date ranges with full day unavailable date override", () => {
     const items = [
       {
         date: new Date(Date.UTC(2023, 5, 13)),
@@ -463,7 +463,6 @@ describe("buildDateRanges", () => {
       travelSchedules: [],
     });
 
-    expect(results.length).toBe(1);
     expect(results.length).toBe(1);
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
