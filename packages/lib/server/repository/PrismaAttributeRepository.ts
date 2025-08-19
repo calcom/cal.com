@@ -53,4 +53,38 @@ export class PrismaAttributeRepository {
       },
     });
   }
+
+  static async findUniqueWithWeights({
+    teamId,
+    routingFormResponse,
+  }: {
+    teamId: number;
+    routingFormResponse: any;
+  }) {
+    return await prisma.attribute.findUnique({
+      where: {
+        id: routingFormResponse?.attributeId || 0,
+        teamId,
+      },
+      include: {
+        options: {
+          select: {
+            id: true,
+            value: true,
+            slug: true,
+            assignedUsers: {
+              select: {
+                weight: true,
+                member: {
+                  select: {
+                    userId: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }

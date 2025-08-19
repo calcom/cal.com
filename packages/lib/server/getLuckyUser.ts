@@ -515,30 +515,9 @@ export async function getLuckyUser<
     weight?: number | null;
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
-  const {
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
-
-  const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
-    ...getLuckyUserParams,
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  });
-
-  return luckyUser;
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  return service.getLuckyUser(getLuckyUserParams);
 }
 
 type FetchedData = {
@@ -557,68 +536,23 @@ type FetchedData = {
   oooData: OOODataType;
 };
 
-export function getLuckyUser_requiresDataToBePreFetched<
+export async function getLuckyUser_requiresDataToBePreFetched<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
   }
->({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
-  const {
-    eventType,
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    oooData,
-  } = getLuckyUserParams;
-
-  // there is only one user
-  if (availableUsers.length === 1) {
-    return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
-  }
-
-  let usersAndTheirBookingShortfalls: {
-    id: number;
-    bookingShortfall: number;
-    calibration: number;
-    weight: number;
-  }[] = [];
-  if (eventType.isRRWeightsEnabled) {
-    const {
-      remainingUsersAfterWeightFilter,
-      usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
-    } = filterUsersBasedOnWeights({
-      ...getLuckyUserParams,
-      availableUsers,
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      oooData,
-    });
-    availableUsers = remainingUsersAfterWeightFilter;
-    usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
-  }
-
-  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-  // No need to round-robin through the only user, return early also.
-  if (highestPriorityUsers.length === 1) {
-    return {
-      luckyUser: highestPriorityUsers[0],
-      usersAndTheirBookingShortfalls,
-    };
-  }
-  // TS is happy.
-  return {
-    luckyUser: leastRecentlyBookedUser({
-      ...getLuckyUserParams,
-      availableUsers: highestPriorityUsers,
-      bookingsOfAvailableUsers: bookingsOfAvailableUsersOfInterval,
-      organizersWithLastCreated,
-    }),
-    usersAndTheirBookingShortfalls,
-  };
+>(getLuckyUserParams: GetLuckyUserParams<T> & FetchedData) {
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  const { attributeWeights, virtualQueuesData } = await service.prepareQueuesAndAttributesData(
+    getLuckyUserParams
+  );
+  const result = service.getLuckyUser_requiresDataToBePreFetched({
+    ...getLuckyUserParams,
+    attributeWeights,
+    virtualQueuesData,
+  });
+  return result.luckyUser;
 }
 
 function isFullDayEvent(date1: Date, date2: Date) {
@@ -872,107 +806,9 @@ type AvailableUserBase = PartialUser & {
 export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
   getLuckyUserParams: GetLuckyUserParams<AvailableUser>
 ) {
-  const { availableUsers, eventType } = getLuckyUserParams;
-
-  const {
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    attributeWeights,
-    virtualQueuesData,
-    oooData,
-  } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
-
-  log.info(
-    "getOrderedListOfLuckyUsers",
-    safeStringify({
-      availableUsers: availableUsers.map((user) => {
-        return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
-      }),
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-    })
-  );
-
-  let remainingAvailableUsers = [...availableUsers];
-  let bookingsOfRemainingAvailableUsersOfInterval = [...bookingsOfAvailableUsersOfInterval];
-  const orderedUsersSet = new Set<AvailableUser>();
-  const perUserBookingsCount: Record<number, number> = {};
-
-  const startTime = performance.now();
-  let usersAndTheirBookingShortfalls: {
-    id: number;
-    bookingShortfall: number;
-    calibration: number;
-    weight: number;
-  }[] = [];
-  // Keep getting lucky users until none remain
-  while (remainingAvailableUsers.length > 0) {
-    const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
-      getLuckyUser_requiresDataToBePreFetched({
-        ...getLuckyUserParams,
-        eventType,
-        availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
-        bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
-        bookingsOfNotAvailableUsersOfInterval,
-        allRRHostsBookingsOfInterval,
-        allRRHostsCreatedInInterval,
-        organizersWithLastCreated,
-        attributeWeights,
-        virtualQueuesData,
-        oooData,
-      });
-
-    if (!usersAndTheirBookingShortfalls.length) {
-      usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
-    }
-
-    if (orderedUsersSet.has(luckyUser)) {
-      // It is helpful in breaking the loop as same user is returned again and again.
-      // Also, it tells a bug in the code.
-      throw new Error(
-        `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
-      );
-    }
-
-    orderedUsersSet.add(luckyUser);
-    perUserBookingsCount[luckyUser.id] = bookingsOfAvailableUsersOfInterval.filter(
-      (booking) => booking.userId === luckyUser.id
-    ).length;
-    remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
-    bookingsOfRemainingAvailableUsersOfInterval = bookingsOfRemainingAvailableUsersOfInterval.filter(
-      (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
-    );
-  }
-
-  const endTime = performance.now();
-  log.info(`getOrderedListOfLuckyUsers took ${endTime - startTime}ms`);
-
-  const bookingShortfalls: Record<number, number> = {};
-  const calibrations: Record<number, number> = {};
-  const weights: Record<number, number> = {};
-
-  usersAndTheirBookingShortfalls.forEach((user) => {
-    bookingShortfalls[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
-    calibrations[user.id] = parseFloat(user.calibration.toFixed(2));
-    weights[user.id] = user.weight;
-  });
-
-  return {
-    users: Array.from(orderedUsersSet),
-    isUsingAttributeWeights: !!attributeWeights && !!virtualQueuesData,
-    perUserData: {
-      bookingsCount: perUserBookingsCount,
-      bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
-      calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
-      weights: eventType.isRRWeightsEnabled ? weights : null,
-    },
-  };
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  return service.getOrderedListOfLuckyUsers(getLuckyUserParams);
 }
 
 export async function prepareQueuesAndAttributesData<T extends PartialUser>({
@@ -980,67 +816,9 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
   routingFormResponse,
   allRRHosts,
 }: Omit<GetLuckyUserParams<T>, "availableUsers">) {
-  let attributeWeights;
-  let virtualQueuesData;
-  const organizationId = eventType.team?.parentId;
-  log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
-  if (routingFormResponse && organizationId) {
-    const routingForm = routingFormResponse?.form;
-    const routes = zodRoutes.parse(routingForm.routes);
-    const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
-
-    if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
-      const attributeIdForWeights = chosenRoute.attributeIdForWeights;
-
-      const attributeWithEnabledWeights = await prisma.attribute.findUnique({
-        where: {
-          id: attributeIdForWeights,
-          teamId: organizationId,
-          isWeightsEnabled: true,
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          type: true,
-          options: {
-            select: {
-              id: true,
-              value: true,
-              slug: true,
-              assignedUsers: {
-                select: {
-                  member: {
-                    select: {
-                      userId: true,
-                    },
-                  },
-                  weight: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (attributeWithEnabledWeights) {
-        // Virtual queues are defined by the attribute that is used for weights
-        const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
-          allRRHosts,
-          routingFormResponse,
-          attributeWithEnabledWeights
-        );
-        if (
-          queueAndAtributeWeightData?.averageWeightsHosts &&
-          queueAndAtributeWeightData?.virtualQueuesData
-        ) {
-          attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
-          virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
-        }
-      }
-    }
-  }
-  return { attributeWeights, virtualQueuesData };
+  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
+  const service = getLuckyUserService();
+  return service.prepareQueuesAndAttributesData({ eventType, routingFormResponse, allRRHosts });
 }
 
 async function getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(

@@ -161,9 +161,29 @@ export const roundRobinReassignment = async ({
     routingFormResponse: null,
   });
 
+  if (!reassignedRRHost) {
+    throw new Error("No available hosts found for round robin reassignment");
+  }
+
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
-  const organizerT = await getTranslation(organizer?.locale || "en", "common");
+
+  if (!organizer || !organizer.id || !organizer.email) {
+    throw new Error("Organizer is missing required properties");
+  }
+
+  const organizerWithRequiredProps = {
+    id: organizer.id,
+    name: organizer.name || null,
+    email: organizer.email,
+    username: organizer.username || null,
+    locale: organizer.locale,
+    timeZone: organizer.timeZone,
+    timeFormat: organizer.timeFormat,
+    metadata: organizer.metadata,
+    destinationCalendar: organizer.destinationCalendar || null,
+  };
+  const organizerT = await getTranslation(organizerWithRequiredProps?.locale || "en", "common");
 
   const currentBookingTitle = booking.title;
   let newBookingTitle = currentBookingTitle;
@@ -173,7 +193,7 @@ export const roundRobinReassignment = async ({
   const teamMembers = await getTeamMembers({
     eventTypeHosts: eventType.hosts,
     attendees: booking.attendees,
-    organizer: organizer,
+    organizer: organizerWithRequiredProps,
     previousHost: previousRRHost || null,
     reassignedHost: reassignedRRHost,
   });
@@ -235,7 +255,7 @@ export const roundRobinReassignment = async ({
       // we send on behalf of team if >1 round robin attendee | collective
       teamName: teamMembers.length > 1 ? eventType.team?.name : null,
       // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
-      host: organizer.name || "Nameless",
+      host: organizerWithRequiredProps.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
       eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
@@ -304,14 +324,14 @@ export const roundRobinReassignment = async ({
 
   const evt: CalendarEvent = {
     organizer: {
-      name: organizer.name || "",
-      email: organizer.email,
+      name: organizerWithRequiredProps.name || "",
+      email: organizerWithRequiredProps.email,
       language: {
-        locale: organizer.locale || "en",
+        locale: organizerWithRequiredProps.locale || "en",
         translate: organizerT,
       },
-      timeZone: organizer.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
+      timeZone: organizerWithRequiredProps.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizerWithRequiredProps.timeFormat),
     },
     startTime: dayjs(booking.startTime).utc().format(),
     endTime: dayjs(booking.endTime).utc().format(),
@@ -339,7 +359,7 @@ export const roundRobinReassignment = async ({
 
   const credentials = await prisma.credential.findMany({
     where: {
-      userId: organizer.id,
+      userId: organizerWithRequiredProps.id,
     },
     include: {
       user: {
@@ -351,7 +371,7 @@ export const roundRobinReassignment = async ({
   });
 
   const organizerWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
-    user: { ...organizer, credentials },
+    user: { ...organizerWithRequiredProps, credentials },
   });
 
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
