@@ -110,6 +110,7 @@ describe("Retell AI Webhook Handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("RETELL_AI_KEY", "test-api-key");
+    vi.stubEnv("CAL_AI_CALL_RATE_PER_MINUTE", "0.29");
   });
 
   it("should return 401 when signature is missing", async () => {
@@ -203,6 +204,7 @@ describe("Retell AI Webhook Handler", () => {
         start_timestamp: 1234567890,
         call_cost: {
           combined_cost: 100,
+          total_duration_seconds: 120,
         },
       },
     };
@@ -217,8 +219,8 @@ describe("Retell AI Webhook Handler", () => {
       expect.objectContaining({
         userId: 1,
         teamId: undefined,
-        credits: 180,
-        callDuration: undefined,
+        credits: 58, // 120 seconds = 2 minutes * $0.29 = $0.58 = 58 credits
+        callDuration: 120,
         externalRef: "retell:test-call-id",
       })
     );
@@ -261,6 +263,7 @@ describe("Retell AI Webhook Handler", () => {
         start_timestamp: 1234567890,
         call_cost: {
           combined_cost: 50,
+          total_duration_seconds: 180,
         },
       },
     };
@@ -273,14 +276,14 @@ describe("Retell AI Webhook Handler", () => {
       expect.objectContaining({
         userId: undefined,
         teamId: 5,
-        credits: 90,
-        callDuration: undefined,
+        credits: 87, // 180 seconds = 3 minutes * $0.29 = $0.87 = 87 credits
+        callDuration: 180,
         externalRef: "retell:test-call-id",
       })
     );
   });
 
-  it("should handle missing call cost", async () => {
+  it("should handle missing total_duration_seconds", async () => {
     vi.mocked(Retell.verify).mockReturnValue(true);
 
     const body: RetellWebhookBody = {
@@ -292,6 +295,10 @@ describe("Retell AI Webhook Handler", () => {
         direction: "outbound",
         call_status: "completed",
         start_timestamp: 1234567890,
+        call_cost: {
+          combined_cost: 100,
+          // missing total_duration_seconds
+        },
       },
     };
 
@@ -317,6 +324,7 @@ describe("Retell AI Webhook Handler", () => {
         start_timestamp: 1234567890,
         call_cost: {
           combined_cost: 100,
+          total_duration_seconds: 90,
         },
       },
     };
@@ -364,6 +372,7 @@ describe("Retell AI Webhook Handler", () => {
         start_timestamp: 1234567890,
         call_cost: {
           combined_cost: 100,
+          total_duration_seconds: 150,
         },
       },
     };
@@ -393,15 +402,15 @@ describe("Retell AI Webhook Handler", () => {
     expect(data.error).toBe("Internal server error");
   });
 
-  it("should calculate credits correctly", async () => {
+  it("should calculate credits correctly based on duration", async () => {
     const testCases = [
-      { cost: 10, expectedCredits: 18 },
-      { cost: 55, expectedCredits: 99 },
-      { cost: 100, expectedCredits: 180 },
-      { cost: 1, expectedCredits: 2 },
+      { durationSeconds: 60, expectedCredits: 29 }, // 1 minute * $0.29 = $0.29 = 29 credits
+      { durationSeconds: 120, expectedCredits: 58 }, // 2 minutes * $0.29 = $0.58 = 58 credits
+      { durationSeconds: 150, expectedCredits: 73 }, // 2.5 minutes * $0.29 = $0.725 = 73 credits (rounded up)
+      { durationSeconds: 30, expectedCredits: 15 }, // 0.5 minutes * $0.29 = $0.145 = 15 credits (rounded up)
     ];
 
-    for (const { cost, expectedCredits } of testCases) {
+    for (const { durationSeconds, expectedCredits } of testCases) {
       vi.clearAllMocks();
       vi.mocked(Retell.verify).mockReturnValue(true);
 
@@ -430,14 +439,15 @@ describe("Retell AI Webhook Handler", () => {
       const body: RetellWebhookBody = {
         event: "call_analyzed",
         call: {
-          call_id: `test-call-${cost}`,
+          call_id: `test-call-${durationSeconds}s`,
           from_number: "+1234567890",
           to_number: "+0987654321",
           direction: "outbound",
           call_status: "completed",
           start_timestamp: 1234567890,
           call_cost: {
-            combined_cost: cost,
+            combined_cost: 100, // This is ignored now
+            total_duration_seconds: durationSeconds,
           },
         },
       };
@@ -450,7 +460,7 @@ describe("Retell AI Webhook Handler", () => {
           userId: 1,
           teamId: undefined,
           credits: expectedCredits,
-          callDuration: undefined,
+          callDuration: durationSeconds,
           externalRef: expect.stringMatching(/^retell:test-call-/),
         })
       );
@@ -490,7 +500,7 @@ describe("Retell AI Webhook Handler", () => {
         call_status: "completed",
         start_timestamp: 123,
         call_cost: {
-          combined_cost: 12, // -> 22 credits
+          combined_cost: 12, // This is ignored now
           total_duration_seconds: 125,
         },
       },
@@ -498,7 +508,7 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(createMockRequest(body, "valid-signature"));
     expect(response.status).toBe(200);
     expect(mockChargeCredits).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 42, credits: 22, callDuration: 125 })
+      expect.objectContaining({ userId: 42, credits: 61, callDuration: 125 }) // 125s = 2.083 minutes * $0.29 = $0.604 = 61 credits (rounded up)
     );
   });
 
@@ -552,7 +562,7 @@ describe("Retell AI Webhook Handler", () => {
         expect.objectContaining({
           userId: 1,
           teamId: undefined,
-          credits: 180,
+          credits: 29, // 60 seconds = 1 minute * $0.29 = $0.29 = 29 credits
           callDuration: 60,
           externalRef: "retell:test-idempotency-call",
         })
@@ -602,7 +612,7 @@ describe("Retell AI Webhook Handler", () => {
       expect(response1.status).toBe(200);
       const data1 = await response1.json();
       expect(data1.success).toBe(true);
-      expect(data1.message).toContain("Successfully charged 180 credits");
+      expect(data1.message).toContain("Successfully charged 29 credits");
 
       // Second call - should return duplicate
       mockChargeCredits.mockResolvedValue({ bookingUid: null, duplicate: true });
@@ -610,7 +620,7 @@ describe("Retell AI Webhook Handler", () => {
       expect(response2.status).toBe(200);
       const data2 = await response2.json();
       expect(data2.success).toBe(true);
-      expect(data2.message).toContain("Successfully charged 180 credits");
+      expect(data2.message).toContain("Successfully charged 29 credits");
 
       // Verify chargeCredits was called twice with same externalRef
       expect(mockChargeCredits).toHaveBeenCalledTimes(2);

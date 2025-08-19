@@ -60,11 +60,14 @@ const RetellWebhookSchema = z.object({
 
 async function handleCallAnalyzed(callData: any) {
   const { from_number, call_id, call_cost } = callData;
-  if (!call_cost || typeof call_cost.combined_cost !== "number" || call_cost.combined_cost <= 0) {
+  if (
+    !call_cost ||
+    typeof call_cost.total_duration_seconds !== "number" ||
+    !Number.isFinite(call_cost.total_duration_seconds) ||
+    call_cost.total_duration_seconds <= 0
+  ) {
     log.error(
-      `No call_cost.combined_cost in payload for call ${call_id} or call_cost is invalid: ${safeStringify(
-        call_cost
-      )}`
+      `Invalid or missing call_cost.total_duration_seconds for call ${call_id}: ${safeStringify(call_cost)}`
     );
     return;
   }
@@ -122,9 +125,11 @@ async function handleCallAnalyzed(callData: any) {
 
   return {
     success: true,
-    message: `Successfully charged ${creditsToDeduct} credits for ${teamId ? `team:${teamId}` : ""} ${
+    message: `Successfully charged ${creditsToDeduct} credits (${
+      call_cost.total_duration_seconds
+    }s at $${safeRatePerMinute}/min) for ${teamId ? `team:${teamId}` : ""} ${
       userId ? `user:${userId}` : ""
-    }, call ${call_id} (base cost: ${baseCost} cents)`,
+    }, call ${call_id}`,
   };
 }
 
