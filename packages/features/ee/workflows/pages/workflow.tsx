@@ -107,11 +107,10 @@ function WorkflowPage({
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: _isPendingEventTypes } =
-    trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
-      { teamId, isOrg },
-      { enabled: !isPendingWorkflow }
-    );
+  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
+    { teamId, isOrg },
+    { enabled: !isPendingWorkflow }
+  );
 
   const teamOptions = data?.teamOptions ?? [];
 
@@ -127,7 +126,7 @@ function WorkflowPage({
     });
   }
 
-  const readOnly = !workflow?.permissions.canUpdate;
+  const readOnly = !workflow?.permissions?.canUpdate;
 
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
@@ -377,7 +376,7 @@ function WorkflowPage({
                 {isAllDataLoaded && user ? (
                   <>
                     <WorkflowDetailsPage
-                      permissions={workflow && hasPermissions(workflow) ? workflow.permissions : undefined}
+                      permissions={workflow?.permissions}
                       form={form}
                       workflowId={+workflowId}
                       user={user}
