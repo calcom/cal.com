@@ -31,7 +31,7 @@ export class TeamsSchedulesController {
   ): Promise<GetSchedulesOutput_2024_06_11> {
     const { skip, take } = queryParams;
 
-    const schedules = await this.teamsSchedulesService.getTeamSchedulesByUserIds(teamId, skip, take);
+    const schedules = await this.teamsSchedulesService.getTeamSchedules(teamId, skip, take);
 
     return {
       status: SUCCESS_STATUS,
