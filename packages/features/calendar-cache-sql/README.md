@@ -149,7 +149,6 @@ model CalendarSubscription {
 
   // Sync state
   nextSyncToken             String?
-  lastFullSync              DateTime?
   syncErrors                Int      @default(0)
   maxSyncErrors             Int      @default(5)
   backoffUntil              DateTime?

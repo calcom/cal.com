@@ -1609,7 +1609,6 @@ model CalendarSubscription {
   syncCursor         String?
 
   // Sync management
-  lastFullSync  DateTime?
   syncErrors    Int       @default(0)
   maxSyncErrors Int       @default(5)
   backoffUntil  DateTime?

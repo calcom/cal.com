@@ -38,7 +38,6 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         clientState: true,
         channelExpiration: true,
         syncCursor: true,
-        lastFullSync: true,
         syncErrors: true,
         maxSyncErrors: true,
         backoffUntil: true,
