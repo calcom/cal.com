@@ -6,7 +6,6 @@ import { z, ZodError } from "zod";
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-export const runtime = "edge";
 export const revalidate = false; // this results in indefinite caching, meaning that a new deployment will not invalidate the cache
 
 const meetingSchema = z.object({
@@ -90,7 +89,6 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
             },
           });
         } catch (error) {
@@ -124,7 +122,6 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
             },
           });
         } catch (error) {
@@ -158,7 +155,6 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
             },
           });
         } catch (error) {
