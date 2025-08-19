@@ -14,7 +14,7 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsUserInOrgTeam } from "@/modules/auth/guards/users/is-user-in-org-team.guard";
-import { OrganizationsTeamsSchedulesService } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.service";
+import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -32,7 +32,8 @@ import { GetSchedulesOutput_2024_06_11, SkipTakePagination } from "@calcom/platf
 export class OrganizationsTeamsSchedulesController {
   constructor(
     private schedulesService: SchedulesService_2024_06_11,
-    private organizationTeamsSchedulesService: OrganizationsTeamsSchedulesService
+
+    private teamsSchedulesService: TeamsSchedulesService
   ) {}
 
   @UseGuards(IsTeamInOrg)
@@ -47,11 +48,7 @@ export class OrganizationsTeamsSchedulesController {
   ): Promise<GetSchedulesOutput_2024_06_11> {
     const { skip, take } = queryParams;
 
-    const schedules = await this.organizationTeamsSchedulesService.getOrganizationTeamSchedules(
-      teamId,
-      skip,
-      take
-    );
+    const schedules = await this.teamsSchedulesService.getTeamSchedules(teamId, skip, take);
 
     return {
       status: SUCCESS_STATUS,

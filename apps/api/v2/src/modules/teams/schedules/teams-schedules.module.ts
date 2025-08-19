@@ -1,3 +1,4 @@
+import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -34,6 +35,7 @@ import { Module } from "@nestjs/common";
     OrganizationsRepository,
     TeamsSchedulesService,
     OrganizationsTeamsRepository,
+    SchedulesRepository_2024_06_11,
   ],
   controllers: [TeamsController, TeamsSchedulesController],
   exports: [TeamsRepository],

@@ -235,7 +235,7 @@ describe("Organizations Teams Schedules Endpoints", () => {
           const responseBody: ApiSuccessResponse<GetSchedulesOutput_2024_06_11> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(Array.isArray(responseBody.data.data)).toBe(true);
-          expect(responseBody.data.data.length).toBeGreaterThan(0);
+          expect(responseBody.data.data.length).toEqual(2);
 
           const userOneSchedule = responseBody.data.data.find((schedule) => schedule.id === userSchedule.id);
           const userTwoSchedule = responseBody.data.data.find((schedule) => schedule.id === user2Schedule.id);
