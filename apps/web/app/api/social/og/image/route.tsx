@@ -102,9 +102,7 @@ async function handler(req: NextRequest) {
               }),
               {
                 status: 400,
-                headers: {
-                  "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
               }
             );
           }
@@ -137,9 +135,7 @@ async function handler(req: NextRequest) {
               }),
               {
                 status: 400,
-                headers: {
-                  "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
               }
             );
           }
