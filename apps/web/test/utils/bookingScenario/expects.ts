@@ -1190,27 +1190,6 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
   });
 }
 
-export function expectBookingNoShowUpdatedWebhookToHaveBeenFired({
-  subscriberUrl,
-  attendees,
-  message,
-  bookingUid,
-}: {
-  subscriberUrl: string;
-  attendees: { email: string; noShow: boolean }[];
-  message: string;
-  bookingUid: string;
-}) {
-  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
-    triggerEvent: "BOOKING_NO_SHOW_UPDATED",
-    payload: {
-      attendees,
-      message,
-      bookingUid,
-    },
-  });
-}
-
 type ExpectedForSuccessfulCalendarEventCreationInCalendar = {
   calendarId?: string | null;
   calendarIdUsingFallbackOfFirstCalendarCredential?: string | null;
