@@ -1,20 +1,17 @@
 import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
-import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
 
 /**
- * Supposed to do whatever is needed when a booking is requested.
+ * Handles booking requested events using the new webhook architecture
  */
 export async function handleBookingRequested(args: {
   evt: CalendarEvent;
@@ -37,11 +34,13 @@ export async function handleBookingRequested(args: {
     userId: number | null;
     id: number;
   };
+  isDryRun?: boolean;
 }) {
-  const { evt, booking } = args;
+  const { evt, booking, isDryRun } = args;
 
   log.debug("Emails: Sending booking requested emails");
 
+  // Send emails (unchanged from original)
   await sendOrganizerRequestEmail({ ...evt }, booking?.eventType?.metadata as EventTypeMetadata);
   await sendAttendeeRequestEmailAndSMS(
     { ...evt },
@@ -55,36 +54,32 @@ export async function handleBookingRequested(args: {
   });
 
   try {
-    const subscribersBookingRequested = await getWebhooks({
-      userId: booking.userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+    // Use new webhook architecture
+    await BookingWebhookService.emitBookingRequested({
+      evt,
+      booking: {
+        id: booking.id,
+        eventTypeId: booking.eventTypeId,
+        userId: booking.userId,
+      },
+      eventType: booking.eventType ? {
+        id: booking.eventType.id,
+        title: booking.eventType.title,
+        description: booking.eventType.description,
+        requiresConfirmation: booking.eventType.requiresConfirmation,
+        price: booking.eventType.price,
+        currency: booking.eventType.currency,
+        length: booking.eventType.length,
+        teamId: booking.eventType.teamId,
+      } : null,
       teamId: booking.eventType?.teamId,
       orgId,
+      isDryRun,
     });
 
-    const webhookPayload = getWebhookPayloadForBooking({
-      booking,
-      evt,
-    });
-
-    const promises = subscribersBookingRequested.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_REQUESTED,
-        new Date().toISOString(),
-        sub,
-        webhookPayload
-      ).catch((e) => {
-        log.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_REQUESTED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-          safeStringify(e)
-        );
-      })
-    );
-    await Promise.all(promises);
+    log.debug("Successfully sent booking requested webhook");
   } catch (error) {
-    // Silently fail
+    // Silently fail - webhooks shouldn't break the main flow
     log.error("Error in handleBookingRequested", safeStringify(error));
   }
 }
