@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
@@ -7,7 +8,6 @@ import { VerifyEmailCodeOutput } from "@/modules/atoms/outputs/verify-email-code
 import { VerificationAtomsService } from "@/modules/atoms/services/verification-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -20,10 +20,8 @@ import {
   HttpStatus,
   Get,
   Query,
-  Req,
 } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -40,20 +38,16 @@ export class AtomsVerificationController {
   @Post("/verification/email/send-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
-  @UseGuards(OptionalApiAuthGuard)
+  @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "atoms_verification_email_send_code" })
   async sendEmailVerificationCode(
-    @Body() body: SendVerificationEmailInput,
-    @Req() req: Request
+    @Body() body: SendVerificationEmailInput
   ): Promise<SendVerificationEmailOutput> {
-    const result = await this.verificationService.sendEmailVerificationCode(
-      {
-        email: body.email,
-        username: body.username,
-        language: body.language,
-        isVerifyingEmail: body.isVerifyingEmail,
-      },
-      req
-    );
+    const result = await this.verificationService.sendEmailVerificationCode({
+      email: body.email,
+      username: body.username,
+      language: body.language,
+      isVerifyingEmail: body.isVerifyingEmail,
+    });
 
     return {
       data: { sent: result.ok && !result.skipped },

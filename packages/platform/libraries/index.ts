@@ -124,7 +124,7 @@ export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/au
 
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
-export { sendVerifyEmailCode } from "@calcom/trpc/server/routers/viewer/auth/sendVerifyEmailCode.handler";
+export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
 
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 

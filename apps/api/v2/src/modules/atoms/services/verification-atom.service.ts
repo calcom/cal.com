@@ -3,12 +3,11 @@ import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verifica
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
-import { Request } from "express";
 
 import {
   verifyCodeUnAuthenticated,
   verifyCodeAuthenticated,
-  sendVerifyEmailCode,
+  sendEmailVerificationByCode,
   checkEmailVerificationRequired,
 } from "@calcom/platform-libraries";
 
@@ -54,14 +53,12 @@ export class VerificationAtomsService {
     }
   }
 
-  async sendEmailVerificationCode(input: SendVerificationEmailInput, req?: Request) {
-    try {
-      return await sendVerifyEmailCode({ input, identifier: req?.ip });
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("rate")) {
-        throw new BadRequestException("Rate limit exceeded. Please try again later.");
-      }
-      throw new BadRequestException("Failed to send verification code");
-    }
+  async sendEmailVerificationCode(input: SendVerificationEmailInput) {
+    return await sendEmailVerificationByCode({
+      email: input.email,
+      username: input.username,
+      language: input.language,
+      isVerifyingEmail: input.isVerifyingEmail,
+    });
   }
 }
