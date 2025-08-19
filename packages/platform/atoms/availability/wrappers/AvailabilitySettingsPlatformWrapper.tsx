@@ -39,7 +39,7 @@ export type AvailabilitySettingsPlatformWrapperProps = {
 };
 
 export const AvailabilitySettingsPlatformWrapper = forwardRef<
-AvailabilitySettingsFormRef,
+  AvailabilitySettingsFormRef,
   AvailabilitySettingsPlatformWrapperProps
 >(function AvailabilitySettingsPlatformWrapper(props, ref) {
   const {
@@ -202,6 +202,7 @@ AvailabilitySettingsFormRef,
         allowDelete={allowDelete}
         allowSetToDefault={allowSetToDefault}
         onFormStateChange={onFormStateChange}
+        callbacksRef={callbacksRef}
       />
     </AtomsWrapper>
   );
