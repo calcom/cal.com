@@ -165,7 +165,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
 
   async getSubscriptionsToWatch(limit = 100) {
     const oneDayInMS = 24 * 60 * 60 * 1000;
-    const tomorrowTimestamp = String(new Date().getTime() + oneDayInMS);
+    const tomorrow = new Date(Date.now() + oneDayInMS);
 
     return await this.prismaClient.calendarSubscription.findMany({
       take: limit,
@@ -189,8 +189,42 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         syncErrors: {
           lt: this.prismaClient.calendarSubscription.fields.maxSyncErrors,
         },
-        OR: [{ channelExpiration: null }, { channelExpiration: { lt: tomorrowTimestamp } }],
-        AND: [{ OR: [{ backoffUntil: null }, { backoffUntil: { lte: new Date() } }] }],
+        OR: [
+          { channelExpiration: null },
+          { channelExpiration: { lt: tomorrow } },
+        ],
+        AND: [
+          { OR: [{ backoffUntil: null }, { backoffUntil: { lte: new Date() } }] },
+        ],
+      },
+      select: {
+        id: true,
+        selectedCalendarId: true,
+        channelId: true,
+        channelKind: true,
+        channelResourceId: true,
+        channelResourceUri: true,
+        channelExpiration: true,
+        syncCursor: true,
+        syncErrors: true,
+        maxSyncErrors: true,
+        backoffUntil: true,
+        createdAt: true,
+        updatedAt: true,
+        selectedCalendar: {
+          select: {
+            id: true,
+            externalId: true,
+            integration: true,
+            userId: true,
+            credential: {
+              select: safeCredentialSelectForCalendarCache,
+            },
+          },
+        },
+      },
+    });
+  }
       },
       include: {
         selectedCalendar: {
