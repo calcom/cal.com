@@ -1362,16 +1362,16 @@ async function handler(
     workflowsToTrigger.push(...beforeAfterWorkflows);
   }
 
-  if (isConfirmedByDefault && isNormalBookingOrFirstRecurringSlot) {
-    const newBookingWorkflows = workflows.filter(
-      (workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
-    );
-    workflowsToTrigger.push(...newBookingWorkflows);
-  } else if (rescheduleUid) {
+  if (rescheduleUid) {
     const rescheduledWorkflows = workflows.filter(
       (workflow) => workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT
     );
     workflowsToTrigger.push(...rescheduledWorkflows);
+  } else if (isConfirmedByDefault && isNormalBookingOrFirstRecurringSlot) {
+    const newBookingWorkflows = workflows.filter(
+      (workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+    );
+    workflowsToTrigger.push(...newBookingWorkflows);
   }
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
