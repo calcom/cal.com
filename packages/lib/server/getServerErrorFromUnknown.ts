@@ -51,7 +51,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       });
     }
 
-    // Don't propagate Twilio's error status - return 200 from our perspective
+    // Don't propagate Twilio's error status if it's not 400 - return 200 from our perspective
     // since our server successfully processed the request, even if Twilio failed
     return new HttpError({
       statusCode: 202,
