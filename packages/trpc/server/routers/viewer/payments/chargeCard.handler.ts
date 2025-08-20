@@ -1,4 +1,5 @@
-import appStore from "@calcom/app-store";
+import { paymentLoaders } from "@calcom/app-store/_utils/payments/paymentLoaders";
+import type { PaymentLoaderKey } from "@calcom/app-store/_utils/payments/paymentLoaders";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -125,8 +126,9 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
   }
 
-  const paymentApp = (await appStore[
-    paymentCredential?.app?.dirName as keyof typeof appStore
+  // @ts-expect-error FIXME
+  const paymentApp = (await paymentLoaders[
+    paymentCredential?.app?.dirName as PaymentLoaderKey
   ]?.()) as PaymentApp;
 
   if (!paymentApp?.lib?.PaymentService) {

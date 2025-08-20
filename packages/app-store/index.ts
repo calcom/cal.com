@@ -1,5 +1,5 @@
 const appStore = {
-  alby: createCachedImport(() => import("./alby")),
+  // alby: createCachedImport(() => import("./alby")),
   // applecalendar: createCachedImport(() => import("./applecalendar")),
   // caldavcalendar: createCachedImport(() => import("./caldavcalendar")),
   closecom: createCachedImport(() => import("./closecom")),
@@ -17,12 +17,12 @@ const appStore = {
   // office365calendar: createCachedImport(() => import("./office365calendar")),
   office365video: createCachedImport(() => import("./office365video")),
   // plausible: createCachedImport(() => import("./plausible")),
-  paypal: createCachedImport(() => import("./paypal")),
+  // paypal: createCachedImport(() => import("./paypal")),
   "pipedrive-crm": createCachedImport(() => import("./pipedrive-crm")),
   salesforce: createCachedImport(() => import("./salesforce")),
   zohocrm: createCachedImport(() => import("./zohocrm")),
   sendgrid: createCachedImport(() => import("./sendgrid")),
-  stripepayment: createCachedImport(() => import("./stripepayment")),
+  // stripepayment: createCachedImport(() => import("./stripepayment")),
   tandemvideo: createCachedImport(() => import("./tandemvideo")),
   vital: createCachedImport(() => import("./vital")),
   zoomvideo: createCachedImport(() => import("./zoomvideo")),
@@ -41,8 +41,8 @@ const appStore = {
   basecamp3: createCachedImport(() => import("./basecamp3")),
   telegramvideo: createCachedImport(() => import("./telegram")),
   shimmervideo: createCachedImport(() => import("./shimmervideo")),
-  hitpay: createCachedImport(() => import("./hitpay")),
-  btcpayserver: createCachedImport(() => import("./btcpayserver")),
+  // hitpay: createCachedImport(() => import("./hitpay")),
+  // btcpayserver: createCachedImport(() => import("./btcpayserver")),
 };
 
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
@@ -60,8 +60,8 @@ const exportedAppStore: typeof appStore & {
   ["mock-payment-app"]?: () => Promise<typeof import("./mock-payment-app/index")>;
 } = appStore;
 
-if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
-  exportedAppStore["mock-payment-app"] = createCachedImport(() => import("./mock-payment-app/index"));
-}
+// if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
+//   exportedAppStore["mock-payment-app"] = createCachedImport(() => import("./mock-payment-app/index"));
+// }
 
 export default exportedAppStore;

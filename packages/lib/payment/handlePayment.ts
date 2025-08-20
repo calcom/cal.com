@@ -1,6 +1,6 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
+import { paymentLoaders } from "@calcom/app-store/_utils/payments/paymentLoaders";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
@@ -52,11 +52,11 @@ const handlePayment = async ({
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
-  if (!isKeyOf(appStore, key)) {
+  if (!isKeyOf(paymentLoaders, key)) {
     console.warn(`key: ${key} is not a valid key in appStore`);
     return null;
   }
-  const paymentApp = await appStore[key]?.();
+  const paymentApp = await paymentLoaders[key]?.();
   if (!isPaymentApp(paymentApp)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;

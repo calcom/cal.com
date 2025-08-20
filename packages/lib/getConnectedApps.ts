@@ -1,7 +1,8 @@
 import type { Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
+import { paymentLoaders } from "@calcom/app-store/_utils/payments/paymentLoaders";
+import type { PaymentLoaderKey } from "@calcom/app-store/_utils/payments/paymentLoaders";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -184,7 +185,8 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
+        // @ts-expect-error FIXME
+        const paymentApp = (await paymentLoaders[app.dirName as PaymentLoaderKey]?.()) as PaymentApp | null;
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
           const PaymentService = paymentApp.lib.PaymentService;
           const paymentInstance = new PaymentService(credential);
