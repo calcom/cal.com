@@ -137,7 +137,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               hostsLimit={3}
               allowUpdatingUrlParams={true}
               silentlyHandleCalendarFailures={false}
-              hideEventMeta={true}
+              // hideEventMetadata={true}
             />
           </>
         )}
