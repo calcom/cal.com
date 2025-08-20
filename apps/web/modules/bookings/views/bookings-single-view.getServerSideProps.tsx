@@ -6,6 +6,8 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -157,26 +159,41 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const userId = session?.user?.id;
 
-  const checkIfUserIsHost = (userId?: number | null) => {
+  const checkIfUserIsHostOrTeamAdmin = async (userId?: number | null) => {
     if (!userId) return false;
 
-    return (
-      bookingInfo?.user?.id === userId ||
-      eventType.users.some(
-        (user) =>
-          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
-      ) ||
-      eventType.hosts.some(
-        ({ user }) =>
-          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
-      )
-    );
+    if (bookingInfo?.user?.id === userId) {
+      return true;
+    }
+
+    const isHost = checkIfUserIsHost(userId, bookingInfo, eventType);
+    if (isHost) {
+      return true;
+    }
+
+    if (eventType.teamId) {
+      const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+        userId,
+        eventType.teamId,
+        eventType.team?.parent?.id
+      );
+      if (hasTeamOrOrgPermissions) {
+        return true;
+      }
+    }
+
+    return false;
   };
 
-  const isLoggedInUserHost = checkIfUserIsHost(userId);
+  const isLoggedInUserHostOwnerOrTeamAdmin = await checkIfUserIsHostOrTeamAdmin(userId);
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
+    await handleSeatsEventTypeOnBooking(
+      eventType,
+      bookingInfo,
+      seatReferenceUid,
+      isLoggedInUserHostOwnerOrTeamAdmin
+    );
   }
 
   const payment = await prisma.payment.findFirst({
@@ -192,7 +209,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!isLoggedInUserHost) {
+  if (!isLoggedInUserHostOwnerOrTeamAdmin) {
     // Removing hidden fields from responses
     for (const key in bookingInfo.responses) {
       const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
@@ -205,7 +222,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   async function getInternalNotePresets(teamId: number | null) {
-    if (!teamId || !isLoggedInUserHost) return [];
+    if (!teamId || !isLoggedInUserHostOwnerOrTeamAdmin) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -249,7 +266,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userTimeFormat,
       requiresLoginToUpdate,
       rescheduledToUid,
-      isLoggedInUserHost,
+      isLoggedInUserHost: isLoggedInUserHostOwnerOrTeamAdmin,
       internalNotePresets: internalNotes,
     },
   };
