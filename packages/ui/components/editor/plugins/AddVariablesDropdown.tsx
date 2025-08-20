@@ -16,7 +16,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   return (
     <Dropdown>
       <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-muted pt-[6px]">
-        <div className="items-center ">
+        <div className="items-center">
           {props.isTextEditor ? (
             <>
               <div className="hidden sm:flex">
@@ -42,24 +42,26 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           )}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <div className="pb-1 pt-4">
-          <div className="text-subtle mb-2 px-4 text-left text-xs">
-            {t("add_dynamic_variables").toLocaleUpperCase()}
+      <DropdownMenuContent className="w-96">
+        <div className="p-4">
+          <div className="text-subtle mb-3 text-left text-xs font-medium uppercase tracking-wide">
+            {t("add_dynamic_variables")}
           </div>
-          <div className="h-64 overflow-scroll md:h-80">
+          <div className="max-h-64 overflow-y-auto md:max-h-80">
             {props.variables.map((variable) => (
               <DropdownMenuItem key={variable} className="hover:ring-0">
                 <button
                   key={variable}
                   type="button"
-                  className="w-full px-4 py-2"
+                  className="hover:bg-muted w-full rounded-md px-3 py-2 text-left transition-colors"
                   onClick={() => props.addVariable(t(`${variable}_variable`))}>
-                  <div className="flex flex-col">
-                    <div className="mr-text-left">
+                  <div className="flex flex-col space-y-1">
+                    <div className="text-default font-mono text-sm">
                       {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                     </div>
-                    <div className="text-default hidden text-left sm:flex">{t(`${variable}_info`)}</div>
+                    <div className="text-muted-foreground hidden text-xs sm:block">
+                      {t(`${variable}_info`)}
+                    </div>
                   </div>
                 </button>
               </DropdownMenuItem>
