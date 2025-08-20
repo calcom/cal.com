@@ -1,7 +1,8 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import appStore from "@calcom/app-store";
+import { videoLoaders } from "@calcom/app-store/_utils/videos/videoLoaders";
+import type { VideoLoaderKey } from "@calcom/app-store/_utils/videos/videoLoaders";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
@@ -27,7 +28,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-    const appImportFn = appStore[appName as keyof typeof appStore];
+    const appImportFn = videoLoaders[appName as VideoLoaderKey];
 
     // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
     const app = appImportFn ? await appImportFn() : null;
