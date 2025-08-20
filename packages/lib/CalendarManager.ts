@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
+import { getCalendarApps } from "@calcom/app-store/_utils/calendars/getCalendarApps";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -30,7 +30,7 @@ import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendarCredentials = (credentials: Array<CredentialForCalendarService>) => {
-  const calendarCredentials = getApps(credentials, true)
+  const calendarCredentials = getCalendarApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
