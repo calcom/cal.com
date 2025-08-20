@@ -130,8 +130,22 @@ const handleMarkNoShow = async ({
               },
             },
           },
-          attendees: true,
-          user: true,
+          attendees: {
+            select: {
+              email: true,
+              name: true,
+              timeZone: true,
+              locale: true,
+            },
+          },
+          user: {
+            select: {
+              email: true,
+              name: true,
+              timeZone: true,
+              locale: true,
+            },
+          },
         },
       });
 
@@ -146,7 +160,7 @@ const handleMarkNoShow = async ({
             const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata);
             const bookerUrl = await getBookerBaseUrl(booking.eventType?.team?.parentId ?? null);
             const calendarEvent: ExtendedCalendarEvent = {
-              type: booking.eventType.title,
+              type: booking.eventType.slug,
               title: booking.eventType.title,
               startTime: booking.startTime.toISOString(),
               endTime: booking.endTime.toISOString(),
@@ -185,7 +199,8 @@ const handleMarkNoShow = async ({
 
             await scheduleWorkflowReminders({
               workflows: noShowUpdatedworkflows,
-              smsReminderNumber: null,
+              smsReminderNumber: booking.smsReminderNumber,
+              hideBranding: booking.eventType.owner?.hideBranding,
               calendarEvent,
             });
           } catch (error) {

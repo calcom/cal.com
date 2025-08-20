@@ -853,7 +853,8 @@ export async function getAllWorkflowsFromEventType(
     userId,
     teamId,
     orgId,
-    workflowsLockedForUser
+    workflowsLockedForUser,
+    triggerEvents
   );
 
   return allWorkflows;

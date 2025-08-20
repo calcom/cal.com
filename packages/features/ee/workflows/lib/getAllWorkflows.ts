@@ -35,14 +35,17 @@ export const getAllWorkflows = async (
   teamId?: number | null,
   orgId?: number | null,
   workflowsLockedForUser = true,
-  triggerEvents?: WorkflowTriggerEvents[]
+  allowedTriggerEvents?: WorkflowTriggerEvents[]
 ) => {
-  const allWorkflows = eventTypeWorkflows;
+  const allWorkflows = eventTypeWorkflows.filter((workflow) => {
+    if (!allowedTriggerEvents) return true;
+    return allowedTriggerEvents.includes(workflow.trigger);
+  });
   const workflowWhere: Prisma.WorkflowWhereInput | undefined =
-    triggerEvents && triggerEvents.length > 0
+    allowedTriggerEvents && allowedTriggerEvents.length > 0
       ? {
           trigger: {
-            in: triggerEvents,
+            in: allowedTriggerEvents,
           },
         }
       : undefined;
@@ -128,9 +131,6 @@ export const getAllWorkflows = async (
   const seen = new Set();
 
   const workflows = allWorkflows.filter((workflow) => {
-    // Additional check, to remove unwanted workflows that might come from eventTypeWorkflows
-    if (triggerEvents && !triggerEvents.includes(workflow.trigger)) return false;
-
     const duplicate = seen.has(workflow.id);
     seen.add(workflow.id);
     return !duplicate;

@@ -21,7 +21,11 @@ const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"]
 export async function handleBookingRequested(args: {
   evt: CalendarEvent;
   booking: {
+    smsReminderNumber: string | null;
     eventType: {
+      owner: {
+        hideBranding: boolean;
+      } | null;
       team?: {
         parentId: number | null;
       } | null;
@@ -105,7 +109,8 @@ export async function handleBookingRequested(args: {
     if (bookingRequestedWorkflows.length > 0) {
       await scheduleWorkflowReminders({
         workflows: bookingRequestedWorkflows,
-        smsReminderNumber: null,
+        smsReminderNumber: booking.smsReminderNumber,
+        hideBranding: !!booking.eventType?.owner?.hideBranding,
         calendarEvent: {
           ...evt,
           bookerUrl: evt.bookerUrl as string,

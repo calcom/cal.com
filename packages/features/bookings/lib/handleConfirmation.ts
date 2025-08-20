@@ -94,7 +94,6 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const allWorkflows = await getAllWorkflowsFromEventType(eventType, booking.userId, [
     WorkflowTriggerEvents.NEW_EVENT,
-    WorkflowTriggerEvents.BEFORE_EVENT,
     WorkflowTriggerEvents.BOOKING_PAID,
     WorkflowTriggerEvents.BEFORE_EVENT,
     WorkflowTriggerEvents.AFTER_EVENT,
