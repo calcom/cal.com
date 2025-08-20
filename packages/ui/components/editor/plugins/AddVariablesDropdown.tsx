@@ -68,13 +68,14 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search variables"
+              placeholder={t("search_variables")}
+              aria-label={t("search_variables")}
               className="border-subtle bg-default focus:ring-brand-800 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1"
             />
           </div>
           <div className="h-64 overflow-scroll md:h-80">
             {filteredVariables.length === 0 ? (
-              <div className="text-subtle px-4 py-2 text-sm">No variables found</div>
+              <div className="text-subtle px-4 py-2 text-sm">{t("no_variables_found")}</div>
             ) : (
               filteredVariables.map((variable) => (
                 <DropdownMenuItem key={variable} className="hover:ring-0">
@@ -82,11 +83,9 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                     key={variable}
                     type="button"
                     className="w-full px-4 py-2"
-                    onClick={() => props.addVariable(t(`${variable}_variable`))}>
+                    onClick={() => props.addVariable(variable)}>
                     <div className="flex flex-col">
-                      <div className="mr-text-left">
-                        {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
-                      </div>
+                      <div className="mr-text-left">{`{${variable.toUpperCase().replace(/ /g, "_")}}`}</div>
                       <div className="text-default hidden text-left sm:flex">{t(`${variable}_info`)}</div>
                     </div>
                   </button>
