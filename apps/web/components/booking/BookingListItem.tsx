@@ -84,24 +84,8 @@ export type BookingItemProps = BookingItem & {
 };
 
 // Utility function to check if a booking has been reported by the current user
-// This handles both individual bookings and recurring series reporting
 const checkIfBookingReported = (booking: BookingItemProps): boolean => {
-  // Try to access the computed field from backend that considers recurring series
-  const hasBeenReportedByUserField = (booking as any).hasBeenReportedByUser;
-
-  // Handle both string and number types (backend might return either)
-  if (hasBeenReportedByUserField !== undefined && hasBeenReportedByUserField !== null) {
-    const numericValue =
-      typeof hasBeenReportedByUserField === "string"
-        ? parseInt(hasBeenReportedByUserField, 10)
-        : hasBeenReportedByUserField;
-
-    if (!isNaN(numericValue)) {
-      return numericValue > 0;
-    }
-  }
-
-  // Fallback to checking individual booking reports
+  // Check if this booking has been reported by the current user
   return booking.reports?.some((report) => report.reportedById === booking.loggedInUser.userId) || false;
 };
 

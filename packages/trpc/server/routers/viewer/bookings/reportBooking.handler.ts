@@ -169,9 +169,6 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     const futureRecurringBookings = await prisma.booking.findMany({
       where: {
         recurringEventId: booking.recurringEventId,
-        startTime: {
-          gte: new Date(),
-        },
       },
       select: {
         id: true,
