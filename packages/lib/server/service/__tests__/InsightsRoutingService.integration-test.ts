@@ -832,13 +832,13 @@ describe("InsightsRoutingService Integration Tests", () => {
 
   describe("columnFilters", () => {
     beforeAll(() => {
-      vi.useFakeTimers().setSystemTime(new Date("2025-08-20"));
+      vi.useFakeTimers().setSystemTime(new Date("2025-08-20T00:00:00.000Z"));
     });
 
     afterAll(() => {
+      vi.useRealTimers();
       vi.restoreAllMocks();
     });
-
     it("should handle empty columnFilters", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
