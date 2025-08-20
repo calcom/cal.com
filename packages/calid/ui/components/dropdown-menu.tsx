@@ -85,7 +85,7 @@ const DropdownMenuItem = React.forwardRef<
     disabled
       ? "text-emphasis cursor-not-allowed opacity-50 hover:bg-transparent"
       : "hover:bg-subtle focus:bg-muted focus:text-accent-foreground cursor-pointer",
-    color === "destructive" && "text-destructive focus:bg-destructive/10 hover:bg-destructive/10",
+    color === "destructive" && "text-destructive focus:bg-error hover:bg-error hover:border-semantic-error",
     className
   );
 

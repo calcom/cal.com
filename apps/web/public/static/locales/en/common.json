@@ -3138,7 +3138,7 @@
   "link": "Link",
   "rows_per_page": "rows per page",
   "pagination_status": "{{currentRange}} of {{totalItems}}",
-  "tip_username_plus": "Tip: You can add a '+' between usernames: cal.com/anna+brian to make a dynamic group meeting",
+  "tip_username_plus": "You can add a '+' between usernames to make a dynamic group meeting. e.g. - cal.id/rohit+manas",
   "user_has_no_team_yet": "You don't have a team yet",
   "no_team_members": "You don't have team members yet",
   "recurring_event_doesnt_support_seats": "Recurring event doesn't support seats feature. Make it non-recurring to enable seats.",

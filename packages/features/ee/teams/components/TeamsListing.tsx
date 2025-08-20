@@ -129,7 +129,7 @@ export function TeamsListing({
           background="/tips/teams"
           buttons={
             !orgId || isOrgAdmin ? (
-              <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+              <div className="space-y-2 sm:space-x-2 rtl:space-x-reverse">
                 <ButtonGroup>
                   <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                     {t("create_team")}

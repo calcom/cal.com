@@ -161,4 +161,5 @@ export const lucideIconList = new Set([
   "bookmark",
   "square-pen",
   "list-filter",
+  "square-arrow-out-up-right",
 ]);

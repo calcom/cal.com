@@ -128,9 +128,7 @@ export const Profile = ({ small }: ProfileProps) => {
           <Icon name="settings" className="mr-2 h-4 w-4" />
           {t("settings")}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => (window.location.href = "/auth/logout")}
-          className="text-destructive hover:border-semantic-error hover:bg-error">
+        <DropdownMenuItem onClick={() => (window.location.href = "/auth/logout")} color="destructive">
           <Icon name="log-out" className=" mr-2 h-4 w-4" />
           {t("sign_out")}
         </DropdownMenuItem>
