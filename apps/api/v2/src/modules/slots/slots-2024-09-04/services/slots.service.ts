@@ -23,6 +23,7 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
 import {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
@@ -147,8 +148,14 @@ export class SlotsService_2024_09_04 {
     }
 
     const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
-    if (nonSeatedEventAlreadyBooked) {
+    const isRoundRobinEvent = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
+    if (nonSeatedEventAlreadyBooked && !isRoundRobinEvent) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
+    }
+
+    if (isRoundRobinEvent) {
+      // add round robing logic here
     }
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
@@ -180,6 +187,18 @@ export class SlotsService_2024_09_04 {
       eventType.seatsPerTimeSlot !== null,
       reservationDuration
     );
+
+    // basically I can check if its a round robin event
+    // or just check the hosts and see the isFixed property to see if its a round robin event
+    // then I need to check the total count of hosts, which is total number of seats that can be booked
+    // then I need to check which ones are already booked
+    // that is the remaining number of seats that can be booked
+    // if the count is more than 0 then ok dont let em book a slot
+    console.log("------");
+    console.log("this is the slot that has been created for our host: ", host);
+    console.log(slot);
+    console.log(eventType.hosts);
+    console.log("------");
 
     return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
   }
