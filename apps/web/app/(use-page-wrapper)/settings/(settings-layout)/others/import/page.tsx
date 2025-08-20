@@ -1,75 +1,16 @@
 "use client";
 
 import { Checkbox, Button } from "@calid/features/ui";
-// import { Meta, SkeletonContainer } from "@calcom/ui/components";
-import { _generateMetadata, getTranslate } from "app/_utils";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import useCalendlyImport from "@lib/hooks/useCalendlyImport";
-
-// export const generateMetadata = async () =>
-//   await _generateMetadata(
-//     (t) => t("import"),
-//     (t) => t("import_configuration"),
-//     undefined,
-//     undefined,
-//     "/settings/others/import"
-//   );
-// const ImportView = () => {
-//   const [userId, setUserId] = useState<number>();
-//   const session = useSession();
-//   // Checks if the user has already authorized Calendly on first load
-//   useEffect(() => {
-//     if (!session || !session.data) return;
-//     session.data.user.id && setUserId(session.data.user.id);
-//   }, [session]);
-//   const { importFromCalendly, importing, handleChangeNotifyUsers, sendCampaignEmails } =
-//     useCalendlyImport(userId);
-//   const { t } = useLocale();
-//   return (
-//   );
-// };
-
-// export const generateMetadata = async () =>
-//   await _generateMetadata(
-//     (t) => t("import"),
-//     (t) => t("import_configuration"),
-//     undefined,
-//     undefined,
-//     "/settings/others/import"
-//   );
-
-// const ImportView = () => {
-//   const [userId, setUserId] = useState<number>();
-
-//   const session = useSession();
-
-//   // Checks if the user has already authorized Calendly on first load
-//   useEffect(() => {
-//     if (!session || !session.data) return;
-//     session.data.user.id && setUserId(session.data.user.id);
-//   }, [session]);
-
-//   const { importFromCalendly, importing, handleChangeNotifyUsers, sendCampaignEmails } =
-//     useCalendlyImport(userId);
-//   const { t } = useLocale();
-//   return (
-//   );
-// };
-
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
-  return (
-    <div></div>
-    // <SkeletonContainer>
-    //   <Meta title={title} description={description} borderInShellHeader={true} />
-    // </SkeletonContainer>
-  );
+  return <div></div>;
 };
 
 // Component responsible for importing data from Calendly if user has already authorized Calendly
@@ -81,19 +22,19 @@ const ImportFromCalendlyButton = ({
   importing: boolean | undefined;
 }) => {
   const { t } = useLocale();
-
   return (
-    <Button color="secondary" StartIcon="plus" onClick={importFromCalendly} loading={importing}>
+    <Button color="primary" StartIcon="download" onClick={importFromCalendly} loading={importing}>
       {t("import")}
     </Button>
   );
 };
 
 // Main view for Calendly import
-const ImportLayout = ({ code }: { code?: string }) => {
+const ImportLayout = () => {
   const [userId, setUserId] = useState<number>();
-
   const session = useSession();
+  const searchParams = useSearchParams();
+  const code = searchParams.get("code") || undefined;
 
   // Checks if the user has already authorized Calendly on first load
   useEffect(() => {
@@ -105,18 +46,17 @@ const ImportLayout = ({ code }: { code?: string }) => {
 };
 
 const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: string }) => {
-  const { importFromCalendly, importing, handleChangeNotifyUsers, sendCampaignEmails } =
-    useCalendlyImport(userId);
   const [loading, setLoading] = useState<boolean>(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [importing, setImporting] = useState<boolean>(false);
+  const [sendCampaignEmails, setSendCampaignEmails] = useState<boolean>(false);
   const { t } = useLocale();
-
   const router = useRouter();
 
   useEffect(() => {
-    if (code) importFromCalendly(); // .then(() => router.replace("/event-types"));
+    if (code) importFromCalendly().then(() => router.replace("/event-types"));
     else checkIfAuthorized(userId);
-  }, [userId, code]);
+  }, [userId, code, isAuthorized]);
 
   // Checks if the user has already authorized Calendly
   const checkIfAuthorized = async (userId: number) => {
@@ -135,12 +75,69 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
         return;
       }
       const data = await res.json();
+      console.log("Auth data: ", data);
       setIsAuthorized(data.authorized);
     } catch (e) {
+      console.error("Authorization check failed:", e);
     } finally {
       setLoading(false);
     }
   };
+
+  // Handle OAuth callback
+  const handleOAuthCallback = async (code: string) => {
+    try {
+      const res = await fetch(`/api/import/calendly/callback?code=${code}&userId=${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.ok) {
+        setIsAuthorized(true);
+        // Clean up URL
+        router.replace(`/settings/others/import?code=${code}`);
+      }
+    } catch (e) {
+      console.error("OAuth callback failed:", e);
+    }
+  };
+
+  // Import from Calendly
+  const importFromCalendly = async () => {
+    try {
+      setImporting(true);
+      const res = await fetch(
+        `/api/import/calendly?userId=${userId}&sendCampaignEmails=${sendCampaignEmails}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const data = await res.json();
+        console.error("Import failed:", data);
+        return;
+      }
+
+      // Show success message or redirect
+      console.log("Import started successfully");
+    } catch (e) {
+      console.error("Import failed:", e);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   console.log("Code: ", code);
+  //   if (code) importFromCalendly(); // .then(() => router.replace("/event-types"));
+  //   else checkIfAuthorized(userId);
+  // }, [userId, code]);
 
   const handleOnClickImport = () => {
     const queryParams = {
@@ -148,66 +145,63 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
       redirect_uri: process.env.NEXT_PUBLIC_CALENDLY_REDIRECT_URI ?? "",
       response_type: "code",
     };
-    window.location.href = `${process.env.NEXT_PUBLIC_CALENDLY_OAUTH_URL}/authorize?${new URLSearchParams(
+
+    const location = `${process.env.NEXT_PUBLIC_CALENDLY_OAUTH_URL}/authorize?${new URLSearchParams(
       queryParams
     )}`;
+    console.log("Location: ", location);
+    window.location.href = location;
   };
+
+  // useEffect(() => {
+  //   if (userId) {
+  //     checkIfAuthorized(userId);
+  //   }
+  // }, [userId]);
+
+  useEffect(() => {
+    if (code && userId && !isAuthorized) {
+      handleOAuthCallback(code);
+    }
+  }, [code, userId]);
+
+  if (loading) {
+    return <SkeletonLoader title={t("calendly_import")} description="" />;
+  }
 
   return (
     <>
-      {/* <SettingsHeader
-      title={t("import")}
-      description={t("import_configuration", { appName: APP_NAME })}
-      borderInShellHeader={false}> */}
-      <div className="border-subtle my-6 flex flex-row items-center justify-between rounded-md border p-6">
-        <div>
-          <div className="text-base font-medium">{t("calendly_import")}</div>
-        </div>
-        <Button size="base" StartIcon="download" className="my-1">
-          {t("import")}
-        </Button>
-      </div>
-      {/* </SettingsHeader> */}
+      <SettingsHeader
+        title={t("import")}
+        description={t("import_configuration", { appName: APP_NAME })}
+        borderInShellHeader={false}>
+        <div className="border-subtle my-6 flex flex-row items-center justify-between rounded-md border p-6">
+          <div>
+            <div className="text-base font-medium">{t("calendly_import")}</div>
 
-      {loading ? (
-        <SkeletonLoader title="Calendly" description={t("import_data_instructions")} />
-      ) : (
-        <div className="bg-default w-full sm:mx-0 xl:mt-0">
-          <SettingsHeader
-            title="Calendly"
-            description={t("import_data_instructions")}
-            CTA={
-              isAuthorized ? (
-                <ImportFromCalendlyButton
-                  importFromCalendly={
-                    () => importFromCalendly()
-                    // .then(() => router.replace("/event-types"))
-                  }
-                  importing={importing}
-                />
-              ) : (
-                <Button onClick={handleOnClickImport} color="secondary" StartIcon="plus">
-                  {t("import")}
-                </Button>
-              )
-            }
-            borderInShellHeader={true}
-          />
-          <div className="mt-3 px-4">
-            <div className="mt-2 flex w-full flex-row items-center gap-2">
-              <Checkbox className="h-4 w-4" />
-              <div className="text-emphasis text-xs">{t("notify_calendly_import")}</div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={sendCampaignEmails}
+                onCheckedChange={(checked) => setSendCampaignEmails(!!checked)}
+              />
+              <span className="text-sm">{t("notify_calendly_import")}</span>
             </div>
-            {/* <CheckboxField
-              checked={sendCampaignEmails}
-              description={t("notify_past_bookers")}
-              onChange={(e) => {
-                handleChangeNotifyUsers(e.target.checked);
-              }}
-            /> */}
           </div>
+
+          {isAuthorized ? (
+            <div className="flex flex-col gap-2">
+              <ImportFromCalendlyButton
+                importFromCalendly={() => importFromCalendly().then(() => router.replace("/event-types"))}
+                importing={importing}
+              />
+            </div>
+          ) : (
+            <Button size="base" StartIcon="download" className="my-1" onClick={handleOnClickImport}>
+              {t("connect_calendly")}
+            </Button>
+          )}
         </div>
-      )}
+      </SettingsHeader>
     </>
   );
 };

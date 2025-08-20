@@ -14,7 +14,7 @@ import type { Logger } from "inngest/middleware/logger";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
-import { sendImportDataEmail } from "@calcom/emails";
+import { sendImportDataEmail } from "@calcom/emails/email-manager";
 import { sendCampaigningEmail } from "@calcom/emails/email-manager";
 import type { CalendlyCampaignEmailProps } from "@calcom/emails/src/templates/CalendlyCampaignEmail";
 import type { ImportDataEmailProps } from "@calcom/emails/src/templates/ImportDataEmail";
@@ -24,7 +24,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import { defaultHandler,  } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder} from "@calcom/lib/server/defaultResponder";
-import {  getTranslation } from "@calcom/platform-libraries";
+// import {  getTranslation } from "@calcom/platform-libraries";
 
 
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -909,7 +909,7 @@ async function confirmUpcomingImportedBookings(createdBookings: any[], userIntID
         // Fetch user credentials and translation
         const [credentials, tOrganizer] = await Promise.all([
           getUsersCredentials(user),
-          getTranslation(user.locale ?? "en", "common"),
+          // getTranslation(user.locale ?? "en", "common"),
         ]);
         const userWithCredentials = { ...user, credentials };
 
@@ -920,8 +920,8 @@ async function confirmUpcomingImportedBookings(createdBookings: any[], userIntID
             const locale = attendee.locale ?? "en";
             let translate = translations.get(locale);
             if (!translate) {
-              translate = await getTranslation(locale, "common");
-              translations.set(locale, translate);
+              // translate = await getTranslation(locale, "common");
+              // translations.set(locale, translate);
             }
             return {
               name: attendee.name,

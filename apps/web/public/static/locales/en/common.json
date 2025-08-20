@@ -1,8 +1,9 @@
 {
   "calendly_import": "Import from calendly",
+  "calendly_authorized": "Calendly already imported",
   "notify_calendly_import": "Notify past bookers about your migration",
   "schedule": "Schedule",
-  "choose_a_meeting_type" : "Choose a meeting type",
+  "choose_a_meeting_type": "Choose a meeting type",
   "identity_provider": "Identity provider",
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
   "day_one": "{{count}} day",
@@ -2354,7 +2355,6 @@
   "insights_subtitle": "Analytics and performance metrics for your scheduling activities",
   "location_options": "{{locationCount}} location options",
   "location_options_label": "Location options",
-  
   "custom_plan": "Custom Plan",
   "email_embed": "Email Embed",
   "add_times_to_your_email": "Select a few available times and embed them in your Email",
