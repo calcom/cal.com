@@ -20,3 +20,4 @@ jobs:
           echo "::remove-matcher owner=tsc::"
           echo "::add-matcher::.github/matchers/tsc-absolute.json"
       - run: yarn type-check:ci
+        # Force CI trigger after memory allocation fix
