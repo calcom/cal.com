@@ -228,6 +228,8 @@ model EventType {
   restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
   hostGroups            HostGroup[]
 
+  bookingRequiresAuthentication Boolean @default(false)
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
