@@ -282,11 +282,6 @@ export type CombinedFilterSegment = SystemFilterSegmentInternal | UserFilterSegm
 
 export type SegmentIdentifier = { id: string; type: "system" } | { id: number; type: "user" };
 
-export type FilterSegmentsListResponse = {
-  segments: FilterSegmentOutput[];
-  preferredSegmentId: SegmentIdentifier | null;
-};
-
 export type SegmentStorage = {
   [tableIdentifier: string]: {
     segmentId: number;

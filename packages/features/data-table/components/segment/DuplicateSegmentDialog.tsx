@@ -71,6 +71,7 @@ export function DuplicateSegmentDialog({
       createSegment({
         ...rest,
         scope: "USER",
+        name: data.name,
       });
     }
   };

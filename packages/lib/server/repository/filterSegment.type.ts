@@ -1,17 +1,11 @@
 import { z } from "zod";
 
-import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
 import {
   ZActiveFilters,
   ZSortingState,
   ZColumnSizing,
   ZColumnVisibility,
 } from "@calcom/features/data-table/lib/types";
-
-export type FilterSegmentsListResponse = {
-  segments: FilterSegmentOutput[];
-  preferredSegmentId: number | null;
-};
 
 export const ZListFilterSegmentsInputSchema = z.object({
   tableIdentifier: z.string(),

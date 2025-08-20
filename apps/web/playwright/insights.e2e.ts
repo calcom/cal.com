@@ -206,7 +206,7 @@ test.describe("Insights", async () => {
 
     await clearFilters(page);
 
-    expect(page.url()).not.toContain("userId");
+    await expect(page).not.toHaveURL(/[?&]userId=/);
   });
 
   test("should test download button", async ({ page, users }) => {

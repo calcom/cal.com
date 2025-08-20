@@ -223,10 +223,10 @@ export function DataTableProvider({
       if (segment.columnSizing) {
         setColumnSizing(segment.columnSizing);
       }
-      if (segment.perPage) {
+      if (segment.perPage !== undefined) {
         setPageSize(segment.perPage);
       }
-      if (segment.searchTerm) {
+      if (segment.searchTerm !== undefined) {
         setSearchTerm(segment.searchTerm);
       }
       setPageIndex(0);
@@ -256,6 +256,8 @@ export function DataTableProvider({
     // then we set it.
     if (fetchedPreferredSegmentId && !segmentId) {
       setSegmentId(fetchedPreferredSegmentId);
+    } else if (segmentId) {
+      setSelectedSegment(findSelectedSegment(segmentId));
     }
     // We intentionally have only `isSegmentFetchedSuccessfully`
     // in the dependency array.

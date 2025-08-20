@@ -59,7 +59,7 @@ export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, sy
   return {
     segments,
     preferredSegmentId,
-    isSuccess,
+    isSuccess: Boolean(providedSegments) || isSuccess,
     setPreference,
     isSegmentEnabled: true,
   };
