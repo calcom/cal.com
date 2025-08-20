@@ -5315,6 +5315,87 @@
         "tags": ["Orgs / Teams / Routing forms / Responses"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/schedules": {
+      "get": {
+        "operationId": "OrganizationsTeamsSchedulesController_getTeamSchedules",
+        "summary": "Get all team member schedules",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Schedules"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
@@ -12629,6 +12710,69 @@
         "tags": ["Teams / Memberships"]
       }
     },
+    "/v2/teams/{teamId}/schedules": {
+      "get": {
+        "operationId": "TeamsSchedulesController_getTeamSchedules",
+        "summary": "Get all team member schedules",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Schedules"]
+      }
+    },
     "/v2/teams/{teamId}/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_requestEmailVerificationCode",
@@ -15566,6 +15710,13 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "locations": {
             "type": "array",
             "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
@@ -17045,6 +17196,13 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -17074,6 +17232,8 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
           "ownerId",
           "users"
         ]
@@ -17371,6 +17531,13 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "locations": {
             "type": "array",
@@ -18935,6 +19102,13 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "schedulingType": {
             "type": "string",
             "enum": ["collective", "roundRobin", "managed"],
@@ -19337,6 +19511,13 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "teamId": {
             "type": "number"
@@ -19746,6 +19927,13 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "hosts": {
             "type": "array",
@@ -20844,6 +21032,7 @@
           },
           "unit": {
             "type": "object",
+            "enum": ["hour", "minute", "day"],
             "description": "Unit for the offset time",
             "example": "hour"
           }
@@ -20864,6 +21053,7 @@
           "type": {
             "type": "string",
             "default": "beforeEvent",
+            "enum": ["beforeEvent"],
             "description": "Trigger type for the workflow",
             "example": "beforeEvent"
           }
@@ -20884,6 +21074,7 @@
           "type": {
             "type": "string",
             "default": "afterEvent",
+            "enum": ["afterEvent"],
             "description": "Trigger type for the workflow",
             "example": "afterEvent"
           }
@@ -20896,6 +21087,7 @@
           "type": {
             "type": "string",
             "default": "eventCancelled",
+            "enum": ["eventCancelled"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20907,6 +21099,7 @@
           "type": {
             "type": "string",
             "default": "newEvent",
+            "enum": ["newEvent"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20918,6 +21111,7 @@
           "type": {
             "type": "string",
             "default": "rescheduleEvent",
+            "enum": ["rescheduleEvent"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20937,6 +21131,7 @@
           "type": {
             "type": "string",
             "default": "afterGuestsCalVideoNoShow",
+            "enum": ["afterGuestsCalVideoNoShow"],
             "description": "Trigger type for the workflow",
             "example": "afterGuestsCalVideoNoShow"
           }
@@ -20957,6 +21152,7 @@
           "type": {
             "type": "string",
             "default": "afterHostsCalVideoNoShow",
+            "enum": ["afterHostsCalVideoNoShow"],
             "description": "Trigger type for the workflow",
             "example": "afterHostsCalVideoNoShow"
           }
@@ -21428,6 +21624,17 @@
         "properties": {
           "type": {
             "type": "object",
+            "enum": [
+              [
+                "beforeEvent",
+                "eventCancelled",
+                "newEvent",
+                "afterEvent",
+                "rescheduleEvent",
+                "afterHostsCalVideoNoShow",
+                "afterGuestsCalVideoNoShow"
+              ]
+            ],
             "description": "Trigger type for the workflow"
           }
         },
