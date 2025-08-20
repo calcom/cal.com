@@ -188,18 +188,6 @@ export class SlotsService_2024_09_04 {
       reservationDuration
     );
 
-    // basically I can check if its a round robin event
-    // or just check the hosts and see the isFixed property to see if its a round robin event
-    // then I need to check the total count of hosts, which is total number of seats that can be booked
-    // then I need to check which ones are already booked
-    // that is the remaining number of seats that can be booked
-    // if the count is more than 0 then ok dont let em book a slot
-    console.log("------");
-    console.log("this is the slot that has been created for our host: ", host);
-    console.log(slot);
-    console.log(eventType.hosts);
-    console.log("------");
-
     return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
   }
 
