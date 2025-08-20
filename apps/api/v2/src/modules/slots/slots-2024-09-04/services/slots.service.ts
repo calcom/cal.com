@@ -155,12 +155,23 @@ export class SlotsService_2024_09_04 {
     }
 
     if (isRoundRobinEvent) {
-      // add round robing logic here
+      const totalSeats = eventType.hosts.length;
+      const existingSlotReservations = await this.slotsRepository.getExistingSlotReservations(
+        input.eventTypeId,
+        startDate.toISO(),
+        endDate.toISO()
+      );
+
+      if (existingSlotReservations.length === totalSeats) {
+        throw new UnprocessableEntityException(
+          `Cannot reserve a slot since the team has no available hosts.`
+        );
+      }
+    } else {
+      await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
     }
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
-
-    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
 
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
