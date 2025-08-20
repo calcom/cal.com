@@ -227,7 +227,31 @@ export const FormBuilder = function FormBuilder({
               return null;
             }
 
-            const fieldType = fieldTypesConfigMap[field.type];
+            const fieldType = (() => {
+              const baseFieldType = fieldTypesConfigMap[field.type];
+
+              if (
+                field.type === "radioInput" &&
+                field.name === "location" &&
+                field.getOptionsAt === "locations"
+              ) {
+                const locationOptions = options || [];
+
+                // If there's only one location option, show its specific input type
+                if (locationOptions.length === 1) {
+                  const singleLocationValue = locationOptions[0].value;
+                  const optionInput = field.optionsInputs?.[singleLocationValue];
+                  if (optionInput?.type) {
+                    return (
+                      fieldTypesConfigMap[optionInput.type as keyof typeof fieldTypesConfigMap] ||
+                      baseFieldType
+                    );
+                  }
+                }
+              }
+
+              return baseFieldType;
+            })();
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
