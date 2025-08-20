@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Input } from "@calcom/ui/components/form";
 
@@ -21,11 +22,11 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
+  user: RouterOutputs["viewer"]["me"]["get"];
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { nextStep } = props;
-  const [user] = trpc.viewer.me.get.useSuspenseQuery();
+  const { nextStep, user } = props;
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
   const telemetry = useTelemetry();
