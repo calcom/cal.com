@@ -352,6 +352,7 @@ export const FormBuilder = function FormBuilder({
       {fieldDialog.isOpen && (
         <FieldEditDialog
           dialog={fieldDialog}
+          dataStore={dataStore}
           onOpenChange={(isOpen) =>
             setFieldDialog({
               isOpen,
@@ -510,11 +511,21 @@ function FieldEditDialog({
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
+  dataStore,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
+  dataStore: {
+    options: Record<
+      string,
+      {
+        source: { label: string };
+        value: { label: string; value: string; inputPlaceholder?: string }[];
+      }
+    >;
+  };
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -566,7 +577,32 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[formFieldType]}
+              value={(() => {
+                const fieldType = formFieldType;
+                const fieldData = dialog.data;
+
+                if (
+                  fieldType === "radioInput" &&
+                  fieldData?.name === "location" &&
+                  fieldData?.getOptionsAt === "locations"
+                ) {
+                  const locationOptions = dataStore.options.locations?.value || [];
+
+                  // If there's only one location option, show its specific input type
+                  if (locationOptions.length === 1) {
+                    const singleLocationValue = locationOptions[0].value;
+                    const optionInput = fieldData.optionsInputs?.[singleLocationValue];
+                    if (optionInput?.type) {
+                      return (
+                        fieldTypesConfigMap[optionInput.type as keyof typeof fieldTypesConfigMap] ||
+                        fieldTypesConfigMap[fieldType]
+                      );
+                    }
+                  }
+                }
+
+                return fieldTypesConfigMap[fieldType];
+              })()}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -603,7 +639,24 @@ function FieldEditDialog({
                           required={
                             !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
                           }
-                          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                          placeholder={(() => {
+                            const fieldData = dialog.data;
+                            if (
+                              formFieldType === "radioInput" &&
+                              fieldData?.name === "location" &&
+                              fieldData?.getOptionsAt === "locations"
+                            ) {
+                              const locationOptions = dataStore.options.locations?.value || [];
+                              if (locationOptions.length === 1) {
+                                const singleLocationValue = locationOptions[0].value;
+                                const optionInput = fieldData.optionsInputs?.[singleLocationValue];
+                                if (optionInput?.placeholder) {
+                                  return optionInput.placeholder;
+                                }
+                              }
+                            }
+                            return t(fieldForm.getValues("defaultLabel") || "");
+                          })()}
                           containerClassName="mt-6"
                           label={t("label")}
                         />
