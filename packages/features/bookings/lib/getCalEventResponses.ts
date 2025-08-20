@@ -5,6 +5,7 @@ import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
+import { HttpError } from "@calcom/lib/http-error";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -42,7 +43,10 @@ export const getCalEventResponses = ({
   // To set placeholder email for the booking
   if (!!!backwardCompatibleResponses.email) {
     if (typeof backwardCompatibleResponses["attendeePhoneNumber"] !== "string")
-      throw new Error("Both Phone and Email are missing");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Both Phone and Email are missing",
+      });
 
     backwardCompatibleResponses.email = contructEmailFromPhoneNumber(
       backwardCompatibleResponses["attendeePhoneNumber"]
