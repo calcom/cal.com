@@ -330,7 +330,6 @@ function createInsightsBookingService(
     // updatedColumnFilters = [
     //   ...updatedColumnFilters,
     //   { id: "endDate", value: { data: new Date().toISOString(), type: "LESS_THAN" } }, // endDate < now
-    //   { id: "status", value: { data: "accepted", type: "SINGLE_SELECT" } } // status = accepted
     // ];
   }
 
