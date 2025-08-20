@@ -64,6 +64,8 @@ export const DailyLocationType = "integrations:daily";
 export const CalVideoLocationType = DailyLocationType;
 export const MeetLocationType = "integrations:google:meet";
 
+export const MSTeamsLocationType = "integrations:office365_video";
+
 /**
  * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking
  */

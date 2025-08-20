@@ -1,5 +1,47 @@
 ## 1.1.2
 
+## 1.5.0
+
+### Minor Changes
+
+- [#23174](https://github.com/calcom/cal.com/pull/23174) [`618ef63`](https://github.com/calcom/cal.com/commit/618ef630170eb1c05b4a131a01d0c2316b3d1880) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - fix: Availability atom handleFormSubmit callbacks not triggering
+
+## 1.4.0
+
+### Minor Changes
+
+- [#23119](https://github.com/calcom/cal.com/pull/23119) [`eb1ed10`](https://github.com/calcom/cal.com/commit/eb1ed107ba54a4ae99d0b3aa741ae3076d0ec629) Thanks [@ThyMinimalDev](https://github.com/ThyMinimalDev)! - Added Booker atom prop silentlyHandleCalendarFailures, which ensure the booker still displays slots when the third party calendars credentials are invalid or expired
+
+## 1.3.1
+
+### Patch Changes
+
+- [#22925](https://github.com/calcom/cal.com/pull/22925) [`4c01f17`](https://github.com/calcom/cal.com/commit/4c01f171aebcc5a64453c27e950303902cc15309) Thanks [@sean-brydon](https://github.com/sean-brydon)! - Fixes an issues for the Booker atom wherein when multiple widgets were being placed on the same page, changes made in one widget would also get reflected in the others.
+
+## 1.3.0
+
+### Minor Changes
+
+- [#23060](https://github.com/calcom/cal.com/pull/23060) [`293dd1a`](https://github.com/calcom/cal.com/commit/293dd1a1402fbc0748dffd5619a1b1aacaea9d60) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - fix: EventTypeSettings Atom crashes on enabling `Lock timezone on booking` in advanced tab
+
+- [#22911](https://github.com/calcom/cal.com/pull/22911) [`d3fbc73`](https://github.com/calcom/cal.com/commit/d3fbc73a3962a9bcca6a95870b146a97f4c7d996) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - Added new callback functions to the handleFormSubmit method in the EventTypeSettings and AvailabilitySettings atoms. The handleFormSubmit method now accepts an optional callbacks object with the following properties:
+
+  - **onSuccess**: Called when the form submission is successful, allowing additional logic to be executed after the update.
+
+  - **onError**: Called when an error occurs during form submission, providing details about the error to handle specific cases or display custom messages.
+
+- [#23052](https://github.com/calcom/cal.com/pull/23052) [`fc2e81e`](https://github.com/calcom/cal.com/commit/fc2e81e89a6e320c7346dad3259dd51ed700fb30) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - Added showNoAvailabilityDialog prop to the Booker atom – a Boolean that controls whether the 'no availability' dialog is displayed
+
+- [#22976](https://github.com/calcom/cal.com/pull/22976) [`abe92cd`](https://github.com/calcom/cal.com/commit/abe92cd693f33d20113f5357a960baec042e5256) Thanks [@supalarry](https://github.com/supalarry)! - feat: style calendar settings and availability overrides
+
+- [#22956](https://github.com/calcom/cal.com/pull/22956) [`d18e233`](https://github.com/calcom/cal.com/commit/d18e23378b699e734e9dbbdf93225b02a9059ff4) Thanks [@supalarry](https://github.com/supalarry)! - booker atom: allow toggling org and team info when booking round robin
+
+## 1.2.0
+
+### Minor Changes
+
+- [#22886](https://github.com/calcom/cal.com/pull/22886) [`fb36497`](https://github.com/calcom/cal.com/commit/fb364971fadc1a6796e739956200f12af74e565c) Thanks [@supalarry](https://github.com/supalarry)! - bundle fonts to fix atoms in non-next apps
+
 ### Patch Changes
 
 - [#22731](https://github.com/calcom/cal.com/pull/22731) [`ef66187`](https://github.com/calcom/cal.com/commit/ef6618743d5c1367fadf7b98cf15f7ba829535e3) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Added new startTime prop to the Booker component that allows users to decide the first available date when the booker loads
