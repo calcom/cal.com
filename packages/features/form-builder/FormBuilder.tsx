@@ -508,6 +508,7 @@ function Options({
         {!readOnly && (
           <Button
             color="minimal"
+            data-testid="add-option"
             onClick={() => {
               const newOptions = [...(value || [])];
               newOptions.push({ label: "", value: "", price: 0 });
