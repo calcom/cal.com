@@ -49,7 +49,6 @@ export * from "./toggle";
 export * from "./tooltip";
 export * from "./HorizontalTabItem";
 export * from "./HorizontalTabs";
-export * from "./Profile";
 export * from "./icon/Icon";
 export * from "./layout/ConfLayout";
 

@@ -75,25 +75,42 @@ const DropdownMenuItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
     inset?: boolean;
     StartIcon?: React.ComponentProps<typeof Icon>["name"];
+    href?: string;
+    color?: "default" | "destructive";
   }
->(({ className, inset, disabled, StartIcon, color = "default", children, ...props }, ref) => (
-  <DropdownMenuPrimitive.Item
-    ref={ref}
-    disabled={disabled}
-    className={cn(
-      "relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
-      inset && "pl-8",
-      disabled
-        ? "text-emphasis cursor-not-allowed opacity-50 hover:bg-transparent"
-        : "hover:bg-subtle focus:bg-muted focus:text-accent-foreground cursor-pointer",
-      color === "destructive" && "text-destructive focus:bg-destructive/10 hover:bg-destructive/10",
-      className
-    )}
-    {...props}>
-    {StartIcon && <Icon name={StartIcon} className="mr-2 h-4 w-4" />}
-    {children}
-  </DropdownMenuPrimitive.Item>
-));
+>(({ className, inset, disabled, StartIcon, href, color = "default", children, ...props }, ref) => {
+  const itemClasses = cn(
+    "relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
+    inset && "pl-8",
+    disabled
+      ? "text-emphasis cursor-not-allowed opacity-50 hover:bg-transparent"
+      : "hover:bg-subtle focus:bg-muted focus:text-accent-foreground cursor-pointer",
+    color === "destructive" && "text-destructive focus:bg-destructive/10 hover:bg-destructive/10",
+    className
+  );
+
+  // If href is passed, render as an anchor
+  if (href) {
+    return (
+      <DropdownMenuPrimitive.Item asChild ref={ref} disabled={disabled} {...props}>
+        <a href={href} className={itemClasses}>
+          {StartIcon && <Icon name={StartIcon} className="mr-2 h-4 w-4" />}
+          {children}
+        </a>
+      </DropdownMenuPrimitive.Item>
+    );
+  }
+
+  // Otherwise render as normal item
+  return (
+    <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} className={itemClasses} {...props}>
+      {StartIcon && <Icon name={StartIcon} className="mr-2 h-4 w-4" />}
+      {children}
+    </DropdownMenuPrimitive.Item>
+  );
+});
+
+DropdownMenuItem.displayName = "DropdownMenuItem";
 
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
 
