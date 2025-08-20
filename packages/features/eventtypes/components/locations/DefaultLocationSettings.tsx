@@ -59,25 +59,24 @@ const DefaultLocationSettings = ({
         as="div"
         id="location-error"
       />
-      {eventLocationType.organizerInputType === "text" ||
-        (eventLocationType.organizerInputType === "phone" && (
-          <CheckboxField
-            name={`locations[${index}].displayLocationPublicly`}
-            data-testid="display-location"
-            disabled={disableLocationProp}
-            defaultChecked={defaultLocation?.displayLocationPublicly}
-            description={t("display_location_label")}
-            className={customClassNames?.organizerContactInput?.publicDisplayCheckbox?.checkbox}
-            onChange={(e) => {
-              const fieldValues = getValues("locations")[index];
-              updateLocationField(index, {
-                ...fieldValues,
-                displayLocationPublicly: e.target.checked,
-              });
-            }}
-            informationIconText={t("display_location_info_badge")}
-          />
-        ))}
+      {eventLocationType.organizerInputType && (
+        <CheckboxField
+          name={`locations[${index}].displayLocationPublicly`}
+          data-testid="display-location"
+          disabled={disableLocationProp}
+          defaultChecked={defaultLocation?.displayLocationPublicly}
+          description={t("display_location_label")}
+          className={customClassNames?.organizerContactInput?.publicDisplayCheckbox?.checkbox}
+          onChange={(e) => {
+            const fieldValues = getValues("locations")[index];
+            updateLocationField(index, {
+              ...fieldValues,
+              displayLocationPublicly: e.target.checked,
+            });
+          }}
+          informationIconText={t("display_location_info_badge")}
+        />
+      )}
       {eventLocationType?.supportsCustomLabel && (
         <TextField
           label={t("location_custom_label_input_label")}

@@ -129,7 +129,6 @@ const Locations: React.FC<LocationsProps> = ({
       options,
     };
   });
-  console.log("locationOptions", locationOptions);
 
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   const seatsEnabled = !!getValues("seatsPerTimeSlot");
