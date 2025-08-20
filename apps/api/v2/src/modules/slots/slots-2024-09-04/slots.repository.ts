@@ -56,6 +56,16 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
+  async getExistingSlotReservations(eventTypeId: number, startDate: string, endDate: string) {
+    return this.dbRead.prisma.selectedSlots.findMany({
+      where: {
+        eventTypeId,
+        slotUtcStartDate: startDate,
+        slotUtcEndDate: endDate,
+      },
+    });
+  }
+
   async createSlot(
     userId: number,
     eventTypeId: number,
