@@ -78,10 +78,10 @@ const DefaultLocationSettings = ({
             informationIconText={t("display_location_info_badge")}
           />
         ))}
-      {eventLocationType?.customLabel && (
+      {eventLocationType?.supportsCustomLabel && (
         <TextField
           label={t("location_custom_label_input_label")}
-          name={`locations[${index}].customLabel`}
+          name={`locations[${index}].CustomLabel`}
           type="text"
           defaultValue={defaultLocation?.customLabel}
           onChange={(e) => {

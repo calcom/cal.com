@@ -15,7 +15,7 @@ export type DefaultEventLocationType = {
   messageForOrganizer: string;
   category: "in person" | "conferencing" | "other" | "phone";
   linkType: "static";
-  customLabel?: boolean;
+  supportsCustomLabel?: boolean;
 
   iconUrl: string;
   urlRegExp?: string;
@@ -55,7 +55,7 @@ export type DefaultEventLocationType = {
 export type EventLocationTypeFromApp = Ensure<
   EventLocationTypeFromAppMeta,
   "defaultValueVariable" | "variable"
-> & { customLabel?: boolean; organizerInputLabel?: string };
+> & { supportsCustomLabel?: boolean; organizerInputLabel?: string };
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
@@ -146,7 +146,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     category: "conferencing",
     messageForOrganizer: "",
     linkType: "static",
-    customLabel: true,
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -160,7 +160,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/link.svg",
     category: "other",
     linkType: "static",
-    customLabel: true,
+    supportsCustomLabel: true,
   },
   {
     default: true,

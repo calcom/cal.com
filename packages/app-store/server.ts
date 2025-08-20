@@ -26,7 +26,7 @@ export async function getLocationGroupedOptions(
       icon?: string;
       slug?: string;
       credentialId?: number;
-      customLabel?: boolean;
+      supportsCustomLabel?: boolean;
     }[]
   > = {};
 
@@ -146,7 +146,7 @@ export async function getLocationGroupedOptions(
           label: l.label,
           value: l.type,
           icon: l.iconUrl,
-          customLabel: l.customLabel,
+          supportsCustomLabel: l.supportsCustomLabel,
         },
       ];
     } else {
@@ -155,7 +155,7 @@ export async function getLocationGroupedOptions(
           label: l.label,
           value: l.type,
           icon: l.iconUrl,
-          customLabel: l.customLabel,
+          supportsCustomLabel: l.supportsCustomLabel,
         },
       ];
     }
