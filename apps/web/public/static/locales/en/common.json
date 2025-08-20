@@ -3475,5 +3475,13 @@
   "form_submitted_trigger": "When routing form is submitted",
   "form_submitted_no_event_trigger": "When routing form is submitted and no booking is created",
   "how_long_after_form_submitted_no_event": "How long after the form was submitted?",
+  "form_name_variable": "Form Name",
+  "form_submitter_name_variable": "Form Submitter Name",
+  "form_submitter_email_variable": "Form Submitter Email",
+  "form_submitted_date_variable": "Form Submitted Date",
+  "form_submitted_time_variable": "Form Submitted Time",
+  "form_responses_variable": "Form Responses",
+  "team_name_variable": "Team Name",
+  "how_form_variables": "How to use form variables",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

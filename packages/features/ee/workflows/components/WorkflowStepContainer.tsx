@@ -53,10 +53,10 @@ import {
   shouldScheduleEmailReminder,
   isSMSOrWhatsappAction,
 } from "../lib/actionHelperFunctions";
-import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
+import { isFormTrigger, getVariablesForTrigger } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -139,6 +139,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const trigger = form.getValues("trigger");
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
+
+  // Get appropriate variables based on trigger type
+  const variables = getVariablesForTrigger(trigger);
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
@@ -841,10 +844,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </Label>
                       {!props.readOnly && (
                         <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableEmailSubject}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
+                          <AddVariablesDropdown addVariable={addVariableEmailSubject} variables={variables} />
                         </div>
                       )}
                     </div>
@@ -880,7 +880,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                     props.form.clearErrors();
                   }}
-                  variables={DYNAMIC_TEXT_VARIABLES}
+                  variables={variables}
                   addVariableButtonTop={isSMSAction(step.action)}
                   height="200px"
                   updateTemplate={updateTemplate}
@@ -1040,7 +1040,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
-              <h1 className="w-full text-xl font-semibold">{t("how_booking_questions_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold">
+                {isFormTrigger(trigger) ? t("how_form_variables") : t("how_booking_questions_as_variables")}
+              </h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
