@@ -28,7 +28,13 @@ export interface TranscriptionGeneratedDTO {
   orgId?: number | null;
   platformClientId?: string | null;
   evt: CalendarEvent;
-  transcriptionUrl: string;
+  downloadLinks?: {
+    transcription?: Array<{
+      format: string;
+      link: string;
+    }>;
+    recording?: string;
+  };
 }
 
 /**

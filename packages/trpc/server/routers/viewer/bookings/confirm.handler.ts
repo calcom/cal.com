@@ -6,11 +6,10 @@ import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";

@@ -127,7 +127,9 @@ export async function postHandler(request: NextRequest) {
           eventTypeId: booking.eventTypeId,
           eventTypeParentId: booking.eventType?.parentId,
           teamId,
-          eventType: booking.eventType,
+          eventType: booking.eventType ? {
+            teamId: booking.eventType.teamId,
+          } : undefined,
         },
       });
 
@@ -208,7 +210,9 @@ export async function postHandler(request: NextRequest) {
           eventTypeId: booking.eventTypeId,
           eventTypeParentId: booking.eventType?.parentId,
           teamId,
-          eventType: booking.eventType,
+          eventType: booking.eventType ? {
+            teamId: booking.eventType.teamId,
+          } : undefined,
         },
       });
 

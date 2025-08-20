@@ -17,8 +17,10 @@ import type {
   FormSubmittedNoEventDTO,
   RecordingReadyDTO,
   TranscriptionGeneratedDTO,
+  EventPayloadType,
+  OOOEntryPayloadType,
+  BookingNoShowUpdatedPayload,
 } from "../dto/types";
-import type { EventPayloadType, OOOEntryPayloadType, BookingNoShowUpdatedPayload } from "../sendPayload";
 
 // Form-specific payload types
 export interface FormSubmittedPayload {
@@ -337,6 +339,7 @@ export class WebhookPayloadFactory {
   private static createTranscriptionGeneratedPayload(dto: TranscriptionGeneratedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
+      eventType: null,
       downloadLinks: dto.downloadLinks,
     });
 

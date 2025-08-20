@@ -9,7 +9,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
-import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { EventManagerUser } from "@calcom/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
@@ -373,64 +373,42 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    // Import legacy functions for scheduled webhooks only
-    const getWebhooks = (await import("@calcom/features/webhooks/lib/getWebhooks")).default;
-    
-    const subscribersMeetingStarted = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamId: eventType?.teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
-    const subscribersMeetingEnded = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: eventType?.teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
-
-    const scheduleTriggerPromises: Promise<unknown>[] = [];
-
-    const updatedBookingsWithCalEventResponses = updatedBookings.map((booking) => {
-      return {
+    // Schedule meeting lifecycle webhooks using new architecture
+    const scheduleMeetingPromises = updatedBookings.map(async (booking) => {
+      const bookingWithResponses = {
         ...booking,
         ...getCalEventResponses({
           bookingFields: booking.eventType?.bookingFields ?? null,
           booking,
         }),
       };
-    });
 
-    subscribersMeetingStarted.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-          })
-        );
+      const evtOfBooking = {
+        ...evt,
+        uid: booking.uid,
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+      };
+
+      return BookingWebhookService.scheduleMeetingWebhooks({
+        booking: {
+          id: booking.id,
+          uid: booking.uid,
+          eventTypeId: eventType?.id || null,
+          userId: userId,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          responses: bookingWithResponses.responses,
+        },
+        evt: evtOfBooking,
+        teamId: eventType?.teamId,
+        orgId,
+        oAuthClientId: platformClientParams?.platformClientId,
+        isDryRun: false,
       });
     });
-    subscribersMeetingEnded.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-          })
-        );
-      });
-    });
 
-    await Promise.all(scheduleTriggerPromises);
+    await Promise.all(scheduleMeetingPromises);
 
     await scheduleNoShowTriggers({
       booking: {

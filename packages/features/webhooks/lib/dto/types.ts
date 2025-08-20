@@ -1,4 +1,6 @@
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { Payment } from "@prisma/client";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 export interface BaseEventDTO {
@@ -61,6 +63,26 @@ export interface BookingCancelledDTO extends BaseEventDTO {
   };
   cancelledBy?: string;
   cancellationReason?: string;
+}
+
+export interface BookingRejectedDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_REJECTED;
+  evt: CalendarEvent;
+  eventType: {
+    id: number;
+    title: string;
+    description: string | null;
+    requiresConfirmation: boolean;
+    price: number;
+    currency: string;
+    length: number;
+  } | null;
+  booking: {
+    id: number;
+    eventTypeId: number | null;
+    userId: number | null;
+    smsReminderNumber?: string | null;
+  };
 }
 
 export interface BookingRequestedDTO extends BaseEventDTO {
@@ -237,6 +259,7 @@ export interface FormSubmittedNoEventDTO extends BaseEventDTO {
 export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
+  | BookingRejectedDTO
   | BookingRequestedDTO
   | BookingRescheduledDTO
   | BookingPaidDTO
@@ -267,3 +290,88 @@ export interface WebhookDeliveryResult {
   subscriberUrl: string;
   webhookId: string;
 }
+
+// Legacy types moved from sendPayload.ts for backward compatibility
+export type EventTypeInfo = {
+  eventTitle?: string | null;
+  eventDescription?: string | null;
+  requiresConfirmation?: boolean | null;
+  price?: number | null;
+  currency?: string | null;
+  length?: number | null;
+};
+
+export type UTCOffset = {
+  utcOffset?: number | null;
+};
+
+export type WithUTCOffsetType<T> = T & {
+  user?: Person & UTCOffset;
+} & {
+  organizer?: Person & UTCOffset;
+} & {
+  attendees?: (Person & UTCOffset)[];
+};
+
+export type BookingNoShowUpdatedPayload = {
+  message: string;
+  bookingUid: string;
+  bookingId?: number;
+  attendees: { email: string; noShow: boolean }[];
+};
+
+export type TranscriptionGeneratedPayload = {
+  downloadLinks?: {
+    transcription: TGetTranscriptAccessLink["transcription"];
+    recording: string;
+  };
+};
+
+export type OOOEntryPayloadType = {
+  oooEntry: {
+    id: number;
+    start: string;
+    end: string;
+    createdAt: string;
+    updatedAt: string;
+    notes: string | null;
+    reason: {
+      emoji?: string;
+      reason?: string;
+    };
+    reasonId: number;
+    user: {
+      id: number;
+      name: string | null;
+      username: string | null;
+      timeZone: string;
+      email: string;
+    };
+    toUser: {
+      id: number;
+      name?: string | null;
+      username?: string | null;
+      timeZone?: string;
+      email?: string;
+    } | null;
+    uuid: string;
+  };
+};
+
+export type EventPayloadType = CalendarEvent &
+  TranscriptionGeneratedPayload &
+  EventTypeInfo & {
+    metadata?: { [key: string]: string | number | boolean | null };
+    bookingId?: number;
+    status?: string;
+    smsReminderNumber?: string;
+    rescheduleId?: number;
+    rescheduleUid?: string;
+    rescheduleStartTime?: string;
+    rescheduleEndTime?: string;
+    downloadLink?: string;
+    paymentId?: number;
+    rescheduledBy?: string;
+    cancelledBy?: string;
+    paymentData?: Payment;
+  };

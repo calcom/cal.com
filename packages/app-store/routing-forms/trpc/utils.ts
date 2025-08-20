@@ -1,10 +1,8 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
-import type { Tasker } from "@calcom/features/tasker/tasker";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+
 import { FormWebhookService } from "@calcom/features/webhooks/lib/service/FormWebhookService";
-import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -150,33 +148,24 @@ export async function _onFormSubmission(
     orgId,
   });
 
-  // Keep legacy approach for FORM_SUBMITTED_NO_EVENT (scheduled webhooks)
-  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
-
+  // Schedule delayed form webhooks using new architecture
   if (typeof window === "undefined") {
     try {
-      const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
-      const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
-        const scheduledAt = dayjs().add(15, "minute").toDate();
-
-        return tasker.create(
-          "triggerFormSubmittedNoEventWebhook",
-          {
-            responseId,
-            form: {
-              id: form.id,
-              name: form.name,
-              teamId: form.teamId ?? null,
-            },
-            responses: fieldResponsesByIdentifier,
-            redirect: chosenAction,
-            webhook,
-          },
-          { scheduledAt }
-        );
+      await FormWebhookService.scheduleDelayedFormWebhooks({
+        responseId,
+        form: {
+          id: form.id,
+          name: form.name,
+          teamId: form.teamId ?? null,
+        },
+        responses: fieldResponsesByIdentifier,
+        redirect: chosenAction,
+        teamId: form.teamId,
+        orgId,
+        delayMinutes: 15,
       });
 
-      const promises = [...promisesFormSubmittedNoEvent];
+      const promises: Promise<any>[] = [];
 
       await Promise.all(promises);
       const orderedResponses = form.fields.reduce((acc, field) => {

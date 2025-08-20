@@ -40,11 +40,11 @@ export type NewSeatedBookingObject = {
   uid: short.SUUID;
   eventTypeId: EventTypeId;
   reqBodyMetadata: ReqBodyMetadata;
-  subscriberOptions: GetSubscriberOptions;
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
   rescheduledBy?: string;
   workflows: Workflow[];
+  platformClientId?: string;
   isDryRun?: boolean;
 };
 

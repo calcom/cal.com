@@ -1,4 +1,4 @@
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import logger from "@calcom/lib/logger";
 
 import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
@@ -266,5 +266,102 @@ export class WebhookService {
    */
   setRepository(repository: WebhookRepository): void {
     this.repository = repository;
+  }
+
+  /**
+   * Schedules time-based webhooks (e.g., MEETING_STARTED, MEETING_ENDED) 
+   * Replaces the legacy scheduleTrigger functionality
+   */
+  async scheduleTimeBasedWebhook(
+    trigger: WebhookTriggerEvents,
+    scheduledAt: Date,
+    bookingData: {
+      id: number;
+      uid: string;
+      eventTypeId: number | null;
+      userId: number | null;
+      teamId?: number | null;
+      responses?: any;
+    },
+    subscriber: WebhookSubscriber,
+    evt: any,
+    isDryRun = false
+  ): Promise<void> {
+    if (isDryRun) {
+      log.debug(`Dry run - skipping scheduled webhook: ${trigger}`, {
+        bookingId: bookingData.id,
+        scheduledAt,
+      });
+      return;
+    }
+
+    try {
+      const tasker = (await import("@calcom/features/tasker")).default;
+      
+      // Use the existing sendWebhook task pattern
+      await tasker.create(
+        "sendWebhook", 
+        JSON.stringify({
+          secretKey: subscriber.secret,
+          triggerEvent: trigger,
+          createdAt: new Date().toISOString(),
+          webhook: subscriber,
+          data: {
+            // Create basic webhook data from available parameters
+            bookingId: bookingData.id,
+            eventTypeId: bookingData.eventTypeId,
+            userId: bookingData.userId,
+            teamId: bookingData.teamId,
+            evt,
+            responses: bookingData.responses
+          }
+        }),
+        { scheduledAt }
+      );
+
+      log.debug(`Scheduled time-based webhook: ${trigger}`, {
+        bookingId: bookingData.id,
+        subscriberUrl: subscriber.subscriberUrl,
+        scheduledAt,
+      });
+    } catch (error) {
+      log.error(`Failed to schedule time-based webhook: ${trigger}`, {
+        error: error instanceof Error ? error.message : String(error),
+        bookingId: bookingData.id,
+        subscriberUrl: subscriber.subscriberUrl,
+      });
+    }
+  }
+
+  /**
+   * Cancels scheduled webhook triggers for a booking
+   * Replaces the legacy deleteWebhookScheduledTriggers functionality
+   */
+  async cancelScheduledWebhooks(
+    bookingId: number,
+    triggers: WebhookTriggerEvents[] = [WebhookTriggerEvents.MEETING_STARTED, WebhookTriggerEvents.MEETING_ENDED],
+    isDryRun = false
+  ): Promise<void> {
+    if (isDryRun) {
+      log.debug(`Dry run - skipping webhook trigger deletion for booking: ${bookingId}`);
+      return;
+    }
+
+    try {
+      const tasker = (await import("@calcom/features/tasker")).default;
+      
+      // Cancel scheduled triggers for the specified events using reference UID
+      for (const trigger of triggers) {
+        const referenceUid = `booking-${bookingId}-${trigger}`;
+        await tasker.cancelWithReference(referenceUid, "sendWebhook");
+      }
+
+      log.debug(`Cancelled scheduled webhooks for booking: ${bookingId}`, { triggers });
+    } catch (error) {
+      log.error(`Failed to cancel scheduled webhooks for booking: ${bookingId}`, {
+        error: error instanceof Error ? error.message : String(error),
+        triggers,
+      });
+    }
   }
 }

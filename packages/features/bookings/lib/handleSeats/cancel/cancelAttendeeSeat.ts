@@ -143,8 +143,17 @@ async function cancelAttendeeSeat(
       id: bookingToDelete.id,
       eventTypeId: bookingToDelete.eventTypeId,
       userId: bookingToDelete.userId,
-      eventType: bookingToDelete.eventType,
+      smsReminderNumber: bookingToDelete.smsReminderNumber,
     },
+    eventType: bookingToDelete.eventType ? {
+      id: bookingToDelete.eventTypeId!, // Use eventTypeId from booking
+      title: bookingToDelete.eventType.title,
+      description: bookingToDelete.eventType.description,
+      requiresConfirmation: bookingToDelete.eventType.requiresConfirmation,
+      price: bookingToDelete.eventType.price,
+      currency: bookingToDelete.eventType.currency,
+      length: bookingToDelete.eventType.length,
+    } : null,
   }).catch((e) => {
     logger.error(
       `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,

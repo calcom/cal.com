@@ -36,11 +36,6 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import {
-  deleteWebhookScheduledTriggers,
-  scheduleTrigger,
-} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
@@ -85,7 +80,7 @@ import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/dto/types";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
@@ -1219,20 +1214,13 @@ async function handler(
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUserId,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamId,
-    orgId,
-    oAuthClientId: platformClientId,
-  };
+  // Subscriber options are now handled within the webhook services
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
     ? WebhookTriggerEvents.BOOKING_RESCHEDULED
     : WebhookTriggerEvents.BOOKING_CREATED;
 
-  subscriberOptions.triggerEvent = eventTrigger;
+  // Trigger event is now handled within the webhook services
 
   const subscriberOptionsMeetingEnded = {
     userId: triggerForUser ? organizerUser.id : null,
@@ -1290,11 +1278,12 @@ async function handler(
       uid,
       eventTypeId,
       reqBodyMetadata: reqBody.metadata,
-      subscriberOptions,
+      // subscriberOptions are now handled within webhook services
       eventTrigger,
       responses,
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
+      platformClientId,
       isDryRun,
     });
 
@@ -2081,56 +2070,40 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
-
-    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
-    const scheduleTriggerPromises = [];
-
-    if (rescheduleUid && originalRescheduledBooking) {
-      //delete all scheduled triggers for meeting ended and meeting started of booking
-      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
-        booking: originalRescheduledBooking,
-        isDryRun,
-      });
-    }
-
-    if (booking && booking.status === BookingStatus.ACCEPTED) {
-      const bookingWithCalEventResponses = {
-        ...booking,
-        responses: reqBody.calEventResponses,
-      };
-      for (const subscriber of subscribersMeetingEnded) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-            isDryRun,
-          })
-        );
+    try {
+      // Cancel scheduled webhooks for rescheduled bookings
+      if (rescheduleUid && originalRescheduledBooking) {
+        await BookingWebhookService.cancelScheduledMeetingWebhooks({
+          bookingId: originalRescheduledBooking.id,
+          isDryRun,
+        });
       }
 
-      for (const subscriber of subscribersMeetingStarted) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-            isDryRun,
-          })
-        );
+      // Schedule meeting lifecycle webhooks using new architecture
+      if (booking && booking.status === BookingStatus.ACCEPTED) {
+        await BookingWebhookService.scheduleMeetingWebhooks({
+          booking: {
+            id: booking.id,
+            uid: booking.uid,
+            eventTypeId: booking.eventTypeId,
+            userId: booking.userId,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            responses: reqBody.calEventResponses,
+          },
+          evt,
+          teamId: eventType.teamId,
+          orgId,
+          oAuthClientId: platformClientId,
+          isDryRun,
+        });
       }
-    }
-
-    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
+    } catch (error) {
       loggerWithEventDetails.error(
         "Error while scheduling or canceling webhook triggers",
         JSON.stringify({ error })
       );
-    });
+    }
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({

@@ -1,10 +1,11 @@
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, TimeUnit } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import dayjs from "@calcom/dayjs";
 
 import type {
   BookingCreatedDTO,
   BookingCancelledDTO,
+  BookingRejectedDTO,
   BookingRequestedDTO,
   BookingRescheduledDTO,
   BookingPaidDTO,
@@ -12,6 +13,7 @@ import type {
   BookingNoShowDTO,
 } from "../dto/types";
 import { WebhookNotifier } from "../notifier/WebhookNotifier";
+import { WebhookService } from "./WebhookService";
 
 // Simplified interface for webhook trigger args
 export interface WebhookTriggerArgs {
@@ -496,7 +498,7 @@ export class BookingWebhookService {
     isDryRun?: boolean;
   }): Promise<void> {
     const dto: BookingCancelledDTO = {
-      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+      triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
       eventTypeId: params.eventType?.id,
@@ -510,5 +512,212 @@ export class BookingWebhookService {
     };
 
     await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_REJECTED, dto, params.isDryRun);
+  }
+
+  /**
+   * Schedules meeting lifecycle webhooks (MEETING_STARTED, MEETING_ENDED)
+   * Replaces legacy scheduleTrigger usage
+   */
+  static async scheduleMeetingWebhooks(params: {
+    booking: {
+      id: number;
+      uid: string;
+      eventTypeId: number | null;
+      userId: number | null;
+      startTime: Date;
+      endTime: Date;
+      responses?: any;
+    };
+    evt: CalendarEvent;
+    teamId?: number | null;
+    orgId?: number | null;
+    oAuthClientId?: string;
+    isDryRun?: boolean;
+  }): Promise<void> {
+    const webhookService = new WebhookService();
+
+    // Get subscribers for MEETING_STARTED
+    const subscribersMeetingStarted = await webhookService.getSubscribers({
+      userId: params.booking.userId,
+      eventTypeId: params.booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+    });
+
+    // Get subscribers for MEETING_ENDED  
+    const subscribersMeetingEnded = await webhookService.getSubscribers({
+      userId: params.booking.userId,
+      eventTypeId: params.booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+    });
+
+    const schedulePromises: Promise<void>[] = [];
+
+    // Schedule MEETING_STARTED webhooks
+    for (const subscriber of subscribersMeetingStarted) {
+      schedulePromises.push(
+        webhookService.scheduleTimeBasedWebhook(
+          WebhookTriggerEvents.MEETING_STARTED,
+          params.booking.startTime,
+          {
+            id: params.booking.id,
+            uid: params.booking.uid,
+            eventTypeId: params.booking.eventTypeId,
+            userId: params.booking.userId,
+            teamId: params.teamId,
+            responses: params.booking.responses,
+          },
+          subscriber,
+          params.evt,
+          params.isDryRun
+        )
+      );
+    }
+
+    // Schedule MEETING_ENDED webhooks
+    for (const subscriber of subscribersMeetingEnded) {
+      schedulePromises.push(
+        webhookService.scheduleTimeBasedWebhook(
+          WebhookTriggerEvents.MEETING_ENDED,
+          params.booking.endTime,
+          {
+            id: params.booking.id,
+            uid: params.booking.uid,
+            eventTypeId: params.booking.eventTypeId,
+            userId: params.booking.userId,
+            teamId: params.teamId,
+            responses: params.booking.responses,
+          },
+          subscriber,
+          params.evt,
+          params.isDryRun
+        )
+      );
+    }
+
+    await Promise.all(schedulePromises);
+  }
+
+  /**
+   * Cancels scheduled meeting webhooks for a booking
+   * Replaces legacy deleteWebhookScheduledTriggers usage
+   */
+  static async cancelScheduledMeetingWebhooks(params: {
+    bookingId: number;
+    isDryRun?: boolean;
+  }): Promise<void> {
+    const webhookService = new WebhookService();
+    await webhookService.cancelScheduledWebhooks(
+      params.bookingId,
+      [WebhookTriggerEvents.MEETING_STARTED, WebhookTriggerEvents.MEETING_ENDED],
+      params.isDryRun
+    );
+  }
+
+  /**
+   * Schedules no-show webhooks for hosts and guests
+   * Replaces legacy scheduleNoShowTriggers functionality
+   */
+  static async scheduleNoShowWebhooks(params: {
+    booking: {
+      id: number;
+      startTime: Date;
+      eventTypeId: number | null;
+      userId: number | null;
+      uid: string;
+    };
+    organizerUser: {
+      id: number;
+      username: string | null;
+    };
+    eventType?: {
+      teamId?: number | null;
+    };
+    teamId?: number | null;
+    orgId?: number | null;
+    oAuthClientId?: string;
+    triggerForUser?: boolean;
+  }): Promise<void> {
+    const webhookService = new WebhookService();
+    
+    try {
+      const tasker = (await import("@calcom/features/tasker")).default;
+      const noShowPromises: Promise<string | void>[] = [];
+
+      // Get subscribers for host no-show webhooks
+      const subscribersHostsNoShow = await webhookService.getSubscribers({
+        userId: params.triggerForUser ? params.organizerUser.id : null,
+        eventTypeId: params.booking.eventTypeId,
+        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+        teamId: params.teamId,
+        orgId: params.orgId,
+        oAuthClientId: params.oAuthClientId,
+      });
+
+      // Schedule host no-show webhooks
+      noShowPromises.push(
+        ...subscribersHostsNoShow.map((webhook) => {
+          if (params.booking.startTime && webhook.time && webhook.timeUnit) {
+            const dayjs = require("@calcom/dayjs").default;
+            const scheduledAt = dayjs(params.booking.startTime)
+              .add(webhook.time, webhook.timeUnit.toLowerCase())
+              .toDate();
+            
+            return tasker.create(
+              "triggerHostNoShowWebhook",
+              {
+                triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+                bookingId: params.booking.id,
+                webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
+              },
+              { scheduledAt }
+            );
+          }
+          return Promise.resolve();
+        })
+      );
+
+      // Get subscribers for guest no-show webhooks
+      const subscribersGuestsNoShow = await webhookService.getSubscribers({
+        userId: params.triggerForUser ? params.organizerUser.id : null,
+        eventTypeId: params.booking.eventTypeId,
+        triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        teamId: params.teamId,
+        orgId: params.orgId,
+        oAuthClientId: params.oAuthClientId,
+      });
+
+      // Schedule guest no-show webhooks
+      noShowPromises.push(
+        ...subscribersGuestsNoShow.map((webhook) => {
+          if (params.booking.startTime && webhook.time && webhook.timeUnit) {
+            const dayjs = require("@calcom/dayjs").default;
+            const scheduledAt = dayjs(params.booking.startTime)
+              .add(webhook.time, webhook.timeUnit.toLowerCase())
+              .toDate();
+            
+            return tasker.create(
+              "triggerGuestNoShowWebhook",
+              {
+                triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+                bookingId: params.booking.id,
+                webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
+              },
+              { scheduledAt }
+            );
+          }
+          return Promise.resolve();
+        })
+      );
+
+      await Promise.all(noShowPromises);
+    } catch (error) {
+      console.error("Failed to schedule no-show webhooks:", error);
+    }
   }
 }

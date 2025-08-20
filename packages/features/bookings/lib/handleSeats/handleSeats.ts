@@ -3,6 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -26,15 +27,22 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     originalRescheduledBooking,
     reqBodyMetadata,
     eventTypeId,
-    subscriberOptions,
     eventTrigger,
     evt,
     workflows,
     rescheduledBy,
     rescheduleReason,
+    organizerUser,
+    platformClientId,
     isDryRun = false,
   } = newSeatedBookingObject;
-  // TODO: We could allow doing more things to support good dry run for seats
+
+  // Get orgId using the same pattern as other booking handlers
+  const orgId = await getOrgIdFromMemberOrTeamId({
+    memberId: organizerUser.id,
+    teamId: eventType.teamId,
+  });
+  // TODO: We could allow doing more things too support good dry run for seats
   if (isDryRun) return;
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
@@ -154,8 +162,8 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         teamId: eventType.teamId,
       },
       teamId: eventType.teamId,
-      orgId: subscriberOptions.orgId,
-      platformClientId: subscriberOptions.oAuthClientId,
+      orgId,
+      platformClientId,
       isDryRun,
       status: "ACCEPTED",
       metadata,
