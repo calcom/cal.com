@@ -122,10 +122,12 @@ export async function postHandler(request: NextRequest) {
         evt,
         downloadLink,
         booking: {
+          id: booking.id,
           userId: booking?.user?.id,
           eventTypeId: booking.eventTypeId,
           eventTypeParentId: booking.eventType?.parentId,
           teamId,
+          eventType: booking.eventType,
         },
       });
 
@@ -201,10 +203,12 @@ export async function postHandler(request: NextRequest) {
           recording,
         },
         booking: {
+          id: booking.id,
           userId: booking?.user?.id,
           eventTypeId: booking.eventTypeId,
           eventTypeParentId: booking.eventType?.parentId,
           teamId,
+          eventType: booking.eventType,
         },
       });
 

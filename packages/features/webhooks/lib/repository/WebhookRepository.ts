@@ -81,7 +81,7 @@ export class WebhookRepository {
     managedParentEventTypeId: number;
     teamIds: number[];
     oAuthClientId: string;
-    triggerEvent: string;
+    triggerEvent: WebhookTriggerEvents;
   }): Promise<any[]> {
     const { userId, eventTypeId, managedParentEventTypeId, teamIds, oAuthClientId, triggerEvent } = params;
 
@@ -96,7 +96,7 @@ export class WebhookRepository {
       FROM "Webhook"
       WHERE active = true 
         AND platform = true 
-        AND $1 = ANY("eventTriggers")
+        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
       
       UNION ALL
       
@@ -107,7 +107,7 @@ export class WebhookRepository {
       FROM "Webhook"
       WHERE active = true 
         AND "userId" = $2 
-        AND $1 = ANY("eventTriggers")
+        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       
       UNION ALL
@@ -119,7 +119,7 @@ export class WebhookRepository {
       FROM "Webhook"
       WHERE active = true 
         AND "eventTypeId" = $3 
-        AND $1 = ANY("eventTriggers")
+        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       
       UNION ALL
@@ -131,7 +131,7 @@ export class WebhookRepository {
       FROM "Webhook"
       WHERE active = true 
         AND "eventTypeId" = $4 
-        AND $1 = ANY("eventTriggers")
+        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
         AND $4 > 0
       
@@ -144,7 +144,7 @@ export class WebhookRepository {
       FROM "Webhook"
       WHERE active = true 
         AND "teamId" IN (${teamIdParams})
-        AND $1 = ANY("eventTriggers")
+        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       
       UNION ALL
@@ -156,7 +156,7 @@ export class WebhookRepository {
       FROM "Webhook"
       WHERE active = true 
         AND "platformOAuthClientId" = $5 
-        AND $1 = ANY("eventTriggers")
+        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
         AND $5 != ''
       

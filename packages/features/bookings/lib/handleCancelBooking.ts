@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { BookingWebhookService } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -261,16 +261,13 @@ async function handler(input: CancelBookingInput) {
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
   };
 
-  // Legacy data structure for cancelAttendeeSeat compatibility
-  const dataForWebhooks = { evt, webhooks: [], eventTypeInfo: {} };
-
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
     {
       seatReferenceUid: seatReferenceUid,
       bookingToDelete,
     },
-    dataForWebhooks,
+    { evt },
     bookingToDelete?.eventType?.metadata as EventTypeMetadata
   );
   if (result)

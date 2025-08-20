@@ -2,7 +2,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { WebhookNotifier } from "../notifier/WebhookNotifier";
-import { BaseWebhookService } from "./BaseWebhookService";
+import { WebhookService } from "./WebhookService";
 
 // Recording-specific DTOs
 export interface RecordingReadyDTO {
@@ -35,7 +35,7 @@ export interface TranscriptionGeneratedDTO {
  * Service for creating recording-related webhook DTOs and emitting webhook events
  * Handles RECORDING_READY and RECORDING_TRANSCRIPTION_GENERATED webhooks
  */
-export class RecordingWebhookService extends BaseWebhookService {
+export class RecordingWebhookService extends WebhookService {
   /**
    * Emits a recording ready webhook
    */
@@ -73,7 +73,13 @@ export class RecordingWebhookService extends BaseWebhookService {
    */
   static async emitTranscriptionGenerated(params: {
     evt: CalendarEvent;
-    transcriptionUrl: string;
+    downloadLinks?: {
+      transcription?: Array<{
+        format: string;
+        link: string;
+      }>;
+      recording?: string;
+    };
     booking?: {
       id: number;
       eventTypeId?: number | null;
@@ -94,7 +100,7 @@ export class RecordingWebhookService extends BaseWebhookService {
       orgId: params.orgId,
       platformClientId: params.platformClientId,
       evt: params.evt,
-      transcriptionUrl: params.transcriptionUrl,
+      downloadLinks: params.downloadLinks,
     };
 
     await WebhookNotifier.emitWebhook(WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED, dto, params.isDryRun);

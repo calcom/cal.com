@@ -1,5 +1,5 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
-import { RecordingWebhookService } from "@calcom/features/webhooks/lib/services/RecordingWebhookService";
+import { RecordingWebhookService } from "@calcom/features/webhooks/lib/service/RecordingWebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -9,10 +9,14 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler:triggerRecordingReadyWebhook"] });
 
 type Booking = {
+  id: number;
   userId: number | undefined;
   eventTypeId: number | null;
   eventTypeParentId: number | null | undefined;
   teamId?: number | null;
+  eventType?: {
+    teamId?: number | null;
+  };
 };
 
 
@@ -73,7 +77,10 @@ export const triggerTranscriptionGeneratedWebhook = async ({
 
   await RecordingWebhookService.emitTranscriptionGenerated({
     evt,
-    transcriptionUrl: downloadLinks?.transcription?.download_link || "",
+    downloadLinks: {
+      transcription: downloadLinks?.transcription,
+      recording: downloadLinks?.recording,
+    },
     booking: {
       id: booking.id,
       eventTypeId: booking.eventTypeId,

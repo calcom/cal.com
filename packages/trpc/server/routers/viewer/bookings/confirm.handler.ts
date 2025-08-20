@@ -8,6 +8,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -350,43 +351,28 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
-    // send BOOKING_REJECTED webhooks
-    const subscriberOptions: GetSubscriberOptions = {
-      userId: booking.userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+    // Send BOOKING_REJECTED webhook using the new service
+    await BookingWebhookService.emitBookingRejected({
+      evt,
+      booking: {
+        id: bookingId,
+        eventTypeId: booking.eventTypeId,
+        userId: booking.userId,
+        smsReminderNumber: booking.smsReminderNumber,
+      },
+      eventType: booking.eventType ? {
+        id: booking.eventType.id,
+        title: booking.eventType.title,
+        description: booking.eventType.description,
+        requiresConfirmation: booking.eventType.requiresConfirmation,
+        price: booking.eventType.price,
+        currency: booking.eventType.currency,
+        length: booking.eventType.length,
+        teamId: booking.eventType.teamId,
+      } : null,
       teamId,
       orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    };
-    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: booking.eventType?.title,
-      eventDescription: booking.eventType?.description,
-      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-      price: booking.eventType?.price,
-      currency: booking.eventType?.currency,
-      length: booking.eventType?.length,
-    };
-    const webhookData: EventPayloadType = {
-      ...evt,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: booking.eventType?.id,
-      status: BookingStatus.REJECTED,
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-    };
-    // TODO: Migrate to BookingWebhookService.emitBookingRejected() when implemented
-    const getWebhooks = (await import("@calcom/features/webhooks/lib/getWebhooks")).default;
-    const sendPayload = (await import("@calcom/features/webhooks/lib/sendOrSchedulePayload")).default;
-    
-    const webhooks = await getWebhooks(subscriberOptions);
-    const promises = webhooks.map((webhook) =>
-      sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, webhookData).catch((e) => {
-        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
-      })
-    );
-    await Promise.all(promises);
+    });
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";

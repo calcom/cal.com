@@ -34,7 +34,13 @@ export interface FormSubmittedPayload {
 
 export interface RecordingPayload {
   downloadLink?: string;
-  transcriptionUrl?: string;
+  downloadLinks?: {
+    transcription?: Array<{
+      format: string;
+      link: string;
+    }>;
+    recording?: string;
+  };
 }
 
 export interface WebhookPayload {
@@ -329,14 +335,15 @@ export class WebhookPayloadFactory {
   }
 
   private static createTranscriptionGeneratedPayload(dto: TranscriptionGeneratedDTO): WebhookPayload {
-    const payload: RecordingPayload = {
-      transcriptionUrl: dto.transcriptionUrl,
-    };
+    const eventPayload = this.buildEventPayload({
+      evt: dto.evt,
+      downloadLinks: dto.downloadLinks,
+    });
 
     return {
       triggerEvent: dto.triggerEvent,
       createdAt: dto.createdAt,
-      payload,
+      payload: eventPayload,
     };
   }
 }

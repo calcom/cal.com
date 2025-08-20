@@ -39,7 +39,7 @@ await Promise.all(promises);
 
 **After (New):**
 ```typescript
-import { BookingWebhookService } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 
 await BookingWebhookService.emitBookingCreated({
   evt,
@@ -93,7 +93,7 @@ await handleWebhookTrigger({
 
 **After (New):**
 ```typescript
-import { BookingWebhookService } from "@calcom/features/webhooks/lib/services/BookingWebhookService";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 
 await BookingWebhookService.emitBookingCreated({
   evt,

@@ -28,14 +28,18 @@ export class WebhookNotificationHandler {
       }
 
       // Get subscribers for this event through WebhookService
-      const subscribers = await this.webhookService.getSubscribers({
+      const queryParams = {
         userId: dto.userId,
         eventTypeId: dto.eventTypeId,
         triggerEvent: trigger,
         teamId: dto.teamId,
         orgId: dto.orgId,
         oAuthClientId: dto.platformClientId,
-      });
+      };
+      
+      log.debug(`Querying for webhook subscribers with params:`, queryParams);
+      
+      const subscribers = await this.webhookService.getSubscribers(queryParams);
       
       if (subscribers.length === 0) {
         log.debug(`No subscribers found for event: ${trigger}`, {

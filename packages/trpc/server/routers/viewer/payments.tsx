@@ -3,7 +3,7 @@ import { z } from "zod";
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
-import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -129,18 +129,28 @@ export const paymentsRouter = router({
         const userId = ctx.user.id || 0;
         const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId });
         const eventTypeId = booking.eventTypeId || 0;
-        const webhooks = await WebhookService.init({
-          userId,
-          eventTypeId,
-          triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
-          orgId,
-        });
-        await webhooks.sendPayload({
-          ...evt,
-          bookingId: booking.id,
+        
+        // Send BOOKING_PAID webhook using the new service
+        await BookingWebhookService.emitBookingPaid({
+          evt,
+          booking: {
+            id: booking.id,
+            eventTypeId: booking.eventTypeId,
+            userId: booking.userId,
+          },
+          eventType: booking.eventType ? {
+            id: booking.eventType.id,
+            title: booking.eventType.title,
+            description: booking.eventType.description,
+            requiresConfirmation: booking.eventType.requiresConfirmation,
+            price: booking.eventType.price,
+            currency: booking.eventType.currency,
+            length: booking.eventType.length,
+            teamId: booking.eventType.teamId,
+          } : null,
           paymentId: payment.id,
           paymentData,
-          eventTypeId,
+          orgId,
         });
 
         await sendNoShowFeeChargedEmail(

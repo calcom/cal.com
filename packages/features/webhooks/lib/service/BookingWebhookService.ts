@@ -469,4 +469,46 @@ export class BookingWebhookService {
 
     await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, dto, params.isDryRun);
   }
+
+  /**
+   * Emits a booking rejected webhook
+   */
+  static async emitBookingRejected(params: {
+    evt: CalendarEvent;
+    booking: {
+      id: number;
+      eventTypeId: number | null;
+      userId: number | null;
+      smsReminderNumber?: string | null;
+    };
+    eventType: {
+      id: number;
+      title: string;
+      description: string | null;
+      requiresConfirmation: boolean;
+      price: number;
+      currency: string;
+      length: number;
+      teamId?: number | null;
+    } | null;
+    teamId?: number | null;
+    orgId?: number | null;
+    isDryRun?: boolean;
+  }): Promise<void> {
+    const dto: BookingCancelledDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType?.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: undefined,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+    };
+
+    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_REJECTED, dto, params.isDryRun);
+  }
 }
