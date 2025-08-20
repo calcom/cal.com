@@ -106,8 +106,6 @@ export function useInitialFormValues({
         guests: prefillFormParams.guests,
       });
 
-      disableAutoFillOnBookingPage = true;
-
       const defaultUserValues = {
         email:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
