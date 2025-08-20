@@ -319,14 +319,14 @@ function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
   dateTarget: "createdAt" | "startTime" = "createdAt",
-  onlyCompleted = false
+  status: "completed" | "all" = "all"
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
 
   const updatedColumnFilters = columnFilters || [];
 
   // TODO : completed status check for filtering
-  if (onlyCompleted) {
+  if (status === "completed") {
     // updatedColumnFilters = [
     //   ...updatedColumnFilters,
     //   { id: "endDate", value: { data: new Date().toISOString(), type: "LESS_THAN" } }, // endDate < now
@@ -578,7 +578,7 @@ export const insightsRouter = router({
   membersWithMostCompletedBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", true); // only completed bookings
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", "completed"); // only completed bookings
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
@@ -589,7 +589,7 @@ export const insightsRouter = router({
   membersWithLeastCompletedBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", true); // only completed bookings
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", "completed"); // only completed bookings
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
