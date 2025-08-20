@@ -1,6 +1,7 @@
 import { beforeEach, vi } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
+// FIXME is it okay to use the large type here?
 import type * as appStore from "@calcom/app-store";
 
 vi.mock("@calcom/app-store", () => appStoreMock);
