@@ -74,6 +74,7 @@ type Input = Pick<
   | "hideOrganizerEmail"
   | "team"
   | "calVideoSettings"
+  | "hidden"
 >;
 
 @Injectable()
