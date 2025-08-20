@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 
 import { getAppSetupMap } from "@calcom/lib/apps/registry";
 
-import { AsyncDynamicComponent } from "../../_components/AsyncDynamicComponent";
+import AsyncDynamicComponent from "../../_components/AsyncDynamicComponent";
 
 export const AppSetupMap = {
   alby: dynamic(() => import("../../alby/pages/setup")),

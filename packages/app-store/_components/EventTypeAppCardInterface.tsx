@@ -8,7 +8,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
-import { AsyncDynamicComponent } from "./AsyncDynamicComponent";
+import AsyncDynamicComponent from "./AsyncDynamicComponent";
 
 export type EventTypeApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;

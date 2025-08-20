@@ -4,14 +4,14 @@ import { vi } from "vitest";
 
 import type { RouterOutputs } from "@calcom/trpc";
 
-import { DynamicComponent } from "./DynamicComponent";
+import AsyncDynamicComponent from "./AsyncDynamicComponent";
 import { EventTypeAppCard } from "./EventTypeAppCardInterface";
 
-vi.mock("./DynamicComponent", async () => {
-  const actual = (await vi.importActual("./DynamicComponent")) as object;
+vi.mock("./AsyncDynamicComponent", async () => {
+  const actual = (await vi.importActual("./AsyncDynamicComponent")) as object;
   return {
     ...actual,
-    DynamicComponent: vi.fn(() => <div>MockedDynamicComponent</div>),
+    AsyncDynamicComponent: vi.fn(() => <div>MockedAsyncDynamicComponent</div>),
   };
 });
 
@@ -38,17 +38,17 @@ const mockProps = {
 } as any;
 
 describe("Tests for EventTypeAppCard component", () => {
-  test("Should render DynamicComponent with correct slug", () => {
+  test("Should render AsyncDynamicComponent with correct slug", () => {
     render(<EventTypeAppCard {...mockProps} />);
 
-    expect(DynamicComponent).toHaveBeenCalledWith(
+    expect(AsyncDynamicComponent).toHaveBeenCalledWith(
       expect.objectContaining({
         slug: mockProps.app.slug,
       }),
       {}
     );
 
-    expect(screen.getByText("MockedDynamicComponent")).toBeInTheDocument();
+    expect(screen.getByText("MockedAsyncDynamicComponent")).toBeInTheDocument();
   });
 
   test("Should invoke getAppData and setAppData from context on render", () => {
@@ -66,7 +66,7 @@ describe("Tests for EventTypeAppCard component", () => {
     expect(setAppDataMock).toHaveBeenCalled();
   });
 
-  test("Should render DynamicComponent with 'stripepayment' slug for stripe app", () => {
+  test("Should render AsyncDynamicComponent with 'stripepayment' slug for stripe app", () => {
     const stripeProps = {
       ...mockProps,
       app: {
@@ -77,19 +77,19 @@ describe("Tests for EventTypeAppCard component", () => {
 
     render(<EventTypeAppCard {...stripeProps} />);
 
-    expect(DynamicComponent).toHaveBeenCalledWith(
+    expect(AsyncDynamicComponent).toHaveBeenCalledWith(
       expect.objectContaining({
         slug: "stripepayment",
       }),
       {}
     );
 
-    expect(screen.getByText("MockedDynamicComponent")).toBeInTheDocument();
+    expect(screen.getByText("MockedAsyncDynamicComponent")).toBeInTheDocument();
   });
 
   test("Should display error boundary message on child component error", () => {
-    (DynamicComponent as jest.Mock).mockImplementation(() => {
-      return Error("Mocked error from DynamicComponent");
+    (AsyncDynamicComponent as jest.Mock).mockImplementation(() => {
+      return Error("Mocked error from AsyncDynamicComponent");
     });
 
     render(<EventTypeAppCard {...mockProps} />);

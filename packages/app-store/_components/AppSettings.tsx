@@ -1,6 +1,6 @@
 import { getAppSettingsComponentsMap } from "@calcom/lib/apps/registry";
 
-import { AsyncDynamicComponent } from "./AsyncDynamicComponent";
+import AsyncDynamicComponent from "./AsyncDynamicComponent";
 
 export const AppSettings = (props: { slug: string }) => {
   return (

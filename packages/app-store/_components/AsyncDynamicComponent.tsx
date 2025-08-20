@@ -1,16 +1,8 @@
-import { Suspense, use, type ComponentType } from "react";
+import { Suspense, type ComponentType, useEffect, useState } from "react";
 
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ComponentMap = Record<string, ComponentType<any>>;
-
-interface AsyncDynamicComponentProps {
-  componentMapPromise: Promise<ComponentMap>;
-  slug: string;
-  wrapperClassName?: string;
-  [key: string]: unknown;
-}
+import type { ComponentMapType } from "./types";
 
 function AsyncDynamicComponentInner({
   componentMapPromise,
@@ -18,29 +10,55 @@ function AsyncDynamicComponentInner({
   wrapperClassName,
   ...rest
 }: AsyncDynamicComponentProps) {
-  const componentMap = use(componentMapPromise);
+  const [componentMap, setComponentMap] = useState<ComponentMapType | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    componentMapPromise
+      .then((map) => {
+        setComponentMap(map);
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, [componentMapPromise]);
+
+  if (error) {
+    console.error("Failed to load component map:", error);
+    return null;
+  }
+
+  if (!componentMap) {
+    return <SkeletonText className="h-6 w-24" />;
+  }
+
   const dirName = slug === "stripe" ? "stripepayment" : slug;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Component = componentMap[dirName] as ComponentType<any>;
 
-  // There can be apps with no matching component
-  if (!componentMap[dirName]) return null;
+  if (!Component) {
+    return null;
+  }
 
-  const Component = componentMap[dirName];
+  const componentElement = <Component {...rest} />;
 
-  return (
-    <div className={wrapperClassName || ""}>
-      <Component {...rest} />
-    </div>
-  );
+  if (wrapperClassName) {
+    return <div className={wrapperClassName}>{componentElement}</div>;
+  }
+
+  return componentElement;
 }
 
-export function AsyncDynamicComponent(props: AsyncDynamicComponentProps) {
+type AsyncDynamicComponentProps = {
+  componentMapPromise: Promise<ComponentMapType>;
+  slug: string;
+  wrapperClassName?: string;
+  [key: string]: unknown;
+};
+
+export default function AsyncDynamicComponent(props: AsyncDynamicComponentProps) {
   return (
-    <Suspense
-      fallback={
-        <div className={props.wrapperClassName || ""}>
-          <SkeletonText className="h-24 w-full" />
-        </div>
-      }>
+    <Suspense fallback={<SkeletonText className="h-6 w-24" />}>
       <AsyncDynamicComponentInner {...props} />
     </Suspense>
   );
