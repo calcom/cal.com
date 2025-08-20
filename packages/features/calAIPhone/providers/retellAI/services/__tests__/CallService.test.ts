@@ -27,10 +27,7 @@ describe("CallService", () => {
     const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
     vi.mocked(CreditService).mockImplementation(() => ({
-      getAllCredits: vi.fn().mockResolvedValue({
-        totalRemainingMonthlyCredits: 100,
-        additionalCredits: 50,
-      }),
+      hasAvailableCredits: vi.fn().mockResolvedValue(true),
     }));
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
@@ -166,20 +163,6 @@ describe("CallService", () => {
       );
     });
 
-    it("should throw error if insufficient credits", async () => {
-      const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-      vi.mocked(CreditService).mockImplementation(() => ({
-        getAllCredits: vi.fn().mockResolvedValue({
-          totalRemainingMonthlyCredits: 2,
-          additionalCredits: 1,
-        }),
-      }));
-
-      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
-        "Insufficient credits to make test call. Need 5 credits, have 3"
-      );
-    });
-
     it("should throw error if no phone number provided", async () => {
       await expect(
         service.createTestCall({
@@ -271,14 +254,11 @@ describe("CallService", () => {
 
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       vi.mocked(CreditService).mockImplementation(() => ({
-        getAllCredits: vi.fn().mockResolvedValue({
-          totalRemainingMonthlyCredits: 2,
-          additionalCredits: 1,
-        }),
+        hasAvailableCredits: vi.fn().mockResolvedValue(false),
       }));
 
       await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
-        "Insufficient credits to make test call. Need 5 credits, have 3"
+        "Insufficient credits to make test call. Please purchase more credits."
       );
     });
 
@@ -288,14 +268,11 @@ describe("CallService", () => {
 
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       vi.mocked(CreditService).mockImplementation(() => ({
-        getAllCredits: vi.fn().mockResolvedValue({
-          totalRemainingMonthlyCredits: null,
-          additionalCredits: null,
-        }),
+        hasAvailableCredits: vi.fn().mockResolvedValue(false),
       }));
 
       await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
-        "Insufficient credits to make test call. Need 5 credits, have 0"
+        "Insufficient credits to make test call. Please purchase more credits."
       );
     });
   });
