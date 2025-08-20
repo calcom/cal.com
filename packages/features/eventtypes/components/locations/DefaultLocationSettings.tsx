@@ -37,11 +37,7 @@ const DefaultLocationSettings = ({
   return (
     <LocationOptionContainer>
       <LocationInput
-        label={
-          "organizerInputLabel" in eventLocationType
-            ? eventLocationType?.organizerInputLabel || t("value")
-            : t("value")
-        }
+        label={"organizerInputLabel" in eventLocationType ? eventLocationType?.organizerInputLabel : null}
         data-testid={`${eventLocationType.type}-location-input`}
         defaultValue={defaultLocation ? defaultLocation[eventLocationType.defaultValueVariable] : undefined}
         eventLocationType={eventLocationType}
@@ -80,7 +76,7 @@ const DefaultLocationSettings = ({
       {eventLocationType?.supportsCustomLabel && (
         <TextField
           label={t("location_custom_label_input_label")}
-          name={`locations[${index}].CustomLabel`}
+          name={`locations[${index}].customLabel`}
           type="text"
           defaultValue={defaultLocation?.customLabel}
           onChange={(e) => {

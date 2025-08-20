@@ -15,7 +15,7 @@ const LocationInput = (props: {
   index: number;
   customClassNames?: LocationInputCustomClassNames;
   disableLocationProp?: boolean;
-  label?: string;
+  label?: string | null;
 }) => {
   const { t } = useLocale();
   const { eventLocationType, index, customClassNames, disableLocationProp, label, ...remainingProps } = props;
@@ -31,7 +31,7 @@ const LocationInput = (props: {
         render={({ field: { onChange, value } }) => {
           return (
             <TextField
-              label={label ? t(label) : t("value")}
+              label={label ? t(label) : null}
               name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
               placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
               type="text"
