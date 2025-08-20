@@ -119,8 +119,12 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
+  console.log("event.data", event.data);
+
   const disableAutoFillOnBookingPage =
-    event.data?.team?.parent?.organizationSettings?.disableAutoFillOnBookingPage ?? false;
+    event.data?.team?.parent?.organizationSettings?.disableAutoFillOnBookingPage ??
+    event.data?.parent?.parent?.organizationSettings?.disableAutoFillOnBookingPage ??
+    false;
 
   const bookerForm = useBookingForm({
     event: event.data,

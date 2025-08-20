@@ -64,7 +64,7 @@ export function useInitialFormValues({
   extraOptions,
   prefillFormParams,
   clientId,
-  disableAutoFillOnBookingPage = false,
+  disableAutoFillOnBookingPage,
 }: UseInitialFormValuesProps) {
   const stableHashExtraOptions = getStableHash(extraOptions);
 

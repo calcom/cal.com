@@ -165,6 +165,15 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             theme: true,
             brandColor: true,
             darkBrandColor: true,
+            parent: {
+              select: {
+                organizationSettings: {
+                  select: {
+                    disableAutoFillOnBookingPage: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

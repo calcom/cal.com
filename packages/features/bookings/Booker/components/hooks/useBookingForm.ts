@@ -37,7 +37,7 @@ export const useBookingForm = ({
   extraOptions,
   prefillFormParams,
   clientId,
-  disableAutoFillOnBookingPage = false,
+  disableAutoFillOnBookingPage,
 }: IUseBookingForm) => {
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
