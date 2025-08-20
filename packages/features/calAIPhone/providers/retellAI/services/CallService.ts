@@ -175,18 +175,15 @@ export class CallService {
     try {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const creditService = new CreditService();
-      const credits = await creditService.getAllCredits({
-        userId,
-        teamId,
+      const hasCredits = await creditService.hasAvailableCredits({
+        userId: userId || undefined,
+        teamId: teamId || undefined,
       });
 
-      const availableCredits =
-        (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
-
-      if (availableCredits < MIN_CREDIT_REQUIRED_FOR_TEST_CALL) {
+      if (!hasCredits) {
         throw new HttpError({
           statusCode: 403,
-          message: `Insufficient credits to make test call. Need ${MIN_CREDIT_REQUIRED_FOR_TEST_CALL} credits, have ${availableCredits}. Please purchase more credits.`,
+          message: `Insufficient credits to make test call. Please purchase more credits.`,
         });
       }
     } catch (error) {

@@ -236,6 +236,6 @@ export const DEFAULT_GROUP_ID = "default_group_id";
 
 const _rawCalAiPrice = process.env.NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE;
 export const CAL_AI_PHONE_NUMBER_MONTHLY_PRICE = (() => {
-  const parsed = _rawCalAiPrice !== undefined ? Number(_rawCalAiPrice) : NaN;
+  const parsed = _rawCalAiPrice && _rawCalAiPrice.trim() !== "" ? Number(_rawCalAiPrice) : NaN;
   return Number.isFinite(parsed) ? parsed : 5;
 })();

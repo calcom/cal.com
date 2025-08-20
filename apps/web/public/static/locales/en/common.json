@@ -850,7 +850,6 @@
   "create_new_workflow_agent": "Create new workflow cal.ai voice agent",
   "create_new_workflow_agent_description": "Create a new workflow cal.ai voice agent to automate your workflows",
   "phone_number_for_ai_call": "Phone number (for our agent to call)",
-  "you_can_only_call_numbers_in_the_us": "You can only call numbers in the US if you bought phone number from us",
   "buy_a_phone_number_or_import_one_you_already_have": "Buy a phone number or import one you already have",
   "test_agent": "Test Agent",
   "phone_numbers": "Phone Numbers",

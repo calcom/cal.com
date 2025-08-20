@@ -11,7 +11,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogHeader, DialogFooter as BaseDialogFooter } from "@calcom/ui/components/dialog";
@@ -606,12 +605,6 @@ export function AgentConfigurationSheet({
                         </div>
                       </div>
                     </div>
-                    {/* Only show US restriction for Retell purchased numbers, not imported ones */}
-                    {agentData.outboundPhoneNumbers.some(
-                      (phone) =>
-                        phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE &&
-                        phone.provider === "retellAI"
-                    ) && <Alert severity="info" title={t("you_can_only_call_numbers_in_the_us")} />}
                   </>
                 ) : (
                   <div className="border-subtle rounded-xl border p-8">
@@ -673,7 +666,6 @@ export function AgentConfigurationSheet({
                 })}
               </p>
             </div>
-            <Alert severity="info" title={t("you_can_only_call_numbers_in_the_us")} />
             <BaseDialogFooter showDivider className="relative">
               <Button onClick={() => setIsBuyDialogOpen(false)} color="secondary">
                 {t("cancel")}
