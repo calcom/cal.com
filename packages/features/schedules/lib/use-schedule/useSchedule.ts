@@ -23,6 +23,7 @@ export type UseScheduleWithCacheArgs = {
   monthCount?: number | null;
   dayCount?: number | null;
   rescheduleUid?: string | null;
+  isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
@@ -41,6 +42,7 @@ export const useSchedule = ({
   monthCount,
   dayCount,
   rescheduleUid,
+  isTeamEvent,
   orgSlug,
   teamMemberEmail,
   useApiV2 = false,
@@ -74,6 +76,7 @@ export const useSchedule = ({
     : undefined;
   const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
   const input = {
+    isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
     // Prioritize slug over id, since slug is the first value we get available.
     // If we have a slug, we don't need to fetch the id.

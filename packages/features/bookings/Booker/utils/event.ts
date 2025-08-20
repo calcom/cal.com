@@ -109,6 +109,7 @@ export const useScheduleForEvent = ({
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
+    isTeamEvent,
     orgSlug,
     teamMemberEmail,
     useApiV2: useApiV2,
