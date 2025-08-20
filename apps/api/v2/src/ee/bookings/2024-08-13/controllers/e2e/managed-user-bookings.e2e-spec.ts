@@ -714,13 +714,11 @@ describe("Managed user bookings 2024-08-13", () => {
     });
 
     it("should return unauthorized when org admin tries to confirm regular user's booking", async () => {
-      // Create regular user (not managed)
       const regularUser = await userRepositoryFixture.create({
         email: `managed-user-bookings-2024-08-13-regular-user-${randomString()}@api.com`,
         name: "Regular User",
       });
 
-      // Create event type requiring confirmation for regular user
       const regularUserEventType = await eventTypesRepositoryFixture.create(
         {
           title: `regular-user-event-type-requires-confirmation-${randomString()}`,
@@ -731,7 +729,6 @@ describe("Managed user bookings 2024-08-13", () => {
         regularUser.id
       );
 
-      // Create booking for regular user
       const regularUserBooking = await bookingsRepositoryFixture.create({
         user: {
           connect: {
@@ -765,14 +762,12 @@ describe("Managed user bookings 2024-08-13", () => {
         },
       });
 
-      // Org admin should not be able to confirm regular user's booking
       await request(app.getHttpServer())
         .post(`/v2/bookings/${regularUserBooking.uid}/confirm`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
         .expect(401);
 
-      // Clean up
       await userRepositoryFixture.delete(regularUser.id);
     });
   });
