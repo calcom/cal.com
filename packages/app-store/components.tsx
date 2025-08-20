@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense, use } from "react";
 
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -12,17 +13,18 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { InstallAppButtonProps } from "./types";
 
-export const InstallAppButtonWithoutPlanCheck = (
+function InstallAppButtonInner(
   props: {
     type: App["type"];
     options?: UseAddAppMutationOptions;
   } & InstallAppButtonProps
-) => {
+) {
   const mutation = useAddAppMutation(null, props.options);
-  const InstallAppButtonMap = getInstallAppButtonMap();
+  const InstallAppButtonMap = use(getInstallAppButtonMap());
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)
@@ -45,6 +47,19 @@ export const InstallAppButtonWithoutPlanCheck = (
       onChanged={props.onChanged}
       disableInstall={props.disableInstall}
     />
+  );
+}
+
+export const InstallAppButtonWithoutPlanCheck = (
+  props: {
+    type: App["type"];
+    options?: UseAddAppMutationOptions;
+  } & InstallAppButtonProps
+) => {
+  return (
+    <Suspense fallback={<SkeletonText className="h-8 w-24" />}>
+      <InstallAppButtonInner {...props} />
+    </Suspense>
   );
 };
 

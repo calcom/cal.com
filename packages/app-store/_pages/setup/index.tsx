@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 
 import { getAppSetupMap } from "@calcom/lib/apps/registry";
 
-import { DynamicComponent } from "../../_components/DynamicComponent";
+import { AsyncDynamicComponent } from "../../_components/AsyncDynamicComponent";
 
 export const AppSetupMap = {
   alby: dynamic(() => import("../../alby/pages/setup")),
@@ -21,7 +21,7 @@ export const AppSetupMap = {
 };
 
 export const AppSetupPage = (props: { slug: string }) => {
-  return <DynamicComponent componentMap={getAppSetupMap()} {...props} />;
+  return <AsyncDynamicComponent componentMapPromise={getAppSetupMap()} {...props} />;
 };
 
 export default AppSetupPage;

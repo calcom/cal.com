@@ -1,9 +1,9 @@
 import { getEventTypeSettingsMap } from "@calcom/lib/apps/registry";
 
 import type { EventTypeAppSettingsComponentProps } from "../types";
-import { DynamicComponent } from "./DynamicComponent";
+import { AsyncDynamicComponent } from "./AsyncDynamicComponent";
 
 export const EventTypeAppSettings = (props: EventTypeAppSettingsComponentProps) => {
   const { slug, ...rest } = props;
-  return <DynamicComponent slug={slug} componentMap={getEventTypeSettingsMap()} {...rest} />;
+  return <AsyncDynamicComponent slug={slug} componentMapPromise={getEventTypeSettingsMap()} {...rest} />;
 };

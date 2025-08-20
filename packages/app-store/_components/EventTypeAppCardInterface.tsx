@@ -8,7 +8,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
-import { DynamicComponent } from "./DynamicComponent";
+import { AsyncDynamicComponent } from "./AsyncDynamicComponent";
 
 export type EventTypeApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
@@ -30,9 +30,9 @@ export const EventTypeAppCard = (props: {
   return (
     <ErrorBoundary message={`There is some problem with ${app.name} App`}>
       <EventTypeAppContext.Provider value={{ getAppData, setAppData, LockedIcon, disabled }}>
-        <DynamicComponent
+        <AsyncDynamicComponent
           slug={app.slug === "stripe" ? "stripepayment" : app.slug}
-          componentMap={getEventTypeAddonMap()}
+          componentMapPromise={getEventTypeAddonMap()}
           {...props}
         />
       </EventTypeAppContext.Provider>
