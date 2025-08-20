@@ -5,6 +5,7 @@ import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
+import { waitForAsyncAppComponents } from "./lib/async-components";
 import { test, todo } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
 import { confirmReschedule, IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
@@ -224,6 +225,9 @@ test.describe("Stripe integration skip true", () => {
 
       // Edit currency inside event type page
       await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
+
+      // Wait for async app components to load
+      await waitForAsyncAppComponents(page, { appSlug: "stripe" });
 
       // Enable Stripe
       await page.locator("#event-type-form").getByRole("switch").click();
@@ -463,6 +467,10 @@ test.describe("Stripe integration with the new app install flow skip false", () 
       await page.waitForURL(`apps/installation/event-types?slug=stripe`);
       await page.click(`[data-testid="select-event-type-${eventType.id}"]`);
       await page.click(`[data-testid="save-event-types"]`);
+
+      // Wait for async app components to load
+      await waitForAsyncAppComponents(page, { appSlug: "stripe" });
+
       await page.locator('[data-testid="stripe-price-input"]').fill(`200`);
 
       // Select currency in dropdown

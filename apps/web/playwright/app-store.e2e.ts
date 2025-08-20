@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 
+import { waitForAppStoreComponents } from "./lib/async-components";
 import { test } from "./lib/fixtures";
 import { installAppleCalendar } from "./lib/testUtils";
 
@@ -16,6 +17,9 @@ test.describe("App Store - Authed", () => {
     await page.goto("/apps/");
 
     await page.waitForLoadState();
+
+    // Wait for app store components to load
+    await waitForAppStoreComponents(page);
 
     const locator = page.getByRole("heading", { name: "App Store" });
 

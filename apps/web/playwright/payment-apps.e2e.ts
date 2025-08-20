@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
+import { waitForAsyncAppComponents } from "./lib/async-components";
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
 
@@ -30,6 +31,10 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByPlaceholder("Price").click();
@@ -76,6 +81,8 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page, { appSlug: "stripe" });
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByTestId("stripe-currency-select").click();
     await page.getByTestId("select-option-usd").click();
@@ -116,6 +123,8 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -159,6 +168,8 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -186,6 +197,8 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -221,6 +234,8 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     // make sure Tracking ID is displayed
@@ -268,6 +283,8 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
 
     await page.locator("[data-testid='paypal-app-switch']").click();
     await page.locator("[data-testid='stripe-app-switch']").isDisabled();
@@ -315,6 +332,8 @@ test.describe("Payment app", () => {
     });
 
     await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    // Wait for async app components to load
+    await waitForAsyncAppComponents(page);
 
     await page.getByTestId("paypal-app-switch").click();
     await page.getByTestId("paypal-price-input").fill("100");

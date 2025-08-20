@@ -114,6 +114,14 @@ export function createAppsFixture(page: Page) {
     },
     goToAppsTab: async () => {
       await page.getByTestId("vertical-tab-apps").click();
+      // Wait for async app components to load after navigation
+      try {
+        const { waitForAsyncAppComponents } = await import("../lib/async-components");
+        await waitForAsyncAppComponents(page);
+      } catch (error) {
+        // Graceful fallback if async-components utility is not available
+        await page.waitForLoadState("networkidle");
+      }
     },
     activeApp: async (app: string) => {
       await page.locator(`[data-testid='${app}-app-switch']`).click();
@@ -123,6 +131,14 @@ export function createAppsFixture(page: Page) {
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
+      // Wait for async app components to load after navigation
+      try {
+        const { waitForAsyncAppComponents } = await import("../lib/async-components");
+        await waitForAsyncAppComponents(page);
+      } catch (error) {
+        // Graceful fallback if async-components utility is not available
+        await page.waitForLoadState("networkidle");
+      }
       await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); // fix the race condition
       await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },
