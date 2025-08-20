@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
@@ -28,7 +28,7 @@ import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
-import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
+import { getTranslatedText, translateVariablesToEnglish, isFormTrigger } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;
@@ -55,6 +55,11 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
   const form = useForm<FormValues>({
     mode: "onBlur",
     resolver: zodResolver(formSchema),
+  });
+
+  const watchedTrigger = useWatch({
+    control: form.control,
+    name: "trigger",
   });
 
   const utils = trpc.useUtils();
@@ -91,7 +96,11 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
     { enabled: !isPendingWorkflow }
   );
 
+  const { data: routingFormData, isPending: isPendingRoutingForms } =
+    trpc.viewer.workflows.getRoutingFormOptions.useQuery({ teamId }, { enabled: !isPendingWorkflow });
+
   const teamOptions = data?.teamOptions ?? [];
+  const routingFormOptions = routingFormData?.routingFormOptions ?? [];
 
   let allEventTypeOptions = data?.eventTypeOptions ?? [];
   const distinctEventTypes = new Set();
@@ -107,7 +116,7 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
 
   const readOnly = !workflow?.permissions.canUpdate;
 
-  const isPending = isPendingWorkflow || isPendingEventTypes;
+  const isPending = isPendingWorkflow || isPendingEventTypes || isPendingRoutingForms;
 
   useEffect(() => {
     if (!isPending) {
@@ -123,7 +132,11 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
       let activeOn;
 
       if (workflowData.isActiveOnAll) {
-        activeOn = isOrg ? teamOptions : allEventTypeOptions;
+        activeOn = isOrg
+          ? teamOptions
+          : isFormTrigger(workflowData.trigger)
+          ? routingFormOptions
+          : allEventTypeOptions;
       } else {
         if (isOrg) {
           activeOn = workflowData.activeOnTeams.flatMap((active) => {
@@ -133,6 +146,11 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
             };
           });
           setSelectedOptions(activeOn || []);
+        } else if (isFormTrigger(workflowData.trigger)) {
+          // Handle routing forms - for now, empty as we're adding new functionality
+          // TODO: When activeOnRoutingForms data is available, populate here
+          setSelectedOptions([]);
+          activeOn = [];
         } else {
           setSelectedOptions(
             workflowData.activeOn?.flatMap((active) => {
@@ -334,7 +352,13 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
                       teamId={workflow ? workflow.teamId || undefined : undefined}
                       readOnly={readOnly}
                       isOrg={isOrg}
-                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
+                      allOptions={
+                        isOrg
+                          ? teamOptions
+                          : isFormTrigger(watchedTrigger)
+                          ? routingFormOptions
+                          : allEventTypeOptions
+                      }
                     />
                   </>
                 ) : (
