@@ -1,7 +1,7 @@
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
 type Handlers = {
-  [method in "GET" | "POST" | "PATCH" | "PUT" | "DELETE"]?: Promise<{ default: NextApiHandler }>;
+  [method in "GET" | "POST" | "PATCH" | "PUT" | "DELETE" | "OPTIONS"]?: Promise<{ default: NextApiHandler }>;
 };
 
 /** Allows us to split big API handlers by method */

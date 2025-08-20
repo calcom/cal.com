@@ -2,6 +2,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 type ScheduleNoShowTriggersArgs = {
@@ -19,7 +20,7 @@ type ScheduleNoShowTriggersArgs = {
   isDryRun?: boolean;
 };
 
-export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
+const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
   const {
     booking,
     triggerForUser,
@@ -110,3 +111,5 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   // );
 };
+
+export const scheduleNoShowTriggers = withReporting(_scheduleNoShowTriggers, "scheduleNoShowTriggers");

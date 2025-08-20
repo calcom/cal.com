@@ -156,17 +156,4 @@ export class TeamsEventTypesService {
 
     return this.eventTypesRepository.deleteEventType(eventTypeId);
   }
-
-  async deleteUserTeamEventTypesAndHosts(userId: number, teamId: number) {
-    try {
-      await this.teamsEventTypesRepository.deleteUserManagedTeamEventTypes(userId, teamId);
-      await this.teamsEventTypesRepository.removeUserFromTeamEventTypesHosts(userId, teamId);
-    } catch (err) {
-      this.logger.error("Could not remove user from all team event-types.", {
-        error: err,
-        userId,
-        teamId,
-      });
-    }
-  }
 }

@@ -1,6 +1,6 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsOAuthClientWebhookGuard } from "@/modules/webhooks/guards/is-oauth-client-webhook-guard";
@@ -29,7 +29,7 @@ import { OAuthClientGuard } from "../../guards/oauth-client-guard";
   path: "/v2/oauth-clients/:clientId/webhooks",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(NextAuthGuard, OrganizationRolesGuard, OAuthClientGuard)
+@UseGuards(ApiAuthGuard, OrganizationRolesGuard, OAuthClientGuard)
 @DocsTags("Platform / Webhooks")
 @ApiHeader({
   name: X_CAL_SECRET_KEY,

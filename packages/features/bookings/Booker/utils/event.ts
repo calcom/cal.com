@@ -1,11 +1,11 @@
 import { shallow } from "zustand/shallow";
 
-import { useSchedule } from "@calcom/features/schedules";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
 import { useBookerTime } from "../components/hooks/useBookerTime";
-import { useBookerStore } from "../store";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
@@ -19,7 +19,7 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
  * of combining multiple conditional hooks.
  */
 export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?: boolean }) => {
-  const [username, eventSlug, isTeamEvent, org] = useBookerStore(
+  const [username, eventSlug, isTeamEvent, org] = useBookerStoreContext(
     (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
     shallow
   );
@@ -71,6 +71,7 @@ export const useScheduleForEvent = ({
   orgSlug,
   teamMemberEmail,
   isTeamEvent,
+  useApiV2 = true,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -85,9 +86,10 @@ export const useScheduleForEvent = ({
   teamMemberEmail?: string | null;
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
+  useApiV2?: boolean;
 } = {}) => {
   const { timezone } = useBookerTime();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
@@ -110,6 +112,7 @@ export const useScheduleForEvent = ({
     isTeamEvent,
     orgSlug,
     teamMemberEmail,
+    useApiV2: useApiV2,
   });
 
   return {

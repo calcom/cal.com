@@ -113,7 +113,8 @@ export const ZFilterValue = z.union([
 ]);
 
 export type DateRangeFilterOptions = {
-  range: "past" | "custom";
+  range?: "past" | "custom";
+  endOfDay?: boolean;
 };
 
 export type TextFilterOptions = {
@@ -254,6 +255,11 @@ export type FilterSegmentOutput = {
   team: { id: number; name: string } | null;
 };
 
+export type FilterSegmentsListResponse = {
+  segments: FilterSegmentOutput[];
+  preferredSegmentId: number | null;
+};
+
 export type SegmentStorage = {
   [tableIdentifier: string]: {
     segmentId: number;
@@ -269,7 +275,7 @@ export const ZSegmentStorage = z.record(
 
 export type UseSegments = (props: UseSegmentsProps) => UseSegmentsReturn;
 
-type UseSegmentsProps = {
+export type UseSegmentsProps = {
   tableIdentifier: string;
   activeFilters: ActiveFilters;
   sorting: SortingState;
@@ -287,9 +293,11 @@ type UseSegmentsProps = {
   setPageSize: (pageSize: number) => void;
   setPageIndex: (pageIndex: number) => void;
   setSearchTerm: (searchTerm: string | null) => void;
+  segments?: FilterSegmentOutput[];
+  preferredSegmentId?: number | null;
 };
 
-type UseSegmentsReturn = {
+export type UseSegmentsReturn = {
   segments: FilterSegmentOutput[];
   selectedSegment: FilterSegmentOutput | undefined;
   canSaveSegment: boolean;

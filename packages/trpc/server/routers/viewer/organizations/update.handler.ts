@@ -1,13 +1,14 @@
 import type { Prisma } from "@prisma/client";
 
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -47,6 +48,10 @@ const updateOrganizationSettings = async ({
 
   if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
+  }
+
+  if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
+    data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
   // If no settings values have changed lets skip this update
@@ -105,12 +110,33 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
   const currentOrgId = ctx.user?.organization?.id || input.orgId;
 
-  const isUserOrganizationAdmin = currentOrgId && (await isOrganisationAdmin(ctx.user?.id, currentOrgId));
-  const isUserRoleAdmin = ctx.user.role === UserPermissionRole.ADMIN;
+  if (!currentOrgId) throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
 
-  const isUserAuthorizedToUpdate = !!(isUserOrganizationAdmin || isUserRoleAdmin);
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: currentOrgId,
+    },
+    select: {
+      role: true,
+    },
+  });
 
-  if (!currentOrgId || !isUserAuthorizedToUpdate) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!membership) throw new TRPCError({ code: "UNAUTHORIZED", message: "User role is required." });
+
+  const { canEdit } = await getResourcePermissions({
+    userId: ctx.user.id,
+    teamId: currentOrgId,
+    resource: Resource.Organization,
+    userRole: membership.role,
+    fallbackRoles: {
+      update: {
+        roles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      },
+    },
+  });
+
+  if (!canEdit) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
     const userConflict = await prisma.team.findMany({
@@ -125,7 +151,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
   }
 
-  const prevOrganisation = await prisma.team.findFirst({
+  const prevOrganisation = await prisma.team.findUnique({
     where: {
       id: currentOrgId,
     },
@@ -157,7 +183,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  if (input.banner && input.banner.startsWith("data:image/png;base64,")) {
+  if (
+    input.banner &&
+    (input.banner.startsWith("data:image/png;base64,") ||
+      input.banner.startsWith("data:image/jpeg;base64,") ||
+      input.banner.startsWith("data:image/jpg;base64,"))
+  ) {
     const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
     data.bannerUrl = await uploadLogo({
       logo: banner,
@@ -168,7 +199,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bannerUrl = null;
   }
 
-  if (input.logoUrl && input.logoUrl.startsWith("data:image/png;base64,")) {
+  if (
+    input.logoUrl &&
+    (input.logoUrl.startsWith("data:image/png;base64,") ||
+      input.logoUrl.startsWith("data:image/jpeg;base64,") ||
+      input.logoUrl.startsWith("data:image/jpg;base64,"))
+  ) {
     data.logoUrl = await uploadLogo({
       logo: await resizeBase64Image(input.logoUrl),
       teamId: currentOrgId,

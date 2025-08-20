@@ -7,10 +7,7 @@ Here is the workflow:
 1. If you change platform libraries for the first time, then run `yarn local` to build them locally for the first time. This will also make v2 api point to the local libraries.
 2. If you change them for the second time, then run `yarn build:dev` to re-build them.
 3. Once you are happy with platform libraries:
-- run `yarn publish` - it will check "@calcom/platform-libraries" version in npm and update it's package.json to the next version and then it will publish the package to np.
-- run `yarn postpublish` - it will update the version of "@calcom/platform-libraries" in the api v2 package.json, reset "@calcom/platform-libraries" to 0.0.0 and run yarn install.
-
-note(Lauris) - we could have 1 publish script but the problem is that `yarn publish` does not exit for some reason.
+- run `yarn publish-npm` - it will check "@calcom/platform-libraries" version in npm and update it's package.json to the next version and then it will publish the package to npm, update the version of "@calcom/platform-libraries" in the api v2 package.json, reset "@calcom/platform-libraries" to 0.0.0 and run yarn install.
 
 # Before Merging to main
 

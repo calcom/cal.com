@@ -5,7 +5,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -13,6 +13,7 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
+import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -76,6 +77,7 @@ type OAuthRequestParams = {
   platformBookingUrl: string;
   platformBookingLocation?: string;
   arePlatformEmailsEnabled: boolean;
+  areCalendarEventsEnabled: boolean;
 };
 
 const DEFAULT_PLATFORM_PARAMS = {
@@ -85,6 +87,7 @@ const DEFAULT_PLATFORM_PARAMS = {
   platformBookingUrl: "",
   arePlatformEmailsEnabled: false,
   platformBookingLocation: undefined,
+  areCalendarEventsEnabled: false,
 };
 
 @Controller({
@@ -99,6 +102,7 @@ export class BookingsController_2024_04_15 {
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
     private readonly prismaReadService: PrismaReadService,
+    private readonly kyselyReadService: KyselyReadService,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly billingService: BillingService,
     private readonly config: ConfigService,
@@ -129,12 +133,17 @@ export class BookingsController_2024_04_15 {
       ctx: {
         user: { email: user.email, id: user.id, orgId: profile?.organizationId },
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
       },
     });
 
+    let nextCursor = null;
+    if (bookings.totalCount > (cursor ?? 0) + (limit ?? 10)) {
+      nextCursor = (cursor ?? 0) + (limit ?? 10);
+    }
     return {
       status: SUCCESS_STATUS,
-      data: bookings,
+      data: { ...bookings, nextCursor },
     };
   }
 
@@ -188,6 +197,7 @@ export class BookingsController_2024_04_15 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
@@ -222,6 +232,15 @@ export class BookingsController_2024_04_15 {
     }
 
     if (bookingUid) {
+      const { bookingInfo } = await getBookingInfo(bookingUid);
+      if (!bookingInfo) {
+        throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
+      }
+      if (bookingInfo.status === "CANCELLED") {
+        throw new BadRequestException(
+          `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+        );
+      }
       try {
         req.body.uid = bookingUid;
         const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
@@ -367,7 +386,7 @@ export class BookingsController_2024_04_15 {
       if (bearerToken) {
         if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
           const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const apiKeyHash = sha256Hash(strippedApiKey);
           const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
           return keyData?.userId;
         } else {
@@ -421,7 +440,7 @@ export class BookingsController_2024_04_15 {
 
     if (isEmbed) {
       // embed should ignore oauth client settings and enable emails by default
-      return { ...res, arePlatformEmailsEnabled: true };
+      return { ...res, arePlatformEmailsEnabled: true, areCalendarEventsEnabled: true };
     }
 
     try {
@@ -433,6 +452,7 @@ export class BookingsController_2024_04_15 {
         res.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
         res.platformBookingUrl = client.bookingRedirectUri ?? "";
         res.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
+        res.areCalendarEventsEnabled = client.areCalendarEventsEnabled;
       }
       return res;
     } catch (err) {

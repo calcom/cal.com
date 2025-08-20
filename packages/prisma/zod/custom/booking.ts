@@ -23,6 +23,7 @@ export const bookingCreateBodySchema = z.object({
   orgSlug: z.string().optional(),
   teamMemberEmail: z.string().nullish(),
   crmOwnerRecordType: z.string().nullish(),
+  crmRecordId: z.string().nullish(),
   routedTeamMemberIds: z.array(z.number()).nullish(),
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
@@ -46,6 +47,7 @@ export const bookingCreateBodySchema = z.object({
     utm_term: z.string().optional(),
     utm_content: z.string().optional(),
   }).optional(),
+  dub_id: z.string().nullish()
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;

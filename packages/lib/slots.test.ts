@@ -350,3 +350,52 @@ describe("Tests the slot logic with custom env variable", () => {
     ).toHaveLength(11);
   });
 });
+
+describe("Tests the slots function performance", () => {
+  it("handles hundreds of date ranges efficiently", async () => {
+    const startTime = process.hrtime();
+
+    const startDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges: DateRange[] = [];
+
+    for (let day = 0; day < 7; day++) {
+      const currentDay = startDay.add(day, "day");
+
+      for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute += 5) {
+          if (dateRanges.length >= 2000) break;
+
+          dateRanges.push({
+            start: currentDay.hour(hour).minute(minute),
+            end: currentDay
+              .hour(hour)
+              .minute(minute + 4)
+              .second(59),
+          });
+        }
+        if (dateRanges.length >= 2000) break;
+      }
+      if (dateRanges.length >= 2000) break;
+    }
+
+    const result = getSlots({
+      inviteeDate: startDay,
+      frequency: 5,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 5,
+      offsetStart: 0,
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+
+    const endTime = process.hrtime(startTime);
+    const executionTimeInMs = endTime[0] * 1000 + endTime[1] / 1000000;
+
+    expect(executionTimeInMs).toBeLessThan(3000); // less than 3 seconds for 2000 date ranges
+
+    console.log(
+      `Performance test completed in ${executionTimeInMs}ms with ${result.length} slots generated from ${dateRanges.length} date ranges`
+    );
+  });
+});

@@ -2,17 +2,18 @@ import { useCallback, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
-import type { Slot } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
+import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
-import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 
@@ -48,6 +49,7 @@ type AvailableTimeSlotsProps = {
    */
   unavailableTimeSlots: string[];
   confirmButtonDisabled?: boolean;
+  onAvailableTimeSlotSelect: (time: string) => void;
 };
 
 /**
@@ -71,17 +73,17 @@ export const AvailableTimeSlots = ({
   unavailableTimeSlots,
   confirmButtonDisabled,
   confirmStepClassNames,
+  onAvailableTimeSlotSelect,
   ...props
 }: AvailableTimeSlotsProps) => {
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
-  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
-  const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
+  const setSeatedEventData = useBookerStoreContext((state) => state.setSeatedEventData);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
-  const [layout] = useBookerStore((state) => [state.layout]);
+  const [layout] = useBookerStoreContext((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStore((state) => ({
+  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStoreContext((state) => ({
     setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
     tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
   }));
@@ -135,7 +137,8 @@ export const AvailableTimeSlots = ({
         schedule?.invalidate();
       }
       setTentativeSelectedTimeslots([]);
-      setSelectedTimeslot(time);
+      // note(Lauris): setting setSeatedEventData before setSelectedTimeslot so that in useSlots we have seated event data available
+      // and only then we invoke handleReserveSlot that is triggered by the changes in setSelectedTimeslot.
       if (seatsPerTimeSlot) {
         setSeatedEventData({
           seatsPerTimeSlot,
@@ -144,6 +147,9 @@ export const AvailableTimeSlots = ({
           showAvailableSeatsCount,
         });
       }
+
+      onAvailableTimeSlotSelect(time);
+
       const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
       if (skipConfirmStep && isTimeSlotAvailable) {
         onSubmit(time);
@@ -153,12 +159,12 @@ export const AvailableTimeSlots = ({
     [
       onSubmit,
       setSeatedEventData,
-      setSelectedTimeslot,
       skipConfirmStep,
       showAvailableSeatsCount,
       unavailableTimeSlots,
       schedule,
       setTentativeSelectedTimeslots,
+      onAvailableTimeSlotSelect,
     ]
   );
 

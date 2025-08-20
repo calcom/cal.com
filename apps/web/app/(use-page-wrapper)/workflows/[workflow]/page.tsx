@@ -1,5 +1,4 @@
 import type { PageProps } from "app/_types";
-import { notFound } from "next/navigation";
 import { z } from "zod";
 
 // import { cookies, headers } from "next/headers";

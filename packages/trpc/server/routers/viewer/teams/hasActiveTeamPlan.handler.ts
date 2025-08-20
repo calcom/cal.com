@@ -5,7 +5,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type HasActiveTeamPlanOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id">;
   };
 };
 
@@ -28,6 +28,12 @@ export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions
   let isTrial = false;
   // check if user has at least on membership with an active plan
   for (const team of teams) {
+    if (team.isPlatform && team.isOrganization) {
+      const platformBilling = await prisma.platformBilling.findUnique({ where: { id: team.id } });
+      if (platformBilling && platformBilling.plan !== "none" && platformBilling.plan !== "FREE") {
+        return { isActive: true, isTrial: false };
+      }
+    }
     const teamBillingService = new InternalTeamBilling(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 

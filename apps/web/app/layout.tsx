@@ -7,7 +7,6 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
-import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -97,7 +96,7 @@ const getInitialProps = async () => {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
-  const nonce = h.get("x-csp") ?? "";
+  const nonce = h.get("x-csp-nonce") ?? "";
 
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
@@ -152,13 +151,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers>
+        <Providers isEmbed={isEmbed} nonce={nonce}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>
         </Providers>
-        {!isEmbed && <NotificationSoundHandler />}
-        <NotificationSoundHandler />
       </body>
     </html>
   );

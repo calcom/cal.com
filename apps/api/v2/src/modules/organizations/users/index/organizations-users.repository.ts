@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
@@ -38,7 +38,7 @@ export class OrganizationsUsersRepository {
         member: {
           teamId: orgId,
           ...(teamIds && { user: { teams: { some: { teamId: { in: teamIds } } } } }),
-          // Filter to only get users which have ALL of the assigned attribue options
+          // Filter to only get users which have ALL of the assigned attribute options
           ...(attributeQueryOperator === "AND" && {
             AND: assignedOptionIds.map((optionId) => ({
               AttributeToUser: { some: { attributeOptionId: optionId } },
@@ -46,11 +46,11 @@ export class OrganizationsUsersRepository {
           }),
         },
         ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
-        // Filter to get users which have AT LEAST ONE of the assigned attribue options
+        // Filter to get users which have AT LEAST ONE of the assigned attribute options
         ...(attributeQueryOperator === "OR" && {
           attributeOption: { id: { in: assignedOptionIds } },
         }),
-        // Filter to  get users that have NONE the assigned attribue options
+        // Filter to  get users that have NONE the assigned attribute options
         ...(attributeQueryOperator === "NONE" && {
           NOT: {
             attributeOption: { id: { in: assignedOptionIds } },
@@ -141,7 +141,16 @@ export class OrganizationsUsersRepository {
     return await this.dbWrite.prisma.user.delete({
       where: {
         id: userId,
-        organizationId: orgId,
+        OR: [
+          { organizationId: orgId },
+          {
+            profiles: {
+              some: {
+                organizationId: orgId,
+              },
+            },
+          },
+        ],
       },
       include: {
         profiles: {

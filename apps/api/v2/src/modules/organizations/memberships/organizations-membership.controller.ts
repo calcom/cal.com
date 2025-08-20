@@ -20,7 +20,6 @@ import { GetAllOrgMemberships } from "@/modules/organizations/memberships/output
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import {
   Controller,
   UseGuards,
@@ -36,7 +35,6 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
@@ -70,9 +68,7 @@ export class OrganizationsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: memberships.map((membership) =>
-        plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" })
-      ),
+      data: memberships,
     };
   }
 
@@ -88,7 +84,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.createOrgMembership(orgId, body);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 
@@ -105,7 +101,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 
@@ -122,7 +118,7 @@ export class OrganizationsMembershipsController {
     const membership = await this.organizationsMembershipService.deleteOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 
@@ -144,7 +140,7 @@ export class OrganizationsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
+      data: membership,
     };
   }
 }

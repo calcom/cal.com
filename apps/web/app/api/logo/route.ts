@@ -192,14 +192,15 @@ async function getHandler(request: NextRequest) {
   try {
     const response = await fetch(filteredLogo);
     const arrayBuffer = await response.arrayBuffer();
-    let buffer = Buffer.from(arrayBuffer);
+    let buffer: Buffer = Buffer.from(arrayBuffer);
 
     // If we need to resize the team logos (via Next.js' built-in image processing)
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
       const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
+
       buffer = await optimizeImage({
         buffer,
-        contentType: detectContentType(buffer) ?? "image/jpeg",
+        contentType: (await detectContentType(buffer)) ?? "image/jpeg",
         quality: 100,
         width: logoDefinition.w,
         height: logoDefinition.h, // optional
@@ -207,7 +208,7 @@ async function getHandler(request: NextRequest) {
     }
 
     // Create a new response with the image buffer
-    const imageResponse = new NextResponse(buffer);
+    const imageResponse = new NextResponse(buffer as BodyInit);
 
     // Set the appropriate headers
     imageResponse.headers.set("Content-Type", response.headers.get("content-type") || "image/png");

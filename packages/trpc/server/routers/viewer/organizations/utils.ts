@@ -1,5 +1,5 @@
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -65,6 +65,7 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
       const userMembership = usersInOrganization.find((membership) => membership.userId === userId);
       const accepted = userMembership && userMembership.accepted;
       return {
+        createdAt: new Date(),
         userId,
         teamId,
         role: MembershipRole.MEMBER,

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { AppRouterI18nContext } from "@calcom/web/app/AppRouterI18nProvider";
+import { CustomI18nContext } from "@calcom/web/app/CustomI18nProvider";
 
 type useLocaleReturnType = {
   i18n: i18n;
@@ -32,10 +33,11 @@ const serverI18nInstances = new Map();
 
 export const useLocale = (): useLocaleReturnType => {
   const appRouterContext = useContext(AppRouterI18nContext);
+  const customI18nContext = useContext(CustomI18nContext);
   const clientI18n = useClientLocale();
 
   if (appRouterContext) {
-    const { translations, locale, ns } = appRouterContext;
+    const { translations, locale, ns } = customI18nContext ?? appRouterContext;
     const instanceKey = `${locale}-${ns}`;
 
     // Check if we already have an instance for this locale and namespace

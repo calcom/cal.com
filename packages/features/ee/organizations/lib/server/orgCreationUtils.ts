@@ -31,6 +31,7 @@ function isNotACompanyEmail(email: string) {
     "icloud.com",
     "mail.com",
     "protonmail.com",
+    "proton.me",
     "zoho.com",
     "yandex.com",
     "gmx.com",
@@ -278,7 +279,7 @@ export const findUserToBeOrgOwner = async (email: string) => {
     return null;
   }
 
-  return await UserRepository.enrichUserWithItsProfile({
+  return await new UserRepository(prisma).enrichUserWithItsProfile({
     user,
   });
 };

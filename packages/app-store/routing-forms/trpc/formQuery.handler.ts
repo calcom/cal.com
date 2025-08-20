@@ -1,9 +1,13 @@
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { TFormQueryInputSchema } from "./formQuery.schema";
+import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
 interface FormsHandlerOptions {
   ctx: {
@@ -37,6 +41,13 @@ export const formQueryHandler = async ({ ctx, input }: FormsHandlerOptions) => {
   if (!form) {
     return null;
   }
+
+  await checkPermissionOnExistingRoutingForm({
+    formId: input.id,
+    userId: user.id,
+    permission: "routingForm.read",
+    fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
 
   return await getSerializableForm({ form });
 };

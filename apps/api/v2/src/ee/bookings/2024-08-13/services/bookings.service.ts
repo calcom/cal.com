@@ -5,8 +5,10 @@ import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servic
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { getPagination } from "@/lib/pagination/pagination";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -19,6 +21,7 @@ import { UsersRepository, UserWithProfile } from "@/modules/users/users.reposito
 import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
+import { DateTime } from "luxon";
 import { z } from "zod";
 
 import {
@@ -58,13 +61,17 @@ type CreatedBooking = {
   start: string;
 };
 
-const eventTypeBookingFieldSchema = z.object({
-  name: z.string(),
-  required: z.boolean(),
-  editable: z.string(),
-});
+const eventTypeBookingFieldSchema = z
+  .object({
+    name: z.string(),
+    required: z.boolean(),
+    editable: z.string(),
+    type: z.string(),
+    options: z.array(z.object({ value: z.string() })).optional(),
+  })
+  .passthrough();
 
-const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
+export const eventTypeBookingFieldsSchema = z.array(eventTypeBookingFieldSchema);
 
 export type EventTypeWithOwnerAndTeam = EventType & { owner: User | null; team: Team | null };
 
@@ -78,6 +85,7 @@ export class BookingsService_2024_08_13 {
     private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
+    private readonly kyselyReadService: KyselyReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
@@ -99,6 +107,12 @@ export class BookingsService_2024_08_13 {
       }
       if (!eventType) {
         this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
+      }
+
+      if (eventType.schedulingType === "MANAGED") {
+        throw new BadRequestException(
+          `Event type with id=${eventType.id} is the parent managed event type that can't be booked. You have to provide the child event type id aka id of event type that has been assigned to one of the users.`
+        );
       }
 
       body.eventTypeId = eventType.id;
@@ -169,34 +183,185 @@ export class BookingsService_2024_08_13 {
   }
 
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
-    const bookingFields = { ...body.bookingFieldsResponses, attendeePhoneNumber: body.attendee.phoneNumber };
+    const bookingFieldsResponses: Record<string, unknown> = {
+      ...body.bookingFieldsResponses,
+      attendeePhoneNumber: body.attendee.phoneNumber,
+      smsReminderNumber: body.attendee.phoneNumber,
+    };
     if (!eventType?.bookingFields) {
       return true;
     }
 
-    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee
+    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee. Only exception
+    // is smsReminderNumber, because if it is required and not passed sms workflow won't work.
     const eventTypeBookingFields = eventTypeBookingFieldsSchema
       .parse(eventType.bookingFields)
-      .filter((field) => !field.editable.startsWith("system"));
+      .filter((field) => !field.editable.startsWith("system") || field.name === "smsReminderNumber");
 
     if (!eventTypeBookingFields.length) {
       return true;
     }
 
-    for (const field of eventTypeBookingFields) {
-      if (field.required && !(field.name in bookingFields)) {
-        if (field.name === "attendeePhoneNumber") {
+    for (const eventTypeBookingField of eventTypeBookingFields) {
+      if (
+        eventTypeBookingField.required &&
+        (bookingFieldsResponses[eventTypeBookingField.name] === null ||
+          bookingFieldsResponses[eventTypeBookingField.name] === undefined)
+      ) {
+        if (
+          eventTypeBookingField.name === "attendeePhoneNumber" ||
+          eventTypeBookingField.name === "smsReminderNumber"
+        ) {
           throw new BadRequestException(
-            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" in the request.`
+            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
           );
         }
         throw new BadRequestException(
-          `Missing required booking field response: ${field.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
+          `Missing required booking field response: ${eventTypeBookingField.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
         );
+      }
+
+      const bookingFieldResponseValue = bookingFieldsResponses[eventTypeBookingField.name];
+      if (bookingFieldResponseValue !== undefined) {
+        const bookingFieldResponseValueType = typeof bookingFieldResponseValue;
+        let expectedBookingFieldResponseValueType = "";
+        let isValidType = false;
+        const eventTypeBookingFieldType = eventTypeBookingField.type;
+
+        switch (eventTypeBookingFieldType) {
+          case "phone":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "address":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "text":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "number":
+            expectedBookingFieldResponseValueType = "number";
+            isValidType = bookingFieldResponseValueType === "number";
+            break;
+          case "textarea":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          case "multiemail":
+            expectedBookingFieldResponseValueType = "array";
+            isValidType = Array.isArray(bookingFieldResponseValue);
+            break;
+          case "boolean":
+            expectedBookingFieldResponseValueType = "boolean";
+            isValidType = bookingFieldResponseValueType === "boolean";
+            break;
+          case "select":
+            expectedBookingFieldResponseValueType = "string or number";
+            isValidType =
+              bookingFieldResponseValueType === "string" || bookingFieldResponseValueType === "number";
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValue = bookingFieldResponseValue as string | number;
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `Invalid option '${submittedValue}' for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "multiselect":
+            expectedBookingFieldResponseValueType = "array";
+            isValidType = Array.isArray(bookingFieldResponseValue);
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValues = bookingFieldResponseValue as (string | number)[];
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `One or more invalid options for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "checkbox":
+            expectedBookingFieldResponseValueType = "array";
+            isValidType = Array.isArray(bookingFieldResponseValue);
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValues = bookingFieldResponseValue as (string | number)[];
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `One or more invalid options for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "radio":
+            expectedBookingFieldResponseValueType = "string or number";
+            isValidType =
+              bookingFieldResponseValueType === "string" || bookingFieldResponseValueType === "number";
+            if (isValidType && Array.isArray(eventTypeBookingField.options)) {
+              const submittedValue = bookingFieldResponseValue as string | number;
+              const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
+              if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
+                throw new BadRequestException(
+                  `Invalid option '${submittedValue}' for booking field '${
+                    eventTypeBookingField.name
+                  }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
+                );
+              }
+            }
+            break;
+          case "url":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
+          default:
+            // note(Lauris): by default pass the field if we have a missing "case" in the switch
+            isValidType = true;
+            break;
+        }
+
+        if (!isValidType) {
+          throw new BadRequestException(
+            `Invalid type for booking field '${eventTypeBookingField.name}'. Expected type ${expectedBookingFieldResponseValueType} (compatible with field type '${eventTypeBookingFieldType}'), but received ${bookingFieldResponseValueType}.`
+          );
+        }
       }
     }
 
     return true;
+  }
+
+  private isValidSingleOptionValue(
+    bookingFieldResponseValue: string | number,
+    eventTypeBookingFieldOptions: string[]
+  ): boolean {
+    if (eventTypeBookingFieldOptions.length === 0) {
+      // note(Lauris): If no options defined, cannot validate against them, so pass.
+      return true;
+    }
+    return eventTypeBookingFieldOptions.some((val) => val === String(bookingFieldResponseValue));
+  }
+
+  private areValidMultipleOptionValues(
+    bookingFieldResponseValues: (string | number)[],
+    eventTypeBookingFieldOptions: string[]
+  ): boolean {
+    if (eventTypeBookingFieldOptions.length === 0) {
+      // note(Lauris): If no options defined, cannot validate against them, so pass.
+      return true;
+    }
+    return bookingFieldResponseValues.every((submittedVal) =>
+      eventTypeBookingFieldOptions.some((allowedVal) => allowedVal === String(submittedVal))
+    );
   }
 
   async createInstantBooking(
@@ -239,6 +404,7 @@ export class BookingsService_2024_08_13 {
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
       noEmail: bookingRequest.noEmail,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -259,6 +425,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
@@ -280,6 +447,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
 
     if (!booking.uid) {
@@ -310,6 +478,7 @@ export class BookingsService_2024_08_13 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
 
       if (!booking.uid) {
@@ -374,10 +543,13 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
-    const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
+    const skip = Math.abs(queryParams?.skip ?? 0);
+    const take = Math.abs(queryParams?.take ?? 100);
+
+    const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
-      skip: queryParams.skip ?? 0,
-      take: queryParams.take ?? 100,
+      skip,
+      take,
       filters: {
         ...this.inputService.transformGetBookingsFilters(queryParams),
         ...(userIds?.length ? { userIds } : {}),
@@ -385,6 +557,7 @@ export class BookingsService_2024_08_13 {
       ctx: {
         user,
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
       },
       sort: this.inputService.transformGetBookingsSort(queryParams),
     });
@@ -423,13 +596,18 @@ export class BookingsService_2024_08_13 {
       } else if (isRecurring && isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
       } else if (isSeated) {
-        formattedBookings.push(this.outputService.getOutputSeatedBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
       } else {
-        formattedBookings.push(this.outputService.getOutputBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputBooking(formatted));
       }
     }
 
-    return formattedBookings;
+    const pagination = getPagination({ skip, take, totalCount: fetchedBookings.totalCount });
+
+    return {
+      bookings: formattedBookings,
+      pagination,
+    };
   }
 
   async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {
@@ -463,6 +641,7 @@ export class BookingsService_2024_08_13 {
 
   async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
     try {
+      await this.canRescheduleBooking(bookingUid);
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
         bookingUid,
@@ -477,6 +656,7 @@ export class BookingsService_2024_08_13 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
       if (!booking.uid) {
         throw new Error("Booking missing uid");
@@ -508,13 +688,27 @@ export class BookingsService_2024_08_13 {
       }
       return this.outputService.getOutputBooking(databaseBooking);
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message === "no_available_users_found_error") {
-          throw new BadRequestException("User either already has booking at this time or is not available");
-        }
-      }
-      throw error;
+      this.errorsBookingsService.handleBookingError(error, false);
     }
+  }
+
+  async canRescheduleBooking(bookingUid: string) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+    if (booking.status === "CANCELLED" && !booking.rescheduled) {
+      throw new BadRequestException(
+        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled. Please provide uid of a booking that is not cancelled.`
+      );
+    }
+    if (booking.status === "CANCELLED" && booking.rescheduled) {
+      const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
+      throw new BadRequestException(
+        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled and rescheduled already to booking with uid=${rescheduledTo?.uid}. You probably want to reschedule ${rescheduledTo?.uid} instead by passing it within the request URL.`
+      );
+    }
+    return booking;
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
@@ -569,6 +763,20 @@ export class BookingsService_2024_08_13 {
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+
+    if (!bookingBefore) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
+    }
+
+    const nowUtc = DateTime.utc();
+    const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
+
+    if (nowUtc < bookingStartTimeUtc) {
+      throw new BadRequestException(
+        `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
+      );
+    }
+
     const platformClientParams = bookingBefore?.eventTypeId
       ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
       : undefined;
@@ -727,15 +935,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: true,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
       },
@@ -755,15 +967,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: false,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         reason,
         emailsEnabled,
         platformClientParams,
