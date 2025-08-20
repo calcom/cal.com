@@ -66,13 +66,7 @@ export type DataTableContextType = {
   segments: CombinedFilterSegment[];
   selectedSegment: CombinedFilterSegment | undefined;
   segmentId: SegmentIdentifier | null;
-  setSegmentId: (
-    id: SegmentIdentifier | null,
-    providedSegment?: Pick<
-      CombinedFilterSegment,
-      "activeFilters" | "sorting" | "columnVisibility" | "columnSizing" | "perPage" | "searchTerm"
-    >
-  ) => void;
+  setSegmentId: (id: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => void;
   canSaveSegment: boolean;
   isSegmentEnabled: boolean;
 
@@ -128,7 +122,7 @@ export function DataTableProvider({
     () => (preferredSegmentId ? String(preferredSegmentId.id) : null),
     [preferredSegmentId]
   );
-  const [segmentId, setSegmentId] = useQueryState(
+  const [segmentId, _setSegmentId] = useQueryState(
     "segment",
     initialSegmentId ? segmentIdParser.withDefault(initialSegmentId) : segmentIdParser
   );
@@ -185,16 +179,10 @@ export function DataTableProvider({
     findSelectedSegment(segmentId)
   );
 
-  const setSegment = useCallback(
-    (
-      segmentId: SegmentIdentifier | null,
-      providedSegment?: Pick<
-        CombinedFilterSegment,
-        "activeFilters" | "sorting" | "columnVisibility" | "columnSizing" | "perPage" | "searchTerm"
-      >
-    ) => {
+  const setSegmentId = useCallback(
+    (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
       if (!segmentId) {
-        setSegmentId(null);
+        _setSegmentId(null);
         setSelectedSegment(undefined);
         setSegmentPreference({
           tableIdentifier,
@@ -208,7 +196,7 @@ export function DataTableProvider({
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
         // but we still keep all the other states like activeFilters, etc.
         // This is useful when someone shares a URL that is inaccessible to someone else.
-        setSegmentId(null);
+        _setSegmentId(null);
         setSelectedSegment(undefined);
         setSegmentPreference({
           tableIdentifier,
@@ -217,7 +205,7 @@ export function DataTableProvider({
         return;
       }
 
-      setSegmentId(String(segmentId.id));
+      _setSegmentId(String(segmentId.id));
       setSelectedSegment(segment);
       setSegmentPreference({
         tableIdentifier,
@@ -244,7 +232,7 @@ export function DataTableProvider({
       setPageIndex(0);
     },
     [
-      setSegmentId,
+      _setSegmentId,
       setSelectedSegment,
       setSegmentPreference,
       tableIdentifier,
@@ -267,7 +255,7 @@ export function DataTableProvider({
     // and no segment id has been selected yet,
     // then we set it.
     if (fetchedPreferredSegmentId && !segmentId) {
-      setSegment(fetchedPreferredSegmentId);
+      setSegmentId(fetchedPreferredSegmentId);
     }
     // We intentionally have only `isSegmentFetchedSuccessfully`
     // in the dependency array.
@@ -275,9 +263,9 @@ export function DataTableProvider({
 
   const clearSystemSegmentSelectionIfExists = useCallback(() => {
     if (selectedSegment?.type === "system") {
-      setSegment(null);
+      setSegmentId(null);
     }
-  }, [selectedSegment, setSegment]);
+  }, [selectedSegment, setSegmentId]);
 
   const setDebouncedSearchTerm = useMemo(
     () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
@@ -346,14 +334,14 @@ export function DataTableProvider({
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
-      setSegment(null);
+      setSegmentId(null);
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
         return remainingFilters.length === 0 ? null : remainingFilters;
       });
     },
-    [setActiveFilters, setPageIndex, setSegment]
+    [setActiveFilters, setPageIndex, setSegmentId]
   );
 
   // Check if current state differs from selected segment
@@ -423,7 +411,7 @@ export function DataTableProvider({
         segments,
         selectedSegment,
         segmentId: segmentIdObject,
-        setSegmentId: setSegment,
+        setSegmentId,
         canSaveSegment,
         isSegmentEnabled,
         searchTerm,

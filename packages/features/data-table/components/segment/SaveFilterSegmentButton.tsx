@@ -75,7 +75,7 @@ export function SaveFilterSegmentButton() {
     onSuccess: (segment) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_saved"), "success");
-      setSegmentId({ id: segment.id, type: "user" }, segment);
+      setSegmentId({ id: segment.id, type: "user" }, { type: "user", ...segment });
       setIsOpen(false);
     },
     onError: () => {
