@@ -318,9 +318,21 @@ const BATCH_SIZE = 1000; // Adjust based on your needs
 function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
-  dateTarget: "createdAt" | "startTime" = "createdAt"
+  dateTarget: "createdAt" | "startTime" = "createdAt",
+  onlyCompleted = false
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
+
+  const updatedColumnFilters = columnFilters || [];
+
+  // TODO : completed status check for filtering
+  if (onlyCompleted) {
+    // updatedColumnFilters = [
+    //   ...updatedColumnFilters,
+    //   { id: "endDate", value: { data: new Date().toISOString(), type: "LESS_THAN" } }, // endDate < now
+    //   { id: "status", value: { data: "accepted", type: "SINGLE_SELECT" } } // status = accepted
+    // ];
+  }
 
   return getInsightsBookingService({
     options: {
@@ -330,7 +342,7 @@ function createInsightsBookingService(
       ...(selectedTeamId && { teamId: selectedTeamId }),
     },
     filters: {
-      ...(columnFilters && { columnFilters }),
+      ...(updatedColumnFilters && { columnFilters: updatedColumnFilters }),
       dateRange: {
         target: dateTarget,
         startDate,
@@ -559,6 +571,28 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  membersWithMostCompletedBookings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", true); // only completed bookings
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  membersWithLeastCompletedBookings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", true); // only completed bookings
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
