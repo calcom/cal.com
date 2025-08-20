@@ -230,18 +230,10 @@ export const verifier = {
     });
   },
   verifyThatFieldCanBeMarkedOptional: async ({ identifier }: { identifier: string }) => {
-    expectScenario.toHaveOptionalBadge({ identifier });
+    expectScenario.toHaveRequiredBadge({ identifier });
     const editDialogForm = pageObject.openEditFieldDialog({ identifier });
     pageObject.dialog.makeFieldRequired({ dialog: editDialogForm });
     pageObject.dialog.saveField({ dialog: editDialogForm });
-
-    await waitFor(() => {
-      expect(screen.queryByTestId("optional")).not.toBeInTheDocument();
-    });
-
-    const editDialogForm2 = pageObject.openEditFieldDialog({ identifier });
-    pageObject.dialog.makeFieldOptional({ dialog: editDialogForm2 });
-    pageObject.dialog.saveField({ dialog: editDialogForm2 });
 
     await waitFor(() => {
       expect(screen.getByTestId("optional")).toBeInTheDocument();
@@ -279,16 +271,12 @@ export const expectScenario = {
     const field = getFieldInTheList({ identifier });
     expect(field.getByText(sourceLabel)).not.toBeNull();
   },
-  toHaveOptionalBadge: ({ identifier }: { identifier: string }) => {
-    const field = getFieldInTheList({ identifier });
-    expect(field.queryByTestId("optional")).not.toBeNull();
-  },
   toNotHaveOptionalBadge: ({ identifier }: { identifier: string }) => {
     const field = getFieldInTheList({ identifier });
     expect(field.queryByTestId("optional")).toBeNull();
   },
   toHaveRequiredBadge: ({ identifier }: { identifier: string }) => {
     const field = getFieldInTheList({ identifier });
-    expect(field.queryByTestId("optional")).toBeNull();
+    expect(field.getByText("required")).not.toBeNull();
   },
 };

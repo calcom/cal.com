@@ -780,8 +780,8 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 
   // Make email as not required
   await page.locator('[data-testid="field-email"] [data-testid="edit-field-action"]').click();
-  const emailRequiredFiled = await page.locator('[data-testid="field-required"]');
-  await emailRequiredFiled.locator("> :nth-child(2)").click();
+  const emailRequiredFiled = await page.locator('[data-testid="field-required"]').first();
+  await emailRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
   await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
@@ -794,8 +794,8 @@ const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();
-  const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');
-  await phoneRequiredFiled.locator("> :nth-child(1)").click();
+  const phoneRequiredFiled = await page.locator('[data-testid="field-required"]').first();
+  await phoneRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
   await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),

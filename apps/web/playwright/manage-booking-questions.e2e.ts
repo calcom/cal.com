@@ -636,8 +636,8 @@ async function toggleQuestionRequireStatusAndSave({
   await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
   await page
     .locator('[data-testid="edit-field-dialog"]')
-    .locator('[data-testid="field-required"] button')
-    .locator(`text=${required ? "Yes" : "No"}`)
+    .locator('[data-testid="field-required"]')
+    .first()
     .click();
   await page.locator('[data-testid="field-add-save"]').click();
   await saveEventType(page);

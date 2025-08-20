@@ -677,9 +677,14 @@ function FieldEditDialog({
                         name="required"
                         control={fieldForm.control}
                         render={({ field: { value, onChange } }) => {
-                          const isRequired = shouldConsiderRequired
+                          let isRequired = shouldConsiderRequired
                             ? shouldConsiderRequired(fieldForm.getValues())
                             : value;
+                          //by default question should be required
+                          if (isRequired === undefined) {
+                            isRequired = true;
+                            onChange(isRequired);
+                          }
                           return (
                             <CheckboxField
                               data-testid="field-required"
