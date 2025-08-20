@@ -2,4 +2,4 @@
 "@calcom/atoms": patch
 ---
 
-fixes onBookerStateChange prop not working
+This PR fixes `onBookerStateChange` prop not working
