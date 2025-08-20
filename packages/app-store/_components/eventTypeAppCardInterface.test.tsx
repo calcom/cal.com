@@ -7,13 +7,12 @@ import type { RouterOutputs } from "@calcom/trpc";
 import AsyncDynamicComponent from "./AsyncDynamicComponent";
 import { EventTypeAppCard } from "./EventTypeAppCardInterface";
 
-vi.mock("./AsyncDynamicComponent", async () => {
-  const actual = (await vi.importActual("./AsyncDynamicComponent")) as object;
-  return {
-    ...actual,
-    AsyncDynamicComponent: vi.fn(() => <div>MockedAsyncDynamicComponent</div>),
-  };
-});
+// Mock AsyncDynamicComponent
+vi.mock("./AsyncDynamicComponent", () => ({
+  default: vi.fn(() => <div>MockedAsyncDynamicComponent</div>),
+}));
+
+const MockedAsyncDynamicComponent = vi.mocked(AsyncDynamicComponent);
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -41,7 +40,7 @@ describe("Tests for EventTypeAppCard component", () => {
   test("Should render AsyncDynamicComponent with correct slug", () => {
     render(<EventTypeAppCard {...mockProps} />);
 
-    expect(AsyncDynamicComponent).toHaveBeenCalledWith(
+    expect(MockedAsyncDynamicComponent).toHaveBeenCalledWith(
       expect.objectContaining({
         slug: mockProps.app.slug,
       }),
@@ -77,7 +76,7 @@ describe("Tests for EventTypeAppCard component", () => {
 
     render(<EventTypeAppCard {...stripeProps} />);
 
-    expect(AsyncDynamicComponent).toHaveBeenCalledWith(
+    expect(MockedAsyncDynamicComponent).toHaveBeenCalledWith(
       expect.objectContaining({
         slug: "stripepayment",
       }),
@@ -88,8 +87,8 @@ describe("Tests for EventTypeAppCard component", () => {
   });
 
   test("Should display error boundary message on child component error", () => {
-    (AsyncDynamicComponent as jest.Mock).mockImplementation(() => {
-      return Error("Mocked error from AsyncDynamicComponent");
+    MockedAsyncDynamicComponent.mockImplementation(() => {
+      throw new Error("Mocked error from AsyncDynamicComponent");
     });
 
     render(<EventTypeAppCard {...mockProps} />);

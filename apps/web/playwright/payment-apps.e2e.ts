@@ -33,8 +33,6 @@ test.describe("Payment app", () => {
     await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
     // Wait for async app components to load
     await waitForAsyncAppComponents(page);
-    // Wait for async app components to load
-    await waitForAsyncAppComponents(page);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByPlaceholder("Price").click();
