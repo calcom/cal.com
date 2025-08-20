@@ -232,7 +232,7 @@ export const verifier = {
   verifyThatFieldCanBeMarkedOptional: async ({ identifier }: { identifier: string }) => {
     expectScenario.toHaveRequiredBadge({ identifier });
     const editDialogForm = pageObject.openEditFieldDialog({ identifier });
-    pageObject.dialog.makeFieldRequired({ dialog: editDialogForm });
+    pageObject.dialog.makeFieldOptional({ dialog: editDialogForm });
     pageObject.dialog.saveField({ dialog: editDialogForm });
 
     await waitFor(() => {
