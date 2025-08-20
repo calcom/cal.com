@@ -2,6 +2,7 @@ name: Check types
 on:
   workflow_call:
 env:
+  # Increased memory allocation from 4GB to 8GB to handle microsoft-auth branch changes
   NODE_OPTIONS: --max-old-space-size=8192
 permissions:
   contents: read
