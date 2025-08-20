@@ -13,6 +13,4 @@ if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
   paymentLoaders["mock-payment-app"] = createCachedImport(() => import("../../mock-payment-app/index"));
 }
 
-export type PaymentLoaderKey = keyof typeof paymentLoaders & {
-  ["mock-payment-app"]?: () => Promise<typeof import("../../mock-payment-app/index")>;
-};
+export type PaymentLoaderKey = keyof typeof paymentLoaders | "mock-payment-app";
