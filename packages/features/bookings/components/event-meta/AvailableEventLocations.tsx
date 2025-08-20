@@ -48,7 +48,7 @@ function RenderLocationTooltip({ locations }: { locations: LocationObject[] }) {
             return null;
           }
           const translatedLocation =
-            location.customLabel ?? getTranslatedLocation(location, eventLocationType, t);
+            location.customLabel || getTranslatedLocation(location, eventLocationType, t);
           return (
             <div key={`${location.type}-${index}`} className="font-sm flex flex-row items-center">
               <RenderIcon eventLocationType={eventLocationType} isTooltip />
