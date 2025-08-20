@@ -358,7 +358,7 @@ export function AgentConfigurationSheet({
         cursorPosition
       )}${variableName}${currentPrompt.substring(cursorPosition)}`;
 
-      agentForm.setValue("generalPrompt", newPrompt);
+      agentForm.setValue("generalPrompt", newPrompt, { shouldDirty: true, shouldTouch: true });
 
       requestAnimationFrame(() => {
         if (generalPromptRef.current) {
