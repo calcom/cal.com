@@ -423,6 +423,7 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  integrationAccounts            IntegrationAccounts[]
 
   @@unique([email])
   @@unique([email, username])
@@ -433,6 +434,42 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+model IntegrationAccounts {
+  id                     Int                     @id @default(autoincrement())
+  tokenType              String?
+  expiresIn              Int?
+  createdAt              Int?
+  refreshToken           String
+  accessToken            String
+  scope                  String?
+  ownerUniqIdentifier    String?
+  provider               IntegrationProvider
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 Int
+  integrationUserProfile IntegrationUserProfile?
+
+  //a user can only have one integration account per provider
+  @@unique([userId, provider])
+}
+
+enum IntegrationProvider {
+  CALENDLY
+}
+
+model IntegrationUserProfile {
+  id                          Int                 @id @default(autoincrement())
+  scheduling_url              String?
+  avatar_url                  String?
+  created_at                  DateTime?
+  updated_at                  DateTime?
+  current_organization        String?
+  integrationAccount          IntegrationAccounts @relation(fields: [integrationAccountsUserId, integrationAccountsProvider], references: [userId, provider], onDelete: Cascade)
+  integrationAccountsUserId   Int
+  integrationAccountsProvider IntegrationProvider
+
+  @@unique([integrationAccountsUserId, integrationAccountsProvider])
 }
 
 model NotificationsSubscriptions {

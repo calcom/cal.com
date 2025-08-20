@@ -124,6 +124,7 @@
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
     "eslint": "^8.34.0",
+    "inngest": "^3.13.0",
     "p-limit": "^6.2.0",
     "turbo": "^1.10.1"
   },

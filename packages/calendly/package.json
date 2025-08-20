@@ -1,0 +1,11 @@
+{
+  "name": "@onehash/calendly",
+  "description": "OneHash's shared library for calendly integration",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "axios": "^1.6.5"
+  }
+}
