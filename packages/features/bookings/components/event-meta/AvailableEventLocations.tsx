@@ -74,9 +74,6 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
         // It's possible that the location app got uninstalled
         return null;
       }
-      if (eventLocationType.variable === "hostDefault" && !location?.customLabel) {
-        return null;
-      }
 
       const locationName = location?.customLabel || getTranslatedLocation(location, eventLocationType, t);
 
