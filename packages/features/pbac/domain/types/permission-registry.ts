@@ -7,6 +7,8 @@ export enum Resource {
   Booking = "booking",
   Insights = "insights",
   Role = "role",
+  RoutingForm = "routingForm",
+  Workflow = "workflow",
 }
 
 export enum CrudAction {
@@ -355,6 +357,42 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_view_team_insights",
     },
   },
+  [Resource.Workflow]: {
+    _resource: {
+      i18nKey: "pbac_resource_workflow",
+    },
+    [CrudAction.Create]: {
+      description: "Create workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_workflows",
+    },
+    [CrudAction.Read]: {
+      description: "View workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_workflows",
+    },
+    [CrudAction.Update]: {
+      description: "Update workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_workflows",
+    },
+    [CrudAction.Delete]: {
+      description: "Delete workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_workflows",
+    },
+    [CrudAction.Manage]: {
+      description: "Manage workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_workflows",
+      scope: [Scope.Organization],
+    },
+  },
   [Resource.Attributes]: {
     _resource: {
       i18nKey: "pbac_resource_attributes",
@@ -382,6 +420,42 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
+    },
+  },
+  [Resource.RoutingForm]: {
+    _resource: {
+      i18nKey: "pbac_resource_routing_form",
+    },
+    [CrudAction.Create]: {
+      description: "Create routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_routing_forms",
+    },
+    [CrudAction.Read]: {
+      description: "View routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_routing_forms",
+    },
+    [CrudAction.Update]: {
+      description: "Update routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_routing_forms",
+    },
+    [CrudAction.Delete]: {
+      description: "Delete routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_routing_forms",
+    },
+    [CrudAction.Manage]: {
+      description: "Manage routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_routing_forms",
+      scope: [Scope.Organization],
     },
   },
 };
