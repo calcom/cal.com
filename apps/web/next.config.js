@@ -170,52 +170,6 @@ const orgDomainMatcherConfig = {
 };
 
 /** @type {import("next").NextConfig} */
-<<<<<<< HEAD
-const nextConfig = {
-  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
-  serverExternalPackages: [
-    "deasync",
-    "http-cookie-agent", // Dependencies of @ewsjs/xhr
-    "rest-facade",
-    "superagent-proxy", // Dependencies of @tryvital/vital-node
-    "superagent", // Dependencies of akismet
-    "formidable", // Dependencies of akismet
-    "@boxyhq/saml-jackson",
-    "jose", // Dependency of @boxyhq/saml-jackson
-  ],
-  experimental: {
-    // Enable persistent caching for Turbopack in development
-    turbopackPersistentCaching: process.env.NODE_ENV === "development",
-    // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    optimizePackageImports: ["@calcom/ui"],
-  },
-  productionBrowserSourceMaps: true,
-  /* We already do type check on GH actions */
-  typescript: {
-    ignoreBuildErrors: !!process.env.CI,
-  },
-  /* We already do linting on GH actions */
-  eslint: {
-    ignoreDuringBuilds: !!process.env.CI,
-  },
-  transpilePackages: [
-    "@calcom/app-store",
-    "@calcom/dayjs",
-    "@calcom/emails",
-    "@calcom/embed-core",
-    "@calcom/embed-react",
-    "@calcom/embed-snippet",
-    "@calcom/features",
-    "@calcom/lib",
-    "@calcom/prisma",
-    "@calcom/trpc",
-  ],
-  modularizeImports: {
-    "@calcom/features/insights/components": {
-      transform: "@calcom/features/insights/components/{{member}}",
-      skipDefaultConversion: true,
-      preventFullImport: true,
-=======
 const nextConfig = (phase) => {
   if (isOrganizationsEnabled) {
     // We want to log the phase here because it is important that the rewrite is added during the build phase(phase=phase-production-build)
@@ -242,7 +196,6 @@ const nextConfig = (phase) => {
     experimental: {
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
->>>>>>> d72e15649f21638a36bf1410bf23a7362bdeadf1
     },
     productionBrowserSourceMaps: true,
     /* We already do type check on GH actions */
