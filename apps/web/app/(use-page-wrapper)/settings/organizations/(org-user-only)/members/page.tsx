@@ -2,8 +2,9 @@ import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 
-import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import prisma from "@calcom/prisma";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";
@@ -19,18 +20,32 @@ export const generateMetadata = async () =>
 
 const getCachedAttributes = unstable_cache(
   async (orgId: number) => {
-    return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
+    const attributeRepo = new PrismaAttributeRepository(prisma);
+
+    return await attributeRepo.findAllByOrgIdWithOptions({ orgId });
   },
   undefined,
   { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
+);
+
+const getCachedRoles = unstable_cache(
+  async (orgId: number) => {
+    const roleManager = await RoleManagementFactory.getInstance().createRoleManager(orgId);
+    return await roleManager.getAllRoles(orgId);
+  },
+  undefined,
+  { revalidate: 3600, tags: ["pbac.roles.list"] } // Cache for 1 hour
 );
 
 const Page = async () => {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
   const attributes = await getCachedAttributes(org.id);
+
+  const roles = await getCachedRoles(org.id);
+
   const facetedTeamValues = {
-    roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    roles,
     teams,
     attributes: attributes.map((attribute) => ({
       id: attribute.id,

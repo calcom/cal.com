@@ -62,6 +62,10 @@ function WorkflowsPage({ initialData, hasValidLicense }: PageProps) {
                 disableMobileButton={true}
                 onlyShowWithNoTeams={true}
                 includeOrg={true}
+                withPermission={{
+                  permission: "workflow.create",
+                  fallbackRoles: ["ADMIN", "OWNER"],
+                }}
               />
             ) : null
           }>
@@ -77,6 +81,10 @@ function WorkflowsPage({ initialData, hasValidLicense }: PageProps) {
                     disableMobileButton={true}
                     onlyShowWithTeams={true}
                     includeOrg={true}
+                    withPermission={{
+                      permission: "workflow.create",
+                      fallbackRoles: ["ADMIN", "OWNER"],
+                    }}
                   />
                 </div>
               </div>
