@@ -3363,6 +3363,7 @@ __metadata:
     "@formbricks/api": ^1.7.0
     "@formbricks/js": ^2.1.0
     "@sendgrid/client": ^7.7.0
+    "@unkey/ratelimit": ^2.1.3
     "@vercel/og": ^0.6.3
     city-timezones: ^1.2.1
     i18next: ^23.2.3
@@ -4071,7 +4072,6 @@ __metadata:
     "@types/stripe": ^8.0.417
     "@types/turndown": ^5.0.1
     "@types/uuid": 8.3.1
-    "@unkey/ratelimit": ^2.1.3
     "@upstash/redis": ^1.35.2
     "@vercel/edge-config": ^0.1.1
     "@vercel/edge-functions-ui": ^0.2.1
@@ -18866,15 +18866,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@unkey/ratelimit@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "@unkey/ratelimit@npm:2.1.2"
-  dependencies:
-    "@unkey/api": 2.0.3
-  checksum: 645959a8f2e458fc671cc4ea3d51497e76ee9ff967a9c233dacd51caaa7d0fa20386cf47ec138026113c18527cd2a24f6f941d0b0c0bd7723c8bf9e17c87baa5
-  languageName: node
-  linkType: hard
-
 "@unkey/ratelimit@npm:^2.1.3":
   version: 2.1.3
   resolution: "@unkey/ratelimit@npm:2.1.3"
@@ -21650,7 +21641,6 @@ __metadata:
     "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^16.0.1
-    "@unkey/ratelimit": ^2.1.2
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.1
     c8: ^7.13.0
