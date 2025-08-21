@@ -410,4 +410,72 @@ export class WebhookService {
       });
     }
   }
+
+  /**
+   * Schedules webhooks for delayed execution
+   * @param trigger - The webhook trigger event
+   * @param payload - The webhook payload
+   * @param scheduledAt - When to execute the webhook
+   * @param subscribers - List of webhook subscribers (optional, will fetch if not provided)
+   * @param isDryRun - Whether this is a dry run
+   */
+  async scheduleDelayedWebhooks(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    scheduledAt: Date,
+    subscribers?: WebhookSubscriber[],
+    isDryRun = false
+  ): Promise<void> {
+    if (isDryRun) {
+      log.debug(`Dry run - skipping delayed webhook: ${trigger}`, { scheduledAt });
+      return;
+    }
+
+    const webhookSubscribers =
+      subscribers ||
+      (await this.repository.getSubscribers({
+        userId: null,
+        eventTypeId: null,
+        triggerEvent: trigger,
+        teamId: payload.teamId,
+        orgId: payload.orgId,
+        oAuthClientId: undefined,
+      }));
+
+    if (webhookSubscribers.length === 0) {
+      return;
+    }
+
+    try {
+      const tasker = (await import("@calcom/features/tasker")).default;
+      const createdAt = new Date().toISOString();
+
+      const schedulePromises = webhookSubscribers.map((subscriber) =>
+        tasker.create(
+          "sendWebhook",
+          JSON.stringify({
+            secretKey: subscriber.secret,
+            triggerEvent: trigger,
+            createdAt,
+            webhook: subscriber,
+            data: payload.payload,
+          }),
+          { scheduledAt }
+        )
+      );
+
+      await Promise.all(schedulePromises);
+
+      log.debug(`Scheduled delayed webhooks: ${trigger}`, {
+        count: webhookSubscribers.length,
+        scheduledAt,
+      });
+    } catch (error) {
+      log.error(`Failed to schedule delayed webhooks: ${trigger}`, {
+        error: error instanceof Error ? error.message : String(error),
+        scheduledAt,
+      });
+      throw error;
+    }
+  }
 }

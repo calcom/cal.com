@@ -3,6 +3,10 @@ import logger from "@calcom/lib/logger";
 import type { WebhookEventDTO } from "../dto/types";
 import { WebhookNotificationHandler } from "./WebhookNotificationHandler";
 
+type WebhookHandlerLike = {
+  handleNotification(dto: WebhookEventDTO, isDryRun?: boolean): Promise<void>;
+};
+
 const log = logger.getSubLogger({ prefix: ["[WebhookNotifier]"] });
 
 /**
@@ -37,7 +41,7 @@ const log = logger.getSubLogger({ prefix: ["[WebhookNotifier]"] });
  * @see WebhookNotificationHandler For the default webhook processing implementation
  */
 export class WebhookNotifier {
-  private static handler = new WebhookNotificationHandler();
+  private static handler: WebhookHandlerLike = new WebhookNotificationHandler();
 
   /**
    * Emits a webhook event using the DTO's trigger event
@@ -67,11 +71,11 @@ export class WebhookNotifier {
     }
   }
 
-  static setHandler(handler: WebhookNotificationHandler): void {
+  static setHandler(handler: WebhookHandlerLike): void {
     this.handler = handler;
   }
 
-  static getHandler(): WebhookNotificationHandler {
+  static getHandler(): WebhookHandlerLike {
     return WebhookNotifier.handler;
   }
 }

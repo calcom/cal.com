@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../dto/types";
@@ -160,46 +161,29 @@ export class FormWebhookService extends WebhookService {
   }): Promise<void> {
     const webhookService = new WebhookService();
 
-    const subscribers = await webhookService.getSubscribers({
-      userId: null, // Form webhooks are not user-specific
-      eventTypeId: null, // Form webhooks are not event-type-specific
-      triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+    const delayMinutes = params.delayMinutes || 15;
+    const scheduledAt = dayjs().add(delayMinutes, "minute").toDate();
+
+    // Create webhook payload using our architecture
+    const payload = {
+      payload: {
+        responseId: params.responseId,
+        form: {
+          ...params.form,
+          teamId: params.form.teamId ?? null,
+        },
+        responses: params.responses,
+        redirect: params.redirect,
+      },
       teamId: params.teamId,
       orgId: params.orgId,
-      oAuthClientId: undefined,
-    });
+    };
 
-    if (subscribers.length === 0) {
-      return;
-    }
-
-    try {
-      const tasker = (await import("@calcom/features/tasker")).default;
-      const dayjs = (await import("@calcom/dayjs")).default;
-
-      const delayMinutes = params.delayMinutes || 15;
-      const scheduledAt = dayjs().add(delayMinutes, "minute").toDate();
-
-      const schedulePromises = subscribers.map((subscriber) =>
-        tasker.create(
-          "sendWebhook",
-          JSON.stringify({
-            responseId: params.responseId,
-            form: {
-              ...params.form,
-              teamId: params.form.teamId ?? null,
-            },
-            responses: params.responses,
-            redirect: params.redirect,
-            webhook: subscriber,
-          }),
-          { scheduledAt }
-        )
-      );
-
-      await Promise.all(schedulePromises);
-    } catch (error) {
-      console.error("Failed to schedule delayed form webhooks:", error);
-    }
+    // Use the centralized scheduling method from WebhookService
+    await webhookService.scheduleDelayedWebhooks(
+      WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+      payload,
+      scheduledAt
+    );
   }
 }
