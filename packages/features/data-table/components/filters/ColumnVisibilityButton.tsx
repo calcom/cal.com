@@ -41,7 +41,7 @@ function ColumnVisibilityButtonComponent<TData>(
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button ref={ref} color={color} StartIcon={StartIcon} {...rest}>
-          {children ? children : t("display")}
+          {children ? children : t("view")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">

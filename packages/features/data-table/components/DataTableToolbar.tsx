@@ -7,7 +7,7 @@ import { useState, type Ref, type ChangeEvent } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Button, type ButtonProps } from "@calcom/ui/components/button";
+import { Button, type ButtonBaseProps as ButtonProps } from "@calid/features/ui";
 import { Input } from "@calcom/ui/components/form";
 
 import { useColumnFilters, useDataTable } from "../hooks";

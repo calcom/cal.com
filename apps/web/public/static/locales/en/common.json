@@ -1,4 +1,5 @@
 {
+  "view": "View",
   "calendly_import": "Import from calendly",
   "calendly_authorized": "Calendly already imported",
   "notify_calendly_import": "Notify past bookers about your migration",
@@ -693,6 +694,8 @@
   "edit_role": "Edit Role",
   "view_role": "View Role",
   "edit_team": "Edit team",
+  "edit_teams": "Edit teams",
+  "edit_teams_description": "Configure team settings, members, and appearance.",
   "editing_user": "Editing user",
   "editing_org": "Editing organization",
   "edit_or_manage_webhooks": "If you wish to edit or manage your web hooks, please head over to <0>webhooks settings</0>",

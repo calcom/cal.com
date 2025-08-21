@@ -2,8 +2,9 @@ import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
 
-import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { TeamEditLayout } from "@calid/features/teams/TeamEditLayout";
+
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory"; import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 
@@ -80,9 +81,11 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   return (
-    <SettingsHeader title={t("team_members")} description={t("members_team_description")}>
+    // <SettingsHeader title={t("team_members")} description={t("members_team_description")}>
+    <TeamEditLayout teamId={teamId}>
       <TeamMembersView team={team} facetedTeamValues={facetedTeamValues} attributes={attributes} />
-    </SettingsHeader>
+    </TeamEditLayout>
+    // </SettingsHeader>
   );
 };
 
