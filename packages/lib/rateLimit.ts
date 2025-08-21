@@ -37,7 +37,7 @@ export function rateLimiter() {
       identifier,
       timestamp: new Date().toISOString(),
     });
-    return { success: true, limit: 10, remaining: 999, reset: 0 };
+    return { success: true };
   };
 
   const limiter = {
