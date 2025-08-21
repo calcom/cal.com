@@ -398,7 +398,8 @@ export class WorkflowRepository {
     const workflow = await prisma.workflow.findFirst({
       where: {
         id: workflowId,
-        OR: [{ userId }, ...(teamId ? [{ teamId }] : [])],
+        userId,
+        teamId: teamId ?? undefined,
       },
       select: {
         activeOn: {

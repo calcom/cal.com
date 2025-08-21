@@ -38,12 +38,12 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId, workflowI
       showToast(t("please_enter_phone_number"), "error");
       return;
     }
-    if (agentId) {
+    if (agentId && workflowId) {
       testCallMutation.mutate({
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
-        workflowId: workflowId,
+        workflowId,
       });
     }
   };
