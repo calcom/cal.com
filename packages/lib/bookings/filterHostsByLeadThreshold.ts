@@ -4,7 +4,7 @@ import { RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getLuckyUserService } from "../di/containers/LuckyUser";
-import type { RoutingFormResponse } from "../server/getLuckyUser";
+import type { LuckyUserService, RoutingFormResponse } from "../server/getLuckyUser";
 
 export const errorCodes = {
   MAX_LEAD_THRESHOLD_FALSY: "Max lead threshold should be null or > 1, not 0.",
@@ -26,7 +26,9 @@ type BaseHost<User extends BaseUser> = {
   user: User;
 };
 
-type PerUserData = Awaited<ReturnType<typeof getOrderedListOfLuckyUsers>>["perUserData"];
+type PerUserData = Awaited<
+  ReturnType<typeof LuckyUserService.prototype.getOrderedListOfLuckyUsers>
+>["perUserData"];
 type WeightedPerUserData = Omit<PerUserData, "weights" | "calibrations" | "bookingShortfalls"> & {
   weights: NonNullable<PerUserData["weights"]>;
   calibrations: NonNullable<PerUserData["calibrations"]>;
