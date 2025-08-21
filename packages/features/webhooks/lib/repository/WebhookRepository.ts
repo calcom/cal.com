@@ -37,31 +37,33 @@ export class WebhookRepository {
 
   async getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]> {
     const teamId = options.teamId;
-    const userId = options.userId ?? 0;
-    const eventTypeId = options.eventTypeId ?? 0;
-    const teamIds = Array.isArray(teamId) ? teamId : [teamId ?? 0];
-    const orgId = options.orgId ?? 0;
-    const oAuthClientId = options.oAuthClientId ?? "";
+    const userId = options.userId;
+    const eventTypeId = options.eventTypeId;
+    const teamIds = Array.isArray(teamId) ? teamId : teamId ? [teamId] : undefined;
+    const orgId = options.orgId;
+    const oAuthClientId = options.oAuthClientId;
 
-    const managedChildEventType = await this.prisma.eventType.findFirst({
-      where: {
-        id: eventTypeId,
-        parentId: {
-          not: null,
+    let managedParentEventTypeId: number | undefined;
+    if (eventTypeId) {
+      const managedChildEventType = await this.prisma.eventType.findFirst({
+        where: {
+          id: eventTypeId,
+          parentId: {
+            not: null,
+          },
         },
-      },
-      select: {
-        parentId: true,
-      },
-    });
-
-    const managedParentEventTypeId = managedChildEventType?.parentId ?? 0;
+        select: {
+          parentId: true,
+        },
+      });
+      managedParentEventTypeId = managedChildEventType?.parentId;
+    }
 
     const webhooks = await this.getSubscribersRaw({
       userId,
       eventTypeId,
       managedParentEventTypeId,
-      teamIds: [...teamIds, orgId],
+      teamIds: teamIds && orgId ? [...teamIds, orgId] : teamIds || (orgId ? [orgId] : undefined),
       oAuthClientId,
       triggerEvent: options.triggerEvent,
     });
@@ -83,67 +85,79 @@ export class WebhookRepository {
    * Each UNION branch can use its own optimal index
    */
   private async getSubscribersRaw(params: {
-    userId: number;
-    eventTypeId: number;
-    managedParentEventTypeId: number;
-    teamIds: number[];
-    oAuthClientId: string;
+    userId?: number | null;
+    eventTypeId?: number | null;
+    managedParentEventTypeId?: number | null;
+    teamIds?: number[];
+    oAuthClientId?: string | null;
     triggerEvent: WebhookTriggerEvents;
   }): Promise<any[]> {
     const { userId, eventTypeId, managedParentEventTypeId, teamIds, oAuthClientId, triggerEvent } = params;
 
-    const teamIdParams = teamIds.map((_, index) => `$${6 + index}`).join(",");
+    // Build query parts conditionally
+    const queryParts: string[] = [];
+    const queryParams: any[] = [triggerEvent]; // $1 is always triggerEvent
+    let paramIndex = 2; // Start from $2
 
-    const query = `
-      -- Platform webhooks (highest priority)
+    // Platform webhooks (always included - highest priority)
+    queryParts.push(`
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
         1 as priority
       FROM "Webhook"
       WHERE active = true 
         AND platform = true 
-        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
-      
-      UNION ALL
-      
-      -- User-specific webhooks
+        AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")`);
+
+    // User-specific webhooks (only if userId provided)
+    if (userId) {
+      queryParts.push(`
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
         2 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND "userId" = $2 
+        AND "userId" = $${paramIndex}
         AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
-      -- Event type webhooks
+        AND platform = false`);
+      queryParams.push(userId);
+      paramIndex++;
+    }
+
+    // Event type webhooks (only if eventTypeId provided)
+    if (eventTypeId) {
+      queryParts.push(`
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
         3 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND "eventTypeId" = $3 
+        AND "eventTypeId" = $${paramIndex}
         AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
-      -- Parent event type webhooks (for managed events)
+        AND platform = false`);
+      queryParams.push(eventTypeId);
+      paramIndex++;
+    }
+
+    // Parent event type webhooks (only if managedParentEventTypeId provided)
+    if (managedParentEventTypeId) {
+      queryParts.push(`
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
         4 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND "eventTypeId" = $4 
+        AND "eventTypeId" = $${paramIndex}
         AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-        AND $4 > 0
-      
-      UNION ALL
-      
-      -- Team webhooks
+        AND platform = false`);
+      queryParams.push(managedParentEventTypeId);
+      paramIndex++;
+    }
+
+    // Team webhooks (only if teamIds provided and not empty)
+    if (teamIds && teamIds.length > 0) {
+      const teamIdParams = teamIds.map((_, index) => `$${paramIndex + index}`).join(",");
+      queryParts.push(`
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
         5 as priority
@@ -151,32 +165,28 @@ export class WebhookRepository {
       WHERE active = true 
         AND "teamId" IN (${teamIdParams})
         AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
-      -- OAuth client webhooks
+        AND platform = false`);
+      queryParams.push(...teamIds);
+      paramIndex += teamIds.length;
+    }
+
+    // OAuth client webhooks (only if oAuthClientId provided)
+    if (oAuthClientId) {
+      queryParts.push(`
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
         6 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND "platformOAuthClientId" = $5 
+        AND "platformOAuthClientId" = $${paramIndex}
         AND $1::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-        AND $5 != ''
-      
-      ORDER BY priority, id;
-    `;
+        AND platform = false`);
+      queryParams.push(oAuthClientId);
+      paramIndex++;
+    }
 
-    const queryParams = [
-      triggerEvent,
-      userId,
-      eventTypeId,
-      managedParentEventTypeId,
-      oAuthClientId,
-      ...teamIds,
-    ];
+    // Combine query parts with UNION ALL
+    const query = `${queryParts.join("\n      UNION ALL\n")}\n      ORDER BY priority, id;`;
 
     const results = await this.prisma.$queryRawUnsafe(query, ...queryParams);
 
