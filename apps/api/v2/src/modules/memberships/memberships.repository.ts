@@ -64,6 +64,7 @@ export class MembershipsRepository {
     const userOrgAdminMemberships = await this.dbRead.prisma.membership.findMany({
       where: {
         userId: userId,
+        accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
         },
@@ -98,6 +99,7 @@ export class MembershipsRepository {
       where: {
         userId: userId,
         teamId: teamId,
+        accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
         },
@@ -109,6 +111,7 @@ export class MembershipsRepository {
     return this.dbRead.prisma.membership.findFirst({
       where: {
         userId: userId,
+        accepted: true,
         teamId: {
           in: orgIds,
         },
@@ -123,6 +126,7 @@ export class MembershipsRepository {
     return this.dbRead.prisma.membership.findFirst({
       where: {
         userId: userId,
+        accepted: true,
         team: {
           parentId: {
             in: orgIds,
