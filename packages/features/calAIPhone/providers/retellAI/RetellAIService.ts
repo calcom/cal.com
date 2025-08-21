@@ -188,6 +188,10 @@ export class RetellAIService {
     return this.agentService.updateToolsFromAgentId(agentId, data);
   }
 
+  async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void> {
+    return this.agentService.removeToolsForEventTypes(agentId, eventTypeIds);
+  }
+
   async deleteAgent(params: { id: string; userId: number; teamId?: number }) {
     return this.agentService.deleteAgent({
       ...params,

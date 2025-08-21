@@ -135,13 +135,6 @@ export class CallService {
       });
     }
 
-    await this.retellAIService.updateToolsFromAgentId(agent.providerAgentId, {
-      eventTypeId,
-      timeZone,
-      userId,
-      teamId,
-    });
-
     const call = await this.createPhoneCall({
       fromNumber: agentPhoneNumber,
       toNumber: toNumber,
@@ -161,6 +154,7 @@ export class CallService {
         ADDITIONAL_NOTES: "This is a test call to verify the AI phone agent",
         EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
         EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
+        eventTypeId: eventTypeId.toString(),
       },
     });
 

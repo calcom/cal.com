@@ -750,6 +750,73 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
+  const aiPhoneCallSteps = steps.filter((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL && s.agentId);
+  if (aiPhoneCallSteps.length > 0) {
+    const aiService = createDefaultAIPhoneServiceProvider();
+    const externalToolErrors: string[] = [];
+
+    await Promise.all(
+      aiPhoneCallSteps.map(async (step) => {
+        if (!step.agentId) return;
+
+        try {
+          const agent = await ctx.prisma.agent.findUnique({
+            where: { id: step.agentId },
+            select: { providerAgentId: true },
+          });
+
+          if (!agent?.providerAgentId) {
+            log.error(`Agent not found for step ${step.id} agentId ${step.agentId}`);
+            return;
+          }
+
+          if (removedActiveOnIds.length > 0) {
+            try {
+              await aiService.removeToolsForEventTypes(agent.providerAgentId, removedActiveOnIds);
+            } catch (error) {
+              const message = `Failed to remove tools for removed event types from agent ${
+                agent.providerAgentId
+              }: ${error instanceof Error ? error.message : "Unknown error"}`;
+              externalToolErrors.push(message);
+              log.error(message);
+            }
+          }
+
+          if (newActiveOn.length > 0) {
+            await Promise.all(
+              newActiveOn.map(async (eventTypeId) => {
+                try {
+                  await aiService.updateToolsFromAgentId(agent.providerAgentId, {
+                    eventTypeId,
+                    timeZone: user.timeZone,
+                    userId: user.id,
+                    teamId: userWorkflow.teamId || undefined,
+                  });
+                } catch (error) {
+                  const message = `Failed to add tools for event type ${eventTypeId} to agent ${
+                    agent.providerAgentId
+                  }: ${error instanceof Error ? error.message : "Unknown error"}`;
+                  externalToolErrors.push(message);
+                  log.error(message);
+                }
+              })
+            );
+          }
+        } catch (error) {
+          const message = `Failed to update agent tools for step ${step.id}: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`;
+          externalToolErrors.push(message);
+          log.error(message);
+        }
+      })
+    );
+
+    if (externalToolErrors.length > 0) {
+      log.error(`Agent tool update errors for workflow ${id}:`, externalToolErrors);
+    }
+  }
+
   const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
   return {
     workflow: workflowWithPermissions,

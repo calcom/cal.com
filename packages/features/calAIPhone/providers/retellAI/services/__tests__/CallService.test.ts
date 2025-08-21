@@ -128,16 +128,6 @@ describe("CallService", () => {
         message: "Call initiated to +0987654321 with call_id call-123",
       });
 
-      expect(mockRetellAIService.updateToolsFromAgentId).toHaveBeenCalledWith(
-        mockAgentWithPhoneNumber.providerAgentId,
-        {
-          eventTypeId: 123,
-          timeZone: "America/New_York",
-          userId: 1,
-          teamId: undefined,
-        }
-      );
-
       expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
         fromNumber: "+1234567890",
         toNumber: "+0987654321",
@@ -162,16 +152,6 @@ describe("CallService", () => {
         status: "registered",
         message: "Call initiated to +0987654321 with call_id call-123",
       });
-
-      expect(mockRetellAIService.updateToolsFromAgentId).toHaveBeenCalledWith(
-        mockAgentWithPhoneNumber.providerAgentId,
-        {
-          eventTypeId: 123,
-          timeZone: "America/New_York",
-          userId: 1,
-          teamId: 5,
-        }
-      );
     });
 
     it("should throw error if no phone number provided", async () => {

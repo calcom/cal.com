@@ -41,6 +41,29 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { TestAgentDialog } from "./TestAgentDialog";
 
+// Utility functions for prompt display
+const cleanPromptForDisplay = (prompt: string): string => {
+  if (!prompt) return prompt;
+
+  const cleanedPrompt = prompt
+    .replace(/check_availability_\{\{eventTypeId\}\}/g, "check_availability")
+    .replace(/book_appointment_\{\{eventTypeId\}\}/g, "book_appointment")
+    .replace(/check_availability_\d+/g, "check_availability")
+    .replace(/book_appointment_\d+/g, "book_appointment");
+
+  return cleanedPrompt;
+};
+
+const restorePromptComplexity = (prompt: string): string => {
+  if (!prompt) return prompt;
+
+  const restoredPrompt = prompt
+    .replace(/\bcheck_availability\b/g, "check_availability_{{eventTypeId}}")
+    .replace(/\bbook_appointment\b/g, "book_appointment_{{eventTypeId}}");
+
+  return restoredPrompt;
+};
+
 const agentSchema = z.object({
   generalPrompt: z.string().min(1, "General prompt is required"),
   beginMessage: z.string().min(1, "Begin message is required"),
@@ -101,7 +124,7 @@ export function AgentConfigurationSheet({
   readOnly = false,
   teamId,
   workflowId,
-  workflowStepId,
+  workflowStepId: _workflowStepId,
 }: AgentConfigurationSheetProps) {
   const { t } = useLocale();
 
@@ -133,7 +156,7 @@ export function AgentConfigurationSheet({
     if (agentData?.retellData) {
       const retellData = agentData.retellData;
       agentForm.reset({
-        generalPrompt: retellData.generalPrompt || "",
+        generalPrompt: cleanPromptForDisplay(retellData.generalPrompt || ""),
         beginMessage: retellData.beginMessage || "",
         numberToCall: "",
         generalTools: retellData.generalTools || [],
@@ -163,7 +186,7 @@ export function AgentConfigurationSheet({
   // });
 
   const buyNumberMutation = trpc.viewer.phoneNumber.buy.useMutation({
-    onSuccess: async (data: { checkoutUrl?: string; message?: string; phoneNumber?: any }) => {
+    onSuccess: async (data: { checkoutUrl?: string; message?: string; phoneNumber?: unknown }) => {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else if (data.phoneNumber) {
@@ -183,7 +206,7 @@ export function AgentConfigurationSheet({
   });
 
   const importNumberMutation = trpc.viewer.phoneNumber.import.useMutation({
-    onSuccess: async (data: any) => {
+    onSuccess: async (_data: unknown) => {
       showToast(t("phone_number_imported_successfully"), "success");
       setIsImportDialogOpen(false);
       phoneNumberForm.reset();
@@ -230,7 +253,7 @@ export function AgentConfigurationSheet({
   });
 
   const agentQuery = trpc.viewer.aiVoiceAgent.get.useQuery(
-    { id: agentId! },
+    { id: agentId || "" },
     {
       enabled: !!agentId,
       refetchOnMount: false,
@@ -251,13 +274,20 @@ export function AgentConfigurationSheet({
   const handleAgentUpdate = async (data: AgentFormValues) => {
     if (!agentId) return;
 
+    // Only send prompt-related fields, not tools
+    const updatePayload = {
+      generalPrompt: restorePromptComplexity(data.generalPrompt),
+      beginMessage: data.beginMessage,
+      // Don't include generalTools - they are managed by the backend
+    };
+
     await updateAgentMutation.mutateAsync({
       id: agentId,
       teamId: teamId,
-      ...data,
+      ...updatePayload,
     });
 
-    onUpdate(data);
+    onUpdate(updatePayload);
   };
 
   // const openAddToolDialog = () => {
@@ -879,6 +909,7 @@ export function AgentConfigurationSheet({
           onOpenChange={setIsTestAgentDialogOpen}
           agentId={agentId}
           teamId={teamId}
+          workflowId={workflowId}
         />
       )}
 

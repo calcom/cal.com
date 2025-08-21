@@ -1,7 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -25,14 +24,35 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
     logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
-  const eventTypeRepo = new EventTypeRepository(prisma);
-  const eventType = await eventTypeRepo.getFirstEventTypeByUserId({ userId: ctx.user.id });
-  if (!eventType?.id) {
+
+  const workflow = await prisma.workflow.findUnique({
+    where: { id: parseInt(input.workflowId) },
+    select: {
+      activeOn: {
+        select: {
+          eventTypeId: true,
+        },
+      },
+    },
+  });
+
+  if (!workflow) {
     throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No event type found for user",
+      code: "NOT_FOUND",
+      message: "Workflow not found",
     });
   }
+
+  const activeOnEventTypeIds = workflow.activeOn.map((active) => active.eventTypeId);
+
+  if (activeOnEventTypeIds.length === 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "No event types selected or saved in workflow activeOn",
+    });
+  }
+
+  const eventTypeId = activeOnEventTypeIds[0];
 
   return await aiService.createTestCall({
     agentId: input.agentId,
@@ -40,6 +60,6 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
     userId: ctx.user.id,
     teamId: input.teamId,
     timeZone,
-    eventTypeId: eventType.id,
+    eventTypeId,
   });
 };

@@ -272,4 +272,8 @@ export class RetellAIPhoneServiceProvider
   ): Promise<void> {
     return await this.service.updateToolsFromAgentId(agentId, data);
   }
+
+  async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void> {
+    return await this.service.removeToolsForEventTypes(agentId, eventTypeIds);
+  }
 }

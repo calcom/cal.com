@@ -191,6 +191,8 @@ export async function executeAIPhoneCall(payload: string) {
       EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: dayjs(booking.endTime)
         .tz(attendee?.timeZone || timeZone)
         .format("h:mm A"),
+      // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
+      eventTypeId: booking.eventTypeId?.toString() || "",
       // Include any custom form responses
       ...Object.fromEntries(
         Object.entries(responses || {}).map(([key, value]) => [
@@ -206,7 +208,6 @@ export async function executeAIPhoneCall(payload: string) {
 
     const aiService = createDefaultAIPhoneServiceProvider();
 
-    // Update general tools before making the call so that the agent can use the check_availability_cal and book_appointment_cal tools
     await aiService.updateToolsFromAgentId(data.providerAgentId, {
       eventTypeId: booking.eventTypeId,
       timeZone: attendee?.timeZone ?? "Europe/London",

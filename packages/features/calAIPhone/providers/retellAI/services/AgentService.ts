@@ -112,13 +112,14 @@ export class AgentService {
 
       const existing = llmDetails?.general_tools ?? [];
 
-      const hasCheckAvailability = existing.some(
-        (t): t is Extract<typeof t, { event_type_id: number }> =>
-          t.type === "check_availability_cal" && "event_type_id" in t && t.event_type_id === data.eventTypeId
-      );
+      // Check if tools for this specific event type already exist
+      const eventSpecificToolNames = [
+        `check_availability_${data.eventTypeId}`,
+        `book_appointment_${data.eventTypeId}`,
+      ];
+      const hasEventSpecificTools = existing.some((t) => eventSpecificToolNames.includes(t.name));
 
-      if (hasCheckAvailability) {
-        // If the event type ID does exist in the general tools, we don't need to update the agent general tools
+      if (hasEventSpecificTools) {
         return;
       }
 
@@ -134,21 +135,16 @@ export class AgentService {
           teamId: data.teamId || undefined,
         }));
 
-      const newGeneralTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [
+      const newEventTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [
         {
-          type: "end_call",
-          name: "end_call",
-          description: "Hang up the call, triggered only after appointment successfully scheduled.",
-        },
-        {
-          name: "check_availability",
+          name: `check_availability_${data.eventTypeId}`,
           type: "check_availability_cal",
           event_type_id: data.eventTypeId,
           cal_api_key: apiKey,
           timezone: data.timeZone,
         },
         {
-          name: "book_appointment",
+          name: `book_appointment_${data.eventTypeId}`,
           type: "book_appointment_cal",
           event_type_id: data.eventTypeId,
           cal_api_key: apiKey,
@@ -156,7 +152,18 @@ export class AgentService {
         },
       ];
 
-      await this.retellRepository.updateLLM(llmId, { general_tools: newGeneralTools });
+      const hasEndCall = existing.some((t) => t.type === "end_call");
+      if (!hasEndCall) {
+        newEventTools.unshift({
+          type: "end_call",
+          name: "end_call",
+          description: "Hang up the call, triggered only after appointment successfully scheduled.",
+        });
+      }
+
+      const updatedGeneralTools = [...existing, ...newEventTools];
+
+      await this.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
       if (error instanceof HttpError) {
         throw error;
@@ -169,6 +176,150 @@ export class AgentService {
       throw new HttpError({
         statusCode: 500,
         message: `Failed to update agent general tools ${agentId}`,
+      });
+    }
+  }
+
+  async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]) {
+    if (!agentId?.trim()) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
+    }
+
+    if (!eventTypeIds.length) {
+      return;
+    }
+
+    try {
+      const agent = await this.getAgent(agentId);
+      const llmId = getLlmId(agent);
+
+      if (!llmId) {
+        throw new HttpError({
+          statusCode: 404,
+          message: "Agent does not have an LLM configured.",
+        });
+      }
+
+      const llmDetails = await this.retellRepository.getLLM(llmId);
+
+      if (!llmDetails) {
+        throw new HttpError({ statusCode: 404, message: "LLM details not found." });
+      }
+
+      const existing = llmDetails?.general_tools ?? [];
+
+      const toolNamesToRemove = eventTypeIds.flatMap((eventTypeId) => [
+        `check_availability_${eventTypeId}`,
+        `book_appointment_${eventTypeId}`,
+      ]);
+
+      const filteredTools = existing.filter((tool) => !toolNamesToRemove.includes(tool.name));
+
+      if (filteredTools.length !== existing.length) {
+        await this.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
+        this.logger.info("Removed event-specific tools from agent", {
+          agentId,
+          llmId,
+          removedEventTypes: eventTypeIds,
+          toolsRemoved: existing.length - filteredTools.length,
+        });
+      }
+    } catch (error) {
+      if (error instanceof HttpError) {
+        throw error;
+      }
+
+      this.logger.error("Failed to remove event-specific tools from agent", {
+        agentId,
+        eventTypeIds,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to remove tools for agent ${agentId}`,
+      });
+    }
+  }
+
+  async cleanupUnusedTools(agentId: string, activeEventTypeIds: number[] = []) {
+    if (!agentId?.trim()) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
+    }
+
+    try {
+      const agent = await this.getAgent(agentId);
+      const llmId = getLlmId(agent);
+
+      if (!llmId) {
+        throw new HttpError({
+          statusCode: 404,
+          message: "Agent does not have an LLM configured.",
+        });
+      }
+
+      const llmDetails = await this.retellRepository.getLLM(llmId);
+
+      if (!llmDetails) {
+        throw new HttpError({ statusCode: 404, message: "LLM details not found." });
+      }
+
+      const existing = llmDetails?.general_tools ?? [];
+
+      const eventSpecificTools = existing.filter(
+        (tool) => tool.name.includes("check_availability_") || tool.name.includes("book_appointment_")
+      );
+
+      const toolsToRemove = eventSpecificTools.filter((tool) => {
+        // Extract event type ID from tool name
+        const eventTypeIdMatch = tool.name.match(/_(\d+)$/);
+        if (!eventTypeIdMatch) return false;
+
+        const eventTypeId = parseInt(eventTypeIdMatch[1]);
+        return !activeEventTypeIds.includes(eventTypeId);
+      });
+
+      if (toolsToRemove.length > 0) {
+        const toolNamesToRemove = toolsToRemove.map((tool) => tool.name);
+        const filteredTools = existing.filter((tool) => !toolNamesToRemove.includes(tool.name));
+
+        await this.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
+
+        this.logger.info("Cleaned up unused event-specific tools", {
+          agentId,
+          llmId,
+          removedTools: toolsToRemove.length,
+          toolNames: toolNamesToRemove,
+        });
+
+        return {
+          removedCount: toolsToRemove.length,
+          removedTools: toolNamesToRemove,
+        };
+      }
+
+      return {
+        removedCount: 0,
+        removedTools: [],
+      };
+    } catch (error) {
+      if (error instanceof HttpError) {
+        throw error;
+      }
+
+      this.logger.error("Failed to cleanup unused tools for agent", {
+        agentId,
+        activeEventTypeIds,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to cleanup tools for agent ${agentId}`,
       });
     }
   }

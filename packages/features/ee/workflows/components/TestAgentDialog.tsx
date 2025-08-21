@@ -15,9 +15,10 @@ interface TestAgentDialogProps {
   onOpenChange: (open: boolean) => void;
   agentId: string;
   teamId?: number;
+  workflowId?: string;
 }
 
-export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAgentDialogProps) {
+export function TestAgentDialog({ open, onOpenChange, agentId, teamId, workflowId }: TestAgentDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
@@ -42,6 +43,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAge
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
+        workflowId: workflowId,
       });
     }
   };

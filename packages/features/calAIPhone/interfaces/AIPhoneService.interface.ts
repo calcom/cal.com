@@ -334,6 +334,11 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ): Promise<void>;
+
+  /**
+   * Remove tools for event types
+   */
+  removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void>;
 }
 
 /**
