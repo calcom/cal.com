@@ -21,8 +21,8 @@ export const updateHandler = async ({ ctx, input }: UpdateHandlerOptions) => {
     userId: ctx.user.id,
     teamId,
     name,
-    generalPrompt: retellUpdates.generalPrompt,
-    beginMessage: retellUpdates.beginMessage,
+    generalPrompt: retellUpdates.generalPrompt ?? undefined,
+    beginMessage: retellUpdates.beginMessage ?? undefined,
     generalTools: retellUpdates.generalTools as RetellLLMGeneralTools,
     voiceId: retellUpdates.voiceId,
   });
