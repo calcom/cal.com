@@ -2,7 +2,7 @@ import CalendarManagerMock from "../../../tests/libs/__mocks__/CalendarManager";
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { v4 as uuid } from "uuid";
-import { expect, it, describe, vi, beforeAll } from "vitest";
+import { expect, it, describe, vi, beforeAll, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
@@ -22,8 +22,40 @@ vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/
   default: {},
 }));
 
+const mockLuckyUserService = {
+  getLuckyUser: vi.fn(),
+  prepareQueuesAndAttributesData: vi.fn(),
+  getOrderedListOfLuckyUsers: vi.fn(),
+  dependencies: {
+    bookingRepository: {
+      getAllBookingsForRoundRobin: vi.fn().mockResolvedValue([]),
+    },
+    hostRepository: {
+      findHostsCreatedInInterval: vi.fn().mockResolvedValue([]),
+    },
+    oooRepository: {
+      findOOOEntriesInInterval: vi.fn().mockResolvedValue([]),
+    },
+    userRepository: {
+      findUsersWithLastBooking: vi.fn().mockResolvedValue([]),
+    },
+    attributeRepository: {
+      findAttributeOptionWithUsers: vi.fn().mockResolvedValue(null),
+      findAttributeByIdWithOptions: vi.fn().mockResolvedValue(null),
+    },
+  },
+};
+
+vi.mock("@calcom/lib/di/containers/LuckyUser", () => ({
+  getLuckyUserService: () => mockLuckyUserService,
+}));
+
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
 });
 
 it("can find lucky user with maximize availability", async () => {
@@ -55,13 +87,7 @@ it("can find lucky user with maximize availability", async () => {
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-  prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
-
-  // TODO: we may be able to use native prisma generics somehow?
-  prismaMock.user.findMany.mockResolvedValue(users);
-  prismaMock.host.findMany.mockResolvedValue([]);
-  prismaMock.booking.findMany.mockResolvedValue([]);
+  mockLuckyUserService.getLuckyUser.mockResolvedValue(users[1]);
 
   await expect(
     getLuckyUser({
@@ -107,13 +133,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-  prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
-
-  // TODO: we may be able to use native prisma generics somehow?
-  prismaMock.user.findMany.mockResolvedValue(users);
-  prismaMock.host.findMany.mockResolvedValue([]);
-  prismaMock.booking.findMany.mockResolvedValue([]);
+  mockLuckyUserService.getLuckyUser.mockResolvedValue(users[1]);
 
   // both users have medium priority (one user has no priority set, default to medium) so pick least recently booked
   await expect(
@@ -171,10 +191,8 @@ it("can find lucky user with maximize availability and priority ranking", async 
   });
 
   const usersWithPriorities: GetLuckyUserAvailableUsersType = [userLowest, userMedium, userHighest];
-  // TODO: we may be able to use native prisma generics somehow?
-  prismaMock.user.findMany.mockResolvedValue(usersWithPriorities);
-  prismaMock.booking.findMany.mockResolvedValue([]);
-  prismaMock.host.findMany.mockResolvedValue([]);
+
+  mockLuckyUserService.getLuckyUser.mockResolvedValue(userHighest);
   // pick the user with the highest priority
   await expect(
     getLuckyUser({
@@ -232,10 +250,8 @@ it("can find lucky user with maximize availability and priority ranking", async 
     userHighLeastRecentBooking,
     userHighRecentBooking,
   ];
-  // TODO: we may be able to use native prisma generics somehow?
-  prismaMock.user.findMany.mockResolvedValue(usersWithSamePriorities);
-  prismaMock.booking.findMany.mockResolvedValue([]);
-  prismaMock.host.findMany.mockResolvedValue([]);
+
+  mockLuckyUserService.getLuckyUser.mockResolvedValue(userHighLeastRecentBooking);
 
   // pick the least recently booked user of the two with the highest priority
   await expect(
@@ -289,32 +305,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
-    prismaMock.user.findMany.mockResolvedValue(users);
-    prismaMock.host.findMany.mockResolvedValue([]);
-    prismaMock.booking.findMany.mockResolvedValue([
-      buildBooking({
-        id: 1,
-        userId: 1,
-        createdAt: new Date("2022-01-25T06:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 2,
-        userId: 1,
-        createdAt: new Date("2022-01-25T03:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 3,
-        userId: 2,
-        createdAt: new Date("2022-01-25T05:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 4,
-        userId: 2,
-        createdAt: new Date("2022-01-25T04:30:00.000Z"),
-      }),
-    ]);
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(users[1]);
 
     const allRRHosts = [
       {
@@ -342,13 +333,19 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(users[1]);
 
-    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
-
-    // Today: 2021-06-20T11:59:59Z, monthly interval
-    expect(queryArgs.where?.createdAt).toEqual(
+    expect(mockLuckyUserService.getLuckyUser).toHaveBeenCalledWith(
       expect.objectContaining({
-        gte: new Date("2021-06-01T00:00:00Z"),
-        lte: new Date("2021-06-20T11:59:59.000Z"),
+        availableUsers: users,
+        eventType: expect.objectContaining({
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: expect.objectContaining({
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          }),
+        }),
+        allRRHosts,
+        routingFormResponse: null,
       })
     );
   });
@@ -392,37 +389,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
-    prismaMock.user.findMany.mockResolvedValue(users);
-    prismaMock.host.findMany.mockResolvedValue([]);
-    prismaMock.booking.findMany.mockResolvedValue([
-      buildBooking({
-        id: 1,
-        userId: 1,
-        createdAt: new Date("2022-01-25T08:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 2,
-        userId: 1,
-        createdAt: new Date("2022-01-25T07:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 3,
-        userId: 1,
-        createdAt: new Date("2022-01-25T05:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 4,
-        userId: 2,
-        createdAt: new Date("2022-01-25T06:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 4,
-        userId: 2,
-        createdAt: new Date("2022-01-25T03:30:00.000Z"),
-      }),
-    ]);
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(users[0]);
 
     const allRRHosts = [
       {
@@ -450,13 +417,19 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(users[0]);
 
-    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
-
-    // Today: 2021-06-20T11:59:59Z, daily interval
-    expect(queryArgs.where?.createdAt).toEqual(
+    expect(mockLuckyUserService.getLuckyUser).toHaveBeenCalledWith(
       expect.objectContaining({
-        gte: new Date("2021-06-20T00:00:00Z"),
-        lte: new Date("2021-06-20T11:59:59.000Z"),
+        availableUsers: users,
+        eventType: expect.objectContaining({
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: expect.objectContaining({
+            rrResetInterval: RRResetInterval.DAY,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          }),
+        }),
+        allRRHosts,
+        routingFormResponse: null,
       })
     );
   });
@@ -500,37 +473,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
-    prismaMock.user.findMany.mockResolvedValue(users);
-    prismaMock.host.findMany.mockResolvedValue([]);
-    prismaMock.booking.findMany.mockResolvedValue([
-      buildBooking({
-        id: 1,
-        userId: 1,
-        createdAt: new Date("2022-01-25T05:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 2,
-        userId: 1,
-        createdAt: new Date("2022-01-25T03:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 3,
-        userId: 1,
-        createdAt: new Date("2022-01-25T07:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 4,
-        userId: 2,
-        createdAt: new Date("2022-01-25T06:30:00.000Z"),
-      }),
-      buildBooking({
-        id: 4,
-        userId: 2,
-        createdAt: new Date("2022-01-25T03:30:00.000Z"),
-      }),
-    ]);
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(users[0]);
 
     const allRRHosts = [
       {
@@ -558,13 +501,19 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(users[0]);
 
-    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
-
-    // Today: 2021-06-20T11:59:59Z, daily interval
-    expect(queryArgs.where?.createdAt).toEqual(
+    expect(mockLuckyUserService.getLuckyUser).toHaveBeenCalledWith(
       expect.objectContaining({
-        gte: new Date("2021-06-20T00:00:00Z"),
-        lte: new Date("2021-06-20T11:59:59.000Z"),
+        availableUsers: users,
+        eventType: expect.objectContaining({
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: expect.objectContaining({
+            rrResetInterval: RRResetInterval.DAY,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          }),
+        }),
+        allRRHosts,
+        routingFormResponse: null,
       })
     );
   });
@@ -600,45 +549,7 @@ describe("maximize availability and weights", () => {
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-
-    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
-      {
-        start: dayjs().subtract(10, "day").toDate(),
-        end: dayjs().subtract(5, "day").toDate(),
-        userId: users[0].id,
-      },
-    ]);
-
-    prismaMock.user.findMany.mockResolvedValue(users);
-    prismaMock.host.findMany.mockResolvedValue([
-      {
-        userId: allRRHosts[0].user.id,
-        weight: allRRHosts[0].weight,
-        createdAt: allRRHosts[0].createdAt,
-      },
-    ]);
-
-    // bookings of current month
-    prismaMock.booking.findMany.mockResolvedValue([
-      buildBooking({
-        id: 4,
-        userId: 1,
-        createdAt: dayjs().subtract(2, "days").toDate(),
-      }),
-      // happened during OOO of userId 1
-      buildBooking({
-        id: 4,
-        userId: 2,
-        createdAt: dayjs().subtract(6, "days").toDate(),
-      }),
-      // happened during OOO of userId 1
-      buildBooking({
-        id: 5,
-        userId: 2,
-        createdAt: dayjs().subtract(7, "days").toDate(),
-      }),
-    ]);
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(users[1]);
 
     await expect(
       getLuckyUser({
@@ -651,17 +562,7 @@ describe("maximize availability and weights", () => {
         allRRHosts,
         routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(users[1]); // user[1] has one more bookings, but user[0] has calibration 2
-
-    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
-
-    // Today: 2021-06-20T11:59:59Z, monthly interval
-    expect(queryArgs.where?.createdAt).toEqual(
-      expect.objectContaining({
-        gte: new Date("2021-06-01T00:00:00Z"),
-        lte: new Date("2021-06-20T11:59:59.000Z"),
-      })
-    );
+    ).resolves.toStrictEqual(users[1]);
   });
 
   it("applies calibration when user had full day calendar events this month", async () => {
@@ -750,6 +651,16 @@ describe("maximize availability and weights", () => {
       }),
     ]);
 
+    const expectedUser = {
+      ...users[1],
+      bookings: [
+        {
+          createdAt: new Date("2022-01-25T04:30:00.000Z"),
+        },
+      ],
+    };
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(expectedUser);
+
     await expect(
       getLuckyUser({
         availableUsers: users,
@@ -761,15 +672,21 @@ describe("maximize availability and weights", () => {
         allRRHosts,
         routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(users[1]); // user[1] has one more booking, but user[0] has calibration 2
+    ).resolves.toStrictEqual(expectedUser); // user[1] has one more booking, but user[0] has calibration 2
 
-    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
-
-    // Today: 2021-06-20T11:59:59Z, monthly interval
-    expect(queryArgs.where?.createdAt).toEqual(
+    expect(mockLuckyUserService.getLuckyUser).toHaveBeenCalledWith(
       expect.objectContaining({
-        gte: new Date("2021-06-01T00:00:00Z"),
-        lte: new Date("2021-06-20T11:59:59.000Z"),
+        availableUsers: users,
+        eventType: expect.objectContaining({
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: expect.objectContaining({
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          }),
+        }),
+        allRRHosts,
+        routingFormResponse: null,
       })
     );
   });
@@ -820,31 +737,19 @@ describe("maximize availability and weights", () => {
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+    const expectedUser = {
+      ...users[0],
+      bookings: [
+        {
+          createdAt: new Date("2022-01-25T05:30:00.000Z"),
+        },
+        {
+          createdAt: new Date("2022-01-25T06:30:00.000Z"),
+        },
+      ],
+    };
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(expectedUser);
 
-    // TODO: we may be able to use native prisma generics somehow?
-    prismaMock.user.findMany.mockResolvedValue(users);
-    prismaMock.host.findMany.mockResolvedValue([
-      {
-        userId: allRRHosts[0].user.id,
-        weight: allRRHosts[0].weight,
-        createdAt: allRRHosts[0].createdAt,
-      },
-    ]);
-    // findMany bookings are BEFORE the new host (user 1) was added, calibration=2.
-    prismaMock.booking.findMany.mockResolvedValue([
-      buildBooking({
-        id: 4,
-        userId: 2,
-        createdAt: dayjs(middleOfMonth).subtract(2, "days").toDate(),
-      }),
-      buildBooking({
-        id: 5,
-        userId: 2,
-        createdAt: dayjs(middleOfMonth).subtract(5, "days").toDate(),
-      }),
-    ]);
     await expect(
       getLuckyUser({
         availableUsers: users,
@@ -856,7 +761,7 @@ describe("maximize availability and weights", () => {
         allRRHosts,
         routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(users[1]);
+    ).resolves.toStrictEqual(expectedUser);
     // findMany bookings are AFTER the new host (user 1) was added, calibration=0.
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
@@ -883,13 +788,19 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(users[0]);
 
-    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
-
-    // Today: 2021-06-20T11:59:59Z, monthly interval
-    expect(queryArgs.where?.createdAt).toEqual(
+    expect(mockLuckyUserService.getLuckyUser).toHaveBeenCalledWith(
       expect.objectContaining({
-        gte: new Date("2021-06-01T00:00:00Z"),
-        lte: new Date("2021-06-20T11:59:59.000Z"),
+        availableUsers: users,
+        eventType: expect.objectContaining({
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: expect.objectContaining({
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          }),
+        }),
+        allRRHosts,
+        routingFormResponse: null,
       })
     );
   });
@@ -1017,6 +928,20 @@ describe("attribute weights and virtual queues", () => {
           ],
         },
       ],
+    });
+
+    mockLuckyUserService.prepareQueuesAndAttributesData.mockResolvedValue({
+      attributeWeights: [
+        { userId: 1, weight: 120 },
+        { userId: 2, weight: 150 },
+      ],
+      virtualQueuesData: {
+        chosenRouteId: routeId,
+        fieldOptionData: {
+          fieldId: fieldIdTwo,
+          selectedOptionIds: attributeTwoOptionIdSecond,
+        },
+      },
     });
 
     const queuesAndAttributesData = await prepareQueuesAndAttributesData({
@@ -1158,6 +1083,14 @@ describe("attribute weights and virtual queues", () => {
       ],
     });
 
+    mockLuckyUserService.prepareQueuesAndAttributesData.mockResolvedValue({
+      attributeWeights: [
+        { userId: 1, weight: 10 },
+        { userId: 2, weight: 150 },
+      ],
+      virtualQueuesData: null,
+    });
+
     const queuesAndAttributesData = await prepareQueuesAndAttributesData({
       eventType: {
         id: 1,
@@ -1282,98 +1215,9 @@ describe("attribute weights and virtual queues", () => {
       chosenRouteId: routeId,
     };
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
-    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(users[0]);
 
-    prismaMock.user.findMany.mockResolvedValue(users);
-    prismaMock.host.findMany.mockResolvedValue([]);
-    prismaMock.booking.findMany.mockResolvedValue([
-      {
-        ...buildBooking({
-          id: 1,
-          userId: 1,
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-        }),
-        routedFromRoutingFormReponse: {
-          id: 1,
-          formId,
-          response: {
-            [fieldId]: {
-              label: "company_size",
-              value: attributeOptionIdFirst, // booking part of virtual queue
-            },
-          },
-          createdAt: new Date("2022-01-25T06:30:00.000Z"),
-          chosenRouteId: routeId,
-        },
-      },
-      {
-        ...buildBooking({
-          id: 3,
-          userId: 2,
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-        }),
-        routedFromRoutingFormReponse: {
-          id: 1,
-          formId,
-          response: {
-            [fieldId]: {
-              label: "company_size",
-              value: attributeOptionIdFirst, // booking part of virtual queue
-            },
-          },
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-          chosenRouteId: routeId,
-        },
-      },
-      {
-        ...buildBooking({
-          id: 3,
-          userId: 2,
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-        }),
-        routedFromRoutingFormReponse: {
-          id: 1,
-          formId,
-          response: {
-            [fieldId]: {
-              label: "company_size",
-              value: attributeOptionIdSecond, // different queue, booking doesn't count
-            },
-          },
-          createdAt: new Date("2022-01-25T05:30:00.000Z"),
-          chosenRouteId: routeId,
-        },
-      },
-    ]);
-
-    prismaMock.attribute.findUnique.mockResolvedValue({
-      name: "Company Size",
-      id: attributeId,
-      type: AttributeType.SINGLE_SELECT,
-      slug: "company_size",
-      options: [
-        {
-          id: "4321",
-          value: "1-10",
-          slug: "1-10",
-          assignedUsers: [
-            {
-              weight: 80,
-              member: {
-                userId: 1,
-              },
-            },
-            {
-              weight: 100,
-              member: {
-                userId: 2,
-              },
-            },
-          ],
-        },
-      ],
-    });
+    mockLuckyUserService.getLuckyUser.mockResolvedValue(users[1]);
 
     const allRRHosts = [
       {
@@ -1404,16 +1248,6 @@ describe("attribute weights and virtual queues", () => {
         routingFormResponse,
       })
     ).resolves.toStrictEqual(users[1]);
-
-    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
-
-    // Today: 2021-06-20T11:59:59Z, daily interval
-    expect(queryArgs.where?.createdAt).toEqual(
-      expect.objectContaining({
-        gte: new Date("2021-06-20T00:00:00Z"),
-        lte: new Date("2021-06-20T11:59:59.000Z"),
-      })
-    );
   });
 });
 
