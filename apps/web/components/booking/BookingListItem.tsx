@@ -686,7 +686,10 @@ function BookingListItem(booking: BookingItemProps) {
                     <DropdownMenuItem
                       className="rounded-lg"
                       key={cancelEventAction.id}
-                      disabled={cancelEventAction.disabled}>
+                      disabled={cancelEventAction.disabled && !isBookingInPast}
+                      onSelect={
+                        cancelEventAction.disabled && isBookingInPast ? (e) => e.preventDefault() : undefined
+                      }>
                       {cancelEventAction.disabled && isBookingInPast ? (
                         <Tooltip content={t("cannot_cancel_booking")}>
                           <div className="w-full">
@@ -694,11 +697,14 @@ function BookingListItem(booking: BookingItemProps) {
                               type="button"
                               color={cancelEventAction.color}
                               StartIcon={cancelEventAction.icon}
-                              disabled={true}
+                              aria-disabled="true"
                               data-bookingid={cancelEventAction.bookingId}
                               data-testid={cancelEventAction.id}
                               className="text-muted cursor-not-allowed"
-                              onClick={(e) => e.preventDefault()}>
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}>
                               {cancelEventAction.label}
                             </DropdownItem>
                           </div>

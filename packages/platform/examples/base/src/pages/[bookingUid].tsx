@@ -27,7 +27,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
     const year = dayjs(booking?.start).year();
     const day = dayjs(date).format("dddd");
     const month = dayjs(date).format("MMMM");
-    const isBookingInPast = new Date(booking?.end) < new Date();
+    const isBookingInPast = booking?.end ? dayjs(booking?.end).isBefore(dayjs()) : false;
 
     return (
       <main
