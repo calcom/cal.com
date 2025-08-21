@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.6.0",
+  "version": "5.6.3",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -29,7 +29,7 @@
     "yarn": "3.4.1"
   },
   "dependencies": {
-    "@boxyhq/saml-jackson": "1.42.0",
+    "@boxyhq/saml-jackson": "1.52.2",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/dayjs": "*",
