@@ -43,6 +43,11 @@ export const TeamEditLayout = ({ teamId, children }: { teamId: string; children:
         path: `/settings/teams/${teamId}/appearance`,
         "data-testid": "appearance",
       },
+      {
+        name: "settings",
+        path: `/settings/teams/${teamId}/settings`,
+        "data-testid": "settings",
+      },
     ];
 
     return baseTabConfigs.map((tabConfig) => ({
