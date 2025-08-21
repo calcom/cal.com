@@ -3,8 +3,8 @@ import type { RRResetInterval, SelectedCalendar } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import { getLuckyUserService } from "../di/containers/LuckyUser";
 import type { RoutingFormResponse } from "../server/getLuckyUser";
-import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 
 export const errorCodes = {
   MAX_LEAD_THRESHOLD_FALSY: "Max lead threshold should be null or > 1, not 0.",
@@ -116,7 +116,8 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
   }
 
   // this needs the routing forms response too, because it needs to know what queue we are in
-  const orderedLuckyUsers = await getOrderedListOfLuckyUsers({
+  const luckyUserService = getLuckyUserService();
+  const orderedLuckyUsers = await luckyUserService.getOrderedListOfLuckyUsers({
     availableUsers: [
       {
         ...hosts[0].user,

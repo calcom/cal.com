@@ -20,12 +20,12 @@ import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getEventName } from "@calcom/lib/event";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -154,7 +154,8 @@ export const roundRobinReassignment = async ({
     roundRobinReassignLogger
   );
 
-  const reassignedRRHost = await getLuckyUser({
+  const luckyUserService = getLuckyUserService();
+  const reassignedRRHost = await luckyUserService.getLuckyUser({
     availableUsers,
     eventType,
     allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
