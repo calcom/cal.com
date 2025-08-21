@@ -33,6 +33,16 @@ function WorkflowExample(props: WorkflowExampleType) {
   );
 }
 
+/**
+ * Renders the empty-state UI for the Workflows page and provides a workflow creation action.
+ *
+ * Shows either a filtered empty screen (when `isFilteredView` is true) or a centered empty-state
+ * with a create-workflow button and example workflow cards. Creating a workflow uses a TRPC
+ * mutation; on success the user is navigated to the new workflow page, and on error a toast is shown.
+ *
+ * @param isFilteredView - If true, renders the filtered empty-state with a "no workflows" headline and filter hint; otherwise renders the main empty-state with creation UI and examples.
+ * @returns A JSX element for the empty-state UI.
+ */
 export default function EmptyScreen(props: { isFilteredView: boolean }) {
   const { t } = useLocale();
   const router = useRouter();

@@ -45,6 +45,19 @@ interface Props {
   onSaveWorkflow?: () => Promise<void>;
 }
 
+/**
+ * Renders the workflow details view for viewing and editing a workflow, including its name, scope (team or event types),
+ * trigger and action steps, and controls for adding or deleting actions.
+ *
+ * The component binds to a react-hook-form instance (`form`) to read and update workflow fields (name, activeOn, selectAll, trigger, steps).
+ * - Derives effective permissions from props if `permissions` is not provided.
+ * - If the URL contains an `eventTypeId` search param that matches an available option, that option is appended to the current selection and `form.activeOn` is updated.
+ * - Provides an `addAction` helper used by the AddActionDialog to append a new step to `form.steps`. New steps receive a non-positive `id`, an incremented `stepNumber`, default template and sender/senderName behavior depending on whether the action is an SMS action, and `verifiedAt` set to `null` when `SCANNING_WORKFLOW_STEPS` is truthy (otherwise the current date).
+ * - Renders WorkflowStepContainer for the trigger and each step, forwarding `onSaveWorkflow` and `isOrganization` props to children.
+ * - Shows AddActionDialog and DeleteDialog; deleting the workflow navigates to the workflows list.
+ *
+ * Note: The component is controlled by the provided `form` and mutates its values directly via `form.setValue` and `form.getValues`.
+ */
 export default function WorkflowDetailsPage(props: Props) {
   const {
     form,

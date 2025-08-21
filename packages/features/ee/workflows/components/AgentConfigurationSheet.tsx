@@ -115,6 +115,32 @@ type AgentConfigurationSheetProps = {
   workflowStepId?: number;
 };
 
+/**
+ * Modal sheet for configuring a Cal AI voice agent, with tabs for editing the agent's
+ * prompts and managing phone numbers (buying, importing, testing, unsubscribing/deleting).
+ *
+ * The sheet provides:
+ * - A "Prompt" tab to edit the agent's initial message and general prompt (supports inserting dynamic variables).
+ * - A "Phone Number" tab to view active outbound numbers, buy or import numbers, open a test dialog, and cancel/delete subscriptions.
+ * - Forms with validation for agent prompt fields and phone number import.
+ * - TRPC-backed mutations/queries to fetch/update the agent and manage phone numbers; UI state is kept in sync via invalidation callbacks.
+ *
+ * Behavior notes:
+ * - When opened with existing agent data, the prompt fields are initialized from agentData.retellData (display-smoothed via cleanPromptForDisplay).
+ * - Saving sends only prompt-related fields (generalPrompt restored via restorePromptComplexity and beginMessage) to the backend and invokes onUpdate with the update payload.
+ * - Phone number actions (buy/import/cancel/delete) show success/error toasts and invalidate relevant queries. Buying may redirect to a checkout URL returned by the server.
+ *
+ * @param open - Whether the sheet is open.
+ * @param onOpenChange - Callback invoked when the sheet open state should change; called with `false` to close.
+ * @param agentId - Optional agent ID; when present enables agent-specific operations (fetching, updating, testing, phone number management).
+ * @param agentData - Optional preloaded agent data used to initialize the form and display phone-number state.
+ * @param onUpdate - Callback invoked after a successful agent update; receives the payload that was sent to the backend.
+ * @param readOnly - When true, disables interactive controls to render the sheet in read-only mode.
+ * @param teamId - Team identifier used for phone-number and agent operations.
+ * @param workflowId - Workflow identifier associated with buying/importing phone numbers.
+ * @param workflowStepId - Workflow step identifier (present but not used directly by this component).
+ * @returns The AgentConfigurationSheet React element.
+ */
 export function AgentConfigurationSheet({
   open,
   onOpenChange,

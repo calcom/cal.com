@@ -30,14 +30,32 @@ export function isWhatsappAction(action: WorkflowActions) {
   return action === WorkflowActions.WHATSAPP_NUMBER || action === WorkflowActions.WHATSAPP_ATTENDEE;
 }
 
+/**
+ * Determines whether a workflow action sends a text-based message (SMS or WhatsApp).
+ *
+ * @param action - The workflow action to evaluate.
+ * @returns `true` if `action` is an SMS or WhatsApp action; otherwise `false`.
+ */
 export function isSMSOrWhatsappAction(action: WorkflowActions) {
   return isSMSAction(action) || isWhatsappAction(action);
 }
 
+/**
+ * Returns true if the given workflow action represents a Cal AI phone call.
+ *
+ * @param action - The workflow action to check.
+ * @returns True when `action` is `WorkflowActions.CAL_AI_PHONE_CALL`, otherwise `false`.
+ */
 export function isCalAIAction(action: WorkflowActions) {
   return action === WorkflowActions.CAL_AI_PHONE_CALL;
 }
 
+/**
+ * Returns true if the given workflow action represents an email-sending action.
+ *
+ * @param action - Workflow action to test
+ * @returns `true` when `action` is `EMAIL_ADDRESS`, `EMAIL_ATTENDEE`, or `EMAIL_HOST`; otherwise `false`
+ */
 export function isEmailAction(action: WorkflowActions) {
   return (
     action === WorkflowActions.EMAIL_ADDRESS ||

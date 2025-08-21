@@ -236,6 +236,18 @@ export function getSender(
   return isSMSOrWhatsappAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
 }
 
+/**
+ * Determines whether a user is authorized to access a workflow.
+ *
+ * Returns false for a missing workflow. For personal (non-team) workflows authorization
+ * is granted only if the workflow owner matches the current user. For team workflows,
+ * checks the user's team permission (with sensible fallback roles for read vs write-style permissions).
+ *
+ * @param workflow - The workflow to check; may be null (treated as unauthorized).
+ * @param currentUserId - ID of the user performing the action.
+ * @param permission - The permission string to check (defaults to `"workflow.read"`).
+ * @returns A promise that resolves to `true` if the user is authorized, otherwise `false`.
+ */
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   currentUserId: number,
@@ -267,6 +279,20 @@ export async function isAuthorized(
   });
 }
 
+/**
+ * Ensures an SMS reminder phone-number booking field exists for the given event types.
+ *
+ * If `isOrg` is true, `activeOn` is interpreted as team IDs and the function expands them
+ * to include all event types belonging to those teams and their members; otherwise
+ * `activeOn` is treated as event type IDs directly. For each resolved event type the
+ * function upserts a booking field (and its source) that controls whether an SMS reminder
+ * number is required for reminders created by the specified workflow.
+ *
+ * @param activeOn - Event type IDs (when `isOrg` is false) or team IDs (when `isOrg` is true)
+ * @param workflowId - Workflow that the upserted field/source should reference
+ * @param isSmsReminderNumberRequired - Whether the SMS reminder phone-number field should be required
+ * @param isOrg - Whether `activeOn` represents teams (true) or event types (false)
+ */
 export async function upsertSmsReminderFieldForEventTypes({
   activeOn,
   workflowId,
@@ -320,6 +346,12 @@ export async function removeSmsReminderFieldForEventTypes({
   }
 }
 
+/**
+ * Removes the SMS reminder booking field for a specific event type and workflow.
+ *
+ * @param workflowId - ID of the workflow that owns the booking field to remove
+ * @param eventTypeId - ID of the event type from which the booking field will be removed
+ */
 export async function removeSmsReminderFieldForEventType({
   workflowId,
   eventTypeId,
@@ -339,6 +371,16 @@ export async function removeSmsReminderFieldForEventType({
   );
 }
 
+/**
+ * Ensures an AI-agent phone-number booking field exists for the specified event types.
+ *
+ * If `isOrg` is true, `activeOn` is treated as a list of team IDs and the function resolves all event types for those teams and their members before upserting the field for each event type. Otherwise `activeOn` is treated as a list of event type IDs directly. The upserted field's source encodes `workflowId` and whether the phone number is required.
+ *
+ * @param activeOn - Event type IDs to affect, or when `isOrg` is true a list of team IDs whose event types will be targeted
+ * @param workflowId - Workflow that owns the field source being upserted
+ * @param isAIAgentCallPhoneNumberRequired - If true the upserted booking field is marked required; defaults to `false`
+ * @param isOrg - If true expand `activeOn` to include all event types for the given teams and their members
+ */
 export async function upsertAIAgentCallPhoneNumberFieldForEventTypes({
   activeOn,
   workflowId,
@@ -368,6 +410,18 @@ export async function upsertAIAgentCallPhoneNumberFieldForEventTypes({
   }
 }
 
+/**
+ * Remove the AI agent call phone number booking field for the given event types.
+ *
+ * When `isOrg` is true, resolves the provided `activeOnToRemove` into all relevant user- and
+ * team-owned event type IDs (excluding any IDs in `activeOn`) and removes the field for each
+ * resolved event type. Otherwise, removes the field for each ID in `activeOnToRemove` directly.
+ *
+ * @param activeOnToRemove - Event type IDs targeted for removal (or team IDs when `isOrg` is true).
+ * @param workflowId - Workflow that owns the field to remove.
+ * @param isOrg - If true, expand `activeOnToRemove` to include user- and team-level event types.
+ * @param activeOn - Optional list of event type IDs to exclude when resolving org-level event types.
+ */
 export async function removeAIAgentCallPhoneNumberFieldForEventTypes({
   activeOnToRemove,
   workflowId,
@@ -392,6 +446,15 @@ export async function removeAIAgentCallPhoneNumberFieldForEventTypes({
   }
 }
 
+/**
+ * Remove the AI agent phone-number booking field for a specific event type and workflow.
+ *
+ * Deletes the booking field source identified by the CAL_AI_AGENT_PHONE_NUMBER_FIELD for the given
+ * workflow (by id) and event type.
+ *
+ * @param workflowId - ID of the workflow that owns the booking field source
+ * @param eventTypeId - ID of the event type to remove the field from
+ */
 export async function removeAIAgentCallPhoneNumberFieldForEventType({
   workflowId,
   eventTypeId,
@@ -411,6 +474,19 @@ export async function removeAIAgentCallPhoneNumberFieldForEventType({
   );
 }
 
+/**
+ * Returns event type IDs belonging to the given teams and to users who are members of those teams.
+ *
+ * Includes:
+ * - event types owned by teams with IDs in `teamIds`
+ * - event types owned by users who are members of those teams
+ *
+ * Excludes any user-owned event types for users who are members of any team whose ID is listed in `notMemberOfTeamId`.
+ *
+ * @param teamIds - Team IDs to collect event types from
+ * @param notMemberOfTeamId - Team IDs; users who are members of any of these teams will be excluded when collecting user-owned event types
+ * @returns An array of event type IDs (may contain duplicates if an event type appears in both sets)
+ */
 async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId: number[] = []) {
   const teamMembersWithEventTypes = await prisma.membership.findMany({
     where: {
@@ -694,7 +770,24 @@ type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 type Bookings = UnwrapPromise<ReturnType<typeof getBookings>>;
 
 // some parts of  scheduleWorkflowReminders (reminderSchedule.ts) is quite similar to this code
-// we should consider refactoring this to  reuse similar code snippets
+/**
+ * Schedule reminders for a set of bookings according to workflow steps and trigger timing.
+ *
+ * Schedules email, SMS, WhatsApp and AI phone-call reminders for each booking across all provided
+ * workflow steps when the trigger is BEFORE_EVENT or AFTER_EVENT. No-ops if there are no bookings
+ * or the trigger is not a supported scheduling trigger.
+ *
+ * @param bookings - Bookings to process and schedule reminders for.
+ * @param workflowSteps - Workflow steps that define reminder actions and metadata.
+ * @param time - Relative time amount used with `timeUnit` to compute reminder offsets (may be null).
+ * @param timeUnit - Unit for `time` (e.g., minutes, hours) (may be null).
+ * @param trigger - Workflow trigger event; only BEFORE_EVENT and AFTER_EVENT are processed.
+ * @param userId - ID of the user who owns or initiated the scheduling operation.
+ * @param teamId - ID of the team scope for organization-level workflows, or null for personal scope.
+ * @param isOrg - True when scheduling in organizational scope (team-level); affects base URL and booking resolution.
+ *
+ * @returns A Promise that resolves once all reminder scheduling operations have completed.
+ */
 export async function scheduleBookingReminders(
   bookings: Bookings,
   workflowSteps: Partial<WorkflowStep>[],

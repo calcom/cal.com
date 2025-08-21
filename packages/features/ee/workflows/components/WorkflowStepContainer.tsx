@@ -124,6 +124,32 @@ const getActivePhoneNumbers = (
   );
 };
 
+/**
+ * Renders and manages the UI for a single workflow step (or the workflow trigger when no step is provided).
+ *
+ * When `props.step` is undefined, the component renders the trigger configuration panel. When a step is present,
+ * it renders a full action editor for that step including action selection, phone/email inputs and verification,
+ * message template selection and editing, and CAL AI agent setup/management UI.
+ *
+ * Notable behaviors:
+ * - Initializes and keeps form defaults for reminder body and email subject (skips automatic template defaults for CAL AI actions).
+ * - Integrates CAL AI agent lifecycle: creation (with optional pre-save via `onSaveWorkflow`), loading, editing, testing, and phone unsubscribe.
+ * - Exposes phone and email verification flows (send code, verify code) and reflects verification status in the form.
+ * - Handles step deletion (with special confirmation when CAL AI outbound phone subscriptions exist), and reorders remaining steps after deletion.
+ * - Uses TRPC queries/mutations for server interactions and updates query cache where appropriate.
+ *
+ * @param props - WorkflowStepProps containing:
+ *   - step?: the workflow step to edit; if omitted the trigger configuration UI is shown.
+ *   - form: react-hook-form form state for the workflow editor.
+ *   - user: current user (used for locale/time format).
+ *   - reload, setReload?: optional state pair used to trigger parent refresh after mutations.
+ *   - teamId?: optional team context for queries and agent creation.
+ *   - readOnly: when true, UI controls are disabled for editing.
+ *   - isOrganization?: toggles organization-specific UI/credits behaviors.
+ *   - onSaveWorkflow?: optional hook to persist the workflow before actions that require an up-to-date workflow (e.g., creating an agent).
+ *
+ * @returns The JSX element for the workflow step or trigger editor.
+ */
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();

@@ -18,6 +18,18 @@ interface TestAgentDialogProps {
   workflowId?: string;
 }
 
+/**
+ * Renders a non-modal dialog that lets a user initiate a test phone call to an AI voice agent.
+ *
+ * The dialog collects a destination phone number and triggers a test-call mutation. On success it shows
+ * a success toast, closes the dialog, and clears the input. On error it shows an error toast.
+ *
+ * @param open - Whether the dialog is visible.
+ * @param onOpenChange - Callback to request changing the dialog visibility; called with `false` to close.
+ * @param agentId - ID of the AI agent to test (required to perform the call).
+ * @param teamId - Optional team ID to scope the test call.
+ * @param workflowId - Optional workflow ID to include with the test call request.
+ */
 export function TestAgentDialog({ open, onOpenChange, agentId, teamId, workflowId }: TestAgentDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");

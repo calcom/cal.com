@@ -15,6 +15,16 @@ import type { BookingInfo } from "./smsReminderManager";
 
 type timeUnitLowerCase = "day" | "hour" | "minute";
 
+/**
+ * Extracts an attendee phone number from a booking responses object.
+ *
+ * Looks up the phone number using a priority: first checks the configured
+ * CAL_AI_AGENT_PHONE_NUMBER_FIELD entry, then falls back to the `attendeePhoneNumber`
+ * entry. Both entries are expected to be objects with a `value` property containing the string phone number.
+ *
+ * @param responses - Booking form responses (map of field keys to response objects). May be undefined.
+ * @returns The extracted phone number string, or `undefined` if no usable phone number is found.
+ */
 function extractPhoneNumber(responses: BookingInfo["responses"]): string | undefined {
   if (!responses) return undefined;
 

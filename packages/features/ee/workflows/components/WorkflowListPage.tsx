@@ -60,6 +60,13 @@ export type WorkflowType = Workflow & {
 interface Props {
   workflows: WorkflowType[] | undefined;
 }
+/**
+ * Renders a reorderable, interactive list of workflows with status badges and actions.
+ *
+ * Displays each workflow's title (or an "Untitled" fallback), trigger and "active on" metadata, optional team avatar, and action controls (edit/delete) with permission-aware enabling and mobile dropdowns. Provides up/down arrow controls to reorder items locally and persists the new order via a TRPC mutation; also exposes a delete dialog to remove a workflow and refreshes the filtered workflow list when changes occur.
+ *
+ * @param workflows - Array of workflows to render; when empty or undefined the component renders nothing.
+ */
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();

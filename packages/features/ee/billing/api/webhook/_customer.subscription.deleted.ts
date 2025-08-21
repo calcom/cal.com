@@ -60,6 +60,18 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   return await handler(data);
 };
 
+/**
+ * Cancel a Cal AI phone-number subscription based on a Stripe subscription webhook.
+ *
+ * Validates the Stripe subscription and phone-number record, invokes the AI phone service to cancel
+ * the phone-number subscription, and returns a success payload on completion.
+ *
+ * @param subscription - The Stripe subscription object from the `customer.subscription.deleted` webhook.
+ * @param phoneNumber - The phone number record (from Prisma) associated with `subscription.id`.
+ * @returns An object with `{ success: true, subscriptionId }` when cancellation succeeds.
+ * @throws HttpCode(400) If the subscription ID is missing or the phone number has no associated user.
+ * @throws HttpCode(500) If cancelling the phone-number subscription via the AI service fails.
+ */
 async function handleCalAIPhoneNumberSubscriptionDeleted(
   subscription: Data["object"],
   phoneNumber: NonNullable<Awaited<ReturnType<typeof PrismaPhoneNumberRepository.findByStripeSubscriptionId>>>

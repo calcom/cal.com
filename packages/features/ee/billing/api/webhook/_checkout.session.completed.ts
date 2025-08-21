@@ -42,6 +42,17 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   return { success: true };
 };
 
+/**
+ * Adds purchased credits to an existing credit balance or creates a new balance, then logs the purchase.
+ *
+ * If a credit balance exists for the given teamId/userId it increments its additionalCredits by `nrOfCredits`
+ * and clears `limitReachedAt` and `warningSentAt`. If no balance exists it creates one (userId is only set on
+ * the new balance when no teamId is provided). After updating or creating a balance, a credit purchase log is recorded.
+ *
+ * @param userId - Optional user ID to attribute the credits to; only applied to a newly created balance when `teamId` is not provided.
+ * @param teamId - Optional team ID to attribute the credits to; when present, credits are associated with the team balance.
+ * @param nrOfCredits - Number of credits to add; must be a positive integer representing purchased credits.
+ */
 async function saveToCreditBalance({
   userId,
   teamId,
@@ -77,6 +88,17 @@ async function saveToCreditBalance({
   }
 }
 
+/**
+ * Handle a Stripe Checkout Session for a CalAI phone-number subscription.
+ *
+ * Validates session metadata (requires a numeric `userId`, `subscription` and a non-empty `agentId`), creates a provider phone number via the default AI phone service, persists the phone number record, and attempts to link the new number to the specified agent. Returns the created phone number on success. Linking errors are logged but do not fail the overall flow.
+ *
+ * @param session - The Stripe checkout session object from the `checkout.session.completed` webhook. Expected to include `metadata.userId` (string numeric), optional `metadata.teamId` (string numeric), `metadata.agentId` (string), and `subscription`/`customer` fields.
+ * @returns An object with `{ success: true, phoneNumber: string }` where `phoneNumber` is the persisted number.
+ * @throws HttpCode 400 if required session data is missing or invalid (missing `userId`, missing `subscription`, missing/blank `agentId`, or invalid subscription id).
+ * @throws HttpCode 404 if the referenced agent cannot be found or the user lacks access.
+ * @throws HttpCode 500 if the AI phone provider returns an invalid response when creating the phone number.
+ */
 async function handleCalAIPhoneNumberSubscription(
   session: SWHMap["checkout.session.completed"]["data"]["object"]
 ) {
