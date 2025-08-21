@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { ArrayMinSize, IsArray, IsNumber, IsOptional } from "class-validator";
 
-import { GetBookingsInput_2024_08_13, GetBookingsCountInput_2024_08_13 } from "@calcom/platform-types";
+import { GetBookingsInput_2024_08_13 } from "@calcom/platform-types";
 
 export { GetOrganizationsBookingsStatisticsInput } from "./get-org-bookings-statistics.input";
 export { GetOrganizationsBookingsStatisticsOutput_2024_08_13 } from "./get-org-bookings-statistics.output";
@@ -30,7 +30,7 @@ export class GetOrganizationsBookingsInput extends GetBookingsInput_2024_08_13 {
   userIds?: number[];
 }
 
-export class GetOrganizationsBookingsCountInput extends GetBookingsCountInput_2024_08_13 {
+export class GetOrganizationsBookingsCountInput extends GetBookingsInput_2024_08_13 {
   @IsArray()
   @IsOptional()
   @Transform(({ value }) => {
