@@ -385,6 +385,30 @@ export class WorkflowRepository {
     return remindersToDelete;
   }
 
+  static async getActiveOnEventTypeIds(workflowId: number) {
+    const workflow = await prisma.workflow.findMany({
+      where: {
+        workflowId,
+      },
+      select: {
+        activeOn: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
+    });
+
+    if (!workflow) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Workflow not found",
+      });
+    }
+
+    return activeOnEventTypes.map((activeOn) => activeOn.eventTypeId);
+  }
+
   static async deleteAllWorkflowReminders(
     remindersToDelete:
       | {

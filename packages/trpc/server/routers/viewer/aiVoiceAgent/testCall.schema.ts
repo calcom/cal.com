@@ -4,7 +4,7 @@ export const ZTestCallInputSchema = z.object({
   agentId: z.string(),
   phoneNumber: z.string().optional(),
   teamId: z.number().optional(),
-  workflowId: z.string().optional(),
+  workflowId: z.string(),
 });
 
 export type TTestCallInputSchema = z.infer<typeof ZTestCallInputSchema>;

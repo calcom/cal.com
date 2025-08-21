@@ -1,6 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -16,8 +17,8 @@ type TestCallHandlerOptions = {
 };
 
 export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) => {
-  const aiService = createDefaultAIPhoneServiceProvider();
   const timeZone = ctx.user.timeZone ?? "Europe/London";
+
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
   if (!calAIVoiceAgents) {
@@ -25,25 +26,7 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
     return;
   }
 
-  const workflow = await prisma.workflow.findUnique({
-    where: { id: parseInt(input.workflowId) },
-    select: {
-      activeOn: {
-        select: {
-          eventTypeId: true,
-        },
-      },
-    },
-  });
-
-  if (!workflow) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Workflow not found",
-    });
-  }
-
-  const activeOnEventTypeIds = workflow.activeOn.map((active) => active.eventTypeId);
+  const activeOnEventTypeIds = await WorkflowRepository.getActiveOnEventTypeIds(parseInt(input.workflowId));
 
   if (activeOnEventTypeIds.length === 0) {
     throw new TRPCError({
@@ -53,6 +36,8 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
   }
 
   const eventTypeId = activeOnEventTypeIds[0];
+
+  const aiService = createDefaultAIPhoneServiceProvider();
 
   return await aiService.createTestCall({
     agentId: input.agentId,
