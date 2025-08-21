@@ -5,7 +5,7 @@ import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import logger from "@calcom/lib/logger";
-import { getAttributesQueryValue } from "@calcom/lib/raqb/raqbUtils";
+import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
@@ -484,6 +484,7 @@ export class LuckyUserService {
       endDate,
       virtualQueuesData,
       includeNoShowInRRCalculation,
+      rrTimestampBasis,
     });
   }
 
@@ -601,7 +602,7 @@ export class LuckyUserService {
       if (chosenRoute && "attributesQueryValue" in chosenRoute) {
         const parsedAttributesQueryValue = raqbQueryValueSchema.parse(chosenRoute.attributesQueryValue);
 
-        const attributesQueryValueWithLabel = getAttributesQueryValue({
+        const attributesQueryValueWithLabel = acrossQueryValueCompatiblity.getAttributesQueryValue({
           attributesQueryValue: chosenRoute.attributesQueryValue,
           attributes: [attributeWithWeights],
           dynamicFieldValueOperands: {
@@ -1556,7 +1557,7 @@ async function _getQueueAndAttributeWeightData<T extends PartialUser & { priorit
     if (chosenRoute && "attributesQueryValue" in chosenRoute) {
       const parsedAttributesQueryValue = raqbQueryValueSchema.parse(chosenRoute.attributesQueryValue);
 
-      const attributesQueryValueWithLabel = getAttributesQueryValue({
+      const attributesQueryValueWithLabel = acrossQueryValueCompatiblity.getAttributesQueryValue({
         attributesQueryValue: chosenRoute.attributesQueryValue,
         attributes: [attributeWithWeights],
         dynamicFieldValueOperands: {
