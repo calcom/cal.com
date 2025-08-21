@@ -47,6 +47,13 @@ export class OAuthClientRepositoryFixture {
     });
   }
 
+  async update(clientId: PlatformOAuthClient["id"], data: Prisma.PlatformOAuthClientUpdateInput) {
+    return this.prismaWriteClient.platformOAuthClient.update({
+      where: { id: clientId },
+      data,
+    });
+  }
+
   async delete(clientId: PlatformOAuthClient["id"]) {
     return this.prismaWriteClient.platformOAuthClient.delete({ where: { id: clientId } });
   }

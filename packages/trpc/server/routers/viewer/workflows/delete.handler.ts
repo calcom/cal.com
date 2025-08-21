@@ -17,7 +17,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const workflowToDelete = await prisma.workflow.findFirst({
+  const workflowToDelete = await prisma.workflow.findUnique({
     where: {
       id,
     },
@@ -32,7 +32,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     },
   });
 
-  const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.user.id, true);
+  const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.user.id, "workflow.delete");
 
   if (!isUserAuthorized || !workflowToDelete) {
     throw new TRPCError({ code: "UNAUTHORIZED" });

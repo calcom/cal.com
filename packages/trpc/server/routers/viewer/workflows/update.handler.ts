@@ -1,10 +1,11 @@
 import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates, MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -26,7 +27,7 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat">;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -66,7 +67,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isOrg = !!userWorkflow?.team?.isOrganization;
 
-  const isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, true);
+  let isUserAuthorized = false;
+  if (userWorkflow?.teamId) {
+    const permissionService = new PermissionCheckService();
+    isUserAuthorized = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId: userWorkflow.teamId,
+      permission: "workflow.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+  } else {
+    isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, "workflow.update");
+  }
 
   if (!isUserAuthorized || !userWorkflow) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -294,7 +306,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     let newStep;
 
     if (foundStep) {
-      const { senderName, ...rest } = {
+      const { senderName: _senderName, ...rest } = {
         ...foundStep,
         numberVerificationPending: false,
         sender: getSender({
@@ -331,9 +343,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
+    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt, agentId: null })) {
       // check if step that require team plan already existed before
-      if (!hasPaidPlan) {
+      if (!hasPaidPlan && isEmailAction(newStep.action)) {
         const isChangingToCustomTemplate =
           newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
 
@@ -348,16 +360,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
 
-          if (isEmailAction(newStep.action)) {
-            // on free plans always use predefined templates
-            const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
-              locale: ctx.user.locale,
-              action: newStep.action,
-              timeFormat: ctx.user.timeFormat,
-            });
+          // on free plans always use predefined templates
+          const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
+            locale: ctx.user.locale,
+            action: newStep.action,
+            timeFormat: ctx.user.timeFormat,
+          });
 
-            newStep = { ...newStep, reminderBody: emailBody, emailSubject };
-          }
+          newStep = { ...newStep, reminderBody: emailBody, emailSubject };
         }
       }
 
@@ -390,11 +400,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
           verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+          agentId: null,
         },
       });
 
       if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
-        await tasker.create("scanWorkflowBody", { workflowStepIds: [oldStep.id], userId: ctx.user.id });
+        await tasker.create("scanWorkflowBody", {
+          workflowStepId: oldStep.id,
+          userId: ctx.user.id,
+          createdAt: new Date().toISOString(),
+        });
       } else {
         // schedule notifications for edited steps
         await scheduleWorkflowNotifications({
@@ -419,7 +434,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     steps
       .filter((step) => step.id <= 0)
       .map(async (newStep) => {
-        if (!hasPaidPlan) {
+        if (!hasPaidPlan && isEmailAction(newStep.action)) {
           if (newStep.template === WorkflowTemplates.CUSTOM) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
@@ -439,7 +454,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         const {
           id: _stepId,
-          senderName,
+          senderName: _senderName,
           ...stepToAdd
         } = {
           ...newStep,
@@ -469,11 +484,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
 
     if (SCANNING_WORKFLOW_STEPS) {
-      // workflows are scanned then scheduled in the task
-      await tasker.create("scanWorkflowBody", {
-        workflowStepIds: createdSteps.map((step) => step.id),
-        userId: ctx.user.id,
-      });
+      await Promise.all(
+        createdSteps.map((step) =>
+          tasker.create("scanWorkflowBody", {
+            workflowStepId: step.id,
+            userId: ctx.user.id,
+            createdAt: new Date().toISOString(),
+          })
+        )
+      );
     } else {
       // schedule notification for new step
       await scheduleWorkflowNotifications({
@@ -503,7 +522,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const workflow = await ctx.prisma.workflow.findFirst({
+  const workflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,
     },

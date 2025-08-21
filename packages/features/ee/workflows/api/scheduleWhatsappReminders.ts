@@ -12,6 +12,10 @@ import { getWhatsappTemplateFunction, isAttendeeAction } from "../lib/actionHelp
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
 import { scheduleSmsOrFallbackEmail } from "../lib/reminders/messageDispatcher";
+import {
+  getContentSidForTemplate,
+  getContentVariablesForTemplate,
+} from "../lib/reminders/templates/whatsapp/ContentSidMapping";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -20,23 +24,17 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  //delete all scheduled whatsapp reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.WHATSAPP,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-    },
-  });
-
   //find all unscheduled WHATSAPP reminders
   const unscheduledReminders = (await prisma.workflowReminder.findMany({
     where: {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
       scheduledDate: {
+        gte: new Date(),
         lte: dayjs().add(2, "hour").toISOString(),
+      },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
       },
     },
     select,
@@ -74,13 +72,29 @@ export async function handler(req: NextRequest) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
+      const startTime = reminder.booking?.startTime.toISOString();
+      const locale = reminder.booking.user?.locale || "en";
+      const timeFormat = getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat);
+
       const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template);
+      const contentSid = getContentSidForTemplate(reminder.workflowStep.template);
+      const contentVariables = getContentVariablesForTemplate({
+        name: userName,
+        attendeeName: attendeeName || "",
+        eventName: reminder.booking?.eventType?.title,
+        eventDate: dayjs(startTime).tz(timeZone).locale(locale).format("YYYY MMM D"),
+        startTime: dayjs(startTime)
+          .tz(timeZone)
+          .locale(locale)
+          .format(timeFormat || "h:mma"),
+        timeZone,
+      });
       const message = templateFunction(
         false,
         reminder.booking.user?.locale || "en",
         reminder.workflowStep.action,
-        getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-        reminder.booking?.startTime.toISOString() || "",
+        timeFormat,
+        startTime || "",
         reminder.booking?.eventType?.title || "",
         timeZone || "",
         attendeeName || "",
@@ -98,6 +112,8 @@ export async function handler(req: NextRequest) {
             userId,
             teamId,
             isWhatsapp: true,
+            contentSid,
+            contentVariables,
           },
           fallbackData:
             reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)

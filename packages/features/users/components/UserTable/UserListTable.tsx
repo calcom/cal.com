@@ -77,6 +77,7 @@ const initalColumnVisibility = {
   teams: true,
   createdAt: false,
   updatedAt: false,
+  twoFactorEnabled: false,
   actions: true,
 };
 
@@ -109,8 +110,18 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 export type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
-  facetedTeamValues: RouterOutputs["viewer"]["organizations"]["getFacetedValues"];
-  attributes: RouterOutputs["viewer"]["attributes"]["list"];
+  attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: { id: string; name: string }[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
 };
 
 export function UserListTable(props: UserListTableProps) {
@@ -266,7 +277,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: "Members",
+        header: t("members"),
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -297,13 +308,14 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
         cell: ({ row, table }) => {
-          const { role, username } = row.original;
+          const { role, username, customRole } = row.original;
+          const roleName = customRole?.name || role;
           return (
             <Badge
               data-testid={`member-${username}-role`}
@@ -311,7 +323,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
               }}>
-              {role}
+              {roleName}
             </Badge>
           );
         },
@@ -319,7 +331,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -338,7 +350,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
                   }}>
-                  Pending
+                  {t("pending")}
                 </Badge>
               )}
 
@@ -406,6 +418,26 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
+        id: "twoFactorEnabled",
+        accessorKey: "twoFactorEnabled",
+        header: t("2fa"),
+        enableHiding: adminOrOwner,
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 80,
+        cell: ({ row }) => {
+          const { twoFactorEnabled } = row.original;
+          if (!adminOrOwner || twoFactorEnabled === undefined) {
+            return null;
+          }
+          return (
+            <Badge variant={twoFactorEnabled ? "green" : "gray"}>
+              {twoFactorEnabled ? t("enabled") : t("disabled")}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         enableHiding: false,
         enableSorting: false,
@@ -468,8 +500,8 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           case "role":
             return convertFacetedValuesToMap(
               facetedTeamValues.roles.map((role) => ({
-                label: role,
-                value: role,
+                label: role.name,
+                value: role.id,
               }))
             );
           case "teams":

@@ -128,6 +128,7 @@ export default function OtherTeamListItem(props: Props) {
                           color="destructive"
                           type="button"
                           StartIcon="trash"
+                          className="rounded-t-none"
                           onClick={(e) => {
                             e.stopPropagation();
                           }}>

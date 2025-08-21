@@ -5,6 +5,10 @@
       "schedule": "0 5 * * *"
     },
     {
+      "path": "/api/cron/queuedFormResponseCleanup",
+      "schedule": "0 */12 * * *"
+    },
+    {
       "path": "/api/tasks/cron",
       "schedule": "* * * * *"
     },
@@ -26,20 +30,17 @@
     }
   ],
   "functions": {
-    "pages/api/trpc/workflows/[trpc].ts": {
+    "app/api/cron/workflows/scheduleEmailReminders/route.ts": {
       "maxDuration": 800
     },
-    "pages/api/trpc/highPerf/[trpc].ts": {
-      "memory": 3008
+    "app/api/cron/workflows/scheduleSMSReminders/route.ts": {
+      "maxDuration": 800
     },
-    "pages/api/trpc/appRoutingForms/[trpc].ts": {
-      "memory": 2048
+    "app/api/cron/workflows/scheduleWhatsappReminders/route.ts": {
+      "maxDuration": 800
     },
-    "pages/router/embed.tsx": {
-      "memory": 2048
-    },
-    "pages/api/book/event.ts": {
-      "memory": 2048
+    "pages/api/trpc/workflows/[trpc].ts": {
+      "maxDuration": 800
     }
   }
 }

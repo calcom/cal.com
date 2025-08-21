@@ -99,6 +99,18 @@ export async function getBookings({
         role: {
           in: ["ADMIN", "OWNER"],
         },
+        ...(user.orgId && {
+          OR: [
+            {
+              teamId: user.orgId,
+            },
+            {
+              team: {
+                parentId: user.orgId,
+              },
+            },
+          ],
+        }),
       },
       select: {
         id: true,
@@ -123,7 +135,7 @@ export async function getBookings({
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
+    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
   ]);
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
@@ -355,7 +367,12 @@ export async function getBookings({
       }
     }
 
-    // 6. Booking Start/End Time Range Filters
+    // 6. Filter by Booking Uid (if provided)
+    if (filters?.bookingUid) {
+      fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
+    }
+
+    // 7. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
       fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
     }
@@ -484,7 +501,7 @@ export async function getBookings({
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
                 eb
-                  .cast<SchedulingType>(
+                  .cast<SchedulingType | null>(
                     eb
                       .case()
                       .when("EventType.schedulingType", "=", "roundRobin")
@@ -493,11 +510,25 @@ export async function getBookings({
                       .then(SchedulingType["COLLECTIVE"])
                       .when("EventType.schedulingType", "=", "managed")
                       .then(SchedulingType["MANAGED"])
-                      .else(SchedulingType["ROUND_ROBIN"]) // Ensure ELSE provides a value within SchedulingTypeLiteral for cast safety
+                      .else(null)
                       .end(),
                     "varchar" // Or 'text' - use the actual SQL data type
                   )
                   .as("schedulingType"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Host")
+                    .select((eb) => [
+                      "Host.userId",
+                      jsonObjectFrom(
+                        eb
+                          .selectFrom("users")
+                          .select(["users.id", "users.email"])
+                          .whereRef("Host.userId", "=", "users.id")
+                      ).as("user"),
+                    ])
+                    .whereRef("Host.eventTypeId", "=", "EventType.id")
+                ).as("hosts"),
                 "EventType.length",
                 jsonObjectFrom(
                   eb
@@ -505,6 +536,12 @@ export async function getBookings({
                     .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("HostGroup")
+                    .select(["HostGroup.id", "HostGroup.name"])
+                    .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
+                ).as("hostGroups"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),
@@ -635,10 +672,29 @@ export async function getBookings({
     })
   );
 
+  const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+    if (booking.user?.id === userId) {
+      return true;
+    }
+
+    if (!booking.eventType?.hosts || booking.eventType.hosts.length === 0) {
+      return false;
+    }
+
+    const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
+
+    return booking.eventType.hosts.some(({ user: hostUser }) => {
+      return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
+    });
+  };
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
-      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+      // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
+      if (
+        booking.seatsReferences.length &&
+        !booking.eventType?.seatsShowAttendees &&
+        !checkIfUserIsHost(user.id, booking)
+      ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
@@ -824,34 +880,22 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
 }
 
 /**
- * Gets [IDs, Emails] of members where the auth user is admin/owner.
- * Scope depends on `orgId`:
- * - If set (number): Fetches members of that specific organization (`isOrganization: true`).
- * - If unset (null/undefined): Fetches members of all teams (`isOrganization: false`)
- * where the auth user meets the `membershipCondition`.
- *
+ * Gets [IDs, Emails] of members where the auth user is team/org admin/owner.
  * @param prisma The Prisma client.
- * @param membershipCondition Filter defining the auth user's required role (e.g., OWNER/ADMIN)
- * to identify the target orgs/teams.
- * @param orgId Optional ID to target a specific org; absence targets teams.
+ * @param membershipCondition Filter containing the team/org ids where user is ADMIN/OWNER
  * @returns {Promise<[number[], string[]]>} [UserIDs, UserEmails] for members in the determined scope.
  */
 async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter,
-  orgId?: number | null
+  membershipCondition: PrismaClientType.MembershipListRelationFilter
 ): Promise<[number[], string[]]> {
   const users = await prisma.user.findMany({
     where: {
       teams: {
         some: {
-          team: orgId
-            ? {
-                isOrganization: true,
-                members: membershipCondition,
-                id: orgId,
-              }
-            : { isOrganization: false, members: membershipCondition, parentId: null },
+          team: {
+            members: membershipCondition,
+          },
         },
       },
     },
@@ -860,7 +904,10 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
       email: true,
     },
   });
-  return [users.map((user) => user.id), users.map((user) => user.email)];
+  const userIds = Array.from(new Set(users.map((user) => user.id)));
+  const userEmails = Array.from(new Set(users.map((user) => user.email)));
+
+  return [userIds, userEmails];
 }
 
 function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {

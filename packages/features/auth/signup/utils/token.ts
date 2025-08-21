@@ -4,7 +4,7 @@ import { validateAndGetCorrectedUsernameInTeam } from "@calcom/lib/validateUsern
 import { prisma } from "@calcom/prisma";
 
 export async function findTokenByToken({ token }: { token: string }) {
-  const foundToken = await prisma.verificationToken.findFirst({
+  const foundToken = await prisma.verificationToken.findUnique({
     where: {
       token,
     },

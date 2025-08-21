@@ -18,7 +18,6 @@ import { FormActionsProvider } from "./FormActions";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import { Header } from "./_components/Header";
 import { TestFormRenderer, type UptoDateForm } from "./_components/TestForm";
-import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
 const BREAKPOINTS = {
   sm: 640,
@@ -73,7 +72,13 @@ function useBreakPoints() {
  * It has the the ongoing changes in the form along with enrichedWithUserProfileForm specific data.
  * So, it can be used to test the form in the test preview dialog without saving the changes even.
  */
-function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
+function SingleForm({
+  form,
+  appUrl,
+  Page,
+  enrichedWithUserProfileForm,
+  permissions,
+}: SingleFormComponentProps) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
@@ -154,6 +159,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               setShowInfoLostDialog={setShowInfoLostDialog}
               setIsTestPreviewOpen={setIsTestPreviewOpen}
               isTestPreviewOpen={isTestPreviewOpen}
+              permissions={permissions}
             />
             <div
               className={classNames(
@@ -244,5 +250,3 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
     </LicenseRequired>
   );
 }
-
-export { getServerSidePropsForSingleFormView };

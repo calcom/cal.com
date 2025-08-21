@@ -18,9 +18,8 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-import SingleForm, {
-  getServerSidePropsForSingleFormView as getServerSideProps,
-} from "../../components/SingleForm";
+import SingleForm from "../../components/SingleForm";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
@@ -321,15 +320,15 @@ export default function IncompleteBookingPage({
   form,
   appUrl,
   enrichedWithUserProfileForm,
+  permissions,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <SingleForm
       form={form}
       appUrl={appUrl}
       enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+      permissions={permissions}
       Page={Page}
     />
   );
 }
-
-export { getServerSideProps };

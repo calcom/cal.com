@@ -29,6 +29,25 @@ const validateRequest = (req: NextRequest) => {
   }
 };
 
+export function isSameEmail({
+  mainEmail,
+  variantEmail,
+  emailProvider,
+}: {
+  mainEmail: string;
+  variantEmail: string;
+  emailProvider: "google";
+}) {
+  if (emailProvider !== "google") {
+    return mainEmail.toLowerCase() === variantEmail.toLowerCase();
+  }
+  const variantEmailParts = variantEmail.split("@");
+  const variantEmailUserName = variantEmailParts[0];
+  const variantEmailDomain = variantEmailParts[1];
+  const variantEmailUserNameWithoutPlus = variantEmailUserName.split("+")[0];
+  return mainEmail.toLowerCase() === `${variantEmailUserNameWithoutPlus}@${variantEmailDomain}`.toLowerCase();
+}
+
 type DelegationUserCredential = Awaited<
   ReturnType<typeof CredentialRepository.findAllDelegationByTypeIncludeUserAndTake>
 >[number];
@@ -134,7 +153,7 @@ async function fetchPrimaryCalendarId({
   const userEmail = delegationUserCredential.user.email;
 
   try {
-    const primaryCalendar = await googleCalendarService.fetchPrimaryCalendar();
+    const primaryCalendar = await googleCalendarService.getPrimaryCalendar();
     primaryCalendarId = primaryCalendar?.id;
   } catch (error) {
     log.error(
@@ -156,6 +175,9 @@ async function fetchPrimaryCalendarId({
   return primaryCalendarId;
 }
 
+/**
+ * Creates a SelectedCalendar record corresponding to Delegation User Credential - that would normally use primary calendar Id as the externalId but in some cases, it would use user's email as the externalId
+ */
 async function processDelegationUserCredential(
   delegationUserCredential: DelegationUserCredentialWithEnsuredUser
 ) {
@@ -166,30 +188,47 @@ async function processDelegationUserCredential(
       return;
     }
 
-    const externalCalendarId = await fetchPrimaryCalendarId({
+    const primaryCalendarId = await fetchPrimaryCalendarId({
       googleCalendarService,
       delegationUserCredential,
     });
 
-    if (!externalCalendarId) {
+    if (!primaryCalendarId) {
       log.error(
         `External calendar not found for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`
       );
       throw new Error("externalCalendarId could not be determined");
     }
 
-    if (externalCalendarId !== userEmail) {
-      // We don't know the scenario when Delegation Credential allows access to an email that is not the primary calendar email
-      // So log a warning for further investigation
-      log.warn(
-        `External calendar id mismatch for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
-        safeStringify({
-          externalCalendarId,
-          userEmail,
-        })
-      );
+    let externalCalendarId = primaryCalendarId;
+
+    if (primaryCalendarId !== userEmail) {
+      const areEmailsSame = isSameEmail({
+        emailProvider: "google",
+        mainEmail: primaryCalendarId,
+        variantEmail: userEmail,
+      });
+
+      if (areEmailsSame) {
+        log.info(
+          `Email mismatch for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}. Using userEmail as the externalCalendarId as it is a plus based variant of primaryCalendarId`
+        );
+        // We have found that for some plus based email addresses(like john+test@acme.com) fetching primary calendar is successful and the primaryCalendarId comes back as john@acme.com
+        // Using userEmail as the externalCalendarId would ensure that the SelectedCalendar isn't attempted to be re-created and the SelectedCalendar record is still logically correct
+        externalCalendarId = userEmail;
+      } else {
+        // Unknown reason for mismatch, so we log it.
+        log.warn(
+          `Email mismatch for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}, credentialId: ${delegationUserCredential.id} and userId: ${delegationUserCredential.userId}`,
+          safeStringify({
+            externalCalendarId,
+            userEmail,
+          })
+        );
+      }
     }
 
+    // This creation call isn't expected to fail as we have already checked for the existence of the SelectedCalendar by userEmail
     await SelectedCalendarRepository.create({
       integration: "google_calendar",
       externalId: externalCalendarId,

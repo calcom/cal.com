@@ -36,7 +36,7 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
   };
   input: TConfirmInputSchema;
 };
@@ -440,5 +440,63 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
     if (membership) return;
   }
 
+  if (bookingUserId && (await isLoggedInUserOrgAdminOfBookingUser(loggedInUserId, bookingUserId))) {
+    return;
+  }
+
   throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };
+
+async function isLoggedInUserOrgAdminOfBookingUser(loggedInUserId: number, bookingUserId: number) {
+  const orgIdsWhereLoggedInUserAdmin = await getOrgIdsWhereAdmin(loggedInUserId);
+
+  if (orgIdsWhereLoggedInUserAdmin.length === 0) {
+    return false;
+  }
+
+  const bookingUserOrgMembership = await prisma.membership.findFirst({
+    where: {
+      userId: bookingUserId,
+      teamId: {
+        in: orgIdsWhereLoggedInUserAdmin,
+      },
+      team: {
+        parentId: null,
+      },
+    },
+  });
+
+  if (bookingUserOrgMembership) return true;
+
+  const bookingUserOrgTeamMembership = await prisma.membership.findFirst({
+    where: {
+      userId: bookingUserId,
+      team: {
+        parentId: {
+          in: orgIdsWhereLoggedInUserAdmin,
+        },
+      },
+    },
+  });
+
+  return !!bookingUserOrgTeamMembership;
+}
+
+async function getOrgIdsWhereAdmin(loggedInUserId: number) {
+  const loggedInUserOrgMemberships = await prisma.membership.findMany({
+    where: {
+      userId: loggedInUserId,
+      role: {
+        in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      },
+      team: {
+        parentId: null,
+      },
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
+  return loggedInUserOrgMemberships.map((m) => m.teamId);
+}

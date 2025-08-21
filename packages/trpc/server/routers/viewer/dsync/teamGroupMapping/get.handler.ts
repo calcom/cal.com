@@ -25,7 +25,7 @@ export const getHandler = async ({ ctx }: Options) => {
     },
   });
 
-  const directoryId = await prisma.dSyncData.findFirst({
+  const directoryId = await prisma.dSyncData.findUnique({
     where: {
       organizationId,
     },

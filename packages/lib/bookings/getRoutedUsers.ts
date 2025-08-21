@@ -3,6 +3,7 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeam
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RRResetInterval } from "@calcom/prisma/client";
+import type { RRTimestampBasis } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -75,13 +76,19 @@ type BaseHost<User extends BaseUser> = {
   weight?: number | null;
   weightAdjustment?: number | null;
   user: User;
+  groupId: string | null;
 };
 
 export type EventType = {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: AttributesQueryValue | null | undefined;
-  team: { id: number; parentId: number | null; rrResetInterval: RRResetInterval | null } | null;
+  team: {
+    id: number;
+    parentId: number | null;
+    rrResetInterval: RRResetInterval | null;
+    rrTimestampBasis: RRTimestampBasis;
+  } | null;
 };
 
 export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<User>>({
@@ -101,6 +108,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
         priority: host.priority,
         weight: host.weight,
         createdAt: host.createdAt,
+        groupId: host.groupId,
       })),
       fallbackHosts: null,
     };
@@ -113,6 +121,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
           email: user.email,
           user: user,
           createdAt: null,
+          groupId: null,
         };
       }),
     };
@@ -139,6 +148,7 @@ export async function getNormalizedHostsWithDelegationCredentials<
       priority: host.priority,
       weight: host.weight,
       createdAt: host.createdAt,
+      groupId: host.groupId,
     }));
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
@@ -191,6 +201,7 @@ export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
     priority?: number | null;
     weight?: number | null;
     createdAt: Date | null;
+    groupId: string | null;
   }[];
 }) {
   const matchingRRTeamMembers = await findMatchingTeamMembersIdsForEventRRSegment({

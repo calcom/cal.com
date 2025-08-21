@@ -26,7 +26,12 @@ vi.mock("@calcom/emails/email-manager", () => {
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
-    getTranslation: (key: string) => key,
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    },
   };
 });
 
@@ -147,6 +152,9 @@ describe("handleChildrenEventTypes", () => {
           userId: 4,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
+          allowReschedulingCancelledBookings: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -202,10 +210,13 @@ describe("handleChildrenEventTypes", () => {
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
           hashedLink: {
             deleteMany: {},
           },
           instantMeetingScheduleId: undefined,
+          allowReschedulingCancelledBookings: false,
         },
         where: {
           userId_parentId: {
@@ -315,6 +326,9 @@ describe("handleChildrenEventTypes", () => {
           workflows: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
+          allowReschedulingCancelledBookings: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -369,8 +383,10 @@ describe("handleChildrenEventTypes", () => {
           hashedLink: {
             deleteMany: {},
           },
+          useBookerTimezone: false,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          allowReschedulingCancelledBookings: false,
         },
         where: {
           userId_parentId: {
@@ -427,7 +443,6 @@ describe("handleChildrenEventTypes", () => {
         schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
-        lockedTimeZone: "Europe/London",
         useEventTypeDestinationCalendarEmail: false,
         workflows: [],
         parentId: 1,
@@ -465,6 +480,8 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
           parentId: 1,
           userId: 5,
           users: {
@@ -476,6 +493,7 @@ describe("handleChildrenEventTypes", () => {
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useEventLevelSelectedCalendars: false,
+          allowReschedulingCancelledBookings: false,
         },
       });
       const { profileId, rrSegmentQueryValue, ...rest } = evType;
@@ -488,6 +506,8 @@ describe("handleChildrenEventTypes", () => {
           customReplyToEmail: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
           hashedLink: {
             deleteMany: {},
           },

@@ -14,11 +14,13 @@ export class ApiKeysRepositoryFixture {
 
   async createApiKey(userId: number, expiresAt: Date | null, teamId?: number) {
     const keyString = randomBytes(16).toString("hex");
+    const hashedKey = createHash("sha256").update(keyString).digest("hex");
+    console.log("createApiKey Fixutre", { hashedKey, keyString });
     const apiKey = await this.prismaWriteClient.apiKey.create({
       data: {
         userId,
         teamId,
-        hashedKey: createHash("sha256").update(keyString).digest("hex"),
+        hashedKey,
         expiresAt: expiresAt,
       },
     });

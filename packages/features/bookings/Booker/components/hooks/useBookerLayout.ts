@@ -2,21 +2,23 @@ import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
 import { extraDaysConfig } from "../../config";
-import { useBookerStore } from "../../store";
 import type { BookerLayout } from "../../types";
 import { validateLayout } from "../../utils/layout";
 import { getQueryParam } from "../../utils/query-param";
 
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 
-export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined | null) => {
-  const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
+export const useBookerLayout = (
+  profileBookerLayouts: BookerEvent["profile"]["bookerLayouts"] | undefined | null
+) => {
+  const [_layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
@@ -31,7 +33,7 @@ export const useBookerLayout = (event: Pick<BookerEvent, "profile"> | undefined 
   const columnViewExtraDays = useRef<number>(
     isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop
   );
-  const bookerLayouts = event?.profile?.bookerLayouts || defaultBookerLayoutSettings;
+  const bookerLayouts = profileBookerLayouts || defaultBookerLayoutSettings;
   const defaultLayout = isEmbed
     ? validateLayout(embedUiConfig.layout) || bookerLayouts.defaultLayout
     : bookerLayouts.defaultLayout;

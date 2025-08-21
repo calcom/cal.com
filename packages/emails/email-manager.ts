@@ -50,6 +50,7 @@ import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-v
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
 import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
 import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
+import DelegationCredentialDisabledEmail from "./templates/delegation-credential-disabled-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -188,18 +189,28 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   teamMembersAndAttendees: Person[],
   eventTypeMetadata?: EventTypeMetadata
 ) => {
-  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
-
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
 
   for (const person of teamMembersAndAttendees) {
-    emailsAndSMSToSend.push(
-      sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember: person }))
-    );
-    if (person.phoneNumber) {
-      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+    const isAttendee = calendarEvent.attendees.some((attendee) => attendee.email === person.email);
+    const isTeamMember = !!calendarEvent.team?.members.some((member) => member.email === person.email);
+
+    if (isAttendee && !isTeamMember) {
+      if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, person)));
+        if (person.phoneNumber) {
+          emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+        }
+      }
+    } else if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+      emailsAndSMSToSend.push(
+        sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember: person }))
+      );
+      if (person.phoneNumber) {
+        emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+      }
     }
   }
 
@@ -834,4 +845,26 @@ export const sendCreditBalanceLimitReachedEmails = async ({
   if (user) {
     await sendEmail(() => new CreditBalanceLimitReachedEmail({ user }));
   }
+};
+
+export const sendDelegationCredentialDisabledEmail = async ({
+  recipientEmail,
+  recipientName,
+  calendarAppName,
+  conferencingAppName,
+}: {
+  recipientEmail: string;
+  recipientName?: string;
+  calendarAppName: string;
+  conferencingAppName: string;
+}) => {
+  await sendEmail(
+    () =>
+      new DelegationCredentialDisabledEmail({
+        recipientEmail,
+        recipientName,
+        calendarAppName,
+        conferencingAppName,
+      })
+  );
 };

@@ -5,6 +5,7 @@ import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
+import { HttpError } from "@calcom/lib/http-error";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -12,6 +13,7 @@ export const getCalEventResponses = ({
   bookingFields,
   booking,
   responses,
+  seatsEnabled,
 }: {
   // If the eventType has been deleted and a booking is Accepted later on, then bookingFields will be null and we can't know the label of fields. So, we should store the label as well in the DB
   // Also, it is no longer straightforward to identify if a field is system field or not
@@ -31,6 +33,7 @@ export const getCalEventResponses = ({
     };
   }>;
   responses?: z.infer<typeof bookingResponsesDbSchema>;
+  seatsEnabled?: boolean;
 }) => {
   const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
   const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
@@ -42,7 +45,10 @@ export const getCalEventResponses = ({
   // To set placeholder email for the booking
   if (!!!backwardCompatibleResponses.email) {
     if (typeof backwardCompatibleResponses["attendeePhoneNumber"] !== "string")
-      throw new Error("Both Phone and Email are missing");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Both Phone and Email are missing",
+      });
 
     backwardCompatibleResponses.email = contructEmailFromPhoneNumber(
       backwardCompatibleResponses["attendeePhoneNumber"]
@@ -57,8 +63,7 @@ export const getCalEventResponses = ({
         throw new Error(`Missing label for booking field "${field.name}"`);
       }
 
-      // If the guests field is hidden (disableGuests is set on the event type) don't try and infer guests from attendees list
-      if (field.name == "guests" && field.hidden) {
+      if (field.name == "guests" && !!seatsEnabled) {
         backwardCompatibleResponses[field.name] = [];
       }
 

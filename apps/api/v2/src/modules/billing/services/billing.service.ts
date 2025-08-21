@@ -216,6 +216,30 @@ export class BillingService implements OnModuleDestroy {
     }
   }
 
+  async handleStripePaymentPastDue(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+    const customerId = this.getCustomerIdFromInvoice(invoice);
+
+    if (subscriptionId && customerId) {
+      const existingUserSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(subscriptionId);
+
+      if (existingUserSubscription.status === "past_due") {
+        await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, true);
+      }
+
+      if (existingUserSubscription.status === "active") {
+        await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+      }
+    }
+
+    if (!subscriptionId || !customerId) {
+      this.logger.log(`SubscriptionId: ${subscriptionId} or customerId: ${customerId} missing`);
+    }
+  }
+
   async handleStripeCheckoutEvents(event: Stripe.Event) {
     const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
@@ -379,6 +403,10 @@ export class BillingService implements OnModuleDestroy {
       fromReschedule?: string | null;
     }
   ) {
+
+    if (this.configService.get("e2e")) {
+      return true;
+    }
     const { uid, startTime, fromReschedule } = booking;
 
     const delay = startTime.getTime() - Date.now();
@@ -403,6 +431,9 @@ export class BillingService implements OnModuleDestroy {
    * Removing an attendee from a booking does not cancel the usage increment job.
    */
   async cancelUsageByBookingUid(bookingUid: string) {
+    if (this.configService.get("e2e")) {
+      return true;
+    }
     const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
     if (job) {
       await job.remove();
@@ -434,6 +465,7 @@ export class BillingService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     try {
+      
       await this.billingQueue.close();
     } catch (err) {
       this.logger.error(err);

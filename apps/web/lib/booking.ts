@@ -17,6 +17,7 @@ export const getEventTypesFromDB = async (id: number) => {
     darkBrandColor: true,
     email: true,
     timeZone: true,
+    isPlatformManaged: true,
   };
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -70,6 +71,12 @@ export const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+          parent: {
+            select: {
+              hideBranding: true,
+            },
+          },
+          createdByOAuthClientId: true,
         },
       },
       workflows: {
@@ -152,7 +159,7 @@ export const handleSeatsEventTypeOnBooking = async (
   } | null;
   let seatAttendee: seatAttendee = null;
   if (seatReferenceUid) {
-    seatAttendee = await prisma.bookingSeat.findFirst({
+    seatAttendee = await prisma.bookingSeat.findUnique({
       where: {
         referenceUid: seatReferenceUid,
       },
