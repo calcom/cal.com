@@ -112,14 +112,11 @@ export class AgentService {
 
       const existing = llmDetails?.general_tools ?? [];
 
-      // Check if tools for this specific event type already exist
-      const eventSpecificToolNames = [
-        `check_availability_${data.eventTypeId}`,
-        `book_appointment_${data.eventTypeId}`,
-      ];
-      const hasEventSpecificTools = existing.some((t) => eventSpecificToolNames.includes(t.name));
-
-      if (hasEventSpecificTools) {
+      const hasCheck = existing.some((t) => t.name === `check_availability_${data.eventTypeId}`);
+      const hasBook = existing.some((t) => t.name === `book_appointment_${data.eventTypeId}`);
+      // If both already exist and end_call also exists, nothing to do
+      const hasEndCallAlready = existing.some((t) => t.type === "end_call");
+      if (hasCheck && hasBook && hasEndCallAlready) {
         return;
       }
 
@@ -135,25 +132,27 @@ export class AgentService {
           teamId: data.teamId || undefined,
         }));
 
-      const newEventTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [
-        {
+      const newEventTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [];
+      if (!hasCheck) {
+        newEventTools.push({
           name: `check_availability_${data.eventTypeId}`,
           type: "check_availability_cal",
           event_type_id: data.eventTypeId,
           cal_api_key: apiKey,
           timezone: data.timeZone,
-        },
-        {
+        });
+      }
+      if (!hasBook) {
+        newEventTools.push({
           name: `book_appointment_${data.eventTypeId}`,
           type: "book_appointment_cal",
           event_type_id: data.eventTypeId,
           cal_api_key: apiKey,
           timezone: data.timeZone,
-        },
-      ];
+        });
+      }
 
-      const hasEndCall = existing.some((t) => t.type === "end_call");
-      if (!hasEndCall) {
+      if (!hasEndCallAlready) {
         newEventTools.unshift({
           type: "end_call",
           name: "end_call",

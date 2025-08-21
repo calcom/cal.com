@@ -385,10 +385,19 @@ export class WorkflowRepository {
     return remindersToDelete;
   }
 
-  static async getActiveOnEventTypeIds(workflowId: number) {
+  static async getActiveOnEventTypeIds({
+    workflowId,
+    userId,
+    teamId,
+  }: {
+    workflowId: number;
+    userId: number;
+    teamId?: number | null;
+  }) {
     const workflow = await prisma.workflow.findMany({
       where: {
-        workflowId,
+        id: workflowId,
+        OR: [{ userId }, ...(teamId ? [{ teamId }] : [])],
       },
       select: {
         activeOn: {

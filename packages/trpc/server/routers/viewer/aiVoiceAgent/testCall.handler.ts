@@ -26,7 +26,11 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
     return;
   }
 
-  const activeOnEventTypeIds = await WorkflowRepository.getActiveOnEventTypeIds(parseInt(input.workflowId));
+  const activeOnEventTypeIds = await WorkflowRepository.getActiveOnEventTypeIds({
+    workflowId: parseInt(input.workflowId),
+    userId: ctx.user.id,
+    teamId: input.teamId,
+  });
 
   if (activeOnEventTypeIds.length === 0) {
     throw new TRPCError({
