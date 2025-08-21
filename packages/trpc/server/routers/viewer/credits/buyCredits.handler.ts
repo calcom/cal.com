@@ -1,7 +1,8 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { prisma } from "@calcom/prisma";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -48,10 +49,8 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
 
   if (teamId) {
     // Check if the team is an organization
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: { isOrganization: true },
-    });
+    const teamRepository = new TeamRepository(prisma);
+    const team = await teamRepository.findById({ id: teamId });
 
     if (team?.isOrganization) {
       redirectUrl = `${WEBAPP_URL}/settings/organizations/billing`;

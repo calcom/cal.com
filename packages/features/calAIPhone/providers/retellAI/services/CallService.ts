@@ -16,8 +16,6 @@ interface RetellAIServiceInterface {
   ): Promise<void>;
 }
 
-const MIN_CREDIT_REQUIRED_FOR_TEST_CALL = 5;
-
 export class CallService {
   private logger = logger.getSubLogger({ prefix: ["CallService"] });
   private retellAIService?: RetellAIServiceInterface;
@@ -32,39 +30,41 @@ export class CallService {
   }
 
   async createPhoneCall(data: {
-    from_number: string;
-    to_number: string;
-    retell_llm_dynamic_variables?: RetellDynamicVariables;
+    fromNumber: string;
+    toNumber: string;
+    dynamicVariables?: RetellDynamicVariables;
   }): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
-    if (!data.from_number?.trim()) {
+    if (!data.fromNumber?.trim()) {
       throw new HttpError({
         statusCode: 400,
         message: "From phone number is required and cannot be empty",
       });
     }
 
-    if (!data.to_number?.trim()) {
+    if (!data.toNumber?.trim()) {
       throw new HttpError({
         statusCode: 400,
         message: "To phone number is required and cannot be empty",
       });
     }
 
+    const { fromNumber, toNumber, dynamicVariables } = data;
+
     try {
       return await this.retellRepository.createPhoneCall({
-        from_number: data.from_number,
-        to_number: data.to_number,
-        retell_llm_dynamic_variables: data.retell_llm_dynamic_variables,
+        fromNumber,
+        toNumber,
+        dynamicVariables,
       });
     } catch (error) {
       this.logger.error("Failed to create phone call in external AI service", {
-        fromNumber: data.from_number,
-        toNumber: data.to_number,
+        fromNumber: data.fromNumber,
+        toNumber: data.toNumber,
         error,
       });
       throw new HttpError({
         statusCode: 500,
-        message: `Failed to create phone call from ${data.from_number} to ${data.to_number}`,
+        message: `Failed to create phone call from ${data.fromNumber} to ${data.toNumber}`,
       });
     }
   }
@@ -143,9 +143,9 @@ export class CallService {
     });
 
     const call = await this.createPhoneCall({
-      from_number: agentPhoneNumber,
-      to_number: toNumber,
-      retell_llm_dynamic_variables: {
+      fromNumber: agentPhoneNumber,
+      toNumber: toNumber,
+      dynamicVariables: {
         EVENT_NAME: "Test Call with Agent",
         EVENT_DATE: "Monday, January 15, 2025",
         EVENT_TIME: "2:00 PM",

@@ -759,22 +759,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               {t("edit")}
                             </DropdownItem>
                           </DropdownMenuItem>
-                          {getActivePhoneNumbers(
-                            agentData.outboundPhoneNumbers?.map((phone) => ({
-                              ...phone,
-                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                            }))
-                          ).length > 0 && (
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                StartIcon="trash"
-                                color="destructive"
-                                onClick={() => setIsUnsubscribeDialogOpen(true)}>
-                                {t("unsubscribe")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          )}
                         </DropdownMenuContent>
                       </Dropdown>
                     </div>

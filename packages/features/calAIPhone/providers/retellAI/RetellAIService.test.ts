@@ -532,9 +532,9 @@ describe("RetellAIService", () => {
       mockRepository.createPhoneCall.mockResolvedValue(mockCall);
 
       const result = await service.createPhoneCall({
-        from_number: "+1234567890",
-        to_number: "+0987654321",
-        retell_llm_dynamic_variables: {
+        fromNumber: "+1234567890",
+        toNumber: "+0987654321",
+        dynamicVariables: {
           name: "John",
           email: "john@example.com",
         },
@@ -542,9 +542,9 @@ describe("RetellAIService", () => {
 
       expect(result).toEqual(mockCall);
       expect(mockRepository.createPhoneCall).toHaveBeenCalledWith({
-        from_number: "+1234567890",
-        to_number: "+0987654321",
-        retell_llm_dynamic_variables: {
+        fromNumber: "+1234567890",
+        toNumber: "+0987654321",
+        dynamicVariables: {
           name: "John",
           email: "john@example.com",
         },

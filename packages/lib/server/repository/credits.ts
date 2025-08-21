@@ -149,6 +149,7 @@ export class CreditsRepository {
             smsSid: true,
             smsSegments: true,
             callDuration: true,
+            externalRef: true,
           },
         },
       },

@@ -198,9 +198,9 @@ export class RetellAIService {
   }
 
   async createPhoneCall(data: {
-    from_number: string;
-    to_number: string;
-    retell_llm_dynamic_variables?: RetellDynamicVariables;
+    fromNumber: string;
+    toNumber: string;
+    dynamicVariables?: RetellDynamicVariables;
   }): Promise<RetellCall> {
     return this.callService.createPhoneCall(data);
   }

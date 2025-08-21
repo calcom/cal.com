@@ -46,8 +46,8 @@ describe("CallService", () => {
 
   describe("createPhoneCall", () => {
     const validCallData = {
-      from_number: "+1234567890",
-      to_number: "+0987654321",
+      fromNumber: "+1234567890",
+      toNumber: "+0987654321",
     };
 
     it("should successfully create phone call", async () => {
@@ -57,7 +57,11 @@ describe("CallService", () => {
       const result = await service.createPhoneCall(validCallData);
 
       expect(result).toEqual(mockCall);
-      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith(validCallData);
+      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
+        fromNumber: "+1234567890",
+        toNumber: "+0987654321",
+        dynamicVariables: undefined,
+      });
     });
 
     it("should create phone call with dynamic variables", async () => {
@@ -66,7 +70,7 @@ describe("CallService", () => {
 
       const callDataWithVariables = {
         ...validCallData,
-        retell_llm_dynamic_variables: {
+        dynamicVariables: {
           name: "John Doe",
           company: "Acme Corp",
         },
@@ -74,7 +78,14 @@ describe("CallService", () => {
 
       await service.createPhoneCall(callDataWithVariables);
 
-      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith(callDataWithVariables);
+      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
+        fromNumber: "+1234567890",
+        toNumber: "+0987654321",
+        dynamicVariables: {
+          name: "John Doe",
+          company: "Acme Corp",
+        },
+      });
     });
 
     it("should handle Retell API errors", async () => {
@@ -128,9 +139,9 @@ describe("CallService", () => {
       );
 
       expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
-        from_number: "+1234567890",
-        to_number: "+0987654321",
-        retell_llm_dynamic_variables: expect.objectContaining({
+        fromNumber: "+1234567890",
+        toNumber: "+0987654321",
+        dynamicVariables: expect.objectContaining({
           EVENT_NAME: "Test Call with Agent",
           TIMEZONE: "America/New_York",
         }),

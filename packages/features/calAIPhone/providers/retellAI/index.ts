@@ -75,7 +75,7 @@ export interface RetellAIPhoneServiceProviderTypeMap {
   ImportPhoneNumberParams: ImportPhoneNumberParams;
   UpdateAgentParams: UpdateAgentRequest;
   Tools: RetellLLMGeneralTools;
-  CreatePhoneCallParams: CreatePhoneCallParams;
+  CreatePhoneCallParams: { fromNumber: string; toNumber: string; dynamicVariables?: RetellDynamicVariables };
   AgentWithDetails: RetellAgentWithDetails;
 }
 

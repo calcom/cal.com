@@ -5,7 +5,8 @@
 
 */
 -- AlterTable
-ALTER TABLE "CreditExpenseLog" ADD COLUMN     "externalRef" TEXT;
+ALTER TABLE "CreditExpenseLog" ADD COLUMN     "callDuration" INTEGER,
+ADD COLUMN     "externalRef" TEXT;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CreditExpenseLog_externalRef_key" ON "CreditExpenseLog"("externalRef");

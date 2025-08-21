@@ -35,9 +35,7 @@ vi.mock("react-sticky-box", () => ({
 
 vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
   useOrgBranding() {
-    // Return null by default to simulate no org context
-    // Tests can override this mock if they need to test org scenarios
-    return null;
+    return {};
   },
 }));
 
@@ -54,9 +52,6 @@ vi.mock("next/navigation", async () => ({
   },
   useSearchParams() {
     return new URLSearchParams();
-  },
-  usePathname() {
-    return "/settings/billing";
   },
 }));
 

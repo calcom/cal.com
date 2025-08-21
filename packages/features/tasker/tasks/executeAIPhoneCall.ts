@@ -215,9 +215,9 @@ export async function executeAIPhoneCall(payload: string) {
     });
 
     const call = await aiService.createPhoneCall({
-      from_number: data.fromNumber,
-      to_number: numberToCall,
-      retell_llm_dynamic_variables: dynamicVariables,
+      fromNumber: data.fromNumber,
+      toNumber: numberToCall,
+      dynamicVariables,
     });
 
     log.info("AI phone call created successfully:", call);
@@ -239,8 +239,6 @@ export async function executeAIPhoneCall(payload: string) {
       bookingUid: data.bookingUid,
     });
   } catch (error) {
-    console.error("=== AI PHONE CALL TASK FAILED ===");
-    console.error("Error:", error);
     log.error("Error executing AI phone call:", error);
     throw error;
   }
