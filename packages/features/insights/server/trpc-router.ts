@@ -8,7 +8,6 @@ import {
   insightsRoutingServicePaginatedInputSchema,
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
-  failedBookingsByFieldInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
@@ -886,7 +885,7 @@ export const insightsRouter = router({
       return options;
     }),
   failedBookingsByField: userBelongsToTeamProcedure
-    .input(failedBookingsByFieldInputSchema)
+    .input(insightsRoutingServiceBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
