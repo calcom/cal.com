@@ -29,7 +29,7 @@ export const BookerEmbed = (
         preventEventTypeRedirect?: BookerPlatformWrapperAtomPropsForTeam["preventEventTypeRedirect"];
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {
-        organizationId?: undefined;
+        organizationId?: number;
         routingFormUrl?: undefined;
       })
     | (BookerPlatformWrapperAtomPropsForTeam & { organizationId?: number; routingFormUrl?: undefined })

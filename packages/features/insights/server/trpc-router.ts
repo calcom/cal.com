@@ -4,13 +4,13 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import {
   rawDataInputSchema,
-  routingFormResponsesInputSchema,
-  routingFormStatsInputSchema,
+  insightsRoutingServiceInputSchema,
+  insightsRoutingServicePaginatedInputSchema,
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
-import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
-import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
+import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
+import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -316,14 +316,13 @@ const BATCH_SIZE = 1000; // Adjust based on your needs
  * Helper function to create InsightsBookingService with standardized parameters
  */
 function createInsightsBookingService(
-  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
   dateTarget: "createdAt" | "startTime" = "createdAt"
 ) {
-  const { scope, selectedTeamId, eventTypeId, memberUserId, startDate, endDate } = input;
+  const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
 
-  return new InsightsBookingService({
-    prisma: ctx.insightsDb,
+  return getInsightsBookingService({
     options: {
       scope,
       userId: ctx.user.id,
@@ -331,8 +330,7 @@ function createInsightsBookingService(
       ...(selectedTeamId && { teamId: selectedTeamId }),
     },
     filters: {
-      ...(eventTypeId && { eventTypeId }),
-      ...(memberUserId && { memberUserId }),
+      ...(columnFilters && { columnFilters }),
       dateRange: {
         target: dateTarget,
         startDate,
@@ -341,6 +339,26 @@ function createInsightsBookingService(
     },
   });
 }
+
+function createInsightsRoutingService(
+  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  input: z.infer<typeof routingRepositoryBaseInputSchema>
+) {
+  return getInsightsRoutingService({
+    options: {
+      scope: input.scope,
+      teamId: input.selectedTeamId,
+      userId: ctx.user.id,
+      orgId: ctx.user.organizationId,
+    },
+    filters: {
+      startDate: input.startDate,
+      endDate: input.endDate,
+      columnFilters: input.columnFilters,
+    },
+  });
+}
+
 export const insightsRouter = router({
   bookingKPIStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
@@ -809,55 +827,44 @@ export const insightsRouter = router({
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
-    .input(routingFormStatsInputSchema)
+    .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormStats({
-        teamId: input.teamId,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        isAll: input.isAll,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId,
-        userId: ctx.user.id,
-        memberUserIds: input.memberUserIds,
-        columnFilters: input.columnFilters,
-        sorting: input.sorting,
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      return await insightsRoutingService.getRoutingFormStats();
     }),
   routingFormResponses: userBelongsToTeamProcedure
-    .input(routingFormResponsesInputSchema)
+    .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
-        teamId: input.teamId,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        isAll: input.isAll,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId,
-        userId: ctx.user.id,
-        memberUserIds: input.memberUserIds,
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      return await insightsRoutingService.getTableData({
+        sorting: input.sorting,
         limit: input.limit,
         offset: input.offset,
-        columnFilters: input.columnFilters,
-        sorting: input.sorting,
       });
     }),
   routingFormResponsesForDownload: userBelongsToTeamProcedure
-    .input(routingFormResponsesInputSchema)
+    .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
-        teamId: input.teamId,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        isAll: input.isAll,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId,
+      const headersPromise = RoutingEventsInsights.getRoutingFormHeaders({
         userId: ctx.user.id,
-        memberUserIds: input.memberUserIds,
-        limit: input.limit ?? BATCH_SIZE,
-        offset: input.offset,
-        columnFilters: input.columnFilters,
+        teamId: input.selectedTeamId,
+        isAll: input.scope === "org",
+        organizationId: ctx.user.organizationId,
+        routingFormId: (input.columnFilters || []).find((filter) => filter.id === "formId")?.value?.data as
+          | string
+          | undefined,
+      });
+
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      const dataPromise = insightsRoutingService.getTableData({
         sorting: input.sorting,
+        limit: input.limit,
+        offset: input.offset,
+      });
+
+      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
+        headersPromise,
+        dataPromise,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure
@@ -1002,19 +1009,7 @@ export const insightsRouter = router({
         timeView,
         weekStart: ctx.user.weekStart,
       });
-      const insightsRoutingService = getInsightsRoutingService({
-        options: {
-          scope: input.scope,
-          teamId: input.selectedTeamId,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId,
-        },
-        filters: {
-          startDate: input.startDate,
-          endDate: input.endDate,
-          columnFilters: input.columnFilters,
-        },
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
         return await insightsRoutingService.getRoutingFunnelData(dateRanges);
       } catch (e) {
