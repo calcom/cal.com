@@ -225,7 +225,6 @@ export interface FormSubmittedDTO extends BaseEventDTO {
   };
 }
 
-// Recording-specific DTOs
 export interface RecordingReadyDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.RECORDING_READY;
   evt: CalendarEvent;
@@ -244,7 +243,6 @@ export interface TranscriptionGeneratedDTO extends BaseEventDTO {
   };
 }
 
-// Form-specific DTOs
 export interface FormSubmittedNoEventDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
   form: {
