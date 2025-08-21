@@ -16,7 +16,6 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
 
@@ -25,12 +24,11 @@ import { getThemeProviderProps } from "./getThemeProviderProps";
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithLocaleProps<
-      WithNonceProps<{
-        themeBasis?: string;
-        session: Session;
-      }>
-    >
+    WithLocaleProps<{
+      nonce: string | undefined;
+      themeBasis?: string;
+      session: Session;
+    }>
   >,
   "Component"
 > & {

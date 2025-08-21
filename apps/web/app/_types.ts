@@ -13,5 +13,5 @@ export type PageProps = {
 
 export type LayoutProps = { params: Promise<Params>; children: React.ReactElement };
 
-export { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
-export { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+export type ReadonlyHeaders = Awaited<ReturnType<typeof import("next/headers").headers>>;
+export type ReadonlyRequestCookies = Awaited<ReturnType<typeof import("next/headers").cookies>>;

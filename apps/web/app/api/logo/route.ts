@@ -200,7 +200,7 @@ async function getHandler(request: NextRequest) {
 
       buffer = await optimizeImage({
         buffer,
-        contentType: detectContentType(buffer) ?? "image/jpeg",
+        contentType: (await detectContentType(buffer)) ?? "image/jpeg",
         quality: 100,
         width: logoDefinition.w,
         height: logoDefinition.h, // optional
@@ -208,7 +208,7 @@ async function getHandler(request: NextRequest) {
     }
 
     // Create a new response with the image buffer
-    const imageResponse = new NextResponse(buffer);
+    const imageResponse = new NextResponse(buffer as BodyInit);
 
     // Set the appropriate headers
     imageResponse.headers.set("Content-Type", response.headers.get("content-type") || "image/png");

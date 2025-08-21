@@ -27,7 +27,6 @@ import { useAppTheme } from "./useAppTheme";
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
-  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
 
   useFormbricks();
 
@@ -40,9 +39,7 @@ const Layout = (props: LayoutProps) => {
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
-          <BannerContainer banners={banners} />
-        )}
+        {banners && !props.isPlatformUser && <BannerContainer banners={banners} />}
 
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer ? (
