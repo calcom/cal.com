@@ -1,5 +1,4 @@
 import logger from "@calcom/lib/logger";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookEventDTO } from "../dto/types";
 import { WebhookPayloadFactory } from "../factory/WebhookPayloadFactory";
@@ -22,10 +21,10 @@ const log = logger.getSubLogger({ prefix: ["[WebhookNotificationHandler]"] });
  * @example Basic webhook notification flow
  * ```typescript
  * const handler = new WebhookNotificationHandler();
- * await handler.handle({
- *   triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
- *   data: bookingData
- * });
+ * await handler.handleNotification(
+ *   bookingDTO, // DTO contains triggerEvent internally
+ *   false // isDryRun
+ * );
  * // Triggers the complete webhook notification pipeline
  * ```
  *
@@ -37,15 +36,11 @@ export class WebhookNotificationHandler {
 
   /**
    * Handles a webhook notification by processing the DTO and triggering webhooks
-   * @param trigger - The webhook trigger event
-   * @param dto - The event data transfer object
+   * @param dto - The event data transfer object containing the trigger event
    * @param isDryRun - Whether this is a dry run
    */
-  async handleNotification(
-    trigger: WebhookTriggerEvents,
-    dto: WebhookEventDTO,
-    isDryRun = false
-  ): Promise<void> {
+  async handleNotification(dto: WebhookEventDTO, isDryRun = false): Promise<void> {
+    const trigger = dto.triggerEvent;
     try {
       if (isDryRun) {
         log.debug(`Dry run mode - skipping webhook notification for: ${trigger}`);

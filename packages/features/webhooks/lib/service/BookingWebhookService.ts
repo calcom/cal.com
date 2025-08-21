@@ -102,7 +102,7 @@ export class BookingWebhookService {
       evt: args.evt,
       booking: {
         ...args.booking,
-        startTime: args.booking.startTime || new Date(),
+        booking: { ...args.booking, startTime: args.booking.startTime ?? args.evt.startTime },
       },
       eventType: args.eventType,
       status: args.status,
@@ -211,7 +211,7 @@ export class BookingWebhookService {
       paymentData: params.paymentData,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitBookingCreated(params: {
@@ -262,7 +262,7 @@ export class BookingWebhookService {
       platformParams: params.platformParams,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_CREATED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitBookingCancelled(params: {
@@ -306,7 +306,7 @@ export class BookingWebhookService {
       cancellationReason: params.cancellationReason,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_CANCELLED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitBookingRequested(params: {
@@ -344,8 +344,7 @@ export class BookingWebhookService {
       eventType: params.eventType,
       booking: params.booking,
     };
-
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitBookingRescheduled(params: {
@@ -395,7 +394,7 @@ export class BookingWebhookService {
       rescheduledBy: params.rescheduledBy,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitBookingPaid(params: {
@@ -438,7 +437,7 @@ export class BookingWebhookService {
       paymentData: params.paymentData,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_PAID, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitBookingNoShow(params: {
@@ -467,7 +466,7 @@ export class BookingWebhookService {
       attendees: params.attendees,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitBookingRejected(params: {
@@ -506,7 +505,7 @@ export class BookingWebhookService {
       booking: params.booking,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_REJECTED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   /**

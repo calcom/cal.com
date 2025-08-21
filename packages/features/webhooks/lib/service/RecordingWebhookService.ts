@@ -79,7 +79,7 @@ export class RecordingWebhookService extends WebhookService {
       evt: params.evt,
       downloadLink: params.downloadLink,
     };
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.RECORDING_READY, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitTranscriptionGenerated(params: {
@@ -114,10 +114,6 @@ export class RecordingWebhookService extends WebhookService {
       downloadLinks: params.downloadLinks,
     };
 
-    await WebhookNotifier.emitWebhook(
-      WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-      dto,
-      params.isDryRun
-    );
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 }

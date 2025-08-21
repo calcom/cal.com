@@ -1,5 +1,4 @@
 import logger from "@calcom/lib/logger";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookEventDTO } from "../dto/types";
 import { WebhookNotificationHandler } from "./WebhookNotificationHandler";
@@ -21,16 +20,17 @@ const log = logger.getSubLogger({ prefix: ["[WebhookNotifier]"] });
  *
  * @example Basic webhook emission
  * ```typescript
- * const notifier = new WebhookNotifier();
- * await notifier.emitWebhook(WebhookTriggerEvents.BOOKING_CREATED, dto, false);
+ * await WebhookNotifier.emitWebhook(dto, false);
  * // Webhook is processed asynchronously, errors are logged but not thrown
  * ```
  *
  * @example With custom handler for testing
  * ```typescript
  * const mockHandler = new MockWebhookHandler();
- * const notifier = new WebhookNotifier(mockHandler);
- * await notifier.emitWebhook(event, dto, true); // isDryRun = true
+ * const previous = WebhookNotifier.getHandler();
+ * WebhookNotifier.setHandler(mockHandler);
+ * await WebhookNotifier.emitWebhook(dto, true); // isDryRun = true
+ * WebhookNotifier.setHandler(previous); // Restore original handler
  * ```
  *
  * @throws Never - All errors are caught and logged to prevent disrupting main flow
@@ -40,16 +40,12 @@ export class WebhookNotifier {
   private static handler = new WebhookNotificationHandler();
 
   /**
-   * Emits a webhook event with the given trigger and DTO
-   * @param trigger - The webhook trigger event type
-   * @param dto - The data transfer object containing event data
+   * Emits a webhook event using the DTO's trigger event
+   * @param dto - The data transfer object containing event data and trigger
    * @param isDryRun - Whether this is a dry run (for testing)
    */
-  static async emitWebhook(
-    trigger: WebhookTriggerEvents,
-    dto: WebhookEventDTO,
-    isDryRun = false
-  ): Promise<void> {
+  static async emitWebhook(dto: WebhookEventDTO, isDryRun = false): Promise<void> {
+    const trigger = dto.triggerEvent;
     try {
       log.debug(`Emitting webhook event: ${trigger}`, {
         bookingId: dto.bookingId,
@@ -57,7 +53,7 @@ export class WebhookNotifier {
         isDryRun,
       });
 
-      await this.handler.handleNotification(trigger, dto, isDryRun);
+      await this.handler.handleNotification(dto, isDryRun);
 
       log.debug(`Successfully emitted webhook event: ${trigger}`, {
         bookingId: dto.bookingId,

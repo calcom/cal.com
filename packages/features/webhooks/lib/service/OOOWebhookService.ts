@@ -99,6 +99,6 @@ export class OOOWebhookService extends WebhookService {
       oooEntry: params.oooEntry,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.OOO_CREATED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 }

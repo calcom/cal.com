@@ -1,7 +1,5 @@
-import type { Payment } from "@prisma/client";
-
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export interface BaseEventDTO {
@@ -321,7 +319,7 @@ export interface WebhookSubscriber {
   appId: string | null;
   secret: string | null;
   time?: number | null;
-  timeUnit?: string | null;
+  timeUnit?: TimeUnit | null;
   eventTriggers: WebhookTriggerEvents[];
 }
 
@@ -416,5 +414,5 @@ export type EventPayloadType = CalendarEvent &
     paymentId?: number;
     rescheduledBy?: string;
     cancelledBy?: string;
-    paymentData?: Payment;
+    paymentData?: Record<string, unknown>;
   };

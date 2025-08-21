@@ -109,7 +109,7 @@ export class FormWebhookService extends WebhookService {
       response: params.response,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.FORM_SUBMITTED, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   static async emitFormSubmittedNoEvent(params: {
@@ -138,7 +138,7 @@ export class FormWebhookService extends WebhookService {
       response: params.response,
     };
 
-    await WebhookNotifier.emitWebhook(WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT, dto, params.isDryRun);
+    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
   /**
