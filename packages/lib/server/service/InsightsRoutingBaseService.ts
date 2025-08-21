@@ -710,58 +710,67 @@ export class InsightsRoutingBaseService {
         count: number;
       }[]
     >`
-      WITH form_fields AS (
-        SELECT
-          f.id as form_id,
-          f.name as form_name,
-          field->>'id' as field_id,
-          field->>'label' as field_label,
-          opt->>'id' as option_id,
-          opt->>'label' as option_label
-        FROM "App_RoutingForms_Form" f,
-        LATERAL jsonb_array_elements(f.fields) as field
-        LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
-        WHERE ${baseConditions}
-      ),
-      response_stats AS (
-        SELECT
-          r."formId",
-          key as field_id,
-          CASE
-            WHEN jsonb_typeof(value->'value') = 'array' THEN
-              v.value_item
-            ELSE
-              value->>'value'
-          END as selected_option,
-          COUNT(DISTINCT r.id) as response_count
-        FROM "App_RoutingForms_FormResponse" r
-        CROSS JOIN jsonb_each(r.response::jsonb) as fields(key, value)
-        LEFT JOIN LATERAL jsonb_array_elements_text(
-          CASE
-            WHEN jsonb_typeof(value->'value') = 'array'
-            THEN value->'value'
-            ELSE NULL
-          END
-        ) as v(value_item) ON true
-        WHERE r."routedToBookingUid" IS NULL
-        AND r."createdAt" >= ${this.filters.startDate}::timestamp
-        AND r."createdAt" <= ${this.filters.endDate}::timestamp
-        GROUP BY r."formId", key, selected_option
-      )
       SELECT
-        ff.form_id as "formId",
-        ff.form_name as "formName",
-        ff.field_id as "fieldId",
-        ff.field_label as "fieldLabel",
-        ff.option_id as "optionId",
-        ff.option_label as "optionLabel",
-        COALESCE(rs.response_count, 0)::integer as count
-      FROM form_fields ff
-      LEFT JOIN response_stats rs ON
-        rs."formId" = ff.form_id AND
-        rs.field_id = ff.field_id AND
-        rs.selected_option = ff.option_id
-      WHERE ff.option_id IS NOT NULL
+        rfrd."formId",
+        rfrd."formName",
+        f."fieldId",
+        field_def->>'label' as "fieldLabel",
+        CASE
+          WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
+            unnest(f."valueStringArray")
+          ELSE
+            f."valueString"
+        END as "optionId",
+        CASE
+          WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
+            COALESCE(
+              (SELECT opt->>'label' 
+               FROM jsonb_array_elements(field_def->'options') as opt 
+               WHERE opt->>'id' = unnest(f."valueStringArray")),
+              unnest(f."valueStringArray")
+            )
+          ELSE
+            COALESCE(
+              (SELECT opt->>'label' 
+               FROM jsonb_array_elements(field_def->'options') as opt 
+               WHERE opt->>'id' = f."valueString"),
+              f."valueString"
+            )
+        END as "optionLabel",
+        COUNT(*) as count
+      FROM "RoutingFormResponseDenormalized" rfrd
+      JOIN "RoutingFormResponseField" f ON f."responseId" = rfrd."id"
+      JOIN "App_RoutingForms_Form" form ON form."id" = rfrd."formId"
+      CROSS JOIN LATERAL jsonb_array_elements(form."fields") as field_def
+      WHERE ${baseConditions}
+        AND rfrd."bookingUid" IS NULL
+        AND rfrd."createdAt" >= ${this.filters.startDate}::timestamp
+        AND rfrd."createdAt" <= ${this.filters.endDate}::timestamp
+        AND field_def->>'id' = f."fieldId"
+        AND (f."valueString" IS NOT NULL OR (f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0))
+      GROUP BY rfrd."formId", rfrd."formName", f."fieldId", field_def->>'label', 
+               CASE
+                 WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
+                   unnest(f."valueStringArray")
+                 ELSE
+                   f."valueString"
+               END,
+               CASE
+                 WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
+                   COALESCE(
+                     (SELECT opt->>'label' 
+                      FROM jsonb_array_elements(field_def->'options') as opt 
+                      WHERE opt->>'id' = unnest(f."valueStringArray")),
+                     unnest(f."valueStringArray")
+                   )
+                 ELSE
+                   COALESCE(
+                     (SELECT opt->>'label' 
+                      FROM jsonb_array_elements(field_def->'options') as opt 
+                      WHERE opt->>'id' = f."valueString"),
+                     f."valueString"
+                   )
+               END
       ORDER BY count DESC
     `;
 
