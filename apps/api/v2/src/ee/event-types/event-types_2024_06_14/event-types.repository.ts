@@ -134,7 +134,7 @@ export class EventTypesRepository_2024_06_14 {
   }
 
   async isUserHostOfEventType(userId: number, eventTypeId: number) {
-    const eventType = await this.dbRead.prisma.eventType.findUnique({
+    const eventType = await this.dbRead.prisma.eventType.findFirst({
       where: {
         id: eventTypeId,
         hosts: { some: { userId: userId } },
@@ -145,7 +145,7 @@ export class EventTypesRepository_2024_06_14 {
   }
 
   async isUserAssignedToEventType(userId: number, eventTypeId: number) {
-    const eventType = await this.dbRead.prisma.eventType.findUnique({
+    const eventType = await this.dbRead.prisma.eventType.findFirst({
       where: {
         id: eventTypeId,
         users: { some: { id: userId } },
