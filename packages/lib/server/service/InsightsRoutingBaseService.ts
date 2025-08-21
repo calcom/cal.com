@@ -445,25 +445,19 @@ export class InsightsRoutingBaseService {
         avatarUrl: string | null;
       }>
     >`
-      WITH routed_responses AS (
-        SELECT DISTINCT ON ("bookingUserId")
-          "bookingUserId",
-          "bookingUserId" as id,
-          "bookingUserName" as name,
-          "bookingUserEmail" as email,
-          "bookingUserAvatarUrl" as "avatarUrl"
-        FROM "RoutingFormResponseDenormalized" rfrd
-        WHERE "bookingUid" IS NOT NULL
-          AND "bookingUserId" IS NOT NULL
-          AND "createdAt" >= ${startDate}
-          AND "createdAt" <= ${endDate}
-          AND ${baseConditions}
-          AND ${searchCondition}
-        ORDER BY "bookingUserId", "createdAt" DESC
-      )
-      SELECT *
-      FROM routed_responses
-      ORDER BY id ASC
+      SELECT DISTINCT ON ("bookingUserId")
+        "bookingUserId" as id,
+        "bookingUserName" as name,
+        "bookingUserEmail" as email,
+        "bookingUserAvatarUrl" as "avatarUrl"
+      FROM "RoutingFormResponseDenormalized" rfrd
+      WHERE "bookingUid" IS NOT NULL
+        AND "bookingUserId" IS NOT NULL
+        AND "createdAt" >= ${startDate}
+        AND "createdAt" <= ${endDate}
+        AND ${baseConditions}
+        AND ${searchCondition}
+      ORDER BY "bookingUserId", "createdAt" DESC
       ${limit ? Prisma.sql`LIMIT ${limit}` : Prisma.empty}
     `;
 
