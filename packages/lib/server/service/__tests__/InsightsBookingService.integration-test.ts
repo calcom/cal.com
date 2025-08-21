@@ -381,8 +381,8 @@ describe("InsightsBookingService Integration Tests", () => {
             {
               id: "eventTypeId",
               value: {
-                type: ColumnFilterType.SINGLE_SELECT,
-                data: testData.eventType.id,
+                type: ColumnFilterType.MULTI_SELECT,
+                data: [testData.eventType.id],
               },
             },
           ],
@@ -391,7 +391,9 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const conditions = await service.getFilterConditions();
       expect(conditions).toEqual(
-        Prisma.sql`("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})`
+        Prisma.sql`("eventTypeId" IN (${Prisma.join([
+          testData.eventType.id,
+        ])}) OR "eventParentId" IN (${Prisma.join([testData.eventType.id])}))`
       );
 
       await testData.cleanup();
@@ -441,8 +443,8 @@ describe("InsightsBookingService Integration Tests", () => {
             {
               id: "eventTypeId",
               value: {
-                type: ColumnFilterType.SINGLE_SELECT,
-                data: testData.eventType.id,
+                type: ColumnFilterType.MULTI_SELECT,
+                data: [testData.eventType.id],
               },
             },
             {
@@ -458,7 +460,11 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const conditions = await service.getFilterConditions();
       expect(conditions).toEqual(
-        Prisma.sql`(("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})) AND ("userId" = ${testData.user.id})`
+        Prisma.sql`(("eventTypeId" IN (${Prisma.join([
+          testData.eventType.id,
+        ])}) OR "eventParentId" IN (${Prisma.join([testData.eventType.id])}))) AND ("userId" = ${
+          testData.user.id
+        })`
       );
 
       await testData.cleanup();
@@ -542,8 +548,8 @@ describe("InsightsBookingService Integration Tests", () => {
             {
               id: "eventTypeId",
               value: {
-                type: ColumnFilterType.SINGLE_SELECT,
-                data: userEventType.id,
+                type: ColumnFilterType.MULTI_SELECT,
+                data: [userEventType.id],
               },
             },
           ],
