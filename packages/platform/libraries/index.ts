@@ -59,6 +59,7 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
+export { getBookingsCount } from "@calcom/trpc/server/routers/viewer/bookings/get.handler";
 
 export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 

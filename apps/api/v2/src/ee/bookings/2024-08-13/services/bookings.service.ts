@@ -1018,4 +1018,92 @@ export class BookingsService_2024_08_13 {
       t: await getTranslation("en", "common"),
     });
   }
+
+  async getBookingsCount(
+    queryParams: GetBookingsInput_2024_08_13,
+    user: { email: string; id: number; orgId?: number },
+    userIds?: number[]
+  ) {
+    if (queryParams.attendeeEmail) {
+      queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
+    }
+
+    const fetchedBookings = await getAllUserBookings({
+      bookingListingByStatus: [],
+      skip: 0,
+      take: null,
+      filters: {
+        ...this.inputService.transformGetBookingsFilters(queryParams),
+        ...(userIds?.length ? { userIds } : {}),
+      },
+      ctx: {
+        user,
+        prisma: this.prismaReadService.prisma,
+        kysely: this.kyselyReadService.kysely,
+      },
+    });
+
+    return fetchedBookings.bookings.length;
+  }
+
+  async getBookingsStatistics(
+    queryParams: GetBookingsInput_2024_08_13,
+    user: { email: string; id: number; orgId?: number },
+    userIds?: number[]
+  ) {
+    if (queryParams.attendeeEmail) {
+      queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
+    }
+
+    const skip = 0;
+    const take = null;
+
+    const fetchedBookings = await getAllUserBookings({
+      bookingListingByStatus: [],
+      skip,
+      take,
+      filters: {
+        ...this.inputService.transformGetBookingsFilters(queryParams),
+        ...(userIds?.length ? { userIds } : {}),
+      },
+      ctx: {
+        user,
+        prisma: this.prismaReadService.prisma,
+        kysely: this.kyselyReadService.kysely,
+      },
+    });
+
+    const bookings = fetchedBookings.bookings;
+
+    const statistics = {
+      created: bookings.length,
+      completed: bookings.filter((b) => b.status === "ACCEPTED").length,
+      rescheduled: bookings.filter((b) => b.rescheduled).length,
+      cancelled: bookings.filter((b) => b.status === "CANCELLED").length,
+      pending: bookings.filter((b) => b.status === "PENDING" || b.status === "AWAITING_HOST").length,
+      noShow: bookings.filter((b) => b.noShowHost).length,
+      averageRating: this.calculateAverageRating(bookings),
+      csatScore: this.calculateCSATScore(bookings),
+    };
+
+    return statistics;
+  }
+
+  private calculateAverageRating(bookings: any[]): number {
+    const ratingsSum = bookings.reduce((sum, booking) => {
+      const rating = booking.rating || 0;
+      return sum + rating;
+    }, 0);
+
+    const ratingsCount = bookings.filter((booking) => booking.rating).length;
+    return ratingsCount > 0 ? Math.round((ratingsSum / ratingsCount) * 10) / 10 : 0;
+  }
+
+  private calculateCSATScore(bookings: any[]): number {
+    const completedBookings = bookings.filter((b) => b.status === "ACCEPTED");
+    if (completedBookings.length === 0) return 0;
+
+    const satisfiedBookings = completedBookings.filter((b) => (b.rating || 0) >= 4);
+    return Math.round((satisfiedBookings.length / completedBookings.length) * 100);
+  }
 }
