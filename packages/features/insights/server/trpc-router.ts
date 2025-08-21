@@ -18,6 +18,7 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { ColumnFilterType } from "../../data-table/lib/types";
 import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
@@ -323,14 +324,23 @@ function createInsightsBookingService(
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
 
-  const updatedColumnFilters = columnFilters || [];
+  let updatedColumnFilters = columnFilters || [];
 
-  // TODO : completed status check for filtering
   if (status === "completed") {
-    // updatedColumnFilters = [
-    //   ...updatedColumnFilters,
-    //   { id: "endDate", value: { data: new Date().toISOString(), type: "LESS_THAN" } }, // endDate < now
-    // ];
+    updatedColumnFilters = [
+      ...updatedColumnFilters,
+      {
+        id: "endDate",
+        value: {
+          type: ColumnFilterType.DATE_RANGE,
+          data: {
+            startDate: null,
+            endDate: new Date().toISOString(), // the bookings ended before current time, are completed bookings
+            preset: "",
+          },
+        },
+      },
+    ];
   }
 
   return getInsightsBookingService({
