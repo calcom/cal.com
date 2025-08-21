@@ -455,6 +455,7 @@ class BaseCreateEventTypeInput {
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
+    default: false,
     description:
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type.",
   })

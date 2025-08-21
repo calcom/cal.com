@@ -16681,6 +16681,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
+            "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "locations": {
@@ -18708,6 +18709,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
+            "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "locations": {
@@ -20543,6 +20545,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
+            "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "schedulingType": {
@@ -21437,6 +21440,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
+            "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "hosts": {
