@@ -21,6 +21,10 @@ import { propsTypes } from "./propsTypes";
 import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
+type PhoneComponentProps = TextLikeComponentProps & {
+  allowedCountryCodes?: string[];
+};
+
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
   boolean: (val) => typeof val === "boolean",
   multiselect: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
@@ -188,12 +192,16 @@ export const Components: Record<FieldType, Component> = {
         return <div />;
       }
 
+      const allowedCountryCodes = (props as any).allowedCountryCodes;
+
       return (
         <PhoneInput
           disabled={readOnly}
           onChange={(val: string) => {
             setValue(val);
           }}
+          allowedCountryCodes={allowedCountryCodes}
+          preventCountryCodeDeletion={allowedCountryCodes && allowedCountryCodes.length === 1}
           {...props}
         />
       );
