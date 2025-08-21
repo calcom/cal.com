@@ -4,7 +4,6 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates, MembershipRole } from "@calcom/prisma/enums";
@@ -110,31 +109,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // activeOn are routing form ids
     activeOnWithChildren = activeOn;
 
-    let oldActiveOnRoutingForms: string[];
-    if (userWorkflow.isActiveOnAll) {
-      // todo: check if this is correct
-      // Get all routing forms the user has access to when isActiveOnAll was true
-      oldActiveOnRoutingForms = (
-        await PrismaRoutingFormRepository.findManyForUserOrTeam(userWorkflow.userId, userWorkflow.teamId)
-      ).map((form) => form.id);
-    } else {
-      oldActiveOnRoutingForms = (
-        await ctx.prisma.workflowsOnRoutingForms.findMany({
-          where: {
-            workflowId: id,
-          },
-          select: {
-            routingFormId: true,
-          },
-        })
-      ).map((routingFormRel) => routingFormRel.routingFormId);
-    }
-
-    oldActiveOnIds = oldActiveOnRoutingForms.map((formId) => parseInt(formId, 10));
-
-    newActiveOn = activeOn.filter((routingFormId) => !oldActiveOnIds.includes(routingFormId));
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
-      newActiveOn,
+      activeOnWithChildren,
       isOrg,
       userWorkflow?.teamId,
       userWorkflow?.userId,

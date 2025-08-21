@@ -72,17 +72,4 @@ export class PrismaRoutingFormRepository {
       },
     })) as RoutingFormWithUserTeamAndOrg | null;
   }
-
-  static async findManyForUserOrTeam(userId?: number | null, teamId?: number | null) {
-    if (!teamId && !userId) return [];
-
-    return await prisma.app_RoutingForms_Form.findMany({
-      where: {
-        ...(teamId ? { teamId } : { userId }),
-      },
-      select: {
-        id: true,
-      },
-    });
-  }
 }
