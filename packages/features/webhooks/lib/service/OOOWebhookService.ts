@@ -76,10 +76,10 @@ export class OOOWebhookService extends WebhookService {
       };
       toUser: {
         id: number;
-        name: string | null;
-        username: string | null;
-        email: string;
-        timeZone: string;
+        name?: string | null;
+        username?: string | null;
+        email?: string;
+        timeZone?: string;
       } | null;
       uuid: string;
     };

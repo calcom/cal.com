@@ -182,8 +182,8 @@ export class FormWebhookService extends WebhookService {
 
       const schedulePromises = subscribers.map((subscriber) =>
         tasker.create(
-          "triggerFormSubmittedNoEventWebhook",
-          {
+          "sendWebhook",
+          JSON.stringify({
             responseId: params.responseId,
             form: {
               ...params.form,
@@ -192,7 +192,7 @@ export class FormWebhookService extends WebhookService {
             responses: params.responses,
             redirect: params.redirect,
             webhook: subscriber,
-          },
+          }),
           { scheduledAt }
         )
       );

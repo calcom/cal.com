@@ -57,11 +57,6 @@ export interface WebhookServiceOptions {
  * // Cancels any pending scheduled webhooks for booking
  * ```
  *
- * @configuration
- * - `maxRetries`: Maximum retry attempts for failed deliveries (default: 3)
- * - `retryDelay`: Base delay between retries in milliseconds (default: 1000)
- * - `timeout`: HTTP request timeout in milliseconds (default: 5000)
- *
  * @see WebhookRepository For subscriber data access
  * @see WebhookPayloadFactory For payload transformation
  */
@@ -366,7 +361,7 @@ export class WebhookService {
             responses: bookingData.responses,
           },
         }),
-        { scheduledAt }
+        { scheduledAt, referenceUid: `booking-${bookingData.id}-${trigger}` }
       );
 
       log.debug(`Scheduled time-based webhook: ${trigger}`, {

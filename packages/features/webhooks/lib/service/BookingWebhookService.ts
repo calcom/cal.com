@@ -108,6 +108,7 @@ export class BookingWebhookService {
       status: args.status,
       metadata: args.metadata,
       platformParams: args.platformParams,
+      platformClientId: args.platformClientId,
       teamId: args.teamId,
       orgId: args.orgId,
       isDryRun: args.isDryRun,
@@ -241,6 +242,7 @@ export class BookingWebhookService {
       platformCancelUrl?: string;
       platformBookingUrl?: string;
     };
+    platformClientId?: string;
     teamId?: number | null;
     orgId?: number | null;
     isDryRun?: boolean;
@@ -253,7 +255,7 @@ export class BookingWebhookService {
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
-      platformClientId: params.platformParams?.platformClientId,
+      platformClientId: params.platformClientId ?? params.platformParams?.platformClientId,
       evt: params.evt,
       eventType: params.eventType,
       booking: params.booking,
@@ -491,15 +493,15 @@ export class BookingWebhookService {
     orgId?: number | null;
     isDryRun?: boolean;
   }): Promise<void> {
-    const dto: BookingCancelledDTO = {
-      triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+    const dto: BookingRejectedDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
       eventTypeId: params.eventType?.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
-      platformClientId: undefined,
+      platformClientId: params.platformClientId,
       evt: params.evt,
       eventType: params.eventType,
       booking: params.booking,
@@ -652,7 +654,8 @@ export class BookingWebhookService {
       noShowPromises.push(
         ...subscribersHostsNoShow.map((webhook) => {
           if (params.booking.startTime && webhook.time && webhook.timeUnit) {
-            const scheduledAt = dayjs(params.booking.startTime)
+            const scheduledAt = dayjs
+              .utc(params.booking.startTime)
               .add(webhook.time, webhook.timeUnit.toLowerCase())
               .toDate();
 
@@ -682,7 +685,8 @@ export class BookingWebhookService {
       noShowPromises.push(
         ...subscribersGuestsNoShow.map((webhook) => {
           if (params.booking.startTime && webhook.time && webhook.timeUnit) {
-            const scheduledAt = dayjs(params.booking.startTime)
+            const scheduledAt = dayjs
+              .utc(params.booking.startTime)
               .add(webhook.time, webhook.timeUnit.toLowerCase())
               .toDate();
 
