@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
-import type { WebhookPayload } from "../factory/WebhookPayloadFactory";
+import type { WebhookPayload } from "../factory/types";
 import { WebhookRepository } from "../repository/WebhookRepository";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookService]"] });
@@ -50,11 +50,11 @@ export interface WebhookServiceOptions {
  *
  * @example Webhook scheduling for future delivery
  * ```typescript
- * await service.scheduleWebhook(triggerEvent, payload, scheduledTime);
- * // Schedules webhook for future delivery
+ * await service.scheduleDelayedWebhooks(triggerEvent, payload, new Date(Date.now() + 60_000), { teamId: 42 });
+ * // Schedules webhook for future delivery (uses Tasker under the hood)
  *
  * await service.cancelScheduledWebhooks(bookingId);
- * // Cancels any pending scheduled webhooks for booking
+ * // Cancels any pending scheduled webhooks for the booking
  * ```
  *
  * @see WebhookRepository For subscriber data access
