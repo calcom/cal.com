@@ -155,14 +155,14 @@ export class SlotsService_2024_09_04 {
     }
 
     if (isRoundRobinEvent) {
-      const totalSeats = eventType.hosts.length;
-      const existingSlotReservations = await this.slotsRepository.getExistingSlotReservations(
+      const totalSeats = eventType.hosts.filter((host) => host.isFixed === false).length;
+      const existingSlotReservations = await this.slotsRepository.getExistingSlotsReservationCount(
         input.eventTypeId,
         startDate.toISO(),
         endDate.toISO()
       );
 
-      if (existingSlotReservations.length === totalSeats) {
+      if (existingSlotReservations === totalSeats) {
         throw new UnprocessableEntityException(
           `Cannot reserve a slot since the team has no available hosts.`
         );

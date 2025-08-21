@@ -56,12 +56,14 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
-  async getExistingSlotReservations(eventTypeId: number, startDate: string, endDate: string) {
-    return this.dbRead.prisma.selectedSlots.findMany({
+  async getExistingSlotsReservationCount(eventTypeId: number, startDate: string, endDate: string) {
+    return this.dbRead.prisma.selectedSlots.count({
       where: {
         eventTypeId,
         slotUtcStartDate: startDate,
         slotUtcEndDate: endDate,
+        // Only consider non-expired reservations
+        releaseAt: { gt: DateTime.utc().toJSDate() },
       },
     });
   }
