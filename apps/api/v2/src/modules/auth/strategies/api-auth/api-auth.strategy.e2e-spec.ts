@@ -21,6 +21,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import { createRequest } from "node-mocks-http";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -46,6 +47,7 @@ describe("ApiAuthStrategy", () => {
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let oAuthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let profilesRepositoryFixture: ProfileRepositoryFixture;
+  let membershipRepositoryFixture: MembershipRepositoryFixture;
 
   const validApiKeyEmail = `api-auth-api-key-user-${randomString()}@api.com`;
   const validAccessTokenEmail = `api-auth-access-token-user-${randomString()}@api.com`;
@@ -93,6 +95,7 @@ describe("ApiAuthStrategy", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(module);
     oAuthClientRepositoryFixture = new OAuthClientRepositoryFixture(module);
     profilesRepositoryFixture = new ProfileRepositoryFixture(module);
+    membershipRepositoryFixture = new MembershipRepositoryFixture(module);
     organization = await teamRepositoryFixture.create({ name: `api-auth-organization-1-${randomString()}` });
     organizationTwo = await teamRepositoryFixture.create({
       name: `api-auth-organization-2-${randomString()}`,
@@ -121,6 +124,20 @@ describe("ApiAuthStrategy", () => {
       username: validOAuthEmail,
       user: { connect: { id: validOAuthUser.id } },
       organization: { connect: { id: organizationTwo.id } },
+    });
+
+    await membershipRepositoryFixture.create({
+      user: { connect: { id: validOAuthUser.id } },
+      team: { connect: { id: organization.id } },
+      role: "OWNER",
+      accepted: true,
+    });
+
+    await membershipRepositoryFixture.create({
+      user: { connect: { id: validOAuthUser.id } },
+      team: { connect: { id: organizationTwo.id } },
+      role: "OWNER",
+      accepted: true,
     });
 
     const data = {
