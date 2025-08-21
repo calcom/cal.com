@@ -1093,15 +1093,22 @@ async function getEventTypeList({
   }
 
   const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
-  if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {
-    eventTypeWhereConditional["teamId"] = {
-      in: [user.organizationId, ...childrenTeamIds],
-    };
-  }
-  if (teamId && !isAll) {
+  if (isAll && user.organizationId && user.isOwnerAdminOfParentTeam) {
+    const orgTeamIds = [user.organizationId, ...childrenTeamIds];
+    eventTypeWhereConditional["OR"] = [
+      {
+        teamId: {
+          in: orgTeamIds,
+        },
+      },
+      {
+        userId: user.id,
+        teamId: null,
+      },
+    ];
+  } else if (teamId && !isAll) {
     eventTypeWhereConditional["teamId"] = teamId;
-  }
-  if (userId) {
+  } else if (userId) {
     eventTypeWhereConditional["userId"] = userId;
   }
   let eventTypeResult: Prisma.EventTypeGetPayload<{
