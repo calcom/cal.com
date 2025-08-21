@@ -161,7 +161,7 @@ export class LuckyUserService implements ILuckyUserService {
     return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
   }
 
-  private getIntervalEndDate({
+  getIntervalEndDate({
     interval,
     rrTimestampBasis,
     meetingStartTime,
@@ -182,7 +182,7 @@ export class LuckyUserService implements ILuckyUserService {
     return new Date();
   }
 
-  private getIntervalStartDate({
+  getIntervalStartDate({
     interval,
     rrTimestampBasis,
     meetingStartTime,
@@ -1146,56 +1146,4 @@ export class LuckyUserService implements ILuckyUserService {
       },
     };
   }
-}
-
-export const getIntervalStartDate = ({
-  interval,
-  rrTimestampBasis,
-  meetingStartTime,
-}: {
-  interval: RRResetInterval;
-  rrTimestampBasis: RRTimestampBasis;
-  meetingStartTime?: Date;
-}) => {
-  const service = new LuckyUserService({} as any);
-  return service.getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime });
-};
-
-export const getIntervalEndDate = ({
-  interval,
-  rrTimestampBasis,
-  meetingStartTime,
-}: {
-  interval: RRResetInterval;
-  rrTimestampBasis: RRTimestampBasis;
-  meetingStartTime?: Date;
-}) => {
-  const service = new LuckyUserService({} as any);
-  return service.getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime });
-};
-
-export async function getLuckyUser<T extends PartialUser & { priority?: number | null }>(
-  params: GetLuckyUserParams<T>
-) {
-  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
-  const service = getLuckyUserService();
-  return service.getLuckyUser(params);
-}
-
-export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
-  getLuckyUserParams: GetLuckyUserParams<AvailableUser>
-) {
-  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
-  const service = getLuckyUserService();
-  return service.getOrderedListOfLuckyUsers(getLuckyUserParams);
-}
-
-export async function prepareQueuesAndAttributesData<T extends PartialUser>({
-  eventType,
-  routingFormResponse,
-  allRRHosts,
-}: Omit<GetLuckyUserParams<T>, "availableUsers">) {
-  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
-  const service = getLuckyUserService();
-  return service.prepareQueuesAndAttributesData({ eventType, routingFormResponse, allRRHosts });
 }

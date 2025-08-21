@@ -172,9 +172,9 @@ const createHostWithBookings = async ({
 function expectLuckyUsers(luckyUsers: { email: string }[], expectedLuckyUsers: { email: string }[]) {
   expect(luckyUsers.map((user) => user.email)).toEqual(expectedLuckyUsers.map((user) => user.email));
 }
+const luckyUserService = getLuckyUserService();
 
 describe("getLuckyUser Integration tests", () => {
-  const luckyUserService = getLuckyUserService();
   describe("should not consider no show bookings for round robin: ", () => {
     it("When a host is no show, that is chosen when competing with another host that showed up for the booking", async () => {
       const createOrganizerThatShowedUp = async (email: string) => {

@@ -8,7 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
-import { getIntervalStartDate, getIntervalEndDate } from "./getLuckyUser";
+import { getLuckyUserService } from "../di/containers/LuckyUser";
 
 type NonEmptyArray<T> = [T, ...T[]];
 type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
@@ -44,6 +44,8 @@ const mockLuckyUserService = {
 vi.mock("@calcom/lib/di/containers/LuckyUser", () => ({
   getLuckyUserService: () => mockLuckyUserService,
 }));
+
+const luckyUserService = getLuckyUserService();
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
@@ -1249,7 +1251,7 @@ describe("attribute weights and virtual queues", () => {
 describe("get interval times", () => {
   it("should get correct interval start time with meeting started timestamp basis and DAY interval", () => {
     const meetingStartTime = new Date("2024-03-15T14:30:00Z");
-    const result = getIntervalStartDate({
+    const result = luckyUserService.getIntervalStartDate({
       interval: RRResetInterval.DAY,
       rrTimestampBasis: RRTimestampBasis.START_TIME,
       meetingStartTime,
@@ -1259,7 +1261,7 @@ describe("get interval times", () => {
 
   it("should get correct interval start time with meeting started timestamp basis and MONTH interval", () => {
     const meetingStartTime = new Date("2024-03-15T14:30:00Z");
-    const result = getIntervalStartDate({
+    const result = luckyUserService.getIntervalStartDate({
       interval: RRResetInterval.MONTH,
       rrTimestampBasis: RRTimestampBasis.START_TIME,
       meetingStartTime,
@@ -1268,7 +1270,7 @@ describe("get interval times", () => {
   });
 
   it("should get correct interval start time with created at timestamp basis and DAY interval", () => {
-    const result = getIntervalStartDate({
+    const result = luckyUserService.getIntervalStartDate({
       interval: RRResetInterval.DAY,
       rrTimestampBasis: RRTimestampBasis.CREATED_AT,
     });
@@ -1276,7 +1278,7 @@ describe("get interval times", () => {
   });
 
   it("should get correct interval start time with created at timestamp basis and MONTH interval", () => {
-    const result = getIntervalStartDate({
+    const result = luckyUserService.getIntervalStartDate({
       interval: RRResetInterval.MONTH,
       rrTimestampBasis: RRTimestampBasis.CREATED_AT,
     });
@@ -1285,7 +1287,7 @@ describe("get interval times", () => {
 
   it("should get correct interval end time with meeting started timestamp basis and DAY interval", () => {
     const meetingStartTime = new Date("2024-03-15T14:30:00Z");
-    const result = getIntervalEndDate({
+    const result = luckyUserService.getIntervalEndDate({
       interval: RRResetInterval.DAY,
       rrTimestampBasis: RRTimestampBasis.START_TIME,
       meetingStartTime,
@@ -1295,7 +1297,7 @@ describe("get interval times", () => {
 
   it("should get correct interval end time with meeting started timestamp basis and MONTH interval", () => {
     const meetingStartTime = new Date("2024-03-15T14:30:00Z");
-    const result = getIntervalEndDate({
+    const result = luckyUserService.getIntervalEndDate({
       interval: RRResetInterval.MONTH,
       rrTimestampBasis: RRTimestampBasis.START_TIME,
       meetingStartTime,
@@ -1304,7 +1306,7 @@ describe("get interval times", () => {
   });
 
   it("should get correct interval end time with created at timestamp basis", () => {
-    const result = getIntervalEndDate({
+    const result = luckyUserService.getIntervalEndDate({
       interval: RRResetInterval.DAY,
       rrTimestampBasis: RRTimestampBasis.CREATED_AT,
     });
