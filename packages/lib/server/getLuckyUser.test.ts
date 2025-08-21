@@ -8,12 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
-import {
-  getLuckyUser,
-  prepareQueuesAndAttributesData,
-  getIntervalStartDate,
-  getIntervalEndDate,
-} from "./getLuckyUser";
+import { getIntervalStartDate, getIntervalEndDate } from "./getLuckyUser";
 
 type NonEmptyArray<T> = [T, ...T[]];
 type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
@@ -90,7 +85,7 @@ it("can find lucky user with maximize availability", async () => {
   mockLuckyUserService.getLuckyUser.mockResolvedValue(users[1]);
 
   await expect(
-    getLuckyUser({
+    mockLuckyUserService.getLuckyUser({
       availableUsers: users,
       eventType: {
         id: 1,
@@ -137,7 +132,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
 
   // both users have medium priority (one user has no priority set, default to medium) so pick least recently booked
   await expect(
-    getLuckyUser({
+    mockLuckyUserService.getLuckyUser({
       availableUsers: users,
       eventType: {
         id: 1,
@@ -195,7 +190,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
   mockLuckyUserService.getLuckyUser.mockResolvedValue(userHighest);
   // pick the user with the highest priority
   await expect(
-    getLuckyUser({
+    mockLuckyUserService.getLuckyUser({
       availableUsers: usersWithPriorities,
       eventType: {
         id: 1,
@@ -255,7 +250,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
 
   // pick the least recently booked user of the two with the highest priority
   await expect(
-    getLuckyUser({
+    mockLuckyUserService.getLuckyUser({
       availableUsers: usersWithSamePriorities,
       eventType: {
         id: 1,
@@ -321,7 +316,7 @@ describe("maximize availability and weights", () => {
     ];
 
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -405,7 +400,7 @@ describe("maximize availability and weights", () => {
     ];
 
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -489,7 +484,7 @@ describe("maximize availability and weights", () => {
     ];
 
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -552,7 +547,7 @@ describe("maximize availability and weights", () => {
     mockLuckyUserService.getLuckyUser.mockResolvedValue(users[1]);
 
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -662,7 +657,7 @@ describe("maximize availability and weights", () => {
     mockLuckyUserService.getLuckyUser.mockResolvedValue(expectedUser);
 
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -751,7 +746,7 @@ describe("maximize availability and weights", () => {
     mockLuckyUserService.getLuckyUser.mockResolvedValue(expectedUser);
 
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -776,7 +771,7 @@ describe("maximize availability and weights", () => {
       }),
     ]);
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -944,7 +939,7 @@ describe("attribute weights and virtual queues", () => {
       },
     });
 
-    const queuesAndAttributesData = await prepareQueuesAndAttributesData({
+    const queuesAndAttributesData = await mockLuckyUserService.prepareQueuesAndAttributesData({
       eventType: {
         id: 1,
         isRRWeightsEnabled: true,
@@ -1091,7 +1086,7 @@ describe("attribute weights and virtual queues", () => {
       virtualQueuesData: null,
     });
 
-    const queuesAndAttributesData = await prepareQueuesAndAttributesData({
+    const queuesAndAttributesData = await mockLuckyUserService.prepareQueuesAndAttributesData({
       eventType: {
         id: 1,
         isRRWeightsEnabled: true,
@@ -1233,7 +1228,7 @@ describe("attribute weights and virtual queues", () => {
     ];
 
     await expect(
-      getLuckyUser({
+      mockLuckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
