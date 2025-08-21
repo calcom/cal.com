@@ -499,7 +499,11 @@ export class InsightsRoutingBaseService {
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
         END)
         FROM date_range
-        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
+        WHERE date + (CASE
+          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
+          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
+          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
+        END) <= date_trunc(${dayjsPeriod}, ${endDate}::timestamp)
       ),
       all_users AS (
         SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]) as user_id
