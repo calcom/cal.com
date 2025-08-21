@@ -404,23 +404,25 @@ const BookerComponent = ({
                     src={orgBannerUrl}
                   />
                 )}
-                <EventMeta
-                  selectedTimeslot={selectedTimeslot}
-                  classNames={{
-                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                    eventMetaTimezoneSelect:
-                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                  }}
-                  event={event.data}
-                  isPending={event.isPending}
-                  isPlatform={isPlatform}
-                  isPrivateLink={!!hashedLink}
-                  locale={userLocale}
-                  timeZones={timeZones}
-                  roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
-                  {eventMetaChildren}
-                </EventMeta>
+                {!hideEventTypeDetails && (
+                  <EventMeta
+                    selectedTimeslot={selectedTimeslot}
+                    classNames={{
+                      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                      eventMetaTimezoneSelect:
+                        customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                    }}
+                    event={event.data}
+                    isPending={event.isPending}
+                    isPlatform={isPlatform}
+                    isPrivateLink={!!hashedLink}
+                    locale={userLocale}
+                    timeZones={timeZones}
+                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
+                    {eventMetaChildren}
+                  </EventMeta>
+                )}
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">

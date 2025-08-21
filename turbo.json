@@ -249,7 +249,8 @@
     "CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY",
     "CAL_VIDEO_RECORDING_TOKEN_SECRET",
     "ORGANIZER_EMAIL_EXEMPT_DOMAINS",
-    "SLOTS_CACHE_TTL"
+    "SLOTS_CACHE_TTL",
+    "CSP_POLICY"
   ],
   "tasks": {
     "@calcom/prisma#build": {

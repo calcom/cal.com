@@ -64,6 +64,7 @@ const _getBookingData = async <T extends z.ZodType>({
     getCalEventResponses({
       bookingFields: eventType.bookingFields,
       responses,
+      seatsEnabled: !!eventType.seatsPerTimeSlot,
     });
   return {
     ...parsedBody,

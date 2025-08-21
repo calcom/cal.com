@@ -3472,5 +3472,6 @@
   "webhook_metadata": "Metadata",
   "stats": "Stats",
   "booking_status": "Booking status",
+  "phone": "Phone",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

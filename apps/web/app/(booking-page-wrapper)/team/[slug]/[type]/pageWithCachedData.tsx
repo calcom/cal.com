@@ -41,7 +41,7 @@ const _getTeamMetadataForBooking = (teamData: NonNullable<TeamData>, eventTypeId
   };
 };
 
-async function _getOrgContext(params: Params) {
+export async function getOrgContext(params: Params) {
   const result = paramsSchema.safeParse({
     slug: params?.slug,
     type: params?.type,
@@ -74,7 +74,7 @@ const _getMultipleDurationValue = (
 };
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await _getOrgContext(await params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(await params);
 
   const teamData = await getCachedTeamData(teamSlug, currentOrgDomain);
   if (!teamData) return {}; // should never happen
@@ -123,7 +123,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await _getOrgContext(await params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(await params);
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   // Handle org redirects

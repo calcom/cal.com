@@ -1,5 +1,11 @@
 ## 1.1.2
 
+## 1.5.0
+
+### Minor Changes
+
+- [#23174](https://github.com/calcom/cal.com/pull/23174) [`618ef63`](https://github.com/calcom/cal.com/commit/618ef630170eb1c05b4a131a01d0c2316b3d1880) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - fix: Availability atom handleFormSubmit callbacks not triggering
+
 ## 1.4.0
 
 ### Minor Changes

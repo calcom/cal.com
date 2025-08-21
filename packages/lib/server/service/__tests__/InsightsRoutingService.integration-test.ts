@@ -1,7 +1,8 @@
 import type { Team, User, Membership } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
-import { describe, expect, it } from "vitest";
+import { v4 as uuid } from "uuid";
+import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
 
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import prisma from "@calcom/prisma";
@@ -830,6 +831,14 @@ describe("InsightsRoutingService Integration Tests", () => {
   });
 
   describe("columnFilters", () => {
+    beforeAll(() => {
+      vi.useFakeTimers().setSystemTime(new Date("2025-08-20T00:00:00.000Z"));
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
     it("should handle empty columnFilters", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
@@ -1044,7 +1053,7 @@ describe("InsightsRoutingService Integration Tests", () => {
       await testData.cleanup();
     });
 
-    it("should filter by booking attendees (text)", async () => {
+    it("should filter by attendee name (text)", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
         orgRole: MembershipRole.OWNER,
@@ -1063,10 +1072,10 @@ describe("InsightsRoutingService Integration Tests", () => {
           ...defaultFilters,
           columnFilters: [
             {
-              id: "bookingAttendees",
+              id: "attendeeName",
               value: {
                 type: ColumnFilterType.TEXT,
-                data: { operator: "contains", operand: "john@example.com" },
+                data: { operator: "contains", operand: "john" },
               },
             },
           ],
@@ -1074,21 +1083,31 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const filterConditions = await service.getFilterConditions();
-      expect(filterConditions).toEqual(
-        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
-          defaultFilters.endDate
-        }::timestamp) AND (EXISTS (
-      SELECT 1 FROM "Booking" b
-      INNER JOIN "Attendee" a ON a."bookingId" = b."id"
-      WHERE b."uid" = "RoutingFormResponseDenormalized"."bookingUid"
-      AND (${Prisma.sql`(a.name ILIKE ${`%john@example.com%`}) OR (a.email ILIKE ${`%john@example.com%`})`})
-    ))`
-      );
+      expect(filterConditions).toMatchInlineSnapshot(`
+        e {
+          "strings": [
+            "("createdAt" >= ",
+            "::timestamp AND "createdAt" <= ",
+            "::timestamp) AND (EXISTS (
+              SELECT 1 FROM "Booking" b
+              INNER JOIN "Attendee" a ON a."bookingId" = b."id"
+              WHERE b."uid" = rfrd."bookingUid"
+              AND a.name ILIKE ",
+            "
+            ))",
+          ],
+          "values": [
+            "2025-08-18T00:00:00.000Z",
+            "2025-08-20T00:00:00.000Z",
+            "%john%",
+          ],
+        }
+      `);
 
       await testData.cleanup();
     });
 
-    it("should filter by custom form fields (text)", async () => {
+    it("should filter by attendee email (text)", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
         orgRole: MembershipRole.OWNER,
@@ -1107,7 +1126,117 @@ describe("InsightsRoutingService Integration Tests", () => {
           ...defaultFilters,
           columnFilters: [
             {
-              id: "custom-field-id",
+              id: "attendeeEmail",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "endsWith", operand: "@gmail.com" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toMatchInlineSnapshot(`
+        e {
+          "strings": [
+            "("createdAt" >= ",
+            "::timestamp AND "createdAt" <= ",
+            "::timestamp) AND (EXISTS (
+              SELECT 1 FROM "Booking" b
+              INNER JOIN "Attendee" a ON a."bookingId" = b."id"
+              WHERE b."uid" = rfrd."bookingUid"
+              AND a.email ILIKE ",
+            "
+            ))",
+          ],
+          "values": [
+            "2025-08-18T00:00:00.000Z",
+            "2025-08-20T00:00:00.000Z",
+            "%@gmail.com",
+          ],
+        }
+      `);
+
+      await testData.cleanup();
+    });
+
+    it("should filter by attendee phone number (text)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "attendeePhone",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "contains", operand: "000" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toMatchInlineSnapshot(`
+        e {
+          "strings": [
+            "("createdAt" >= ",
+            "::timestamp AND "createdAt" <= ",
+            "::timestamp) AND (EXISTS (
+              SELECT 1 FROM "Booking" b
+              INNER JOIN "Attendee" a ON a."bookingId" = b."id"
+              WHERE b."uid" = rfrd."bookingUid"
+              AND a."phoneNumber" ILIKE ",
+            "
+            ))",
+          ],
+          "values": [
+            "2025-08-18T00:00:00.000Z",
+            "2025-08-20T00:00:00.000Z",
+            "%000%",
+          ],
+        }
+      `);
+
+      await testData.cleanup();
+    });
+
+    it("should filter by custom form fields (text)", async () => {
+      const customFieldId = uuid();
+
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: customFieldId,
               value: {
                 type: ColumnFilterType.TEXT,
                 data: { operator: "equals", operand: "test value" },
@@ -1123,8 +1252,8 @@ describe("InsightsRoutingService Integration Tests", () => {
           defaultFilters.endDate
         }::timestamp) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
-        AND rrf."fieldId" = ${"custom-field-id"}
+        WHERE rrf."responseId" = rfrd."id"
+        AND rrf."fieldId" = ${customFieldId}
         AND rrf."valueString" = ${"test value"}
       ))`
       );
@@ -1138,6 +1267,7 @@ describe("InsightsRoutingService Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
+      const customFieldId = uuid();
       const defaultFilters = createDefaultFilters();
       const service = new InsightsRoutingService({
         prisma,
@@ -1151,7 +1281,7 @@ describe("InsightsRoutingService Integration Tests", () => {
           ...defaultFilters,
           columnFilters: [
             {
-              id: "custom-multi-field-id",
+              id: customFieldId,
               value: {
                 type: ColumnFilterType.MULTI_SELECT,
                 data: ["option1", "option2"],
@@ -1167,8 +1297,8 @@ describe("InsightsRoutingService Integration Tests", () => {
           defaultFilters.endDate
         }::timestamp) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
-        AND rrf."fieldId" = ${"custom-multi-field-id"}
+        WHERE rrf."responseId" = rfrd."id"
+        AND rrf."fieldId" = ${customFieldId}
         AND rrf."valueStringArray" @> ${["option1", "option2"]}
       ))`
       );
@@ -1177,6 +1307,7 @@ describe("InsightsRoutingService Integration Tests", () => {
     });
 
     it("should combine multiple filters with AND", async () => {
+      const customFieldId = uuid();
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
         orgRole: MembershipRole.OWNER,
@@ -1209,7 +1340,7 @@ describe("InsightsRoutingService Integration Tests", () => {
               },
             },
             {
-              id: "custom-field-id",
+              id: customFieldId,
               value: {
                 type: ColumnFilterType.TEXT,
                 data: { operator: "equals", operand: "test" },
@@ -1227,8 +1358,8 @@ describe("InsightsRoutingService Integration Tests", () => {
           "pending",
         ]}))) AND ("bookingAssignmentReason" ILIKE ${`%manual%`})) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
-        AND rrf."fieldId" = ${"custom-field-id"}
+        WHERE rrf."responseId" = rfrd."id"
+        AND rrf."fieldId" = ${customFieldId}
         AND rrf."valueString" = ${"test"}
       ))`
       );
@@ -1330,6 +1461,8 @@ describe("InsightsRoutingService Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
+      const customFieldId = uuid();
+
       const defaultFilters = createDefaultFilters();
       const service = new InsightsRoutingService({
         prisma,
@@ -1350,7 +1483,7 @@ describe("InsightsRoutingService Integration Tests", () => {
               },
             },
             {
-              id: "custom-field-id", // Custom field filter
+              id: customFieldId, // Custom field filter
               value: {
                 type: ColumnFilterType.TEXT,
                 data: { operator: "equals", operand: "test" },
@@ -1366,8 +1499,8 @@ describe("InsightsRoutingService Integration Tests", () => {
           defaultFilters.endDate
         }::timestamp) AND ("bookingStatusOrder" = ANY(${["pending"]}))) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
-        AND rrf."fieldId" = ${"custom-field-id"}
+        WHERE rrf."responseId" = rfrd."id"
+        AND rrf."fieldId" = ${customFieldId}
         AND rrf."valueString" = ${"test"}
       ))`
       );
