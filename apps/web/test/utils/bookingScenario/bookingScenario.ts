@@ -1,6 +1,8 @@
 import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
+import { calendarAppsMock } from "../../../../../tests/libs/__mocks__/calendarApps";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import { videoAppsMock } from "../../../../../tests/libs/__mocks__/videoApps";
 
 import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
@@ -11,6 +13,7 @@ import { vi } from "vitest";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
+import { calendarAppsMetaData } from "@calcom/app-store/_utils/calendars/calendarAppsMetaData";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
@@ -1716,7 +1719,7 @@ export type CalendarServiceMethodMock = {
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
  */
 export function mockCalendar(
-  metadataLookupKey: keyof typeof appStoreMetadata,
+  metadataLookupKey: keyof typeof calendarAppsMetaData,
   calendarData?: {
     create?: {
       id?: string;
@@ -1759,15 +1762,15 @@ export function mockCalendar(
       uid: "UPDATED_MOCK_ID",
     },
   };
-  log.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
+  log.silly(`Mocking ${appStoreLookupKey} on calendarAppsMock`);
 
   const createEventCalls: CreateEventMethodMockCall[] = [];
   const updateEventCalls: UpdateEventMethodMockCall[] = [];
   const deleteEventCalls: DeleteEventMethodMockCall[] = [];
   const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
-  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
+  const app = calendarAppsMetaData[metadataLookupKey as keyof typeof calendarAppsMetaData];
 
-  const appMock = appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default];
+  const appMock = calendarAppsMock[appStoreLookupKey as keyof typeof calendarAppsMock];
 
   appMock &&
     `mockResolvedValue` in appMock &&
@@ -1899,7 +1902,7 @@ export function mockCalendar(
 }
 
 export function mockCalendarToHaveNoBusySlots(
-  metadataLookupKey: keyof typeof appStoreMetadata,
+  metadataLookupKey: keyof typeof calendarAppsMetaData,
   calendarData?: Parameters<typeof mockCalendar>[1]
 ) {
   calendarData = calendarData || {
@@ -1913,11 +1916,11 @@ export function mockCalendarToHaveNoBusySlots(
   return mockCalendar(metadataLookupKey, { ...calendarData, busySlots: [] });
 }
 
-export function mockCalendarToCrashOnCreateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+export function mockCalendarToCrashOnCreateEvent(metadataLookupKey: keyof typeof calendarAppsMetaData) {
   return mockCalendar(metadataLookupKey, { creationCrash: true });
 }
 
-export function mockCalendarToCrashOnUpdateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
+export function mockCalendarToCrashOnUpdateEvent(metadataLookupKey: keyof typeof calendarAppsMetaData) {
   return mockCalendar(metadataLookupKey, { updationCrash: true });
 }
 
@@ -1952,13 +1955,13 @@ export function mockVideoApp({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
+  // @ts-expect-error FIXME
+  videoAppsMock[appStoreLookupKey as keyof typeof videoAppsMock].mockImplementation(() => {
     return new Promise((resolve) => {
       resolve({
         lib: {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          // @ts-expect-error FIXME
           VideoApiAdapter: (credential) => {
             return {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
