@@ -1,26 +1,30 @@
-import type { Prisma, User } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
+import type { Fields, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { SelectedCalendar, User } from "@calcom/prisma/client";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { AttributeType } from "@calcom/prisma/enums";
-import { RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import { mergeOverlappingRanges } from "../date-ranges";
+
 const log = logger.getSubLogger({ prefix: ["getLuckyUser"] });
+const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
+
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
@@ -88,6 +92,29 @@ interface GetLuckyUserParams<T extends PartialUser> {
   meetingStartTime?: Date;
 }
 
+type OOODataType = { userId: number; oooEntries: { start: Date; end: Date }[] }[];
+
+type FetchedData = {
+  bookingsOfNotAvailableUsersOfInterval: PartialBooking[];
+  bookingsOfAvailableUsersOfInterval: PartialBooking[];
+  allRRHostsBookingsOfInterval: PartialBooking[];
+  allRRHostsCreatedInInterval: { userId: number; createdAt: Date }[];
+  organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
+  attributeWeights?:
+    | {
+        userId: number;
+        weight: number;
+      }[]
+    | null;
+  virtualQueuesData?: VirtualQueuesDataType | null;
+  oooData: OOODataType;
+};
+
+type AvailableUserBase = PartialUser & {
+  priority: number | null;
+  weight: number | null;
+};
+
 export interface ILuckyUserService {
   bookingRepository: BookingRepository;
   hostRepository: HostRepository;
@@ -96,453 +123,322 @@ export interface ILuckyUserService {
   attributeRepository: PrismaAttributeRepository;
 }
 
-export class LuckyUserService {
-  constructor(public readonly dependencies: ILuckyUserService) {}
+export class LuckyUserService implements ILuckyUserService {
+  public bookingRepository: BookingRepository;
+  public hostRepository: HostRepository;
+  public oooRepository: PrismaOOORepository;
+  public userRepository: UserRepository;
+  public attributeRepository: PrismaAttributeRepository;
 
-  async getLuckyUser<
-    T extends PartialUser & {
-      priority?: number | null;
-      weight?: number | null;
-    }
-  >(getLuckyUserParams: GetLuckyUserParams<T>) {
-    const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
-    const { luckyUser } = this.getLuckyUser_requiresDataToBePreFetched({
-      ...getLuckyUserParams,
-      ...fetchedData,
-    });
-    return luckyUser;
+  constructor({
+    bookingRepository,
+    hostRepository,
+    oooRepository,
+    userRepository,
+    attributeRepository,
+  }: ILuckyUserService) {
+    this.bookingRepository = bookingRepository;
+    this.hostRepository = hostRepository;
+    this.oooRepository = oooRepository;
+    this.userRepository = userRepository;
+    this.attributeRepository = attributeRepository;
   }
 
-  getLuckyUser_requiresDataToBePreFetched<
-    T extends PartialUser & {
-      priority?: number | null;
-      weight?: number | null;
-    }
-  >(
-    params: GetLuckyUserParams<T> & FetchedData
-  ): {
-    luckyUser: T;
-    usersAndTheirBookingShortfalls: {
-      id: number;
-      bookingShortfall: number;
-      calibration: number;
-      weight: number;
-    }[];
-  } {
-    const {
-      eventType,
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-      oooData,
-    } = params;
-
-    const usersAndTheirBookingShortfalls = this.filterUsersBasedOnWeights({
-      ...params,
-      eventType,
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-      oooData,
-    });
-
-    const { remainingUsersAfterWeightFilter } = usersAndTheirBookingShortfalls;
-
-    if (remainingUsersAfterWeightFilter.length === 0) {
-      throw new Error("No users available after weight filtering");
-    }
-
-    const luckyUser = remainingUsersAfterWeightFilter[0];
-
-    return {
-      luckyUser,
-      usersAndTheirBookingShortfalls: usersAndTheirBookingShortfalls.usersAndTheirBookingShortfalls,
-    };
+  // === Private helper methods (not exposed in the interface) ===
+  private startOfMonth(date: Date = new Date()) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
   }
 
-  async getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
-    getLuckyUserParams: GetLuckyUserParams<AvailableUser>
-  ) {
-    const { availableUsers, eventType } = getLuckyUserParams;
-
-    const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
-
-    const {
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-      attributeWeights,
-      virtualQueuesData,
-      oooData,
-    } = fetchedData;
-
-    log.info(
-      "getOrderedListOfLuckyUsers",
-      safeStringify({
-        availableUsers: availableUsers.map((user) => {
-          return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
-        }),
-        bookingsOfAvailableUsersOfInterval,
-        bookingsOfNotAvailableUsersOfInterval,
-        allRRHostsBookingsOfInterval,
-        allRRHostsCreatedInInterval,
-        organizersWithLastCreated,
-      })
-    );
-
-    let remainingAvailableUsers = [...availableUsers];
-    let bookingsOfRemainingAvailableUsersOfInterval = [...bookingsOfAvailableUsersOfInterval];
-    const orderedUsersSet = new Set<AvailableUser>();
-    const perUserBookingsCount: Record<number, number> = {};
-
-    const startTime = performance.now();
-    let usersAndTheirBookingShortfalls: {
-      id: number;
-      bookingShortfall: number;
-      calibration: number;
-      weight: number;
-    }[] = [];
-
-    while (remainingAvailableUsers.length > 0) {
-      const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
-        this.getLuckyUser_requiresDataToBePreFetched({
-          ...getLuckyUserParams,
-          eventType,
-          availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
-          bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
-          bookingsOfNotAvailableUsersOfInterval,
-          allRRHostsBookingsOfInterval,
-          allRRHostsCreatedInInterval,
-          organizersWithLastCreated,
-          attributeWeights,
-          virtualQueuesData,
-          oooData,
-        });
-
-      if (!usersAndTheirBookingShortfalls.length) {
-        usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
-      }
-
-      if (orderedUsersSet.has(luckyUser)) {
-        throw new Error(
-          `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
-        );
-      }
-
-      orderedUsersSet.add(luckyUser);
-      perUserBookingsCount[luckyUser.id] = bookingsOfAvailableUsersOfInterval.filter(
-        (booking) => booking.userId === luckyUser.id
-      ).length;
-      remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
-      bookingsOfRemainingAvailableUsersOfInterval = bookingsOfRemainingAvailableUsersOfInterval.filter(
-        (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
-      );
-    }
-
-    const endTime = performance.now();
-    log.info(`getOrderedListOfLuckyUsers took ${endTime - startTime}ms`);
-
-    const bookingShortfalls: Record<number, number> = {};
-    const calibrations: Record<number, number> = {};
-    const weights: Record<number, number> = {};
-
-    usersAndTheirBookingShortfalls.forEach((user) => {
-      bookingShortfalls[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
-      calibrations[user.id] = parseFloat(user.calibration.toFixed(2));
-      weights[user.id] = user.weight;
-    });
-
-    return {
-      users: Array.from(orderedUsersSet),
-      isUsingAttributeWeights: !!attributeWeights && !!virtualQueuesData,
-      perUserData: {
-        bookingsCount: perUserBookingsCount,
-        bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
-        calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
-        weights: eventType.isRRWeightsEnabled ? weights : null,
-      },
-    };
+  private startOfDay(date: Date = new Date()) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   }
 
-  async prepareQueuesAndAttributesData<T extends PartialUser>({
-    eventType,
-    routingFormResponse,
-    allRRHosts,
-  }: Omit<GetLuckyUserParams<T>, "availableUsers">) {
-    let attributeWeights;
-    let virtualQueuesData;
-    const organizationId = eventType.team?.parentId;
-    log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
-    if (routingFormResponse && organizationId) {
-      const routingForm = routingFormResponse?.form;
-      const routes = zodRoutes.parse(routingForm.routes);
-      const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
-
-      if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
-        const attributeIdForWeights = chosenRoute.attributeIdForWeights;
-
-        if (attributeIdForWeights) {
-          const attributeWithEnabledWeights =
-            await this.dependencies.attributeRepository.findUniqueWithWeights({
-              teamId: organizationId,
-              attributeId: attributeIdForWeights,
-              isWeightsEnabled: true,
-            });
-
-          if (attributeWithEnabledWeights) {
-            const queueAndAtributeWeightData = await this.getQueueAndAttributeWeightData(
-              allRRHosts,
-              routingFormResponse,
-              attributeWithEnabledWeights
-            );
-            if (
-              queueAndAtributeWeightData?.averageWeightsHosts &&
-              queueAndAtributeWeightData?.virtualQueuesData
-            ) {
-              attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
-              virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
-            }
-          }
-        }
-      }
-    }
-    return { attributeWeights: attributeWeights || null, virtualQueuesData: virtualQueuesData || null };
+  private endOfDay(date: Date) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
   }
 
-  private async fetchAllDataNeededForCalculations<
-    T extends PartialUser & {
-      priority?: number | null;
-      weight?: number | null;
-    }
-  >(getLuckyUserParams: GetLuckyUserParams<T>): Promise<FetchedData> {
-    const startTime = performance.now();
-
-    const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
-    const notAvailableHosts = (function getNotAvailableHosts() {
-      const availableUserIds = new Set(availableUsers.map((user) => user.id));
-      return allRRHosts.reduce(
-        (
-          acc: {
-            id: number;
-            email: string;
-          }[],
-          host
-        ) => {
-          if (!availableUserIds.has(host.user.id)) {
-            acc.push({
-              id: host.user.id,
-              email: host.user.email,
-            });
-          }
-          return acc;
-        },
-        []
-      );
-    })();
-
-    const { attributeWeights, virtualQueuesData } = await this.prepareQueuesAndAttributesData(
-      getLuckyUserParams
-    );
-
-    const interval =
-      eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
-        ? getLuckyUserParams.eventType.team?.rrResetInterval
-        : RRResetInterval.MONTH;
-
-    const rrTimestampBasis =
-      eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrTimestampBasis
-        ? getLuckyUserParams.eventType.team.rrTimestampBasis
-        : RRTimestampBasis.CREATED_AT;
-
-    const intervalStartDate = getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime });
-    const intervalEndDate = getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime });
-
-    const [
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-    ] = await Promise.all([
-      this.getBookingsOfInterval({
-        eventTypeId: eventType.id,
-        users: availableUsers.map((user) => {
-          return { id: user.id, email: user.email };
-        }),
-        virtualQueuesData: virtualQueuesData ?? null,
-        interval,
-        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-        rrTimestampBasis,
-        meetingStartTime,
-      }),
-
-      this.getBookingsOfInterval({
-        eventTypeId: eventType.id,
-        users: notAvailableHosts,
-        virtualQueuesData: virtualQueuesData ?? null,
-        interval,
-        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-        rrTimestampBasis,
-        meetingStartTime,
-      }),
-
-      this.getBookingsOfInterval({
-        eventTypeId: eventType.id,
-        users: allRRHosts.map((host) => {
-          return { id: host.user.id, email: host.user.email };
-        }),
-        virtualQueuesData: virtualQueuesData ?? null,
-        interval,
-        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-        rrTimestampBasis,
-        meetingStartTime,
-      }),
-
-      this.dependencies.hostRepository.findHostsCreatedInInterval({
-        eventTypeId: eventType.id,
-        userIds: allRRHosts.map((host) => host.user.id),
-        startDate: intervalStartDate,
-        endDate: intervalEndDate,
-      }),
-
-      this.dependencies.userRepository.findUsersWithLastBooking({
-        userIds: availableUsers.map((user) => user.id),
-        eventTypeId: eventType.id,
-      }),
-    ]);
-
-    const oooEntries = await this.dependencies.oooRepository.findOOOEntriesInInterval({
-      userIds: allRRHosts.map((host) => host.user.id),
-      startDate: intervalStartDate,
-      endDate: intervalEndDate,
-    });
-
-    const oooEntriesGroupedByUserId = new Map<number, { start: Date; end: Date }[]>();
-
-    oooEntries.forEach((entry) => {
-      if (!oooEntriesGroupedByUserId.has(entry.userId)) {
-        oooEntriesGroupedByUserId.set(entry.userId, []);
-      }
-      oooEntriesGroupedByUserId.get(entry.userId)!.push({ start: entry.start, end: entry.end });
-    });
-
-    const oooData: { userId: number; oooEntries: { start: Date; end: Date }[] }[] = [];
-
-    allRRHosts.forEach((host) => {
-      const userOOOEntries = oooEntriesGroupedByUserId.get(host.user.id) || [];
-      oooData.push({
-        userId: host.user.id,
-        oooEntries: userOOOEntries,
-      });
-    });
-
-    const endTime = performance.now();
-    log.info(`fetchAllDataNeededForCalculations took ${endTime - startTime}ms`);
-
-    return {
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-      attributeWeights,
-      virtualQueuesData,
-      oooData,
-    };
+  private endOfMonth(date: Date) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
   }
 
-  private async getBookingsOfInterval({
-    eventTypeId,
-    users,
-    virtualQueuesData,
+  private getIntervalEndDate({
     interval,
-    includeNoShowInRRCalculation,
     rrTimestampBasis,
     meetingStartTime,
   }: {
-    eventTypeId: number;
-    users: { id: number; email: string }[];
-    virtualQueuesData: VirtualQueuesDataType | null;
     interval: RRResetInterval;
-    includeNoShowInRRCalculation: boolean;
     rrTimestampBasis: RRTimestampBasis;
     meetingStartTime?: Date;
   }) {
-    const startDate = getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime });
-    const endDate = getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime });
+    if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
+      if (!meetingStartTime) {
+        throw new Error("Meeting start time is required");
+      }
+      if (interval === RRResetInterval.DAY) {
+        return this.endOfDay(meetingStartTime);
+      }
+      return this.endOfMonth(meetingStartTime);
+    }
+    return new Date();
+  }
 
-    return this.dependencies.bookingRepository.getAllBookingsForRoundRobin({
-      eventTypeId,
-      users,
-      startDate,
-      endDate,
-      virtualQueuesData,
-      includeNoShowInRRCalculation,
-      rrTimestampBasis,
+  private getIntervalStartDate({
+    interval,
+    rrTimestampBasis,
+    meetingStartTime,
+  }: {
+    interval: RRResetInterval;
+    rrTimestampBasis: RRTimestampBasis;
+    meetingStartTime?: Date;
+  }) {
+    if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
+      if (!meetingStartTime) {
+        throw new Error("Meeting start time is required");
+      }
+      if (interval === RRResetInterval.DAY) {
+        return this.startOfDay(meetingStartTime);
+      }
+      return this.startOfMonth(meetingStartTime);
+    }
+
+    if (interval === RRResetInterval.DAY) {
+      return this.startOfDay();
+    }
+    return this.startOfMonth();
+  }
+
+  // TS helper function.
+  private isNonEmptyArray<T>(arr: T[]): arr is [T, ...T[]] {
+    return arr.length > 0;
+  }
+
+  private leastRecentlyBookedUser<T extends PartialUser>({
+    availableUsers,
+    bookingsOfAvailableUsers,
+    organizersWithLastCreated,
+  }: GetLuckyUserParams<T> & {
+    bookingsOfAvailableUsers: PartialBooking[];
+    organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
+  }) {
+    const organizerIdAndAtCreatedPair = organizersWithLastCreated.reduce(
+      (keyValuePair: { [userId: number]: Date }, user) => {
+        keyValuePair[user.id] = user.bookings[0]?.createdAt || new Date(0);
+        return keyValuePair;
+      },
+      {}
+    );
+
+    const attendeeUserIdAndAtCreatedPair = bookingsOfAvailableUsers.reduce(
+      (aggregate: { [userId: number]: Date }, booking) => {
+        availableUsers.forEach((user) => {
+          if (aggregate[user.id]) return;
+          if (!booking.attendees.map((attendee) => attendee.email).includes(user.email)) return;
+          if (organizerIdAndAtCreatedPair[user.id] > booking.createdAt) return;
+          aggregate[user.id] = booking.createdAt;
+        });
+        return aggregate;
+      },
+      {}
+    );
+
+    const userIdAndAtCreatedPair = {
+      ...organizerIdAndAtCreatedPair,
+      ...attendeeUserIdAndAtCreatedPair,
+    };
+
+    log.info(
+      "userIdAndAtCreatedPair",
+      safeStringify({
+        organizerIdAndAtCreatedPair,
+        attendeeUserIdAndAtCreatedPair,
+        userIdAndAtCreatedPair,
+      })
+    );
+
+    if (!userIdAndAtCreatedPair) {
+      throw new Error("Unable to find users by availableUser ids.");
+    }
+
+    const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
+      if (userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id]) return 1;
+      else if (userIdAndAtCreatedPair[a.id] < userIdAndAtCreatedPair[b.id]) return -1;
+      // if two (or more) dates are identical, we randomize the order
+      else return 0;
+    })[0];
+
+    return leastRecentlyBookedUser;
+  }
+
+  private getHostsWithCalibration({
+    hosts,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
+    oooData,
+  }: {
+    hosts: { userId: number; email: string; createdAt: Date }[];
+    allRRHostsBookingsOfInterval: PartialBooking[];
+    allRRHostsCreatedInInterval: { userId: number; createdAt: Date }[];
+    oooData: OOODataType;
+  }) {
+    function calculateNewHostCalibration(newHost: { userId: number; createdAt: Date }) {
+      const existingBookingsBeforeAdded = existingBookings.filter(
+        (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
+      );
+      const hostsAddedBefore = hosts.filter(
+        (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
+      );
+
+      const calibration =
+        existingBookingsBeforeAdded.length && hostsAddedBefore.length
+          ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
+          : 0;
+      log.debug(
+        "calculateNewHostCalibration",
+        safeStringify({
+          newHost,
+          existingBookingsBeforeAdded: existingBookingsBeforeAdded.length,
+          hostsAddedBefore: hostsAddedBefore.length,
+          calibration,
+        })
+      );
+      return calibration;
+    }
+
+    const existingBookings = allRRHostsBookingsOfInterval;
+
+    const oooCalibration = new Map<number, number>();
+
+    oooData.forEach(({ userId, oooEntries }) => {
+      let calibration = 0;
+
+      oooEntries.forEach((oooEntry) => {
+        const bookingsInTimeframe = existingBookings.filter(
+          (booking) =>
+            booking.createdAt >= oooEntry.start &&
+            booking.createdAt <= oooEntry.end &&
+            booking.userId !== userId
+        );
+        calibration += bookingsInTimeframe.length / (hosts.length - 1);
+      });
+
+      oooCalibration.set(userId, calibration);
     });
+
+    let newHostsWithCalibration: Map<
+      number,
+      {
+        calibration: number;
+        userId: number;
+        createdAt: Date;
+      }
+    > = new Map();
+
+    if (allRRHostsCreatedInInterval.length && existingBookings.length) {
+      newHostsWithCalibration = new Map(
+        allRRHostsCreatedInInterval.map((newHost) => [
+          newHost.userId,
+          { ...newHost, calibration: calculateNewHostCalibration(newHost) },
+        ])
+      );
+    }
+
+    return hosts.map((host) => ({
+      ...host,
+      calibration:
+        (newHostsWithCalibration.get(host.userId)?.calibration ?? 0) + (oooCalibration.get(host.userId) ?? 0),
+    }));
+  }
+
+  private getUsersWithHighestPriority<T extends PartialUser & { priority?: number | null }>({
+    availableUsers,
+  }: {
+    availableUsers: T[];
+  }) {
+    const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
+    const usersWithHighestPriority = availableUsers.filter(
+      (user) => user.priority === highestPriority || (user.priority == null && highestPriority === 2)
+    );
+    if (!this.isNonEmptyArray(usersWithHighestPriority)) {
+      throw new Error("Internal Error: Highest Priority filter should never return length=0.");
+    }
+
+    log.info(
+      "getUsersWithHighestPriority",
+      safeStringify({
+        highestPriorityUsers: usersWithHighestPriority.map((user) => user.id),
+      })
+    );
+    return usersWithHighestPriority;
   }
 
   private filterUsersBasedOnWeights<
     T extends PartialUser & {
-      priority?: number | null;
       weight?: number | null;
     }
-  >(params: GetLuckyUserParams<T> & FetchedData) {
-    const {
-      availableUsers,
-      eventType,
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
+  >({
+    availableUsers,
+    bookingsOfAvailableUsersOfInterval,
+    bookingsOfNotAvailableUsersOfInterval,
+    allRRHosts,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
+    attributeWeights,
+    oooData,
+  }: GetLuckyUserParams<T> & FetchedData) {
+    const allBookings = bookingsOfAvailableUsersOfInterval.concat(bookingsOfNotAvailableUsersOfInterval);
+
+    const allHostsWithCalibration = this.getHostsWithCalibration({
+      hosts: allRRHosts.map((host) => {
+        return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
+      }),
       allRRHostsBookingsOfInterval,
       allRRHostsCreatedInInterval,
-      organizersWithLastCreated,
-      attributeWeights,
       oooData,
-    } = params;
+    });
 
-    const allHostsWithCalibration = getHostsWithCalibration({
-      hosts: availableUsers.map((user) => ({ userId: user.id, email: user.email, createdAt: new Date() })),
-      allRRHostsBookingsOfInterval,
-      allRRHostsCreatedInInterval,
-      oooData,
-    })
-      .map((host) => {
-        const user = availableUsers.find((u) => u.id === host.userId);
-        return user ? { ...user, calibration: host.calibration } : null;
-      })
-      .filter(Boolean) as (T & { calibration: number })[];
+    let totalWeight: number;
 
-    if (!eventType.isRRWeightsEnabled) {
-      const usersWithHighestPriority = this.getUsersWithHighestPriority(allHostsWithCalibration);
-      return {
-        remainingUsersAfterWeightFilter: usersWithHighestPriority,
-        usersAndTheirBookingShortfalls: [],
-      };
+    if (attributeWeights && attributeWeights.length > 0) {
+      totalWeight = attributeWeights.reduce((totalWeight, userWeight) => {
+        totalWeight += userWeight.weight ?? 100;
+        return totalWeight;
+      }, 0);
+    } else {
+      totalWeight = allRRHosts.reduce((totalWeight, host) => {
+        totalWeight += host.weight ?? 100;
+        return totalWeight;
+      }, 0);
     }
 
-    const totalWeight = attributeWeights
-      ? attributeWeights.reduce((acc, user) => acc + user.weight, 0)
-      : allHostsWithCalibration.reduce((acc, user) => acc + (user.weight ?? 100), 0);
+    const totalCalibration = allHostsWithCalibration.reduce((totalCalibration, host) => {
+      totalCalibration += host.calibration;
+      return totalCalibration;
+    }, 0);
 
-    const totalCalibration = allHostsWithCalibration.reduce((acc, user) => acc + user.calibration, 0);
+    const usersWithBookingShortfalls = availableUsers.map((user) => {
+      let userWeight = user.weight ?? 100;
+      if (attributeWeights) {
+        userWeight = attributeWeights.find((userWeight) => userWeight.userId === user.id)?.weight ?? 100;
+      }
+      const targetPercentage = userWeight / totalWeight;
+      const userBookings = bookingsOfAvailableUsersOfInterval.filter(
+        (booking) =>
+          booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
+      );
 
-    const usersWithBookingShortfalls = allHostsWithCalibration.map((user) => {
-      const userBookings = bookingsOfAvailableUsersOfInterval.filter((booking) => booking.userId === user.id);
-      const userWeight = attributeWeights?.find((w) => w.userId === user.id)?.weight ?? user.weight ?? 100;
-      const expectedBookings = totalCalibration * (userWeight / totalWeight);
-      const bookingShortfall = expectedBookings - userBookings.length;
+      const targetNumberOfBookings = (allBookings.length + totalCalibration) * targetPercentage;
+      const userCalibration =
+        allHostsWithCalibration.find((host) => host.userId === user.id)?.calibration ?? 0;
+
+      const bookingShortfall = targetNumberOfBookings - (userBookings.length + userCalibration);
 
       return {
-        id: user.id,
-        bookingShortfall,
-        calibration: user.calibration,
+        ...user,
+        calibration: userCalibration,
         weight: userWeight,
+        targetNumberOfBookings,
+        bookingShortfall,
+        numBookings: userBookings.length,
       };
     });
 
@@ -551,82 +447,57 @@ export class LuckyUserService {
       (user) => user.bookingShortfall === maxShortfall
     );
 
-    const userIdsWithMaxShortfallAndWeight = usersWithMaxShortfall.map((user) => user.id);
+    const maxWeight = Math.max(...usersWithMaxShortfall.map((user) => user.weight ?? 100));
 
-    const remainingUsersAfterWeightFilter = allHostsWithCalibration.filter((user) =>
-      userIdsWithMaxShortfallAndWeight.includes(user.id)
+    const userIdsWithMaxShortfallAndWeight = new Set(
+      usersWithMaxShortfall
+        .filter((user) => {
+          const weight = user.weight ?? 100;
+          return weight === maxWeight;
+        })
+        .map((user) => user.id)
     );
 
+    const remainingUsersAfterWeightFilter = availableUsers.filter((user) =>
+      userIdsWithMaxShortfallAndWeight.has(user.id)
+    );
+
+    log.debug(
+      "filterUsersBasedOnWeights",
+      safeStringify({
+        userIdsWithMaxShortfallAndWeight: userIdsWithMaxShortfallAndWeight,
+        usersWithMaxShortfall: usersWithMaxShortfall.map((user) => user.email),
+        usersWithBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
+          calibration: user.calibration,
+          bookingShortfall: user.bookingShortfall,
+          email: user.email,
+          targetNumberOfBookings: user.targetNumberOfBookings,
+          weight: user.weight,
+          numBookings: user.numBookings,
+        })),
+        remainingUsersAfterWeightFilter: remainingUsersAfterWeightFilter.map((user) => user.email),
+      })
+    );
+
+    if (!this.isNonEmptyArray(remainingUsersAfterWeightFilter)) {
+      throw new Error("Internal Error: Weight filter should never return length=0.");
+    }
     return {
       remainingUsersAfterWeightFilter,
-      usersAndTheirBookingShortfalls: usersWithBookingShortfalls,
+      usersAndTheirBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
+        id: user.id,
+        calibration: user.calibration,
+        bookingShortfall: user.bookingShortfall,
+        weight: user.weight,
+      })),
     };
   }
 
-  private getUsersWithHighestPriority<T extends PartialUser & { priority?: number | null }>(users: T[]) {
-    const highestPriority = Math.max(...users.map((user) => user.priority ?? 2));
-    const usersWithHighestPriority = users.filter((user) => (user.priority ?? 2) === highestPriority);
-    return usersWithHighestPriority;
-  }
+  private isFullDayEvent(date1: Date, date2: Date) {
+    const MILLISECONDS_IN_A_DAY = 24 * 60 * 60 * 1000;
+    const difference = Math.abs(date1.getTime() - date2.getTime());
 
-  private async getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
-    allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
-    routingFormResponse: RoutingFormResponse,
-    attributeWithWeights: AttributeWithWeights
-  ) {
-    let averageWeightsHosts: { userId: number; weight: number }[] = [];
-
-    const chosenRouteId = routingFormResponse?.chosenRouteId ?? undefined;
-
-    if (!chosenRouteId) return;
-
-    let fieldOptionData: { fieldId: string; selectedOptionIds: string | number | string[] } | undefined;
-
-    const routingForm = routingFormResponse?.form;
-
-    if (routingForm && routingFormResponse) {
-      const response = routingFormResponse.response as FormResponse;
-
-      const routes = zodRoutes.parse(routingForm.routes);
-      const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
-
-      if (chosenRoute && "attributesQueryValue" in chosenRoute) {
-        const parsedAttributesQueryValue = raqbQueryValueSchema.parse(chosenRoute.attributesQueryValue);
-
-        const attributesQueryValueWithLabel = acrossQueryValueCompatiblity.getAttributesQueryValue({
-          attributesQueryValue: chosenRoute.attributesQueryValue,
-          attributes: [attributeWithWeights],
-          dynamicFieldValueOperands: {
-            fields: (routingFormResponse.form.fields as Fields) || [],
-            response,
-          },
-        });
-
-        const parsedAttributesQueryValueWithLabel = raqbQueryValueSchema.parse(attributesQueryValueWithLabel);
-
-        if (parsedAttributesQueryValueWithLabel && parsedAttributesQueryValueWithLabel.children1) {
-          averageWeightsHosts = this.getAverageAttributeWeights(
-            allRRHosts,
-            parsedAttributesQueryValueWithLabel.children1,
-            attributeWithWeights
-          );
-        }
-
-        if (parsedAttributesQueryValue && parsedAttributesQueryValue.children1) {
-          fieldOptionData = this.getAttributesForVirtualQueues(
-            response,
-            parsedAttributesQueryValue.children1,
-            attributeWithWeights
-          );
-        }
-      }
-    }
-
-    if (fieldOptionData) {
-      return { averageWeightsHosts, virtualQueuesData: { chosenRouteId, fieldOptionData } };
-    }
-
-    return;
+    if (difference % MILLISECONDS_IN_A_DAY === 0) return true;
   }
 
   private getAverageAttributeWeights<
@@ -694,6 +565,10 @@ export class LuckyUserService {
         });
       }
     });
+    log.debug(
+      "getAverageAttributeWeights",
+      safeStringify({ allRRHosts, attributesQueryValueChild, attributeWithWeights, averageWeightsHosts })
+    );
 
     return averageWeightsHosts;
   }
@@ -736,7 +611,7 @@ export class LuckyUserService {
             if (routingFormFieldId) {
               const fieldResponse = response[routingFormFieldId];
               selectionOptions = { fieldId: routingFormFieldId, selectedOptionIds: fieldResponse.value };
-              return true;
+              return true; // break out of all loops
             }
           });
         });
@@ -744,546 +619,531 @@ export class LuckyUserService {
     });
     return selectionOptions;
   }
-}
 
-// === dayjs.utc().startOf("month").toDate();
-const startOfMonth = (date: Date = new Date()) =>
-  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+  private async getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
+    allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
+    routingFormResponse: RoutingFormResponse,
+    attributeWithWeights: AttributeWithWeights
+  ) {
+    let averageWeightsHosts: { userId: number; weight: number }[] = [];
 
-const startOfDay = (date: Date = new Date()) =>
-  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const chosenRouteId = routingFormResponse?.chosenRouteId ?? undefined;
 
-const endOfDay = (date: Date) =>
-  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+    if (!chosenRouteId) return;
 
-const endOfMonth = (date: Date) =>
-  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+    let fieldOptionData: { fieldId: string; selectedOptionIds: string | number | string[] } | undefined;
 
-export const getIntervalEndDate = ({
-  interval,
-  rrTimestampBasis,
-  meetingStartTime,
-}: {
-  interval: RRResetInterval;
-  rrTimestampBasis: RRTimestampBasis;
-  meetingStartTime?: Date;
-}) => {
-  if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
-    if (!meetingStartTime) {
-      throw new Error("Meeting start time is required");
+    const routingForm = routingFormResponse?.form;
+
+    if (routingForm && routingFormResponse) {
+      const response = routingFormResponse.response as FormResponse;
+
+      const routes = zodRoutes.parse(routingForm.routes);
+      const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
+
+      if (chosenRoute && "attributesQueryValue" in chosenRoute) {
+        const parsedAttributesQueryValue = raqbQueryValueSchema.parse(chosenRoute.attributesQueryValue);
+
+        const attributesQueryValueWithLabel = getAttributesQueryValue({
+          attributesQueryValue: chosenRoute.attributesQueryValue,
+          attributes: [attributeWithWeights],
+          dynamicFieldValueOperands: {
+            fields: (routingFormResponse.form.fields as Fields) || [],
+            response,
+          },
+        });
+
+        const parsedAttributesQueryValueWithLabel = raqbQueryValueSchema.parse(attributesQueryValueWithLabel);
+
+        if (parsedAttributesQueryValueWithLabel && parsedAttributesQueryValueWithLabel.children1) {
+          averageWeightsHosts = this.getAverageAttributeWeights(
+            allRRHosts,
+            parsedAttributesQueryValueWithLabel.children1,
+            attributeWithWeights
+          );
+        }
+
+        if (parsedAttributesQueryValue && parsedAttributesQueryValue.children1) {
+          fieldOptionData = this.getAttributesForVirtualQueues(
+            response,
+            parsedAttributesQueryValue.children1,
+            attributeWithWeights
+          );
+        }
+      }
     }
-    if (interval === RRResetInterval.DAY) {
-      return endOfDay(meetingStartTime);
+
+    if (fieldOptionData) {
+      return { averageWeightsHosts, virtualQueuesData: { chosenRouteId, fieldOptionData } };
     }
-    return endOfMonth(meetingStartTime);
+
+    return;
   }
 
-  return new Date();
-};
-
-export const getIntervalStartDate = ({
-  interval,
-  rrTimestampBasis,
-  meetingStartTime,
-}: {
-  interval: RRResetInterval;
-  rrTimestampBasis: RRTimestampBasis;
-  meetingStartTime?: Date;
-}) => {
-  if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
-    if (!meetingStartTime) {
-      throw new Error("Meeting start time is required");
-    }
-    if (interval === RRResetInterval.DAY) {
-      return startOfDay(meetingStartTime);
-    }
-    return startOfMonth(meetingStartTime);
-  }
-
-  if (interval === RRResetInterval.DAY) {
-    return startOfDay();
-  }
-  return startOfMonth();
-};
-
-// TS helper function.
-const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
-
-function leastRecentlyBookedUser<T extends PartialUser>({
-  availableUsers,
-  bookingsOfAvailableUsers,
-  organizersWithLastCreated,
-}: GetLuckyUserParams<T> & {
-  bookingsOfAvailableUsers: PartialBooking[];
-  organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
-}) {
-  const organizerIdAndAtCreatedPair = organizersWithLastCreated.reduce(
-    (keyValuePair: { [userId: number]: Date }, user) => {
-      keyValuePair[user.id] = user.bookings[0]?.createdAt || new Date(0);
-      return keyValuePair;
-    },
-    {}
-  );
-
-  const attendeeUserIdAndAtCreatedPair = bookingsOfAvailableUsers.reduce(
-    (aggregate: { [userId: number]: Date }, booking) => {
-      availableUsers.forEach((user) => {
-        if (aggregate[user.id]) return; // Bookings are ordered DESC, so if the reducer aggregate
-        // contains the user id, it's already got the most recent booking marked.
-        if (!booking.attendees.map((attendee) => attendee.email).includes(user.email)) return;
-        if (organizerIdAndAtCreatedPair[user.id] > booking.createdAt) return; // only consider bookings if they were created after organizer bookings
-        aggregate[user.id] = booking.createdAt;
-      });
-      return aggregate;
-    },
-    {}
-  );
-
-  const userIdAndAtCreatedPair = {
-    ...organizerIdAndAtCreatedPair,
-    ...attendeeUserIdAndAtCreatedPair,
-  };
-
-  log.info(
-    "userIdAndAtCreatedPair",
-    safeStringify({
-      organizerIdAndAtCreatedPair,
-      attendeeUserIdAndAtCreatedPair,
-      userIdAndAtCreatedPair,
-    })
-  );
-
-  if (!userIdAndAtCreatedPair) {
-    throw new Error("Unable to find users by availableUser ids."); // should never happen.
-  }
-
-  const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
-    if (userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id]) return 1;
-    else if (userIdAndAtCreatedPair[a.id] < userIdAndAtCreatedPair[b.id]) return -1;
-    // if two (or more) dates are identical, we randomize the order
-    else return 0;
-  })[0];
-
-  return leastRecentlyBookedUser;
-}
-
-function getHostsWithCalibration({
-  hosts,
-  allRRHostsBookingsOfInterval,
-  allRRHostsCreatedInInterval,
-  oooData,
-}: {
-  hosts: { userId: number; email: string; createdAt: Date }[];
-  allRRHostsBookingsOfInterval: PartialBooking[];
-  allRRHostsCreatedInInterval: { userId: number; createdAt: Date }[];
-  oooData: OOODataType;
-}) {
-  // Helper function to calculate calibration for a new host
-  function calculateNewHostCalibration(newHost: { userId: number; createdAt: Date }) {
-    const existingBookingsBeforeAdded = existingBookings.filter(
-      (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
-    );
-    const hostsAddedBefore = hosts.filter(
-      (host) => host.userId !== newHost.userId && host.createdAt < newHost.createdAt
-    );
-
-    const calibration =
-      existingBookingsBeforeAdded.length && hostsAddedBefore.length
-        ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
-        : 0;
-    log.debug(
-      "calculateNewHostCalibration",
-      safeStringify({
-        newHost,
-        existingBookingsBeforeAdded: existingBookingsBeforeAdded.length,
-        hostsAddedBefore: hostsAddedBefore.length,
-        calibration,
-      })
-    );
-    return calibration;
-  }
-
-  const existingBookings = allRRHostsBookingsOfInterval;
-
-  const oooCalibration = new Map<number, number>();
-
-  oooData.forEach(({ userId, oooEntries }) => {
-    let calibration = 0;
-
-    oooEntries.forEach((oooEntry) => {
-      const bookingsInTimeframe = existingBookings.filter(
-        (booking) =>
-          booking.createdAt >= oooEntry.start &&
-          booking.createdAt <= oooEntry.end &&
-          booking.userId !== userId // attendee email check is missing here in case of fixed hosts
-      );
-
-      // - 1 because the we need to exclude the current user
-      calibration += bookingsInTimeframe.length / (hosts.length - 1);
-    });
-
-    oooCalibration.set(userId, calibration);
-  });
-
-  let newHostsWithCalibration: Map<
-    number,
-    {
-      calibration: number;
-      userId: number;
-      createdAt: Date;
-    }
-  > = new Map();
-
-  if (allRRHostsCreatedInInterval.length && existingBookings.length) {
-    // Calculate calibration for each new host and store in a Map
-    newHostsWithCalibration = new Map(
-      allRRHostsCreatedInInterval.map((newHost) => [
-        newHost.userId,
-        { ...newHost, calibration: calculateNewHostCalibration(newHost) },
-      ])
-    );
-    // Map hosts with their respective calibration values
-  }
-
-  return hosts.map((host) => ({
-    ...host,
-    calibration:
-      (newHostsWithCalibration.get(host.userId)?.calibration ?? 0) + (oooCalibration.get(host.userId) ?? 0),
-  }));
-}
-
-function getUsersWithHighestPriority<T extends PartialUser & { priority?: number | null }>({
-  availableUsers,
-}: {
-  availableUsers: T[];
-}) {
-  const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
-  const usersWithHighestPriority = availableUsers.filter(
-    (user) => user.priority === highestPriority || (user.priority == null && highestPriority === 2)
-  );
-  if (!isNonEmptyArray(usersWithHighestPriority)) {
-    throw new Error("Internal Error: Highest Priority filter should never return length=0.");
-  }
-
-  log.info(
-    "getUsersWithHighestPriority",
-    safeStringify({
-      highestPriorityUsers: usersWithHighestPriority.map((user) => user.id),
-    })
-  );
-  return usersWithHighestPriority;
-}
-
-type OOODataType = { userId: number; oooEntries: { start: Date; end: Date }[] }[];
-
-function filterUsersBasedOnWeights<
-  T extends PartialUser & {
-    weight?: number | null;
-  }
->({
-  availableUsers,
-  bookingsOfAvailableUsersOfInterval,
-  bookingsOfNotAvailableUsersOfInterval,
-  allRRHosts,
-  allRRHostsBookingsOfInterval,
-  allRRHostsCreatedInInterval,
-  attributeWeights,
-  oooData,
-}: GetLuckyUserParams<T> & FetchedData) {
-  //get all bookings of all other RR hosts that are not available
-
-  const allBookings = bookingsOfAvailableUsersOfInterval.concat(bookingsOfNotAvailableUsersOfInterval);
-
-  const allHostsWithCalibration = getHostsWithCalibration({
-    hosts: allRRHosts.map((host) => {
-      return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
-    }),
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    oooData,
-  });
-
-  // Calculate the total calibration and weight of all round-robin hosts
-  let totalWeight: number;
-
-  if (attributeWeights && attributeWeights.length > 0) {
-    totalWeight = attributeWeights.reduce((totalWeight, userWeight) => {
-      totalWeight += userWeight.weight ?? 100;
-      return totalWeight;
-    }, 0);
-  } else {
-    totalWeight = allRRHosts.reduce((totalWeight, host) => {
-      totalWeight += host.weight ?? 100;
-      return totalWeight;
-    }, 0);
-  }
-
-  const totalCalibration = allHostsWithCalibration.reduce((totalCalibration, host) => {
-    totalCalibration += host.calibration;
-    return totalCalibration;
-  }, 0);
-
-  // Calculate booking shortfall for each available user
-  const usersWithBookingShortfalls = availableUsers.map((user) => {
-    let userWeight = user.weight ?? 100;
-    if (attributeWeights) {
-      userWeight = attributeWeights.find((userWeight) => userWeight.userId === user.id)?.weight ?? 100;
-    }
-    const targetPercentage = userWeight / totalWeight;
-    const userBookings = bookingsOfAvailableUsersOfInterval.filter(
-      (booking) =>
-        booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
-    );
-
-    const targetNumberOfBookings = (allBookings.length + totalCalibration) * targetPercentage;
-    const userCalibration = allHostsWithCalibration.find((host) => host.userId === user.id)?.calibration ?? 0;
-
-    const bookingShortfall = targetNumberOfBookings - (userBookings.length + userCalibration);
-
-    return {
-      ...user,
-      calibration: userCalibration,
-      weight: userWeight,
-      targetNumberOfBookings,
-      bookingShortfall,
-      numBookings: userBookings.length,
-    };
-  });
-
-  // Find users with the highest booking shortfall
-  const maxShortfall = Math.max(...usersWithBookingShortfalls.map((user) => user.bookingShortfall));
-  const usersWithMaxShortfall = usersWithBookingShortfalls.filter(
-    (user) => user.bookingShortfall === maxShortfall
-  );
-
-  // ff more user's were found, find users with highest weights
-  const maxWeight = Math.max(...usersWithMaxShortfall.map((user) => user.weight ?? 100));
-
-  const userIdsWithMaxShortfallAndWeight = new Set(
-    usersWithMaxShortfall
-      .filter((user) => {
-        const weight = user.weight ?? 100;
-        return weight === maxWeight;
-      })
-      .map((user) => user.id)
-  );
-
-  const remainingUsersAfterWeightFilter = availableUsers.filter((user) =>
-    userIdsWithMaxShortfallAndWeight.has(user.id)
-  );
-
-  log.debug(
-    "filterUsersBasedOnWeights",
-    safeStringify({
-      userIdsWithMaxShortfallAndWeight: userIdsWithMaxShortfallAndWeight,
-      usersWithMaxShortfall: usersWithMaxShortfall.map((user) => user.email),
-      usersWithBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
-        calibration: user.calibration,
-        bookingShortfall: user.bookingShortfall,
-        email: user.email,
-        targetNumberOfBookings: user.targetNumberOfBookings,
-        weight: user.weight,
-        numBookings: user.numBookings,
-      })),
-      remainingUsersAfterWeightFilter: remainingUsersAfterWeightFilter.map((user) => user.email),
-    })
-  );
-
-  if (!isNonEmptyArray(remainingUsersAfterWeightFilter)) {
-    throw new Error("Internal Error: Weight filter should never return length=0.");
-  }
-  return {
-    remainingUsersAfterWeightFilter,
-    usersAndTheirBookingShortfalls: usersWithBookingShortfalls.map((user) => ({
-      id: user.id,
-      calibration: user.calibration,
-      bookingShortfall: user.bookingShortfall,
-      weight: user.weight,
-    })),
-  };
-}
-
-async function getCalendarBusyTimesOfInterval(
-  usersWithCredentials: {
-    id: number;
-    email: string;
-    credentials: CredentialForCalendarService[];
-    userLevelSelectedCalendars: SelectedCalendar[];
-  }[],
-  interval: RRResetInterval,
-  rrTimestampBasis: RRTimestampBasis,
-  meetingStartTime?: Date
-): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
-  const usersBusyTimesQuery = await Promise.all(
-    usersWithCredentials.map((user) =>
-      getBusyCalendarTimes(
-        user.credentials,
-        getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
-        getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
-        user.userLevelSelectedCalendars,
-        true,
-        true
+  private async getCalendarBusyTimesOfInterval(
+    usersWithCredentials: {
+      id: number;
+      email: string;
+      credentials: CredentialForCalendarService[];
+      userLevelSelectedCalendars: SelectedCalendar[];
+    }[],
+    interval: RRResetInterval,
+    rrTimestampBasis: RRTimestampBasis,
+    meetingStartTime?: Date
+  ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
+    const usersBusyTimesQuery = await Promise.all(
+      usersWithCredentials.map((user) =>
+        getBusyCalendarTimes(
+          user.credentials,
+          this.getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
+          this.getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
+          user.userLevelSelectedCalendars,
+          true,
+          true
+        )
       )
-    )
-  );
+    );
 
-  return usersBusyTimesQuery.reduce((usersBusyTime, userBusyTimeQuery, index) => {
-    if (userBusyTimeQuery.success) {
-      usersBusyTime.push({
-        userId: usersWithCredentials[index].id,
-        busyTimes: userBusyTimeQuery.data,
-      });
-    }
-    return usersBusyTime;
-  }, [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]);
-}
+    return usersBusyTimesQuery.reduce((usersBusyTime, userBusyTimeQuery, index) => {
+      if (userBusyTimeQuery.success) {
+        usersBusyTime.push({
+          userId: usersWithCredentials[index].id,
+          busyTimes: userBusyTimeQuery.data,
+        });
+      }
+      return usersBusyTime;
+    }, [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]);
+  }
 
-async function getBookingsOfInterval({
-  eventTypeId,
-  users,
-  virtualQueuesData,
-  interval,
-  includeNoShowInRRCalculation,
-  rrTimestampBasis,
-  meetingStartTime,
-}: {
-  eventTypeId: number;
-  users: { id: number; email: string }[];
-  virtualQueuesData: VirtualQueuesDataType | null;
-  interval: RRResetInterval;
-  includeNoShowInRRCalculation: boolean;
-  rrTimestampBasis: RRTimestampBasis;
-  meetingStartTime?: Date;
-}) {
-  const bookingRepo = new BookingRepository(prisma);
-  return await bookingRepo.getAllBookingsForRoundRobin({
-    eventTypeId: eventTypeId,
+  private async getBookingsOfInterval({
+    eventTypeId,
     users,
-    startDate: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
-    endDate: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
     virtualQueuesData,
+    interval,
     includeNoShowInRRCalculation,
     rrTimestampBasis,
-  });
-}
-
-export async function getLuckyUser<
-  T extends PartialUser & {
-    priority?: number | null;
-    weight?: number | null;
-  }
->(getLuckyUserParams: GetLuckyUserParams<T>) {
-  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
-  const service = getLuckyUserService();
-  return service.getLuckyUser(getLuckyUserParams);
-}
-
-type FetchedData = {
-  bookingsOfNotAvailableUsersOfInterval: PartialBooking[];
-  bookingsOfAvailableUsersOfInterval: PartialBooking[];
-  allRRHostsBookingsOfInterval: PartialBooking[];
-  allRRHostsCreatedInInterval: { userId: number; createdAt: Date }[];
-  organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
-  attributeWeights?:
-    | {
-        userId: number;
-        weight: number;
-      }[]
-    | null;
-  virtualQueuesData?: VirtualQueuesDataType | null;
-  oooData: OOODataType;
-};
-
-export function getLuckyUser_requiresDataToBePreFetched<
-  T extends PartialUser & {
-    priority?: number | null;
-    weight?: number | null;
-  }
->({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
-  const {
-    eventType,
-    bookingsOfAvailableUsersOfInterval,
-    bookingsOfNotAvailableUsersOfInterval,
-    allRRHostsBookingsOfInterval,
-    allRRHostsCreatedInInterval,
-    organizersWithLastCreated,
-    oooData,
-  } = getLuckyUserParams;
-
-  // there is only one user
-  if (availableUsers.length === 1) {
-    return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
+    meetingStartTime,
+  }: {
+    eventTypeId: number;
+    users: { id: number; email: string }[];
+    virtualQueuesData: VirtualQueuesDataType | null;
+    interval: RRResetInterval;
+    includeNoShowInRRCalculation: boolean;
+    rrTimestampBasis: RRTimestampBasis;
+    meetingStartTime?: Date;
+  }) {
+    return await this.bookingRepository.getAllBookingsForRoundRobin({
+      eventTypeId: eventTypeId,
+      users,
+      startDate: this.getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
+      endDate: this.getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
+      virtualQueuesData,
+      includeNoShowInRRCalculation,
+      rrTimestampBasis,
+    });
   }
 
-  let usersAndTheirBookingShortfalls: {
-    id: number;
-    bookingShortfall: number;
-    calibration: number;
-    weight: number;
-  }[] = [];
-  if (eventType.isRRWeightsEnabled) {
-    const {
-      remainingUsersAfterWeightFilter,
-      usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
-    } = filterUsersBasedOnWeights({
-      ...getLuckyUserParams,
-      availableUsers,
+  private async fetchAllDataNeededForCalculations<
+    T extends PartialUser & {
+      priority?: number | null;
+      weight?: number | null;
+    }
+  >(getLuckyUserParams: GetLuckyUserParams<T>): Promise<FetchedData> {
+    const startTime = performance.now();
+
+    const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
+    const notAvailableHosts = (function getNotAvailableHosts() {
+      const availableUserIds = new Set(availableUsers.map((user) => user.id));
+      return allRRHosts.reduce(
+        (
+          acc: {
+            id: number;
+            email: string;
+          }[],
+          host
+        ) => {
+          if (!availableUserIds.has(host.user.id)) {
+            acc.push({
+              id: host.user.id,
+              email: host.user.email,
+            });
+          }
+          return acc;
+        },
+        []
+      );
+    })();
+
+    const { attributeWeights, virtualQueuesData } = await this.prepareQueuesAndAttributesData(
+      getLuckyUserParams
+    );
+
+    const interval =
+      eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
+        ? getLuckyUserParams.eventType.team?.rrResetInterval
+        : RRResetInterval.MONTH;
+
+    const rrTimestampBasis =
+      eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrTimestampBasis
+        ? getLuckyUserParams.eventType.team.rrTimestampBasis
+        : RRTimestampBasis.CREATED_AT;
+
+    const intervalStartDate = this.getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime });
+    const intervalEndDate = this.getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime });
+
+    const [
+      userBusyTimesOfInterval,
       bookingsOfAvailableUsersOfInterval,
       bookingsOfNotAvailableUsersOfInterval,
       allRRHostsBookingsOfInterval,
       allRRHostsCreatedInInterval,
-      oooData,
+      organizersWithLastCreated,
+    ] = await Promise.all([
+      this.getCalendarBusyTimesOfInterval(
+        allRRHosts.map((host) => host.user),
+        interval,
+        rrTimestampBasis,
+        meetingStartTime
+      ),
+      this.getBookingsOfInterval({
+        eventTypeId: eventType.id,
+        users: availableUsers.map((user) => {
+          return { id: user.id, email: user.email };
+        }),
+        virtualQueuesData: virtualQueuesData ?? null,
+        interval,
+        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+        rrTimestampBasis,
+        meetingStartTime,
+      }),
+      this.getBookingsOfInterval({
+        eventTypeId: eventType.id,
+        users: notAvailableHosts,
+        virtualQueuesData: virtualQueuesData ?? null,
+        interval,
+        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+        rrTimestampBasis,
+        meetingStartTime,
+      }),
+      this.getBookingsOfInterval({
+        eventTypeId: eventType.id,
+        users: allRRHosts.map((host) => {
+          return { id: host.user.id, email: host.user.email };
+        }),
+        virtualQueuesData: virtualQueuesData ?? null,
+        interval,
+        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+        rrTimestampBasis,
+        meetingStartTime,
+      }),
+      this.hostRepository.findHostsCreatedInInterval({
+        eventTypeId: eventType.id,
+        userIds: allRRHosts.map((host) => host.user.id),
+        startDate: intervalStartDate,
+        endDate: intervalEndDate,
+      }),
+      this.userRepository.findUsersWithLastBooking({
+        userIds: availableUsers.map((user) => user.id),
+        eventTypeId: eventType.id,
+      }),
+    ]);
+
+    const userFullDayBusyTimes = new Map<number, { start: Date; end: Date }[]>();
+
+    userBusyTimesOfInterval.forEach((userBusyTime) => {
+      const fullDayBusyTimes = userBusyTime.busyTimes
+        .filter((busyTime) => {
+          if (!busyTime.timeZone) return false;
+
+          const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
+          let start = new Date(new Date(busyTime.start).getTime() + timezoneOffset);
+          const end = new Date(new Date(busyTime.end).getTime() + timezoneOffset);
+
+          const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
+          if (start < earliestStartTime) start = earliestStartTime;
+
+          return end.getTime() < new Date().getTime() && this.isFullDayEvent(start, end);
+        })
+        .map((busyTime) => ({ start: new Date(busyTime.start), end: new Date(busyTime.end) }));
+
+      userFullDayBusyTimes.set(userBusyTime.userId, fullDayBusyTimes);
     });
-    availableUsers = remainingUsersAfterWeightFilter;
-    usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
+
+    const oooEntries = await this.oooRepository.findOOOEntriesInInterval({
+      userIds: allRRHosts.map((host) => host.user.id),
+      startDate: intervalStartDate,
+      endDate: intervalEndDate,
+    });
+
+    const oooEntriesGroupedByUserId = new Map<number, { start: Date; end: Date }[]>();
+
+    oooEntries.forEach((entry) => {
+      if (!oooEntriesGroupedByUserId.has(entry.userId)) {
+        oooEntriesGroupedByUserId.set(entry.userId, []);
+      }
+      oooEntriesGroupedByUserId.get(entry.userId)!.push({ start: entry.start, end: entry.end });
+    });
+
+    const oooData: { userId: number; oooEntries: { start: Date; end: Date }[] }[] = [];
+
+    userFullDayBusyTimes.forEach((fullDayBusyTimes, userId) => {
+      const oooEntriesForUser = oooEntriesGroupedByUserId.get(userId) || [];
+      const combinedEntries = [...oooEntriesForUser, ...fullDayBusyTimes];
+      const oooEntries = mergeOverlappingRanges(combinedEntries);
+
+      oooData.push({
+        userId,
+        oooEntries,
+      });
+    });
+
+    const endTime = performance.now();
+    log.info(`fetchAllDataNeededForCalculations took ${endTime - startTime}ms`);
+
+    log.debug(
+      "fetchAllDataNeededForCalculations",
+      safeStringify({
+        bookingsOfAvailableUsersOfInterval: bookingsOfAvailableUsersOfInterval.length,
+        bookingsOfNotAvailableUsersOfInterval: bookingsOfNotAvailableUsersOfInterval.length,
+        allRRHostsBookingsOfInterval: allRRHostsBookingsOfInterval.length,
+        allRRHostsCreatedInInterval: allRRHostsCreatedInInterval.length,
+        virtualQueuesData,
+        attributeWeights,
+        oooData,
+      })
+    );
+
+    return {
+      bookingsOfAvailableUsersOfInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
+      organizersWithLastCreated,
+      attributeWeights,
+      virtualQueuesData,
+      oooData,
+    };
   }
 
-  const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-  // No need to round-robin through the only user, return early also.
-  if (highestPriorityUsers.length === 1) {
+  // === Public methods exposed by the service ===
+  public getLuckyUser_requiresDataToBePreFetched<
+    T extends PartialUser & {
+      priority?: number | null;
+      weight?: number | null;
+    }
+  >({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
+    const {
+      eventType,
+      bookingsOfAvailableUsersOfInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
+      organizersWithLastCreated,
+      oooData,
+    } = getLuckyUserParams;
+
+    if (availableUsers.length === 1) {
+      return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
+    }
+
+    let usersAndTheirBookingShortfalls: {
+      id: number;
+      bookingShortfall: number;
+      calibration: number;
+      weight: number;
+    }[] = [];
+    if (eventType.isRRWeightsEnabled) {
+      const {
+        remainingUsersAfterWeightFilter,
+        usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls,
+      } = this.filterUsersBasedOnWeights({
+        ...getLuckyUserParams,
+        availableUsers,
+        bookingsOfAvailableUsersOfInterval,
+        bookingsOfNotAvailableUsersOfInterval,
+        allRRHostsBookingsOfInterval,
+        allRRHostsCreatedInInterval,
+        oooData,
+      });
+      availableUsers = remainingUsersAfterWeightFilter;
+      usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
+    }
+
+    const highestPriorityUsers = this.getUsersWithHighestPriority({ availableUsers });
+    if (highestPriorityUsers.length === 1) {
+      return {
+        luckyUser: highestPriorityUsers[0],
+        usersAndTheirBookingShortfalls,
+      };
+    }
     return {
-      luckyUser: highestPriorityUsers[0],
+      luckyUser: this.leastRecentlyBookedUser({
+        ...getLuckyUserParams,
+        availableUsers: highestPriorityUsers,
+        bookingsOfAvailableUsers: bookingsOfAvailableUsersOfInterval,
+        organizersWithLastCreated,
+      }),
       usersAndTheirBookingShortfalls,
     };
   }
-  // TS is happy.
-  return {
-    luckyUser: leastRecentlyBookedUser({
+
+  public async getLuckyUser<
+    T extends PartialUser & {
+      priority?: number | null;
+      weight?: number | null;
+    }
+  >(getLuckyUserParams: GetLuckyUserParams<T>) {
+    const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
+    const { luckyUser } = this.getLuckyUser_requiresDataToBePreFetched({
       ...getLuckyUserParams,
-      availableUsers: highestPriorityUsers,
-      bookingsOfAvailableUsers: bookingsOfAvailableUsersOfInterval,
+      ...fetchedData,
+    });
+    return luckyUser;
+  }
+
+  public async prepareQueuesAndAttributesData<T extends PartialUser>({
+    eventType,
+    routingFormResponse,
+    allRRHosts,
+  }: Omit<GetLuckyUserParams<T>, "availableUsers">) {
+    let attributeWeights;
+    let virtualQueuesData;
+    const organizationId = eventType.team?.parentId;
+    log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
+    if (routingFormResponse && organizationId) {
+      const routingForm = routingFormResponse?.form;
+      const routes = zodRoutes.parse(routingForm.routes);
+      const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
+
+      if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
+        const attributeIdForWeights = chosenRoute.attributeIdForWeights;
+        if (attributeIdForWeights) {
+          const attributeWithEnabledWeights = await this.attributeRepository.findUniqueWithWeights({
+            teamId: organizationId,
+            attributeId: attributeIdForWeights,
+            isWeightsEnabled: true,
+          });
+
+          if (attributeWithEnabledWeights) {
+            const queueAndAtributeWeightData = await this.getQueueAndAttributeWeightData(
+              allRRHosts,
+              routingFormResponse,
+              attributeWithEnabledWeights as AttributeWithWeights
+            );
+            if (
+              queueAndAtributeWeightData?.averageWeightsHosts &&
+              queueAndAtributeWeightData?.virtualQueuesData
+            ) {
+              attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
+              virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
+            }
+          }
+        }
+      }
+    }
+    return { attributeWeights, virtualQueuesData };
+  }
+
+  public async getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
+    getLuckyUserParams: GetLuckyUserParams<AvailableUser>
+  ) {
+    const { availableUsers, eventType } = getLuckyUserParams;
+
+    const {
+      bookingsOfAvailableUsersOfInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
       organizersWithLastCreated,
-    }),
-    usersAndTheirBookingShortfalls,
-  };
-}
+      attributeWeights,
+      virtualQueuesData,
+      oooData,
+    } = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
 
-function isFullDayEvent(date1: Date, date2: Date) {
-  const MILLISECONDS_IN_A_DAY = 24 * 60 * 60 * 1000;
-  const difference = Math.abs(date1.getTime() - date2.getTime());
+    log.info(
+      "getOrderedListOfLuckyUsers",
+      safeStringify({
+        availableUsers: availableUsers.map((user) => {
+          return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
+        }),
+        bookingsOfAvailableUsersOfInterval,
+        bookingsOfNotAvailableUsersOfInterval,
+        allRRHostsBookingsOfInterval,
+        allRRHostsCreatedInInterval,
+        organizersWithLastCreated,
+      })
+    );
 
-  if (difference % MILLISECONDS_IN_A_DAY === 0) return true;
-}
+    let remainingAvailableUsers = [...availableUsers];
+    let bookingsOfRemainingAvailableUsersOfInterval = [...bookingsOfAvailableUsersOfInterval];
+    const orderedUsersSet = new Set<AvailableUser>();
+    const perUserBookingsCount: Record<number, number> = {};
 
-type AvailableUserBase = PartialUser & {
-  priority: number | null;
-  weight: number | null;
-};
+    const startTime = performance.now();
+    let usersAndTheirBookingShortfalls: {
+      id: number;
+      bookingShortfall: number;
+      calibration: number;
+      weight: number;
+    }[] = [];
+    while (remainingAvailableUsers.length > 0) {
+      const { luckyUser, usersAndTheirBookingShortfalls: _usersAndTheirBookingShortfalls } =
+        this.getLuckyUser_requiresDataToBePreFetched({
+          ...getLuckyUserParams,
+          eventType,
+          availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
+          bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
+          bookingsOfNotAvailableUsersOfInterval,
+          allRRHostsBookingsOfInterval,
+          allRRHostsCreatedInInterval,
+          organizersWithLastCreated,
+          attributeWeights,
+          virtualQueuesData,
+          oooData,
+        });
 
-export async function getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
-  getLuckyUserParams: GetLuckyUserParams<AvailableUser>
-) {
-  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
-  const service = getLuckyUserService();
-  return service.getOrderedListOfLuckyUsers(getLuckyUserParams);
-}
+      if (!usersAndTheirBookingShortfalls.length) {
+        usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
+      }
 
-export async function prepareQueuesAndAttributesData<T extends PartialUser>({
-  eventType,
-  routingFormResponse,
-  allRRHosts,
-}: Omit<GetLuckyUserParams<T>, "availableUsers">) {
-  const { getLuckyUserService } = await import("@calcom/lib/di/containers/LuckyUser");
-  const service = getLuckyUserService();
-  return service.prepareQueuesAndAttributesData({ eventType, routingFormResponse, allRRHosts });
+      if (orderedUsersSet.has(luckyUser)) {
+        throw new Error(
+          `Error building ordered list of lucky users. The lucky user ${luckyUser.email} is already in the set.`
+        );
+      }
+
+      orderedUsersSet.add(luckyUser);
+      perUserBookingsCount[luckyUser.id] = bookingsOfAvailableUsersOfInterval.filter(
+        (booking) => booking.userId === luckyUser.id
+      ).length;
+      remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
+      bookingsOfRemainingAvailableUsersOfInterval = bookingsOfRemainingAvailableUsersOfInterval.filter(
+        (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
+      );
+    }
+
+    const endTime = performance.now();
+    log.info(`getOrderedListOfLuckyUsers took ${endTime - startTime}ms`);
+
+    const bookingShortfalls: Record<number, number> = {};
+    const calibrations: Record<number, number> = {};
+    const weights: Record<number, number> = {};
+
+    usersAndTheirBookingShortfalls.forEach((user) => {
+      bookingShortfalls[user.id] = parseFloat(user.bookingShortfall.toFixed(2));
+      calibrations[user.id] = parseFloat(user.calibration.toFixed(2));
+      weights[user.id] = user.weight;
+    });
+
+    return {
+      users: Array.from(orderedUsersSet),
+      isUsingAttributeWeights: !!attributeWeights && !!virtualQueuesData,
+      perUserData: {
+        bookingsCount: perUserBookingsCount,
+        bookingShortfalls: eventType.isRRWeightsEnabled ? bookingShortfalls : null,
+        calibrations: eventType.isRRWeightsEnabled ? calibrations : null,
+        weights: eventType.isRRWeightsEnabled ? weights : null,
+      },
+    };
+  }
 }
