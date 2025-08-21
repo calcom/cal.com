@@ -14,7 +14,13 @@ const VERCEL_COMMIT_SHA =
 const commitHash = VERCEL_COMMIT_SHA ? `-${VERCEL_COMMIT_SHA.slice(0, 7)}` : "";
 
 export function IconSprites() {
-  return <SVG src={`https://app.cal.com/icons/sprite.svg?v=${CALCOM_VERSION}${commitHash}`} />;
+  const WEBAPP_URL =
+    (typeof process !== "undefined" && process.env && process.env.NEXT_PUBLIC_WEBAPP_URL) || "";
+  // Build URL robustly, avoid double slashes, and default to same-origin when WEBAPP_URL is unset.
+  const base = WEBAPP_URL.replace(/\/+$/, "");
+  const path = "/icons/sprite.svg";
+  const src = `${base}${path}?v=${CALCOM_VERSION}${commitHash}`.replace(/([^:]\/)\/+/g, "$1");
+  return <SVG src={src} />;
 }
 
 export default IconSprites;

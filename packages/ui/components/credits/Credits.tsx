@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { CALCOM_VERSION, COMPANY_NAME, IS_CALCOM, IS_SELF_HOSTED } from "@calcom/lib/constants";
 
 /* eslint-disable prettier/prettier */
+
 /* eslint-disable turbo/no-undeclared-env-vars */
 
 // Use globalThis.process?.env or fallback to empty string for browser safety

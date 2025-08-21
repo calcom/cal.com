@@ -23,9 +23,9 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react(), dts({ insertTypesEntry: true })],
     define: {
-      "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
-      "process.env.NEXT_PUBLIC_CALCOM_VERSION": `"${calcomVersion}"`,
-      "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": `"${vercelCommitSha}"`,
+      "process.env.NEXT_PUBLIC_WEBAPP_URL": JSON.stringify(webAppUrl),
+      "process.env.NEXT_PUBLIC_CALCOM_VERSION": JSON.stringify(calcomVersion),
+      "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": JSON.stringify(vercelCommitSha),
     },
     ssr: {
       noExternal: ["turndown"], // Example if you want to disable SSR for your library
