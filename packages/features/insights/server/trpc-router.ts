@@ -890,7 +890,7 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
-        return await insightsRoutingService.getFailedBookingsByFieldData(input.routingFormId);
+        return await insightsRoutingService.getFailedBookingsByFieldData();
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }

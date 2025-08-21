@@ -90,7 +90,6 @@ export const routingRepositoryBaseInputSchema = z.object({
 });
 
 export const failedBookingsByFieldInputSchema = routingRepositoryBaseInputSchema.extend({
-  routingFormId: z.string().optional(),
   columnFilters: z.array(ZColumnFilter).optional(),
 });
 

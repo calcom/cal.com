@@ -694,9 +694,9 @@ export class InsightsRoutingBaseService {
     )`;
   }
 
-  async getFailedBookingsByFieldData(
-    routingFormId?: string
-  ): Promise<Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>> {
+  async getFailedBookingsByFieldData(): Promise<
+    Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>
+  > {
     const baseConditions = await this.getBaseConditions();
 
     const result = await this.prisma.$queryRaw<
@@ -722,7 +722,6 @@ export class InsightsRoutingBaseService {
         LATERAL jsonb_array_elements(f.fields) as field
         LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
         WHERE ${baseConditions}
-        ${routingFormId ? Prisma.sql`AND f.id = ${routingFormId}` : Prisma.empty}
       ),
       response_stats AS (
         SELECT
