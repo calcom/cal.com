@@ -17,6 +17,7 @@ import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
 
 // Custom Tooltip component
@@ -131,12 +132,10 @@ function FormCard({ formName, fields }: FormCardProps) {
 
 export function FailedBookingsByField() {
   const { t } = useLocale();
-  const { scope, selectedTeamId, startDate, endDate, routingFormId } = useInsightsParameters();
+  const insightsRoutingParams = useInsightsRoutingParameters();
+  const { routingFormId } = useInsightsParameters();
   const { data } = trpc.viewer.insights.failedBookingsByField.useQuery({
-    scope,
-    selectedTeamId,
-    startDate,
-    endDate,
+    ...insightsRoutingParams,
     routingFormId,
   });
 
