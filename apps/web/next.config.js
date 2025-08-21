@@ -183,6 +183,8 @@ const nextConfig = {
     "jose", // Dependency of @boxyhq/saml-jackson
   ],
   experimental: {
+    // Enable persistent caching for Turbopack in development
+    turbopackPersistentCaching: process.env.NODE_ENV === "development",
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
   },
