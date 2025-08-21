@@ -14,7 +14,9 @@ import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
 import { OrganizationBanner } from "./OrganizationBanner";
 import { SheetFooterControls } from "./SheetFooterControls";
+import { UserBookingLimitsDisplay } from "./UserBookingLimitsDisplay";
 import { useEditMode } from "./store";
+import { validateBookingLimits } from "./utils";
 
 function removeProtocol(url: string) {
   return url.replace(/^(https?:\/\/)/, "");
@@ -50,6 +52,14 @@ export function EditUserSheet({
         enabled: !!selectedUser?.id,
       }
     );
+
+  // Add organization membership check
+  const { data: session } = trpc.viewer.me.get.useQuery();
+  const org = session?.organization;
+
+  // Check if current user belongs to an organization and is admin/owner
+  const belongsToOrg = !!org?.id;
+  const isOrgAdminOrOwner = belongsToOrg && session?.isTeamAdminOrOwner;
 
   const avatarURL = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}/avatar.png`;
 
@@ -126,6 +136,15 @@ export function EditUserSheet({
                           </>
                         ))}
                       </div>
+                    </div>
+                  )}
+                  {isOrgAdminOrOwner && (
+                    <div className="mt-4 flex flex-col">
+                      <UserBookingLimitsDisplay
+                        bookingLimits={
+                          validateBookingLimits(loadedUser?.teams?.[0]?.bookingLimits) || undefined
+                        }
+                      />
                     </div>
                   )}
                 </SheetBody>

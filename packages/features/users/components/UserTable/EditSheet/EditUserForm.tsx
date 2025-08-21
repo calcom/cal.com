@@ -6,9 +6,11 @@ import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -29,6 +31,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
+import { validateBookingLimits } from "./utils";
 
 interface MembershipOption {
   value: MembershipRole | string;
@@ -62,6 +65,7 @@ const editSchema = z.object({
   role: z.union([z.nativeEnum(MembershipRole), z.string()]),
   timeZone: timeZoneSchema,
   attributes: z.array(attributeSchema).optional(),
+  bookingLimits: intervalLimitsType.optional(),
 });
 
 type EditSchema = z.infer<typeof editSchema>;
@@ -93,10 +97,15 @@ export function EditForm({
       bio: selectedUser?.bio ?? "",
       role: selectedUser?.role ?? "",
       timeZone: selectedUser?.timeZone ?? "",
+      bookingLimits: validateBookingLimits(selectedUser?.teams?.[0]?.bookingLimits) || {},
     },
   });
 
+  // Check if current user belongs to an organization and is admin/owner
+  const belongsToOrg = !!org?.id;
   const isOwner = org?.role === MembershipRole.OWNER;
+  const isAdmin = org?.role === MembershipRole.ADMIN;
+  const isOrgAdminOrOwner = belongsToOrg && (isOwner || isAdmin);
 
   const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
     // @ts-expect-error this query is only ran when we have an orgId so can ignore this
@@ -162,6 +171,17 @@ export function EditForm({
     },
   });
 
+  const updateBookingLimitsMutation = trpc.viewer.organizations.updateMembershipBookingLimits.useMutation({
+    onSuccess: () => {
+      utils.viewer.organizations.getUser.invalidate({ userId: selectedUser?.id });
+      utils.viewer.organizations.listMembers.invalidate();
+      showToast(t("booking_limits_updated_successfully"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const watchTimezone = form.watch("timeZone");
 
   return (
@@ -185,6 +205,17 @@ export function EditForm({
               ? { userId: selectedUser?.id ?? "", attributes: values.attributes }
               : undefined,
           });
+          if (isOrgAdminOrOwner && values.bookingLimits && Object.keys(values.bookingLimits).length > 0) {
+            // Find the organization team (parent team)
+            const orgTeam = selectedUser?.teams?.find((team) => !team.parentId);
+            if (orgTeam) {
+              updateBookingLimitsMutation.mutate({
+                userId: selectedUser?.id ?? 0,
+                teamId: orgTeam.id,
+                bookingLimits: values.bookingLimits,
+              });
+            }
+          }
           setEditMode(false);
         }}>
         <SheetHeader>
@@ -251,6 +282,42 @@ export function EditForm({
           </div>
           <Divider />
           <AttributesList selectedUserId={selectedUser?.id} />
+          {isOrgAdminOrOwner && (
+            <>
+              <Divider />
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <h3 className="text-emphasis mb-1 text-base font-semibold">{t("booking_limits")}</h3>
+                  <p className="text-subtle text-sm">{t("booking_limits_description")}</p>
+                </div>
+                <Controller
+                  name="bookingLimits"
+                  render={({ field: { value } }) => {
+                    const hasLimits = Object.keys(value ?? {}).length > 0;
+
+                    return (
+                      <div>
+                        {!hasLimits && (
+                          <Button
+                            color="minimal"
+                            StartIcon="plus"
+                            onClick={() => {
+                              form.setValue("bookingLimits", { PER_DAY: 1 });
+                            }}>
+                            {t("add_limit")}
+                          </Button>
+                        )}
+
+                        {hasLimits && (
+                          <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+            </>
+          )}
         </SheetBody>
         <SheetFooter>
           <Button
