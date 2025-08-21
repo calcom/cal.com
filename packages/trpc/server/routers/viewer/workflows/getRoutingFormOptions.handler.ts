@@ -26,56 +26,53 @@ export const getRoutingFormOptionsHandler = async ({ ctx, input }: GetRoutingFor
   const user = ctx.user;
   const teamId = input?.teamId;
 
-  // Get all routing forms that the user has access to
-  //todo: review this query
-  const routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
-    where: {
-      OR: [
-        // Forms owned by user
-        {
-          userId: user.id,
-          teamId: teamId || null,
+  // Get routing forms that the user has access to
+  let routingForms;
+
+  if (teamId) {
+    // For team workflows: show forms from that specific team
+    routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
+      where: {
+        teamId: teamId,
+        team: {
+          members: {
+            some: {
+              userId: user.id,
+              accepted: true,
+            },
+          },
         },
-        // Forms in teams where user is a member
-        ...(teamId
-          ? [
-              {
-                teamId: teamId,
-                team: {
-                  members: {
-                    some: {
-                      userId: user.id,
-                      accepted: true,
-                    },
-                  },
-                },
-              },
-            ]
-          : [
-              {
-                team: {
-                  members: {
-                    some: {
-                      userId: user.id,
-                      accepted: true,
-                    },
-                  },
-                },
-              },
-            ]),
-      ],
-    },
-    select: {
-      id: true,
-      name: true,
-      disabled: true,
-    },
-    orderBy: [
-      {
-        name: "asc",
       },
-    ],
-  });
+      select: {
+        id: true,
+        name: true,
+        disabled: true,
+      },
+      orderBy: [
+        {
+          name: "asc",
+        },
+      ],
+    });
+  } else {
+    // For user workflows: show only personal forms (not team forms)
+    routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
+      where: {
+        userId: user.id,
+        teamId: null, // Only personal forms, not team forms
+      },
+      select: {
+        id: true,
+        name: true,
+        disabled: true,
+      },
+      orderBy: [
+        {
+          name: "asc",
+        },
+      ],
+    });
+  }
 
   const routingFormOptions: Option[] = routingForms
     .filter((form) => !form.disabled)

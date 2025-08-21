@@ -156,10 +156,13 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
           });
           setSelectedOptions(activeOn || []);
         } else if (isFormTrigger(workflowData.trigger)) {
-          // Handle routing forms - for now, empty as we're adding new functionality
-          // TODO: When activeOnRoutingForms data is available, populate here
-          setSelectedOptions([]);
-          activeOn = [];
+          activeOn = workflowData.activeOnRoutingForms?.flatMap((active) => {
+            return {
+              value: String(active.routingForm.id) || "",
+              label: active.routingForm.name || "",
+            };
+          });
+          setSelectedOptions(activeOn || []);
         } else {
           setSelectedOptions(
             workflowData.activeOn?.flatMap((active) => {

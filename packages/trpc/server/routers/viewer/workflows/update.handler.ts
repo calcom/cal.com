@@ -1,4 +1,5 @@
 import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isFormTrigger } from "@calcom/features/ee/workflows/lib/variableTranslations";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
@@ -62,6 +63,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       steps: true,
       activeOn: true,
       activeOnTeams: true,
+      activeOnRoutingForms: true,
     },
   });
 
@@ -103,7 +105,98 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let oldActiveOnIds: number[] = [];
 
-  if (!isOrg) {
+  if (isFormTrigger(trigger)) {
+    // activeOn are routing form ids
+    activeOnWithChildren = activeOn;
+
+    let oldActiveOnRoutingForms: string[];
+    if (userWorkflow.isActiveOnAll) {
+      // todo: check if this is correct
+      // Get all routing forms the user has access to when isActiveOnAll was true
+      oldActiveOnRoutingForms = (
+        await ctx.prisma.app_RoutingForms_Form.findMany({
+          where: {
+            OR: [
+              {
+                userId: userWorkflow.userId,
+                teamId: userWorkflow.teamId,
+              },
+              ...(userWorkflow.teamId
+                ? [
+                    {
+                      teamId: userWorkflow.teamId,
+                      team: {
+                        members: {
+                          some: {
+                            userId: user.id,
+                            accepted: true,
+                          },
+                        },
+                      },
+                    },
+                  ]
+                : [
+                    {
+                      team: {
+                        members: {
+                          some: {
+                            userId: user.id,
+                            accepted: true,
+                          },
+                        },
+                      },
+                    },
+                  ]),
+            ],
+          },
+          select: {
+            id: true,
+          },
+        })
+      ).map((form) => form.id);
+    } else {
+      oldActiveOnRoutingForms = (
+        await ctx.prisma.workflowsOnRoutingForms.findMany({
+          where: {
+            workflowId: id,
+          },
+          select: {
+            routingFormId: true,
+          },
+        })
+      ).map((routingFormRel) => routingFormRel.routingFormId);
+    }
+
+    oldActiveOnIds = oldActiveOnRoutingForms.map((formId) => parseInt(formId, 10));
+
+    newActiveOn = activeOn.filter((routingFormId) => !oldActiveOnIds.includes(routingFormId));
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
+      newActiveOn,
+      isOrg,
+      userWorkflow?.teamId,
+      userWorkflow?.userId,
+      true // isRoutingForms
+    );
+
+    if (!isAuthorizedToAddIds) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    // Update active routing forms relationships
+    await ctx.prisma.workflowsOnRoutingForms.deleteMany({
+      where: {
+        workflowId: id,
+      },
+    });
+
+    // Create new workflow - routing forms relationships
+    await ctx.prisma.workflowsOnRoutingForms.createMany({
+      data: activeOnWithChildren.map((routingFormId) => ({
+        workflowId: id,
+        routingFormId: String(routingFormId),
+      })),
+    });
+  } else if (!isOrg) {
     // activeOn are event types ids
     const activeOnEventTypes = await ctx.prisma.eventType.findMany({
       where: {
@@ -267,37 +360,44 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  if (userWorkflow.trigger !== trigger || userWorkflow.time !== time || userWorkflow.timeUnit !== timeUnit) {
-    //if trigger changed, delete all reminders from steps before change
-    await deleteRemindersOfActiveOnIds({
-      removedActiveOnIds: oldActiveOnIds,
-      workflowSteps: userWorkflow.steps,
-      isOrg,
-    });
+  // Only schedule reminders for event-based triggers, not form triggers
+  if (!isFormTrigger(trigger)) {
+    if (
+      userWorkflow.trigger !== trigger ||
+      userWorkflow.time !== time ||
+      userWorkflow.timeUnit !== timeUnit
+    ) {
+      //if trigger changed, delete all reminders from steps before change
+      await deleteRemindersOfActiveOnIds({
+        removedActiveOnIds: oldActiveOnIds,
+        workflowSteps: userWorkflow.steps,
+        isOrg,
+      });
 
-    await scheduleWorkflowNotifications({
-      activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
-      isOrg,
-      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-      time,
-      timeUnit,
-      trigger,
-      userId: user.id,
-      teamId: userWorkflow.teamId,
-    });
-  } else {
-    // if trigger didn't change, only schedule reminders for all new activeOn
-    await scheduleWorkflowNotifications({
-      activeOn: newActiveOn,
-      isOrg,
-      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-      time,
-      timeUnit,
-      trigger,
-      userId: user.id,
-      teamId: userWorkflow.teamId,
-      alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
-    });
+      await scheduleWorkflowNotifications({
+        activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
+        isOrg,
+        workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+        time,
+        timeUnit,
+        trigger,
+        userId: user.id,
+        teamId: userWorkflow.teamId,
+      });
+    } else {
+      // if trigger didn't change, only schedule reminders for all new activeOn
+      await scheduleWorkflowNotifications({
+        activeOn: newActiveOn,
+        isOrg,
+        workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+        time,
+        timeUnit,
+        trigger,
+        userId: user.id,
+        teamId: userWorkflow.teamId,
+        alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+      });
+    }
   }
 
   // handle deleted and edited workflow steps
@@ -410,8 +510,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           userId: ctx.user.id,
           createdAt: new Date().toISOString(),
         });
-      } else {
-        // schedule notifications for edited steps
+      } else if (!isFormTrigger(trigger)) {
+        // schedule notifications for edited steps (only for event-based triggers)
         await scheduleWorkflowNotifications({
           activeOn,
           isOrg,
@@ -477,6 +577,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           data: {
             ...step,
             numberVerificationPending: false,
+            workflowId: id,
             ...(!SCANNING_WORKFLOW_STEPS ? { verifiedAt: new Date() } : {}),
           },
         })
@@ -493,8 +594,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           })
         )
       );
-    } else {
-      // schedule notification for new step
+    } else if (!isFormTrigger(trigger)) {
+      // schedule notification for new step (only for event-based triggers)
       await scheduleWorkflowNotifications({
         activeOn,
         isOrg,
@@ -537,6 +638,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           team: true,
         },
       },
+      activeOnRoutingForms: {
+        select: {
+          routingForm: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
       team: {
         select: {
           id: true,
@@ -554,37 +665,39 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  // Remove or add booking field for sms reminder number
-  const smsReminderNumberNeeded =
-    activeOn.length &&
-    steps.some(
-      (step) =>
-        step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
-    );
-  await removeSmsReminderFieldForEventTypes({
-    activeOnToRemove: removedActiveOnIds,
-    workflowId: id,
-    isOrg,
-    activeOn,
-  });
-
-  if (!smsReminderNumberNeeded) {
+  // Remove or add booking field for sms reminder number (only for event types, not routing forms)
+  if (!isFormTrigger(trigger)) {
+    const smsReminderNumberNeeded =
+      activeOn.length &&
+      steps.some(
+        (step) =>
+          step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
+      );
     await removeSmsReminderFieldForEventTypes({
-      activeOnToRemove: activeOnWithChildren,
+      activeOnToRemove: removedActiveOnIds,
       workflowId: id,
       isOrg,
+      activeOn,
     });
-  } else {
-    await upsertSmsReminderFieldForEventTypes({
-      activeOn: activeOnWithChildren,
-      workflowId: id,
-      isSmsReminderNumberRequired: steps.some(
-        (s) =>
-          (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
-          s.numberRequired
-      ),
-      isOrg,
-    });
+
+    if (!smsReminderNumberNeeded) {
+      await removeSmsReminderFieldForEventTypes({
+        activeOnToRemove: activeOnWithChildren,
+        workflowId: id,
+        isOrg,
+      });
+    } else {
+      await upsertSmsReminderFieldForEventTypes({
+        activeOn: activeOnWithChildren,
+        workflowId: id,
+        isSmsReminderNumberRequired: steps.some(
+          (s) =>
+            (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+            s.numberRequired
+        ),
+        isOrg,
+      });
+    }
   }
 
   return {
