@@ -27,14 +27,13 @@ import { z } from "zod";
 import {
   getTranslation,
   getAllUserBookings,
-  handleInstantMeeting,
   handleCancelBooking,
   roundRobinReassignment,
   roundRobinManualReassignment,
   handleMarkNoShow,
   confirmBookingHandler,
   getCalendarLinks,
-  getBookingCreateService,
+  getBookingFactory,
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
@@ -375,7 +374,10 @@ export class BookingsService_2024_08_13 {
     }
 
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
-    const booking = await handleInstantMeeting(bookingRequest);
+    const bookingFactory = getBookingFactory();
+    const booking = await bookingFactory.createInstantBooking({
+      bookingData: bookingRequest.body,
+    });
 
     const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(
       booking.bookingId
@@ -393,8 +395,8 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
-    const bookingService = getBookingCreateService();
-    const bookings = await bookingService.createRecurringBooking({
+    const bookingFactory = getBookingFactory();
+    const bookings = await bookingFactory.createRecurringBooking({
       bookingData: bookingRequest.body,
       bookingMeta: {
         userId: bookingRequest.userId,
@@ -406,7 +408,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
-      }
+      },
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -418,8 +420,8 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
-    const bookingService = getBookingCreateService();
-    const bookings = await bookingService.createRecurringBooking({
+    const bookingFactory = getBookingFactory();
+    const bookings = await bookingFactory.createRecurringBooking({
       bookingData: bookingRequest.body,
       bookingMeta: {
         userId: bookingRequest.userId,
@@ -443,8 +445,8 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
-    const bookingCreateService = getBookingCreateService();
-    const booking = await bookingCreateService.createBooking({
+    const bookingFactory = getBookingFactory();
+    const booking = await bookingFactory.createBooking({
       bookingData: {
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
@@ -477,8 +479,8 @@ export class BookingsService_2024_08_13 {
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     try {
-      const bookingCreateService = getBookingCreateService();
-      const booking = await bookingCreateService.createSeatedBooking({
+      const bookingFactory = getBookingFactory();
+      const booking = await bookingFactory.createSeatedBooking({
         bookingData: {
           bookingData: bookingRequest.body,
           userId: bookingRequest.userId,
@@ -658,8 +660,8 @@ export class BookingsService_2024_08_13 {
         bookingUid,
         body
       );
-      const bookingCreateService = getBookingCreateService();
-      const booking = await bookingCreateService.createBooking({
+      const bookingFactory = getBookingFactory();
+      const booking = await bookingFactory.createBooking({
         bookingData: {
           bookingData: bookingRequest.body,
           userId: bookingRequest.userId,

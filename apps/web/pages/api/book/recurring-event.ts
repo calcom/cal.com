@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
+import { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
@@ -43,8 +43,8 @@ async function handler(req: NextApiRequest & RequestMeta) {
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 
-  const bookingService = getBookingCreateService();
-  const createdBookings: BookingResponse[] = await bookingService.createRecurringBooking({
+  const bookingFactory = getBookingFactory();
+  const createdBookings: BookingResponse[] = await bookingFactory.createRecurringBooking({
     bookingData: req.body,
     bookingMeta: {
       userId: session?.user?.id || -1,

@@ -48,14 +48,14 @@ import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-co
 import {
   BookingResponse,
   HttpError,
-  handleInstantMeeting,
   handleMarkNoShow,
   getAllUserBookings,
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
   ErrorCode,
-  getBookingCreateService,
+  getBookingFactory,
+  type CreateInstantBookingResponse,
 } from "@calcom/platform-libraries";
 import {
   GetBookingsInput_2024_04_15,
@@ -186,8 +186,8 @@ export class BookingsController_2024_04_15 {
     const { orgSlug, locationUrl } = body;
     try {
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
-      const bookingService = getBookingCreateService();
-      const booking = await bookingService.create({
+      const bookingFactory = getBookingFactory();
+      const booking = await bookingFactory.createBooking({
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
         hostname: bookingRequest.headers?.host || "",
@@ -315,8 +315,8 @@ export class BookingsController_2024_04_15 {
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
 
-      const bookingService = getBookingCreateService();
-      const createdBookings: BookingResponse[] = await bookingService.createRecurringBooking({
+      const bookingFactory = getBookingFactory();
+      const createdBookings: BookingResponse[] = await bookingFactory.createRecurringBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
           userId: bookingRequest.userId,
@@ -354,14 +354,16 @@ export class BookingsController_2024_04_15 {
     @Body() body: CreateBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
-  ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
+  ): Promise<ApiResponse<CreateInstantBookingResponse>> {
     const oAuthClientId =
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
-      const instantMeeting = await handleInstantMeeting(
-        await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
-      );
+      const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+      const bookingFactory = getBookingFactory();
+      const instantMeeting = await bookingFactory.createInstantBooking({
+        bookingData: bookingRequest.body,
+      });
 
       if (instantMeeting.userId && instantMeeting.bookingUid) {
         const now = new Date();

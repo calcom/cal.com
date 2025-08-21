@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import dayjs from "@calcom/dayjs";
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import type { CreateBookingResponse, RecurringBookingResponse } from "@calcom/features/bookings/lib";
+import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
@@ -58,7 +58,7 @@ export function getNewSearchParams(args: {
 }
 
 type SuccessRedirectBookingType = Pick<
-  CreateBookingResponse | RecurringBookingResponse | PaymentPageProps["booking"],
+  BookingResponse | PaymentPageProps["booking"],
   "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "attendees" | "user" | "responses"
 >;
 
@@ -107,10 +107,8 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 
   // Helper function to extract user details (e.g., host name and time zone)
   function extractUserDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
-    if (booking.user && 'name' in booking.user && booking.user.name) {
-      const hostStartTime = dayjs(booking.startTime).tz(
-        'timeZone' in booking.user && booking.user.timeZone ? booking.user.timeZone : 'UTC'
-      ).format();
+    if (booking.user?.name) {
+      const hostStartTime = dayjs(booking.startTime).tz(booking.user.timeZone).format();
       return {
         ...obj,
         hostName: [...(obj.hostName || []), booking.user.name],

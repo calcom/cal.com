@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
+import { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
@@ -31,8 +31,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     creationSource: CreationSource.WEBAPP,
   };
 
-  const bookingCreateService = getBookingCreateService();
-  const booking = await bookingCreateService.create({
+  const bookingFactory = getBookingFactory();
+  const booking = await bookingFactory.createBooking({
     bookingData: req.body,
     bookingMeta: {
       userId: session?.user?.id || -1,

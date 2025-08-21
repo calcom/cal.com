@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
-import { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
+import { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -239,12 +239,12 @@ async function handler(req: NextApiRequest) {
   }
 
   try {
-    const bookingCreateService = getBookingCreateService();
+    const bookingFactory = getBookingFactory();
 
     // Use the service with schema validation support
-    return await bookingCreateService.create({
-      bookingData: {
-        bookingData: req.body,
+    return await bookingFactory.createBooking({
+      bookingData: req.body,
+      bookingMeta: {
         userId,
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,

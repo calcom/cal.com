@@ -54,6 +54,7 @@ export type CreateBookingMeta = {
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
+  noEmail?: boolean;
 } & PlatformParams;
 
 export type BookingHandlerInput = {
@@ -68,6 +69,13 @@ export type RecurringBookingHandlerInput = {
   bookingData: (ExtendedBookingCreateData & {
     schedulingType?: SchedulingType;
   })[];
-} & CreateBookingMeta & {
-    noEmail?: boolean;
-  };
+} & CreateBookingMeta;
+
+export type CreateInstantBookingResponse = {
+  message: string;
+  meetingTokenId: number;
+  bookingId: number;
+  bookingUid: string;
+  expires: Date;
+  userId: number | null;
+};
