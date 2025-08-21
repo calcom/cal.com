@@ -39,7 +39,7 @@ export const convertSvgToPng = async (data: string) => {
 
 /**
  * Detect content type from image buffer.
- * Simplified version of Next.js image optimizer's detectContentType function.
+ * Simplified version of Next.js image optimizer's detectContentType function (https://github.com/vercel/next.js/blob/9436dce61f1a3ff9478261dc2eba47e0527acf3d/packages/next/src/server/image-optimizer.ts#L160).
  * Supports common web image formats (JPEG, PNG, GIF, WEBP, AVIF, SVG) and drops
  * irrelevant formats like PDF, ICO, TIFF, etc. that aren't used for logos.
  */
@@ -93,7 +93,7 @@ export async function detectContentType(buffer: Buffer): Promise<string | null> 
 
 /**
  * Resize an image buffer while preserving the original format.
- * Simplified version of Next.js image optimizer's optimizeImage function.
+ * Simplified version of Next.js image optimizer's optimizeImage function (https://github.com/vercel/next.js/blob/9436dce61f1a3ff9478261dc2eba47e0527acf3d/packages/next/src/server/image-optimizer.ts#L640).
  * Supports common web image formats (JPEG, PNG, WEBP, AVIF) with format-specific
  * optimization settings. Drops advanced options like limitInputPixels, sequentialRead,
  * and timeout that aren't needed for logo processing. Uses failOnError: false for
