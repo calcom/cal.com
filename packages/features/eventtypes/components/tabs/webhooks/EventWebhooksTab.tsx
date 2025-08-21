@@ -226,7 +226,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 noRoutingFormTriggers={true}
                 onSubmit={onCreateWebhook}
                 onCancel={() => setCreateModalOpen(false)}
-                apps={installedApps?.items.map((app) => app.slug)}
+                apps={[...installedApps?.items.map((app) => app.slug), "cal-video"]}
+                enableCalVideoTriggers={true}
               />
             </DialogContent>
           </Dialog>
@@ -236,7 +237,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
               <WebhookForm
                 noRoutingFormTriggers={true}
                 webhook={webhookToEdit}
-                apps={installedApps?.items.map((app) => app.slug)}
+                apps={[...installedApps?.items.map((app) => app.slug), "cal-video"]}
+                enableCalVideoTriggers={true}
                 onCancel={() => setEditModalOpen(false)}
                 onSubmit={(values: WebhookFormSubmitData) => {
                   if (

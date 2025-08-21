@@ -64,6 +64,151 @@ export interface DailyVideoCallData {
   url: string;
 }
 
+class CalVideoManager {
+  async handleVideoSessionStarted(sessionId: string, bookingId: number) {
+    try {
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          eventType: true,
+          user: true,
+          attendees: true,
+        },
+      });
+
+      if (!booking) {
+        console.warn(`Booking not found for ID: ${bookingId}`);
+        return;
+      }
+
+      const participants = await this.getSessionParticipants(sessionId);
+
+      await CalVideoWebhookService.triggerVideoStarted({
+        booking,
+        videoSessionId: sessionId,
+        participants,
+      });
+    } catch (error) {
+      console.error("Error triggering video started webhook:", error);
+    }
+  }
+
+  async handleVideoSessionEnded(sessionId: string, bookingId: number, duration: number) {
+    try {
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          eventType: true,
+          user: true,
+          attendees: true,
+        },
+      });
+
+      if (!booking) {
+        console.warn(`Booking not found for ID: ${bookingId}`);
+        return;
+      }
+
+      const participants = await this.getSessionParticipants(sessionId);
+      const videoQuality = await this.getSessionQuality(sessionId);
+
+      await CalVideoWebhookService.triggerVideoEnded({
+        booking,
+        videoSessionId: sessionId,
+        participants,
+        duration,
+        videoQuality,
+      });
+    } catch (error) {
+      console.error("Error triggering video ended webhook:", error);
+    }
+  }
+
+  async handleRecordingStarted(sessionId: string, bookingId: number) {
+    try {
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          eventType: true,
+          user: true,
+          attendees: true,
+        },
+      });
+
+      if (!booking) return;
+
+      const participants = await this.getSessionParticipants(sessionId);
+
+      await CalVideoWebhookService.triggerRecordingStarted({
+        booking,
+        videoSessionId: sessionId,
+        participants,
+      });
+    } catch (error) {
+      console.error("Error triggering recording started webhook:", error);
+    }
+  }
+
+  async handleRecordingReady(sessionId: string, bookingId: number, recordingUrl: string) {
+    try {
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          eventType: true,
+          user: true,
+          attendees: true,
+        },
+      });
+
+      if (!booking) return;
+
+      const participants = await this.getSessionParticipants(sessionId);
+
+      await CalVideoWebhookService.triggerRecordingReady({
+        booking,
+        videoSessionId: sessionId,
+        participants,
+        recordingUrl,
+      });
+    } catch (error) {
+      console.error("Error triggering recording ready webhook:", error);
+    }
+  }
+
+  private async getSessionParticipants(sessionId: string) {
+    try {
+      const sessionInfo = await fetcher(`/meetings?room=${encodeURIComponent(sessionId)}`).then(
+        getMeetingInformationResponseSchema.parse
+      );
+
+      if (!sessionInfo.data.length) return [];
+
+      const session = sessionInfo.data[0];
+      return session.participants.map((participant) => ({
+        id: participant.participant_id,
+        name: participant.user_name || "Unknown",
+        email: "",
+        joinedAt: new Date(participant.join_time * 1000),
+        leftAt: participant.duration
+          ? new Date((participant.join_time + participant.duration) * 1000)
+          : undefined,
+      }));
+    } catch (error) {
+      console.error("Error getting session participants:", error);
+      return [];
+    }
+  }
+
+  private async getSessionQuality(sessionId: string) {
+    return {
+      resolution: "1080p",
+      connectionQuality: "good" as const,
+    };
+  }
+}
+
+const calVideoManager = new CalVideoManager();
+
 // Regions available to create DailyVideo Rooms in.
 const REGION_CODES = [
   "af-south-1",
@@ -528,13 +673,92 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         const res = await fetcher(`/meetings?room=${encodeURIComponent(roomName)}`).then(
           getMeetingInformationResponseSchema.parse
         );
+
+        if (res.data.length > 0) {
+          const session = res.data[0];
+
+          const bookingId = await getBookingIdFromRoomName(roomName);
+
+          if (bookingId) {
+            if (session.ongoing && session.participants.length > 0) {
+              const latestJoinTime = Math.max(...session.participants.map((p) => p.join_time));
+              const timeSinceJoin = Date.now() / 1000 - latestJoinTime;
+
+              if (timeSinceJoin < 30) {
+                await calVideoManager.handleVideoSessionStarted(session.id, bookingId);
+              }
+            }
+
+            if (!session.ongoing && session.duration > 0) {
+              await calVideoManager.handleVideoSessionEnded(session.id, bookingId, session.duration / 60);
+            }
+          }
+        }
+
         return res;
       } catch (err) {
         console.error("err", err);
         throw new Error("Something went wrong! Unable to get meeting information");
       }
     },
+
+    getRecordings: async (roomName: string): Promise<GetRecordingsResponseSchema> => {
+      try {
+        const res = await fetcher(`/recordings?room_name=${roomName}`).then(
+          getRecordingsResponseSchema.parse
+        );
+
+        if (res.data && res.data.length > 0) {
+          const bookingId = await getBookingIdFromRoomName(roomName);
+
+          if (bookingId) {
+            for (const recording of res.data) {
+              if (recording.status === "finished" && recording.download_link) {
+                const sessionId = recording.session_id || roomName;
+                await calVideoManager.handleRecordingReady(sessionId, bookingId, recording.download_link);
+              }
+            }
+          }
+        }
+
+        return Promise.resolve(res);
+      } catch (err) {
+        throw new Error("Something went wrong! Unable to get recording");
+      }
+    },
+
+    triggerVideoStartedWebhook: async (sessionId: string, bookingId: number) => {
+      await calVideoManager.handleVideoSessionStarted(sessionId, bookingId);
+    },
+
+    triggerVideoEndedWebhook: async (sessionId: string, bookingId: number, duration: number) => {
+      await calVideoManager.handleVideoSessionEnded(sessionId, bookingId, duration);
+    },
+
+    triggerRecordingStartedWebhook: async (sessionId: string, bookingId: number) => {
+      await calVideoManager.handleRecordingStarted(sessionId, bookingId);
+    },
+
+    triggerRecordingReadyWebhook: async (sessionId: string, bookingId: number, recordingUrl: string) => {
+      await calVideoManager.handleRecordingReady(sessionId, bookingId, recordingUrl);
+    },
   };
 };
+
+async function getBookingIdFromRoomName(roomName: string): Promise<number | null> {
+  try {
+    const bookingReference = await prisma.bookingReference.findFirst({
+      where: {
+        uid: roomName,
+        type: "daily_video",
+      },
+    });
+
+    return bookingReference?.bookingId || null;
+  } catch (error) {
+    console.error("Error getting booking ID from room name:", error);
+    return null;
+  }
+}
 
 export default DailyVideoApiAdapter;
