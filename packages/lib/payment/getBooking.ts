@@ -157,6 +157,8 @@ export async function getBooking(bookingId: number) {
       email: booking?.userPrimaryEmail ?? user.email,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: user.name!,
+      username: user.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: t, locale: user.locale ?? "en" },
