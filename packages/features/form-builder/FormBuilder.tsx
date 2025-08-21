@@ -31,7 +31,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
+import { type fieldsSchema, excludeOrRequireEmailSchema, type FieldType } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -123,6 +123,23 @@ export const FormBuilder = function FormBuilder({
 
   const removeField = (index: number) => {
     remove(index);
+  };
+
+  const getLocationFieldType = (field: RhfFormField) => {
+    const baseFieldType = fieldTypesConfigMap[field.type];
+
+    if (field.type === "radioInput" && field.name === "location" && field.getOptionsAt === "locations") {
+      return { label: "Location", value: "location" as FieldType };
+    }
+
+    return baseFieldType;
+  };
+
+  const getLocationFieldPlaceholder = (field: RhfFormField, defaultPlaceholder: string) => {
+    if (field.type === "radioInput" && field.name === "location" && field.getOptionsAt === "locations") {
+      return "Location";
+    }
+    return defaultPlaceholder;
   };
 
   return (
@@ -227,31 +244,7 @@ export const FormBuilder = function FormBuilder({
               return null;
             }
 
-            const fieldType = (() => {
-              const baseFieldType = fieldTypesConfigMap[field.type];
-
-              if (
-                field.type === "radioInput" &&
-                field.name === "location" &&
-                field.getOptionsAt === "locations"
-              ) {
-                const locationOptions = options || [];
-
-                // If there's only one location option, show its specific input type
-                if (locationOptions.length === 1) {
-                  const singleLocationValue = locationOptions[0].value;
-                  const optionInput = field.optionsInputs?.[singleLocationValue];
-                  if (optionInput?.type) {
-                    return (
-                      fieldTypesConfigMap[optionInput.type as keyof typeof fieldTypesConfigMap] ||
-                      baseFieldType
-                    );
-                  }
-                }
-              }
-
-              return baseFieldType;
-            })();
+            const fieldType = getLocationFieldType(field);
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -377,6 +370,8 @@ export const FormBuilder = function FormBuilder({
         <FieldEditDialog
           dialog={fieldDialog}
           dataStore={dataStore}
+          getLocationFieldType={getLocationFieldType}
+          getLocationFieldPlaceholder={getLocationFieldPlaceholder}
           onOpenChange={(isOpen) =>
             setFieldDialog({
               isOpen,
@@ -536,6 +531,8 @@ function FieldEditDialog({
   handleSubmit,
   shouldConsiderRequired,
   dataStore,
+  getLocationFieldType,
+  getLocationFieldPlaceholder,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
@@ -550,6 +547,8 @@ function FieldEditDialog({
       }
     >;
   };
+  getLocationFieldType: (field: RhfFormField) => { label: string; value: FieldType };
+  getLocationFieldPlaceholder: (field: RhfFormField, defaultPlaceholder: string) => string;
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -601,32 +600,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={(() => {
-                const fieldType = formFieldType;
-                const fieldData = dialog.data;
-
-                if (
-                  fieldType === "radioInput" &&
-                  fieldData?.name === "location" &&
-                  fieldData?.getOptionsAt === "locations"
-                ) {
-                  const locationOptions = dataStore.options.locations?.value || [];
-
-                  // If there's only one location option, show its specific input type
-                  if (locationOptions.length === 1) {
-                    const singleLocationValue = locationOptions[0].value;
-                    const optionInput = fieldData.optionsInputs?.[singleLocationValue];
-                    if (optionInput?.type) {
-                      return (
-                        fieldTypesConfigMap[optionInput.type as keyof typeof fieldTypesConfigMap] ||
-                        fieldTypesConfigMap[fieldType]
-                      );
-                    }
-                  }
-                }
-
-                return fieldTypesConfigMap[fieldType];
-              })()}
+              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -663,24 +637,14 @@ function FieldEditDialog({
                           required={
                             !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
                           }
-                          placeholder={(() => {
-                            const fieldData = dialog.data;
-                            if (
-                              formFieldType === "radioInput" &&
-                              fieldData?.name === "location" &&
-                              fieldData?.getOptionsAt === "locations"
-                            ) {
-                              const locationOptions = dataStore.options.locations?.value || [];
-                              if (locationOptions.length === 1) {
-                                const singleLocationValue = locationOptions[0].value;
-                                const optionInput = fieldData.optionsInputs?.[singleLocationValue];
-                                if (optionInput?.placeholder) {
-                                  return optionInput.placeholder;
-                                }
-                              }
-                            }
-                            return t(fieldForm.getValues("defaultLabel") || "");
-                          })()}
+                          placeholder={
+                            dialog.data
+                              ? getLocationFieldPlaceholder(
+                                  dialog.data,
+                                  t(fieldForm.getValues("defaultLabel") || "")
+                                )
+                              : t(fieldForm.getValues("defaultLabel") || "")
+                          }
                           containerClassName="mt-6"
                           label={t("label")}
                         />
