@@ -131,11 +131,12 @@ function FormCard({ formName, fields }: FormCardProps) {
 
 export function FailedBookingsByField() {
   const { t } = useLocale();
-  const { userId, teamId, startDate, endDate, isAll, routingFormId } = useInsightsParameters();
+  const { scope, selectedTeamId, startDate, endDate, routingFormId } = useInsightsParameters();
   const { data } = trpc.viewer.insights.failedBookingsByField.useQuery({
-    userId,
-    teamId,
-    isAll,
+    scope,
+    selectedTeamId,
+    startDate,
+    endDate,
     routingFormId,
   });
 

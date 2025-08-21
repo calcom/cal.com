@@ -89,6 +89,10 @@ export const routingRepositoryBaseInputSchema = z.object({
   columnFilters: z.array(ZColumnFilter).optional(),
 });
 
+export const failedBookingsByFieldInputSchema = routingRepositoryBaseInputSchema.extend({
+  routingFormId: z.string().optional(),
+});
+
 export const bookingRepositoryBaseInputSchema = z.object({
   scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
   selectedTeamId: z.number().optional(),

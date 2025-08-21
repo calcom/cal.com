@@ -693,4 +693,107 @@ export class InsightsRoutingBaseService {
       AND ${columnCondition}
     )`;
   }
+
+  async getFailedBookingsByFieldData(
+    routingFormId?: string
+  ): Promise<Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>> {
+    const baseConditions = await this.getBaseConditions();
+
+    const result = await this.prisma.$queryRaw<
+      {
+        formId: string;
+        formName: string;
+        fieldId: string;
+        fieldLabel: string;
+        optionId: string;
+        optionLabel: string;
+        count: number;
+      }[]
+    >`
+      WITH form_fields AS (
+        SELECT
+          f.id as form_id,
+          f.name as form_name,
+          field->>'id' as field_id,
+          field->>'label' as field_label,
+          opt->>'id' as option_id,
+          opt->>'label' as option_label
+        FROM "App_RoutingForms_Form" f,
+        LATERAL jsonb_array_elements(f.fields) as field
+        LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
+        WHERE ${baseConditions}
+        ${routingFormId ? Prisma.sql`AND f.id = ${routingFormId}` : Prisma.empty}
+      ),
+      response_stats AS (
+        SELECT
+          r."formId",
+          key as field_id,
+          CASE
+            WHEN jsonb_typeof(value->'value') = 'array' THEN
+              v.value_item
+            ELSE
+              value->>'value'
+          END as selected_option,
+          COUNT(DISTINCT r.id) as response_count
+        FROM "App_RoutingForms_FormResponse" r
+        CROSS JOIN jsonb_each(r.response::jsonb) as fields(key, value)
+        LEFT JOIN LATERAL jsonb_array_elements_text(
+          CASE
+            WHEN jsonb_typeof(value->'value') = 'array'
+            THEN value->'value'
+            ELSE NULL
+          END
+        ) as v(value_item) ON true
+        WHERE r."routedToBookingUid" IS NULL
+        AND r."createdAt" >= ${this.filters.startDate}::timestamp
+        AND r."createdAt" <= ${this.filters.endDate}::timestamp
+        GROUP BY r."formId", key, selected_option
+      )
+      SELECT
+        ff.form_id as "formId",
+        ff.form_name as "formName",
+        ff.field_id as "fieldId",
+        ff.field_label as "fieldLabel",
+        ff.option_id as "optionId",
+        ff.option_label as "optionLabel",
+        COALESCE(rs.response_count, 0)::integer as count
+      FROM form_fields ff
+      LEFT JOIN response_stats rs ON
+        rs."formId" = ff.form_id AND
+        rs.field_id = ff.field_id AND
+        rs.selected_option = ff.option_id
+      WHERE ff.option_id IS NOT NULL
+      ORDER BY count DESC
+    `;
+
+    const groupedByFormAndField = result.reduce((acc, curr) => {
+      const formKey = curr.formName;
+      acc[formKey] = acc[formKey] || {};
+      const labelKey = curr.fieldLabel;
+      acc[formKey][labelKey] = acc[formKey][labelKey] || [];
+      acc[formKey][labelKey].push({
+        optionId: curr.optionId,
+        count: curr.count,
+        optionLabel: curr.optionLabel,
+      });
+      return acc;
+    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
+
+    const sortedEntries = Object.entries(groupedByFormAndField)
+      .map(([formName, fields]) => ({
+        formName,
+        fields,
+        totalCount: Object.values(fields)
+          .flat()
+          .reduce((sum, item) => sum + item.count, 0),
+      }))
+      .sort((a, b) => b.totalCount - a.totalCount);
+
+    const sortedGroupedByFormAndField = sortedEntries.reduce((acc, { formName, fields }) => {
+      acc[formName] = fields;
+      return acc;
+    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
+
+    return sortedGroupedByFormAndField;
+  }
 }
