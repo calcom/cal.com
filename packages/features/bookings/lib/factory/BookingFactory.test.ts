@@ -1,39 +1,39 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-import type { HandleNewBookingService } from "@calcom/features/bookings/lib/handleNewBooking";
-import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
-
-import { BookingCreateService } from "./BookingCreateService";
+import type { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
 import type {
   CreateBookingData,
   CreateInstantBookingData,
   CreateSeatedBookingInput,
-} from "./BookingCreateTypes";
+} from "@calcom/features/bookings/lib/service/BookingCreateService/types";
+import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
+
+import { BookingFactory } from "./BookingFactory";
 
 vi.mock("@calcom/features/instant-meeting/handleInstantMeeting", () => ({
   default: vi.fn(),
 }));
 
-describe("BookingCreateService", () => {
-  let service: BookingCreateService;
-  let mockHandleNewBookingService: HandleNewBookingService;
+describe("BookingFactory", () => {
+  let factory: BookingFactory;
+  let mockBookingCreateService: BookingCreateService;
 
   beforeEach(() => {
-    // Create a mock HandleNewBookingService with a handle method
-    mockHandleNewBookingService = {
+    // Create a mock BookingCreateService with a handle method
+    mockBookingCreateService = {
       handle: vi.fn(),
-    } as unknown as HandleNewBookingService;
+    } as unknown as BookingCreateService;
 
-    // Create the service with the mocked dependency
-    service = new BookingCreateService({
-      handleNewBookingService: mockHandleNewBookingService,
+    // Create the factory with the mocked dependency
+    factory = new BookingFactory({
+      bookingCreateService: mockBookingCreateService,
     });
 
     vi.resetAllMocks();
   });
 
   describe("createBooking", () => {
-    it("should call handleNewBookingService.handle with correct parameters", async () => {
+    it("should call bookingCreateService.handle with correct parameters", async () => {
       const mockBookingData: CreateBookingData = {
         start: "2024-01-01T10:00:00Z",
         eventTypeId: 123,
@@ -45,13 +45,13 @@ describe("BookingCreateService", () => {
       };
       const mockResult = { booking: { id: 1, uid: "booking-uid" } };
 
-      vi.mocked(mockHandleNewBookingService.handle).mockResolvedValue(mockResult);
+      vi.mocked(mockBookingCreateService.handle).mockResolvedValue(mockResult);
 
-      const result = await service.createBooking({
+      const result = await factory.createBooking({
         bookingData: mockBookingData,
       });
 
-      expect(mockHandleNewBookingService.handle).toHaveBeenCalledWith(
+      expect(mockBookingCreateService.handle).toHaveBeenCalledWith(
         { bookingData: mockBookingData },
         undefined
       );
@@ -70,23 +70,21 @@ describe("BookingCreateService", () => {
       };
       const mockResult = { booking: { id: 1, uid: "booking-uid" } };
 
-      vi.mocked(mockHandleNewBookingService.handle).mockResolvedValue(mockResult);
+      vi.mocked(mockBookingCreateService.handle).mockResolvedValue(mockResult);
 
       const mockSchemaGetter = vi.fn();
-      const result = await service.createBooking({
+      const result = await factory.createBooking({
         bookingData: mockBookingData,
         schemaGetter: mockSchemaGetter,
       });
 
-      expect(mockHandleNewBookingService.handle).toHaveBeenCalledWith(
+      expect(mockBookingCreateService.handle).toHaveBeenCalledWith(
         { bookingData: mockBookingData },
         mockSchemaGetter
       );
       expect(result).toEqual(mockResult);
     });
   });
-
-  describe("createRecurringBooking", () => {});
 
   describe("createInstantBooking", () => {
     it("should call handleInstantMeeting with correct parameters", async () => {
@@ -103,7 +101,7 @@ describe("BookingCreateService", () => {
 
       vi.mocked(handleInstantMeeting).mockResolvedValue(mockResult);
 
-      const result = await service.createInstantBooking({
+      const result = await factory.createInstantBooking({
         bookingData: mockBookingData,
       });
 
@@ -126,11 +124,11 @@ describe("BookingCreateService", () => {
       };
       const mockResult = { booking: { id: 1, uid: "booking-uid" } };
 
-      vi.mocked(mockHandleNewBookingService.handle).mockResolvedValue(mockResult);
+      vi.mocked(mockBookingCreateService.handle).mockResolvedValue(mockResult);
 
-      const result = await service.createSeatedBooking({ bookingData: mockBookingData });
+      const result = await factory.createSeatedBooking({ bookingData: mockBookingData });
 
-      expect(mockHandleNewBookingService.handle).toHaveBeenCalledWith({ bookingData: mockBookingData });
+      expect(mockBookingCreateService.handle).toHaveBeenCalledWith({ bookingData: mockBookingData });
       expect(result).toEqual(mockResult);
     });
   });

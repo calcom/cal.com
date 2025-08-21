@@ -75,7 +75,6 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import type { BookingHandlerInput } from "@calcom/lib/server/service/booking/BookingCreateTypes";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -417,15 +416,15 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
-export interface IHandleNewBookingServiceDependencies {
+export interface IBookingCreateServiceDependencies {
   cacheService: CacheService;
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
   bookingRepository: BookingRepository;
 }
 
-export class HandleNewBookingService {
-  constructor(private readonly dependencies: IHandleNewBookingServiceDependencies) {}
+export class BookingCreateService {
+  constructor(private readonly deps: IBookingCreateServiceDependencies) {}
 
   async handle(
     input: BookingHandlerInput,
@@ -544,14 +543,13 @@ export class HandleNewBookingService {
       (!isConfirmedByDefault && !userReschedulingIsOwner) ||
       eventType.schedulingType === SchedulingType.ROUND_ROBIN
     ) {
-      const existingBooking =
-        await this.dependencies.bookingRepository.getValidBookingFromEventTypeForAttendee({
-          eventTypeId,
-          bookerEmail,
-          bookerPhoneNumber,
-          startTime: new Date(dayjs(reqBody.start).utc().format()),
-          filterForUnconfirmed: !isConfirmedByDefault,
-        });
+      const existingBooking = await bookingRepository.getValidBookingFromEventTypeForAttendee({
+        eventTypeId,
+        bookerEmail,
+        bookerPhoneNumber,
+        startTime: new Date(dayjs(reqBody.start).utc().format()),
+        filterForUnconfirmed: !isConfirmedByDefault,
+      });
 
       if (existingBooking) {
         const bookingResponse = {
@@ -575,7 +573,6 @@ export class HandleNewBookingService {
       }
     }
 
-    const cacheService = this.dependencies.cacheService;
     const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
     const isTeamEventType =
@@ -645,7 +642,7 @@ export class HandleNewBookingService {
       if (routingFormResponseId === undefined) {
         throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
       }
-      routingFormResponse = await this.dependencies.prismaClient.app_RoutingForms_FormResponse.findUnique({
+      routingFormResponse = await prismaClient.app_RoutingForms_FormResponse.findUnique({
         where: {
           id: routingFormResponseId,
         },
@@ -689,7 +686,6 @@ export class HandleNewBookingService {
       }
     );
 
-    const checkBookingAndDurationLimitsService = this.dependencies.checkBookingAndDurationLimitsService;
     await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
       eventType,
       reqBodyStart: reqBody.start,
@@ -701,7 +697,7 @@ export class HandleNewBookingService {
     let availableUsers: IsFixedAwareUser[] = [];
 
     if (eventType.seatsPerTimeSlot) {
-      const booking = await this.dependencies.prismaClient.booking.findFirst({
+      const booking = await prismaClient.booking.findFirst({
         where: {
           eventTypeId: eventType.id,
           startTime: new Date(dayjs(reqBody.start).utc().format()),
@@ -1155,7 +1151,7 @@ export class HandleNewBookingService {
     });
     // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
     const iCalSequence = getICalSequence(originalRescheduledBooking);
-    const organizerOrganizationProfile = await this.dependencies.prismaClient.profile.findFirst({
+    const organizerOrganizationProfile = await prismaClient.profile.findFirst({
       where: {
         userId: organizerUser.id,
         username: dynamicUserList[0],
@@ -1901,7 +1897,7 @@ export class HandleNewBookingService {
 
           // Save description to bookingSeat
           const uniqueAttendeeId = uuid();
-          await this.dependencies.prismaClient.bookingSeat.create({
+          await prismaClient.bookingSeat.create({
             data: {
               referenceUid: uniqueAttendeeId,
               data: {
@@ -2358,7 +2354,7 @@ export class HandleNewBookingService {
 
           if (!isDryRun && evt.iCalUID !== booking.iCalUID) {
             // The eventManager could change the iCalUID. At this point we can update the DB record
-            await this.dependencies.prismaClient.booking.update({
+            await prismaClient.booking.update({
               where: {
                 id: booking.id,
               },
@@ -2476,7 +2472,7 @@ export class HandleNewBookingService {
     if (bookingRequiresPayment) {
       loggerWithEventDetails.debug(`Booking ${organizerUser.username} requires payment`);
       // Load credentials.app.categories
-      const credentialPaymentAppCategories = await this.dependencies.prismaClient.credential.findMany({
+      const credentialPaymentAppCategories = await prismaClient.credential.findMany({
         where: {
           ...(paymentAppData.credentialId
             ? { id: paymentAppData.credentialId }
@@ -2657,7 +2653,7 @@ export class HandleNewBookingService {
 
     try {
       if (!isDryRun) {
-        await this.dependencies.prismaClient.booking.update({
+        await prismaClient.booking.update({
           where: {
             uid: booking.uid,
           },
@@ -2764,16 +2760,15 @@ export class HandleNewBookingService {
   }
 }
 
-export type HandleNewBookingResponse = Awaited<ReturnType<HandleNewBookingService["handle"]>>;
+export type HandleNewBookingResponse = Awaited<ReturnType<BookingCreateService["handle"]>>;
 
-// Backward compatibility handler - Required for unit tests. To be removed after tests are migrated to DI.
-// DO NOT USE IN PRODUCTION CODE - Use getBookingCreateService() from DI container instead
+// TODO: Backward compatibility handler => Required for unit tests. To be removed after tests are migrated to DI.
 async function handler(input: BookingHandlerInput, bookingDataSchemaGetter?: BookingDataSchemaGetter) {
-  // Import here to avoid circular dependency issues
-  const { getBookingCreateService } = await import("@calcom/lib/di/containers/BookingCreate");
-  const service = getBookingCreateService();
+  // Import here to avoid circular dependency(BookingFactory -> bookingCreateService -> BookingFactory)
+  const { getBookingFactory } = await import("@calcom/lib/di/containers/BookingFactory");
+  const factory = getBookingFactory();
   const { bookingData, ...bookingMeta } = input;
-  return service.createBooking({
+  return factory.createBooking({
     bookingData,
     bookingMeta,
     schemaGetter: bookingDataSchemaGetter,

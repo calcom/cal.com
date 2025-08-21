@@ -9,7 +9,6 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
-import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
@@ -30,14 +29,12 @@ export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
-const handleInstantMeeting = instantMeetingMethods.default;
-export { handleInstantMeeting };
-
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
 
-export { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
-export type { BookingCreateService } from "@calcom/lib/server/service/booking/BookingCreateService";
+export { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
+export type { BookingFactory } from "@calcom/features/bookings/lib/factory/BookingFactory";
+export type { CreateInstantBookingResponse } from "@calcom/features/bookings/lib/service/BookingCreateService/types";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 
