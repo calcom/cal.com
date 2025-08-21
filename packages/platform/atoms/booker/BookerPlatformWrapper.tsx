@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
-import { useMemo, useEffect, useCallback, useState, useRef } from "react";
+import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -10,11 +10,12 @@ import {
   BookerStoreProvider,
   useInitializeBookerStoreContext,
   useBookerStoreContext,
+  BookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
@@ -67,6 +68,7 @@ const BookerPlatformWrapperComponent = (
     startTime: customStartTime,
     showNoAvailabilityDialog,
     silentlyHandleCalendarFailures = false,
+    hideEventMetadata = false,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -89,14 +91,12 @@ const BookerPlatformWrapperComponent = (
     Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
   );
   const prevStateRef = useRef<BookerStoreValues | null>(null);
-  const getStateValues = useCallback(
-    (state: ReturnType<typeof useBookerStore.getState>): BookerStoreValues => {
-      return Object.fromEntries(
-        Object.entries(state).filter(([_, value]) => typeof value !== "function")
-      ) as BookerStoreValues;
-    },
-    []
-  );
+  const bookerStoreContext = useContext(BookerStoreContext);
+  const getStateValues = useCallback((state: any): BookerStoreValues => {
+    return Object.fromEntries(
+      Object.entries(state).filter(([_, value]) => typeof value !== "function")
+    ) as BookerStoreValues;
+  }, []);
   const debouncedStateChange = useMemo(() => {
     return debounce(
       (currentStateValues: BookerStoreValues, callback: (values: BookerStoreValues) => void) => {
@@ -113,15 +113,15 @@ const BookerPlatformWrapperComponent = (
   }, []);
 
   useEffect(() => {
-    if (!onBookerStateChange) return;
+    if (!onBookerStateChange || !bookerStoreContext) return;
 
-    const unsubscribe = useBookerStore.subscribe((state) => {
+    const unsubscribe = bookerStoreContext.subscribe((state) => {
       const currentStateValues = getStateValues(state);
       debouncedStateChange(currentStateValues, onBookerStateChange);
     });
 
     // Initial call with current state
-    const initialState = getStateValues(useBookerStore.getState());
+    const initialState = getStateValues(bookerStoreContext.getState());
     onBookerStateChange(initialState);
     prevStateRef.current = initialState;
 
@@ -129,7 +129,7 @@ const BookerPlatformWrapperComponent = (
       unsubscribe();
       debouncedStateChange.cancel();
     };
-  }, [onBookerStateChange, getStateValues, debouncedStateChange]);
+  }, [onBookerStateChange, getStateValues, debouncedStateChange, bookerStoreContext]);
 
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -577,7 +577,7 @@ const BookerPlatformWrapperComponent = (
         event={event}
         schedule={schedule}
         orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
-        bookerLayout={bookerLayout}
+        bookerLayout={{ ...bookerLayout, hideEventTypeDetails: hideEventMetadata }}
         verifyCode={verifyCode}
         isPlatform
         hasValidLicense={true}

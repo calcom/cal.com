@@ -86,6 +86,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   startTime?: string | Date;
   roundRobinHideOrgAndTeam?: boolean;
   silentlyHandleCalendarFailures?: boolean;
+  hideEventMetadata?: boolean;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
