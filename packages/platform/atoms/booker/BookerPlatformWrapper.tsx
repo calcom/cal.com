@@ -66,6 +66,7 @@ const BookerPlatformWrapperComponent = (
     startTime: customStartTime,
     showNoAvailabilityDialog,
     silentlyHandleCalendarFailures = false,
+    hideEventMetadata = false,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -570,7 +571,7 @@ const BookerPlatformWrapperComponent = (
         event={event}
         schedule={schedule}
         orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
-        bookerLayout={bookerLayout}
+        bookerLayout={{ ...bookerLayout, hideEventTypeDetails: hideEventMetadata }}
         verifyCode={undefined}
         isPlatform
         hasValidLicense={true}
