@@ -1,5 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import logger from "@calcom/lib/logger";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import prisma from "@calcom/prisma";
 
