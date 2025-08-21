@@ -1,8 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
-
-import { LuckyUserService } from "../../../../apps/api/v2/src/lib/services/lucky-user.service";
+import { LuckyUserService } from "@calcom/lib/server/getLuckyUser";
 
 export const luckyUserServiceModule = createModule();
 luckyUserServiceModule.bind(DI_TOKENS.LUCKY_USER_SERVICE).toClass(LuckyUserService, {
