@@ -23,6 +23,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -199,7 +200,9 @@ export class BookingsService_2024_08_13 {
       return;
     }
 
-    throw new UnauthorizedException("User is not authorized to access this event type");
+    throw new ForbiddenException(
+      "checkBookingRequiresAuthentication - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
+    );
   }
 
   async getBookedEventType(body: CreateBookingInput) {
