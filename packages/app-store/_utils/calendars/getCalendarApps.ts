@@ -5,9 +5,8 @@ import type { App } from "@calcom/types/App";
 import type { AppMeta } from "@calcom/types/App";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import { calendarAppsMetadata as rawCalendarAppsMetadata } from "../../calendarApps.metadata.generated";
-import { getNormalizedAppMetadata } from "../../getNormalizedAppMetadata";
 import type { EventLocationType } from "../../locations";
+import { calendarAppsMetaData } from "./calendarAppsMetaData";
 
 export type LocationOption = {
   label: string;
@@ -22,18 +21,8 @@ export type CredentialDataWithTeamName = CredentialForCalendarService & {
   } | null;
 };
 
-type RawCalendarAppsMetaData = typeof rawCalendarAppsMetadata;
-type CalendarAppsMetaData = {
-  [key in keyof RawCalendarAppsMetaData]: Omit<AppMeta, "dirName"> & { dirName: string };
-};
-
-export const calendarAppsMetadata = {} as CalendarAppsMetaData;
-for (const [key, value] of Object.entries(rawCalendarAppsMetadata)) {
-  calendarAppsMetadata[key as keyof typeof calendarAppsMetadata] = getNormalizedAppMetadata(value);
-}
-
-const CALENDAR_APPS_MAP = Object.keys(calendarAppsMetadata).reduce((store, key) => {
-  const metadata = calendarAppsMetadata[key as keyof typeof calendarAppsMetadata] as AppMeta;
+const CALENDAR_APPS_MAP = Object.keys(calendarAppsMetaData).reduce((store, key) => {
+  const metadata = calendarAppsMetaData[key as keyof typeof calendarAppsMetaData] as AppMeta;
 
   store[key] = metadata;
 
