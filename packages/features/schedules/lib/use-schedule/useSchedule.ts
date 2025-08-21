@@ -18,9 +18,8 @@ export type UseScheduleWithCacheArgs = {
   month?: string | null;
   timezone?: string | null;
   selectedDate?: string | null;
-  prefetchNextMonth?: boolean;
   duration?: number | null;
-  monthCount?: number | null;
+  monthCount?: number;
   dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
@@ -37,9 +36,8 @@ export const useSchedule = ({
   eventSlug,
   eventId,
   selectedDate,
-  prefetchNextMonth,
   duration,
-  monthCount,
+  monthCount = 1,
   dayCount,
   rescheduleUid,
   isTeamEvent,
@@ -54,7 +52,6 @@ export const useSchedule = ({
     month,
     monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
   });
   const searchParams = useSearchParams();
@@ -85,7 +82,6 @@ export const useSchedule = ({
     // @TODO: Old code fetched 2 days ago if we were fetching the current month.
     // Do we want / need to keep that behavior?
     startTime,
-    // if `prefetchNextMonth` is true, two months are fetched at once.
     endTime,
     timeZone: timezone!,
     duration: duration ? `${duration}` : undefined,
@@ -135,6 +131,15 @@ export const useSchedule = ({
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
   });
+
+  const generateHash = (string) => {
+    let hash = 0;
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0; // Constrain to 32bit integer
+    }
+    return hash;
+  };
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
     ...options,

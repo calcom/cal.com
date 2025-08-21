@@ -64,7 +64,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
+
   const timezone = searchParams?.get("cal.tz") || null;
 
   useEffect(() => {
@@ -95,6 +95,9 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const [bookerState, _] = useBookerStoreContext((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
   const [month] = useBookerStoreContext((state) => [state.month, state.setMonth], shallow);
+
+  // date is not always present but logic depends on it.
+  const date = dayjs.max(dayjs(selectedDate ?? month), dayjs()).format("YYYY-MM-DD");
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -150,18 +153,18 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
       dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
 
   const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
+    bookerLayout.layout === BookerLayouts.MONTH_VIEW &&
     dayjs(date).add(1, "month").month() !==
       dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
-      ? 2
+      ? prefetchNextMonth
+        ? 2
+        : 1
       : undefined;
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
   const schedule = useScheduleForEvent({
-    prefetchNextMonth,
     eventId: props.entity.eventTypeId ?? event.data?.id,
     username: props.username,
     monthCount,

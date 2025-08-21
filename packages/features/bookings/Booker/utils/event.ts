@@ -54,12 +54,8 @@ export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  *
- * The prefetchNextMonth argument can be used to prefetch two months at once,
- * useful when the user is viewing dates near the end of the month,
- * this way the multi day view will show data of both months.
  */
 export const useScheduleForEvent = ({
-  prefetchNextMonth,
   username,
   eventSlug,
   eventId,
@@ -73,7 +69,6 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
 }: {
-  prefetchNextMonth?: boolean;
   username?: string | null;
   eventSlug?: string | null;
   eventId?: number | null;
@@ -103,7 +98,6 @@ export const useScheduleForEvent = ({
     eventId,
     timezone,
     selectedDate,
-    prefetchNextMonth,
     monthCount,
     dayCount,
     rescheduleUid,

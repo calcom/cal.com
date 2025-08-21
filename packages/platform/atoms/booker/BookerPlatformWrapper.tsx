@@ -243,15 +243,19 @@ const BookerPlatformWrapperComponent = (
       bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
     dayjs(date).add(1, "month").month() !==
       dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
+      ? prefetchNextMonth
+        ? 3
+        : 2
+      : prefetchNextMonth
       ? 2
-      : undefined;
+      : 1;
+
   const { timezone } = useTimePreferences();
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
     month,
     monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
   });
 
