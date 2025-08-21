@@ -1,165 +1,64 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
-import { z } from "zod";
-
-import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-
-import { TRPCError } from "@trpc/server";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZBuyInputSchema } from "./buy.schema";
+import { ZCancelInputSchema } from "./cancel.schema";
+import { ZDeleteInputSchema } from "./delete.schema";
+import { ZImportInputSchema } from "./import.schema";
+import { ZListInputSchema } from "./list.schema";
+import { ZUpdateInputSchema } from "./update.schema";
 
 export const phoneNumberRouter = router({
-  list: authedProcedure
-    .input(
-      z
-        .object({
-          teamId: z.number().optional(),
-          scope: z.enum(["personal", "team", "all"]).default("all"),
-        })
-        .optional()
-    )
-    .query(async ({ ctx, input }) => {
-      return await PrismaPhoneNumberRepository.findManyWithUserAccess({
-        userId: ctx.user.id,
-        teamId: input?.teamId,
-        scope: input?.scope || "all",
-      });
-    }),
+  list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
+    const { listHandler } = await import("./list.handler");
 
-  buy: authedProcedure
-    .input(
-      z.object({
-        teamId: z.number().optional(),
-        agentId: z.string(),
-        workflowId: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.user.id;
-      const aiService = createDefaultAIPhoneServiceProvider();
+    return listHandler({
+      ctx,
+      input,
+    });
+  }),
 
-      const checkoutSession = await aiService.generatePhoneNumberCheckoutSession({
-        userId,
-        teamId: input?.teamId ?? undefined,
-        agentId: input.agentId,
-        workflowId: input.workflowId,
-      });
+  buy: authedProcedure.input(ZBuyInputSchema).mutation(async ({ ctx, input }) => {
+    const { buyHandler } = await import("./buy.handler");
 
-      if (checkoutSession) {
-        return {
-          checkoutUrl: checkoutSession.url,
-          message: checkoutSession.message,
-          phoneNumber: null,
-        };
-      }
+    return buyHandler({
+      ctx,
+      input,
+    });
+  }),
 
-      // This shouldn't happen as phone numbers always require payment
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Phone number billing is required but not configured.",
-      });
-    }),
+  import: authedProcedure.input(ZImportInputSchema).mutation(async ({ ctx, input }) => {
+    const { importHandler } = await import("./import.handler");
 
-  import: authedProcedure
-    .input(
-      z.object({
-        phoneNumber: z.string().refine((val) => isValidPhoneNumber(val), {
-          message: "Invalid phone number",
-        }),
-        terminationUri: z.string(),
-        sipTrunkAuthUsername: z.string().optional(),
-        sipTrunkAuthPassword: z.string().optional(),
-        nickname: z.string().optional(),
-        teamId: z.number().optional(),
-        agentId: z.string({ required_error: "agentId is required" }).min(1, "agentId is required"),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const {
-        phoneNumber,
-        terminationUri,
-        sipTrunkAuthUsername,
-        sipTrunkAuthPassword,
-        nickname,
-        teamId,
-        agentId,
-      } = input;
-      const aiService = createDefaultAIPhoneServiceProvider();
+    return importHandler({
+      ctx,
+      input,
+    });
+  }),
 
-      const importedPhoneNumber = await aiService.importPhoneNumber({
-        phone_number: phoneNumber,
-        termination_uri: terminationUri,
-        sip_trunk_auth_username: sipTrunkAuthUsername,
-        sip_trunk_auth_password: sipTrunkAuthPassword,
-        nickname,
-        userId: ctx.user.id,
-        teamId,
-        agentId,
-      });
+  cancel: authedProcedure.input(ZCancelInputSchema).mutation(async ({ ctx, input }) => {
+    const { cancelHandler } = await import("./cancel.handler");
 
-      return importedPhoneNumber;
-    }),
+    return cancelHandler({
+      ctx,
+      input,
+    });
+  }),
 
-  cancel: authedProcedure
-    .input(
-      z.object({
-        phoneNumberId: z.number(),
-        teamId: z.number().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { phoneNumberId, teamId } = input;
-      const aiService = createDefaultAIPhoneServiceProvider();
+  delete: authedProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
+    const { deleteHandler } = await import("./delete.handler");
 
-      return await aiService.cancelPhoneNumberSubscription({
-        phoneNumberId,
-        userId: ctx.user.id,
-        teamId,
-      });
-    }),
+    return deleteHandler({
+      ctx,
+      input,
+    });
+  }),
 
-  delete: authedProcedure
-    .input(
-      z.object({
-        phoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
-        teamId: z.number().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const aiService = createDefaultAIPhoneServiceProvider();
+  update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
+    const { updateHandler } = await import("./update.handler");
 
-      await aiService.deletePhoneNumber({
-        phoneNumber: input.phoneNumber,
-        userId: ctx.user.id,
-        teamId: input.teamId,
-        deleteFromDB: true,
-      });
-
-      return { message: "Phone number deleted successfully" };
-    }),
-
-  update: authedProcedure
-    .input(
-      z.object({
-        phoneNumber: z.string().refine((val) => isValidPhoneNumber(val), {
-          message: "Invalid phone number. Use E.164 format like +12025550123.",
-        }),
-        inboundAgentId: z.union([z.string().trim().min(1), z.literal(null)]).optional(),
-        outboundAgentId: z.union([z.string().trim().min(1), z.literal(null)]).optional(),
-        teamId: z.number().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { phoneNumber, inboundAgentId, outboundAgentId, teamId } = input;
-      const aiService = createDefaultAIPhoneServiceProvider();
-
-      return await aiService.updatePhoneNumberWithAgents({
-        phoneNumber,
-        userId: ctx.user.id,
-        teamId,
-        inboundAgentId,
-        outboundAgentId,
-      });
-    }),
+    return updateHandler({
+      ctx,
+      input,
+    });
+  }),
 });

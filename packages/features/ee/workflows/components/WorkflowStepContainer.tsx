@@ -1369,11 +1369,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         />
 
         {/* Test Agent Dialog */}
-        {step?.agentId && (
+        {stepAgentId && (
           <TestAgentDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
-            agentId={step.agentId}
+            agentId={stepAgentId}
             teamId={teamId}
           />
         )}

@@ -80,12 +80,12 @@ export type Language =
   | "multi";
 // Request/response types
 export type CreateLLMRequest = Retell.LlmCreateParams;
-export type CreatePhoneNumberParams = {
+export type CreatePhoneNumberParams = Retell.PhoneNumberCreateParams;
+export type CreatePhoneCallParams = {
   fromNumber: string;
   toNumber: string;
   dynamicVariables?: RetellDynamicVariables;
 };
-export type CreatePhoneCallParams = Retell.CallCreatePhoneCallParams;
 export type UpdatePhoneNumberParams = Retell.PhoneNumberUpdateParams;
 export type ImportPhoneNumberParams = Retell.PhoneNumberImportParams;
 export type RetellLLMGeneralTools = Retell.LlmCreateParams["general_tools"];
