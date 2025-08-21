@@ -30,7 +30,7 @@ export const verifyCode = async ({
   email,
   code,
 }: {
-  user?: NonNullable<TrpcSessionUser>;
+  user?: Pick<NonNullable<TrpcSessionUser>, "role">;
   email?: string;
   code?: string;
 }) => {
