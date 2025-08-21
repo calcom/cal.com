@@ -7,6 +7,8 @@ import dts from "vite-plugin-dts";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
   const webAppUrl = env.NEXT_PUBLIC_WEBAPP_URL ?? "https://app.cal.com";
+  const calcomVersion = env.NEXT_PUBLIC_CALCOM_VERSION ?? "";
+  const vercelCommitSha = env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "";
   return {
     optimizeDeps: {
       include: [
@@ -22,6 +24,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), dts({ insertTypesEntry: true })],
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
+      "process.env.NEXT_PUBLIC_CALCOM_VERSION": `"${calcomVersion}"`,
+      "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": `"${vercelCommitSha}"`,
     },
     ssr: {
       noExternal: ["turndown"], // Example if you want to disable SSR for your library
