@@ -6,6 +6,7 @@ import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -409,13 +410,13 @@ export class WorkflowRepository {
     });
 
     if (!workflow) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Workflow not found",
       });
     }
 
-    return activeOnEventTypes.map((activeOn) => activeOn.eventTypeId);
+    return workflow.activeOn.map((active) => active.eventTypeId);
   }
 
   static async deleteAllWorkflowReminders(

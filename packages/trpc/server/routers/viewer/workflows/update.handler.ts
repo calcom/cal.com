@@ -32,7 +32,7 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat">;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone">;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -788,7 +788,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 try {
                   await aiService.updateToolsFromAgentId(agent.providerAgentId, {
                     eventTypeId,
-                    timeZone: user.timeZone,
+                    timeZone: user?.timeZone ?? "Europe/London",
                     userId: user.id,
                     teamId: userWorkflow.teamId || undefined,
                   });
