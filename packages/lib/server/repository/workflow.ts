@@ -395,7 +395,7 @@ export class WorkflowRepository {
     userId: number;
     teamId?: number | null;
   }) {
-    const workflow = await prisma.workflow.findMany({
+    const workflow = await prisma.workflow.findFirst({
       where: {
         id: workflowId,
         OR: [{ userId }, ...(teamId ? [{ teamId }] : [])],
