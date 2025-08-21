@@ -454,10 +454,11 @@ export class InsightsRoutingBaseService {
           "bookingUserAvatarUrl" as "avatarUrl"
         FROM "RoutingFormResponseDenormalized" rfrd
         WHERE "bookingUid" IS NOT NULL
-        AND "createdAt" >= ${startDate}
-        AND "createdAt" <= ${endDate}
-        AND ${baseConditions}
-        AND ${searchCondition}
+          AND "bookingUserId" IS NOT NULL
+          AND "createdAt" >= ${startDate}
+          AND "createdAt" <= ${endDate}
+          AND ${baseConditions}
+          AND ${searchCondition}
         ORDER BY "bookingUserId", "createdAt" DESC
       )
       SELECT *
@@ -552,12 +553,12 @@ export class InsightsRoutingBaseService {
     >`
       SELECT
         "bookingUserId" as "userId",
-        COUNT(*)::integer as total_bookings
+        COUNT(DISTINCT "bookingId")::integer as total_bookings
       FROM "RoutingFormResponseDenormalized" rfrd
       WHERE "bookingUid" IS NOT NULL
-      AND "createdAt" >= ${startDate}
-      AND "createdAt" <= ${endDate}
-      AND ${baseConditions}
+        AND "createdAt" >= ${startDate}
+        AND "createdAt" <= ${endDate}
+        AND ${baseConditions}
       GROUP BY "bookingUserId"
       ORDER BY total_bookings ASC
     `;
