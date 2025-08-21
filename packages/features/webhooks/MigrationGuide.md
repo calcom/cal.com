@@ -153,15 +153,14 @@ await WebhookNotifier.emitWebhook(WebhookTriggerEvents.BOOKING_CREATED, dto);
 1. **Separation of Concerns**: Each component has a single responsibility
 2. **Consistency**: All webhooks follow the same flow
 3. **Better Error Handling**: Centralized error handling and logging
-4. **Rate Limiting**: Built-in rate limiting to prevent overwhelming webhook endpoints
-5. **Retry Logic**: Automatic retry with exponential backoff
-6. **Delivery Logging**: Track webhook delivery success/failure
-7. **Type Safety**: Strongly typed DTOs prevent runtime errors
-8. **Testability**: Easy to mock and test individual components
+4. **Retry Logic**: Making use of Tasker for retries
+5. **Delivery Logging**: Sets up for the Webhook Delivery History Project
+6. **Type Safety**: Strongly typed DTOs
+7. **Testability**: Easy to mock and test individual components
 
 ## Backward Compatibility
 
-The old system continues to work but will show deprecation warnings. You can migrate incrementally:
+The old system continues to work for the moment but will show deprecation warnings. We can migrate incrementally:
 
 1. Start by replacing direct `sendPayload` calls with service methods
 2. Replace `handleWebhookTrigger` usage with new service methods

@@ -35,7 +35,7 @@ export interface BookingCreatedDTO extends BaseEventDTO {
     smsReminderNumber?: string | null;
   };
   status: "ACCEPTED" | "PENDING";
-  metadata?: { [key: string]: any };
+  metadata?: Record<string, unknown>;
   platformParams?: {
     platformClientId?: string;
     platformRescheduleUrl?: string;
@@ -149,7 +149,7 @@ export interface BookingPaidDTO extends BaseEventDTO {
     userId: number | null;
   };
   paymentId?: number;
-  paymentData?: any;
+  paymentData?: Record<string, unknown>;
 }
 
 export interface BookingPaymentInitiatedDTO extends BaseEventDTO {
@@ -170,7 +170,7 @@ export interface BookingPaymentInitiatedDTO extends BaseEventDTO {
     userId: number | null;
   };
   paymentId?: number;
-  paymentData?: any;
+  paymentData?: Record<string, unknown>;
 }
 
 export interface BookingNoShowDTO extends BaseEventDTO {
@@ -221,7 +221,7 @@ export interface FormSubmittedDTO extends BaseEventDTO {
   };
   response: {
     id: number;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
   };
 }
 
@@ -251,7 +251,7 @@ export interface FormSubmittedNoEventDTO extends BaseEventDTO {
   };
   response: {
     id: number;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
   };
 }
 
@@ -269,6 +269,50 @@ export type WebhookEventDTO =
   | FormSubmittedNoEventDTO
   | RecordingReadyDTO
   | TranscriptionGeneratedDTO;
+
+// Service layer interfaces
+export interface WebhookTriggerArgs {
+  trigger: WebhookTriggerEvents;
+  evt: CalendarEvent;
+  booking: {
+    id: number;
+    eventTypeId: number | null;
+    userId: number | null;
+    startTime?: Date;
+    smsReminderNumber?: string | null;
+  };
+  eventType: {
+    id: number;
+    title: string;
+    description: string | null;
+    requiresConfirmation: boolean;
+    price: number;
+    currency: string;
+    length: number;
+    teamId?: number | null;
+  } | null;
+  teamId?: number | null;
+  orgId?: number | null;
+  platformClientId?: string;
+  isDryRun?: boolean;
+  status?: "ACCEPTED" | "PENDING";
+  metadata?: Record<string, unknown>;
+  platformParams?: {
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+  };
+  cancelledBy?: string;
+  cancellationReason?: string;
+  rescheduleId?: number;
+  rescheduleUid?: string;
+  rescheduleStartTime?: string;
+  rescheduleEndTime?: string;
+  rescheduledBy?: string;
+  paymentId?: number;
+  paymentData?: Record<string, unknown>;
+}
 
 export interface WebhookSubscriber {
   id: string;
