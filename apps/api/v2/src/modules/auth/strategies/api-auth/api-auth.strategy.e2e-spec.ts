@@ -4,6 +4,7 @@ import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { JwtService } from "@/modules/jwt/jwt.service";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
@@ -65,6 +66,7 @@ describe("ApiAuthStrategy", () => {
         }),
         ProfilesModule,
         TokensModule,
+        MembershipsModule,
       ],
       providers: [
         MockedRedisService,
