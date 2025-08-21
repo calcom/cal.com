@@ -43,7 +43,7 @@ export const TeamEventTypeForm = ({
 
   return (
     <Form form={form} handleSubmit={handleSubmit}>
-      <div className="mt-3 space-y-6 pb-11">
+      <div className="mt-1 space-y-6">
         <TextField
           type="hidden"
           labelProps={{ style: { display: "none" } }}
