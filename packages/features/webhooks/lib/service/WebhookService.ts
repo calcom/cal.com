@@ -44,8 +44,8 @@ export interface WebhookServiceOptions {
  *   retryDelay: 2000
  * });
  *
- * const results = await service.deliverWebhooks(payload, subscribers);
- * // Returns array of delivery results with success/failure status
+ * await service.processWebhooks(trigger, payload, subscribers);
+ * // Returns Promise<void> - processes all webhooks with error handling and logging
  * ```
  *
  * @example Webhook scheduling for future delivery
@@ -169,13 +169,17 @@ export class WebhookService {
   ): Promise<WebhookDeliveryResult> {
     const tasker = (await import("@calcom/features/tasker")).default;
 
+    // TODO: SECURITY - Remove webhook secrets from task queue payloads
+    // Currently storing secretKey and full webhook object in task queue creates security risk.
+    // Should pass only webhookId and fetch subscriber/secrets at runtime in task handler.
+    // See: https://github.com/calcom/cal.com/security-webhook-secrets-refactor
     await tasker.create(
       "sendWebhook",
       JSON.stringify({
-        secretKey: subscriber.secret,
+        secretKey: subscriber.secret, // 🚨 SECURITY RISK: Secret stored in queue
         triggerEvent: trigger,
         createdAt: new Date().toISOString(),
-        webhook: subscriber,
+        webhook: subscriber, // 🚨 SECURITY RISK: Full object with secrets
         data: payload.payload,
       })
     );
@@ -343,14 +347,16 @@ export class WebhookService {
     try {
       const tasker = (await import("@calcom/features/tasker")).default;
 
-      // Use the existing sendWebhook task pattern
+      // TODO: SECURITY - Remove webhook secrets from task queue payloads
+      // Same security issue as scheduleWebhook method - storing secrets in queue
+      // Should pass only webhookId and fetch subscriber/secrets at runtime
       await tasker.create(
         "sendWebhook",
         JSON.stringify({
-          secretKey: subscriber.secret,
+          secretKey: subscriber.secret, // 🚨 SECURITY RISK: Secret stored in queue
           triggerEvent: trigger,
           createdAt: new Date().toISOString(),
-          webhook: subscriber,
+          webhook: subscriber, // 🚨 SECURITY RISK: Full object with secrets
           data: {
             // Create basic webhook data from available parameters
             bookingId: bookingData.id,
@@ -416,6 +422,7 @@ export class WebhookService {
    * @param trigger - The webhook trigger event
    * @param payload - The webhook payload
    * @param scheduledAt - When to execute the webhook
+   * @param options - Optional context for subscriber lookup (teamId, orgId)
    * @param subscribers - List of webhook subscribers (optional, will fetch if not provided)
    * @param isDryRun - Whether this is a dry run
    */
@@ -423,6 +430,7 @@ export class WebhookService {
     trigger: WebhookTriggerEvents,
     payload: WebhookPayload,
     scheduledAt: Date,
+    options?: { teamId?: number | number[] | null; orgId?: number | null },
     subscribers?: WebhookSubscriber[],
     isDryRun = false
   ): Promise<void> {
@@ -437,8 +445,8 @@ export class WebhookService {
         userId: null,
         eventTypeId: null,
         triggerEvent: trigger,
-        teamId: payload.teamId,
-        orgId: payload.orgId,
+        teamId: options?.teamId,
+        orgId: options?.orgId,
         oAuthClientId: undefined,
       }));
 
@@ -450,14 +458,17 @@ export class WebhookService {
       const tasker = (await import("@calcom/features/tasker")).default;
       const createdAt = new Date().toISOString();
 
+      // TODO: SECURITY - Remove webhook secrets from task queue payloads
+      // Delayed webhooks also store secrets in queue - same security risk
+      // Should pass only webhookId and fetch subscriber/secrets at runtime
       const schedulePromises = webhookSubscribers.map((subscriber) =>
         tasker.create(
           "sendWebhook",
           JSON.stringify({
-            secretKey: subscriber.secret,
+            secretKey: subscriber.secret, // 🚨 SECURITY RISK: Secret stored in queue
             triggerEvent: trigger,
             createdAt,
-            webhook: subscriber,
+            webhook: subscriber, // 🚨 SECURITY RISK: Full object with secrets
             data: payload.payload,
           }),
           { scheduledAt }

@@ -175,15 +175,14 @@ export class FormWebhookService extends WebhookService {
         responses: params.responses,
         redirect: params.redirect,
       },
-      teamId: params.teamId,
-      orgId: params.orgId,
     };
 
     // Use the centralized scheduling method from WebhookService
     await webhookService.scheduleDelayedWebhooks(
       WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
       payload,
-      scheduledAt
+      scheduledAt,
+      { teamId: params.teamId, orgId: params.orgId }
     );
   }
 }
