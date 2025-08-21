@@ -335,7 +335,7 @@ function createInsightsBookingService(
           type: ColumnFilterType.DATE_RANGE,
           data: {
             startDate: null,
-            endDate: new Date().toISOString(), // the bookings ended before current time, are completed bookings
+            endDate: new Date().toISOString(), // bookings ended before current time, are completed bookings
             preset: "",
           },
         },
