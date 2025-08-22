@@ -20,17 +20,8 @@ import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
+import { useIntercomChatTrigger } from "../../ee/support/components/TieredIntercomChat";
 import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider";
-
-declare global {
-  interface Window {
-    Plain?: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      init: (config: any) => void;
-      open: () => void;
-    };
-  }
-}
 
 interface UserDropdownProps {
   small?: boolean;
@@ -42,6 +33,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const { data: user, isPending } = useMeQuery();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
+  const { handleChatClick } = useIntercomChatTrigger();
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -57,9 +50,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleHelpClick = () => {
-    if (window.Plain) {
-      window.Plain.open();
-    }
+    handleChatClick();
     setMenuOpen(false);
   };
 

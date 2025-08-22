@@ -17,7 +17,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Bookings(props: { calUsername: string; calEmail: string }) {
   const [eventTypeId, setEventTypeId] = useState<number | null>(null);
-  const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
+  const [_isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
   const router = useRouter();
   const eventTypeRef = useRef<EventSettingsFromRef>(null);
 
@@ -33,13 +33,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const handleSubmit = () => {
     eventTypeRef.current?.handleFormSubmit({
       onSuccess: () => {
-        console.log('Event type updated successfully');
+        console.log("Event type updated successfully");
         // Additional success handling logic here
       },
       onError: (error) => {
-        console.error('Error updating event type:', error);
+        console.error("Error updating event type:", error);
         // Additional error handling logic here
-      }
+      },
     });
   };
   const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
@@ -749,7 +749,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
-              onSuccess={(eventType) => {
+              onSuccess={(_eventType) => {
                 setEventTypeId(null);
                 refetch();
                 refetchTeamEvents();
