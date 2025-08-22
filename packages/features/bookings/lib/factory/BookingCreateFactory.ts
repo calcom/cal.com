@@ -1,5 +1,5 @@
+import type { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
 import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
-import type { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService/BookingCreateService";
 import type {
   CreateBookingData,
   CreateInstantBookingData,
