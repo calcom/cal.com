@@ -1,7 +1,7 @@
 import { beforeEach, vi } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type { paymentLoaders } from "@calcom/app-store/_utils/payments/paymentLoaders";
+import type * as paymentLoaders from "@calcom/app-store/_utils/payments/paymentLoaders";
 
 vi.mock("@calcom/app-store/_utils/payments/paymentLoaders", () => paymentAppsMock);
 
