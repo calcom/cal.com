@@ -45,13 +45,15 @@ async function handler(req: NextApiRequest & RequestMeta) {
 
   const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
     bookingData: req.body,
-    userId: session?.user?.id || -1,
-    platformClientId: req.platformClientId,
-    platformCancelUrl: req.platformCancelUrl,
-    platformBookingUrl: req.platformBookingUrl,
-    platformRescheduleUrl: req.platformRescheduleUrl,
-    platformBookingLocation: req.platformBookingLocation,
-    noEmail: req.noEmail,
+    bookingMeta: {
+      userId: session?.user?.id || -1,
+      platformClientId: req.platformClientId,
+      platformCancelUrl: req.platformCancelUrl,
+      platformBookingUrl: req.platformBookingUrl,
+      platformRescheduleUrl: req.platformRescheduleUrl,
+      platformBookingLocation: req.platformBookingLocation,
+      noEmail: req.noEmail,
+    },
   });
 
   return createdBookings;

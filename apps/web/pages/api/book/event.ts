@@ -33,9 +33,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   const booking = await handleNewBooking({
     bookingData: req.body,
-    userId: session?.user?.id || -1,
-    hostname: req.headers.host || "",
-    forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+    bookingMeta: {
+      userId: session?.user?.id || -1,
+      hostname: req.headers.host || "",
+      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+    },
   });
   return booking;
 }

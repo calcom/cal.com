@@ -409,14 +409,11 @@ export type PlatformParams = {
   areCalendarEventsEnabled?: boolean;
 };
 
-export type BookingHandlerInput = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bookingData: Record<string, any>;
-  userId?: number;
-  // These used to come from headers but now we're passing them as params
-  hostname?: string;
-  forcedSlug?: string;
-} & PlatformParams;
+// Using BookingHandlerInput from service/BookingCreateService/types instead of local declaration
+// Extending the type to support both regular and recurring bookings
+type ExtendedBookingHandlerInput = Omit<BookingHandlerInput, "bookingData"> & {
+  bookingData: ExtendedBookingCreateData;
+};
 
 function formatAvailabilitySnapshot(data: {
   dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
@@ -436,7 +433,7 @@ function formatAvailabilitySnapshot(data: {
 }
 
 async function handler(
-  input: BookingHandlerInput,
+  input: ExtendedBookingHandlerInput,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
@@ -824,7 +821,11 @@ async function handler(
         },
       }),
     };
-    if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
+    if (
+      bookingData.allRecurringDates &&
+      bookingData.isFirstRecurringSlot &&
+      bookingData.numSlotsToCheckForAvailability
+    ) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
         eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -835,12 +836,11 @@ async function handler(
 
       for (
         let i = 0;
-        i < input.bookingData.allRecurringDates.length &&
-        i < input.bookingData.numSlotsToCheckForAvailability;
+        i < bookingData.allRecurringDates.length && i < bookingData.numSlotsToCheckForAvailability;
         i++
       ) {
-        const start = input.bookingData.allRecurringDates[i].start;
-        const end = input.bookingData.allRecurringDates[i].end;
+        const start = bookingData.allRecurringDates[i].start;
+        const end = bookingData.allRecurringDates[i].end;
         if (isTeamEvent) {
           // each fixed user must be available
           for (const key in fixedUsers) {
@@ -873,7 +873,7 @@ async function handler(
       }
     }
 
-    if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
+    if (!bookingData.allRecurringDates || bookingData.isFirstRecurringSlot) {
       try {
         availableUsers = await ensureAvailableUsers(
           { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
@@ -989,19 +989,20 @@ async function handler(
             break; // prevent infinite loop
           }
           if (
-            input.bookingData.isFirstRecurringSlot &&
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN
+            bookingData.isFirstRecurringSlot &&
+            eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+            bookingData.numSlotsToCheckForAvailability &&
+            bookingData.allRecurringDates
           ) {
             // for recurring round robin events check if lucky user is available for next slots
             try {
               for (
                 let i = 0;
-                i < input.bookingData.allRecurringDates.length &&
-                i < input.bookingData.numSlotsToCheckForAvailability;
+                i < bookingData.allRecurringDates.length && i < bookingData.numSlotsToCheckForAvailability;
                 i++
               ) {
-                const start = input.bookingData.allRecurringDates[i].start;
-                const end = input.bookingData.allRecurringDates[i].end;
+                const start = bookingData.allRecurringDates[i].start;
+                const end = bookingData.allRecurringDates[i].end;
 
                 await ensureAvailableUsers(
                   { ...eventTypeWithUsers, users: [newLuckyUser] },
@@ -1066,10 +1067,7 @@ async function handler(
           .flat()
           .map((u) => u.id),
       };
-    } else if (
-      input.bookingData.allRecurringDates &&
-      eventType.schedulingType === SchedulingType.ROUND_ROBIN
-    ) {
+    } else if (bookingData.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
         ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
@@ -1326,9 +1324,9 @@ async function handler(
 
   let evt: CalendarEvent = builtEvt;
 
-  if (input.bookingData.thirdPartyRecurringEventId) {
+  if (bookingData.thirdPartyRecurringEventId) {
     const updatedEvt = CalendarEventBuilder.fromEvent(evt)
-      ?.withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+      ?.withRecurringEventId(bookingData.thirdPartyRecurringEventId)
       .build();
 
     if (!updatedEvt) {
@@ -1926,7 +1924,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
-        creationSource: input.bookingData.creationSource,
+        creationSource: bookingData.creationSource,
         tracking: reqBody.tracking,
       });
 
@@ -1996,9 +1994,9 @@ async function handler(
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
           (attendee) =>
-            attendee.email === input.bookingData.responses.email ||
-            (input.bookingData.responses.attendeePhoneNumber &&
-              attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
+            attendee.email === bookingData.responses.email ||
+            (bookingData.responses.attendeePhoneNumber &&
+              attendee.phoneNumber === bookingData.responses.attendeePhoneNumber)
         );
 
         // Save description to bookingSeat
@@ -2797,9 +2795,7 @@ async function handler(
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: input.bookingData.allRecurringDates
-        ? input.bookingData.isFirstRecurringSlot
-        : undefined,
+      isFirstRecurringEvent: bookingData.allRecurringDates ? bookingData.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,

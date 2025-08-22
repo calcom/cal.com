@@ -6,6 +6,7 @@ import type {
   CreateBookingMeta,
   CreateRecurringBookingData,
   CreateInstantBookingResponse,
+  BookingDataSchemaGetter,
 } from "@calcom/features/bookings/lib/service/BookingCreateService/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 
@@ -25,8 +26,7 @@ export class BookingCreateFactory {
     bookingMeta?: CreateBookingMeta;
     schemaGetter?: BookingDataSchemaGetter;
   }) {
-    const handlerInput = { bookingData, ...(bookingMeta ?? {}) };
-    return this.dependencies.bookingCreateService.handle(handlerInput, schemaGetter);
+    return this.dependencies.bookingCreateService.create({ bookingData, bookingMeta, schemaGetter });
   }
 
   async createRecurringBooking({
@@ -62,7 +62,6 @@ export class BookingCreateFactory {
     bookingMeta?: CreateBookingMeta;
   }) {
     // Seated bookings use the same handler as regular bookings
-    const handlerInput = { bookingData, ...(bookingMeta ?? {}) };
-    return this.dependencies.bookingCreateService.handle(handlerInput);
+    return this.dependencies.bookingCreateService.create({ bookingData, bookingMeta });
   }
 }
