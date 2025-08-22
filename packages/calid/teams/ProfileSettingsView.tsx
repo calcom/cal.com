@@ -134,13 +134,13 @@ export default function ProfileSettingsView({ teamId }: { teamId: string }) {
   );
 }
 
-function ProfileSettingsForm({ team }: { team }) {
+function ProfileSettingsForm({ team }: { team: any }) {
   const { t } = useLocale();
 
   console.log("Team: ", team);
 
   const defaultValues: FormValues = {
-    id: team?.id,
+    id: team?.id as number,
     name: team?.name || "",
     logo: team?.logo || "",
     bio: team?.bio || "",
@@ -164,12 +164,25 @@ function ProfileSettingsForm({ team }: { team }) {
     reset,
   } = form;
 
+  useEffect(() => {
+    if (team?.id) {
+      reset({
+        id: team.id,
+        name: team?.name || "",
+        logo: team?.logo || "",
+        bio: team?.bio || "",
+        slug: team?.slug || ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "",
+      });
+    }
+  }, [team, reset]);
+
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
     async onSuccess(res) {
       reset({
+        id: team?.id as number,
         logo: res?.logoUrl,
         name: (res?.name || "") as string,
         bio: (res?.bio || "") as string,
@@ -193,7 +206,7 @@ function ProfileSettingsForm({ team }: { team }) {
     },
   });
 
-  const onSubmit = (values) => {
+  const onSubmit = (values: FormValues) => {
     console.log("updating: ", team);
     if (team) {
       const variables = {
@@ -211,6 +224,7 @@ function ProfileSettingsForm({ team }: { team }) {
 
   return (
     <Form form={form} handleSubmit={onSubmit}>
+      <input type="hidden" readOnly {...form.register("id", { valueAsNumber: true })} />
       <div className="border-subtle flex flex-col rounded-md border p-6">
         <div className="font-medium">{t("profile_picture")}</div>
         <Controller

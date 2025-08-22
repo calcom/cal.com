@@ -359,129 +359,151 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
       {teams &&
         teamMenuState &&
         teams.map((team, index: number) => {
-          if (!teamMenuState[index]) {
-            return null;
-          }
-          if (teamMenuState.some((teamState) => teamState.teamId === team.id))
-            return (
-              <Collapsible
-                className="cursor-pointer"
-                key={team.id}
-                open={teamMenuState[index].teamMenuOpen}
-                onOpenChange={(open) => {
-                  const newTeamMenuState = [...teamMenuState];
-                  newTeamMenuState[index] = {
-                    ...newTeamMenuState[index],
-                    teamMenuOpen: open,
-                  };
-                  setTeamMenuState(newTeamMenuState);
-                }}>
-                <CollapsibleTrigger asChild>
-                  <button
-                    className="hover:bg-emphasis [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                    aria-controls={`team-content-${team.id}`}
-                    aria-expanded={teamMenuState[index].teamMenuOpen}
-                    onClick={() => {
-                      const newTeamMenuState = [...teamMenuState];
-                      newTeamMenuState[index] = {
-                        ...newTeamMenuState[index],
-                        teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                      };
-                      setTeamMenuState(newTeamMenuState);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        const newTeamMenuState = [...teamMenuState];
-                        newTeamMenuState[index] = {
-                          ...newTeamMenuState[index],
-                          teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                        };
-                        setTeamMenuState(newTeamMenuState);
-                      }
-                    }}
-                    aria-label={`${team.name} ${
-                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
-                    }`}>
-                    <div className="me-3">
-                      {teamMenuState[index].teamMenuOpen ? (
-                        <Icon name="chevron-down" className="h-4 w-4" />
-                      ) : (
-                        <Icon name="chevron-right" className="h-4 w-4" />
-                      )}
-                    </div>
-                    {!team.parentId && (
-                      <img
-                        src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
-                        alt={team.name || "Team logo"}
-                      />
-                    )}
-                    <p className="w-1/2 truncate leading-normal">{team.name}</p>
-                    {!team.accepted && (
-                      <Badge className="ms-3" variant="orange">
-                        Inv.
-                      </Badge>
-                    )}
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
-                  {team.accepted && (
-                    <VerticalTabItem
-                      name={t("profile")}
-                      href={`/settings/teams/${team.id}/profile`}
-                      textClassNames="px-3 text-emphasis font-medium text-sm"
-                      disableChevron
+          return (
+            <Link href={`/settings/teams/${team.id}/profile`}>
+              <Button color="minimal">
+                <div className="ml-2 flex h-[32px] flex-row items-center text-sm">
+                  {!team.parentId && (
+                    <img
+                      src={getPlaceholderAvatar(team.logoUrl, team.name)}
+                      className="h-[24px] w-[24px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
+                      alt={team.name || "Team logo"}
                     />
                   )}
-                  <VerticalTabItem
-                    name={t("members")}
-                    href={`/settings/teams/${team.id}/members`}
-                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                    disableChevron
-                  />
-                  {/* Show roles only for sub-teams with PBAC-enabled parent */}
-                  <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
-                  {(checkAdminOrOwner(team.role) ||
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore this exists wtf?
-                    (team.isOrgAdmin && team.isOrgAdmin)) && (
-                    <>
-                      {/* TODO */}
-                      {/* <VerticalTabItem
-                name={t("general")}
-                href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                textClassNames="px-3 text-emphasis font-medium text-sm"
-                disableChevron
-              /> */}
-                      <VerticalTabItem
-                        name={t("appearance")}
-                        href={`/settings/teams/${team.id}/appearance`}
-                        textClassNames="px-3 text-emphasis font-medium text-sm"
-                        disableChevron
-                      />
-                      {/* Hide if there is a parent ID */}
-                      {!team.parentId ? (
-                        <>
-                          <VerticalTabItem
-                            name={t("billing")}
-                            href={`/settings/teams/${team.id}/billing`}
-                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                            disableChevron
-                          />
-                        </>
-                      ) : null}
-                      <VerticalTabItem
-                        name={t("settings")}
-                        href={`/settings/teams/${team.id}/settings`}
-                        textClassNames="px-3 text-emphasis font-medium text-sm"
-                        disableChevron
-                      />
-                    </>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-            );
+                  <p className="w-full truncate leading-normal">{team.name}</p>
+                  {/* {!team.accepted && (
+                    <Badge className="ms-3" variant="orange">
+                      Inv.
+                    </Badge>
+                  )} */}
+                </div>
+              </Button>
+            </Link>
+          );
+
+          // if (!teamMenuState[index]) {
+          //   return null;
+          // }
+          // if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+          //   return (
+          //     <Collapsible
+          //       className="cursor-pointer"
+          //       key={team.id}
+          //       open={teamMenuState[index].teamMenuOpen}
+          //       onOpenChange={(open) => {
+          //         const newTeamMenuState = [...teamMenuState];
+          //         newTeamMenuState[index] = {
+          //           ...newTeamMenuState[index],
+          //           teamMenuOpen: open,
+          //         };
+          //         setTeamMenuState(newTeamMenuState);
+          //       }}>
+          //       <CollapsibleTrigger asChild>
+          //         <button
+          //           className="hover:bg-emphasis [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
+          //           aria-controls={`team-content-${team.id}`}
+          //           aria-expanded={teamMenuState[index].teamMenuOpen}
+          //           onClick={() => {
+          //             const newTeamMenuState = [...teamMenuState];
+          //             newTeamMenuState[index] = {
+          //               ...newTeamMenuState[index],
+          //               teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+          //             };
+          //             setTeamMenuState(newTeamMenuState);
+          //           }}
+          //           onKeyDown={(e) => {
+          //             if (e.key === "Enter" || e.key === " ") {
+          //               e.preventDefault();
+          //               const newTeamMenuState = [...teamMenuState];
+          //               newTeamMenuState[index] = {
+          //                 ...newTeamMenuState[index],
+          //                 teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+          //               };
+          //               setTeamMenuState(newTeamMenuState);
+          //             }
+          //           }}
+          //           aria-label={`${team.name} ${
+          //             teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
+          //           }`}>
+          //           <div className="me-3">
+          //             {teamMenuState[index].teamMenuOpen ? (
+          //               <Icon name="chevron-down" className="h-4 w-4" />
+          //             ) : (
+          //               <Icon name="chevron-right" className="h-4 w-4" />
+          //             )}
+          //           </div>
+          //           {!team.parentId && (
+          //             <img
+          //               src={getPlaceholderAvatar(team.logoUrl, team.name)}
+          //               className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
+          //               alt={team.name || "Team logo"}
+          //             />
+          //           )}
+          //           <p className="w-1/2 truncate leading-normal">{team.name}</p>
+          //           {!team.accepted && (
+          //             <Badge className="ms-3" variant="orange">
+          //               Inv.
+          //             </Badge>
+          //           )}
+          //         </button>
+          //       </CollapsibleTrigger>
+          //       <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
+          //         {team.accepted && (
+          //           <VerticalTabItem
+          //             name={t("profile")}
+          //             href={`/settings/teams/${team.id}/profile`}
+          //             textClassNames="px-3 text-emphasis font-medium text-sm"
+          //             disableChevron
+          //           />
+          //         )}
+          //         <VerticalTabItem
+          //           name={t("members")}
+          //           href={`/settings/teams/${team.id}/members`}
+          //           textClassNames="px-3 text-emphasis font-medium text-sm"
+          //           disableChevron
+          //         />
+          //         {/* Show roles only for sub-teams with PBAC-enabled parent */}
+          //         <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
+          //         {(checkAdminOrOwner(team.role) ||
+          //           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //           // @ts-ignore this exists wtf?
+          //           (team.isOrgAdmin && team.isOrgAdmin)) && (
+          //           <>
+          //             {/* TODO */}
+          //             {/* <VerticalTabItem
+          //       name={t("general")}
+          //       href={`${WEBAPP_URL}/settings/my-account/appearance`}
+          //       textClassNames="px-3 text-emphasis font-medium text-sm"
+          //       disableChevron
+          //     /> */}
+          //             <VerticalTabItem
+          //               name={t("appearance")}
+          //               href={`/settings/teams/${team.id}/appearance`}
+          //               textClassNames="px-3 text-emphasis font-medium text-sm"
+          //               disableChevron
+          //             />
+          //             {/* Hide if there is a parent ID */}
+          //             {!team.parentId ? (
+          //               <>
+          //                 <VerticalTabItem
+          //                   name={t("billing")}
+          //                   href={`/settings/teams/${team.id}/billing`}
+          //                   textClassNames="px-3 text-emphasis font-medium text-sm"
+          //                   disableChevron
+          //                 />
+          //               </>
+          //             ) : null}
+          //             <VerticalTabItem
+          //               name={t("settings")}
+          //               href={`/settings/teams/${team.id}/settings`}
+          //               textClassNames="px-3 text-emphasis font-medium text-sm"
+          //               disableChevron
+          //             />
+          //           </>
+          //         )}
+          //       </CollapsibleContent>
+          //     </Collapsible>
+          //   );
         })}
     </>
   );

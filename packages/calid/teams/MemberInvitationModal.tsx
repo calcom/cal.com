@@ -1,21 +1,32 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@calid/features/ui/components/dialog";
+import { Form } from "@calid/features/ui/components/form";
+import { Label } from "@calid/features/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@calid/features/ui/components/select";
+import { TextField } from "@calid/features/ui/components/text_field";
+import { Textarea } from "@calid/features/ui/components/textarea";
+import { toast } from "@calid/features/ui/components/toast/use-toast";
+import { ToggleGroup } from "@calid/features/ui/components/toggle-group";
 import React, { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-
-import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
-import { Label } from "@calid/features/ui/components/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@calid/features/ui/components/select";
-import { TextField } from "@calid/features/ui/components/text_field";
-import { Form } from "@calid/features/ui/components/form";
-import { toast } from "@calid/features/ui/components/toast/use-toast";
-import { ToggleGroup } from "@calid/features/ui/components/toggle-group";
-import { Textarea } from "@calid/features/ui/components/textarea";
 
 type InviteFormValues = {
   emailOrUsername: string;
@@ -35,7 +46,9 @@ type MemberInvitationModalProps = {
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
-  const formMethods = useForm<InviteFormValues>({ defaultValues: { emailOrUsername: "", role: MembershipRole.MEMBER } });
+  const formMethods = useForm<InviteFormValues>({
+    defaultValues: { emailOrUsername: "", role: MembershipRole.MEMBER },
+  });
 
   const resetFields = () => formMethods.reset({ emailOrUsername: "", role: MembershipRole.MEMBER });
 
@@ -107,7 +120,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           <DialogTitle>{t("invite_members")}</DialogTitle>
         </DialogHeader>
 
-        <div className="mb-4">
+        <div >
           <ToggleGroup
             isFullWidth
             defaultValue={mode}
@@ -143,20 +156,35 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     </>
                   ) : (
                     <div className="space-y-2">
-                      <Label>{t("upload_csv")}</Label>
                       <input
+                        id="bulkInvite"
                         ref={fileInputRef}
                         type="file"
-                        accept=".csv,.txt"
+                        accept=".csv"
                         onChange={handleFileUpload}
+                        style={{ display: "none" }}
                         className="text-sm"
                       />
-                      <Label className="mt-2">{t("or_paste_emails")}</Label>
+
                       <Textarea
                         placeholder={t("paste_emails_comma_separated")}
                         onChange={(e) => setBulkEmails(parseEmailsFromText(e.target.value))}
                       />
-                      <div className="text-subtle text-xs">{t("selected_count", { count: bulkEmails.length })}</div>
+                      <div className="text-subtle text-xs">
+                        {t("selected_count", { count: bulkEmails.length })}
+                      </div>
+                      <Button
+                        type="button"
+                        color="secondary"
+                        onClick={() => {
+                          if (fileInputRef.current) {
+                            fileInputRef.current.click();
+                          }
+                        }}
+                        StartIcon="paperclip"
+                        className="mt-3 w-full justify-center stroke-2">
+                        {t("upload_csv_file")}
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -169,13 +197,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 name="role"
                 control={formMethods.control}
                 render={({ field: { value, onChange } }) => (
-                  <Select value={value} onValueChange={(v) => onChange(v as MembershipRole)}>
+                  <Select className="bg-default" value={value} onValueChange={(v) => onChange(v as MembershipRole)}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("select_role")} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-default">
                       {roleOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
+                        <SelectItem className="bg-default" key={opt.value} value={opt.value}>
                           {opt.label}
                         </SelectItem>
                       ))}
@@ -188,20 +216,27 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
           <DialogFooter className="justify-between">
             <div className="flex items-center gap-2">
-              <Button color="secondary" type="button" onClick={handleCopyInviteLink} loading={createInvite.isPending}>
+              <Button
+                color="secondary"
+                type="button"
+                onClick={handleCopyInviteLink}
+                loading={createInvite.isPending}>
                 {t("copy_invite_link")}
               </Button>
-              {props.onSettingsOpen && (
+              {/* {props.onSettingsOpen && (
                 <Button color="minimal" type="button" onClick={props.onSettingsOpen}>
                   {t("link_settings")}
                 </Button>
-              )}
+              )} */}
             </div>
             <div className="flex items-center gap-2">
               <Button color="secondary" type="button" onClick={props.onExit}>
                 {t("cancel")}
               </Button>
-              <Button color="primary" type="submit" disabled={props.isPending || (mode === "BULK" && bulkEmails.length === 0)}>
+              <Button
+                color="primary"
+                type="submit"
+                disabled={props.isPending || (mode === "BULK" && bulkEmails.length === 0)}>
                 {t("send_invite")}
               </Button>
             </div>
@@ -237,6 +272,7 @@ export const MemberInvitationModalWithoutMembers = ({
       token={token}
       onExit={hideInvitationModal}
       onSubmit={(values, resetFields) => {
+        console.log("Hello world");
         inviteMemberMutation.mutate(
           {
             teamId,
@@ -255,10 +291,16 @@ export const MemberInvitationModalWithoutMembers = ({
               hideInvitationModal();
 
               if (Array.isArray(data.usernameOrEmail)) {
-                toast({ title: t("invites_sent"), description: t("email_invite_team_bulk", { userCount: data.numUsersInvited }) });
+                toast({
+                  title: t("invites_sent"),
+                  description: t("email_invite_team_bulk", { userCount: data.numUsersInvited }),
+                });
                 resetFields();
               } else {
-                toast({ title: t("invite_sent"), description: t("email_invite_team", { email: data.usernameOrEmail }) });
+                toast({
+                  title: t("invite_sent"),
+                  description: t("email_invite_team", { email: data.usernameOrEmail }),
+                });
               }
             },
             onError: (error) => {
@@ -274,5 +316,3 @@ export const MemberInvitationModalWithoutMembers = ({
     />
   );
 };
-
-

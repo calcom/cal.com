@@ -228,7 +228,6 @@ const TeamVisibilityToggle = ({
       description={t(isOrganization ? "make_org_private_description" : "make_team_private_description")}
       checked={currentVisibility}
       onCheckedChange={handleVisibilityChange}
-      switchContainerClassName="my-6"
       data-testid="make-team-private-check"
     />
   );
@@ -386,6 +385,38 @@ const InternalNotesPresetManager = ({ team }: { team: TeamData }) => {
         }}
       />
     </Form>
+  );
+};
+
+export const SecurityAndPrivacyPanel = ({ team }: { team: TeamData }) => {
+  const sessionData = useSession();
+  const { hasAdministrativeRights } = usePermissionCheck(team);
+  const hasOrgPermissions = checkAdminOrOwner(sessionData?.data?.user.org?.role);
+  const pendingInvitation = !team?.membership.accepted;
+
+  return (
+    <div className="mt-6">
+      {team && sessionData.data && (
+        <div className="border-subtle rounded-md border p-6">
+          <ImpersonationController
+            organizationId={team.id}
+            userId={sessionData.data.user.id}
+            isDisabled={pendingInvitation}
+          />
+        </div>
+      )}
+
+      {team && team.id && (hasAdministrativeRights || hasOrgPermissions) && (
+        <div className="mt-6 border-subtle rounded-md border p-6">
+          <TeamVisibilityToggle
+            isOrganization={false}
+            organizationId={team.id}
+            visibilityStatus={team.isPrivate ?? false}
+            isDisabled={pendingInvitation}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -558,34 +589,6 @@ const FrequencyLimitManager = ({ team }: { team: TeamData }) => {
         }}
       />
     </Form>
-  );
-};
-
-const SecurityAndPrivacyPanel = ({ team }: { team: TeamData }) => {
-  const sessionData = useSession();
-  const { hasAdministrativeRights } = usePermissionCheck(team);
-  const hasOrgPermissions = checkAdminOrOwner(sessionData?.data?.user.org?.role);
-  const pendingInvitation = !team?.membership.accepted;
-
-  return (
-    <div className="mt-6">
-      {team && sessionData.data && (
-        <ImpersonationController
-          organizationId={team.id}
-          userId={sessionData.data.user.id}
-          isDisabled={pendingInvitation}
-        />
-      )}
-
-      {team && team.id && (hasAdministrativeRights || hasOrgPermissions) && (
-        <TeamVisibilityToggle
-          isOrganization={false}
-          organizationId={team.id}
-          visibilityStatus={team.isPrivate ?? false}
-          isDisabled={pendingInvitation}
-        />
-      )}
-    </div>
   );
 };
 
