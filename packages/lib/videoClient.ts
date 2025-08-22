@@ -1,7 +1,7 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { videoLoaders } from "@calcom/app-store/_utils/videos/videoLoaders";
+import videoLoaders from "@calcom/app-store/_utils/videos/videoLoaders";
 import type { VideoLoaderKey } from "@calcom/app-store/_utils/videos/videoLoaders";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { DailyLocationType } from "@calcom/app-store/locations";

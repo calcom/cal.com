@@ -1,6 +1,6 @@
 import z from "zod";
 
-import getApps from "@calcom/app-store/utils";
+import { getVideoApps } from "@calcom/app-store/_utils/videos/getVideoApps";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -25,7 +25,7 @@ export const updateUserDefaultConferencingAppHandler = async ({
   // getApps need credentials with service account key
   // We aren't returning the credential, so we are fine with the service account key
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(ctx.user);
-  const foundApp = getApps(credentials, true).filter((app) => app.slug === input.appSlug)[0];
+  const foundApp = getVideoApps(credentials, true).filter((app) => app.slug === input.appSlug)[0];
   const appLocation = foundApp?.appData?.location;
 
   if (!foundApp || !appLocation) throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });

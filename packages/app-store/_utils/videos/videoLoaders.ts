@@ -1,6 +1,6 @@
 import { createCachedImport } from "../createCachedImport";
 
-export const videoLoaders = {
+const videoLoaders = {
   dailyvideo: createCachedImport(() => import("../../dailyvideo")),
   googlevideo: createCachedImport(() => import("../../googlevideo")),
   huddle01video: createCachedImport(() => import("../../huddle01video")),
@@ -15,3 +15,5 @@ export const videoLoaders = {
 };
 
 export type VideoLoaderKey = keyof typeof videoLoaders;
+
+export default videoLoaders;

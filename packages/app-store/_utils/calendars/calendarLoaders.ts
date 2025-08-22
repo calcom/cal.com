@@ -1,6 +1,6 @@
 import { createCachedImport } from "../createCachedImport";
 
-export const calendarLoaders = {
+const calendarLoaders = {
   applecalendar: createCachedImport(() => import("../../applecalendar")),
   caldavcalendar: createCachedImport(() => import("../../caldavcalendar")),
   googlecalendar: createCachedImport(() => import("../../googlecalendar")),
@@ -14,3 +14,5 @@ export const calendarLoaders = {
 };
 
 export type CalendarLoaderKey = keyof typeof calendarLoaders;
+
+export default calendarLoaders;

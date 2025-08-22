@@ -1,9 +1,9 @@
 import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
-import { calendarAppsMock } from "../../../../../tests/libs/__mocks__/calendarApps";
+import calendarAppsMock from "../../../../../tests/libs/__mocks__/calendarApps";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import { paymentAppsMock } from "../../../../../tests/libs/__mocks__/paymentApps";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
-import { videoAppsMock } from "../../../../../tests/libs/__mocks__/videoApps";
+import videoAppsMock from "../../../../../tests/libs/__mocks__/videoApps";
 
 import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
@@ -1771,7 +1771,7 @@ export function mockCalendar(
   const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
   const app = calendarAppsMetaData[metadataLookupKey as keyof typeof calendarAppsMetaData];
 
-  const appMock = calendarAppsMock[appStoreLookupKey as keyof typeof calendarAppsMock];
+  const appMock = calendarAppsMock.default[appStoreLookupKey as keyof typeof calendarAppsMock.default];
 
   appMock &&
     `mockResolvedValue` in appMock &&
@@ -1957,7 +1957,7 @@ export function mockVideoApp({
   const deleteMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error FIXME
-  videoAppsMock[appStoreLookupKey as keyof typeof videoAppsMock].mockImplementation(() => {
+  videoAppsMock.default[appStoreLookupKey as keyof typeof videoAppsMock.default].mockImplementation(() => {
     return new Promise((resolve) => {
       resolve({
         lib: {
@@ -2096,7 +2096,7 @@ export function mockErrorOnVideoMeetingCreation({
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  videoAppsMock[appStoreLookupKey].mockImplementation(() => {
+  videoAppsMock.default[appStoreLookupKey].mockImplementation(() => {
     return new Promise((resolve) => {
       resolve({
         lib: {

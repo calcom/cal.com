@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import { calendarLoaders } from "./calendars/calendarLoaders";
+import calendarLoaders from "./calendars/calendarLoaders";
 import type { CalendarLoaderKey } from "./calendars/calendarLoaders";
 
 interface CalendarApp {
