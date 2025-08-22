@@ -433,7 +433,7 @@ export class InsightsRoutingBaseService {
     // Date range filtering
     if (this.filters.startDate && this.filters.endDate) {
       conditions.push(
-        Prisma.sql`"createdAt" >= ${this.filters.startDate}::timestamp AND "createdAt" <= ${this.filters.endDate}::timestamp`
+        Prisma.sql`rfrd."createdAt" >= ${this.filters.startDate}::timestamp AND rfrd."createdAt" <= ${this.filters.endDate}::timestamp`
       );
     }
 
@@ -450,7 +450,7 @@ export class InsightsRoutingBaseService {
     if (bookingStatusOrder && isMultiSelectFilterValue(bookingStatusOrder.value)) {
       const statusCondition = makeSqlCondition(bookingStatusOrder.value);
       if (statusCondition) {
-        conditions.push(Prisma.sql`"bookingStatusOrder" ${statusCondition}`);
+        conditions.push(Prisma.sql`rfrd."bookingStatusOrder" ${statusCondition}`);
       }
     }
 
@@ -459,7 +459,7 @@ export class InsightsRoutingBaseService {
     if (bookingAssignmentReason && isTextFilterValue(bookingAssignmentReason.value)) {
       const reasonCondition = makeSqlCondition(bookingAssignmentReason.value);
       if (reasonCondition) {
-        conditions.push(Prisma.sql`"bookingAssignmentReason" ${reasonCondition}`);
+        conditions.push(Prisma.sql`rfrd."bookingAssignmentReason" ${reasonCondition}`);
       }
     }
 
@@ -468,7 +468,7 @@ export class InsightsRoutingBaseService {
     if (bookingUid && isTextFilterValue(bookingUid.value)) {
       const uidCondition = makeSqlCondition(bookingUid.value);
       if (uidCondition) {
-        conditions.push(Prisma.sql`"bookingUid" ${uidCondition}`);
+        conditions.push(Prisma.sql`rfrd."bookingUid" ${uidCondition}`);
       }
     }
 
@@ -502,7 +502,7 @@ export class InsightsRoutingBaseService {
     // Extract member user IDs filter (multi-select)
     const memberUserIds = filtersMap["bookingUserId"];
     if (memberUserIds && isMultiSelectFilterValue(memberUserIds.value)) {
-      conditions.push(Prisma.sql`"bookingUserId" = ANY(${memberUserIds.value.data})`);
+      conditions.push(Prisma.sql`rfrd."bookingUserId" = ANY(${memberUserIds.value.data})`);
     }
 
     // Extract form ID filter (single-select)
@@ -510,7 +510,7 @@ export class InsightsRoutingBaseService {
     if (formId && isSingleSelectFilterValue(formId.value)) {
       const formIdCondition = makeSqlCondition(formId.value);
       if (formIdCondition) {
-        conditions.push(Prisma.sql`"formId" ${formIdCondition}`);
+        conditions.push(Prisma.sql`rfrd."formId" ${formIdCondition}`);
       }
     }
 
@@ -562,7 +562,7 @@ export class InsightsRoutingBaseService {
     }
 
     if (scope === "user") {
-      return Prisma.sql`"formUserId" = ${this.options.userId} AND "formTeamId" IS NULL`;
+      return Prisma.sql`rfrd."formUserId" = ${this.options.userId} AND rfrd."formTeamId" IS NULL`;
     } else if (scope === "org") {
       return await this.buildOrgAuthorizationCondition(this.options);
     } else if (scope === "team") {
@@ -584,7 +584,7 @@ export class InsightsRoutingBaseService {
 
     const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)];
 
-    return Prisma.sql`("formTeamId" = ANY(${teamIds})) OR ("formUserId" = ${options.userId} AND "formTeamId" IS NULL)`;
+    return Prisma.sql`(rfrd."formTeamId" = ANY(${teamIds})) OR (rfrd."formUserId" = ${options.userId} AND rfrd."formTeamId" IS NULL)`;
   }
 
   private async buildTeamAuthorizationCondition(
@@ -600,7 +600,7 @@ export class InsightsRoutingBaseService {
       return NOTHING_CONDITION;
     }
 
-    return Prisma.sql`"formTeamId" = ${options.teamId}`;
+    return Prisma.sql`rfrd."formTeamId" = ${options.teamId}`;
   }
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
@@ -699,6 +699,7 @@ export class InsightsRoutingBaseService {
   > {
     const baseConditions = await this.getBaseConditions();
 
+    // Get failed bookings (responses without a successful booking) grouped by form, field, and option
     const result = await this.prisma.$queryRaw<
       {
         formId: string;
@@ -710,70 +711,61 @@ export class InsightsRoutingBaseService {
         count: number;
       }[]
     >`
+      WITH form_fields AS (
+        SELECT
+          f.id as form_id,
+          f.name as form_name,
+          field->>'id' as field_id,
+          field->>'label' as field_label,
+          opt->>'id' as option_id,
+          opt->>'label' as option_label
+        FROM "App_RoutingForms_Form" f,
+        LATERAL jsonb_array_elements(f.fields) as field
+        LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
+        WHERE true
+      ),
+      response_stats AS (
+        SELECT
+          rfrd."formId",
+          key as field_id,
+          CASE
+            WHEN jsonb_typeof(value->'value') = 'array' THEN
+              v.value_item
+            ELSE
+              value->>'value'
+          END as selected_option,
+          COUNT(DISTINCT rfrd.id) as response_count
+        FROM "RoutingFormResponseDenormalized" rfrd
+        LEFT JOIN "App_RoutingForms_FormResponse" r ON r.id = rfrd.id
+        CROSS JOIN jsonb_each(r.response::jsonb) as fields(key, value)
+        LEFT JOIN LATERAL jsonb_array_elements_text(
+          CASE
+            WHEN jsonb_typeof(value->'value') = 'array'
+            THEN value->'value'
+            ELSE NULL
+          END
+        ) as v(value_item) ON true
+        WHERE (${baseConditions}) AND rfrd."bookingUid" IS NULL
+        GROUP BY rfrd."formId", key, selected_option
+      )
       SELECT
-        rfrd."formId",
-        rfrd."formName",
-        f."fieldId",
-        field_def->>'label' as "fieldLabel",
-        CASE
-          WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
-            unnest(f."valueStringArray")
-          ELSE
-            f."valueString"
-        END as "optionId",
-        CASE
-          WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
-            COALESCE(
-              (SELECT opt->>'label' 
-               FROM jsonb_array_elements(field_def->'options') as opt 
-               WHERE opt->>'id' = unnest(f."valueStringArray")),
-              unnest(f."valueStringArray")
-            )
-          ELSE
-            COALESCE(
-              (SELECT opt->>'label' 
-               FROM jsonb_array_elements(field_def->'options') as opt 
-               WHERE opt->>'id' = f."valueString"),
-              f."valueString"
-            )
-        END as "optionLabel",
-        COUNT(*) as count
-      FROM "RoutingFormResponseDenormalized" rfrd
-      JOIN "RoutingFormResponseField" f ON f."responseId" = rfrd."id"
-      JOIN "App_RoutingForms_Form" form ON form."id" = rfrd."formId"
-      CROSS JOIN LATERAL jsonb_array_elements(form."fields") as field_def
-      WHERE ${baseConditions}
-        AND rfrd."bookingUid" IS NULL
-        AND rfrd."createdAt" >= ${this.filters.startDate}::timestamp
-        AND rfrd."createdAt" <= ${this.filters.endDate}::timestamp
-        AND field_def->>'id' = f."fieldId"
-        AND (f."valueString" IS NOT NULL OR (f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0))
-      GROUP BY rfrd."formId", rfrd."formName", f."fieldId", field_def->>'label', 
-               CASE
-                 WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
-                   unnest(f."valueStringArray")
-                 ELSE
-                   f."valueString"
-               END,
-               CASE
-                 WHEN f."valueStringArray" IS NOT NULL AND array_length(f."valueStringArray", 1) > 0 THEN
-                   COALESCE(
-                     (SELECT opt->>'label' 
-                      FROM jsonb_array_elements(field_def->'options') as opt 
-                      WHERE opt->>'id' = unnest(f."valueStringArray")),
-                     unnest(f."valueStringArray")
-                   )
-                 ELSE
-                   COALESCE(
-                     (SELECT opt->>'label' 
-                      FROM jsonb_array_elements(field_def->'options') as opt 
-                      WHERE opt->>'id' = f."valueString"),
-                     f."valueString"
-                   )
-               END
+        ff.form_id as "formId",
+        ff.form_name as "formName",
+        ff.field_id as "fieldId",
+        ff.field_label as "fieldLabel",
+        ff.option_id as "optionId",
+        ff.option_label as "optionLabel",
+        COALESCE(rs.response_count, 0)::integer as count
+      FROM form_fields ff
+      LEFT JOIN response_stats rs ON
+        rs."formId" = ff.form_id AND
+        rs.field_id = ff.field_id AND
+        rs.selected_option = ff.option_id
+      WHERE ff.option_id IS NOT NULL
       ORDER BY count DESC
     `;
 
+    // First group by form and field
     const groupedByFormAndField = result.reduce((acc, curr) => {
       const formKey = curr.formName;
       acc[formKey] = acc[formKey] || {};
@@ -787,6 +779,11 @@ export class InsightsRoutingBaseService {
       return acc;
     }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
 
+    // NOTE: totalCount represents the sum of all response counts across all fields and options for a form
+    // For example, if a form has 2 fields with 2 options each:
+    // Field1: Option1 (5 responses), Option2 (3 responses)
+    // Field2: Option1 (2 responses), Option2 (4 responses)
+    // Then totalCount = 5 + 3 + 2 + 4 = 14 total responses
     const sortedEntries = Object.entries(groupedByFormAndField)
       .map(([formName, fields]) => ({
         formName,
@@ -797,6 +794,7 @@ export class InsightsRoutingBaseService {
       }))
       .sort((a, b) => b.totalCount - a.totalCount);
 
+    // Convert back to original format
     const sortedGroupedByFormAndField = sortedEntries.reduce((acc, { formName, fields }) => {
       acc[formName] = fields;
       return acc;
