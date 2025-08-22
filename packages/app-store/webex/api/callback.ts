@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
-  const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
+  const redirectUri = encodeURI(`${WEBAPP_URL_FOR_OAUTH}/api/integrations/${config.slug}/callback`);
   const params = new URLSearchParams([
     ["grant_type", "authorization_code"],
     ["client_id", client_id],
