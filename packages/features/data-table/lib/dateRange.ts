@@ -1,4 +1,4 @@
-import dayjs from "@calcom/dayjs";
+import { startOfDay, endOfDay, subDays, startOfMonth, startOfYear } from "date-fns";
 
 import { ColumnFilterType, type DateRangeFilterValue } from "./types";
 
@@ -28,9 +28,8 @@ export const PRESET_OPTIONS: PresetOption[] = [
   CUSTOM_PRESET,
 ];
 
-export const getDefaultStartDate = () => dayjs().subtract(6, "day").startOf("day");
-
-export const getDefaultEndDate = () => dayjs().endOf("day");
+export const getDefaultStartDate = () => startOfDay(subDays(new Date(), 6));
+export const getDefaultEndDate = () => endOfDay(new Date());
 
 export const getDateRangeFromPreset = (val: string | null) => {
   let startDate;
@@ -42,24 +41,24 @@ export const getDateRangeFromPreset = (val: string | null) => {
 
   switch (val) {
     case "tdy": // Today
-      startDate = dayjs().startOf("day");
-      endDate = dayjs().endOf("day");
+      startDate = startOfDay(new Date());
+      endDate = endOfDay(new Date());
       break;
     case "w": // Last 7 days
-      startDate = dayjs().subtract(6, "day").startOf("day");
-      endDate = dayjs().endOf("day");
+      startDate = startOfDay(subDays(new Date(), 6));
+      endDate = endOfDay(new Date());
       break;
     case "t": // Last 30 days
-      startDate = dayjs().subtract(29, "day").startOf("day");
-      endDate = dayjs().endOf("day");
+      startDate = startOfDay(subDays(new Date(), 29));
+      endDate = endOfDay(new Date());
       break;
     case "m": // Month to Date
-      startDate = dayjs().startOf("month");
-      endDate = dayjs().endOf("day");
+      startDate = startOfMonth(new Date());
+      endDate = endOfDay(new Date());
       break;
     case "y": // Year to Date
-      startDate = dayjs().startOf("year");
-      endDate = dayjs().endOf("day");
+      startDate = startOfYear(new Date());
+      endDate = endOfDay(new Date());
       break;
     default:
       throw new Error(`Invalid preset value: ${val}`);
