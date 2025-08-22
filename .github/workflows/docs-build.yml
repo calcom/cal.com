@@ -11,7 +11,7 @@ jobs:
       contents: read
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/dangerous-git-checkout
       - name: Cache Docs build
         uses: buildjet/cache@v4

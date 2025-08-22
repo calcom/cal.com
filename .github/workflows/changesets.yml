@@ -18,7 +18,7 @@ jobs:
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Setup node, yarn and install dependencies
