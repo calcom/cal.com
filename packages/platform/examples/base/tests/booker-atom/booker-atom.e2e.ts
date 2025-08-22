@@ -29,5 +29,15 @@ test("tweak availability  using AvailabilitySettings Atom", async ({ page }) => 
 
   await page.locator('[data-testid="day"]:not([data-disabled="true"])').first().click();
   await page.locator('[data-testid="time"]:not([data-disabled="true"])').first().click();
-  await page.locator('[data-testid="confirm-book-button"]').first().click();
+  await page.locator('[data-testid="add-guests"]').click();
+  await expect(page.locator('[data-testid="input-field"]')).toBeVisible();
+  await page.locator('[data-testid="input-field"]').fill("free@example.com");
+  await page.locator('[data-testid="confirm-book-button"]').click();
+
+  await expect(page.locator('[data-testid="booking-success-page"]')).toBeVisible();
+  await expect(page.locator('[data-testid="booking-success-message"]')).toBeVisible();
+  await expect(page.locator('[data-testid="booking-success-message"]')).toContainText(
+    "This meeting is scheduled"
+  );
+  await expect(page.locator('[data-testid="booking-redirect-or-cancel-links"]')).toBeVisible();
 });
