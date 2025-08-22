@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 @Injectable()
 export class MembershipsRepository {
@@ -90,6 +90,26 @@ export class MembershipsRepository {
     return !!adminMembership;
   }
 
+  async getOrgIdsWhereUserIsAdminOrOwner(userId: number) {
+    const userOrgAdminMemberships = await this.dbRead.prisma.membership.findMany({
+      where: {
+        userId: userId,
+        accepted: true,
+        role: {
+          in: ["OWNER", "ADMIN"],
+        },
+        team: {
+          parentId: null,
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    return userOrgAdminMemberships.map((m) => m.teamId);
+  }
+
   async createMembership(teamId: number, userId: number, role: MembershipRole, accepted: boolean) {
     const membership = await this.dbRead.prisma.membership.create({
       data: {
@@ -102,5 +122,47 @@ export class MembershipsRepository {
     });
 
     return membership;
+  }
+
+  async getUserAdminOrOwnerTeamMembership(userId: number, teamId: number) {
+    return this.dbRead.prisma.membership.findFirst({
+      where: {
+        userId: userId,
+        teamId: teamId,
+        accepted: true,
+        role: {
+          in: ["OWNER", "ADMIN"],
+        },
+      },
+    });
+  }
+
+  async getUserMembershipInOneOfOrgs(userId: number, orgIds: number[]) {
+    return this.dbRead.prisma.membership.findFirst({
+      where: {
+        userId: userId,
+        accepted: true,
+        teamId: {
+          in: orgIds,
+        },
+        team: {
+          parentId: null,
+        },
+      },
+    });
+  }
+
+  async getUserMembershipInOneOfOrgsTeams(userId: number, orgIds: number[]) {
+    return this.dbRead.prisma.membership.findFirst({
+      where: {
+        userId: userId,
+        accepted: true,
+        team: {
+          parentId: {
+            in: orgIds,
+          },
+        },
+      },
+    });
   }
 }
