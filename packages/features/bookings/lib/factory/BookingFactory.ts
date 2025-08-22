@@ -1,7 +1,5 @@
-import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
-import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
-import type { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
 import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
+import type { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService/BookingCreateService";
 import type {
   CreateBookingData,
   CreateInstantBookingData,
@@ -10,8 +8,6 @@ import type {
   CreateInstantBookingResponse,
 } from "@calcom/features/bookings/lib/service/BookingCreateService/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-
-type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
 
 interface IBookingFactoryDependencies {
   bookingCreateService: BookingCreateService;

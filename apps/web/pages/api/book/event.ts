@@ -1,13 +1,13 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
 import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
@@ -31,14 +31,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     creationSource: CreationSource.WEBAPP,
   };
 
-  const bookingFactory = getBookingFactory();
-  const booking = await bookingFactory.createBooking({
+  const booking = await handleNewBooking({
     bookingData: req.body,
-    bookingMeta: {
-      userId: session?.user?.id || -1,
-      hostname: req.headers.host || "",
-      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-    },
+    userId: session?.user?.id || -1,
+    hostname: req.headers.host || "",
+    forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
   });
   return booking;
 }

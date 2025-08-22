@@ -1,13 +1,13 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
 import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
@@ -43,18 +43,15 @@ async function handler(req: NextApiRequest & RequestMeta) {
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 
-  const bookingFactory = getBookingFactory();
-  const createdBookings: BookingResponse[] = await bookingFactory.createRecurringBooking({
+  const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
     bookingData: req.body,
-    bookingMeta: {
-      userId: session?.user?.id || -1,
-      platformClientId: req.platformClientId,
-      platformCancelUrl: req.platformCancelUrl,
-      platformBookingUrl: req.platformBookingUrl,
-      platformRescheduleUrl: req.platformRescheduleUrl,
-      platformBookingLocation: req.platformBookingLocation,
-      noEmail: req.noEmail,
-    },
+    userId: session?.user?.id || -1,
+    platformClientId: req.platformClientId,
+    platformCancelUrl: req.platformCancelUrl,
+    platformBookingUrl: req.platformBookingUrl,
+    platformRescheduleUrl: req.platformRescheduleUrl,
+    platformBookingLocation: req.platformBookingLocation,
+    noEmail: req.noEmail,
   });
 
   return createdBookings;
