@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
+import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -9,10 +10,6 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import type {
-  CreateInstantBookingData,
-  CreateInstantBookingResponse,
-} from "@calcom/features/bookings/lib/service/BookingCreateService/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -154,8 +151,17 @@ const triggerBrowserNotifications = async (args: {
   await Promise.allSettled(promises);
 };
 
-async function handler(bookingData: CreateInstantBookingData) {
-  let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
+export type HandleInstantMeetingResponse = {
+  message: string;
+  meetingTokenId: number;
+  bookingId: number;
+  bookingUid: string;
+  expires: Date;
+  userId: number | null;
+};
+
+async function handler(req: NextApiRequest) {
+  let eventType = await getEventTypesFromDB(req.body.eventTypeId);
   const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
   eventType = {
     ...eventType,
@@ -167,11 +173,11 @@ async function handler(bookingData: CreateInstantBookingData) {
   }
 
   const schema = getBookingDataSchema({
-    view: bookingData?.rescheduleUid ? "reschedule" : "booking",
+    view: req.body?.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
   });
   const reqBody = await getBookingData({
-    reqBody: bookingData,
+    reqBody: req.body,
     eventType,
     schema,
   });
@@ -251,7 +257,7 @@ async function handler(bookingData: CreateInstantBookingData) {
         data: attendeesList,
       },
     },
-    creationSource: bookingData.creationSource,
+    creationSource: req.body.creationSource,
   };
 
   const createBookingObj = {
@@ -269,7 +275,7 @@ async function handler(bookingData: CreateInstantBookingData) {
 
   const eventTypeWithExpiryTimeOffset = await prisma.eventType.findUniqueOrThrow({
     where: {
-      id: bookingData.eventTypeId,
+      id: req.body.eventTypeId,
     },
     select: {
       instantMeetingExpiryTimeOffsetInSeconds: true,
@@ -328,7 +334,7 @@ async function handler(bookingData: CreateInstantBookingData) {
     bookingUid: newBooking.uid,
     expires: instantMeetingToken.expires,
     userId: newBooking.userId,
-  } satisfies CreateInstantBookingResponse;
+  } satisfies HandleInstantMeetingResponse;
 }
 
 export default handler;

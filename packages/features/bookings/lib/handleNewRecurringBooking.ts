@@ -1,15 +1,25 @@
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
-import type {
-  CreateBookingMeta,
-  CreateRecurringBookingData,
-} from "@calcom/features/bookings/lib/service/BookingCreateService/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
+export type PlatformParams = {
+  platformClientId?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  platformRescheduleUrl?: string;
+  platformBookingLocation?: string;
+  areCalendarEventsEnabled?: boolean;
+};
+
 export type BookingHandlerInput = {
-  bookingData: CreateRecurringBookingData;
-} & CreateBookingMeta;
+  bookingData: Record<string, any>[];
+  userId?: number;
+  // These used to come from headers but now we're passing them as params
+  hostname?: string;
+  forcedSlug?: string;
+  noEmail?: boolean;
+} & PlatformParams;
 
 export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
   const data = input.bookingData;

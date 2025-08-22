@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
-import { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -239,18 +239,15 @@ async function handler(req: NextApiRequest) {
   }
 
   try {
-    const bookingFactory = getBookingFactory();
-
-    // Use the service with schema validation support
-    return await bookingFactory.createBooking({
-      bookingData: req.body,
-      bookingMeta: {
+    return await handleNewBooking(
+      {
+        bookingData: req.body,
         userId,
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       },
-      schemaGetter: getBookingDataSchemaForApi,
-    });
+      getBookingDataSchemaForApi
+    );
   } catch (error: unknown) {
     const knownError = error as Error;
     if (knownError?.message === ErrorCode.NoAvailableUsersFound) {

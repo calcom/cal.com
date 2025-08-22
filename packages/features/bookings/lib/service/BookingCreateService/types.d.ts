@@ -4,11 +4,14 @@
  */
 import type { z } from "zod";
 
+import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
+import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import type { SchedulingType } from "@calcom/prisma/client";
 import type { BookingCreateBody as MasterCreateBookingData } from "@calcom/prisma/zod/custom/booking";
 import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 
 export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
+export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
 
 export interface BookingAttendee {
   name: string;

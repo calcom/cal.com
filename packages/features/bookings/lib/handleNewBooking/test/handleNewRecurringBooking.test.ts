@@ -23,10 +23,11 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { getBookingFactory } from "@calcom/lib/di/containers/BookingFactory";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+import { handleNewRecurringBooking } from "../../handleNewRecurringBooking";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -152,13 +153,10 @@ describe("handleNewRecurringBooking", () => {
               };
             });
 
-          // Call createRecurringBooking directly instead of through API
-          const bookingFactory = getBookingFactory();
-          const createdBookings = await bookingFactory.createRecurringBooking({
+          // Call handleNewRecurringBooking directly instead of through API
+          const createdBookings = await handleNewRecurringBooking({
             bookingData: bookingDataArray,
-            bookingMeta: {
-              userId: -1, // Simulating anonymous user like in the API test
-            },
+            userId: -1, // Simulating anonymous user like in the API test
           });
 
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
@@ -373,14 +371,11 @@ describe("handleNewRecurringBooking", () => {
               };
             });
 
-          const bookingFactory = getBookingFactory();
           await expect(
             async () =>
-              await bookingFactory.createRecurringBooking({
+              await handleNewRecurringBooking({
                 bookingData: bookingDataArray,
-                bookingMeta: {
-                  userId: -1,
-                },
+                userId: -1,
               })
           ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
         },
