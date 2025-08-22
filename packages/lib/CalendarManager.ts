@@ -3,6 +3,7 @@ import { sortBy } from "lodash";
 
 import { getCalendarApps } from "@calcom/app-store/_utils/calendars/getCalendarApps";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -494,12 +495,14 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calendarDescription: getRichDescription(calEvent),
   };
 
+  const isMeetLocationType = calEvent.location === MeetLocationType;
+
   // Determine if the calendar event should include attendees
   const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
     .filter((domain) => domain.trim() !== "")
     .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
-  if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
+  if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType) {
     calendarEvent.attendees = [];
   }
 
