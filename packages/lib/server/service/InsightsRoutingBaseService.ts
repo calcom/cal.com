@@ -441,7 +441,7 @@ export class InsightsRoutingBaseService {
       Array<{
         id: number;
         name: string | null;
-        email: string;
+        email: string | null;
         avatarUrl: string | null;
       }>
     >`
