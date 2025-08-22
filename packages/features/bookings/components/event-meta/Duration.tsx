@@ -72,6 +72,8 @@ export const EventDuration = ({
     // Only store event duration in url if event has multiple durations.
     if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
       setSelectedDuration(event.length);
+
+    if (selectedDuration !== event.length) setSelectedDuration(event.length);
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   useEffect(() => {
