@@ -188,6 +188,7 @@ export const eventTypeLocations = z.array(
     hostPhoneNumber: z.string().optional(),
     credentialId: z.number().optional(),
     teamName: z.string().optional(),
+    customLabel: z.string().optional(),
   })
 );
 
