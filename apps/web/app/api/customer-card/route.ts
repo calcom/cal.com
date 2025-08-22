@@ -1,17 +1,10 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { createHmac } from "crypto";
-import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
-import { userMetadata } from "@calcom/prisma/zod-utils";
-
-import { CardComponent } from "@lib/plain/card-components";
 
 const customerCardDisplay = (
   name: string,
@@ -419,12 +412,12 @@ const customerCardDisplay = (
 const Card = z.object({
   key: z.string(),
   timeToLiveSeconds: z.number().int().min(0).nullish().default(null),
-  components: z.array(CardComponent).nullable(),
+  components: z.array(z.any()).nullable(),
 });
 
 type Card = z.infer<typeof Card>;
 
-const cardExamples: ((
+const _cardExamples: ((
   name: string,
   email: string,
   id: string,
@@ -440,7 +433,7 @@ const cardExamples: ((
   stripeCustomerId: string | null
 ) => Card)[] = [customerCardDisplay];
 
-const inputSchema = z.object({
+const _inputSchema = z.object({
   customer: z.object({
     name: z.string().optional(),
     email: z.string().email(),
@@ -458,89 +451,8 @@ const inputSchema = z.object({
   cardKeys: z.array(z.string()),
 });
 
-async function handler(request: NextRequest) {
-  const headersList = await headers();
-  const requestBody = await request.json();
-
-  // HMAC verification
-  const incomingSignature = headersList.get("plain-request-signature");
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
-    .update(JSON.stringify(requestBody))
-    .digest("hex");
-  if (incomingSignature !== expectedSignature) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  // Validate request body
-  const { cardKeys, customer } = inputSchema.parse(requestBody);
-
-  const userRepo = new UserRepository(prisma);
-  const user = await userRepo.findByEmail({ email: customer.email });
-
-  if (!user) {
-    return NextResponse.json({
-      cards: [
-        {
-          key: "customer-card",
-          timeToLiveSeconds: null,
-          components: [
-            {
-              componentSpacer: {
-                spacerSize: "M",
-              },
-            },
-            {
-              componentText: {
-                textSize: "L",
-                textColor: "MUTED",
-                text: "User does not exist!",
-              },
-            },
-          ],
-        },
-      ],
-    });
-  }
-
-  // Fetch team details including userId and team name
-  const teamMemberships = await userRepo.findTeamsByUserId({ userId: user.id });
-  const firstTeam = teamMemberships.teams[0] ?? null;
-
-  // Parse user metadata
-  const parsedMetadata = userMetadata.parse(user.metadata);
-
-  const cards = await Promise.all(
-    cardExamples.map(async (cardFn) => {
-      return cardFn(
-        user.name || "Unknown",
-        user.email,
-        user.id.toString(),
-        user.username || "Unknown",
-        user.timeZone,
-        user.emailVerified,
-        user.twoFactorEnabled,
-        user.identityProvider,
-        user.lastActiveAt,
-        firstTeam?.name || "Unknown",
-        firstTeam?.slug || "Unknown",
-        firstTeam?.isOrganization || false,
-        (user.metadata as { stripeCustomerId?: string })?.stripeCustomerId || "Unknown"
-      );
-    })
-  );
-
-  const filteredCards = cards.filter((card) => {
-    return cardKeys.length === 0 || cardKeys.includes(card.key);
-  });
-
-  return NextResponse.json({
-    cards: filteredCards,
-    user: {
-      ...user,
-      metadata: parsedMetadata,
-    },
-  });
+async function handler(_request: NextRequest) {
+  return NextResponse.json({ error: "Plain Chat is no longer supported" }, { status: 404 });
 }
 
 export const POST = defaultResponderForAppDir(handler);
