@@ -1,3 +1,4 @@
+import { Dialog, DialogTitle, DialogContent, DialogFooter } from "@calid/features/ui";
 // import { TextField } from "@calcom/ui/components/form";
 import { TextField } from "@calid/features/ui";
 import classNames from "classnames";
@@ -7,14 +8,12 @@ import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
 import { useEffect, useState } from "react";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -85,7 +84,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="relative bottom-[6px] me-2 ms-2 flex flex-row space-x-2">
+      <div className="relative me-2 ms-2 flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -117,7 +116,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   return (
     <div>
-      <div className="flex rounded-md">
+      <div className="flex flex-row items-center rounded-md">
         <div className="relative w-full ">
           <TextField
             ref={usernameRef}
@@ -141,9 +140,9 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           />
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex h-7 flex-row">
-              <span className={classNames("bg-default mx-0 p-3")}>
+              <span className={classNames("bg-default mx-0 p-1")}>
                 {usernameIsAvailable ? (
-                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
+                  <Icon name="check" className="relative bottom-[6px] h-3 w-3" />
                 ) : (
                   <></>
                 )}
@@ -151,7 +150,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             </div>
           )}
         </div>
-        <div className="mt-7 hidden md:inline">
+        <div className="hidden items-center md:inline">
           <ActionButtons />
         </div>
       </div>
@@ -162,8 +161,9 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <ActionButtons />
         </div>
       )}
-      <Dialog open={openDialogSaveUsername}>
-        <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
+      <Dialog open={openDialogSaveUsername} onOpenChange={() => setOpenDialogSaveUsername(false)}>
+        <DialogContent type="confirmation">
+          <DialogTitle>{t("confirm_username_change_dialog_title")}</DialogTitle>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
               <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">
@@ -200,9 +200,9 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               {t("save")}
             </Button>
 
-            <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+            {/* <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
               {t("cancel")}
-            </DialogClose>
+            </DialogClose> */}
           </DialogFooter>
         </DialogContent>
       </Dialog>

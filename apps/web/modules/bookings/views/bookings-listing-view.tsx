@@ -405,7 +405,7 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
 
-        <div className="flex h-[32px] flex-row gap-4 ">
+        <div className="flex h-[32px] flex-row gap-4 overflow-auto ">
           <Button
             color="secondary"
             onClick={() => setShowFilters(!showFilters)}
