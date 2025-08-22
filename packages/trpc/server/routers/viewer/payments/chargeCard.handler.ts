@@ -4,6 +4,9 @@ import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -20,6 +23,7 @@ interface ChargeCardHandlerOptions {
 }
 export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions) => {
   const { prisma } = ctx;
+  const teamRepository = new TeamRepository(prisma);
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -84,18 +88,14 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     },
   };
 
-  const idToSearchObject = booking.eventType?.teamId
-    ? { teamId: booking.eventType.teamId }
-    : { userId: ctx.user.id };
+  const userId = ctx.user.id;
+  const teamId = booking.eventType?.teamId;
+  const appId = booking.payment[0].appId;
 
-  if (booking.eventType?.teamId) {
-    const userIsInTeam = await prisma.membership.findUnique({
-      where: {
-        userId_teamId: {
-          userId: ctx.user.id,
-          teamId: booking.eventType?.teamId,
-        },
-      },
+  if (teamId) {
+    const userIsInTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      userId,
+      teamId,
     });
 
     if (!userIsInTeam) {
@@ -103,15 +103,23 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     }
   }
 
-  const paymentCredential = await prisma.credential.findFirst({
-    where: {
-      ...idToSearchObject,
-      appId: booking.payment[0].appId,
-    },
-    include: {
-      app: true,
-    },
+  let paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
+    appId,
+    userId,
+    teamId,
   });
+
+  if (!paymentCredential && teamId) {
+    // See if the team event belongs to an org
+    const org = await teamRepository.findParentOrganizationByTeamId(teamId);
+
+    if (org) {
+      paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndTeamId({
+        appId,
+        teamId: org.id,
+      });
+    }
+  }
 
   if (!paymentCredential?.app) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
