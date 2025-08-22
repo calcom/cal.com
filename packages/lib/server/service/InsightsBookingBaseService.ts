@@ -811,6 +811,8 @@ export class InsightsBookingBaseService {
       additionalCondition = Prisma.sql`AND status = 'cancelled'`;
     } else if (type === "noShow") {
       additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+    } else if (type === "accepted") {
+      additionalCondition = Prisma.sql`AND status = 'accepted'`;
     }
 
     const bookingsFromTeam = await this.prisma.$queryRaw<

@@ -16,16 +16,16 @@ export const LeastCompletedTeamMembersTable = () => {
   const { t } = useLocale();
   let insightsBookingParams = useInsightsBookingParameters();
 
-  const currentEndDate = useChangeTimeZoneWithPreservedLocalTime(
+  const currentTime = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs().endOf("day").toISOString();
+      return dayjs().toISOString();
     }, [])
   );
 
   // booking with endDate < now is "accepted" booking
   insightsBookingParams = {
     ...insightsBookingParams,
-    endDate: currentEndDate,
+    endDate: currentTime,
   };
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLeastCompletedBookings.useQuery(
