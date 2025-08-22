@@ -522,8 +522,15 @@ export class InsightsRoutingBaseService {
           COUNT(DISTINCT "bookingId")::integer as total
         FROM "RoutingFormResponseDenormalized" rfrd
         WHERE "bookingUserId" IN (SELECT user_id FROM all_users)
-        AND date_trunc(${dayjsPeriod}, "createdAt") >= (SELECT MIN(period_start) FROM paginated_periods)
-        AND date_trunc(${dayjsPeriod}, "createdAt") <= (SELECT MAX(period_start) FROM paginated_periods)
+        AND "createdAt" >= (SELECT MIN(period_start) FROM paginated_periods)
+        AND "createdAt" < (
+          (SELECT MAX(period_start) FROM paginated_periods)
+          + (CASE
+              WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
+              WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
+              WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
+            END)
+        )
         AND ${baseConditions}
         GROUP BY 1, 2
       )
