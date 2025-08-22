@@ -1,6 +1,6 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService/BookingCreateService";
+import { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
 
 import { DI_TOKENS } from "../tokens";
 
