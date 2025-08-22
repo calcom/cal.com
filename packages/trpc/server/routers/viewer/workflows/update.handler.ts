@@ -5,6 +5,7 @@ import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowReminderService } from "@calcom/lib/server/service/workflows/WorkflowReminderService";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates, MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -235,6 +236,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       })),
     });
   } else {
+    // todo: I think this doesn't work for form triggers, I won't reach this code
     // activeOn are team ids
     if (userWorkflow.isActiveOnAll) {
       oldActiveOnIds = (
@@ -300,43 +302,35 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // Only schedule reminders for event-based triggers, not form triggers
-  if (!isFormTrigger(trigger)) {
-    if (
-      userWorkflow.trigger !== trigger ||
-      userWorkflow.time !== time ||
-      userWorkflow.timeUnit !== timeUnit
-    ) {
-      //if trigger changed, delete all reminders from steps before change
-      await deleteRemindersOfActiveOnIds({
-        removedActiveOnIds: oldActiveOnIds,
-        workflowSteps: userWorkflow.steps,
-        isOrg,
-      });
+  const reminderService = new WorkflowReminderService(ctx.prisma);
 
-      await scheduleWorkflowNotifications({
-        activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
-        isOrg,
-        workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-        time,
-        timeUnit,
-        trigger,
-        userId: user.id,
-        teamId: userWorkflow.teamId,
-      });
-    } else {
-      // if trigger didn't change, only schedule reminders for all new activeOn
-      await scheduleWorkflowNotifications({
-        activeOn: newActiveOn,
-        isOrg,
-        workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-        time,
-        timeUnit,
-        trigger,
-        userId: user.id,
-        teamId: userWorkflow.teamId,
-        alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
-      });
-    }
+  if (userWorkflow.trigger !== trigger || userWorkflow.time !== time || userWorkflow.timeUnit !== timeUnit) {
+    // If trigger changed, update all reminders
+    await reminderService.updateRemindersOnChangedTrigger({
+      oldActiveOnIds,
+      newActiveOnIds: activeOnWithChildren,
+      steps: userWorkflow.steps,
+      newTrigger: trigger,
+      oldTrigger: userWorkflow.trigger,
+      time,
+      timeUnit,
+      userId: user.id,
+      teamId: userWorkflow.teamId,
+      isOrg,
+    });
+  } else {
+    // if trigger didn't change, only schedule reminders for all new activeOn
+    await scheduleWorkflowNotifications({
+      activeOn: newActiveOn,
+      isOrg,
+      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      time,
+      timeUnit,
+      trigger,
+      userId: user.id,
+      teamId: userWorkflow.teamId,
+      alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+    });
   }
 
   // handle deleted and edited workflow steps
