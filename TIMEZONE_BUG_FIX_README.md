@@ -133,3 +133,4 @@ Similar logic was applied to prevent automatic timezone updates in the API.
 **Fixes**: #23270
 **Type**: Bug Fix
 **Breaking Change**: No
+
