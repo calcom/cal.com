@@ -181,7 +181,7 @@ function BookingsContent({ status }: BookingsProps) {
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: true,
+        enableColumnFilter: user?.isTeamAdminOrOwner ?? false,
         enableSorting: false,
         cell: () => null,
         meta: {
