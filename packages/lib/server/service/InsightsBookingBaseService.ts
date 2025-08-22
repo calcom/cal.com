@@ -801,7 +801,7 @@ export class InsightsBookingBaseService {
   }
 
   async getMembersStatsWithCount(
-    type: "all" | "cancelled" | "noShow" = "all",
+    type: "all" | "accepted" | "cancelled" | "noShow" = "all",
     sortOrder: "ASC" | "DESC" = "DESC"
   ): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();

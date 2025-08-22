@@ -2170,8 +2170,6 @@
   "no_event_types_found": "រកមិនឃើញប្រភេទព្រឹត្តិការណ៍ទេ",
   "average_event_duration": "រយៈពេលមធ្យមនៃព្រឹត្តិការណ៍",
   "bookings_by_hour": "ការកក់តាមម៉ោង",
-  "most_booked_members": "សមាជិកដែលត្រូវបានកក់ច្រើនបំផុត",
-  "least_booked_members": "សមាជិកដែលត្រូវបានកក់តិចបំផុត",
   "events_created": "ព្រឹត្តិការណ៍ដែលបានបង្កើត",
   "events_completed": "ព្រឹត្តិការណ៍ដែលបានបញ្ចប់",
   "events_cancelled": "ព្រឹត្តិការណ៍ត្រូវបានលុបចោល",

@@ -2170,8 +2170,6 @@
   "no_event_types_found": "Ingen begivenhedstyper fundet",
   "average_event_duration": "Gennemsnitlig begivenhedsvarighed",
   "bookings_by_hour": "Bookinger pr. time",
-  "most_booked_members": "Mest booket",
-  "least_booked_members": "Mindst booket",
   "events_created": "Oprettede begivenheder",
   "events_completed": "Afsluttede begivenheder",
   "events_cancelled": "Begivenheder annulleret",

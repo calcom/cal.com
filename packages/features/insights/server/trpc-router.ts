@@ -18,7 +18,6 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { ColumnFilterType } from "../../data-table/lib/types";
 import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
@@ -319,30 +318,9 @@ const BATCH_SIZE = 1000; // Adjust based on your needs
 function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
-  dateTarget: "createdAt" | "startTime" = "createdAt",
-  status: "completed" | "all" = "all"
+  dateTarget: "createdAt" | "startTime" = "createdAt"
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
-
-  let updatedColumnFilters = columnFilters || [];
-
-  if (status === "completed") {
-    updatedColumnFilters = [
-      ...updatedColumnFilters,
-      {
-        id: "endDate",
-        value: {
-          type: ColumnFilterType.DATE_RANGE,
-          data: {
-            startDate: null,
-            endDate: new Date().toISOString(), // bookings ended before current time, are completed bookings
-            preset: "",
-          },
-        },
-      },
-    ];
-  }
-
   return getInsightsBookingService({
     options: {
       scope,
@@ -351,7 +329,7 @@ function createInsightsBookingService(
       ...(selectedTeamId && { teamId: selectedTeamId }),
     },
     filters: {
-      ...(updatedColumnFilters && { columnFilters: updatedColumnFilters }),
+      ...(columnFilters && { columnFilters }),
       dateRange: {
         target: dateTarget,
         startDate,
@@ -587,10 +565,10 @@ export const insightsRouter = router({
   membersWithMostCompletedBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", "completed"); // only completed bookings
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount("accepted", "DESC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -598,10 +576,10 @@ export const insightsRouter = router({
   membersWithLeastCompletedBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime", "completed"); // only completed bookings
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
+        return await insightsBookingService.getMembersStatsWithCount("accepted", "ASC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }

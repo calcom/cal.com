@@ -83,28 +83,22 @@ function InsightsPageContent() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-          <div className="sm:col-span-2">
-            <PopularEventsTable />
-          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCompletedTeamMembersTable />
           <LeastCompletedTeamMembersTable />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <PopularEventsTable />
           <MostCancelledBookingsTables />
           <HighestNoShowHostTable />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-          <div className="sm:col-span-2">
-            <RecentFeedbackTable />
-          </div>
+          <RecentFeedbackTable />
         </div>
 
         <small className="text-default block text-center">

@@ -2170,8 +2170,6 @@
   "no_event_types_found": "Aucun type d’événement trouvé",
   "average_event_duration": "Durée moyenne de l'événement",
   "bookings_by_hour": "Réservations par heure",
-  "most_booked_members": "Membres les plus réservés",
-  "least_booked_members": "Membres les moins réservés",
   "events_created": "Événements créés",
   "events_completed": "Événements terminés",
   "events_cancelled": "Événements annulés",

@@ -2170,8 +2170,6 @@
   "no_event_types_found": "No s'han trobat tipus d'esdeveniments",
   "average_event_duration": "Durada mitjana de l'esdeveniment",
   "bookings_by_hour": "Reserves per hora",
-  "most_booked_members": "Membres més reservats",
-  "least_booked_members": "Membres menys reservats",
   "events_created": "Esdeveniments creats",
   "events_completed": "Esdeveniments completats",
   "events_cancelled": "Esdeveniments cancel·lats",

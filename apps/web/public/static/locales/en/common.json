@@ -2181,8 +2181,6 @@
   "least_bookings_scheduled": "Least Bookings Scheduled",
   "most_bookings_completed": "Most Bookings Completed",
   "least_bookings_completed": "Least Bookings Completed",
-  "most_booked_members": "Most Booked",
-  "least_booked_members": "Least Booked",
   "events_created": "Events Created",
   "events_completed": "Events Completed",
   "events_cancelled": "Events Cancelled",

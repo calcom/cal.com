@@ -2170,8 +2170,6 @@
   "no_event_types_found": "Δεν βρέθηκαν τύποι εκδηλώσεων",
   "average_event_duration": "Μέση Διάρκεια Εκδήλωσης",
   "bookings_by_hour": "Κρατήσεις ανά ώρα",
-  "most_booked_members": "Μέλη με τις περισσότερες κρατήσεις",
-  "least_booked_members": "Μέλη με τις λιγότερες κρατήσεις",
   "events_created": "Εκδηλώσεις που Δημιουργήθηκαν",
   "events_completed": "Ολοκληρωμένες Εκδηλώσεις",
   "events_cancelled": "Ακυρωμένες Εκδηλώσεις",

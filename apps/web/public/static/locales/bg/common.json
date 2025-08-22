@@ -2170,8 +2170,6 @@
   "no_event_types_found": "Не са намерени типове събития",
   "average_event_duration": "Средна продължителност на събитие",
   "bookings_by_hour": "Резервации по час",
-  "most_booked_members": "Най-резервирани",
-  "least_booked_members": "Най-малко резервирани",
   "events_created": "Създадени събития",
   "events_completed": "Завършени събития",
   "events_cancelled": "Отменени събития",

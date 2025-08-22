@@ -2170,8 +2170,6 @@
   "no_event_types_found": "Nenalezeny žádné typy událostí",
   "average_event_duration": "Průměrná doba trvání události",
   "bookings_by_hour": "Rezervace podle hodin",
-  "most_booked_members": "Nejvíce rezervovaní",
-  "least_booked_members": "Nejméně rezervovaní",
   "events_created": "Události vytvořeny",
   "events_completed": "Události dokončeny",
   "events_cancelled": "Události zrušeny",

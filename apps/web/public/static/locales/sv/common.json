@@ -2170,8 +2170,6 @@
   "no_event_types_found": "Inga händelsetyper hittades",
   "average_event_duration": "Genomsnittlig varaktighet för händelse",
   "bookings_by_hour": "Bokningar per timme",
-  "most_booked_members": "Mest bokade",
-  "least_booked_members": "Minst bokade",
   "events_created": "Skapade händelser",
   "events_completed": "Slutförda händelser",
   "events_cancelled": "Event avbokade",
