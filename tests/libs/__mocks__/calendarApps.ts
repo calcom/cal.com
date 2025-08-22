@@ -3,7 +3,7 @@ import { mockReset, mockDeep } from "vitest-mock-extended";
 
 import type { calendarLoaders } from "@calcom/app-store/_utils/calendars/calendarLoaders";
 
-vi.mock("@calcom/app-store/_utils/calendar/calendarLoaders", () => calendarAppsMock);
+vi.mock("@calcom/app-store/_utils/calendars/calendarLoaders", () => calendarAppsMock);
 
 beforeEach(() => {
   mockReset(calendarAppsMock);
