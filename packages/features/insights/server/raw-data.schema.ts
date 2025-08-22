@@ -91,7 +91,7 @@ export const routingRepositoryBaseInputSchema = z.object({
 
 export const routedToPerPeriodInputSchema = routingRepositoryBaseInputSchema.extend({
   period: z.enum(["perDay", "perWeek", "perMonth"]),
-  limit: z.number().int().min(1).max(100).optional(),
+  limit: z.number().int().min(1).max(100).default(10),
   searchQuery: z.string().trim().min(1).optional(),
 });
 

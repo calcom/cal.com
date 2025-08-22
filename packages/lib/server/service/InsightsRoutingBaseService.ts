@@ -412,7 +412,7 @@ export class InsightsRoutingBaseService {
    */
   async getRoutedToPerPeriodData({
     period,
-    limit = 10,
+    limit,
     searchQuery,
   }: {
     period: "perDay" | "perWeek" | "perMonth";
