@@ -16,7 +16,8 @@ test.describe("Duplicate API Calls Prevention", () => {
     const trpcCalls: string[] = [];
     const apiV2Calls: string[] = [];
 
-    await page.route("**/api/trpc/slots/getSchedule**", async (route) => {
+    // Intercept tRPC getSchedule calls - pattern matches trpc.viewer.slots.getSchedule.useQuery()
+    await page.route("**/api/trpc/viewer.slots.getSchedule**", async (route) => {
       trpcCalls.push(route.request().url());
       await route.continue();
     });
@@ -64,7 +65,7 @@ test.describe("Duplicate API Calls Prevention", () => {
     const trpcCalls: string[] = [];
     const apiV2Calls: string[] = [];
 
-    await page.route("**/api/trpc/slots/getSchedule**", async (route) => {
+    await page.route("**/api/trpc/viewer.slots.getSchedule**", async (route) => {
       trpcCalls.push(route.request().url());
       await route.continue();
     });
@@ -116,7 +117,7 @@ test.describe("Duplicate API Calls Prevention", () => {
     const trpcCalls: string[] = [];
     const apiV2Calls: string[] = [];
 
-    await page.route("**/api/trpc/slots/getSchedule**", async (route) => {
+    await page.route("**/api/trpc/viewer.slots.getSchedule**", async (route) => {
       trpcCalls.push(route.request().url());
       await route.continue();
     });
