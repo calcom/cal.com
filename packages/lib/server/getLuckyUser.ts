@@ -824,7 +824,6 @@ export class LuckyUserService implements ILuckyUserService {
         eventTypeId: eventType.id,
         userIds: allRRHosts.map((host) => host.user.id),
         startDate: intervalStartDate,
-        endDate: intervalEndDate,
       }),
       this.userRepository.findUsersWithLastBooking({
         userIds: availableUsers.map((user) => user.id),

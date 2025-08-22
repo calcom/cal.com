@@ -19,12 +19,10 @@ export class HostRepository {
     eventTypeId,
     userIds,
     startDate,
-    endDate,
   }: {
     eventTypeId: number;
     userIds: number[];
     startDate: Date;
-    endDate: Date;
   }) {
     return await this.prismaClient.host.findMany({
       where: {
@@ -35,7 +33,6 @@ export class HostRepository {
         isFixed: false,
         createdAt: {
           gte: startDate,
-          lte: endDate,
         },
       },
     });
