@@ -87,7 +87,6 @@ export const DatePicker = ({
   );
 
   const onMonthChange = (date: Dayjs) => {
-    setMonth(date.format("YYYY-MM"));
     setSelectedDate({ date: date.format("YYYY-MM-DD") });
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
