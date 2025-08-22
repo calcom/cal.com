@@ -1,11 +1,11 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import { BookingFactory } from "@calcom/features/bookings/lib/factory/BookingFactory";
+import { BookingCreateFactory } from "@calcom/features/bookings/lib/factory/BookingCreateFactory";
 
 import { DI_TOKENS } from "../tokens";
 
-export const bookingFactoryModule = createModule();
+export const bookingCreateFactoryModule = createModule();
 
-bookingFactoryModule.bind(DI_TOKENS.BOOKING_FACTORY).toClass(BookingFactory, {
+bookingCreateFactoryModule.bind(DI_TOKENS.BOOKING_FACTORY).toClass(BookingCreateFactory, {
   bookingCreateService: DI_TOKENS.BOOKING_CREATE_SERVICE,
 });
