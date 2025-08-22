@@ -711,58 +711,50 @@ export class InsightsRoutingBaseService {
         count: number;
       }[]
     >`
-      WITH form_fields AS (
-        SELECT
-          f.id as form_id,
-          f.name as form_name,
+    WITH form_fields AS (
+      SELECT DISTINCT
+          rfrd."formId" as form_id,
+          rfrd."formName" as form_name,
           field->>'id' as field_id,
           field->>'label' as field_label,
           opt->>'id' as option_id,
           opt->>'label' as option_label
-        FROM "App_RoutingForms_Form" f,
-        LATERAL jsonb_array_elements(f.fields) as field
-        LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
-        WHERE true
-      ),
-      response_stats AS (
-        SELECT
-          rfrd."formId",
-          key as field_id,
-          CASE
-            WHEN jsonb_typeof(value->'value') = 'array' THEN
-              v.value_item
-            ELSE
-              value->>'value'
-          END as selected_option,
-          COUNT(DISTINCT rfrd.id) as response_count
-        FROM "RoutingFormResponseDenormalized" rfrd
-        LEFT JOIN "App_RoutingForms_FormResponse" r ON r.id = rfrd.id
-        CROSS JOIN jsonb_each(r.response::jsonb) as fields(key, value)
-        LEFT JOIN LATERAL jsonb_array_elements_text(
-          CASE
-            WHEN jsonb_typeof(value->'value') = 'array'
-            THEN value->'value'
-            ELSE NULL
-          END
-        ) as v(value_item) ON true
-        WHERE (${baseConditions}) AND rfrd."bookingUid" IS NULL
-        GROUP BY rfrd."formId", key, selected_option
-      )
+      FROM "RoutingFormResponseDenormalized" rfrd
+      JOIN "App_RoutingForms_Form" f ON rfrd."formId" = f.id,
+      LATERAL jsonb_array_elements(f.fields) as field
+      LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
+      WHERE
+        ${baseConditions}
+    ),
+    response_stats AS (
       SELECT
-        ff.form_id as "formId",
-        ff.form_name as "formName",
-        ff.field_id as "fieldId",
-        ff.field_label as "fieldLabel",
-        ff.option_id as "optionId",
-        ff.option_label as "optionLabel",
-        COALESCE(rs.response_count, 0)::integer as count
-      FROM form_fields ff
-      LEFT JOIN response_stats rs ON
-        rs."formId" = ff.form_id AND
-        rs.field_id = ff.field_id AND
-        rs.selected_option = ff.option_id
-      WHERE ff.option_id IS NOT NULL
-      ORDER BY count DESC
+          rfrd."formId",
+          f."fieldId" as field_id,
+          COALESCE(arr.value, f."valueString", f."valueNumber"::text) as selected_option,
+          COUNT(DISTINCT rfrd.id) as response_count
+      FROM "RoutingFormResponseDenormalized" rfrd
+      JOIN "RoutingFormResponseField" f ON rfrd.id = f."responseId"
+      LEFT JOIN LATERAL unnest(f."valueStringArray") as arr(value) ON f."valueStringArray" != '{}'
+      WHERE ${baseConditions}
+        AND rfrd."bookingUid" IS NULL
+        AND COALESCE(arr.value, f."valueString", f."valueNumber"::text) IS NOT NULL
+      GROUP BY rfrd."formId", f."fieldId", COALESCE(arr.value, f."valueString", f."valueNumber"::text)
+    )
+    SELECT
+      ff.form_id as "formId",
+      ff.form_name as "formName",
+      ff.field_id as "fieldId",
+      ff.field_label as "fieldLabel",
+      ff.option_id as "optionId",
+      ff.option_label as "optionLabel",
+      COALESCE(rs.response_count, 0)::integer as count
+    FROM form_fields ff
+    LEFT JOIN response_stats rs ON
+      rs."formId" = ff.form_id AND
+      rs.field_id = ff.field_id AND
+      rs.selected_option = ff.option_id
+    WHERE ff.option_id IS NOT NULL
+    ORDER BY count DESC
     `;
 
     // First group by form and field
