@@ -4,10 +4,12 @@ import { AtomsConferencingAppsController } from "@/modules/atoms/controllers/ato
 import { AtomsController } from "@/modules/atoms/controllers/atoms.controller";
 import { AtomsEventTypesController } from "@/modules/atoms/controllers/atoms.event-types.controller";
 import { AtomsSchedulesController } from "@/modules/atoms/controllers/atoms.schedules.controller";
+import { AtomsVerificationController } from "@/modules/atoms/controllers/atoms.verification.controller";
 import { AttributesAtomsService } from "@/modules/atoms/services/attributes-atom.service";
 import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
 import { SchedulesAtomsService } from "@/modules/atoms/services/schedules-atom.service";
+import { VerificationAtomsService } from "@/modules/atoms/services/verification-atom.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
@@ -32,6 +34,7 @@ import { Module } from "@nestjs/common";
     AtomsRepository,
     UsersService,
     SchedulesAtomsService,
+    VerificationAtomsService,
     RedisService,
   ],
   exports: [EventTypesAtomService],
@@ -40,6 +43,7 @@ import { Module } from "@nestjs/common";
     AtomsEventTypesController,
     AtomsConferencingAppsController,
     AtomsSchedulesController,
+    AtomsVerificationController,
   ],
 })
 export class AtomsModule {}
