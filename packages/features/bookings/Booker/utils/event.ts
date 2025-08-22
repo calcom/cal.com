@@ -108,7 +108,7 @@ export const useScheduleForEvent = ({
     dayCount,
     rescheduleUid,
     month: monthFromStore ?? month,
-    duration: durationFromStore ?? duration,
+    duration: null,
     isTeamEvent,
     orgSlug,
     teamMemberEmail,
