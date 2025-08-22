@@ -10,16 +10,9 @@ import {
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
-import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import type {
-  RoutingFormResponsesInput,
-  RoutingFormStatsInput,
-} from "@calcom/features/insights/server/raw-data.schema";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/InsightsRoutingBaseService";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-
-import { type ResponseValue, ZResponse } from "../lib/types";
 
 type RoutingFormInsightsTeamFilter = {
   userId?: number | null;
@@ -27,14 +20,6 @@ type RoutingFormInsightsTeamFilter = {
   isAll: boolean;
   organizationId?: number | null;
   routingFormId?: string | null;
-};
-
-type RoutingFormStatsFilter = RoutingFormStatsInput & {
-  organizationId: number | null;
-};
-
-type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
-  organizationId: number | null;
 };
 
 type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
@@ -100,57 +85,6 @@ class RoutingEventsInsights {
     return formsWhereCondition;
   }
 
-  static async getRoutingFormStats({
-    teamId,
-    startDate,
-    endDate,
-    isAll,
-    organizationId,
-    routingFormId,
-    userId,
-    memberUserIds,
-    columnFilters,
-    sorting,
-  }: RoutingFormStatsFilter) {
-    const whereClause = await this.getWhereClauseForRoutingFormResponses({
-      teamId,
-      startDate,
-      endDate,
-      isAll,
-      organizationId,
-      routingFormId,
-      userId,
-      memberUserIds,
-      columnFilters,
-      sorting,
-    });
-
-    if (whereClause.bookingUid) {
-      // If bookingUid filter is applied, total count should be either 0 or 1.
-      // So this metrics doesn't provide any value.
-      return null;
-    }
-
-    const totalPromise = prisma.routingFormResponse.count({
-      where: whereClause,
-    });
-
-    const totalWithoutBookingPromise = prisma.routingFormResponse.count({
-      where: {
-        ...whereClause,
-        bookingUid: null,
-      },
-    });
-
-    const [total, totalWithoutBooking] = await Promise.all([totalPromise, totalWithoutBookingPromise]);
-
-    return {
-      total,
-      totalWithoutBooking,
-      totalWithBooking: total - totalWithoutBooking,
-    };
-  }
-
   static async getRoutingFormsForFilters({
     userId,
     teamId,
@@ -183,250 +117,37 @@ class RoutingEventsInsights {
     });
   }
 
-  static async getWhereClauseForRoutingFormResponses({
-    teamId,
-    startDate,
-    endDate,
-    isAll,
-    organizationId,
-    routingFormId,
-    userId,
-    memberUserIds,
-    columnFilters,
-  }: RoutingFormResponsesFilter) {
-    const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
-      userId,
-      teamId,
-      isAll,
-      organizationId,
-      routingFormId,
-    });
-
-    const getLowercasedFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
-      if (filter.value.type === ColumnFilterType.TEXT) {
-        return {
-          ...filter.value,
-          data: {
-            ...filter.value.data,
-            operand: filter.value.data.operand.toLowerCase(),
-          },
-        };
-      }
-      return filter.value;
-    };
-
-    const bookingStatusOrder = columnFilters.find((filter) => filter.id === "bookingStatusOrder");
-    const bookingAssignmentReason = columnFilters.find(
-      (filter) => filter.id === "bookingAssignmentReason"
-    ) as TypedColumnFilter<ColumnFilterType.TEXT> | undefined;
-    const assignmentReasonValue = bookingAssignmentReason
-      ? getLowercasedFilterValue(bookingAssignmentReason)
-      : undefined;
-    const bookingUid = columnFilters.find((filter) => filter.id === "bookingUid") as
-      | TypedColumnFilter<ColumnFilterType.TEXT>
-      | undefined;
-
-    const responseFilters = columnFilters.filter(
-      (filter) =>
-        filter.id !== "bookingStatusOrder" &&
-        filter.id !== "bookingAssignmentReason" &&
-        filter.id !== "bookingUid"
-    );
-
-    const whereClause: Prisma.RoutingFormResponseWhereInput = {
-      ...(formsTeamWhereCondition.id !== undefined && {
-        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponse">,
-      }),
-      ...(formsTeamWhereCondition.teamId !== undefined && {
-        formTeamId: formsTeamWhereCondition.teamId as number | Prisma.IntFilter<"RoutingFormResponse">,
-      }),
-      ...(formsTeamWhereCondition.userId !== undefined && {
-        formUserId: formsTeamWhereCondition.userId as number | Prisma.IntFilter<"RoutingFormResponse">,
-      }),
-
-      // bookingStatus
-      ...(bookingStatusOrder &&
-        makeWhereClause({ columnName: "bookingStatusOrder", filterValue: bookingStatusOrder.value })),
-
-      // bookingAssignmentReason
-      ...(assignmentReasonValue &&
-        makeWhereClause({
-          columnName: "bookingAssignmentReasonLowercase",
-          filterValue: assignmentReasonValue,
-        })),
-
-      // memberUserId
-      ...(memberUserIds && memberUserIds.length > 0 && { bookingUserId: { in: memberUserIds } }),
-
-      // createdAt
-      ...(startDate &&
-        endDate && {
-          createdAt: {
-            gte: dayjs(startDate).startOf("day").toDate(),
-            lte: dayjs(endDate).endOf("day").toDate(),
-          },
-        }),
-
-      // bookingUid
-      ...(bookingUid &&
-        makeWhereClause({
-          columnName: "bookingUid",
-          filterValue: bookingUid.value,
-        })),
-
-      // AND clause
-      ...(responseFilters.length > 0 && {
-        AND: responseFilters.map((fieldFilter) => {
-          return makeWhereClause({
-            columnName: "responseLowercase",
-            filterValue: getLowercasedFilterValue(fieldFilter),
-            json: { path: [fieldFilter.id, "value"] },
-          });
-        }),
-      }),
-    };
-
-    return whereClause;
-  }
-
-  static async getRoutingFormPaginatedResponses({
-    teamId,
-    startDate,
-    endDate,
-    isAll,
-    organizationId,
-    routingFormId,
-    limit,
-    offset,
-    userId,
-    memberUserIds,
-    columnFilters,
-    sorting,
-  }: RoutingFormResponsesFilter) {
-    const whereClause = await this.getWhereClauseForRoutingFormResponses({
-      teamId,
-      startDate,
-      endDate,
-      isAll,
-      organizationId,
-      routingFormId,
-      userId,
-      memberUserIds,
-      columnFilters,
-      sorting,
-    });
-
-    const totalResponsePromise = prisma.routingFormResponse.count({
-      where: whereClause,
-    });
-
-    const responsesPromise = prisma.routingFormResponse.findMany({
-      select: {
-        id: true,
-        response: true,
-        formId: true,
-        formName: true,
-        bookingUid: true,
-        bookingStatus: true,
-        bookingStatusOrder: true,
-        bookingCreatedAt: true,
-        bookingAttendees: true,
-        bookingUserId: true,
-        bookingUserName: true,
-        bookingUserEmail: true,
-        bookingUserAvatarUrl: true,
-        bookingAssignmentReason: true,
-        bookingStartTime: true,
-        bookingEndTime: true,
-        createdAt: true,
-        utm_source: true,
-        utm_medium: true,
-        utm_campaign: true,
-        utm_term: true,
-        utm_content: true,
-      },
-      where: whereClause,
-      orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
-      take: limit,
-      skip: offset,
-    });
-
-    const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
-
-    type Response = Omit<
-      (typeof responses)[number],
-      "response" | "responseLowercase" | "bookingAttendees"
-    > & {
-      response: Record<string, ResponseValue>;
-      responseLowercase: Record<string, ResponseValue>;
-      bookingAttendees?: { name: string; email: string; timeZone: string }[];
-    };
-
-    return {
-      total: totalResponses,
-      data: responses as Response[],
-    };
-  }
-
   static async getRoutingFormPaginatedResponsesForDownload({
-    teamId,
-    startDate,
-    endDate,
-    isAll,
-    organizationId,
-    routingFormId,
-    limit,
-    offset,
-    userId,
-    memberUserIds,
-    columnFilters,
-    sorting,
-  }: RoutingFormResponsesFilter) {
-    const headersPromise = this.getRoutingFormHeaders({
-      userId,
-      teamId,
-      isAll,
-      organizationId,
-      routingFormId,
-    });
-    const dataPromise = this.getRoutingFormPaginatedResponses({
-      teamId,
-      startDate,
-      endDate,
-      isAll,
-      organizationId,
-      routingFormId,
-      userId,
-      memberUserIds,
-      limit,
-      offset,
-      columnFilters,
-      sorting,
-    });
-
+    headersPromise,
+    dataPromise,
+  }: {
+    headersPromise: ReturnType<typeof RoutingEventsInsights.getRoutingFormHeaders>;
+    dataPromise: ReturnType<typeof InsightsRoutingBaseService.prototype.getTableData>;
+  }) {
     const [headers, data] = await Promise.all([headersPromise, dataPromise]);
 
     const dataWithFlatResponse = data.data.map((item) => {
-      const { bookingAttendees } = item;
-      const responseParseResult = ZResponse.safeParse(item.response);
-      const response = responseParseResult.success ? responseParseResult.data : {};
+      const bookingAttendees = item.bookingAttendees || [];
 
       const fields = (headers || []).reduce((acc, header) => {
         const id = header.id;
-        if (!response[id]) {
+        const field = item.fields.find((field) => field.fieldId === id);
+        if (!field) {
           acc[header.label] = "";
           return acc;
         }
         if (header.type === "select") {
-          acc[header.label] = header.options?.find((option) => option.id === response[id].value)?.label;
-        } else if (header.type === "multiselect" && Array.isArray(response[id].value)) {
-          acc[header.label] = (response[id].value as string[])
+          acc[header.label] = header.options?.find((option) => option.id === field.valueString)?.label;
+        } else if (header.type === "multiselect" && Array.isArray(field.valueStringArray)) {
+          acc[header.label] = field.valueStringArray
             .map((value) => header.options?.find((option) => option.id === value)?.label)
             .filter((label): label is string => label !== undefined)
             .sort()
             .join(", ");
+        } else if (header.type === "number") {
+          acc[header.label] = field.valueNumber?.toString() || "";
         } else {
-          acc[header.label] = response[id].value as string;
+          acc[header.label] = field.valueString || "";
         }
         return acc;
       }, {} as Record<string, string | undefined>);
@@ -442,9 +163,6 @@ class RoutingEventsInsights {
         "Booking Created At": item.bookingCreatedAt?.toISOString() || "",
         "Booking Start Time": item.bookingStartTime?.toISOString() || "",
         "Booking End Time": item.bookingEndTime?.toISOString() || "",
-        "Attendee Name": (bookingAttendees as any)?.[0]?.name,
-        "Attendee Email": (bookingAttendees as any)?.[0]?.email,
-        "Attendee Timezone": (bookingAttendees as any)?.[0]?.timeZone,
         "Assignment Reason": item.bookingAssignmentReason || "",
         "Routed To Name": item.bookingUserName || "",
         "Routed To Email": item.bookingUserEmail || "",
@@ -454,6 +172,12 @@ class RoutingEventsInsights {
         utm_campaign: item.utm_campaign || "",
         utm_term: item.utm_term || "",
         utm_content: item.utm_content || "",
+        ...((bookingAttendees || [])
+          .filter((attendee) => typeof attendee.name === "string" && typeof attendee.email === "string")
+          .reduce((acc, attendee, index) => {
+            acc[`Attendee ${index + 1}`] = `${attendee.name} (${attendee.email})`;
+            return acc;
+          }, {} as Record<string, string>) || {}),
       };
     });
 
