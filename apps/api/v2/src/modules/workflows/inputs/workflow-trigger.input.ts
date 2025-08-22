@@ -165,13 +165,13 @@ export class OnAfterCalVideoHostsNoShowTriggerDto extends TriggerOffsetDTO {
   @IsIn([AFTER_HOSTS_CAL_VIDEO_NO_SHOW])
   type: typeof AFTER_HOSTS_CAL_VIDEO_NO_SHOW = AFTER_HOSTS_CAL_VIDEO_NO_SHOW;
 }
-
-//todo where do I use that?
 export class OnFormSubmittedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
     example: FORM_SUBMITTED,
   })
+  @IsString()
+  @IsIn([FORM_SUBMITTED])
   type: typeof FORM_SUBMITTED = FORM_SUBMITTED;
 }
 
@@ -180,5 +180,7 @@ export class OnFormSubmittedNoEventTriggerDto {
     description: "Trigger type for the workflow",
     example: FORM_SUBMITTED_NO_EVENT,
   })
+  @IsString()
+  @IsIn([FORM_SUBMITTED_NO_EVENT])
   type: typeof FORM_SUBMITTED_NO_EVENT = FORM_SUBMITTED_NO_EVENT;
 }

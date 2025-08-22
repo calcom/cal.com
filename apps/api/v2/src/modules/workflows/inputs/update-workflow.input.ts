@@ -36,6 +36,10 @@ import {
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   OnAfterCalVideoHostsNoShowTriggerDto,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  OnFormSubmittedNoEventTriggerDto,
+  OnFormSubmittedTriggerDto,
+  FORM_SUBMITTED_NO_EVENT,
+  FORM_SUBMITTED,
 } from "./workflow-trigger.input";
 
 export type UpdateWorkflowStepDto =
@@ -116,6 +120,8 @@ export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWha
 @ApiExtraModels(
   OnBeforeEventTriggerDto,
   OnAfterEventTriggerDto,
+  OnFormSubmittedTriggerDto,
+  OnFormSubmittedNoEventTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnRescheduleTriggerDto,
@@ -155,6 +161,8 @@ export class UpdateWorkflowDto {
       { $ref: getSchemaPath(OnRescheduleTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnFormSubmittedTriggerDto) },
+      { $ref: getSchemaPath(OnFormSubmittedNoEventTriggerDto) },
     ],
   })
   @IsOptional()
@@ -170,6 +178,8 @@ export class UpdateWorkflowDto {
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
         { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
+        { value: OnFormSubmittedTriggerDto, name: FORM_SUBMITTED },
+        { value: OnFormSubmittedNoEventTriggerDto, name: FORM_SUBMITTED_NO_EVENT },
       ],
     },
   })
