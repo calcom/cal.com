@@ -1,4 +1,4 @@
-import { paymentLoaders } from "@calcom/app-store/_utils/payments/paymentLoaders";
+import paymentLoaders from "@calcom/app-store/_utils/payments/paymentLoaders";
 import type { PaymentLoaderKey } from "@calcom/app-store/_utils/payments/paymentLoaders";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";

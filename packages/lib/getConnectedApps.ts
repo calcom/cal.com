@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
-import { paymentLoaders } from "@calcom/app-store/_utils/payments/paymentLoaders";
+import paymentLoaders from "@calcom/app-store/_utils/payments/paymentLoaders";
 import type { PaymentLoaderKey } from "@calcom/app-store/_utils/payments/paymentLoaders";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";

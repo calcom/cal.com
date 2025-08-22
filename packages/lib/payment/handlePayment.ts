@@ -1,6 +1,6 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
-import { paymentLoaders } from "@calcom/app-store/_utils/payments/paymentLoaders";
+import paymentLoaders from "@calcom/app-store/_utils/payments/paymentLoaders";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";

@@ -1,7 +1,7 @@
 import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import calendarAppsMock from "../../../../../tests/libs/__mocks__/calendarApps";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
-import { paymentAppsMock } from "../../../../../tests/libs/__mocks__/paymentApps";
+import paymentAppsMock from "../../../../../tests/libs/__mocks__/paymentApps";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 import videoAppsMock from "../../../../../tests/libs/__mocks__/videoApps";
 
@@ -2068,17 +2068,19 @@ export function mockPaymentApp({
   const { paymentUid, externalId, MockPaymentService } = getMockPaymentService();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  paymentAppsMock[appStoreLookupKey as keyof typeof paymentAppsMock].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error FIXME
-          PaymentService: MockPaymentService,
-        },
+  paymentAppsMock.default[appStoreLookupKey as keyof typeof paymentAppsMock.default].mockImplementation(
+    () => {
+      return new Promise((resolve) => {
+        resolve({
+          lib: {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error FIXME
+            PaymentService: MockPaymentService,
+          },
+        });
       });
-    });
-  });
+    }
+  );
 
   return {
     paymentUid,

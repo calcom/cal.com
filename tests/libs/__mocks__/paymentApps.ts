@@ -9,10 +9,12 @@ beforeEach(() => {
   mockReset(paymentAppsMock);
 });
 
-export const paymentAppsMock = mockDeep<typeof paymentLoaders>({
+const paymentAppsMock = mockDeep<typeof paymentLoaders>({
   fallbackMockImplementation: () => {
     throw new Error(
       "Unimplemented paymentAppsMock. You seem to have not mocked the app that you are trying to use"
     );
   },
 });
+
+export default paymentAppsMock;

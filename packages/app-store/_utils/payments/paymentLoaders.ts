@@ -1,6 +1,6 @@
 import { createCachedImport } from "../createCachedImport";
 
-export const paymentLoaders = {
+const paymentLoaders = {
   alby: createCachedImport(() => import("../../alby")),
   paypal: createCachedImport(() => import("../../paypal")),
   stripepayment: createCachedImport(() => import("../../stripepayment")),
@@ -14,3 +14,5 @@ if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
 }
 
 export type PaymentLoaderKey = keyof typeof paymentLoaders | "mock-payment-app";
+
+export default paymentLoaders;
