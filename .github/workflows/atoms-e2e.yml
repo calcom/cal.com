@@ -1,14 +1,7 @@
 name: Atoms E2E Tests
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'packages/platform/atoms/**'
-      - 'packages/platform/examples/base/**'
-      - 'apps/api/v2/**'
-      - '.github/workflows/atoms-e2e.yml'
+  workflow_call:
 
 permissions:
   actions: write
