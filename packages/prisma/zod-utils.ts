@@ -339,6 +339,7 @@ const schemaDefaultConferencingApp = z.object({
 export const userMetadata = z
   .object({
     headerUrl: z.string().nullable().optional(),
+    phoneNumber: z.string().nullable().optional(),
     proPaidForByTeamId: z.number().optional(),
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
@@ -404,7 +405,7 @@ export const teamMetadataSchema = z
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
-    meetingNote: z.string().optional()
+    meetingNote: z.string().optional(),
   })
   .and(z.record(z.string()))
   .nullable()

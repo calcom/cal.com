@@ -130,6 +130,8 @@
     "turbo": "^1.10.1"
   },
   "resolutions": {
+    "libphonenumber-js@^1.10.51": "patch:libphonenumber-js@npm%3A1.10.51#./.yarn/patches/libphonenumber-js-npm-1.10.51-4ff79b15f8.patch",
+    "libphonenumber-js@^1.10.12": "patch:libphonenumber-js@npm%3A1.10.51#./.yarn/patches/libphonenumber-js-npm-1.10.51-4ff79b15f8.patch",
     "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
     "@types/react": "18.0.26",

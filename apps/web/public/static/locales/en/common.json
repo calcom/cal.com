@@ -1,5 +1,7 @@
 {
   "meeting_notes_saved": "Meeting notes saved",
+  "phone_number_required": "Phone number is required",
+  "number_valid": "Number is valid",
   "view": "View",
   "calendly_import": "Import from calendly",
   "calendly_authorized": "Calendly already imported",

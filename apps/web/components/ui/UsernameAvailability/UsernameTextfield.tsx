@@ -112,7 +112,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       username: inputUsernameValue,
     });
   };
-  console.log("Rest props: ", rest);
 
   return (
     <div>

@@ -1,6 +1,8 @@
 "use client";
 
+import { PhoneNumberField, usePhoneNumberField, isPhoneNumberComplete } from "@calid/features/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,9 +10,10 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT, PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -21,10 +24,11 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
+  isPhoneFieldMandatory: boolean;
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { nextStep } = props;
+  const { nextStep, isPhoneFieldMandatory = false } = props;
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
@@ -36,15 +40,42 @@ const UserSettings = (props: IUserSettingsProps) => {
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
+    metadata: z.object({
+      phoneNumber: isPhoneFieldMandatory
+        ? z
+            .string()
+            .min(1, { message: t("phone_number_required") })
+            .refine(
+              (val) => {
+                return isValidPhoneNumber(val);
+              },
+              { message: t("invalid_phone_number") }
+            )
+        : z.string().refine(
+            (val) => {
+              return val === "" || isValidPhoneNumber(val);
+            },
+            { message: t("invalid_phone_number") }
+          ),
+    }),
   });
+
+  const defaultValues = {
+    name: user?.name || "",
+    metadata: {
+      phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
+    },
+  };
+
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    getValues,
+    control,
   } = useForm<z.infer<typeof userSettingsSchema>>({
-    defaultValues: {
-      name: user?.name || "",
-    },
+    defaultValues: defaultValues,
     reValidateMode: "onChange",
     resolver: zodResolver(userSettingsSchema),
   });
@@ -61,6 +92,11 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
+  const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
+    { getValues, setValue },
+    defaultValues,
+    "metadata.phoneNumber"
+  );
 
   const onSubmit = handleSubmit((data) => {
     mutation.mutate({
@@ -68,6 +104,16 @@ const UserSettings = (props: IUserSettingsProps) => {
       timeZone: selectedTimeZone,
     });
   });
+
+  const handlePhoneDelete = () => {
+    mutation.mutate({
+      metadata: {
+        currentOnboardingStep: "connected-calendar",
+      },
+      name: getValues("name"),
+      timeZone: selectedTimeZone,
+    });
+  };
 
   return (
     <form onSubmit={onSubmit}>
@@ -96,6 +142,20 @@ const UserSettings = (props: IUserSettingsProps) => {
             </p>
           )}
         </div>
+
+        <PhoneNumberField
+          getValue={getPhoneValue}
+          setValue={setPhoneValue}
+          getValues={getValues}
+          defaultValues={defaultValues}
+          isRequired={isPhoneFieldMandatory}
+          allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
+          hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
+          errorMessage={errors.metadata?.phoneNumber?.message}
+          onDeleteNumber={handlePhoneDelete}
+          isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+        />
+
         {/* Timezone select field */}
         <div className="w-full">
           <label htmlFor="timeZone" className="text-default block text-sm font-medium">

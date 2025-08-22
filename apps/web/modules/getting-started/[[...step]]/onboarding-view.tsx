@@ -87,6 +87,8 @@ const stepRouteSchema = z.object({
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
+  const { country = "IN" } = props;
+  console.log("props", props);
   const pathname = usePathname();
   const params = useParamsWithFallback();
 
@@ -162,7 +164,11 @@ const OnboardingPage = (props: PageProps) => {
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
-                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
+                  <UserSettings
+                    nextStep={goToNextStep}
+                    hideUsername={from === "signup"}
+                    isPhoneFieldMandatory={country === "IN"}
+                  />
                 )}
                 {currentStep === "connected-calendar" && (
                   <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />

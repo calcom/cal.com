@@ -2,8 +2,10 @@
 
 // import { TextField } from "@calcom/ui/components/form";
 import { Button, TextField } from "@calid/features/ui";
+import { PhoneNumberField, usePhoneNumberField, isPhoneNumberComplete } from "@calid/features/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
+import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
@@ -16,10 +18,15 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
-import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  FULL_NAME_LENGTH_MAX_LIMIT,
+  PHONE_NUMBER_VERIFICATION_ENABLED,
+} from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -248,6 +255,10 @@ const ProfileView = ({ user }: Props) => {
         emailPrimary: false,
       })),
     ],
+
+    metadata: {
+      phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
+    },
   };
 
   return (
@@ -524,12 +535,41 @@ const ProfileForm = ({
         emailPrimary: z.boolean().optional(),
       })
     ),
+    metadata: z
+      .object({
+        phoneNumber: z
+          .string()
+          .refine(
+            (val) => {
+              return val === "" || isValidPhoneNumber(val);
+            },
+            { message: t("invalid_phone_number") }
+          )
+          .optional(),
+      })
+      .optional(),
   });
 
   const formMethods = useForm<FormValues>({
     defaultValues,
     resolver: zodResolver(profileFormSchema),
   });
+
+  const phoneFieldHelpers = usePhoneNumberField(
+    {
+      getValues: formMethods.getValues,
+      setValue: formMethods.setValue,
+    },
+    defaultValues,
+    "metadata.phoneNumber"
+  );
+
+  const handleDeleteNumber = () => {
+    phoneFieldHelpers.setValue("", { shouldDirty: true });
+    //submit the form to update the state
+    const values = formMethods.getValues();
+    onSubmit(getUpdatedFormValues(values));
+  };
 
   const {
     fields: secondaryEmailFields,
@@ -581,7 +621,22 @@ const ProfileForm = ({
   };
 
   const handleFormSubmit = (values: FormValues) => {
-    onSubmit(getUpdatedFormValues(values));
+    const phoneNumber = values.metadata?.phoneNumber || "";
+    const isPhoneValid = isPhoneNumberComplete(phoneNumber, PHONE_NUMBER_VERIFICATION_ENABLED); // Assuming verification is required
+
+    if (
+      formMethods.formState.dirtyFields.metadata &&
+      formMethods.formState.dirtyFields.metadata.phoneNumber === true &&
+      phoneNumber &&
+      !isPhoneValid
+    ) {
+      showToast(t("please_verify_phone_number"), "error");
+      return;
+    }
+
+    const finalValues = getUpdatedFormValues(values);
+    console.log("Values: ", finalValues);
+    onSubmit(finalValues);
   };
 
   const onDisconnect = () => {
@@ -684,6 +739,23 @@ const ProfileForm = ({
             </Button>
           </div>
         </div>
+
+        <div className="mt-6">
+          <PhoneNumberField
+            getValue={phoneFieldHelpers.getValue}
+            setValue={phoneFieldHelpers.setValue}
+            getValues={formMethods.getValues}
+            defaultValues={defaultValues}
+            isRequired={false}
+            allowDelete={true}
+            hasExistingNumber={!!defaultValues.metadata.phoneNumber}
+            isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+            errorMessage={formMethods.formState.errors.metadata?.phoneNumber?.message}
+            onDeleteNumber={handleDeleteNumber}
+            fieldName="metadata.phoneNumber"
+          />
+        </div>
+
         <div className="mt-6">
           <Label>{t("about")}</Label>
           <Editor
@@ -745,7 +817,7 @@ const ProfileForm = ({
         color="primary"
         className="mt-4"
         type="submit"
-        size='lg'
+        size="lg"
         data-testid="profile-submit-button">
         {t("update")}
       </Button>
