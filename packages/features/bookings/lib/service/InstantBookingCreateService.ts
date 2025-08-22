@@ -22,19 +22,24 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import { subscriptionSchema } from "./schema";
+import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
+
+interface IInstantBookingCreateServiceDependencies {
+  prismaClient: PrismaClient;
+}
 
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
   webhookData: Record<string, unknown>;
   teamId: number;
+  prismaClient: PrismaClient;
 }) => {
   const orgId = (await getOrgIdFromMemberOrTeamId({ teamId: args.teamId })) ?? 0;
-
+  const { prismaClient: prisma } = args;
   try {
     const eventTrigger = WebhookTriggerEvents.INSTANT_MEETING;
 
@@ -97,8 +102,9 @@ const triggerBrowserNotifications = async (args: {
   title: string;
   connectAndJoinUrl: string;
   teamId?: number | null;
+  prismaClient: PrismaClient;
 }) => {
-  const { title, connectAndJoinUrl, teamId } = args;
+  const { title, connectAndJoinUrl, teamId, prismaClient: prisma } = args;
 
   if (!teamId) {
     logger.warn("No teamId provided, skipping browser notification trigger");
@@ -155,7 +161,11 @@ const triggerBrowserNotifications = async (args: {
   await Promise.allSettled(promises);
 };
 
-async function handler(bookingData: CreateInstantBookingData) {
+export async function handler(
+  bookingData: CreateInstantBookingData,
+  deps: IInstantBookingCreateServiceDependencies
+) {
+  const { prismaClient: prisma } = deps;
   let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
   const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
   eventType = {
@@ -314,12 +324,14 @@ async function handler(bookingData: CreateInstantBookingData) {
     eventTypeId: eventType.id,
     webhookData,
     teamId: eventType.team?.id,
+    prismaClient: prisma,
   });
 
   await triggerBrowserNotifications({
     title: newBooking.title,
     connectAndJoinUrl: webhookData.connectAndJoinUrl,
     teamId: eventType.team?.id,
+    prismaClient: prisma,
   });
 
   return {
@@ -336,7 +348,9 @@ async function handler(bookingData: CreateInstantBookingData) {
  * Instant booking service that handles instant/immediate bookings
  */
 export class InstantBookingCreateService implements IBookingCreateService {
+  constructor(private readonly deps: IInstantBookingCreateServiceDependencies) {}
+
   async createBooking(input: { bookingData: CreateInstantBookingData }): Promise<InstantBookingCreateResult> {
-    return handler(input.bookingData);
+    return handler(input.bookingData, this.deps);
   }
 }
