@@ -4,6 +4,7 @@ import { router } from "../../../trpc";
 import { ZAddGuestsInputSchema } from "./addGuests.schema";
 import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
+import { ZExportInputSchema } from "./export.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
@@ -20,6 +21,7 @@ type BookingsRouterHandlerCache = {
   getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
   find?: typeof import("./find.handler").getHandler;
   getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
+  export?: typeof import("./export.handler").exportHandler;
 };
 
 export const bookingsRouter = router({
@@ -98,4 +100,13 @@ export const bookingsRouter = router({
         input,
       });
     }),
+
+  export: authedProcedure.input(ZExportInputSchema).mutation(async ({ input, ctx }) => {
+    const { exportHandler } = await import("./export.handler");
+
+    return exportHandler({
+      ctx,
+      input,
+    });
+  }),
 });

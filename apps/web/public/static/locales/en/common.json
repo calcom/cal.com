@@ -763,6 +763,8 @@
   "back": "Back",
   "cancel": "Cancel",
   "paste_emails_comma_separated": "Paste comma separated emails",
+  "export_bookings": "Export",
+  "export_booking_response": "Exported bookings will be sent to your email shortly.",
   "invite_members": "Invite members",
   "selected_count": "Selected {{count}}",
   "cancel_all_remaining": "Cancel all remaining",

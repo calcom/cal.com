@@ -4,9 +4,7 @@ import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
 import classNames from "@calcom/ui/classNames";
-
 import { Navigation } from "./navigation/Navigation";
 
 export type SideBarContainerProps = {
