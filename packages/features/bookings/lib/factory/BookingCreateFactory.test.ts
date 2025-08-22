@@ -5,7 +5,7 @@ import type {
   CreateInstantBookingData,
   CreateSeatedBookingInput,
 } from "@calcom/features/bookings/lib/dto/types";
-import type { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
+import type { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 
 import { BookingCreateFactory } from "./BookingCreateFactory";
