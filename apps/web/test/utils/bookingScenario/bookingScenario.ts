@@ -2066,9 +2066,9 @@ export function mockPaymentApp({
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   const { paymentUid, externalId, MockPaymentService } = getMockPaymentService();
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
   paymentAppsMock.default[appStoreLookupKey as keyof typeof paymentAppsMock.default].mockImplementation(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error FIXME
     () => {
       return new Promise((resolve) => {
         resolve({
