@@ -23,8 +23,8 @@ container.load(
   checkBookingAndDurationLimitsModule
 );
 container.load(DI_TOKENS.BOOKING_CREATE_SERVICE_MODULE, bookingCreateModule);
-container.load(DI_TOKENS.BOOKING_FACTORY_MODULE, bookingCreateFactoryModule);
+container.load(DI_TOKENS.BOOKING_CREATE_FACTORY_MODULE, bookingCreateFactoryModule);
 
 export function getBookingCreateFactory(): BookingCreateFactory {
-  return container.get<BookingCreateFactory>(DI_TOKENS.BOOKING_FACTORY);
+  return container.get<BookingCreateFactory>(DI_TOKENS.BOOKING_CREATE_FACTORY);
 }

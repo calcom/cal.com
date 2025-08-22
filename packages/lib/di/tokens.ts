@@ -47,6 +47,6 @@ export const DI_TOKENS = {
   MEMBERSHIP_REPOSITORY_MODULE: Symbol("MembershipRepositoryModule"),
   BOOKING_CREATE_SERVICE: Symbol("BookingCreateService"),
   BOOKING_CREATE_SERVICE_MODULE: Symbol("BookingCreateServiceModule"),
-  BOOKING_FACTORY: Symbol("BookingCreateFactory"),
-  BOOKING_FACTORY_MODULE: Symbol("BookingCreateFactoryModule"),
+  BOOKING_CREATE_FACTORY: Symbol("BookingCreateFactory"),
+  BOOKING_CREATE_FACTORY_MODULE: Symbol("BookingCreateFactoryModule"),
 };
