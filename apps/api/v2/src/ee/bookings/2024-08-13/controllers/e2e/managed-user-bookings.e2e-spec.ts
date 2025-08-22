@@ -802,13 +802,21 @@ describe("Managed user bookings 2024-08-13", () => {
       };
     });
 
+    it("can't be booked without credentials", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(401);
+    });
+
     it("can't be booked with managed user credentials who is not admin and not event type owner", async () => {
       await request(app.getHttpServer())
         .post(`/v2/bookings`)
         .send(body)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
-        .expect(401);
+        .expect(403);
     });
 
     it("can be booked with managed user credentials who is event type owner", async () => {
