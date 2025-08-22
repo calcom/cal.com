@@ -33,6 +33,7 @@ export function MultiEmailInput({
   const { t } = useLocale();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const value = valueProp || [];
+  const baseId = (name ?? "multi-email").replace(/[^a-zA-Z0-9_-]/g, "-");
 
   const handleEmailChange = (index: number, email: string) => {
     const newValue = [...value];
@@ -70,14 +71,16 @@ export function MultiEmailInput({
 
   return (
     <div>
-      <label htmlFor={name} className="text-default mb-1 block text-sm font-medium">
+      <label
+        htmlFor={value.length ? `${baseId}.0` : baseId}
+        className="text-default mb-1 block text-sm font-medium">
         {label}
       </label>
       <ul ref={parent}>
         {value.map((email, index) => (
           <li key={index} className="mb-2">
             <EmailField
-              id={`${name}.${index}`}
+              id={`${baseId}.${index}`}
               disabled={disabled}
               value={email}
               onChange={(e) => handleEmailChange(index, e.target.value)}

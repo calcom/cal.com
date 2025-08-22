@@ -234,10 +234,7 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       return (
         <MultiEmailInput
-          {...props}
-          // Provide a fallback to ensure the label is always a string
           label={props.label || ""}
-          // Adapt the `setValue` prop to the new component's `onChange` prop
           onChange={props.setValue}
           value={props.value || []}
           disabled={props.readOnly}
