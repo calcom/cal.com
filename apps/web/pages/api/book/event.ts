@@ -1,13 +1,13 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { getBookingCreateFactory } from "@calcom/lib/di/containers/BookingCreateFactory";
 import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
@@ -31,7 +31,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     creationSource: CreationSource.WEBAPP,
   };
 
-  const booking = await handleNewBooking({
+  const bookingCreateFactory = getBookingCreateFactory();
+  const booking = await bookingCreateFactory.createBooking({
     bookingData: req.body,
     bookingMeta: {
       userId: session?.user?.id || -1,

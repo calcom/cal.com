@@ -1,13 +1,13 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { getBookingCreateFactory } from "@calcom/lib/di/containers/BookingCreateFactory";
 import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
@@ -43,7 +43,8 @@ async function handler(req: NextApiRequest & RequestMeta) {
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 
-  const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+  const bookingCreateFactory = getBookingCreateFactory();
+  const createdBookings: BookingResponse[] = await bookingCreateFactory.createRecurringBooking({
     bookingData: req.body,
     bookingMeta: {
       userId: session?.user?.id || -1,
