@@ -28,7 +28,7 @@ import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { handleNewRecurringBooking } from "../../handleNewRecurringBooking";
+import { handleNewRecurringBooking } from "./RecurringBookingCreateService";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 

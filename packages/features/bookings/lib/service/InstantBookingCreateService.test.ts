@@ -1,4 +1,4 @@
-import prismock from "../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -11,9 +11,10 @@ import {
   mockNoTranslations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
-import type { NextApiRequest } from "next";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import type { CreateInstantBookingData } from "@calcom/features/bookings/lib/dto/types";
+import { getBookingCreateFactory } from "@calcom/lib/di/containers/BookingCreateFactory";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 vi.mock("@calcom/features/notifications/sendNotification", () => ({
@@ -35,7 +36,6 @@ describe("handleInstantMeeting", () => {
   });
   describe("team event instant meeting", () => {
     it("should successfully create instant meeting for team event", async () => {
-      const handler = (await import("./handleInstantMeeting")).default;
       const organizer = getOrganizer({
         name: "Organizer",
         email: "organizer@example.com",
@@ -84,10 +84,8 @@ describe("handleInstantMeeting", () => {
         },
       });
 
-      const mockReqBody = {
+      const mockBookingData: CreateInstantBookingData = {
         eventTypeId: 1,
-        name: "Test User",
-        email: "test@example.com",
         timeZone: "UTC",
         language: "en",
         start: `${plus1DateString}T04:00:00.000Z`,
@@ -98,18 +96,13 @@ describe("handleInstantMeeting", () => {
           attendeePhoneNumber: "+918888888888",
         },
         metadata: {},
+        instant: true,
       };
 
-      const mockRequest = {
-        body: mockReqBody,
-        method: "POST",
-        headers: {},
-        query: {},
-        cookies: {},
-        url: "/api/instant-meeting",
-      } as NextApiRequest;
-
-      const result = await handler(mockRequest.body);
+      const bookingCreateFactory = getBookingCreateFactory();
+      const result = await bookingCreateFactory.createInstantBooking({
+        bookingData: mockBookingData,
+      });
 
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
@@ -132,7 +125,6 @@ describe("handleInstantMeeting", () => {
     });
 
     it("should throw error for non-team event types", async () => {
-      const handler = (await import("./handleInstantMeeting")).default;
       const organizer = getOrganizer({
         name: "Organizer",
         email: "organizer@example.com",
@@ -163,10 +155,8 @@ describe("handleInstantMeeting", () => {
         })
       );
 
-      const mockReqBody = {
+      const mockBookingData: CreateInstantBookingData = {
         eventTypeId: 1,
-        name: "Test User",
-        email: "test@example.com",
         timeZone: "UTC",
         language: "en",
         start: `${plus1DateString}T04:00:00.000Z`,
@@ -177,20 +167,15 @@ describe("handleInstantMeeting", () => {
           attendeePhoneNumber: "+918888888888",
         },
         metadata: {},
+        instant: true,
       };
 
-      const mockRequest = {
-        body: mockReqBody,
-        method: "POST",
-        headers: {},
-        query: {},
-        cookies: {},
-        url: "/api/instant-meeting",
-      } as NextApiRequest;
-
-      await expect(handler(mockRequest.body)).rejects.toThrow(
-        "Only Team Event Types are supported for Instant Meeting"
-      );
+      const bookingCreateFactory = getBookingCreateFactory();
+      await expect(
+        bookingCreateFactory.createInstantBooking({
+          bookingData: mockBookingData,
+        })
+      ).rejects.toThrow("Only Team Event Types are supported for Instant Meeting");
     });
   });
 });

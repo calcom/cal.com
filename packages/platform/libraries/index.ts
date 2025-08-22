@@ -2,6 +2,7 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import handleNewBooking from "@calcom/features/bookings/lib/service/BookingCreateService";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import {
   verifyPhoneNumber,
@@ -54,6 +55,7 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
+export { handleNewBooking };
 
 export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 

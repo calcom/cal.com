@@ -18,6 +18,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 import { describe, test, vi, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { getNewBookingHandler } from "@calcom/features/bookings/lib/getNewBookingHandler";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -27,7 +28,7 @@ describe("Round Robin handleNewBooking", () => {
 
   describe("Round Robin with groups", () => {
     test("Books one host from each round robin group", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -208,7 +209,7 @@ describe("Round Robin handleNewBooking", () => {
     });
 
     test("Throws error when one round robin group has no available hosts", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -369,7 +370,7 @@ describe("Round Robin handleNewBooking", () => {
     });
 
     test("Creates successful booking even when one group has no hosts", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -500,7 +501,7 @@ describe("Round Robin handleNewBooking", () => {
     });
 
     test("Correctly handles hosts without groupId falling back to DEFAULT_GROUP_ID", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -648,7 +649,7 @@ describe("Round Robin handleNewBooking", () => {
     });
 
     test("Handles edge case where host.groupId is null vs undefined properly", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -780,7 +781,7 @@ describe("Round Robin handleNewBooking", () => {
 
   describe("Seated Round Robin Event", () => {
     test("For second seat booking, organizer remains the same with no team members included", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const EventManager = (await import("@calcom/lib/EventManager")).default;
 
       const eventManagerSpy = vi.spyOn(EventManager.prototype, "updateCalendarAttendees");

@@ -21,10 +21,11 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { createInstantMeetingWithCalVideo } from "@calcom/lib/videoClient";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import { subscriptionSchema } from "./schema";
+import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
 
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
@@ -155,7 +156,11 @@ const triggerBrowserNotifications = async (args: {
   await Promise.allSettled(promises);
 };
 
-async function handler(bookingData: CreateInstantBookingData) {
+export async function handler(
+  bookingData: CreateInstantBookingData,
+  deps: IInstantBookingCreateServiceDependencies
+) {
+  const { prisma } = deps;
   let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
   const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
   eventType = {
@@ -332,4 +337,14 @@ async function handler(bookingData: CreateInstantBookingData) {
   } satisfies CreateInstantBookingResponse;
 }
 
-export default handler;
+interface IInstantBookingCreateServiceDependencies {
+  prisma: PrismaClient;
+}
+
+export class InstantBookingCreateService {
+  constructor(private readonly dependencies: IInstantBookingCreateServiceDependencies) {}
+
+  async create(bookingData: CreateInstantBookingData) {
+    return handler(bookingData, this.dependencies);
+  }
+}

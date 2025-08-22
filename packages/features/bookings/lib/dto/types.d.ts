@@ -8,8 +8,10 @@ import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingD
 import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import type { BookingCreateBody as MasterCreateBookingData } from "@calcom/prisma/zod/custom/booking";
 import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import type { JsonObject } from "@calcom/types/Json";
 
-import type { BookingCreateService } from "../handleNewBooking";
+import type { BookingCreateService } from "../service/BookingCreateService";
+import type { InstantBookingCreateService } from "../service/InstantBookingCreateService";
 
 export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
@@ -36,11 +38,16 @@ export interface BookingLocation {
   [key: string]: unknown; // Allow flexible location data based on type
 }
 
-type BaseCreateBookingData = MasterCreateBookingData;
+type BaseCreateBookingData = MasterCreateBookingData & {
+  // Loose type, this is validated at run time through getBookingData
+  responses?: JsonObject;
+};
 
 export type CreateBookingData = BaseCreateBookingData;
 
-export type CreateInstantBookingData = BaseCreateBookingData & { instant: boolean };
+export type CreateInstantBookingData = BaseCreateBookingData & {
+  instant: boolean;
+};
 
 export type CreateSeatedBookingInput = BaseCreateBookingData & Pick<MasterCreateBookingData, "bookingUid">;
 
@@ -78,4 +85,7 @@ export type CreateInstantBookingResponse = {
   userId: number | null;
 };
 
+// TODO: Ideally we should define the types here instead of letting BookingCreateService send anything and keep using it
 export type BookingCreateResult = Awaited<ReturnType<BookingCreateService["create"]>>;
+
+export type InstantBookingCreateResult = Awaited<ReturnType<InstantBookingCreateService["create"]>>;

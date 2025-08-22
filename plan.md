@@ -1,0 +1,4 @@
+- Run these tests after making changes
+  - `yarn test BookingCreateFactory`
+  - `yarn test fresh-booking`
+  - `yarn test recurring-event`

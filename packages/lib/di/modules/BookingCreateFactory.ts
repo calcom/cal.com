@@ -8,4 +8,6 @@ export const bookingCreateFactoryModule = createModule();
 
 bookingCreateFactoryModule.bind(DI_TOKENS.BOOKING_CREATE_FACTORY).toClass(BookingCreateFactory, {
   bookingCreateService: DI_TOKENS.BOOKING_CREATE_SERVICE,
+  recurringBookingCreateService: DI_TOKENS.RECURRING_BOOKING_CREATE_SERVICE,
+  instantBookingCreateService: DI_TOKENS.INSTANT_BOOKING_CREATE_SERVICE,
 });
