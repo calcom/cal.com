@@ -17,13 +17,12 @@ export interface IBookingCreateServiceDependencies {
 }
 export class BookingCreateService {
   constructor(private readonly deps: IBookingCreateServiceDependencies) {}
-  async create({
-    bookingData,
-    bookingMeta,
-    schemaGetter,
-  }: {
+  async create(_input: {
     bookingData: CreateBookingData;
     bookingMeta?: CreateBookingMeta;
     schemaGetter?: BookingDataSchemaGetter;
-  }) {}
+  }) {
+    // Call handleNewBooking here
+    return;
+  }
 }
