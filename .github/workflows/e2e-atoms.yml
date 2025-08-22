@@ -1,15 +1,7 @@
 name: Atoms E2E Tests
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'packages/platform/atoms/**'
-      - 'packages/platform/examples/base/**'
-      - 'apps/api/v2/**'
-      - '.github/workflows/atoms-e2e.yml'
-
+  workflow_call:
 permissions:
   actions: write
   contents: read
@@ -25,7 +17,7 @@ env:
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
 
 jobs:
-  atoms-e2e:
+  e2e-atoms:
     timeout-minutes: 15
     name: Atoms E2E Tests
     runs-on: buildjet-4vcpu-ubuntu-2204
@@ -45,13 +37,13 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: atoms-e2e-test-results
+          name: e2e-atoms-test-results
           path: test-results
           retention-days: 7
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: atoms-e2e-playwright-report
+          name: e2e-atoms-playwright-report
           path: playwright-report
           retention-days: 7
