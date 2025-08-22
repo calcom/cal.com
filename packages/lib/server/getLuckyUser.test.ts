@@ -894,6 +894,21 @@ describe("maximize availability and weights", () => {
         createdAt: allRRHosts[0].createdAt,
       },
     ]);
+    prismaMock.booking.findMany.mockResolvedValueOnce([]); // Mock 1: Available users
+    prismaMock.booking.findMany.mockResolvedValueOnce([]); // Mock 2: Not available hosts
+    prismaMock.booking.findMany.mockResolvedValueOnce([
+      // Mock 3: All hosts (this is what was missing)
+      buildBooking({
+        id: 4,
+        userId: 2,
+        createdAt: dayjs(middleOfMonth).subtract(2, "days").toDate(),
+      }),
+      buildBooking({
+        id: 5,
+        userId: 2,
+        createdAt: dayjs(middleOfMonth).subtract(5, "days").toDate(),
+      }),
+    ]);
     prismaMock.booking.findMany.mockResolvedValueOnce([
       buildBooking({
         id: 4,
@@ -920,7 +935,11 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(users[1]);
 
+    // Second call to getLuckyUser needs its own set of three mocks.
+    prismaMock.booking.findMany.mockResolvedValueOnce([]); // Mock 4: Available users
+    prismaMock.booking.findMany.mockResolvedValueOnce([]); // Mock 5: Not available hosts
     prismaMock.booking.findMany.mockResolvedValueOnce([
+      // Mock 6: All hosts
       buildBooking({
         id: 4,
         userId: 2,
