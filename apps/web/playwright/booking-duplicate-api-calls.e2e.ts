@@ -16,8 +16,8 @@ test.describe("Duplicate API Calls Prevention", () => {
     const trpcCalls: string[] = [];
     const apiV2Calls: string[] = [];
 
-    // Intercept tRPC getSchedule calls - pattern matches trpc.viewer.slots.getSchedule.useQuery()
-    await page.route("**/api/trpc/viewer.slots.getSchedule**", async (route) => {
+    // Intercept tRPC getSchedule calls - pattern matches /api/trpc/slots/getSchedule
+    await page.route("**/api/trpc/slots/getSchedule**", async (route) => {
       trpcCalls.push(route.request().url());
       await route.continue();
     });
@@ -33,14 +33,10 @@ test.describe("Duplicate API Calls Prevention", () => {
 
     const totalCalls = trpcCalls.length + apiV2Calls.length;
 
-    if (totalCalls === 0) {
-      console.log("No API calls detected - environment may have issues preventing page load");
-      expect(totalCalls).toBeGreaterThanOrEqual(0);
-    } else {
-      expect(totalCalls).toBeLessThanOrEqual(1);
-      expect(trpcCalls.length).toBeLessThanOrEqual(1);
-      expect(apiV2Calls.length).toBeLessThanOrEqual(1);
-    }
+    expect(totalCalls).toBeGreaterThan(0);
+    expect(totalCalls).toBeLessThanOrEqual(1);
+    expect(trpcCalls.length).toBeLessThanOrEqual(1);
+    expect(apiV2Calls.length).toBeLessThanOrEqual(1);
   });
 
   test("should detect when schedule endpoints are called multiple times for team events", async ({
@@ -65,7 +61,7 @@ test.describe("Duplicate API Calls Prevention", () => {
     const trpcCalls: string[] = [];
     const apiV2Calls: string[] = [];
 
-    await page.route("**/api/trpc/viewer.slots.getSchedule**", async (route) => {
+    await page.route("**/api/trpc/slots/getSchedule**", async (route) => {
       trpcCalls.push(route.request().url());
       await route.continue();
     });
@@ -81,14 +77,10 @@ test.describe("Duplicate API Calls Prevention", () => {
 
     const totalCalls = trpcCalls.length + apiV2Calls.length;
 
-    if (totalCalls === 0) {
-      console.log("No API calls detected - environment may have issues preventing page load");
-      expect(totalCalls).toBeGreaterThanOrEqual(0);
-    } else {
-      expect(totalCalls).toBeLessThanOrEqual(1);
-      expect(trpcCalls.length).toBeLessThanOrEqual(1);
-      expect(apiV2Calls.length).toBeLessThanOrEqual(1);
-    }
+    expect(totalCalls).toBeGreaterThan(0);
+    expect(totalCalls).toBeLessThanOrEqual(1);
+    expect(trpcCalls.length).toBeLessThanOrEqual(1);
+    expect(apiV2Calls.length).toBeLessThanOrEqual(1);
   });
 
   test("should detect when schedule endpoints are called multiple times for organization team events", async ({
@@ -117,7 +109,7 @@ test.describe("Duplicate API Calls Prevention", () => {
     const trpcCalls: string[] = [];
     const apiV2Calls: string[] = [];
 
-    await page.route("**/api/trpc/viewer.slots.getSchedule**", async (route) => {
+    await page.route("**/api/trpc/slots/getSchedule**", async (route) => {
       trpcCalls.push(route.request().url());
       await route.continue();
     });
@@ -133,13 +125,9 @@ test.describe("Duplicate API Calls Prevention", () => {
 
     const totalCalls = trpcCalls.length + apiV2Calls.length;
 
-    if (totalCalls === 0) {
-      console.log("No API calls detected - environment may have issues preventing page load");
-      expect(totalCalls).toBeGreaterThanOrEqual(0);
-    } else {
-      expect(totalCalls).toBeLessThanOrEqual(1);
-      expect(trpcCalls.length).toBeLessThanOrEqual(1);
-      expect(apiV2Calls.length).toBeLessThanOrEqual(1);
-    }
+    expect(totalCalls).toBeGreaterThan(0);
+    expect(totalCalls).toBeLessThanOrEqual(1);
+    expect(trpcCalls.length).toBeLessThanOrEqual(1);
+    expect(apiV2Calls.length).toBeLessThanOrEqual(1);
   });
 });
