@@ -298,8 +298,16 @@ export class InsightsBookingBaseService {
       return null;
     }
 
-    if (id === "eventTypeId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
-      return Prisma.sql`("eventTypeId" = ${value.data}) OR ("eventParentId" = ${value.data})`;
+    if (id === "eventTypeId" && isMultiSelectFilterValue(value)) {
+      const eventTypeIds = value.data.map((id) => Number(id));
+
+      if (eventTypeIds.length === 0) {
+        return null;
+      }
+
+      return Prisma.sql`("eventTypeId" IN (${Prisma.join(eventTypeIds)}) OR "eventParentId" IN (${Prisma.join(
+        eventTypeIds
+      )}))`;
     }
 
     if (id === "userId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
