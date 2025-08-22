@@ -120,6 +120,7 @@
     "@daily-co/daily-js": "^0.76.0",
     "@evyweb/ioctopus": "^1.2.0",
     "@next/third-parties": "^14.2.5",
+    "@tiptap/extension-underline": "^2.3.0",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",

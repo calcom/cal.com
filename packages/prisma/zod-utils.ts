@@ -404,6 +404,7 @@ export const teamMetadataSchema = z
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
+    meetingNote: z.string().optional()
   })
   .and(z.record(z.string()))
   .nullable()

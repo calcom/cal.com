@@ -179,7 +179,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         name: user.name,
         username: user.username,
         bio: user.bio,
-        headerUrl: user.metadata.headerUrl,
+        headerUrl: user.metadata?.headerUrl,
         avatarUrl: user.avatarUrl,
         verified: user.verified,
         profile: user.profile,
