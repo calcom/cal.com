@@ -197,6 +197,7 @@ const nextConfig = (phase) => {
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
       webpackMemoryOptimizations: true,
+      webpackBuildWorker: true,
     },
     productionBrowserSourceMaps: true,
     /* We already do type check on GH actions */
