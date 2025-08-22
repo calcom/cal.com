@@ -1,11 +1,11 @@
 import { createContainer } from "@evyweb/ioctopus";
 
-import type { BookingFactory } from "@calcom/features/bookings/lib/factory/BookingFactory";
+import type { BookingCreateFactory } from "@calcom/features/bookings/lib/factory/BookingCreateFactory";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import { bookingRepositoryModule } from "../modules/Booking";
+import { bookingCreateFactoryModule } from "../modules/BookingCreateFactory";
 import { bookingCreateModule } from "../modules/BookingCreateService";
-import { bookingFactoryModule } from "../modules/BookingFactory";
 import { cacheModule } from "../modules/Cache";
 import { checkBookingAndDurationLimitsModule } from "../modules/CheckBookingAndDurationLimits";
 import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
@@ -23,8 +23,8 @@ container.load(
   checkBookingAndDurationLimitsModule
 );
 container.load(DI_TOKENS.BOOKING_CREATE_SERVICE_MODULE, bookingCreateModule);
-container.load(DI_TOKENS.BOOKING_FACTORY_MODULE, bookingFactoryModule);
+container.load(DI_TOKENS.BOOKING_FACTORY_MODULE, bookingCreateFactoryModule);
 
-export function getBookingFactory(): BookingFactory {
-  return container.get<BookingFactory>(DI_TOKENS.BOOKING_FACTORY);
+export function getBookingCreateFactory(): BookingCreateFactory {
+  return container.get<BookingCreateFactory>(DI_TOKENS.BOOKING_FACTORY);
 }

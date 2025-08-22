@@ -8,14 +8,14 @@ import type {
 } from "@calcom/features/bookings/lib/service/BookingCreateService/types";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 
-import { BookingFactory } from "./BookingFactory";
+import { BookingCreateFactory } from "./BookingCreateFactory";
 
 vi.mock("@calcom/features/instant-meeting/handleInstantMeeting", () => ({
   default: vi.fn(),
 }));
 
-describe("BookingFactory", () => {
-  let factory: BookingFactory;
+describe("BookingCreateFactory", () => {
+  let factory: BookingCreateFactory;
   let mockBookingCreateService: BookingCreateService;
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe("BookingFactory", () => {
     } as unknown as BookingCreateService;
 
     // Create the factory with the mocked dependency
-    factory = new BookingFactory({
+    factory = new BookingCreateFactory({
       bookingCreateService: mockBookingCreateService,
     });
 

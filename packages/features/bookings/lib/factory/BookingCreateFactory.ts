@@ -9,12 +9,12 @@ import type {
 } from "@calcom/features/bookings/lib/service/BookingCreateService/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 
-interface IBookingFactoryDependencies {
+interface IBookingCreateFactoryDependencies {
   bookingCreateService: BookingCreateService;
 }
 
-export class BookingFactory {
-  constructor(private readonly dependencies: IBookingFactoryDependencies) {}
+export class BookingCreateFactory {
+  constructor(private readonly dependencies: IBookingCreateFactoryDependencies) {}
 
   async createBooking({
     bookingData,

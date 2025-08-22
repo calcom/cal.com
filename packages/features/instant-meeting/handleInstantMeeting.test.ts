@@ -109,7 +109,7 @@ describe("handleInstantMeeting", () => {
         url: "/api/instant-meeting",
       } as NextApiRequest;
 
-      const result = await handler(mockRequest.body);
+      const result = await handler(mockRequest);
 
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
@@ -188,7 +188,7 @@ describe("handleInstantMeeting", () => {
         url: "/api/instant-meeting",
       } as NextApiRequest;
 
-      await expect(handler(mockRequest.body)).rejects.toThrow(
+      await expect(handler(mockRequest)).rejects.toThrow(
         "Only Team Event Types are supported for Instant Meeting"
       );
     });
