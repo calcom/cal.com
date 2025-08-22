@@ -22,7 +22,9 @@ const timeout = process.env.CI ? 5000 : 20000;
 
 const eventLength = 30;
 
-const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+const handleNewBooking = (
+  await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+).default;
 
 const booker = getBooker({
   email: "booker@example.com",

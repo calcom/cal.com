@@ -1,11 +1,9 @@
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
-import type {
-  CreateBookingMeta,
-  CreateRecurringBookingData,
-} from "@calcom/features/bookings/lib/service/BookingCreateService/types";
-import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
+
+import type { BookingResponse } from "../../../../types";
+import type { CreateBookingMeta, CreateRecurringBookingData } from "../types";
+import handleNewBooking from "./handleNewBooking";
 
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;

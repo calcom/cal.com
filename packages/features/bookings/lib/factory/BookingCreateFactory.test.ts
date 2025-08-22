@@ -1,11 +1,11 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
-import type { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
 import type {
   CreateBookingData,
   CreateInstantBookingData,
   CreateSeatedBookingInput,
 } from "@calcom/features/bookings/lib/service/BookingCreateService/types";
+import type { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 
 import { BookingCreateFactory } from "./BookingCreateFactory";

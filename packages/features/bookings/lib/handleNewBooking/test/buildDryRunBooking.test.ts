@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
 
-import { buildDryRunBooking } from "../../handleNewBooking";
+import { buildDryRunBooking } from "../../service/BookingCreateService/utils/handleNewBooking";
 
 describe("buildDryRunBooking", () => {
   const baseOrganizerUser = {

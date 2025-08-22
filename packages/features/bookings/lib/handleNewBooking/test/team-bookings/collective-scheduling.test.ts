@@ -63,7 +63,11 @@ describe("handleNewBooking", () => {
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -246,7 +250,11 @@ describe("handleNewBooking", () => {
         test(
           `rejects a booking when even one of the hosts is busy`,
           async ({}) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -372,7 +380,11 @@ describe("handleNewBooking", () => {
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -546,7 +558,11 @@ describe("handleNewBooking", () => {
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const org = await createOrganization({
               name: "Test Org",
               slug: "testorg",
@@ -780,7 +796,11 @@ describe("handleNewBooking", () => {
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const org = await createOrganization({
               name: "Test Org",
               slug: "testorg",
@@ -1018,7 +1038,11 @@ describe("handleNewBooking", () => {
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const org = await createOrganization({
               name: "Test Org",
               slug: "testorg",
@@ -1218,7 +1242,11 @@ describe("handleNewBooking", () => {
         test(
           `rejects a booking when the timeslot isn't within the common schedule`,
           async ({}) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -1332,7 +1360,9 @@ describe("handleNewBooking", () => {
       test(
         `When Cal Video is the location, it uses global instance credentials and createMeeting is called for it`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1513,7 +1543,9 @@ describe("handleNewBooking", () => {
       test(
         `When Zoom is the location, it uses credentials of the first host and createMeeting is called for it.`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1715,7 +1747,9 @@ describe("handleNewBooking", () => {
       test(
         `When event type location is Organizer Default App and user metadata is empty, default to Cal Video`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1910,7 +1944,11 @@ describe("handleNewBooking", () => {
           - Reschedule and Cancel link in email are not of the org domain because the team is not part of any org
         `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const org = await createOrganization({
               name: "Test Org",
               slug: "testorg",
@@ -2104,7 +2142,9 @@ describe("handleNewBooking", () => {
 
     describe("Round Robin Assignment", () => {
       test(`successfully books contact owner if rr lead skip is enabled`, async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",

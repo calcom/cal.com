@@ -95,36 +95,40 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { CacheService } from "../../calendar-cache/lib/getShouldServeCache";
-import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
-import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
-import getBookingDataSchema from "./getBookingDataSchema";
-import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
-import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
-import type { CheckBookingAndDurationLimitsService } from "./handleNewBooking/checkBookingAndDurationLimits";
-import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
-import { createBooking } from "./handleNewBooking/createBooking";
-import type { Booking } from "./handleNewBooking/createBooking";
-import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
-import { getBookingData } from "./handleNewBooking/getBookingData";
-import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventType } from "./handleNewBooking/getEventType";
-import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
-import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
-import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
-import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
-import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
-import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
-import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
-import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
-import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
-import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
-import { validateEventLength } from "./handleNewBooking/validateEventLength";
-import handleSeats from "./handleSeats/handleSeats";
+import type { CacheService } from "../../../../../calendar-cache/lib/getShouldServeCache";
+import type { EventPayloadType, EventTypeInfo } from "../../../../../webhooks/lib/sendPayload";
+import { getAllCredentialsIncludeServiceAccountKey } from "../../../getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { refreshCredentials } from "../../../getAllCredentialsForUsersOnEvent/refreshCredentials";
+import getBookingDataSchema from "../../../getBookingDataSchema";
+import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "../../../handleNewBooking/checkActiveBookingsLimitForBooker";
+import type { CheckBookingAndDurationLimitsService } from "../../../handleNewBooking/checkBookingAndDurationLimits";
+import { checkIfBookerEmailIsBlocked } from "../../../handleNewBooking/checkIfBookerEmailIsBlocked";
+import { ensureAvailableUsers } from "../../../handleNewBooking/ensureAvailableUsers";
+import { getBookingData } from "../../../handleNewBooking/getBookingData";
+import { getCustomInputsResponses } from "../../../handleNewBooking/getCustomInputsResponses";
+import { getEventType } from "../../../handleNewBooking/getEventType";
+import type { getEventTypeResponse } from "../../../handleNewBooking/getEventTypesFromDB";
+import { getLocationValuesForDb } from "../../../handleNewBooking/getLocationValuesForDb";
+import { getRequiresConfirmationFlags } from "../../../handleNewBooking/getRequiresConfirmationFlags";
+import { getVideoCallDetails } from "../../../handleNewBooking/getVideoCallDetails";
+import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
+import { loadAndValidateUsers } from "../../../handleNewBooking/loadAndValidateUsers";
+import { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
+import { getOriginalRescheduledBooking } from "../../../handleNewBooking/originalRescheduledBookingUtils";
+import type { BookingType } from "../../../handleNewBooking/originalRescheduledBookingUtils";
+import { scheduleNoShowTriggers } from "../../../handleNewBooking/scheduleNoShowTriggers";
+import type {
+  IEventTypePaymentCredentialType,
+  Invitee,
+  IsFixedAwareUser,
+} from "../../../handleNewBooking/types";
+import { validateBookingTimeIsNotOutOfBounds } from "../../../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
+import { validateEventLength } from "../../../handleNewBooking/validateEventLength";
+import handleSeats from "../../../handleSeats/handleSeats";
+import { createBooking } from "./createBooking";
+import type { Booking } from "./createBooking";
+import { getSeatedBooking } from "./getSeatedBooking";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });

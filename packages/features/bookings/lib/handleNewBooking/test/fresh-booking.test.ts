@@ -81,7 +81,9 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_CREATED webhook
     `,
       async ({ emails, org }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -263,7 +265,9 @@ describe("handleNewBooking", () => {
           3. Should trigger BOOKING_CREATED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -424,7 +428,9 @@ describe("handleNewBooking", () => {
           3. Should trigger BOOKING_CREATED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -580,7 +586,9 @@ describe("handleNewBooking", () => {
       test(
         `an error in creating a calendar event should not stop the booking creation - Current behaviour is wrong as the booking is created but no-one is notified of it`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -701,7 +709,9 @@ describe("handleNewBooking", () => {
       test(
         "If destination calendar has no credential ID due to some reason, it should create the event in first connected calendar instead",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -868,7 +878,9 @@ describe("handleNewBooking", () => {
       test(
         "If destination calendar is there for Google Calendar but there are no Google Calendar credentials but there is an Apple Calendar credential connected, it should create the event in Apple Calendar",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1026,7 +1038,9 @@ describe("handleNewBooking", () => {
       test(
         `should create a successful booking with right location app when event has location option as video client`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1119,7 +1133,9 @@ describe("handleNewBooking", () => {
         `,
         //test with inPerson event type
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1202,7 +1218,9 @@ describe("handleNewBooking", () => {
       test(
         `should create a successful booking with organizer default conferencing app when event's location is not set`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1296,7 +1314,9 @@ describe("handleNewBooking", () => {
       test(
         `should create a successful booking with Zoom if used`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -1384,7 +1404,9 @@ describe("handleNewBooking", () => {
       test(
         `Booking should still be created using calvideo, if error occurs with zoom`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -1478,7 +1500,9 @@ describe("handleNewBooking", () => {
       test(
         `should fail if the time difference between a booking's start and end times is not equal to the event length.`,
         async () => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
 
           const booker = getBooker({
             email: "booker@example.com",
@@ -1538,7 +1562,9 @@ describe("handleNewBooking", () => {
       test(
         "should create a booking with UTM tracking",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1623,7 +1649,9 @@ describe("handleNewBooking", () => {
       test(
         `should create a booking with creation source as WEBAPP`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1704,7 +1732,11 @@ describe("handleNewBooking", () => {
         test(
           `should fail a booking if there is already a Cal.com booking overlapping the time`,
           async ({}) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
 
             const booker = getBooker({
               email: "booker@example.com",
@@ -1776,7 +1808,11 @@ describe("handleNewBooking", () => {
         test(
           `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time`,
           async () => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const organizerId = 101;
             const booker = getBooker({
               email: "booker@example.com",
@@ -1861,7 +1897,11 @@ describe("handleNewBooking", () => {
         test(
           `should allow a booking even if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time but useEventLevelSelectedCalendars is false and SelectedCalendar is for an event`,
           async () => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const organizerId = 101;
             const eventTypeId = 1;
             const useEventLevelSelectedCalendars = false;
@@ -1945,8 +1985,11 @@ describe("handleNewBooking", () => {
           test(
             `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time as chosen in the event type`,
             async () => {
-              const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking"))
-                .default;
+              const handleNewBooking = (
+                await import(
+                  "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+                )
+              ).default;
               const organizerId = 101;
               const eventTypeId = 1;
               const useEventLevelSelectedCalendars = true;
@@ -2025,8 +2068,11 @@ describe("handleNewBooking", () => {
           test(
             `should allow a booking even if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time and useEventLevelSelectedCalendars is true but the selectedCalendar is of different eventType`,
             async () => {
-              const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking"))
-                .default;
+              const handleNewBooking = (
+                await import(
+                  "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+                )
+              ).default;
               const organizerId = 101;
               const eventTypeId = 1;
               const anotherEventTypeId = 2;
@@ -2122,7 +2168,9 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2250,7 +2298,9 @@ describe("handleNewBooking", () => {
         3. Should trigger BOOKING_REQUESTED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2368,7 +2418,9 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_CREATED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2503,7 +2555,9 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2625,7 +2679,9 @@ describe("handleNewBooking", () => {
     test(
       `if booking with Cal Video(Daily Video) fails, booking creation fails with uncaught error`,
       async ({}) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.org",
           name: "Booker",
@@ -2693,7 +2749,9 @@ describe("handleNewBooking", () => {
       3. Should trigger BOOKING_CREATED webhook
     `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -2818,7 +2876,9 @@ describe("handleNewBooking", () => {
             6. Workflow triggers once payment is successful
       `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2975,7 +3035,9 @@ describe("handleNewBooking", () => {
             5. Booking should still stay in pending state
       `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -3134,7 +3196,9 @@ describe("handleNewBooking", () => {
       test(
         `cannot book same slot multiple times `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -3283,7 +3347,9 @@ describe("handleNewBooking", () => {
       test(
         `Payment retry scenario - should return existing payment UID and prevent duplicate bookings when retrying canceled payment`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -3400,7 +3466,9 @@ describe("handleNewBooking", () => {
 
   describe("Returning original booking", () => {
     test("Return the original booking if a request is made twice by the same attendee when a booking requires confirmation", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3458,7 +3526,9 @@ describe("handleNewBooking", () => {
       expect(secondResponse.id).toEqual(response.id);
     });
     test("Return the original booking if request is made by the same attendee for a round robin event", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3520,7 +3590,9 @@ describe("handleNewBooking", () => {
 
   describe("Blocked users", () => {
     test("user is locked", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3575,7 +3647,9 @@ describe("handleNewBooking", () => {
     });
 
     test("username is critical in watchlist", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3637,7 +3711,9 @@ describe("handleNewBooking", () => {
     });
 
     test("domain is critical in watchlist", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3699,7 +3775,9 @@ describe("handleNewBooking", () => {
     });
 
     test("domain is critical in watchlist", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
