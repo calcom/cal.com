@@ -26,14 +26,12 @@ import {
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type {
+  BookingHandlerInput,
   CreateBookingData,
   CreateBookingMeta,
-  BookingHandlerInput,
 } from "@calcom/features/bookings/lib/dto/types";
-import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -59,8 +57,6 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/lib/di/containers/Cache";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -76,12 +72,11 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents, CreationSource } from "@calcom/prisma/enums";
 import {
@@ -100,34 +95,36 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
-import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
-import getBookingDataSchema from "./getBookingDataSchema";
-import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
-import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
-import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
-import { createBooking } from "./handleNewBooking/createBooking";
-import type { Booking } from "./handleNewBooking/createBooking";
-import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
-import { getBookingData } from "./handleNewBooking/getBookingData";
-import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventType } from "./handleNewBooking/getEventType";
-import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
-import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
-import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
-import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
-import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
-import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
-import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
-import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
-import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
-import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
-import { validateEventLength } from "./handleNewBooking/validateEventLength";
-import handleSeats from "./handleSeats/handleSeats";
+import type { CacheService } from "../../../calendar-cache/lib/getShouldServeCache";
+import type { EventPayloadType, EventTypeInfo } from "../../../webhooks/lib/sendPayload";
+import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
+import getBookingDataSchema from "../getBookingDataSchema";
+import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
+import type { CheckBookingAndDurationLimitsService } from "../handleNewBooking/checkBookingAndDurationLimits";
+import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
+import { createBooking } from "../handleNewBooking/createBooking";
+import type { Booking } from "../handleNewBooking/createBooking";
+import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
+import { getBookingData } from "../handleNewBooking/getBookingData";
+import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
+import { getEventType } from "../handleNewBooking/getEventType";
+import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
+import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
+import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
+import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
+import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
+import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
+import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
+import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
+import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
+import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
+import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
+import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
+import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
+import { validateEventLength } from "../handleNewBooking/validateEventLength";
+import handleSeats from "../handleSeats/handleSeats";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -413,7 +410,7 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
-async function _handler(
+export async function handler(
   input: BookingHandlerInput,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema,
   deps: IBookingCreateServiceDependencies
@@ -2438,7 +2435,7 @@ export class BookingCreateService {
     schemaGetter?: BookingDataSchemaGetter;
   }) {
     const bookingMeta = input.bookingMeta ?? {};
-    return _handler(
+    return handler(
       {
         bookingData: input.bookingData,
         ...bookingMeta,
@@ -2449,11 +2446,4 @@ export class BookingCreateService {
   }
 }
 
-export default async function handler(input: BookingHandlerInput, schemaGetter?: BookingDataSchemaGetter) {
-  return _handler(input, schemaGetter, {
-    cacheService: getCacheService(),
-    checkBookingAndDurationLimitsService: getCheckBookingAndDurationLimitsService(),
-    prisma: prisma,
-    bookingRepository: new BookingRepository(prisma),
-  });
-}
+export default BookingCreateService;

@@ -1,12 +1,12 @@
 import type { SchedulingType } from "@prisma/client";
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
-import type { BookingCreateResult } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type { DatePickerProps } from "../calendars/DatePicker";
+import type { BookingCreateResult, InstantBookingCreateResult } from "./lib/dto/types";
 
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 
@@ -96,9 +96,7 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
 
 export type BookingResponse = BookingCreateResult;
 
-export type InstantBookingResponse = Awaited<
-  ReturnType<typeof import("@calcom/features/instant-meeting/handleInstantMeeting").default>
->;
+export type InstantBookingResponse = InstantBookingCreateResult;
 
 export type MarkNoShowResponse = Awaited<
   ReturnType<typeof import("@calcom/features/handleMarkNoShow").default>
