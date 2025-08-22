@@ -48,8 +48,8 @@ export type InsightsRoutingServicePublicOptions = {
 export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServiceOptionsSchema>;
 
 export type InsightsRoutingServiceFilterOptions = {
-  startDate?: string;
-  endDate?: string;
+  startDate: string;
+  endDate: string;
   columnFilters?: TypedColumnFilter<ColumnFilterType>[];
 };
 
@@ -662,7 +662,7 @@ export class InsightsRoutingBaseService {
     const exclude = (conditionsOptions || {}).exclude || {};
 
     // Date range filtering
-    if (this.filters.startDate && this.filters.endDate && !exclude.createdAt) {
+    if (!exclude.createdAt) {
       conditions.push(
         Prisma.sql`"createdAt" >= ${this.filters.startDate}::timestamp AND "createdAt" <= ${this.filters.endDate}::timestamp`
       );
