@@ -1,3 +1,6 @@
+/**
+ * TODO: Consolidate this file with BookingLocationService and add tests
+ */
 import type { TFunction } from "i18next";
 import { z } from "zod";
 
@@ -58,8 +61,10 @@ export type EventLocationTypeFromApp = Ensure<
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
 export const DailyLocationType = "integrations:daily";
-
+export const CalVideoLocationType = DailyLocationType;
 export const MeetLocationType = "integrations:google:meet";
+
+export const MSTeamsLocationType = "integrations:office365_video";
 
 /**
  * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking
@@ -378,7 +383,7 @@ export const getLocationValueForDB = (
   eventLocations: LocationObject[]
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
-  let conferenceCredentialId = undefined;
+  let conferenceCredentialId: number | undefined = undefined;
 
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
