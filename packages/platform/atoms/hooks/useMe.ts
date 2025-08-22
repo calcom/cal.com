@@ -11,7 +11,7 @@ export const QUERY_KEY = "get-me";
  * Access Token must be provided to CalProvider in order to use this hook
  * @returns The result of the query containing the user's profile.
  */
-export const useMe = (isEmbed: boolean = false) => {
+export const useMe = (isEmbed = false) => {
   const pathname = `/${V2_ENDPOINTS.me}`;
   const me = useQuery({
     queryKey: [QUERY_KEY],
