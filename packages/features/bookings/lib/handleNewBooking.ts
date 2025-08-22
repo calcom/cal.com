@@ -1,13 +1,3 @@
-import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
-import type {
-  CreateBookingData,
-  CreateBookingMeta,
-  BookingDataSchemaGetter,
-} from "@calcom/features/bookings/lib/service/BookingCreateService/types";
-import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import type { PrismaClient } from "@calcom/prisma";
-
 import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -35,8 +25,14 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import type {
+  CreateBookingData,
+  CreateBookingMeta,
+} from "@calcom/features/bookings/lib/service/BookingCreateService/types";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -83,6 +79,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -2451,8 +2448,6 @@ async function handler(
 
 export default handler;
 
-
-
 export interface IBookingCreateServiceDependencies {
   cacheService: CacheService;
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
@@ -2467,7 +2462,7 @@ export class BookingCreateService {
     bookingMeta?: CreateBookingMeta;
     schemaGetter?: BookingDataSchemaGetter;
   }) {
-    // Integrate handler here 
+    // Integrate handler here
     return;
   }
 }
