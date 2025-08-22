@@ -6,14 +6,15 @@ import type {
   CreateInstantBookingResponse,
   BookingDataSchemaGetter,
 } from "@calcom/features/bookings/lib/dto/types";
+import type { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService";
+import type { InstantBookingCreateService } from "@calcom/features/bookings/lib/service/InstantBookingCreateService";
+import type { RecurringBookingCreateService } from "@calcom/features/bookings/lib/service/RecurringBookingCreateService";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
-
-import type { BookingCreateService } from "../handleNewBooking";
-import { handleNewRecurringBooking } from "../handleNewRecurringBooking";
 
 interface IBookingCreateFactoryDependencies {
   bookingCreateService: BookingCreateService;
+  recurringBookingCreateService: RecurringBookingCreateService;
+  instantBookingCreateService: InstantBookingCreateService;
 }
 
 export class BookingCreateFactory {
@@ -39,7 +40,7 @@ export class BookingCreateFactory {
     bookingMeta?: CreateBookingMeta;
   }): Promise<BookingResponse[]> {
     const handlerInput = { bookingData, ...(bookingMeta ?? {}) };
-    return handleNewRecurringBooking(handlerInput);
+    return this.deps.recurringBookingCreateService.create(handlerInput);
   }
 
   async createInstantBooking({
@@ -47,9 +48,7 @@ export class BookingCreateFactory {
   }: {
     bookingData: CreateInstantBookingData;
   }): Promise<CreateInstantBookingResponse> {
-    const response = await handleInstantMeeting(bookingData);
-
-    return response;
+    return this.deps.instantBookingCreateService.create(bookingData);
   }
 
   async createSeatedBooking({

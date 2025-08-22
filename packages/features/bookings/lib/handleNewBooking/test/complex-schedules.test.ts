@@ -25,6 +25,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
+import { getNewBookingHandler } from "@calcom/features/bookings/lib/getNewBookingHandler";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -48,7 +49,7 @@ describe("handleNewBooking", () => {
       async ({ emails }) => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const newYorkTimeZone = Timezones["-05:00"];
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",

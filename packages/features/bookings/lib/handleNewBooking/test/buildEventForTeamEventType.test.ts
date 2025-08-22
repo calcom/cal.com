@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { buildEventForTeamEventType } from "../../handleNewBooking";
+import { buildEventForTeamEventType } from "../../service/BookingCreateService";
 
 vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue("translated"),

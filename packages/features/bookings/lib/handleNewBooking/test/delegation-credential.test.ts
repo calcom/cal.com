@@ -41,6 +41,7 @@ import { vi } from "vitest";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getNewBookingHandler } from "@calcom/features/bookings/lib/getNewBookingHandler";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -160,7 +161,7 @@ describe("handleNewBooking", () => {
       3. Should use Google Meet as the location even when not explicitly set.
 `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const org = await createOrganization({
           name: "Test Org",
@@ -339,7 +340,7 @@ describe("handleNewBooking", () => {
       3. Should use Google Meet as the location even when not explicitly set and no destination calendar is set for User/EventType
 `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const org = await createOrganization({
           name: "Test Org",
@@ -516,7 +517,7 @@ describe("handleNewBooking", () => {
       2. Should create an event in Outlook calendar with Delegation credential
 `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const org = await createOrganization({
           name: "Test Org",
@@ -709,7 +710,7 @@ describe("handleNewBooking", () => {
     test(
       `should fail calendar event creation when organizer isn't part of the organization of DelegationCredential Credential`,
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const org = await createOrganization({
           name: "Test Org",
@@ -878,7 +879,7 @@ describe("handleNewBooking", () => {
       3. Should use Google Meet as the location even when not explicitly set.
 `,
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const org = await createOrganization({
           name: "Test Org",
@@ -1031,7 +1032,7 @@ describe("handleNewBooking", () => {
     test(
       `should use Cal Video as the location if that is the default conferencing app set by the user. It must not use Google Meet coming from Delegation credential.`,
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const org = await createOrganization({
           name: "Test Org",

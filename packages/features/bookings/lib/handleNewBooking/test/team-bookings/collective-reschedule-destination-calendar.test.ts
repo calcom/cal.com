@@ -19,6 +19,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect, beforeEach } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getNewBookingHandler } from "@calcom/features/bookings/lib/getNewBookingHandler";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -46,7 +47,7 @@ describe("handleNewBooking", () => {
         4. Verify both hosts have the booking in their calendars
     `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "booker@example.com",

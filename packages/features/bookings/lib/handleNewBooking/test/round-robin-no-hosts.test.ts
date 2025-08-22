@@ -14,6 +14,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, expect } from "vitest";
 
+import { getNewBookingHandler } from "@calcom/features/bookings/lib/getNewBookingHandler";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -26,7 +27,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   test(
     "should throw NoAvailableUsersFound when Round Robin event has both fixed and round robin hosts busy",
     async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -139,7 +140,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   test(
     "should throw RoundRobinHostsUnavailableForBooking when Round Robin event has fixed hosts but no round robin host is available",
     async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",

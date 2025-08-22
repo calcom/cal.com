@@ -4,8 +4,9 @@ import type {
   CreateInstantBookingData,
   CreateRecurringBookingData,
 } from "@calcom/features/bookings/lib/dto/types";
-import type { BookingCreateService } from "@calcom/features/bookings/lib/handleNewBooking";
-import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
+import type { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService";
+import type { InstantBookingCreateService } from "@calcom/features/bookings/lib/service/InstantBookingCreateService";
+import type { RecurringBookingCreateService } from "@calcom/features/bookings/lib/service/RecurringBookingCreateService";
 
 import { BookingCreateFactory } from "./BookingCreateFactory";
 
@@ -13,13 +14,11 @@ vi.mock("@calcom/features/instant-meeting/handleInstantMeeting", () => ({
   default: vi.fn(),
 }));
 
-vi.mock("@calcom/features/bookings/lib/handleNewRecurringBooking", () => ({
-  handleNewRecurringBooking: vi.fn(),
-}));
-
 describe("BookingCreateFactory", () => {
   let factory: BookingCreateFactory;
   let mockBookingCreateService: BookingCreateService;
+  let mockRecurringBookingCreateService: RecurringBookingCreateService;
+  let mockInstantBookingCreateService: InstantBookingCreateService;
 
   beforeEach(() => {
     // Create a mock BookingCreateService with a create method
@@ -27,9 +26,18 @@ describe("BookingCreateFactory", () => {
       create: vi.fn(),
     } as unknown as BookingCreateService;
 
+    mockRecurringBookingCreateService = {
+      create: vi.fn(),
+    } as unknown as RecurringBookingCreateService;
+
+    mockInstantBookingCreateService = {
+      create: vi.fn(),
+    } as unknown as InstantBookingCreateService;
     // Create the factory with the mocked dependency
     factory = new BookingCreateFactory({
       bookingCreateService: mockBookingCreateService,
+      recurringBookingCreateService: mockRecurringBookingCreateService,
+      instantBookingCreateService: mockInstantBookingCreateService,
     });
 
     vi.resetAllMocks();
@@ -50,7 +58,7 @@ describe("BookingCreateFactory", () => {
         bookingData: mockBookingData,
       });
 
-      expect(handleInstantMeeting).toHaveBeenCalledWith(mockBookingData);
+      expect(mockInstantBookingCreateService.create).toHaveBeenCalledWith(mockBookingData);
     });
   });
 
@@ -67,15 +75,11 @@ describe("BookingCreateFactory", () => {
         },
       ];
 
-      const { handleNewRecurringBooking } = await import(
-        "@calcom/features/bookings/lib/handleNewRecurringBooking"
-      );
-
       await factory.createRecurringBooking({
         bookingData: mockBookingData,
       });
 
-      expect(handleNewRecurringBooking).toHaveBeenCalledWith({ bookingData: mockBookingData });
+      expect(mockRecurringBookingCreateService.create).toHaveBeenCalledWith({ bookingData: mockBookingData });
     });
   });
 });
