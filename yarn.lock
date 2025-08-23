@@ -3341,6 +3341,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/kyzon-space@workspace:packages/app-store/kyzon-space":
+  version: 0.0.0-use.local
+  resolution: "@calcom/kyzon-space@workspace:packages/app-store/kyzon-space"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/larkcalendar@workspace:packages/app-store/larkcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/larkcalendar@workspace:packages/app-store/larkcalendar"
