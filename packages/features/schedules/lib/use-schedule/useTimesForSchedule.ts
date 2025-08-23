@@ -14,7 +14,7 @@ export const useTimesForSchedule = ({
   dayCount,
 }: UseTimesForScheduleProps): [string, string] => {
   const currentDate = new Date();
-  const browsingMonthStartDate = startOfMonth(month ? new Date(month) : currentDate);
+  const browsingMonthStartDate = month ? new Date(month) : startOfMonth(currentDate);
   const browsingMonthEndDate = addMonths(browsingMonthStartDate, monthCount);
 
   if (!dayCount || dayCount <= 0) {
