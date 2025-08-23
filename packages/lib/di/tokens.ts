@@ -51,4 +51,8 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  BOOKING_CREATE_SERVICE: Symbol("BookingCreateService"),
+  BOOKING_CREATE_SERVICE_MODULE: Symbol("BookingCreateServiceModule"),
+  BOOKING_CREATE_FACTORY: Symbol("BookingCreateFactory"),
+  BOOKING_CREATE_FACTORY_MODULE: Symbol("BookingCreateFactoryModule"),
 };
