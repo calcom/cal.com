@@ -13,7 +13,7 @@ export default function useEmbed(embedJsUrl?: string) {
 
     (async () => {
       try {
-        const cal = await getCalApi({ namespace: "project-call", embedJsUrl });
+        const cal = await getCalApi({ embedJsUrl });
 
         if (!mounted) return;
 
