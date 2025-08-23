@@ -71,7 +71,10 @@ export function WebPushProvider({ children }: ProviderProps) {
           }
         } catch (error) {
           console.error("Failed to subscribe:", error);
-          showToast("Failed to enable notifications", "error");
+          showToast(
+            "Failed to enable notifications. Make sure you have enabled Google services for push messaging in browser",
+            "error"
+          );
         } finally {
           setIsLoading(false);
         }
