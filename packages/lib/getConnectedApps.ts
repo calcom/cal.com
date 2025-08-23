@@ -183,7 +183,7 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        isSetupAlready = await setupPaymentService();
+        isSetupAlready = await setupPaymentService({ app, credential });
       }
 
       let dependencyData: TDependencyData = [];
