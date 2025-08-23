@@ -1,20 +1,16 @@
 import { beforeEach, vi } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
+import { mockReset } from "vitest-mock-extended";
 
 import type * as calendarLoaders from "@calcom/app-store/_utils/calendars/calendarLoaders";
+
+import { mockDeepHelper } from "./mockDeepHelper";
+
+const calendarAppsMock = mockDeepHelper<typeof calendarLoaders>("calendarAppsMock");
 
 vi.mock("@calcom/app-store/_utils/calendars/calendarLoaders", () => calendarAppsMock);
 
 beforeEach(() => {
   mockReset(calendarAppsMock);
-});
-
-const calendarAppsMock = mockDeep<typeof calendarLoaders>({
-  fallbackMockImplementation: () => {
-    throw new Error(
-      "Unimplemented calendarAppsMock. You seem to have not mocked the app that you are trying to use"
-    );
-  },
 });
 
 export default calendarAppsMock;

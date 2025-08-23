@@ -1,8 +1,11 @@
 import { beforeEach, vi } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
+import { mockReset } from "vitest-mock-extended";
 
-// FIXME is it okay to use the large type here?
 import type * as appStore from "@calcom/app-store";
+
+import { mockDeepHelper } from "./mockDeepHelper";
+
+const appStoreMock = mockDeepHelper<typeof appStore>("appStoreMock");
 
 vi.mock("@calcom/app-store", () => appStoreMock);
 
@@ -10,11 +13,4 @@ beforeEach(() => {
   mockReset(appStoreMock);
 });
 
-const appStoreMock = mockDeep<typeof appStore>({
-  fallbackMockImplementation: () => {
-    throw new Error(
-      "Unimplemented appStoreMock. You seem to have not mocked the app that you are trying to use"
-    );
-  },
-});
 export default appStoreMock;
