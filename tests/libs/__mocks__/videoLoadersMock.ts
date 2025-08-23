@@ -5,12 +5,12 @@ import type * as videoLoaders from "@calcom/app-store/_utils/videos/videoLoaders
 
 import { mockDeepHelper } from "./mockDeepHelper";
 
-const videoAppsMock = mockDeepHelper<typeof videoLoaders>("videoAppsMock");
+const videoLoadersMock = mockDeepHelper<typeof videoLoaders>("videoLoadersMock");
 
-vi.mock("@calcom/app-store/_utils/videos/videoLoaders", () => videoAppsMock);
+vi.mock("@calcom/app-store/_utils/videos/videoLoaders", () => videoLoadersMock);
 
 beforeEach(() => {
-  mockReset(videoAppsMock);
+  mockReset(videoLoadersMock);
 });
 
-export default videoAppsMock;
+export default videoLoadersMock;

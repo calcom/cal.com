@@ -5,12 +5,12 @@ import type * as calendarLoaders from "@calcom/app-store/_utils/calendars/calend
 
 import { mockDeepHelper } from "./mockDeepHelper";
 
-const calendarAppsMock = mockDeepHelper<typeof calendarLoaders>("calendarAppsMock");
+const calendarLoadersMock = mockDeepHelper<typeof calendarLoaders>("calendarLoadersMock");
 
-vi.mock("@calcom/app-store/_utils/calendars/calendarLoaders", () => calendarAppsMock);
+vi.mock("@calcom/app-store/_utils/calendars/calendarLoaders", () => calendarLoadersMock);
 
 beforeEach(() => {
-  mockReset(calendarAppsMock);
+  mockReset(calendarLoadersMock);
 });
 
-export default calendarAppsMock;
+export default calendarLoadersMock;

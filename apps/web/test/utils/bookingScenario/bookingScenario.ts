@@ -1,9 +1,9 @@
 import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
-import calendarAppsMock from "../../../../../tests/libs/__mocks__/calendarApps";
+import calendarLoadersMock from "../../../../../tests/libs/__mocks__/calendarLoadersMock";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
-import paymentAppsMock from "../../../../../tests/libs/__mocks__/paymentApps";
+import paymentLoadersMock from "../../../../../tests/libs/__mocks__/paymentLoadersMock";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
-import videoAppsMock from "../../../../../tests/libs/__mocks__/videoApps";
+import videoLoadersMock from "../../../../../tests/libs/__mocks__/videoLoadersMock";
 
 import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
@@ -1771,7 +1771,7 @@ export function mockCalendar(
   const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
   const app = calendarAppsMetaData[metadataLookupKey as keyof typeof calendarAppsMetaData];
 
-  const appMock = calendarAppsMock.default[appStoreLookupKey as keyof typeof calendarAppsMock.default];
+  const appMock = calendarLoadersMock.default[appStoreLookupKey as keyof typeof calendarLoadersMock.default];
 
   appMock &&
     `mockResolvedValue` in appMock &&
@@ -1955,67 +1955,69 @@ export function mockVideoApp({
   const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteMeetingCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error FIXME
-  videoAppsMock.default[appStoreLookupKey as keyof typeof videoAppsMock.default].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error FIXME
-          VideoApiAdapter: (credential) => {
-            return {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              createMeeting: (...rest: any[]) => {
-                if (creationCrash) {
-                  throw new Error("MockVideoApiAdapter.createMeeting fake error");
-                }
-                createMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
+  videoLoadersMock.default[appStoreLookupKey as keyof typeof videoLoadersMock.default].mockImplementation(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error FIXME
+    () => {
+      return new Promise((resolve) => {
+        resolve({
+          lib: {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error FIXME
+            VideoApiAdapter: (credential) => {
+              return {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                createMeeting: (...rest: any[]) => {
+                  if (creationCrash) {
+                    throw new Error("MockVideoApiAdapter.createMeeting fake error");
+                  }
+                  createMeetingCalls.push({
+                    credential,
+                    args: rest,
+                  });
 
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              updateMeeting: async (...rest: any[]) => {
-                if (updationCrash) {
-                  throw new Error("MockVideoApiAdapter.updateMeeting fake error");
-                }
-                const [bookingRef, calEvent] = rest;
-                updateMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-                if (!bookingRef.type) {
-                  throw new Error("bookingRef.type is not defined");
-                }
-                if (!calEvent.organizer) {
-                  throw new Error("calEvent.organizer is not defined");
-                }
-                log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              deleteMeeting: async (...rest: any[]) => {
-                log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
-                deleteMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-              },
-            };
+                  return Promise.resolve({
+                    type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                    ...videoMeetingData,
+                  });
+                },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                updateMeeting: async (...rest: any[]) => {
+                  if (updationCrash) {
+                    throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+                  }
+                  const [bookingRef, calEvent] = rest;
+                  updateMeetingCalls.push({
+                    credential,
+                    args: rest,
+                  });
+                  if (!bookingRef.type) {
+                    throw new Error("bookingRef.type is not defined");
+                  }
+                  if (!calEvent.organizer) {
+                    throw new Error("calEvent.organizer is not defined");
+                  }
+                  log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
+                  return Promise.resolve({
+                    type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                    ...videoMeetingData,
+                  });
+                },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                deleteMeeting: async (...rest: any[]) => {
+                  log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
+                  deleteMeetingCalls.push({
+                    credential,
+                    args: rest,
+                  });
+                },
+              };
+            },
           },
-        },
+        });
       });
-    });
-  });
+    }
+  );
   return {
     createMeetingCalls,
     updateMeetingCalls,
@@ -2066,7 +2068,7 @@ export function mockPaymentApp({
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   const { paymentUid, externalId, MockPaymentService } = getMockPaymentService();
-  paymentAppsMock.default[appStoreLookupKey as keyof typeof paymentAppsMock.default].mockImplementation(
+  paymentLoadersMock.default[appStoreLookupKey as keyof typeof paymentLoadersMock.default].mockImplementation(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error FIXME
     () => {
@@ -2098,7 +2100,7 @@ export function mockErrorOnVideoMeetingCreation({
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  videoAppsMock.default[appStoreLookupKey].mockImplementation(() => {
+  videoLoadersMock.default[appStoreLookupKey].mockImplementation(() => {
     return new Promise((resolve) => {
       resolve({
         lib: {

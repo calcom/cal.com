@@ -5,12 +5,12 @@ import type * as paymentLoaders from "@calcom/app-store/_utils/payments/paymentL
 
 import { mockDeepHelper } from "./mockDeepHelper";
 
-const paymentAppsMock = mockDeepHelper<typeof paymentLoaders>("paymentAppsMock");
+const paymentLoadersMock = mockDeepHelper<typeof paymentLoaders>("paymentLoadersMock");
 
-vi.mock("@calcom/app-store/_utils/payments/paymentLoaders", () => paymentAppsMock);
+vi.mock("@calcom/app-store/_utils/payments/paymentLoaders", () => paymentLoadersMock);
 
 beforeEach(() => {
-  mockReset(paymentAppsMock);
+  mockReset(paymentLoadersMock);
 });
 
-export default paymentAppsMock;
+export default paymentLoadersMock;
