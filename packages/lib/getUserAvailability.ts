@@ -266,7 +266,7 @@ export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
 
 export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
 
-type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
+type _GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
@@ -388,7 +388,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       teamForBookingLimits.id,
       teamForBookingLimits.includeManagedEventsInLimits,
       timeZone,
-      initialData?.rescheduleUid ?? undefined
+      initialData?.rescheduleUid ?? undefined,
+      eventType ?? undefined
     );
   }
 
