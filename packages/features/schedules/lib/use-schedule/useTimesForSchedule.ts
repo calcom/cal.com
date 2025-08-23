@@ -7,6 +7,11 @@ type UseTimesForScheduleProps = Pick<
   "month" | "monthCount" | "dayCount" | "selectedDate"
 >;
 
+const parseMonth = (monthString: string) => {
+  const [year, month] = monthString.split("-").map(Number);
+  return new Date(year, month - 1);
+};
+
 export const useTimesForSchedule = ({
   month,
   monthCount = 1,
@@ -14,7 +19,7 @@ export const useTimesForSchedule = ({
   dayCount,
 }: UseTimesForScheduleProps): [string, string] => {
   const currentDate = new Date();
-  const browsingMonthStartDate = month ? new Date(month) : startOfMonth(currentDate);
+  const browsingMonthStartDate = month ? parseMonth(month) : startOfMonth(currentDate);
   const browsingMonthEndDate = addMonths(browsingMonthStartDate, monthCount);
 
   if (!dayCount || dayCount <= 0) {
