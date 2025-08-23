@@ -142,7 +142,9 @@ export function EditUserSheet({
                     <div className="mt-4 flex flex-col">
                       <UserBookingLimitsDisplay
                         bookingLimits={
-                          validateBookingLimits(loadedUser?.teams?.[0]?.bookingLimits) || undefined
+                          validateBookingLimits(
+                            loadedUser?.teams.find((team) => !team.parentId)?.bookingLimits
+                          ) || undefined
                         }
                       />
                     </div>

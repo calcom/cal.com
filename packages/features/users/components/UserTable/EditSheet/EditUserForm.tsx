@@ -97,7 +97,9 @@ export function EditForm({
       bio: selectedUser?.bio ?? "",
       role: selectedUser?.role ?? "",
       timeZone: selectedUser?.timeZone ?? "",
-      bookingLimits: validateBookingLimits(selectedUser?.teams?.[0]?.bookingLimits) || {},
+      bookingLimits: validateBookingLimits(
+        selectedUser?.teams?.find((team) => !team.parentId)?.bookingLimits
+      ),
     },
   });
 
@@ -208,9 +210,9 @@ export function EditForm({
           if (isOrgAdminOrOwner && values.bookingLimits && Object.keys(values.bookingLimits).length > 0) {
             // Find the organization team (parent team)
             const orgTeam = selectedUser?.teams?.find((team) => !team.parentId);
-            if (orgTeam) {
+            if (orgTeam && selectedUser?.id) {
               updateBookingLimitsMutation.mutate({
-                userId: selectedUser?.id ?? 0,
+                userId: selectedUser.id,
                 teamId: orgTeam.id,
                 bookingLimits: values.bookingLimits,
               });
