@@ -91,10 +91,6 @@ export const EventDuration = ({
     ) {
       setSelectedDuration(event.length);
     }
-    // If no selectedDuration and event has multiple durations or is dynamic, set to event.length
-    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent)) {
-      setSelectedDuration(event.length);
-    }
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   useEffect(() => {
