@@ -19,6 +19,12 @@ export type CredentialDataWithTeamName = CredentialForCalendarService & {
   } | null;
 };
 
+export type PreparedApp = App & {
+  credential: CredentialDataWithTeamName;
+  credentials: CredentialDataWithTeamName[];
+  locationOption: LocationOption | null;
+};
+
 export const prepareAppsWithCredentials = (
   apps: App[],
   credentials: CredentialDataWithTeamName[],
@@ -80,5 +86,5 @@ export const prepareAppsWithCredentials = (
     });
 
     return reducedArray;
-  }, [] as (App & { credential: CredentialDataWithTeamName; credentials: CredentialDataWithTeamName[]; locationOption: LocationOption | null })[]);
+  }, [] as PreparedApp[]);
 };
