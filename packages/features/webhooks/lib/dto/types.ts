@@ -82,6 +82,7 @@ export interface BookingRejectedDTO extends BaseEventDTO {
     userId: number | null;
     smsReminderNumber?: string | null;
   };
+  status: string;
 }
 
 export interface BookingRequestedDTO extends BaseEventDTO {
@@ -253,6 +254,113 @@ export interface FormSubmittedNoEventDTO extends BaseEventDTO {
   };
 }
 
+export interface MeetingStartedDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.MEETING_STARTED;
+  booking: {
+    id: number;
+    startTime: Date;
+    endTime: Date;
+    title: string;
+    description: string | null;
+    customInputs: Record<string, unknown> | null;
+    responses: Record<string, unknown> | null;
+    userFieldsResponses: Record<string, unknown> | null;
+    location: string | null;
+    status: string;
+    user: {
+      username: string | null;
+      name: string | null;
+      email: string;
+      timeZone: string;
+      locale: string | null;
+    } | null;
+    eventType: {
+      title: string;
+      description: string | null;
+      requiresConfirmation: boolean;
+      price: number;
+      currency: string;
+      length: number;
+      team: any | null;
+    } | null;
+    attendees: {
+      name: string;
+      email: string;
+      timeZone: string;
+    }[];
+  };
+}
+
+export interface MeetingEndedDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.MEETING_ENDED;
+  booking: {
+    id: number;
+    startTime: Date;
+    endTime: Date;
+    title: string;
+    description: string | null;
+    customInputs: Record<string, unknown> | null;
+    responses: Record<string, unknown> | null;
+    userFieldsResponses: Record<string, unknown> | null;
+    location: string | null;
+    status: string;
+    user: {
+      username: string | null;
+      name: string | null;
+      email: string;
+      timeZone: string;
+      locale: string | null;
+    } | null;
+    eventType: {
+      title: string;
+      description: string | null;
+      requiresConfirmation: boolean;
+      price: number;
+      currency: string;
+      length: number;
+      team: any | null;
+    } | null;
+    attendees: {
+      name: string;
+      email: string;
+      timeZone: string;
+    }[];
+  };
+}
+
+export interface InstantMeetingDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.INSTANT_MEETING;
+  title: string;
+  body: string;
+  icon?: string;
+  url?: string;
+  actions?: { action: string; title: string; type: string; image: string | null }[];
+  requireInteraction?: boolean;
+  type: string;
+}
+
+export interface AfterHostsNoShowDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW;
+  bookingId: number;
+  webhook: {
+    id: string;
+    subscriberUrl: string;
+    time: number;
+    timeUnit: string;
+  };
+}
+
+export interface AfterGuestsNoShowDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW;
+  bookingId: number;
+  webhook: {
+    id: string;
+    subscriberUrl: string;
+    time: number;
+    timeUnit: string;
+  };
+}
+
 export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
@@ -266,7 +374,12 @@ export type WebhookEventDTO =
   | FormSubmittedDTO
   | FormSubmittedNoEventDTO
   | RecordingReadyDTO
-  | TranscriptionGeneratedDTO;
+  | TranscriptionGeneratedDTO
+  | MeetingStartedDTO
+  | MeetingEndedDTO
+  | InstantMeetingDTO
+  | AfterHostsNoShowDTO
+  | AfterGuestsNoShowDTO;
 
 // Service layer interfaces
 export interface WebhookTriggerArgs {

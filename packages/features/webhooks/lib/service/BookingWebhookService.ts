@@ -12,6 +12,7 @@ import type {
   BookingPaymentInitiatedDTO,
   BookingNoShowDTO,
   WebhookTriggerArgs,
+  BookingRejectedDTO,
 } from "../dto/types";
 import { WebhookNotifier } from "../notifier/WebhookNotifier";
 import { WebhookService } from "./WebhookService";
@@ -102,7 +103,7 @@ export class BookingWebhookService {
       evt: args.evt,
       booking: {
         ...args.booking,
-        booking: { ...args.booking, startTime: args.booking.startTime ?? args.evt.startTime },
+        startTime: args.booking.startTime ?? new Date(args.evt.startTime),
       },
       eventType: args.eventType,
       status: args.status,
@@ -491,6 +492,7 @@ export class BookingWebhookService {
     } | null;
     teamId?: number | null;
     orgId?: number | null;
+    platformClientId?: string;
     isDryRun?: boolean;
   }): Promise<void> {
     const dto: BookingRejectedDTO = {
@@ -501,6 +503,7 @@ export class BookingWebhookService {
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
+      status: "REJECTED",
       platformClientId: params.platformClientId,
       evt: params.evt,
       eventType: params.eventType,
@@ -567,7 +570,7 @@ export class BookingWebhookService {
             responses: params.booking.responses,
           },
           subscriber,
-          params.evt,
+          params.evt as unknown as Record<string, unknown>,
           params.isDryRun
         )
       );
@@ -587,7 +590,7 @@ export class BookingWebhookService {
             responses: params.booking.responses,
           },
           subscriber,
-          params.evt,
+          params.evt as unknown as Record<string, unknown>,
           params.isDryRun
         )
       );
@@ -656,7 +659,7 @@ export class BookingWebhookService {
           if (params.booking.startTime && webhook.time && webhook.timeUnit) {
             const scheduledAt = dayjs
               .utc(params.booking.startTime)
-              .add(webhook.time, webhook.timeUnit.toLowerCase())
+              .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
               .toDate();
 
             return tasker.create(
@@ -687,7 +690,7 @@ export class BookingWebhookService {
           if (params.booking.startTime && webhook.time && webhook.timeUnit) {
             const scheduledAt = dayjs
               .utc(params.booking.startTime)
-              .add(webhook.time, webhook.timeUnit.toLowerCase())
+              .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
               .toDate();
 
             return tasker.create(
