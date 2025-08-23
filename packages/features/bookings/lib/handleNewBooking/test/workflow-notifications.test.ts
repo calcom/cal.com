@@ -49,7 +49,9 @@ describe("handleNewBooking", () => {
     test(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -160,7 +162,9 @@ describe("handleNewBooking", () => {
     test(
       "should not send workflow sms when booking is created if the organizer is locked for sms sending",
       async ({ sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -253,7 +257,9 @@ describe("handleNewBooking", () => {
     test(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -401,7 +407,9 @@ describe("handleNewBooking", () => {
     test(
       "should not send workflow sms when booking is created if the team is locked for sms sending",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -539,7 +547,9 @@ describe("handleNewBooking", () => {
     test("should trigger workflow when a new team event is booked and this team is active on org workflow", async ({
       emails,
     }) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",
@@ -653,7 +663,9 @@ describe("handleNewBooking", () => {
     test("should trigger workflow when a new user event is booked and the user is part of an org team that is active on a org workflow", async ({
       sms,
     }) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",

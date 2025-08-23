@@ -65,7 +65,9 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -304,7 +306,9 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -510,7 +514,9 @@ describe("handleNewBooking", () => {
       test(
         `an error in updating a calendar event should not stop the rescheduling - Current behaviour is wrong as the booking is resheduled but no-one is notified of it`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -697,7 +703,11 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_REQUESTED webhook instead of BOOKING_RESCHEDULED
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
               email: "booker@example.com",
@@ -903,7 +913,11 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -1147,7 +1161,11 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -1388,7 +1406,11 @@ describe("handleNewBooking", () => {
         4. Should trigger BOOKING_REQUESTED webhook
       `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
               email: "booker@example.com",
@@ -1598,7 +1620,11 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = (
+              await import(
+                "@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking"
+              )
+            ).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -1856,7 +1882,9 @@ describe("handleNewBooking", () => {
           4. Should update/create necessary video conference links
         `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2008,7 +2036,9 @@ describe("handleNewBooking", () => {
       test(
         "should send correct schedule/cancellation emails to hosts when round robin is rescheduled to different host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2166,7 +2196,9 @@ describe("handleNewBooking", () => {
       test(
         "should send rescheduling emails when round robin is rescheduled to same host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2314,7 +2346,9 @@ describe("handleNewBooking", () => {
       test(
         "[Event Type with Both Email and Attendee Phone Number as required fields] should send rescheduling emails when round robin is rescheduled to same host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const TEST_ATTENDEE_NUMBER = "+919876543210";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2515,7 +2549,9 @@ describe("handleNewBooking", () => {
       test(
         "should reschedule event with same round robin host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2672,7 +2708,9 @@ describe("handleNewBooking", () => {
       test(
         "should reschedule as per routedTeamMemberIds(instead of same host) even if rescheduleWithSameRoundRobinHost is true but it is a rerouting scenario",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = (
+            await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+          ).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2831,7 +2869,9 @@ describe("handleNewBooking", () => {
     test(
       "should use correct credentials when round robin reschedule changes host - original host credentials for deletion, new host for creation",
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",

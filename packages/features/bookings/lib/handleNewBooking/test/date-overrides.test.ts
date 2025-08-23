@@ -48,7 +48,9 @@ describe("handleNewBooking", () => {
       async ({ emails }) => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const newYorkTimeZone = Timezones["-05:00"];
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -211,7 +213,9 @@ describe("handleNewBooking", () => {
       async ({ emails }) => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const newYorkTimeZone = Timezones["-05:00"];
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",

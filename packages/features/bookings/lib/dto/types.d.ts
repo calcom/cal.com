@@ -10,7 +10,8 @@ import type { SchedulingType } from "@calcom/prisma/client";
 import type { BookingCreateBody as MasterCreateBookingData } from "@calcom/prisma/zod/custom/booking";
 import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 
-import type { BookingCreateService } from "../handleNewBooking";
+import type { BookingCreateService } from "../service/BookingCreateService";
+import type { InstantBookingCreateService } from "../service/InstantBookingCreateService";
 
 export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
@@ -85,4 +86,7 @@ export type CreateInstantBookingResponse = {
   userId: number | null;
 };
 
+// TODO: Ideally we should define the types here instead of letting BookingCreateService send anything and keep using it
 export type BookingCreateResult = Awaited<ReturnType<BookingCreateService["create"]>>;
+
+export type InstantBookingCreateResult = Awaited<ReturnType<InstantBookingCreateService["create"]>>;

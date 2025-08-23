@@ -1,5 +1,3 @@
-import type { NextApiRequest } from "next";
-
 import type {
   CreateBookingData,
   CreateInstantBookingData,
@@ -8,13 +6,15 @@ import type {
   CreateInstantBookingResponse,
   BookingDataSchemaGetter,
 } from "@calcom/features/bookings/lib/dto/types";
+import type { BookingCreateService } from "@calcom/features/bookings/lib/service/BookingCreateService";
+import type { InstantBookingCreateService } from "@calcom/features/bookings/lib/service/InstantBookingCreateService";
+import type { RecurringBookingCreateService } from "@calcom/features/bookings/lib/service/RecurringBookingCreateService";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-
-import type { BookingCreateService } from "../handleNewBooking";
-import { handleNewRecurringBooking } from "../handleNewRecurringBooking";
 
 interface IBookingCreateFactoryDependencies {
   bookingCreateService: BookingCreateService;
+  recurringBookingCreateService: RecurringBookingCreateService;
+  instantBookingCreateService: InstantBookingCreateService;
 }
 
 export class BookingCreateFactory {
@@ -40,7 +40,7 @@ export class BookingCreateFactory {
     bookingMeta?: CreateBookingMeta;
   }): Promise<BookingResponse[]> {
     const handlerInput = { bookingData, ...(bookingMeta ?? {}) };
-    return handleNewRecurringBooking(handlerInput);
+    return this.deps.recurringBookingCreateService.create(handlerInput);
   }
 
   async createInstantBooking({
@@ -48,17 +48,7 @@ export class BookingCreateFactory {
   }: {
     bookingData: CreateInstantBookingData;
   }): Promise<CreateInstantBookingResponse> {
-    // Dynamic import because handleInstantMeeting has some weird dependency on vapid that is required to be met on module load. We don't need all that unless someone wants to create an instant meeting.
-    // Later we would dynamically import the vapid related module within the handleInstantMeeting itself
-    const handleInstantMeeting = (await import("@calcom/features/instant-meeting/handleInstantMeeting"))
-      .default;
-
-    // TODO: Later we would change the type of handleInstantMeeting to accept the bookingData directly
-    const req = { body: bookingData } as NextApiRequest;
-
-    const response = await handleInstantMeeting(req);
-
-    return response;
+    return this.deps.instantBookingCreateService.create(bookingData);
   }
 
   async createSeatedBooking({

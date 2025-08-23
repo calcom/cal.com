@@ -46,7 +46,9 @@ describe("handleNewBooking", () => {
         4. Verify both hosts have the booking in their calendars
     `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "booker@example.com",

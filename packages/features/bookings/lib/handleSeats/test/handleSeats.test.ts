@@ -33,7 +33,9 @@ describe("handleSeats", () => {
   describe("Correct parameters being passed into handleSeats from handleNewBooking", () => {
     vi.mock("./handleSeats");
     test("On new booking handleSeats is not called", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
       const spy = vi.spyOn(handleSeatsModule, "default");
 
       const booker = getBooker({
@@ -96,7 +98,9 @@ describe("handleSeats", () => {
 
     test("handleSeats is called when a new attendee is added", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -241,7 +245,9 @@ describe("handleSeats", () => {
 
     test("handleSeats is called on rescheduling a seated event", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = (
+        await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+      ).default;
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -383,7 +389,9 @@ describe("handleSeats", () => {
   describe("As an attendee", () => {
     describe("Creating a new booking", () => {
       test("Attendee should be added to existing seated event", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "seat2@example.com",
@@ -510,7 +518,9 @@ describe("handleSeats", () => {
 
       // Testing in case of a wave of people book a time slot at the same time
       test("Attendee should be added to existing seated event when bookingUid is not present", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "seat2@example.com",
@@ -635,7 +645,9 @@ describe("handleSeats", () => {
       });
 
       test("If attendee is already a part of the booking then throw an error", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "seat1@example.com",
@@ -744,7 +756,9 @@ describe("handleSeats", () => {
       });
 
       test("If event is already full, fail", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "seat3@example.com",
@@ -866,7 +880,9 @@ describe("handleSeats", () => {
       });
 
       test("Verify Seat Availability Calculation Based on Booked Seats, Not Total Attendees", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "seat2@example.com",
@@ -1045,7 +1061,9 @@ describe("handleSeats", () => {
 
     describe("Rescheduling a booking", () => {
       test("When rescheduling to an existing booking, move attendee", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const attendeeToReschedule = getMockBookingAttendee({
           id: 2,
@@ -1248,7 +1266,9 @@ describe("handleSeats", () => {
       });
 
       test("When rescheduling to an empty timeslot, create a new booking", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const attendeeToReschedule = getMockBookingAttendee({
           id: 2,
@@ -1408,7 +1428,9 @@ describe("handleSeats", () => {
       });
 
       test("When last attendee is rescheduled, delete old booking", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const attendeeToReschedule = getMockBookingAttendee({
           id: 2,
@@ -1841,7 +1863,9 @@ describe("handleSeats", () => {
   describe("As an owner", () => {
     describe("Rescheduling a booking", () => {
       test("When rescheduling to new timeslot, ensure all attendees are moved", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -2000,7 +2024,9 @@ describe("handleSeats", () => {
       });
 
       test("When rescheduling to existing booking, merge attendees ", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -2207,7 +2233,9 @@ describe("handleSeats", () => {
         expect(originalBooking?.status).toEqual(BookingStatus.CANCELLED);
       });
       test("When merging more attendees than seats, fail ", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -2384,7 +2412,9 @@ describe("handleSeats", () => {
       });
 
       test("When trying to reschedule in a non-available slot, throw an error", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = (
+          await import("@calcom/features/bookings/lib/service/BookingCreateService/utils/handleNewBooking")
+        ).default;
 
         const booker = getBooker({
           email: "booker@example.com",
