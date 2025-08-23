@@ -67,16 +67,35 @@ export const EventDuration = ({
 
   const isDynamicEvent = "isDynamic" in event && event.isDynamic;
   const isEmbed = useIsEmbed();
-  // Initialize or sync selection (esp. during reschedule) only when needed and valid.
+  // Sets initial value of selected duration to the default duration.
   useEffect(() => {
-    const allowed =
-      !event.metadata?.multipleDuration || event.metadata.multipleDuration.includes(event.length);
-    const next = allowed ? event.length : event.metadata?.multipleDuration?.[0];
-
-    if ((state === "booking" || !selectedDuration) && next && selectedDuration !== next) {
-      setSelectedDuration(next);
+    // Check if we're rescheduling (state is "booking") or if there's no selected duration yet
+    if (state === "booking" || !selectedDuration) {
+      // Always use the current event length when rescheduling or initializing
+      setSelectedDuration(event.length);
     }
-  }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, state]);
+  }, [
+    selectedDuration,
+    setSelectedDuration,
+    event.metadata?.multipleDuration,
+    event.length,
+    isDynamicEvent,
+    state,
+  ]);
+
+  useEffect(() => {
+    // If the event length changes (e.g., after rescheduling), update selectedDuration
+    if (
+      selectedDuration !== event.length &&
+      (!event.metadata?.multipleDuration || event.metadata.multipleDuration.includes(event.length))
+    ) {
+      setSelectedDuration(event.length);
+    }
+    // If no selectedDuration and event has multiple durations or is dynamic, set to event.length
+    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent)) {
+      setSelectedDuration(event.length);
+    }
+  }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
