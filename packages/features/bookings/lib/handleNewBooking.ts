@@ -25,8 +25,12 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
+import type { CreateBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
+import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -73,6 +77,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -149,10 +154,6 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If rescheduling then increment sequence by 1
   return originalRescheduledBooking.iCalSequence + 1;
 }
-
-type BookingDataSchemaGetter =
-  | typeof getBookingDataSchema
-  | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
@@ -2441,3 +2442,21 @@ async function handler(
 }
 
 export default handler;
+
+export interface IBookingCreateServiceDependencies {
+  cacheService: CacheService;
+  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
+  prismaClient: PrismaClient;
+  bookingRepository: BookingRepository;
+}
+
+export class BookingCreateService {
+  constructor(private readonly deps: IBookingCreateServiceDependencies) {}
+  async create(input: {
+    bookingData: CreateBookingData;
+    bookingMeta?: CreateBookingMeta;
+    schemaGetter?: BookingDataSchemaGetter;
+  }) {
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, input.schemaGetter);
+  }
+}
