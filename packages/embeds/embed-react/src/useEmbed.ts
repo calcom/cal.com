@@ -18,12 +18,9 @@ export default function useEmbed(embedJsUrl?: string) {
         if (!mounted) return;
 
         if (cal) {
-          cal("ui", {
-            styles: { branding: { brandColor: "#000000" } },
-            hideEventTypeDetails: false,
-            layout: "month_view",
-          });
-
+          // Do not force UI configuration here; let consumers call `cal("ui", ...)` if they want custom UI.
+          setCalInstance(cal);
+        }
           setCalInstance(cal);
 
           teardown = () => {
