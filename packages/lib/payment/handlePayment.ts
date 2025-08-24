@@ -1,6 +1,6 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
+import { loadApp } from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
@@ -14,9 +14,6 @@ const isPaymentApp = (x: unknown): x is PaymentApp =>
   typeof x.lib === "object" &&
   !!x.lib &&
   "PaymentService" in x.lib;
-
-const isKeyOf = <T extends object>(obj: T, key: unknown): key is keyof T =>
-  typeof key === "string" && key in obj;
 
 const handlePayment = async ({
   evt,
@@ -52,11 +49,13 @@ const handlePayment = async ({
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
-  if (!isKeyOf(appStore, key)) {
-    console.warn(`key: ${key} is not a valid key in appStore`);
+  if (!key) {
+    console.warn(`No app dirName found in payment credentials`);
     return null;
   }
-  const paymentApp = await appStore[key]?.();
+
+  // Use lazy loading instead of importing the entire app store
+  const paymentApp = await loadApp(key);
   if (!isPaymentApp(paymentApp)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;

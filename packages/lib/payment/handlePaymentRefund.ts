@@ -1,6 +1,6 @@
 import type { Payment, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
+import { loadApp } from "@calcom/app-store";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -15,9 +15,7 @@ const handlePaymentRefund = async (
     } | null;
   }
 ) => {
-  const paymentApp = (await appStore[
-    paymentAppCredentials?.app?.dirName as keyof typeof appStore
-  ]?.()) as PaymentApp;
+  const paymentApp = (await loadApp(paymentAppCredentials?.app?.dirName)) as PaymentApp;
   if (!paymentApp?.lib?.PaymentService) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
