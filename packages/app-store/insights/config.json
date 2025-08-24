@@ -15,6 +15,10 @@
       "scripts": [
         {
           "src": "https://collector.insights.com/script.js",
+          "async": true,
+          "defer": true,
+          "crossorigin": "anonymous",
+          "referrerpolicy": "strict-origin-when-cross-origin",
           "attrs": {
             "data-website-id": "{SITE_ID}"
           }
