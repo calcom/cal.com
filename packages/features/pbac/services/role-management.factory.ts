@@ -1,17 +1,17 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
+import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
 import { PermissionCheckService } from "./permission-check.service";
 import { RoleService } from "./role.service";
 
 interface IRoleManager {
   isPBACEnabled: boolean;
-  checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void>;
+  checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void>;
   assignRole(
     userId: number,
     organizationId: number,
@@ -19,6 +19,7 @@ interface IRoleManager {
     membershipId: number
   ): Promise<void>;
   getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]>;
+  getTeamRoles(teamId: number): Promise<{ id: string; name: string }[]>;
 }
 
 class PBACRoleManager implements IRoleManager {
@@ -29,35 +30,50 @@ class PBACRoleManager implements IRoleManager {
     private readonly permissionCheckService: PermissionCheckService
   ) {}
 
-  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
+  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
       userId,
-      teamId: organizationId,
-      permission: "organization.changeMemberRole",
+      teamId: targetId,
+      permission: scope === "team" ? "team.changeMemberRole" : "organization.changeMemberRole",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
     if (!hasPermission) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new RoleManagementError(
+        "You do not have permission to change roles",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
     }
   }
 
   async assignRole(
-    userId: number,
+    _userId: number,
     organizationId: number,
-    role: MembershipRole,
+    role: MembershipRole | string,
     membershipId: number
   ): Promise<void> {
+    // Check if role is one of the default MembershipRole enum values
     const isDefaultRole = role in DEFAULT_ROLE_IDS;
 
+    // Also check if the role is a default role ID value
+    const isDefaultRoleId = Object.values(DEFAULT_ROLE_IDS).includes(role as any);
+
     if (isDefaultRole) {
-      await this.roleService.assignRoleToMember(DEFAULT_ROLE_IDS[role], membershipId);
+      // Handle enum values like MembershipRole.ADMIN
+      await this.roleService.assignRoleToMember(DEFAULT_ROLE_IDS[role as MembershipRole], membershipId);
+    } else if (isDefaultRoleId) {
+      // Handle default role IDs like "admin_role"
+      await this.roleService.assignRoleToMember(role as string, membershipId);
     } else {
-      const roleExists = await this.roleService.roleBelongsToTeam(role, organizationId);
+      // Handle custom roles
+      const roleExists = await this.roleService.roleBelongsToTeam(role as string, organizationId);
       if (!roleExists) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have access to this role" });
+        throw new RoleManagementError(
+          "You do not have access to this role",
+          RoleManagementErrorCode.INVALID_ROLE
+        );
       }
-      await this.roleService.assignRoleToMember(role, membershipId);
+      await this.roleService.assignRoleToMember(role as string, membershipId);
     }
   }
 
@@ -68,16 +84,29 @@ class PBACRoleManager implements IRoleManager {
       name: role.name,
     }));
   }
+
+  async getTeamRoles(teamId: number): Promise<{ id: string; name: string }[]> {
+    const roles = await this.roleService.getTeamRoles(teamId);
+    return roles.map((role) => ({
+      id: role.id,
+      name: role.name,
+    }));
+  }
 }
 
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
-  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
-
-    // Only OWNER can update role to OWNER
-    if (!isUpdaterAnOwner) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
+    const membership =
+      scope === "team"
+        ? !!(await isTeamAdmin(userId, targetId))
+        : !!(await isOrganisationAdmin(userId, targetId));
+    // Only OWNER/ADMIN can update role
+    if (!membership) {
+      throw new RoleManagementError(
+        "Only owners or admin can update roles",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
     }
   }
 
@@ -107,6 +136,14 @@ class LegacyRoleManager implements IRoleManager {
       { id: MembershipRole.MEMBER, name: "Member" },
     ];
   }
+
+  async getTeamRoles(_teamId: number): Promise<{ id: string; name: string }[]> {
+    return [
+      { id: MembershipRole.OWNER, name: "Owner" },
+      { id: MembershipRole.ADMIN, name: "Admin" },
+      { id: MembershipRole.MEMBER, name: "Member" },
+    ];
+  }
 }
 
 export class RoleManagementFactory {
@@ -116,8 +153,7 @@ export class RoleManagementFactory {
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    this.featuresRepository = new FeaturesRepository();
-    this.roleService = new RoleService();
+    (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
     this.permissionCheckService = new PermissionCheckService();
   }
 
