@@ -3,22 +3,27 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Props } from "react-select";
+import CreatableSelect from "react-select/creatable";
 
+// ✅ NEW
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
-import { Select } from "@calcom/ui/components/form";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
+// import { Select } from "@calcom/ui/components/form"; ❌ remove old Select
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
+// ✅ simple email regex util
+const isValidEmail = (val: string) => /\S+@\S+\.\S+/.test(val);
+
 export type CheckedSelectOption = {
-  avatar: string;
+  avatar?: string;
   label: string;
   value: string;
   priority?: number;
@@ -26,6 +31,7 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
+  isPending?: boolean; // ✅ NEW
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -44,6 +50,7 @@ export type CheckedTeamSelectCustomClassNames = {
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
 };
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
@@ -67,19 +74,32 @@ export const CheckedTeamSelect = ({
 
   return (
     <>
-      <Select
+      <CreatableSelect<CheckedSelectOption, true>
         {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
-        isSearchable={true}
+        isMulti
+        isSearchable
         options={options}
         value={value}
-        isMulti
         className={customClassNames?.hostsSelect?.select}
-        innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
+        classNames={customClassNames?.hostsSelect?.innerClassNames as any}
+        onChange={(newVal) => props.onChange(newVal)}
+        onCreateOption={(inputValue) => {
+          if (isValidEmail(inputValue)) {
+            const newOption: CheckedSelectOption = {
+              value: inputValue,
+              label: `${inputValue} (invite pending)`,
+              avatar: "", // no avatar for pending
+              isPending: true,
+            };
+            props.onChange([...(value || []), newOption]);
+          } else {
+            alert("Invalid email address");
+          }
+        }}
       />
-      {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
-       - Slides down from the top instead of just teleporting in from nowhere*/}
+
       <ul
         className={classNames(
           "mb-4 mt-3 rounded-md",
@@ -88,83 +108,78 @@ export const CheckedTeamSelect = ({
         )}
         ref={animationRef}>
         {value.map((option, index) => (
-          <>
-            <li
-              key={option.value}
+          <li
+            key={option.value}
+            className={classNames(
+              `flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`,
+              customClassNames?.selectedHostList?.listItem?.container
+            )}>
+            {!isPlatform && option.avatar && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
+            {(!option.avatar || isPlatform) && (
+              <Icon
+                name="user"
+                className={classNames("mt-0.5 h-4 w-4", customClassNames?.selectedHostList?.listItem?.avatar)}
+              />
+            )}
+            <p
               className={classNames(
-                `flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`,
-                customClassNames?.selectedHostList?.listItem?.container
+                "text-emphasis my-auto ms-3 text-sm",
+                customClassNames?.selectedHostList?.listItem?.name
               )}>
-              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && (
-                <Icon
-                  name="user"
-                  className={classNames(
-                    "mt-0.5 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.avatar
-                  )}
-                />
-              )}
-              <p
-                className={classNames(
-                  "text-emphasis my-auto ms-3 text-sm",
-                  customClassNames?.selectedHostList?.listItem?.name
-                )}>
-                {option.label}
-              </p>
-              <div className="ml-auto flex items-center">
-                {option && !option.isFixed ? (
-                  <>
-                    <Tooltip content={t("change_priority")}>
-                      <Button
-                        color="minimal"
-                        onClick={() => {
-                          setPriorityDialogOpen(true);
-                          setCurrentOption(option);
-                        }}
-                        className={classNames(
-                          "mr-6 h-2 p-0 text-sm hover:bg-transparent",
-                          getPriorityTextAndColor(option.priority).color,
-                          customClassNames?.selectedHostList?.listItem?.changePriorityButton
-                        )}>
-                        {t(getPriorityTextAndColor(option.priority).text)}
-                      </Button>
-                    </Tooltip>
-                    {isRRWeightsEnabled ? (
-                      <Button
-                        color="minimal"
-                        className={classNames(
-                          "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
-                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
-                        )}
-                        onClick={() => {
-                          setWeightDialogOpen(true);
-                          setCurrentOption(option);
-                        }}>
-                        {option.weight ?? 100}%
-                      </Button>
-                    ) : (
-                      <></>
-                    )}
-                  </>
-                ) : (
-                  <></>
-                )}
+              {option.label}
+            </p>
 
-                <Icon
-                  name="x"
-                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                  className={classNames(
-                    "my-auto ml-2 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.removeButton
-                  )}
-                />
-              </div>
-            </li>
-          </>
+            <div className="ml-auto flex items-center">
+              {/* Skip priority/weight for pending emails */}
+              {!option.isPending && !option.isFixed && (
+                <>
+                  <Tooltip content={t("change_priority")}>
+                    <Button
+                      color="minimal"
+                      onClick={() => {
+                        setPriorityDialogOpen(true);
+                        setCurrentOption(option);
+                      }}
+                      className={classNames(
+                        "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                        getPriorityTextAndColor(option.priority).color,
+                        customClassNames?.selectedHostList?.listItem?.changePriorityButton
+                      )}>
+                      {t(getPriorityTextAndColor(option.priority).text)}
+                    </Button>
+                  </Tooltip>
+
+                  {isRRWeightsEnabled ? (
+                    <Button
+                      color="minimal"
+                      className={classNames(
+                        "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
+                        customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                      )}
+                      onClick={() => {
+                        setWeightDialogOpen(true);
+                        setCurrentOption(option);
+                      }}>
+                      {option.weight ?? 100}%
+                    </Button>
+                  ) : null}
+                </>
+              )}
+
+              <Icon
+                name="x"
+                onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                className={classNames(
+                  "my-auto ml-2 h-4 w-4",
+                  customClassNames?.selectedHostList?.listItem?.removeButton
+                )}
+              />
+            </div>
+          </li>
         ))}
       </ul>
-      {currentOption && !currentOption.isFixed ? (
+
+      {currentOption && !currentOption.isFixed && !currentOption.isPending && (
         <>
           <PriorityDialog
             isOpenDialog={priorityDialogOpen}
@@ -181,8 +196,6 @@ export const CheckedTeamSelect = ({
             customClassNames={customClassNames?.weightDialog}
           />
         </>
-      ) : (
-        <></>
       )}
     </>
   );

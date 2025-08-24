@@ -25,7 +25,8 @@ const aiPhoneCallConfig = z
   })
   .optional();
 
-const hostSchema = z.object({
+// existing host with userId
+const userHostSchema = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
   isFixed: z.boolean().optional(),
@@ -33,6 +34,15 @@ const hostSchema = z.object({
   weight: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),
 });
+
+// new pending host (invite by email)
+const emailHostSchema = z.object({
+  email: z.string().email(),
+  isPending: z.boolean().default(true),
+});
+
+// allow both
+const hostSchema = z.union([userHostSchema, emailHostSchema]);
 
 const childSchema = z.object({
   owner: z.object({

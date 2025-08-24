@@ -161,6 +161,34 @@ const FixedHosts = ({
 
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
 
+  // 🔑 Helper: convert select option into Host (userId OR email)
+  const mapToHost = (teamMember: TeamMember, isFixed: boolean, currentHosts: Host[]): Host => {
+    const existing = currentHosts.find(
+      (host) =>
+        (host.userId && host.userId === parseInt(teamMember.value, 10)) ||
+        (host.email && host.email === teamMember.value)
+    );
+
+    if (/^\d+$/.test(teamMember.value)) {
+      return {
+        isFixed,
+        userId: parseInt(teamMember.value, 10),
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: existing?.scheduleId || teamMember.defaultScheduleId,
+      };
+    } else {
+      return {
+        isFixed,
+        email: teamMember.value,
+        isPending: true,
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: null,
+      };
+    }
+  };
+
   return (
     <div className={classNames("mt-5 rounded-lg", customClassNames?.container)}>
       {!isRoundRobinEvent ? (
@@ -196,17 +224,7 @@ const FixedHosts = ({
                 const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => {
-                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                    return {
-                      isFixed: true,
-                      userId: parseInt(teamMember.value, 10),
-                      priority: host?.priority ?? 2,
-                      weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
-                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                    };
-                  }),
+                  teamMembers.map((tm) => mapToHost(tm, true, currentHosts)),
                   { shouldDirty: true }
                 );
               }}
@@ -251,17 +269,7 @@ const FixedHosts = ({
                 const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => {
-                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                    return {
-                      isFixed: true,
-                      userId: parseInt(teamMember.value, 10),
-                      priority: host?.priority ?? 2,
-                      weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
-                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                    };
-                  }),
+                  teamMembers.map((tm) => mapToHost(tm, true, currentHosts)),
                   { shouldDirty: true }
                 );
               }}
@@ -304,7 +312,7 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue, getValues, control, formState } = useFormContext<FormValues>();
+  const { setValue, getValues, control } = useFormContext<FormValues>();
   const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
@@ -314,6 +322,33 @@ const RoundRobinHosts = ({
     control,
     name: "rrSegmentQueryValue",
   });
+
+  const mapToHost = (teamMember: TeamMember, isFixed: boolean, currentHosts: Host[]): Host => {
+    const existing = currentHosts.find(
+      (host) =>
+        (host.userId && host.userId === parseInt(teamMember.value, 10)) ||
+        (host.email && host.email === teamMember.value)
+    );
+
+    if (/^\d+$/.test(teamMember.value)) {
+      return {
+        isFixed,
+        userId: parseInt(teamMember.value, 10),
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: existing?.scheduleId || teamMember.defaultScheduleId,
+      };
+    } else {
+      return {
+        isFixed,
+        email: teamMember.value,
+        isPending: true,
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: null,
+      };
+    }
+  };
 
   return (
     <div className={classNames("rounded-lg")}>
@@ -384,17 +419,7 @@ const RoundRobinHosts = ({
             const currentHosts = getValues("hosts");
             setValue(
               "hosts",
-              teamMembers.map((teamMember) => {
-                const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                return {
-                  isFixed: false,
-                  userId: parseInt(teamMember.value, 10),
-                  priority: host?.priority ?? 2,
-                  weight: host?.weight ?? 100,
-                  // if host was already added, retain scheduleId
-                  scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                };
-              }),
+              teamMembers.map((tm) => mapToHost(tm, false, currentHosts)),
               { shouldDirty: true }
             );
           }}
