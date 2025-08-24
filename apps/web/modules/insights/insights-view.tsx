@@ -7,13 +7,14 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   AverageEventDurationChart,
   BookingKPICards,
-  BookingStatusLineChart,
+  BookingsByHourChart,
+  EventTrendsChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
-  BookingsByHourChart,
   LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
@@ -21,8 +22,7 @@ import {
   PopularEventsTable,
   RecentFeedbackTable,
   TimezoneBadge,
-} from "@calcom/features/insights/components";
-import "@calcom/features/insights/components/tremor.css";
+} from "@calcom/features/insights/components/booking";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
@@ -32,7 +32,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider timeZone={timeZone}>
+    <DataTableProvider useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
@@ -70,7 +70,7 @@ function InsightsPageContent() {
       <div className="my-4 space-y-4">
         <BookingKPICards />
 
-        <BookingStatusLineChart />
+        <EventTrendsChart />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
