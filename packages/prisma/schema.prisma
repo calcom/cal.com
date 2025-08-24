@@ -788,7 +788,7 @@ enum ReportReason {
 model BookingReport {
   id           String       @id @default(uuid())
   booking      Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId    Int
+  bookingId    Int          @unique
   reportedBy   User         @relation(fields: [reportedById], references: [id], onDelete: Cascade)
   reportedById Int
   reason       ReportReason

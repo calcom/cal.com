@@ -429,6 +429,30 @@ export async function isTeamMember(userId: number, teamId: number) {
   }));
 }
 
+export async function getMembershipIdsWhereUserIsAdminOwner(
+  userId: number,
+  organizationId?: number | null
+): Promise<number[]> {
+  const memberships = await prisma.membership.findMany({
+    where: {
+      userId,
+      accepted: true,
+      role: {
+        in: ["ADMIN", "OWNER"],
+      },
+      ...((organizationId ?? null) !== null
+        ? {
+            OR: [{ teamId: organizationId as number }, { team: { parentId: organizationId as number } }],
+          }
+        : {}),
+    },
+    select: {
+      id: true,
+    },
+  });
+  return memberships.map((membership) => membership.id);
+}
+
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,

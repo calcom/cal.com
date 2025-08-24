@@ -11,6 +11,7 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getMembershipIdsWhereUserIsAdminOwner } from "@calcom/lib/server/queries/teams";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -92,31 +93,7 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-        ...(user.orgId && {
-          OR: [
-            {
-              teamId: user.orgId,
-            },
-            {
-              team: {
-                parentId: user.orgId,
-              },
-            },
-          ],
-        }),
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((membership) => membership.id);
+  const membershipIdsWhereUserIsAdminOwner = await getMembershipIdsWhereUserIsAdminOwner(user.id, user.orgId);
 
   const membershipConditionWhereUserIsAdminOwner = {
     some: {

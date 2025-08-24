@@ -83,10 +83,10 @@ export type BookingItemProps = BookingItem & {
   isToday: boolean;
 };
 
-// Utility function to check if a booking has been reported by the current user
+// Utility function to check if a booking has been reported
 const checkIfBookingReported = (booking: BookingItemProps): boolean => {
-  // Check if this booking has been reported by the current user
-  return booking.reports?.some((report) => report.reportedById === booking.loggedInUser.userId) || false;
+  // Check if this booking has been reported by anyone
+  return booking.reports && booking.reports.length > 0;
 };
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -860,7 +860,8 @@ const BookingItemBadges = ({
         return (
           hasAnyReport && (
             <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
-              {t("reported")}
+              {t("reported")}:{" "}
+              {booking.reports?.[0]?.reason ? t(booking.reports?.[0]?.reason?.toLowerCase()) : "Unknown"}
             </Badge>
           )
         );
