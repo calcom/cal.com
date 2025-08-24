@@ -8,7 +8,6 @@ import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
 
 export const LargeCalendar = ({
@@ -18,7 +17,7 @@ export const LargeCalendar = ({
   event,
 }: {
   extraDays: number;
-  schedule?: useScheduleForEventReturnType["data"];
+  schedule?: UseScheduleForEventReturnType["data"];
   isLoading: boolean;
   event: {
     data?: Pick<BookerEvent, "length"> | null;

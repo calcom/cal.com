@@ -14,12 +14,11 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
-import { getQueryParam } from "../utils/query-param";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  schedule?: useScheduleForEventReturnType;
+  schedule?: UseScheduleForEventReturnType;
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;

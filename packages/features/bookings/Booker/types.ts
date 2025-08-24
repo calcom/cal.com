@@ -126,7 +126,7 @@ export type WrappedBookerPropsMain = {
   calendars: UseCalendarsReturnType;
   bookerForm: UseBookingFormReturnType;
   event: BookerEventQuery;
-  schedule: useScheduleForEventReturnType;
+  schedule: UseScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
