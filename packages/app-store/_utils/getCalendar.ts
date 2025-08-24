@@ -1,56 +1,68 @@
-// packages/app-store/_utils/getCalendar.ts
-import logger from "@calcom/lib/logger";
-import type { Calendar } from "@calcom/types/Calendar";
+// imports above unchanged
+import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { CALENDAR_SERVICES } from "../calendar.services.generated";
 
-type CalendarServiceCtor = new (cred: CredentialForCalendarService) => Calendar;
-
-function isCalendarServiceModule(m: unknown): m is { lib: { CalendarService: CalendarServiceCtor } } {
-  return !!(m && typeof m === "object" && (m as any)?.lib?.CalendarService);
+// If this interface is already in the file, keep it; if not, include it:
+interface CalendarApp {
+  lib: {
+    CalendarService: CalendarClass;
+  };
 }
 
-const normalizeKey = (s: string | null | undefined) => (s ?? "").replace(/[_-]/g, "").toLowerCase();
-
-function resolveFromRegistry<T extends Record<string, unknown>>(
-  registry: T,
-  rawKey: string | null | undefined
-): (() => Promise<unknown>) | undefined {
-  const want = normalizeKey(rawKey);
-  const match = (Object.keys(registry) as Array<keyof T>).find((k) => normalizeKey(String(k)) === want);
-  const factory = match ? (registry as any)[String(match)] : undefined;
-  return typeof factory === "function" ? (factory as () => Promise<unknown>) : undefined;
-}
-
-// Overloads (keeps old API working)
-export function getCalendar(credential: CredentialForCalendarService | null): Promise<Calendar | null>;
-export function getCalendar(
+// ---------- Overloads (backwards compatibility) ----------
+export async function getCalendar(credential: CredentialForCalendarService | null): Promise<Calendar | null>;
+export async function getCalendar(
   credential: CredentialForCalendarService,
   calendarType: string
 ): Promise<Calendar | null>;
 
-// Impl
+// ---------- Implementation ----------
 export async function getCalendar(
   credential: CredentialForCalendarService | null,
   calendarType?: string
 ): Promise<Calendar | null> {
-  const log = logger.getSubLogger({ prefix: ["app-store", "getCalendar"] });
-  if (!credential?.key) return null;
+  // existing logger line if present in the file:
+  const log = (globalThis as any)?.logger?.getSubLogger?.({ prefix: ["app-store", "getCalendar"] });
 
-  let type = (calendarType ?? credential.type) || "";
+  if (!credential || !credential.key) return null;
 
-  // legacy suffix handling preserved
-  if (type.endsWith("_other_calendar")) type = type.split("_other_calendar")[0];
-  if (type.endsWith("_crm")) type = type.split("_crm")[0];
+  // Prefer explicit param, but fall back to the credential.type (old behavior)
+  const keyFromCaller = calendarType ?? credential.type;
 
-  const factory = resolveFromRegistry(CALENDAR_SERVICES as Record<string, unknown>, type);
-  const calendarApp = factory ? await factory() : null;
+  // Safe normalizer: NEVER assume string
+  const normalizeKey = (k?: string): string | undefined => {
+    if (!k) return undefined;
+    let v = k;
 
-  if (!isCalendarServiceModule(calendarApp)) {
-    log.warn(`calendar of type ${type} is not implemented`);
+    // Keep your suffix handling (seen in the diff)
+    if (v.endsWith("_other_calendar")) v = v.slice(0, -"_other_calendar".length);
+    if (v.endsWith("_crm")) v = v.slice(0, -"_crm".length);
+
+    // Normalize dashes/underscores/case
+    v = v.replace(/-/g, "_").toLowerCase();
+    return v;
+  };
+
+  const resolveFromRegistry = (raw?: string): CalendarClass | undefined => {
+    const nk = normalizeKey(raw);
+    if (!nk) return undefined;
+    // CALENDAR_SERVICES is a generated map; index defensively
+    return (CALENDAR_SERVICES as Record<string, CalendarApp>)?.[nk]?.lib?.CalendarService;
+  };
+
+  const Service =
+    resolveFromRegistry(keyFromCaller) ?? // explicit param if provided
+    resolveFromRegistry(credential.type); // fallback (legacy)
+
+  if (!Service) {
+    log?.warn?.("Unknown calendar type for getCalendar()", {
+      input: keyFromCaller,
+      credentialType: credential?.type,
+    });
     return null;
   }
 
-  return new calendarApp.lib.CalendarService(credential);
+  return new Service(credential);
 }
