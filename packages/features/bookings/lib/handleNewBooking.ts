@@ -855,13 +855,7 @@ async function handler(
               qualifiedRRUsers: qualifiedRRUsers.map((user) => user.id),
             })
           );
-          if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && !qualifiedRoundRobinHostsAvailable) {
-            throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
-          } else if (eventType.schedulingType === SchedulingType.COLLECTIVE && !allFixedHostsAvailable) {
-            throw new Error(ErrorCode.FixedHostsUnavailableForBooking);
-          } else {
-            throw new Error(ErrorCode.NoAvailableUsersFound);
-          }
+          throw new Error(ErrorCode.NoAvailableUsersFound);
         }
       }
 

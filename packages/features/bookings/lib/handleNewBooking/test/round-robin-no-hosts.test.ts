@@ -127,9 +127,11 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
         },
       });
 
-      await expect(handleNewBooking({ bookingData: mockBookingData })).rejects.toThrow(
-        ErrorCode.RoundRobinHostsUnavailableForBooking
-      );
+      await expect(
+        handleNewBooking({
+          bookingData: mockBookingData,
+        })
+      ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
     },
     timeout
   );

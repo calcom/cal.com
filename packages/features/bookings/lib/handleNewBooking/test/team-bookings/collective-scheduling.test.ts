@@ -1320,8 +1320,10 @@ describe("handleNewBooking", () => {
               },
             });
             await expect(async () => {
-              await handleNewBooking({ bookingData: mockBookingData });
-            }).rejects.toThrowError(ErrorCode.FixedHostsUnavailableForBooking);
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              });
+            }).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
           },
           timeout
         );

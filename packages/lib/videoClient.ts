@@ -27,25 +27,9 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-    const normalizeKey = (s: string) => s.replace(/[_-]/g, "").toLowerCase();
-    function resolveFromRegistry<T extends Record<string, unknown>>(
-      registry: T,
-      rawKey: string
-    ): unknown | undefined {
-      const want = normalizeKey(rawKey);
-      const match = (Object.keys(registry) as Array<keyof T>).find((k) => normalizeKey(String(k)) === want);
-      const factory = match ? (registry as Record<string, unknown>)[String(match)] : undefined;
-      return typeof factory === "function" ? (factory as () => Promise<unknown>) : undefined;
-    }
+    const modFactory = (VIDEO_ADAPTERS as Record<string, any>)[appName];
 
-    const factory = resolveFromRegistry(VIDEO_ADAPTERS as Record<string, unknown>, appName);
-    const app =
-      typeof factory === "function"
-        ? await factory().catch((e: unknown) => {
-            log.error("Failed to load video adapter module", safeStringify({ appName, error: e }));
-            return null;
-          })
-        : null;
+    const app = modFactory ? await modFactory() : null;
 
     if (!app) {
       log.error(`Couldn't get adapter for ${appName}`);
@@ -446,65 +430,3 @@ export {
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
 };
-
-// 1) tiny helpers shared across your generated registries
-const normalizeKey = (s: string) => s.replace(/[_-]/g, "").toLowerCase();
-
-function resolveFromRegistry<T extends Record<string, unknown>>(
-  registry: T,
-  rawKey: string
-): unknown | undefined {
-  const want = normalizeKey(rawKey);
-  const match = (Object.keys(registry) as Array<keyof T>).find((k) => normalizeKey(String(k)) === want);
-  const factory = match ? (registry as Record<string, unknown>)[String(match)] : undefined;
-
-  // your generated registries hold factory functions -> Promise<module>
-  if (typeof factory === "function") {
-    // Tell TS we expect a function returning a promise of something
-    return factory as unknown as () => Promise<unknown>;
-  }
-  return undefined;
-}
-
-// 2) minimal shapes + guards (no dependency on per-app types)
-type IntegrationMeta = { name: string; slug: string };
-type MaybeAdapterModule = { lib?: { adapter?: unknown } };
-type MaybeMetaModule = { app?: { name?: string; slug?: string } };
-
-function hasAdapter(m: unknown): m is Required<Required<MaybeAdapterModule>["lib"]> & { adapter: unknown } {
-  return !!(m && typeof m === "object" && "adapter" in (m as any));
-}
-function hasLib(m: unknown): m is { lib: unknown } {
-  return !!(m && typeof m === "object" && "lib" in (m as any));
-}
-function hasAppMeta(m: unknown): m is { name?: string; slug?: string } {
-  return !!(m && typeof m === "object" && ("name" in (m as any) || "slug" in (m as any)));
-}
-
-export async function getVideoAdapter(
-  appName: string
-): Promise<{ adapter: unknown | null; integrationMeta: IntegrationMeta }> {
-  const factory = resolveFromRegistry(VIDEO_ADAPTERS as unknown as Record<string, unknown>, appName);
-
-  // Avoid the union-typed import by treating the module as unknown, then narrowing
-  const appModule = typeof factory === "function" ? await (factory as () => Promise<unknown>)() : null;
-
-  // lib.adapter (runtime-guarded)
-  let adapter: unknown | null = null;
-  if (appModule && (appModule as any).lib) {
-    const lib: any = (appModule as any).lib;
-    adapter = "VideoApiAdapter" in lib ? lib.VideoApiAdapter : "adapter" in lib ? lib.adapter : null;
-  }
-
-  // meta with safe fallbacks
-  let integrationMeta: IntegrationMeta = { name: appName, slug: appName };
-  if (appModule && "app" in (appModule as any) && hasAppMeta((appModule as any).app)) {
-    const a = (appModule as any).app as { name?: string; slug?: string };
-    integrationMeta = {
-      name: a?.name ?? appName,
-      slug: a?.slug ?? appName,
-    };
-  }
-
-  return { adapter, integrationMeta };
-}
