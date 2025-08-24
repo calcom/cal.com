@@ -16,7 +16,7 @@ export type Operators = Record<string, Operator>;
 export type WidgetWithoutFactory = Omit<RAQBWidget, "factory"> & {
   type: string;
   jsType: string;
-  toJS: (val: any) => any;
+  toJS: (val: unknown) => unknown;
 };
 export type WidgetsWithoutFactory = Record<string, WidgetWithoutFactory>;
 export type Type = RAQBType;
@@ -117,9 +117,9 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "not_between",
-    jsonLogic: (field: any, op: any, vals: [any, any]) => {
-      const min = parseInt(vals[0], 10);
-      const max = parseInt(vals[1], 10);
+    jsonLogic: (field: unknown, op: unknown, vals: [unknown, unknown]) => {
+      const min = parseInt(vals[0] as string, 10);
+      const max = parseInt(vals[1] as string, 10);
       return {
         and: [{ ">=": [field, min] }, { "<=": [field, max] }],
       };
@@ -132,9 +132,9 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "between",
-    jsonLogic: (field: any, op: any, vals: [any, any]) => {
-      const min = parseInt(vals[0], 10);
-      const max = parseInt(vals[1], 10);
+    jsonLogic: (field: unknown, op: unknown, vals: [unknown, unknown]) => {
+      const min = parseInt(vals[0] as string, 10);
+      const max = parseInt(vals[1] as string, 10);
       return {
         or: [{ "<": [field, min] }, { ">": [field, max] }],
       };
@@ -200,7 +200,7 @@ const operators: Operators = {
   // We define this operator but use it conditionally for multiselect for Attributes only
   multiselect_some_in: {
     label: "Any in",
-    jsonLogic: (field: any, operator: any, vals: any) => {
+    jsonLogic: (field: unknown, operator: unknown, vals: unknown) => {
       return {
         // Tested in jsonLogic.test.ts
         some: [field, { in: [{ var: "" }, vals] }],
@@ -215,7 +215,7 @@ const operators: Operators = {
     label: "All in",
     reversedOp: "multiselect_not_equals",
     // jsonLogic2: "all-in",
-    jsonLogic: (field: any, op: any, vals: any, ...rest) => {
+    jsonLogic: (field: unknown, op: unknown, vals: unknown, ..._rest) => {
       return {
         // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
         all: [field, { in: [{ var: "" }, vals] }],
@@ -253,7 +253,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "String",
     valuePlaceholder: "Enter string",
-    toJS: (val: any) => val,
+    toJS: (val: unknown) => val,
   },
   textarea: {
     type: "text",
@@ -261,7 +261,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Text",
     valuePlaceholder: "Enter text",
-    toJS: (val: any) => val,
+    toJS: (val: unknown) => val,
   },
   number: {
     type: "number",
@@ -269,7 +269,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Number",
     valuePlaceholder: "Enter number",
-    toJS: (val: any) => val,
+    toJS: (val: unknown) => val,
   },
   select: {
     type: "select",
@@ -277,7 +277,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Value",
     valuePlaceholder: "Select value",
-    toJS: (val: any) => val,
+    toJS: (val: unknown) => val,
   },
   multiselect: {
     type: "multiselect",
@@ -285,7 +285,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Values",
     valuePlaceholder: "Select values",
-    toJS: (val: any) => val,
+    toJS: (val: unknown) => val,
   },
 };
 

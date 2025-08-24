@@ -24,7 +24,7 @@ export const ResultsSection = ({
   children: ReactNode;
   icon?: IconName;
   hint?: ReactNode;
-  [key: string]: any;
+  [key: string]: unknown;
 }) => (
   <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1" {...props}>
     {(title || icon) && (
@@ -282,7 +282,7 @@ export const ResultsView = ({
                   </div>
                 }>
                 <div className="divide-subtle divide-y">
-                  {membersMatchResult.teamMembersMatchingAttributeLogic.map((member, index) => (
+                  {membersMatchResult.teamMembersMatchingAttributeLogic.map((member, _index) => (
                     <TeamMember
                       key={member.id}
                       email={member.email}

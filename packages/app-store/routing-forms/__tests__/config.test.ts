@@ -9,7 +9,7 @@ vi.mock("../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
 
-const assertCommonStructure = (config: any) => {
+const assertCommonStructure = (config: unknown) => {
   expect(config).toHaveProperty("conjunctions");
   expect(config).toHaveProperty("operators");
   expect(config).toHaveProperty("types");
@@ -17,7 +17,7 @@ const assertCommonStructure = (config: any) => {
   expect(config).toHaveProperty("settings");
 };
 
-const assertCommonWidgetTypes = (config: any) => {
+const assertCommonWidgetTypes = (config: unknown) => {
   expect(config.widgets).toHaveProperty("text");
   expect(config.widgets).toHaveProperty("textarea");
   expect(config.widgets).toHaveProperty("number");
@@ -27,7 +27,7 @@ const assertCommonWidgetTypes = (config: any) => {
   expect(config.widgets).toHaveProperty("email");
 };
 
-const assertSelectOperators = (config: any) => {
+const assertSelectOperators = (config: unknown) => {
   expect(config.operators).toHaveProperty("select_any_in");
   expect(config.operators).toHaveProperty("select_not_any_in");
   expect(config.operators).toHaveProperty("select_equals");
@@ -49,7 +49,7 @@ const assertSelectOperators = (config: any) => {
   expect(config.types.select.widgets.select.operators).not.toContain("select_not_any_in");
 };
 
-const assertMaxNesting = (config: any, value: number) => {
+const assertMaxNesting = (config: unknown, value: number) => {
   expect(config.settings.maxNesting).toBe(value);
 };
 

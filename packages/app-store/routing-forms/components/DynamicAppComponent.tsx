@@ -1,10 +1,9 @@
 import type { Route, AttributeRoutingConfig } from "../types/types";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function DynamicAppComponent<T extends Record<string, React.ComponentType<any>>>(props: {
+export default function DynamicAppComponent<T extends Record<string, React.ComponentType<unknown>>>(props: {
   componentMap: T;
   slug: string;
-  appData: any;
+  appData: unknown;
   route: Route;
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
   wrapperClassName?: string;

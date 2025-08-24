@@ -8,9 +8,11 @@ import { findMatchingRoute } from "../lib/processRoute";
 vi.mock("framer-motion", async () => {
   return {
     motion: {
-      div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+      div: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
+        <div {...props}>{children}</div>
+      ),
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>,
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   };
 });
 
@@ -30,7 +32,7 @@ vi.mock("next/navigation", async (importOriginal) => {
   };
 });
 
-function mockMatchingRoute(route: any) {
+function mockMatchingRoute(route: unknown) {
   (findMatchingRoute as Mock<typeof findMatchingRoute>).mockReturnValue({
     ...route,
     id: "matching-route-id",
@@ -172,14 +174,14 @@ const mockSubTeamForm = {
   team: {
     parentId: "org-1",
   },
-} as any;
+} as unknown;
 
 const mockRegularTeamForm = {
   ...mockSubTeamForm,
   team: {
     parentId: null,
   },
-} as any;
+} as unknown;
 
 describe("TestFormDialog", () => {
   beforeEach(() => {

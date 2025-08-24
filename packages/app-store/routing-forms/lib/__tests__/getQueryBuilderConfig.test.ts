@@ -121,7 +121,7 @@ describe("getQueryBuilderConfig", () => {
         {
           id: "unsupportedField",
           label: "Unsupported Field",
-          type: "unsupported" as any,
+          type: "unsupported" as unknown,
         },
       ],
     };

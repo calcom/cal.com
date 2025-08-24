@@ -89,6 +89,7 @@ export function getAbsoluteEventTypeRedirectUrl({
   }
 
   // We want origin to be the WEBAPP_URL as in E2E the org domain won't exist. E2E fake request from org domain using doOnOrgDomain
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
   const origin = process.env.NEXT_PUBLIC_IS_E2E
     ? WEBAPP_URL
     : teamSlugInRedirectUrl

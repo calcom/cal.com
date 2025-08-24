@@ -18,5 +18,10 @@
   "devDependencies": {
     "@calcom/types": "*",
     "@types/json-logic-js": "^1.2.1"
+  },
+  "turbo": {
+    "globalEnv": [
+      "NEXT_PUBLIC_IS_E2E"
+    ]
   }
 }

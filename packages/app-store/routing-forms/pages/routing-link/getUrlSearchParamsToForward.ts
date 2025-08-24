@@ -93,7 +93,7 @@ export function getUrlSearchParamsToForward({
     }
   }
 
-  const attributeRoutingConfigParams: Record<string, any> = {};
+  const attributeRoutingConfigParams: Record<string, unknown> = {};
 
   if (attributeRoutingConfig) {
     for (const key of Object.keys(attributeRoutingConfig)) {

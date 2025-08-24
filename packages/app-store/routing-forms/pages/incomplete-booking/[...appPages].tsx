@@ -93,7 +93,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
           : selectedCredential
       );
     }
-  }, [data]);
+  }, [data, credentialOptions, selectedCredential]);
 
   if (isLoading) {
     return <div>Loading...</div>;

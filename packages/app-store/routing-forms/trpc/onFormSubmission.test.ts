@@ -66,9 +66,9 @@ describe("_onFormSubmission", () => {
 
   describe("Webhooks", () => {
     it("should call FORM_SUBMITTED webhooks", async () => {
-      vi.mocked(getWebhooks).mockResolvedValueOnce([{ id: "wh-1", secret: "secret" } as any]);
+      vi.mocked(getWebhooks).mockResolvedValueOnce([{ id: "wh-1", secret: "secret" } as unknown]);
 
-      await _onFormSubmission(mockForm as any, mockResponse, responseId);
+      await _onFormSubmission(mockForm as unknown, mockResponse, responseId);
 
       expect(getWebhooks).toHaveBeenCalledWith({
         userId: 1,
@@ -86,12 +86,12 @@ describe("_onFormSubmission", () => {
 
       vi.mocked(getWebhooks).mockImplementation(async (options) => {
         if (options.triggerEvent === WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT) {
-          return [mockWebhook as any];
+          return [mockWebhook as unknown];
         }
         return [];
       });
 
-      await _onFormSubmission(mockForm as any, mockResponse, responseId, chosenAction);
+      await _onFormSubmission(mockForm as unknown, mockResponse, responseId, chosenAction);
 
       expect(getWebhooks).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -131,7 +131,7 @@ describe("_onFormSubmission", () => {
         user: { id: 1, email: "test@example.com" },
       };
 
-      await _onFormSubmission(teamForm as any, mockResponse, responseId);
+      await _onFormSubmission(teamForm as unknown, mockResponse, responseId);
 
       expect(mockResponseEmailConstructor).toHaveBeenCalledWith({
         form: teamForm,
@@ -147,7 +147,7 @@ describe("_onFormSubmission", () => {
         settings: { emailOwnerOnSubmission: true },
       };
 
-      await _onFormSubmission(ownerForm as any, mockResponse, responseId);
+      await _onFormSubmission(ownerForm as unknown, mockResponse, responseId);
 
       expect(mockResponseEmailConstructor).toHaveBeenCalledWith({
         form: ownerForm,
@@ -163,7 +163,7 @@ describe("_onFormSubmission", () => {
         settings: { emailOwnerOnSubmission: false },
       };
 
-      await _onFormSubmission(ownerForm as any, mockResponse, responseId);
+      await _onFormSubmission(ownerForm as unknown, mockResponse, responseId);
 
       expect(mockResponseEmailConstructor).not.toHaveBeenCalled();
       expect(mockSendEmail).not.toHaveBeenCalled();

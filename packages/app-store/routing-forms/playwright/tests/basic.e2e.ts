@@ -132,7 +132,7 @@ test.describe("Routing Forms", () => {
       await expect(page.locator('[data-testid="add-route-button"]')).toBeVisible();
     });
 
-    test.skip("should be able to disable form", async ({ page }) => {
+    test("should be able to disable form", async ({ page }) => {
       const formId = await addForm(page);
       await page.click('[data-testid="back-button"]');
       await disableForm(page);
@@ -190,7 +190,7 @@ test.describe("Routing Forms", () => {
     });
 
     // This feature is disable till it is fully supported and tested with Routing Form with Attributes.
-    test.describe.skip("F1<-F2 Relationship", () => {
+    test.describe("F1<-F2 Relationship", () => {
       test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
         await page.goto(`/routing-forms/forms`);

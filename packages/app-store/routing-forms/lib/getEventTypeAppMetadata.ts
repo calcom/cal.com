@@ -10,7 +10,7 @@ const getEventTypeAppMetadata = (metadata: Prisma.JsonValue) => {
 
   const appMetadata = eventTypeMetadataParse.data.apps;
 
-  const eventTypeAppMetadata: Record<string, any> = {};
+  const eventTypeAppMetadata: Record<string, unknown> = {};
 
   if (appMetadata) {
     for (const appSlug of Object.keys(appMetadata)) {

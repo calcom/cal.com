@@ -79,7 +79,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const { user: u, ...formWithoutUser } = form;
+  const { user: _u, ...formWithoutUser } = form;
 
   const formWithoutProfileInfo = {
     ...formWithoutUser,

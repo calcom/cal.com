@@ -108,7 +108,7 @@ describe("handleResponse", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(RoutingFormResponseRepository).mockImplementation(
-      () => mockRoutingFormResponseRepository as any
+      () => mockRoutingFormResponseRepository as unknown
     );
   });
 
@@ -251,17 +251,17 @@ describe("handleResponse", () => {
   it("should handle chosen route and call routing logic", async () => {
     const chosenRoute = {
       id: "route1",
-      queryValue: { type: "group", children1: {} } as any,
+      queryValue: { type: "group", children1: {} } as unknown,
       action: {
         type: "customPageMessage" as const,
         value: "Thank you for your submission!",
       },
       attributeRoutingConfig: null,
-      attributesQueryValue: { type: "group", children1: {} } as any,
-      fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+      attributesQueryValue: { type: "group", children1: {} } as unknown,
+      fallbackAttributesQueryValue: { type: "group", children1: {} } as unknown,
       isFallback: false,
     };
-    const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
+    const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as unknown] };
 
     vi.mocked(routerGetCrmContactOwnerEmail).mockResolvedValue({
       email: "owner@example.com",
@@ -270,7 +270,7 @@ describe("handleResponse", () => {
       recordId: "123",
     });
     vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
-      teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],
+      teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as unknown }],
       checkedFallback: false,
       fallbackAttributeLogicBuildingWarnings: [],
       mainAttributeLogicBuildingWarnings: [],
@@ -309,7 +309,7 @@ describe("handleResponse", () => {
     vi.mocked(isRouter).mockReturnValue(true);
     const formWithRoute: TargetRoutingFormForResponse = {
       ...mockForm,
-      routes: [chosenRoute as any],
+      routes: [chosenRoute as unknown],
     };
 
     await expect(
