@@ -99,6 +99,7 @@ clearAppCache();
 
 The lazy-loading system preserves backward compatibility for common usage:
 - Existing default imports continue to work via a compatibility proxy
+- Missing or misspelled app names return `undefined` (no loading attempted)
 - New code should use the named utilities (e.g., `loadApp`)
 - Some advanced usages may observe behavior differences (e.g., enumeration order),
   so migration to the new utilities is recommended.

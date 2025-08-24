@@ -196,6 +196,11 @@ export const lazyAppStore = new Proxy({} as Record<string, AppImportFunction>, {
       return undefined;
     }
 
+    // Only return a loader function if the app exists
+    if (!hasApp(prop)) {
+      return undefined;
+    }
+
     // Return a function that loads the app when called
     return () => loadApp(prop);
   },
