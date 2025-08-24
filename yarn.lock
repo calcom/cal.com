@@ -3295,9 +3295,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/insihts@workspace:packages/app-store/insihts":
+"@calcom/insights@workspace:packages/app-store/insights":
   version: 0.0.0-use.local
-  resolution: "@calcom/insihts@workspace:packages/app-store/insihts"
+  resolution: "@calcom/insights@workspace:packages/app-store/insights"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"

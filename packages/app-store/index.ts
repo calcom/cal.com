@@ -5,8 +5,11 @@
  * performance. Instead of loading all 100+ apps upfront, apps are loaded
  * on-demand when actually needed.
  *
- * BREAKING CHANGE: This replaces the previous monolithic app store with
- * a lazy loading system that reduces initial bundle size by ~80%.
+ * IMPLEMENTATION CHANGE: This replaces the previous monolithic app store with
+ * a lazy loading system that reduces initial bundle size significantly.
+ *
+ * Backward compatibility is maintained via a compatibility proxy, though
+ * new code should prefer the named utilities (loadApp, hasApp, etc.).
  */
 import { lazyAppStore } from "./lazy-loader";
 

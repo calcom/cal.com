@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the performance optimization implemented for Cal.com's app store to reduce local development page load times by ~80%.
+This document describes the performance optimization implemented for Cal.com's app store. In our measurements, local development page load time improved by ~18%, and app-store-related bundle size dropped significantly (see below).
 
 ## Problem
 
@@ -97,10 +97,11 @@ clearAppCache();
 
 ## Backward Compatibility
 
-The lazy loading system maintains full backward compatibility:
-- Existing imports continue to work
-- The same API surface is preserved
-- No breaking changes to consuming code
+The lazy-loading system preserves backward compatibility for common usage:
+- Existing default imports continue to work via a compatibility proxy
+- New code should use the named utilities (e.g., `loadApp`)
+- Some advanced usages may observe behavior differences (e.g., enumeration order),
+  so migration to the new utilities is recommended.
 
 ## Migration Guide
 
