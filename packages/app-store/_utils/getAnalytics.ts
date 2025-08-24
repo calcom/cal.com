@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { AnalyticsService, AnalyticsServiceClass } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { ANALYTICS_SERVICES } from "../analytics.services.generated";
+import { ANALYTICS_SERVICES } from "../analytics.apps.generated";
 
 const log = logger.getSubLogger({ prefix: ["AnalyticsManager"] });
 
