@@ -163,24 +163,25 @@ const FixedHosts = ({
 
   // 🔑 Helper: convert select option into Host (userId OR email)
   const mapToHost = (teamMember: TeamMember, isFixed: boolean, currentHosts: Host[]): Host => {
+    const val = teamMember.value.trim();
     const existing = currentHosts.find(
       (host) =>
-        (host.userId && host.userId === parseInt(teamMember.value, 10)) ||
-        (host.email && host.email === teamMember.value)
+        (host.userId && /^\d+$/.test(val) && host.userId === parseInt(val, 10)) ||
+        (host.email && host.email === val)
     );
 
-    if (/^\d+$/.test(teamMember.value)) {
+    if (/^\d+$/.test(val)) {
       return {
         isFixed,
-        userId: parseInt(teamMember.value, 10),
+        userId: parseInt(val, 10),
         priority: existing?.priority ?? 2,
         weight: existing?.weight ?? 100,
-        scheduleId: existing?.scheduleId || teamMember.defaultScheduleId,
+        scheduleId: existing?.scheduleId ?? teamMember.defaultScheduleId,
       };
     } else {
       return {
         isFixed,
-        email: teamMember.value,
+        email: val,
         isPending: true,
         priority: existing?.priority ?? 2,
         weight: existing?.weight ?? 100,
