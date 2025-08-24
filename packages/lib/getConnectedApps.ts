@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
+import { PAYMENT_APPS } from "@calcom/app-store/payment.apps.generated";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -12,9 +12,14 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import { buildNonDelegationCredentials } from "./delegationCredential/clientAndServer";
+
+const loadPaymentApp = async (dir?: string) => {
+  if (!dir) return null;
+  const factory = (PAYMENT_APPS as Record<string, () => Promise<any>>)[dir];
+  return factory ? await factory() : null;
+};
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
 type InputSchema = {
@@ -184,9 +189,10 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
+        const paymentApp = await loadPaymentApp(paymentCredential?.app?.dirName);
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
-          const PaymentService = paymentApp.lib.PaymentService;
+          const PaymentService = paymentApp?.lib?.PaymentService;
+          if (!PaymentService) return;
           const paymentInstance = new PaymentService(credential);
           isSetupAlready = paymentInstance.isSetupAlready();
         }

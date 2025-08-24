@@ -1,8 +1,14 @@
 import type { Payment, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
+import { PAYMENT_APPS } from "@calcom/app-store/payment.apps.generated";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+
+const loadPaymentApp = async (dir?: string) => {
+  if (!dir) return null;
+  const factory = (PAYMENT_APPS as Record<string, () => Promise<any>>)[dir];
+  return factory ? await factory() : null;
+};
 
 const handlePaymentRefund = async (
   paymentId: Payment["id"],
@@ -15,9 +21,7 @@ const handlePaymentRefund = async (
     } | null;
   }
 ) => {
-  const paymentApp = (await appStore[
-    paymentAppCredentials?.app?.dirName as keyof typeof appStore
-  ]?.()) as PaymentApp;
+  const paymentApp = await loadPaymentApp(paymentAppCredentials?.app?.dirName);
   if (!paymentApp?.lib?.PaymentService) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;

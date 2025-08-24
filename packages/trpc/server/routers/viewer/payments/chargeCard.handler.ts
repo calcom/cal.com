@@ -1,4 +1,4 @@
-import appStore from "@calcom/app-store";
+import { PAYMENT_APPS } from "@calcom/app-store/payment.apps.generated";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -10,12 +10,18 @@ import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TChargeCardInputSchema } from "./chargeCard.schema";
+
+const loadPaymentApp = async (dir?: string) => {
+  if (!dir) return null;
+  const factory = (PAYMENT_APPS as Record<string, () => Promise<any>>)[dir];
+  return factory ? await factory() : null;
+};
 
 interface ChargeCardHandlerOptions {
   ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
@@ -125,15 +131,14 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
   }
 
-  const paymentApp = (await appStore[
-    paymentCredential?.app?.dirName as keyof typeof appStore
-  ]?.()) as PaymentApp;
+  const paymentApp = await loadPaymentApp(paymentAppCredentials?.app?.dirName);
 
   if (!paymentApp?.lib?.PaymentService) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const PaymentService = paymentApp.lib.PaymentService as any;
+  const PaymentService = paymentApp?.lib?.PaymentService;
+  if (!PaymentService) return /* soft fail or throw as the file previously did */;
   const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
