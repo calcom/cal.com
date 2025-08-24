@@ -11,6 +11,9 @@
       "method": "bearer"
     }
   },
+  "contextual": {
+  "options": ["copy"]
+  },
   "favicon": "/favicon.png",
   "colors": {
     "primary": "#111827",
