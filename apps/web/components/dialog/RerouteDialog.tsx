@@ -910,7 +910,7 @@ export const RerouteDialog = ({ isOpenDialog, setIsOpenDialog, booking }: Rerout
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent enableOverflow preventCloseOnOutsideClick>
+      <DialogContent preventCloseOnOutsideClick>
         <DialogHeader title={t("reroute_booking")} subtitle={t("reroute_booking_description")} />
         <RerouteDialogContentAndFooter
           booking={teamEventTypeBooking}
