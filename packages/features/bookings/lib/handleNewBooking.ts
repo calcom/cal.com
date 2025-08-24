@@ -2189,7 +2189,7 @@ async function handler(
       booking,
       bookerName: fullName,
       bookerEmail,
-      bookerPhoneNumber,
+      bookerPhoneNumber: bookerPhoneNumber ?? null, // Convert undefined to null
       isDryRun,
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
