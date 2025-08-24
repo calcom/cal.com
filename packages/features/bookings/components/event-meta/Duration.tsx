@@ -71,7 +71,7 @@ export const EventDuration = ({
   useEffect(() => {
     // For multi-duration or dynamic events, set only once on mount and preserve user picks.
     const hasMultiple = !!event.metadata?.multipleDuration;
-    if (!selectedDuration && (hasMultiple || isDynamicEvent)) {
+    if (selectedDuration == null && (hasMultiple || isDynamicEvent)) {
       setSelectedDuration(event.length);
       return;
     }
