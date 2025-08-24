@@ -3,25 +3,24 @@
 // Call mockPaymentApps() / mockCalendarServices() at the top of tests that use them.
 
 export const mockPaymentApps = () => {
-  jest.doMock("@calcom/app-store/payment.apps.generated", () => ({
+  doMock("@calcom/app-store/payment.apps.generated", () => ({
     PAYMENT_APPS: {
-      // Keys here must match real app dirNames used in tests (add/adjust as needed)
-      "mock-payment-app": jest.fn(async () => ({
+      "mock-payment-app": () => Promise.resolve({
         lib: {
           PaymentService: class {
             async charge() { return { ok: true }; }
             async refund() { return { ok: true }; }
           },
         },
-      })),
-      stripepayment: jest.fn(async () => ({
+      }),
+      stripepayment: () => Promise.resolve({
         lib: {
           PaymentService: class {
             async charge() { return { ok: true }; }
             async refund() { return { ok: true }; }
           },
         },
-      })),
+      }),
     },
   }));
 };
@@ -40,9 +39,24 @@ export const mockCalendarServices = () => {
     },
   }));
 };
+export const mockAnalyticsServices = () => {
+  doMock("@calcom/app-store/analytics.services.generated", () => ({
+    ANALYTICS_SERVICES: {
+      dub: jest.fn(async () => ({
+        lib: {
+          AnalyticsService: class {
+            async sendEvent() { return { ok: true }; }
+          },
+        },
+      })),
+    },
+  }));
+};
 
-// Backwards-compat: some suites may still import and call this:
+// Update the backwards-compat wrapper
 export const mockAppStore = () => {
   mockPaymentApps();
   mockCalendarServices();
+  mockAnalyticsServices(); // Add this line
 };
+

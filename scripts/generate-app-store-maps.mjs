@@ -1,5 +1,5 @@
 // scripts/generate-app-store-maps.mjs
-// Generate factory-based maps for calendar/payment/crm/conferencing.
+// Generate factory-based maps for calendar/payment/crm/conferencing/analytics.
 // Each entry is () => import("./<slug>/index") so consumers can await the module lazily.
 
 import fs from "node:fs";
@@ -14,6 +14,12 @@ const CATEGORIES = [
     signature: "lib/CalendarService.ts",
     exportName: "CALENDAR_SERVICES",
     outFile: "calendar.services.generated.ts",
+  },
+  {
+    name: "analytics",
+    signature: "lib/AnalyticsService.ts",
+    exportName: "ANALYTICS_APPS",
+    outFile: "analytics.apps.generated.ts",
   },
   {
     name: "payment",
@@ -32,7 +38,7 @@ const CATEGORIES = [
     signature: "lib/VideoApiAdapter.ts",
     exportName: "VIDEO_ADAPTERS",
     outFile: "conferencing.videoAdapters.generated.ts",
-  },
+  }
 ];
 
 function isDir(p) {
