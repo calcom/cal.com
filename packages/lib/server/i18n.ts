@@ -1,5 +1,7 @@
 import { createInstance } from "i18next";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import logger from "../logger";
 
@@ -54,7 +56,7 @@ export async function loadTranslations(_locale: string, _ns: string) {
     // Try HTTP fallback as second option
     try {
       const response = await fetchWithTimeout(
-        `/static/locales/${locale}/${ns}.json`,
+        `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`,
         {
           cache: "no-store",
         },
