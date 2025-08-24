@@ -19,9 +19,14 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
-// ✅ simple email regex util
-const isValidEmail = (val: string) => /\S+@\S+\.\S+/.test(val);
-
+// Email utilities
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+const isValidEmail = (val: string) => EMAIL_RE.test(val.trim());
+const parseEmails = (input: string) =>
+  input
+    .split(/[,\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 export type CheckedSelectOption = {
   avatar?: string;
   label: string;
