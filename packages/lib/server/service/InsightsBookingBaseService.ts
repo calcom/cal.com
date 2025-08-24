@@ -323,12 +323,9 @@ export class InsightsBookingBaseService {
       return Prisma.sql`"status" IN (${Prisma.join(statusValues)})`;
     }
 
-    if (id === "paid" && isMultiSelectFilterValue(value)) {
-      const paidValues = value.data.map((val) => {
-        if (typeof val === "boolean") return val;
-        return val === "true";
-      });
-      return Prisma.sql`"paid" IN (${Prisma.join(paidValues)})`;
+    if (id === "paid" && isSingleSelectFilterValue(value)) {
+      const paidValue = typeof value.data === "boolean" ? value.data : value.data === "true";
+      return Prisma.sql`"paid" = ${paidValue}`;
     }
 
     if (id === "userEmail" && isTextFilterValue(value)) {

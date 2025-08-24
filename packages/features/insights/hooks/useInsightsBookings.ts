@@ -76,7 +76,7 @@ export const useInsightsBookings = () => {
         size: 150,
         meta: {
           filter: {
-            type: ColumnFilterType.MULTI_SELECT,
+            type: ColumnFilterType.SINGLE_SELECT,
           },
         },
         enableColumnFilter: true,
