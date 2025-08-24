@@ -24,8 +24,9 @@ import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/
 import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import { useEvent } from "@calcom/features/bookings/Booker/hooks/useEvent";
+import { useScheduleForEvent } from "@calcom/features/bookings/Booker/hooks/useScheduleForEvent";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
@@ -96,8 +97,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
   const [month] = useBookerStoreContext((state) => [state.month, state.setMonth], shallow);
 
-  // date is not always present but logic depends on it.
-  const date = dayjs.max(dayjs(selectedDate ?? month), dayjs()).format("YYYY-MM-DD");
+  const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();

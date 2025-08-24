@@ -5,16 +5,15 @@ import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/booking
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForAvailableDates } from "@calcom/features/schedules/hooks/useSlotsForDate";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
-import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 
 type AvailableTimeSlotsProps = {

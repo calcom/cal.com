@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { DatePickerClassNames } from "@calcom/features/bookings/Booker/types";
 import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/hooks/useNonEmptyScheduleDays";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
@@ -87,7 +87,8 @@ export const DatePicker = ({
   );
 
   const onMonthChange = (date: Dayjs) => {
-    setSelectedDate({ date: date.format("YYYY-MM-DD") });
+    setMonth(date.format("YYYY-MM"));
+    setSelectedDate({ date: date.format("YYYY-MM-DD"), omitUpdatingParams: true });
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 

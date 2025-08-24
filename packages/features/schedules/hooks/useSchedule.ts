@@ -3,7 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
-import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/getTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -48,12 +48,20 @@ export const useSchedule = ({
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
-  const [startTime, endTime] = useTimesForSchedule({
+  const [startTime, endTime] = getTimesForSchedule({
     month,
     monthCount,
     dayCount,
     selectedDate,
   });
+
+  console.log({
+    month,
+    monthCount,
+    dayCount,
+    selectedDate,
+  });
+
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
