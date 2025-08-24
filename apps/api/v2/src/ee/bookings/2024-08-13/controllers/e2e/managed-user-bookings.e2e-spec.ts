@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { Locales } from "@/lib/enums/locales";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import {
   CreateManagedUserData,
   CreateManagedUserOutput,
@@ -80,7 +81,7 @@ describe("Managed user bookings 2024-08-13", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaExceptionFilter, HttpExceptionFilter],
-      imports: [AppModule, UsersModule],
+      imports: [AppModule, UsersModule, MembershipsModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -714,13 +715,11 @@ describe("Managed user bookings 2024-08-13", () => {
     });
 
     it("should return unauthorized when org admin tries to confirm regular user's booking", async () => {
-      // Create regular user (not managed)
       const regularUser = await userRepositoryFixture.create({
         email: `managed-user-bookings-2024-08-13-regular-user-${randomString()}@api.com`,
         name: "Regular User",
       });
 
-      // Create event type requiring confirmation for regular user
       const regularUserEventType = await eventTypesRepositoryFixture.create(
         {
           title: `regular-user-event-type-requires-confirmation-${randomString()}`,
@@ -731,7 +730,6 @@ describe("Managed user bookings 2024-08-13", () => {
         regularUser.id
       );
 
-      // Create booking for regular user
       const regularUserBooking = await bookingsRepositoryFixture.create({
         user: {
           connect: {
@@ -765,15 +763,84 @@ describe("Managed user bookings 2024-08-13", () => {
         },
       });
 
-      // Org admin should not be able to confirm regular user's booking
       await request(app.getHttpServer())
         .post(`/v2/bookings/${regularUserBooking.uid}/confirm`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
         .expect(401);
 
-      // Clean up
       await userRepositoryFixture.delete(regularUser.id);
+    });
+  });
+
+  describe("event type booking requires authentication", () => {
+    let eventTypeRequiringAuthenticationId: number;
+
+    let body: CreateBookingInput_2024_08_13;
+
+    beforeAll(async () => {
+      const eventTypeRequiringAuthentication = await eventTypesRepositoryFixture.create(
+        {
+          title: `event-type-requiring-authentication-${randomString()}`,
+          slug: `event-type-requiring-authentication-${randomString()}`,
+          length: 60,
+          requiresConfirmation: true,
+          bookingRequiresAuthentication: true,
+        },
+        secondManagedUser.user.id
+      );
+      eventTypeRequiringAuthenticationId = eventTypeRequiringAuthentication.id;
+
+      body = {
+        start: new Date(Date.UTC(2030, 0, 9, 15, 0, 0)).toISOString(),
+        eventTypeId: eventTypeRequiringAuthenticationId,
+        attendee: {
+          email: "external@example.com",
+          name: "External Attendee",
+          timeZone: "Europe/Rome",
+        },
+      };
+    });
+
+    it("can't be booked without credentials", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(401);
+    });
+
+    it("can't be booked with managed user credentials who is not admin and not event type owner", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+        .expect(403);
+    });
+
+    it("can be booked with managed user credentials who is event type owner", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${secondManagedUser.accessToken}`)
+        .expect(201);
+
+      const bookingId = response.body.data.id;
+      await bookingsRepositoryFixture.deleteById(bookingId);
+    });
+
+    it("can be booked with managed user credentials who is admin", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .expect(201);
+
+      const bookingId = response.body.data.id;
+      await bookingsRepositoryFixture.deleteById(bookingId);
     });
   });
 
