@@ -1,19 +1,19 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
+import { MSTeamsLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
-import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
-  CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
@@ -240,7 +240,7 @@ export default class Office365CalendarService implements Calendar {
     return azureUserId ? `/users/${this.azureUserId}` : "/me";
   }
 
-  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     const mainHostDestinationCalendar = event.destinationCalendar
       ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
         event.destinationCalendar[0]
@@ -250,13 +250,18 @@ export default class Office365CalendarService implements Calendar {
         ? `${await this.getUserEndpoint()}/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : `${await this.getUserEndpoint()}/calendar/events`;
 
-      const formattedEvent = formatCalEvent(event);
       const response = await this.fetcher(eventsUrl, {
         method: "POST",
-        body: JSON.stringify(this.translateEvent(formattedEvent)),
+        body: JSON.stringify(this.translateEvent(event)),
       });
 
-      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+      >(response);
+
+      if (responseJson?.onlineMeeting?.joinUrl) {
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+      }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
@@ -266,14 +271,30 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+  async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
     try {
+      let rescheduledEvent: Event | undefined;
+      if (event.location === MSTeamsLocationType) {
+        // Extract the existing body content to preserve the meeting blob, otherwise it breaks and converts it into non-onlineMeeting
+        const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
+          method: "GET",
+        });
+
+        rescheduledEvent = await handleErrorsJson<Event>(response);
+      }
+
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "PATCH",
-        body: JSON.stringify(this.translateEvent(event)),
+        body: JSON.stringify(this.translateEvent(event, rescheduledEvent)),
       });
 
-      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+      >(response);
+
+      if (responseJson?.onlineMeeting?.joinUrl) {
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+      }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
@@ -403,12 +424,30 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private translateEvent = (event: CalendarEvent) => {
+  private translateEvent = (event: CalendarServiceEvent, rescheduledEvent?: Event) => {
+    const isOnlineMeeting = event.location === MSTeamsLocationType;
+    const isRescheduledOnlineMeeting = rescheduledEvent ? rescheduledEvent.isOnlineMeeting : false;
+    const existingBody =
+      rescheduledEvent?.body?.contentType === "html" ? rescheduledEvent.body.content : undefined;
+
+    let content = "";
+    if (isOnlineMeeting) {
+      if (isRescheduledOnlineMeeting && existingBody) {
+        content = `
+        ${getRichDescriptionHTML(event)}<hr>
+        ${existingBody}`.trim();
+      } else {
+        content = getRichDescriptionHTML(event);
+      }
+    } else {
+      content = event.calendarDescription;
+    }
+
     const office365Event: Event = {
       subject: event.title,
       body: {
-        contentType: "text",
-        content: getRichDescription(event),
+        contentType: isOnlineMeeting ? "html" : "text",
+        content,
       },
       start: {
         dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
@@ -457,6 +496,17 @@ export default class Office365CalendarService implements Calendar {
     };
     if (event.hideCalendarEventDetails) {
       office365Event.sensitivity = "private";
+    }
+    if (isOnlineMeeting) {
+      office365Event.isOnlineMeeting = true;
+      office365Event.allowNewTimeProposals = true;
+      office365Event.onlineMeetingProvider = "teamsForBusiness";
+      // MSTeams sets location as 'Microsoft Teams Meeting' by default, if location is undefined.
+      // For backward compatibility, setting explicitly.
+      office365Event.location =
+        rescheduledEvent && !isRescheduledOnlineMeeting
+          ? { displayName: "Microsoft Teams Meeting" }
+          : undefined;
     }
     return office365Event;
   };
@@ -611,20 +661,45 @@ export default class Office365CalendarService implements Calendar {
     );
   };
 
-  private handleErrorJsonOffice365Calendar = <Type>(response: Response): Promise<Type | string> => {
+  private async handleErrorJsonOffice365Calendar<Type>(response: Response): Promise<Type | string> {
     if (response.headers.get("content-encoding") === "gzip") {
       return response.text();
     }
 
     if (response.status === 204) {
-      return new Promise((resolve) => resolve({} as Type));
+      return {} as Type;
     }
 
-    if (!response.ok && response.status < 200 && response.status >= 300) {
-      response.json().then(console.log);
-      throw Error(response.statusText);
+    if (!response.ok) {
+      let errorBody: string | object;
+      try {
+        errorBody = await response.json();
+      } catch (e) {
+        errorBody = await response.text();
+      }
+      this.log.error(
+        `handleErrorJsonOffice365Calendar: Office365 API request failed with status ${response.status}`,
+        errorBody
+      );
     }
 
     return response.json();
-  };
+  }
+
+  async getMainTimeZone(): Promise<string> {
+    try {
+      const response = await this.fetcher(`${await this.getUserEndpoint()}/mailboxSettings/timeZone`);
+      const timezone = await handleErrorsJson<string>(response);
+
+      if (!timezone) {
+        this.log.warn("No timezone found in mailbox settings, defaulting to Europe/London");
+        return "Europe/London";
+      }
+
+      return timezone;
+    } catch (error) {
+      this.log.error("Error getting main timezone from Office365 Calendar", { error });
+      throw error;
+    }
+  }
 }

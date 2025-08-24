@@ -8,6 +8,7 @@ const handlers = {
   "payment_intent.succeeded": () => import("./_payment_intent.succeeded"),
   "customer.subscription.deleted": () => import("./_customer.subscription.deleted"),
   "invoice.paid": () => import("./_invoice.paid"),
+  "checkout.session.completed": () => import("./_checkout.session.completed"),
 };
 
 export default defaultHandler({

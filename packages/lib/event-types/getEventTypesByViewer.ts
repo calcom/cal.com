@@ -9,10 +9,11 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
@@ -50,6 +51,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   if (isFilterSet && filters?.upIds && !isUpIdInFilter) {
     shouldListUserEvents = true;
   }
+  const eventTypeRepo = new EventTypeRepository(prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
@@ -62,7 +64,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       }
     ),
     shouldListUserEvents
-      ? EventTypeRepository.findAllByUpId(
+      ? eventTypeRepo.findAllByUpId(
           {
             upId: userProfile.upId,
             userId: user.id,
@@ -105,32 +107,35 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   type UserEventTypes = (typeof profileEventTypes)[number];
 
-  const mapEventType = async (eventType: UserEventTypes) => ({
-    ...eventType,
-    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-    users: await Promise.all(
-      (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-        async (u) =>
-          await UserRepository.enrichUserWithItsProfile({
-            user: u,
-          })
-      )
-    ),
-    metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
-    children: await Promise.all(
-      (eventType.children || []).map(async (c) => ({
-        ...c,
-        users: await Promise.all(
-          c.users.map(
-            async (u) =>
-              await UserRepository.enrichUserWithItsProfile({
-                user: u,
-              })
-          )
-        ),
-      }))
-    ),
-  });
+  const mapEventType = async (eventType: UserEventTypes) => {
+    const userRepo = new UserRepository(prisma);
+    return {
+      ...eventType,
+      safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+      users: await Promise.all(
+        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+          async (u) =>
+            await userRepo.enrichUserWithItsProfile({
+              user: u,
+            })
+        )
+      ),
+      metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
+      children: await Promise.all(
+        (eventType.children || []).map(async (c) => ({
+          ...c,
+          users: await Promise.all(
+            c.users.map(
+              async (u) =>
+                await userRepo.enrichUserWithItsProfile({
+                  user: u,
+                })
+            )
+          ),
+        }))
+      ),
+    };
+  };
 
   const userEventTypes = (await Promise.all(profileEventTypes.map(mapEventType))).filter((eventType) => {
     const isAChildEvent = eventType.parentId;

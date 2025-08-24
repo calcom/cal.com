@@ -1,6 +1,9 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
 import { OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
-import { GetOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import {
+  AuthOptionalUser,
+  GetOptionalUser,
+} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
@@ -26,7 +29,6 @@ import {
   ApiResponse as DocsResponse,
   ApiQuery,
 } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -58,7 +60,7 @@ export class SlotsController_2024_09_04 {
 
   @Get("/")
   @ApiOperation({
-    summary: "Find out when is an event type ready to be booked.",
+    summary: "Get available time slots for an event type",
     description: `
       There are 4 ways to get available slots for event type of an individual user:
 
@@ -82,7 +84,8 @@ export class SlotsController_2024_09_04 {
       Optional parameters are:
       - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.
       - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.
-      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
+      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
+      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.
       `,
   })
   @ApiQuery({
@@ -99,7 +102,7 @@ export class SlotsController_2024_09_04 {
     example: "60",
   })
   @ApiQuery({
-    name: "slotFormat",
+    name: "format",
     required: false,
     description:
       "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
@@ -172,6 +175,13 @@ export class SlotsController_2024_09_04 {
       You can pass date without hours which defaults to start of day or specify hours:
       2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.`,
     example: "2050-09-05",
+  })
+  @ApiQuery({
+    name: "bookingUidToReschedule",
+    required: false,
+    description:
+      "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+    example: "abc123def456",
   })
   @DocsResponse({
     status: 200,
@@ -253,7 +263,7 @@ export class SlotsController_2024_09_04 {
   @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
-    @GetOptionalUser() user: User
+    @GetOptionalUser() user: AuthOptionalUser
   ): Promise<ReserveSlotOutputResponse_2024_09_04> {
     const reservedSlot = await this.slotsService.reserveSlot(body, user?.id);
 
@@ -282,7 +292,7 @@ export class SlotsController_2024_09_04 {
 
   @Patch("/reservations/:uid")
   @ApiOperation({
-    summary: "Updated reserved a slot",
+    summary: "Update a reserved slot",
   })
   @HttpCode(HttpStatus.OK)
   async updateReservedSlot(

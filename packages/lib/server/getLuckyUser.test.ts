@@ -6,9 +6,14 @@ import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
-import { AttributeType, RRResetInterval } from "@calcom/prisma/enums";
+import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
-import { getLuckyUser, prepareQueuesAndAttributesData } from "./getLuckyUser";
+import {
+  getLuckyUser,
+  prepareQueuesAndAttributesData,
+  getIntervalStartDate,
+  getIntervalEndDate,
+} from "./getLuckyUser";
 
 type NonEmptyArray<T> = [T, ...T[]];
 type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
@@ -50,7 +55,7 @@ it("can find lucky user with maximize availability", async () => {
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
   // TODO: we may be able to use native prisma generics somehow?
@@ -64,7 +69,7 @@ it("can find lucky user with maximize availability", async () => {
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -102,7 +107,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
   // TODO: we may be able to use native prisma generics somehow?
@@ -117,7 +122,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -174,7 +182,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -236,7 +244,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH },
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -281,7 +289,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -327,7 +335,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -384,7 +392,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -435,7 +443,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.DAY },
+          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -492,7 +500,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -543,7 +551,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.DAY },
+          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -592,7 +600,7 @@ describe("maximize availability and weights", () => {
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
       {
@@ -638,7 +646,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -699,13 +707,16 @@ describe("maximize availability and weights", () => {
     ];
 
     CalendarManagerMock.getBusyCalendarTimes
-      .mockResolvedValueOnce([
-        {
-          start: dayjs().utc().startOf("month").toDate(),
-          end: dayjs().utc().startOf("month").add(3, "day").toDate(),
-          timeZone: "UTC",
-        },
-      ])
+      .mockResolvedValueOnce({
+        success: true,
+        data: [
+          {
+            start: dayjs().utc().startOf("month").toDate(),
+            end: dayjs().utc().startOf("month").add(3, "day").toDate(),
+            timeZone: "UTC",
+          },
+        ],
+      })
       .mockResolvedValue([]);
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
@@ -745,7 +756,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -809,7 +820,7 @@ describe("maximize availability and weights", () => {
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     // TODO: we may be able to use native prisma generics somehow?
@@ -840,7 +851,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -865,7 +876,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH },
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -1271,7 +1282,7 @@ describe("attribute weights and virtual queues", () => {
       chosenRouteId: routeId,
     };
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     prismaMock.user.findMany.mockResolvedValue(users);
@@ -1383,7 +1394,11 @@ describe("attribute weights and virtual queues", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
+          team: {
+            parentId: 1,
+            rrResetInterval: RRResetInterval.DAY,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse,
@@ -1399,5 +1414,71 @@ describe("attribute weights and virtual queues", () => {
         lte: new Date("2021-06-20T11:59:59.000Z"),
       })
     );
+  });
+});
+
+describe("get interval times", () => {
+  it("should get correct interval start time with meeting started timestamp basis and DAY interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-15T00:00:00Z"));
+  });
+
+  it("should get correct interval start time with meeting started timestamp basis and MONTH interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.MONTH,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-01T00:00:00Z"));
+  });
+
+  it("should get correct interval start time with created at timestamp basis and DAY interval", () => {
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+    });
+    expect(result).toEqual(new Date("2021-06-20T00:00:00Z")); // Based on the mocked system time
+  });
+
+  it("should get correct interval start time with created at timestamp basis and MONTH interval", () => {
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.MONTH,
+      rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+    });
+    expect(result).toEqual(new Date("2021-06-01T00:00:00Z")); // Based on the mocked system time
+  });
+
+  it("should get correct interval end time with meeting started timestamp basis and DAY interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalEndDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-15T23:59:59.999Z"));
+  });
+
+  it("should get correct interval end time with meeting started timestamp basis and MONTH interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalEndDate({
+      interval: RRResetInterval.MONTH,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-31T23:59:59.999Z"));
+  });
+
+  it("should get correct interval end time with created at timestamp basis", () => {
+    const result = getIntervalEndDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+    });
+    expect(result).toEqual(new Date("2021-06-20T11:59:59Z")); // Based on the mocked system time
   });
 });

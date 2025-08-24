@@ -25,6 +25,7 @@ export class OAuthClientsOutputService {
       bookingRescheduleRedirectUri: client.bookingRescheduleRedirectUri ?? undefined,
       areEmailsEnabled: client.areEmailsEnabled,
       areDefaultEventTypesEnabled: client.areDefaultEventTypesEnabled,
+      areCalendarEventsEnabled: client.areCalendarEventsEnabled,
     };
   }
 

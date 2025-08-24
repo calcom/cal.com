@@ -18,7 +18,8 @@
     "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
-    "seed-insights": "ts-node --transpile-only ./seed-insights.ts"
+    "seed-insights": "ts-node --transpile-only ./seed-insights.ts",
+    "seed-pbac": "ts-node --transpile-only ./seed-pbac-organization.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "9.2.0",
@@ -30,6 +31,7 @@
     "@prisma/extension-accelerate": "^0.6.2",
     "@prisma/generator-helper": "^5.4.2",
     "prisma": "^5.4.2",
+    "prisma-kysely": "^1.7.1",
     "ts-node": "^10.9.1",
     "zod": "^3.22.4",
     "zod-prisma": "^0.5.4"

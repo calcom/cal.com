@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import type { IconName } from "@calcom/ui/components/icon";
@@ -263,7 +265,19 @@ export const ResultsView = ({
                   <div className="flex items-center gap-2 px-2 py-1">
                     <Icon name="info" className="h-3 w-3" />
                     <span data-testid="matching-members" className="text-subtle text-sm">
-                      {t("routing_preview_more_info_found_insights")}
+                      <ServerTrans
+                        t={t}
+                        i18nKey="routing_preview_more_info_found_insights"
+                        components={[
+                          <Link
+                            key="routing_insights"
+                            className="underline underline-offset-2"
+                            target="_blank"
+                            href="/insights/router-position">
+                            Routing Insights
+                          </Link>,
+                        ]}
+                      />
                     </span>
                   </div>
                 }>

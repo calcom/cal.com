@@ -2,18 +2,17 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
+
 import type { Props } from "react-select";
 import CreatableSelect from "react-select/creatable";
-
-// ✅ NEW
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
+import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
-// import { Select } from "@calcom/ui/components/form"; ❌ remove old Select
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
@@ -36,7 +35,7 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
-  isPending?: boolean; // ✅ NEW
+  isPending?: boolean; //  NEW
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -61,12 +60,15 @@ export const CheckedTeamSelect = ({
   value = [],
   isRRWeightsEnabled,
   customClassNames,
+  groupId,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
+  options?: Options<CheckedSelectOption>;
   value?: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
+  groupId: string | null;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -76,6 +78,15 @@ export const CheckedTeamSelect = ({
 
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
+
+  const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
+
+  const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
+    const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
+
+    const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
+    props.onChange(newValueAllGroups);
+  };
 
   return (
     <>
@@ -108,7 +119,7 @@ export const CheckedTeamSelect = ({
       <ul
         className={classNames(
           "mb-4 mt-3 rounded-md",
-          value.length >= 1 && "border-subtle border",
+          valueFromGroup.length >= 1 && "border-subtle border",
           customClassNames?.selectedHostList?.container
         )}
         ref={animationRef}>
@@ -190,6 +201,7 @@ export const CheckedTeamSelect = ({
             isOpenDialog={priorityDialogOpen}
             setIsOpenDialog={setPriorityDialogOpen}
             option={currentOption}
+            options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.priorityDialog}
           />
@@ -197,6 +209,7 @@ export const CheckedTeamSelect = ({
             isOpenDialog={weightDialogOpen}
             setIsOpenDialog={setWeightDialogOpen}
             option={currentOption}
+            options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.weightDialog}
           />

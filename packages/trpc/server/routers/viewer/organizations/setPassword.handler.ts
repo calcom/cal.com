@@ -19,7 +19,7 @@ type UpdateOptions = {
 export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
   const { newPassword } = input;
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },

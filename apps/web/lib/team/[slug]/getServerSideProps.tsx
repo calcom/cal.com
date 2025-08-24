@@ -5,7 +5,7 @@ import {
   getOrganizationSettings,
   getVerifiedDomain,
 } from "@calcom/features/ee/organizations/lib/orgSettings";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -19,7 +19,7 @@ import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 
@@ -67,11 +67,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.req,
     context.params?.orgSlug ?? context.query?.orgSlug
   );
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
-  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
+  const featuresRepository = new FeaturesRepository(prisma);
+  const organizationsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("organizations");
 
   log.debug("getServerSideProps", {
     isOrgProfile,
@@ -88,12 +88,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isOrgView: isValidOrgDomain && isOrgProfile,
   });
 
-  if (!isOrgContext && slug) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: slug,
+  if (slug) {
+    const redirect = await handleOrgRedirect({
+      slugs: [slug],
       redirectType: RedirectType.Team,
       eventTypeSlug: null,
-      currentQuery: context.query,
+      context,
+      currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
     });
 
     if (redirect) {

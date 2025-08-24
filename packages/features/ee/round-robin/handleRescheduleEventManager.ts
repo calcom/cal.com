@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -53,7 +53,10 @@ export const handleRescheduleEventManager = async ({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
   });
 
-  const allCredentials = await getAllCredentials(initParams.user, initParams?.eventType);
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(
+    initParams.user,
+    initParams?.eventType
+  );
 
   const eventManager = new EventManager(
     { ...initParams.user, credentials: allCredentials },
@@ -70,6 +73,17 @@ export const handleRescheduleEventManager = async ({
 
   const results = updateManager.results ?? [];
 
+  const calVideoResult = results.find((result) => result.type === "daily_video");
+  // Check if Cal Video Creation Failed - That is the fallback for Cal.com and is expected to always work
+  if (calVideoResult && !calVideoResult.success) {
+    handleRescheduleEventManager.error("Cal Video creation failed", {
+      error: calVideoResult.error,
+      bookingLocation,
+    });
+    // This happens only when Cal Video is down
+    throw new Error("Failed to set video conferencing link, but the meeting has been rescheduled");
+  }
+
   const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
     results: results,
   });
@@ -77,7 +91,6 @@ export const handleRescheduleEventManager = async ({
   let videoCallUrl = _videoCallUrl;
   let metadata: AdditionalInformation = {};
   metadata = videoMetadata;
-
   if (results.length) {
     // Handle Google Meet results
     if (bookingLocation === MeetLocationType) {
@@ -151,6 +164,7 @@ export const handleRescheduleEventManager = async ({
       ? calendarResult?.updatedEvent[0]?.iCalUID
       : calendarResult?.updatedEvent?.iCalUID || undefined;
   }
+
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
 
   await BookingReferenceRepository.replaceBookingReferences({

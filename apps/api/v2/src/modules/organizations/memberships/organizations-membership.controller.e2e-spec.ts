@@ -6,6 +6,7 @@ import { CreateOrgMembershipOutput } from "@/modules/organizations/memberships/o
 import { DeleteOrgMembership } from "@/modules/organizations/memberships/outputs/delete-membership.output";
 import { GetAllOrgMemberships } from "@/modules/organizations/memberships/outputs/get-all-memberships.output";
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
+import { OrgUserAttribute } from "@/modules/organizations/memberships/outputs/organization-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
@@ -14,17 +15,16 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { Attribute, AttributeOption, User } from "@prisma/client";
 import * as request from "supertest";
+import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Membership, Team } from "@calcom/prisma/client";
 
 describe("Organizations Memberships Endpoints", () => {
@@ -33,7 +33,8 @@ describe("Organizations Memberships Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-    let membershipsRepositoryFixture: MembershipRepositoryFixture;
+    let membershipRepositoryFixture: MembershipRepositoryFixture;
+    let attributesRepositoryFixture: AttributeRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
@@ -48,6 +49,17 @@ describe("Organizations Memberships Endpoints", () => {
     let user2: User;
 
     let userToInviteViaApi: User;
+
+    let textAttribute: Attribute;
+    let multiSelectAttribute: Attribute;
+    let numberAttribute: Attribute;
+    let singleSelectAttribute: Attribute;
+
+    let textAttributeOption: AttributeOption;
+    let multiSelectAttributeOption: AttributeOption;
+    let multiSelectAttributeOption2: AttributeOption;
+    let numberAttributeOption: AttributeOption;
+    let singleSelectAttributeOption: AttributeOption;
 
     const metadata = {
       some: "key",
@@ -64,7 +76,8 @@ describe("Organizations Memberships Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      attributesRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -91,16 +104,42 @@ describe("Organizations Memberships Endpoints", () => {
         isOrganization: true,
       });
 
-      membership = await membershipsRepositoryFixture.create({
+      await setupAttributes();
+
+      membership = await membershipRepositoryFixture.create({
         role: "ADMIN",
         user: { connect: { id: user.id } },
         team: { connect: { id: org.id } },
       });
 
-      membership2 = await membershipsRepositoryFixture.create({
+      membership2 = await membershipRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: user2.id } },
         team: { connect: { id: org.id } },
+        AttributeToUser: {
+          create: [
+            {
+              attributeOption: { connect: { id: textAttributeOption.id } },
+              weight: 100,
+            },
+            {
+              attributeOption: { connect: { id: multiSelectAttributeOption.id } },
+              weight: 100,
+            },
+            {
+              attributeOption: { connect: { id: multiSelectAttributeOption2.id } },
+              weight: null,
+            },
+            {
+              attributeOption: { connect: { id: numberAttributeOption.id } },
+              weight: 100,
+            },
+            {
+              attributeOption: { connect: { id: singleSelectAttributeOption.id } },
+              weight: 100,
+            },
+          ],
+        },
       });
 
       app = moduleRef.createNestApplication();
@@ -108,6 +147,87 @@ describe("Organizations Memberships Endpoints", () => {
 
       await app.init();
     });
+
+    async function setupAttributes() {
+      textAttribute = await attributesRepositoryFixture.create({
+        team: { connect: { id: org.id } },
+        type: "TEXT",
+        name: "team",
+        slug: `team-${randomString()}`,
+        enabled: true,
+        usersCanEditRelation: false,
+        isWeightsEnabled: false,
+        isLocked: false,
+      });
+
+      multiSelectAttribute = await attributesRepositoryFixture.create({
+        team: { connect: { id: org.id } },
+        type: "MULTI_SELECT",
+        name: "skills",
+        slug: `skills-${randomString()}`,
+        enabled: true,
+        usersCanEditRelation: false,
+        isWeightsEnabled: false,
+        isLocked: false,
+      });
+
+      numberAttribute = await attributesRepositoryFixture.create({
+        team: { connect: { id: org.id } },
+        type: "NUMBER",
+        name: "age",
+        slug: `age-${randomString()}`,
+        enabled: true,
+        usersCanEditRelation: false,
+        isWeightsEnabled: false,
+        isLocked: false,
+      });
+
+      singleSelectAttribute = await attributesRepositoryFixture.create({
+        team: { connect: { id: org.id } },
+        type: "SINGLE_SELECT",
+        name: "frontend",
+        slug: `frontend-${randomString()}`,
+        enabled: true,
+        usersCanEditRelation: false,
+        isWeightsEnabled: false,
+        isLocked: false,
+      });
+
+      textAttributeOption = await attributesRepositoryFixture.createOption({
+        attribute: { connect: { id: textAttribute.id } },
+        value: "coders",
+        slug: "coders",
+        isGroup: false,
+      });
+
+      multiSelectAttributeOption = await attributesRepositoryFixture.createOption({
+        attribute: { connect: { id: multiSelectAttribute.id } },
+        value: "javascript",
+        slug: "javascript",
+        isGroup: false,
+      });
+
+      multiSelectAttributeOption2 = await attributesRepositoryFixture.createOption({
+        attribute: { connect: { id: multiSelectAttribute.id } },
+        value: "typescript",
+        slug: "typescript",
+        isGroup: false,
+      });
+
+      numberAttributeOption = await attributesRepositoryFixture.createOption({
+        attribute: { connect: { id: numberAttribute.id } },
+        value: "18",
+        slug: "18",
+        isGroup: false,
+      });
+
+      singleSelectAttributeOption = await attributesRepositoryFixture.createOption({
+        attribute: { connect: { id: singleSelectAttribute.id } },
+        value: "yes",
+        slug: "yes",
+        isGroup: false,
+      });
+    }
 
     it("should be defined", () => {
       expect(userRepositoryFixture).toBeDefined();
@@ -139,8 +259,53 @@ describe("Organizations Memberships Endpoints", () => {
           expect(responseBody.data[1].user.email).toEqual(user2.email);
           expect(responseBody.data[1].user.username).toEqual(user2.username);
           expect(responseBody.data[1].teamId).toEqual(org.id);
+          userHasCorrectAttributes(responseBody.data[1].attributes);
         });
     });
+
+    function userHasCorrectAttributes(attributes: OrgUserAttribute[]) {
+      expect(attributes.length).toEqual(4);
+      const responseNumberAttribute = attributes.find((attr) => attr.type === "number");
+      const responseSingleSelectAttribute = attributes.find((attr) => attr.type === "singleSelect");
+      const responseMultiSelectAttribute = attributes.find((attr) => attr.type === "multiSelect");
+      const responseTextAttribute = attributes.find((attr) => attr.type === "text");
+      expect(responseNumberAttribute).toEqual({
+        id: numberAttribute.id,
+        name: numberAttribute.name,
+        optionId: numberAttributeOption.id,
+        option: +numberAttributeOption.value,
+        type: "number",
+      });
+      expect(responseSingleSelectAttribute).toEqual({
+        id: singleSelectAttribute.id,
+        name: singleSelectAttribute.name,
+        optionId: singleSelectAttributeOption.id,
+        option: singleSelectAttributeOption.value,
+        type: "singleSelect",
+      });
+      expect(responseMultiSelectAttribute).toEqual({
+        id: multiSelectAttribute.id,
+        name: multiSelectAttribute.name,
+        options: [
+          {
+            optionId: multiSelectAttributeOption2.id,
+            option: multiSelectAttributeOption2.value,
+          },
+          {
+            optionId: multiSelectAttributeOption.id,
+            option: multiSelectAttributeOption.value,
+          },
+        ],
+        type: "multiSelect",
+      });
+      expect(responseTextAttribute).toEqual({
+        id: textAttribute.id,
+        name: textAttribute.name,
+        optionId: textAttributeOption.id,
+        option: textAttributeOption.value,
+        type: "text",
+      });
+    }
 
     it("should get all the memberships of the org paginated", async () => {
       return request(app.getHttpServer())
@@ -179,6 +344,25 @@ describe("Organizations Memberships Endpoints", () => {
           expect(responseBody.data.user.email).toEqual(user.email);
           expect(responseBody.data.user.username).toEqual(user.username);
           expect(responseBody.data.teamId).toEqual(org.id);
+        });
+    });
+
+    it("should get the membership of the org", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/memberships/${membership2.id}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetOrgMembership = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.id).toEqual(membership2.id);
+          expect(responseBody.data.userId).toEqual(user2.id);
+          expect(responseBody.data.role).toEqual("MEMBER");
+          expect(responseBody.data.user.bio).toEqual(bio);
+          expect(responseBody.data.user.metadata).toEqual(metadata);
+          expect(responseBody.data.user.email).toEqual(user2.email);
+          expect(responseBody.data.user.username).toEqual(user2.username);
+          expect(responseBody.data.teamId).toEqual(org.id);
+          userHasCorrectAttributes(responseBody.data.attributes);
         });
     });
 
@@ -259,7 +443,8 @@ describe("Organizations Memberships Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-    let membershipsRepositoryFixture: MembershipRepositoryFixture;
+    let membershipRepositoryFixture: MembershipRepositoryFixture;
+    let attributesRepositoryFixture: AttributeRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
@@ -277,7 +462,8 @@ describe("Organizations Memberships Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      attributesRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -289,7 +475,7 @@ describe("Organizations Memberships Endpoints", () => {
         isOrganization: true,
       });
 
-      membership = await membershipsRepositoryFixture.create({
+      membership = await membershipRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: user.id } },
         team: { connect: { id: org.id } },

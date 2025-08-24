@@ -40,12 +40,7 @@ export default function InsightsVirtualQueuesPage() {
       />
       <div className="mt-10">
         {selectedForm ? (
-          <TestForm
-            form={selectedForm}
-            supportsTeamMembersMatchingLogic={true}
-            showAllData={false}
-            isDialog
-          />
+          <TestForm form={selectedForm} supportsTeamMembersMatchingLogic={true} showRRData={true} />
         ) : (
           <></>
         )}

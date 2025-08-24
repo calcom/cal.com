@@ -6,6 +6,7 @@ export type PaidBooking = Prisma.BookingGetPayload<{
     title: true;
     startTime: true;
     endTime: true;
+    eventTypeId: true;
     eventType: {
       select: {
         slug: true;

@@ -196,7 +196,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   });
   let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
   if (createdOrUpdatedOutOfOffice) {
-    const findRedirect = await prisma.outOfOfficeEntry.findFirst({
+    const findRedirect = await prisma.outOfOfficeEntry.findUnique({
       where: {
         uuid: createdOrUpdatedOutOfOffice.uuid,
       },
@@ -210,7 +210,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     return;
   }
   const toUser = toUserId
-    ? await prisma.user.findFirst({
+    ? await prisma.user.findUnique({
         where: {
           id: toUserId,
         },
@@ -222,7 +222,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         },
       })
     : null;
-  const reason = await prisma.outOfOfficeReason.findFirst({
+  const reason = await prisma.outOfOfficeReason.findUnique({
     where: {
       id: input.reasonId,
     },
@@ -233,7 +233,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   });
   if (toUserId) {
     // await send email to notify user
-    const userToNotify = await prisma.user.findFirst({
+    const userToNotify = await prisma.user.findUnique({
       where: {
         id: toUserId,
       },

@@ -1,16 +1,13 @@
+import {
+  ZCreateFilterSegmentInputSchema,
+  ZDeleteFilterSegmentInputSchema,
+  ZListFilterSegmentsInputSchema,
+  ZSetFilterSegmentPreferenceInputSchema,
+  ZUpdateFilterSegmentInputSchema,
+} from "@calcom/lib/server/repository/filterSegment.type";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-import { ZCreateFilterSegmentInputSchema } from "./create.schema";
-import { ZDeleteFilterSegmentInputSchema } from "./delete.schema";
-import { ZListFilterSegmentsInputSchema } from "./list.schema";
-import { ZUpdateFilterSegmentInputSchema } from "./update.schema";
-
-type FilterSegmentsRouterHandlerCache = {
-  list?: typeof import("./list.handler").listHandler;
-  create?: typeof import("./create.handler").createHandler;
-  update?: typeof import("./update.handler").updateHandler;
-  delete?: typeof import("./delete.handler").deleteHandler;
-};
 
 export const filterSegmentsRouter = router({
   list: authedProcedure.input(ZListFilterSegmentsInputSchema).query(async ({ input, ctx }) => {
@@ -23,29 +20,40 @@ export const filterSegmentsRouter = router({
   }),
 
   create: authedProcedure.input(ZCreateFilterSegmentInputSchema).mutation(async ({ input, ctx }) => {
-    const { createHandler } = await import("./create.handler");
+    const { createFilterSegmentHandler } = await import("./create.handler");
 
-    return createHandler({
+    return createFilterSegmentHandler({
       ctx,
       input,
     });
   }),
 
   update: authedProcedure.input(ZUpdateFilterSegmentInputSchema).mutation(async ({ input, ctx }) => {
-    const { updateHandler } = await import("./update.handler");
+    const { updateFilterSegmentHandler } = await import("./update.handler");
 
-    return updateHandler({
+    return updateFilterSegmentHandler({
       ctx,
       input,
     });
   }),
 
   delete: authedProcedure.input(ZDeleteFilterSegmentInputSchema).mutation(async ({ input, ctx }) => {
-    const { deleteHandler } = await import("./delete.handler");
+    const { deleteFilterSegmentHandler } = await import("./delete.handler");
 
-    return deleteHandler({
+    return deleteFilterSegmentHandler({
       ctx,
       input,
     });
   }),
+
+  setPreference: authedProcedure
+    .input(ZSetFilterSegmentPreferenceInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { setFilterSegmentPreferenceHandler } = await import("./preference.handler");
+
+      return setFilterSegmentPreferenceHandler({
+        ctx,
+        input,
+      });
+    }),
 });

@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
@@ -141,7 +141,16 @@ export class OrganizationsUsersRepository {
     return await this.dbWrite.prisma.user.delete({
       where: {
         id: userId,
-        organizationId: orgId,
+        OR: [
+          { organizationId: orgId },
+          {
+            profiles: {
+              some: {
+                organizationId: orgId,
+              },
+            },
+          },
+        ],
       },
       include: {
         profiles: {

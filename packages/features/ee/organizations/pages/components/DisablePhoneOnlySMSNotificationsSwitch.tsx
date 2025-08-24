@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,10 +10,9 @@ import { showToast } from "@calcom/ui/components/toast";
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
-  isAdminOrOwner: boolean;
 }
 
-export const DisablePhoneOnlySMSNotificationsSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
+export const DisablePhoneOnlySMSNotificationsSwitch = ({ currentOrg }: GeneralViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [disablePhoneOnlySMSNotificationsActive, setDisablePhoneOnlySMSNotificationsActive] = useState(
@@ -30,8 +30,6 @@ export const DisablePhoneOnlySMSNotificationsSwitch = ({ currentOrg, isAdminOrOw
       utils.viewer.organizations.listCurrent.invalidate();
     },
   });
-
-  if (!isAdminOrOwner) return null;
 
   return (
     <>

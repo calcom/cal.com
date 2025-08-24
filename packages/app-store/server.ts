@@ -26,6 +26,7 @@ export async function getLocationGroupedOptions(
       icon?: string;
       slug?: string;
       credentialId?: number;
+      supportsCustomLabel?: boolean;
     }[]
   > = {};
 
@@ -125,7 +126,10 @@ export async function getLocationGroupedOptions(
             : {}),
         };
         if (apps[groupByCategory]) {
-          apps[groupByCategory] = [...apps[groupByCategory], option];
+          const existingOption = apps[groupByCategory].find((o) => o.value === option.value);
+          if (!existingOption) {
+            apps[groupByCategory] = [...apps[groupByCategory], option];
+          }
         } else {
           apps[groupByCategory] = [option];
         }
@@ -142,6 +146,7 @@ export async function getLocationGroupedOptions(
           label: l.label,
           value: l.type,
           icon: l.iconUrl,
+          supportsCustomLabel: l.supportsCustomLabel,
         },
       ];
     } else {
@@ -150,6 +155,7 @@ export async function getLocationGroupedOptions(
           label: l.label,
           value: l.type,
           icon: l.iconUrl,
+          supportsCustomLabel: l.supportsCustomLabel,
         },
       ];
     }
