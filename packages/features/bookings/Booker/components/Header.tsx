@@ -40,6 +40,7 @@ export function Header({
   const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStoreContext((state) => state.addToSelectedDate);
+  // for week view this property should always be false
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const today = dayjs();
   const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;

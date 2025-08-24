@@ -1,3 +1,3 @@
-import { getUserAvailability } from "@calcom/lib/getUserAvailability";
+import { UserAvailabilityService } from "@calcom/lib/getUserAvailability";
 
-export { getUserAvailability };
+export { UserAvailabilityService };

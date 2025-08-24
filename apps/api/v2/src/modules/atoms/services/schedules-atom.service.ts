@@ -6,7 +6,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Logger, NotFoundException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { getUserAvailability } from "@calcom/platform-libraries/availability";
+import { UserAvailabilityService } from "@calcom/platform-libraries/availability";
 import { ScheduleRepository, UpdateScheduleResponse } from "@calcom/platform-libraries/schedules";
 import { updateSchedule } from "@calcom/platform-libraries/schedules";
 import { UpdateAtomScheduleDto } from "@calcom/platform-types";
@@ -74,7 +74,7 @@ export class SchedulesAtomsService {
 
     const event = await this.eventTypesRepository.getUserEventTypeBySlug(user.id, eventSlug);
 
-    const busyEvents = await getUserAvailability({
+    const busyEvents = UserAvailabilityService._getUserAvailability({
       userId: user.id,
       dateFrom,
       dateTo,

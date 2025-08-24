@@ -89,9 +89,7 @@ export class AtomsSchedulesController {
   @UseGuards(ApiAuthGuard)
   @Permissions([SCHEDULE_READ])
   @ApiOperation({ summary: "Get busy events schedule" })
-  async getBusyEvents(
-    @Query() queryParams: GetBusyEventsQueryParams
-  ): Promise<ApiResponse<FindDetailedScheduleByIdReturnType | null>> {
+  async getBusyEvents(@Query() queryParams: GetBusyEventsQueryParams): Promise<any> {
     const schedule = await this.schedulesService.getBusyEventsSchedule({
       ...queryParams,
     });

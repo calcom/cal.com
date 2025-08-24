@@ -4,14 +4,17 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
+import {
+  BookerStoreProvider,
+  useBookerStoreContext,
+  useInitializeBookerStoreContext,
+} from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Header } from "@calcom/features/bookings/Booker/components/Header";
+import { LargeCalendar } from "@calcom/features/bookings/Booker/components/LargeCalendar";
 import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
-// import { LargeCalendar } from "@calcom/features/bookings/Booker/components/LargeCalendar";
-import { LargeCalendar } from "@calcom/features/troubleshooter/components/LargeCalendar";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
@@ -47,27 +50,29 @@ type CalendarViewPlatformWrapperProps = {
   allowUpdatingUrlParams?: boolean;
   crmAppSlug?: string | null;
   crmOwnerRecordType?: string | null;
+  crmRecordId?: string | null;
   view?: "MONTH_VIEW" | "WEEK_VIEW" | "COLUMN_VIEW";
 };
 
-export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperProps) => {
+const CalendarViewPlatformWrapperComponent = (props: CalendarViewPlatformWrapperProps) => {
   const {
     username,
     eventSlug,
     isTeamEvent,
     teamId,
     hostsLimit,
-    defaultFormValues,
+    allowUpdatingUrlParams,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
     view = "MONTH_VIEW",
   } = props;
-
-  const isMobile = false;
 
   const { isPending } = useEventType(username, eventSlug, isTeamEvent);
   const { isPending: isTeamPending } = useTeamEventType(teamId, eventSlug, isTeamEvent, hostsLimit);
 
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const setSelectedDuration = useBookerStoreContext((state) => state.setSelectedDuration);
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
 
   const event = useAtomGetPublicEvent({
     username,
@@ -79,8 +84,11 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
 
-  const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const [bookerState, setBookerState] = useBookerStoreContext(
+    (state) => [state.state, state.setState],
+    shallow
+  );
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
@@ -89,8 +97,8 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
       dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
       ? 2
       : undefined;
-  const month = useBookerStore((state) => state.month);
-  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+  const month = useBookerStoreContext((state) => state.month);
+  const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
 
   const prefetchNextMonth =
     (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
@@ -143,8 +151,8 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
   }, [props.routingFormSearchParams]);
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const setBookingData = useBookerStore((state) => state.setBookingData);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const setBookingData = useBookerStoreContext((state) => state.setBookingData);
   const layout = BookerLayouts[view];
 
   useGetBookingForReschedule({
@@ -154,12 +162,13 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
     },
   });
 
-  useInitializeBookerStore({
+  useInitializeBookerStoreContext({
     ...props,
-    // props.teamMemberEmail,
-    // crmAppSlug,
-    // crmOwnerRecordType,
-    eventId: event.data?.id,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
+    crmRecordId: props.crmRecordId,
+    eventId: event?.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: layout,
@@ -167,7 +176,7 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
     username,
     bookingData,
     isPlatform: true,
-    allowUpdatingUrlParams: props.allowUpdatingUrlParams ?? false,
+    allowUpdatingUrlParams,
   });
 
   const schedule = useAvailableSlots({
@@ -214,11 +223,19 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
         <LargeCalendar
           // need to use the displayStartDate prop to make sure we always pass in monday of the following week
           extraDays={7}
-          // schedule={schedule.data}
-          // isLoading={schedule.isPending}
-          // event={event}
+          schedule={schedule.data}
+          isLoading={schedule.isPending}
+          event={event}
         />
       </BookerSection>
     </AtomsWrapper>
+  );
+};
+
+export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperProps) => {
+  return (
+    <BookerStoreProvider>
+      <CalendarViewPlatformWrapperComponent {...props} />
+    </BookerStoreProvider>
   );
 };
