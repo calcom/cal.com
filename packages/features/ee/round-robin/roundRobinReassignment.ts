@@ -139,8 +139,8 @@ export const roundRobinReassignment = async ({
 
   const traceContext = distributedTracing.createTrace("round_robin_reassignment", {
     meta: {
-      bookingUid: booking.uid,
-      eventTypeId: eventType.id,
+      bookingUid: booking.uid || "unknown",
+      eventTypeId: eventType.id.toString(),
     },
   });
 

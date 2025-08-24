@@ -334,8 +334,6 @@ export const useBookings = ({
       console.error("Error creating instant booking", err);
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
-
-      const error = err as Error & { traceId?: string };
     },
   });
 
@@ -404,8 +402,6 @@ export const useBookings = ({
       console.error("Error creating recurring booking", err);
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
-
-      const error = err as Error & { traceId?: string };
     },
   });
 

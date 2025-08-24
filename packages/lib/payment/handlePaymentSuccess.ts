@@ -23,8 +23,8 @@ export async function handlePaymentSuccess(
   traceContext?: TraceContext
 ) {
   const paymentMeta = {
-    paymentId,
-    bookingId,
+    paymentId: paymentId.toString(),
+    bookingId: bookingId.toString(),
   };
 
   const spanContext = traceContext

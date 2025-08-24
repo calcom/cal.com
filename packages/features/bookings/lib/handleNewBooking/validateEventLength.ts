@@ -22,19 +22,17 @@ const _validateEventLength = ({
 }: Props) => {
   const spanContext = traceContext
     ? distributedTracing.createSpan(traceContext, "validate_event_length", {
-        meta: {
-          reqBodyStart,
-          reqBodyEnd,
-          eventTypeMultipleDuration,
-          eventTypeLength,
-        },
+        reqBodyStart,
+        reqBodyEnd,
+        eventTypeMultipleDuration: JSON.stringify(eventTypeMultipleDuration),
+        eventTypeLength: eventTypeLength.toString(),
       })
     : distributedTracing.createTrace("validate_event_length_fallback", {
         meta: {
           reqBodyStart,
           reqBodyEnd,
-          eventTypeMultipleDuration,
-          eventTypeLength,
+          eventTypeMultipleDuration: JSON.stringify(eventTypeMultipleDuration),
+          eventTypeLength: eventTypeLength.toString(),
         },
       });
   const logger = distributedTracing.getTracingLogger(spanContext);

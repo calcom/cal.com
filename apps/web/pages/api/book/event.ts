@@ -10,20 +10,13 @@ import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { CreationSource } from "@calcom/prisma/enums";
 
-async function handler(req: NextApiRequest & { userId?: number; traceContext?: TraceContext }) {
+async function handler(req: NextApiRequest & { userId?: number; traceContext: TraceContext }) {
   const userIp = getIP(req);
 
-  const traceContext = req.traceContext
-    ? distributedTracing.updateTrace(req.traceContext, {
-        userIp,
-        eventTypeId: req.body?.eventTypeId,
-      })
-    : distributedTracing.createTrace("api_book_event", {
-        meta: {
-          userIp,
-          eventTypeId: req.body?.eventTypeId,
-        },
-      });
+  const traceContext = distributedTracing.updateTrace(req.traceContext, {
+    userIp: userIp || "unknown",
+    eventTypeId: req.body?.eventTypeId?.toString() || "null",
+  });
   const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("API book event request started", {

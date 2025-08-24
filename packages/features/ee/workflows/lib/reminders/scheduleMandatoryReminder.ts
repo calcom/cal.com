@@ -34,13 +34,13 @@ async function _scheduleMandatoryReminder({
   if (isPlatformNoEmail) return;
 
   const reminderMeta = {
-    eventTitle: evt.title,
-    attendeeCount: evt.attendees.length,
-    organizerId: evt.organizer.id,
-    requiresConfirmation,
-    hideBranding,
-    seatReferenceUid,
-    isPlatformNoEmail,
+    eventTitle: evt.title || "unknown",
+    attendeeCount: evt.attendees.length.toString(),
+    organizerId: evt.organizer.id?.toString() || "unknown",
+    requiresConfirmation: String(requiresConfirmation),
+    hideBranding: String(hideBranding),
+    seatReferenceUid: seatReferenceUid || "null",
+    isPlatformNoEmail: String(isPlatformNoEmail),
   };
 
   const spanContext = traceContext

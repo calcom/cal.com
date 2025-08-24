@@ -43,11 +43,11 @@ const handleSeats = async (
   if (isDryRun) return;
 
   const seatsMeta = {
-    eventTypeId: eventType.id,
-    userInfo: reqBodyUser,
-    eventTypeSlug: eventType.slug,
-    bookingUid: reqBookingUid,
-    rescheduleUid,
+    eventTypeId: eventType.id.toString(),
+    userInfo: JSON.stringify(reqBodyUser) || "null",
+    eventTypeSlug: eventType.slug || "unknown",
+    bookingUid: reqBookingUid || "null",
+    rescheduleUid: rescheduleUid || "null",
   };
 
   const spanContext = traceContext

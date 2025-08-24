@@ -19,14 +19,14 @@ async function _handleWebhookTrigger(args: {
   const spanContext = args.traceContext
     ? distributedTracing.createSpan(args.traceContext, "webhook_trigger", {
         meta: {
-          eventTrigger: args.eventTrigger,
-          isDryRun: args.isDryRun,
+          eventTrigger: args.eventTrigger || "unknown",
+          isDryRun: String(args.isDryRun),
         },
       })
     : distributedTracing.createTrace("webhook_trigger_fallback", {
         meta: {
-          eventTrigger: args.eventTrigger,
-          isDryRun: args.isDryRun,
+          eventTrigger: args.eventTrigger || "unknown",
+          isDryRun: String(args.isDryRun),
         },
       });
   const tracingLogger = distributedTracing.getTracingLogger(spanContext);

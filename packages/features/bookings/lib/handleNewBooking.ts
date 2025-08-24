@@ -407,17 +407,21 @@ async function handler(
 
   const traceContext = passedTraceContext
     ? distributedTracing.updateTrace(passedTraceContext, {
-        eventTypeId: rawBookingData.eventTypeId,
-        userId: userId,
-        eventTypeSlug: rawBookingData.eventTypeSlug,
-        userInfo: rawBookingData.user,
+        eventTypeId: rawBookingData.eventTypeId?.toString() || "null",
+        userId: userId?.toString() || "null",
+        eventTypeSlug: rawBookingData.eventTypeSlug || "unknown",
+        userInfo:
+          typeof rawBookingData.user === "string" ? rawBookingData.user : JSON.stringify(rawBookingData.user),
       })
     : distributedTracing.createTrace("booking_creation", {
         meta: {
-          eventTypeId: rawBookingData.eventTypeId,
-          userId: userId,
-          eventTypeSlug: rawBookingData.eventTypeSlug,
-          userInfo: rawBookingData.user,
+          eventTypeId: rawBookingData.eventTypeId?.toString() || "null",
+          userId: userId?.toString() || "null",
+          eventTypeSlug: rawBookingData.eventTypeSlug || "unknown",
+          userInfo:
+            typeof rawBookingData.user === "string"
+              ? rawBookingData.user
+              : JSON.stringify(rawBookingData.user),
         },
       });
   const tracingLogger = distributedTracing.getTracingLogger(traceContext);

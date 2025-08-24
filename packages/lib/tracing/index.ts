@@ -1,10 +1,12 @@
+import type { Logger } from "tslog";
+
 export interface TraceContext {
   traceId: string;
   spanId: string;
   parentSpanId?: string;
   operation: string;
   // So that we don't violate open closed principle, we allow meta to be added to the trace context
-  meta?: Record<string, any>;
+  meta?: Record<string, string>;
 }
 
 export interface IdGenerator {
@@ -12,7 +14,7 @@ export interface IdGenerator {
 }
 
 export class DistributedTracing {
-  constructor(private idGenerator: IdGenerator, private loggerInstance: any) {}
+  constructor(private idGenerator: IdGenerator, private loggerInstance: Logger) {}
 
   createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
     const { traceId, spanId, meta, ...otherContext } = context || {};
@@ -29,7 +31,7 @@ export class DistributedTracing {
   createSpan(
     parentContext: TraceContext,
     operation: string,
-    additionalMeta?: Record<string, any>
+    additionalMeta?: Record<string, string>
   ): TraceContext {
     const mergedMeta = {
       ...parentContext.meta,
@@ -83,7 +85,7 @@ export class DistributedTracing {
     };
   }
 
-  updateTrace(traceContext: TraceContext, additionalMeta?: Record<string, any>): TraceContext {
+  updateTrace(traceContext: TraceContext, additionalMeta?: Record<string, string>): TraceContext {
     return {
       ...traceContext,
       meta: {

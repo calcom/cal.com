@@ -33,9 +33,9 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
   const webhookMeta = {
-    eventType: event.type,
-    paymentIntentId: paymentIntent.id,
-    stripeEventId: event.id,
+    eventType: event.type || "unknown",
+    paymentIntentId: paymentIntent.id || "unknown",
+    stripeEventId: event.id || "unknown",
   };
 
   const spanContext = traceContext
@@ -76,9 +76,9 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext?: TraceConte
   const setupIntent = event.data.object as Stripe.SetupIntent;
 
   const webhookMeta = {
-    eventType: event.type,
-    setupIntentId: setupIntent.id,
-    stripeEventId: event.id,
+    eventType: event.type || "unknown",
+    setupIntentId: setupIntent.id || "unknown",
+    stripeEventId: event.id || "unknown",
   };
 
   const spanContext = traceContext
@@ -188,9 +188,9 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const webhookMeta = {
-    method: req.method,
-    userAgent: req.headers["user-agent"],
-    contentType: req.headers["content-type"],
+    method: req.method || "unknown",
+    userAgent: req.headers["user-agent"] || "unknown",
+    contentType: req.headers["content-type"] || "unknown",
   };
 
   const traceContext = distributedTracing.createTrace("stripe_webhook_handler", {

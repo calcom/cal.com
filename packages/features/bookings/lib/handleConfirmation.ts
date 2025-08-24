@@ -71,7 +71,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
-  traceContext?: TraceContext;
+  traceContext: TraceContext;
 }) {
   const {
     user,
@@ -87,21 +87,17 @@ export async function handleConfirmation(args: {
   } = args;
 
   const confirmationMeta = {
-    bookingId,
-    eventTypeId: booking.eventTypeId,
-    eventTypeTitle: booking.eventType?.title,
-    userId: booking.userId,
-    recurringEventId,
-    paid,
-    emailsEnabled,
-    platformClientId: platformClientParams?.platformClientId,
+    bookingId: bookingId.toString(),
+    eventTypeId: booking.eventTypeId?.toString() || "null",
+    eventTypeTitle: booking.eventType?.title || "unknown",
+    userId: booking.userId?.toString() || "null",
+    recurringEventId: recurringEventId || "null",
+    paid: paid?.toString() || "false",
+    emailsEnabled: emailsEnabled.toString(),
+    platformClientId: platformClientParams?.platformClientId || "null",
   };
 
-  const spanContext = traceContext
-    ? distributedTracing.createSpan(traceContext, "handle_confirmation", confirmationMeta)
-    : distributedTracing.createTrace("handle_confirmation_fallback", {
-        meta: confirmationMeta,
-      });
+  const spanContext = distributedTracing.createSpan(traceContext, "handle_confirmation", confirmationMeta);
 
   const tracingLogger = distributedTracing.getTracingLogger(spanContext);
   const eventType = booking.eventType;

@@ -309,7 +309,7 @@ const getError = ({
       {responseVercelIdHeader ?? ""} {t(error.message, { date })}
       {error.traceId && (
         <div className="mt-2 text-xs text-gray-500">
-          {t("reference_id")}: {error.traceId}
+          {t("trace_reference_id")}: {error.traceId}
         </div>
       )}
     </>

@@ -39,6 +39,7 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 type ConfirmOptions = {
   ctx: {
     user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
+    traceContext: TraceContext;
   };
   input: TConfirmInputSchema;
 };
@@ -243,6 +244,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     ...(platformClientParams ? platformClientParams : {}),
   };
 
+  const traceContext: TraceContext = distributedTracing.updateTrace(ctx.traceContext, {
+    bookingUid: booking.uid || "unknown",
+    confirmed: String(confirmed),
+    eventTypeId: booking.eventType?.id?.toString() || "null",
+    userId: user.id.toString(),
+    teamId: booking.eventType?.teamId?.toString() || "null",
+  });
+
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEventId) {
     if (
@@ -302,6 +311,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      traceContext,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -378,17 +388,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-
-    const traceContext: TraceContext = distributedTracing.createTrace("booking_confirmation", {
-      meta: {
-        bookingUid: booking.uid,
-        confirmed,
-        userId: user.id,
-        teamId,
-        eventTypeId: booking.eventType?.id,
-      },
-    });
-
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
   }
 
