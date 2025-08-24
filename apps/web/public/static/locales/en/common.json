@@ -918,6 +918,7 @@
   "availability": "Availability",
   "edit_availability": "Edit availability",
   "configure_availability": "Configure times when you are available for bookings.",
+  "name_empty": "Name cannot be empty",
   "copy_times_to": "Copy times to",
   "copy_times_to_tooltip": "Copy times to …",
   "change_weekly_schedule": "Change your weekly schedule",

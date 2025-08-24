@@ -75,7 +75,9 @@ export function NewScheduleButton({
             id="name"
             required
             placeholder={t("default_schedule_name")}
-            {...register("name")}
+            {...register("name", {
+              validate: (value) => value.trim().length > 0 || t("name_empty"),
+            })}
           />
           <DialogFooter>
             <DialogClose />
