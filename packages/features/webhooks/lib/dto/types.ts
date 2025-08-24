@@ -16,15 +16,9 @@ export interface BaseEventDTO {
 export interface BookingCreatedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_CREATED;
   evt: CalendarEvent;
-  eventType: {
+  eventType: EventTypeInfo & {
     id: number;
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-  } | null;
+  };
   booking: {
     id: number;
     eventTypeId: number | null;
@@ -45,15 +39,9 @@ export interface BookingCreatedDTO extends BaseEventDTO {
 export interface BookingCancelledDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_CANCELLED;
   evt: CalendarEvent;
-  eventType: {
+  eventType: EventTypeInfo & {
     id: number;
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-  } | null;
+  };
   booking: {
     id: number;
     eventTypeId: number | null;
@@ -67,15 +55,9 @@ export interface BookingCancelledDTO extends BaseEventDTO {
 export interface BookingRejectedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_REJECTED;
   evt: CalendarEvent;
-  eventType: {
+  eventType: EventTypeInfo & {
     id: number;
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-  } | null;
+  };
   booking: {
     id: number;
     eventTypeId: number | null;
@@ -88,16 +70,9 @@ export interface BookingRejectedDTO extends BaseEventDTO {
 export interface BookingRequestedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_REQUESTED;
   evt: CalendarEvent;
-  eventType: {
+  eventType: EventTypeInfo & {
     id: number;
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-    teamId?: number | null;
-  } | null;
+  };
   booking: {
     id: number;
     eventTypeId: number | null;
@@ -108,15 +83,9 @@ export interface BookingRequestedDTO extends BaseEventDTO {
 export interface BookingRescheduledDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_RESCHEDULED;
   evt: CalendarEvent;
-  eventType: {
+  eventType: EventTypeInfo & {
     id: number;
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-  } | null;
+  };
   booking: {
     id: number;
     eventTypeId: number | null;
@@ -133,15 +102,9 @@ export interface BookingRescheduledDTO extends BaseEventDTO {
 export interface BookingPaidDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_PAID;
   evt: CalendarEvent;
-  eventType: {
+  eventType: EventTypeInfo & {
     id: number;
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-  } | null;
+  };
   booking: {
     id: number;
     eventTypeId: number | null;
@@ -154,15 +117,9 @@ export interface BookingPaidDTO extends BaseEventDTO {
 export interface BookingPaymentInitiatedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED;
   evt: CalendarEvent;
-  eventType: {
+  eventType: EventTypeInfo & {
     id: number;
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-  } | null;
+  };
   booking: {
     id: number;
     eventTypeId: number | null;

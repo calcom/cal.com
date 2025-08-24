@@ -26,6 +26,7 @@ import type {
   InstantMeetingDTO,
   AfterHostsNoShowDTO,
   AfterGuestsNoShowDTO,
+  EventTypeInfo,
 } from "../dto/types";
 import type { WebhookPayload, FormSubmittedPayload, RecordingPayload } from "./types";
 
@@ -232,7 +233,7 @@ export class WebhookPayloadFactory {
   private static createBookingCreatedPayload(dto: BookingCreatedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: dto.eventType,
+      eventType: dto.eventType as EventTypeInfo,
       bookingId: dto.booking.id,
       eventTypeId: dto.eventType?.id,
       status: dto.status,
@@ -252,7 +253,7 @@ export class WebhookPayloadFactory {
   private static createBookingCancelledPayload(dto: BookingCancelledDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: dto.eventType,
+      eventType: dto.eventType as EventTypeInfo,
       bookingId: dto.booking.id,
       eventTypeId: dto.eventType?.id,
       status: "CANCELLED",
@@ -272,7 +273,7 @@ export class WebhookPayloadFactory {
   private static createBookingRequestedPayload(dto: BookingRequestedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: dto.eventType,
+      eventType: dto.eventType as EventTypeInfo,
       bookingId: dto.booking.id,
       eventTypeId: dto.eventType?.id,
       status: "PENDING",
@@ -288,7 +289,7 @@ export class WebhookPayloadFactory {
   private static createBookingRescheduledPayload(dto: BookingRescheduledDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: dto.eventType,
+      eventType: dto.eventType as EventTypeInfo,
       bookingId: dto.booking.id,
       eventTypeId: dto.eventType?.id,
       status: "ACCEPTED",
@@ -310,7 +311,7 @@ export class WebhookPayloadFactory {
   private static createBookingPaidPayload(dto: BookingPaidDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: dto.eventType,
+      eventType: dto.eventType as EventTypeInfo,
       bookingId: dto.booking.id,
       eventTypeId: dto.eventType?.id,
       status: "ACCEPTED",
@@ -328,7 +329,7 @@ export class WebhookPayloadFactory {
   private static createBookingRejectedPayload(dto: BookingRejectedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: dto.eventType,
+      eventType: dto.eventType as EventTypeInfo,
       bookingId: dto.booking.id,
       eventTypeId: dto.eventType?.id,
       status: "REJECTED",
@@ -391,7 +392,7 @@ export class WebhookPayloadFactory {
    */
   private static buildEventPayload(params: {
     evt: CalendarEvent;
-    eventType: Record<string, unknown> | null;
+    eventType: EventTypeInfo;
     bookingId?: number;
     eventTypeId?: number;
     status?: string;
@@ -454,6 +455,9 @@ export class WebhookPayloadFactory {
       };
     }
 
+    const requiresConfirmation =
+      typeof eventType?.requiresConfirmation === "boolean" ? eventType.requiresConfirmation : null;
+
     const payload: EventPayloadType = {
       type: (basePayload.type as string) || evt.type || "",
       title: (basePayload.title as string) || evt.title || "",
@@ -475,9 +479,9 @@ export class WebhookPayloadFactory {
       bookingId: (basePayload.bookingId as number) || evt.bookingId || undefined,
 
       // Event type information
-      eventTitle: eventType?.title as string,
-      eventDescription: eventType?.description as string,
-      requiresConfirmation: (eventType?.requiresConfirmation as boolean) || null,
+      eventTitle: eventType?.eventTitle as string,
+      eventDescription: eventType?.eventDescription as string,
+      requiresConfirmation: eventType?.requiresConfirmation ?? null,
       price: eventType?.price as number,
       currency: eventType?.currency as string,
       length: eventType?.length as number,
@@ -550,7 +554,7 @@ export class WebhookPayloadFactory {
   private static createBookingPaymentInitiatedPayload(dto: BookingPaymentInitiatedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: dto.eventType,
+      eventType: dto.eventType as EventTypeInfo,
       bookingId: dto.booking.id,
       eventTypeId: dto.eventType?.id,
       status: "PENDING",
@@ -593,7 +597,7 @@ export class WebhookPayloadFactory {
   private static createTranscriptionGeneratedPayload(dto: TranscriptionGeneratedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
-      eventType: null,
+      eventType: null as unknown as EventTypeInfo,
       downloadLinks: dto.downloadLinks,
     });
 
@@ -606,11 +610,7 @@ export class WebhookPayloadFactory {
 
   private static createMeetingStartedPayload(dto: MeetingStartedDTO): WebhookPayload {
     // For meeting events, we use the booking data directly since it contains all necessary information
-    const payload = {
-      triggerEvent: dto.triggerEvent,
-      createdAt: dto.createdAt,
-      ...dto.booking,
-    };
+    const payload = { ...dto.booking };
 
     return {
       triggerEvent: dto.triggerEvent,
@@ -670,8 +670,6 @@ export class WebhookPayloadFactory {
 
   private static createAfterGuestsNoShowPayload(dto: AfterGuestsNoShowDTO): WebhookPayload {
     const payload = {
-      triggerEvent: dto.triggerEvent,
-      createdAt: dto.createdAt,
       bookingId: dto.bookingId,
       webhook: dto.webhook,
     };
