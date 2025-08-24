@@ -27,9 +27,25 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-    const modFactory = (VIDEO_ADAPTERS as Record<string, any>)[appName];
+    const normalizeKey = (s: string) => s.replace(/[_-]/g, "").toLowerCase();
+    function resolveFromRegistry<T extends Record<string, unknown>>(
+      registry: T,
+      rawKey: string
+    ): unknown | undefined {
+      const want = normalizeKey(rawKey);
+      const match = (Object.keys(registry) as Array<keyof T>).find((k) => normalizeKey(String(k)) === want);
+      const factory = match ? (registry as Record<string, unknown>)[String(match)] : undefined;
+      return typeof factory === "function" ? (factory as () => Promise<unknown>) : undefined;
+    }
 
-    const app = modFactory ? await modFactory() : null;
+    const factory = resolveFromRegistry(VIDEO_ADAPTERS as Record<string, unknown>, appName);
+    const app =
+      typeof factory === "function"
+        ? await factory().catch((e: unknown) => {
+            log.error("Failed to load video adapter module", safeStringify({ appName, error: e }));
+            return null;
+          })
+        : null;
 
     if (!app) {
       log.error(`Couldn't get adapter for ${appName}`);
@@ -461,8 +477,8 @@ function hasAdapter(m: unknown): m is Required<Required<MaybeAdapterModule>["lib
 function hasLib(m: unknown): m is { lib: unknown } {
   return !!(m && typeof m === "object" && "lib" in (m as any));
 }
-function hasAppMeta(m: unknown): m is Required<MaybeMetaModule>["app"] {
-  return !!((m && typeof m === "object" && "name" in (m as any)) || "slug" in (m as any));
+function hasAppMeta(m: unknown): m is { name?: string; slug?: string } {
+  return !!(m && typeof m === "object" && ("name" in (m as any) || "slug" in (m as any)));
 }
 
 export async function getVideoAdapter(
@@ -475,9 +491,9 @@ export async function getVideoAdapter(
 
   // lib.adapter (runtime-guarded)
   let adapter: unknown | null = null;
-  if (appModule && hasLib(appModule)) {
-    const lib = (appModule as any).lib;
-    adapter = hasAdapter(lib) ? (lib as any).adapter : null;
+  if (appModule && (appModule as any).lib) {
+    const lib: any = (appModule as any).lib;
+    adapter = "VideoApiAdapter" in lib ? lib.VideoApiAdapter : "adapter" in lib ? lib.adapter : null;
   }
 
   // meta with safe fallbacks

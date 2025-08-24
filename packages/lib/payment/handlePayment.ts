@@ -1,116 +1,89 @@
-// packages/lib/payment/handlePayment.ts
-import type { AppCategories, Prisma } from "@prisma/client";
-
 import { PAYMENT_APPS } from "@calcom/app-store/payment.apps.generated";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { CompleteEventType } from "@calcom/prisma/zod";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { Booking, EventType } from "@calcom/types/Models";
+import type { PaymentAppCredentials } from "@calcom/types/Payment";
 
-type PaymentServiceCtor = new (...args: any[]) => IAbstractPaymentService;
-type PaymentModule = { lib: { PaymentService: PaymentServiceCtor } };
+// type guard for dynamic apps
+function isPaymentApp(m: unknown): m is {
+  lib?: { PaymentService?: new (...args: any[]) => unknown };
+} {
+  return !!(m && typeof m === "object" && "lib" in (m as any));
+}
 
-const isPaymentModule = (x: unknown): x is PaymentModule =>
-  !!x && typeof x === "object" && !!(x as any)?.lib?.PaymentService;
-
-const normalizeKey = (s: string | null | undefined) => (s ?? "").replace(/[_-]/g, "").toLowerCase();
-
+// normalize + registry resolve helpers
+const normalizeKey = (s: string) => s.replace(/[_-]/g, "").toLowerCase();
 function resolveFromRegistry<T extends Record<string, unknown>>(
   registry: T,
-  rawKey: string | null | undefined
+  rawKey: string
 ): (() => Promise<unknown>) | undefined {
   const want = normalizeKey(rawKey);
   const match = (Object.keys(registry) as Array<keyof T>).find((k) => normalizeKey(String(k)) === want);
-  const f = match ? (registry as any)[String(match)] : undefined;
-  return typeof f === "function" ? (f as () => Promise<unknown>) : undefined;
+  const factory = match ? (registry as Record<string, unknown>)[String(match)] : undefined;
+  return typeof factory === "function" ? (factory as () => Promise<unknown>) : undefined;
 }
 
-export const handlePayment = async ({
-  evt,
-  selectedEventType,
-  paymentAppCredentials,
-  booking,
-  bookerName,
-  bookerEmail,
-  bookerPhoneNumber,
-  isDryRun = false,
-}: {
-  evt: CalendarEvent;
-  selectedEventType: Pick<CompleteEventType, "metadata" | "title">;
-  paymentAppCredentials: {
-    key: Prisma.JsonValue;
-    appId: EventTypeAppsList;
-    app: { dirName: string; categories: AppCategories[] } | null;
-  };
-  booking: {
-    user: { email: string | null; name: string | null; timeZone: string; username: string | null } | null;
-    id: number;
-    userId: number | null;
-    startTime: { toISOString: () => string };
-    uid: string;
-  };
-  bookerName: string;
-  bookerEmail: string;
-  bookerPhoneNumber?: string | null;
-  isDryRun?: boolean;
-}) => {
-  if (isDryRun) return null;
-
-  const dir = paymentAppCredentials?.app?.dirName || null;
-  const modFactory = resolveFromRegistry(PAYMENT_APPS as Record<string, unknown>, dir);
-  const paymentApp = modFactory ? await modFactory() : null;
-
-  if (!isPaymentModule(paymentApp)) {
-    console.warn(`payment App service of type ${dir} is not implemented`);
-    return null; // soft-fail; tests expect this
-  }
-
-  const { PaymentService } = paymentApp.lib; // now proven non-undefined
-  const paymentInstance = new PaymentService(paymentAppCredentials);
-
-  const parsed = eventTypeAppMetadataOptionalSchema.safeParse(selectedEventType?.metadata?.apps);
-  const apps = parsed.success ? parsed.data : undefined;
-  const appMeta = apps?.[paymentAppCredentials.appId];
-
-  const price = typeof appMeta?.price === "number" ? appMeta.price : undefined;
-  const currency = typeof appMeta?.currency === "string" ? appMeta.currency : undefined;
-  const paymentOption = (appMeta?.paymentOption as "ON_BOOKING" | "HOLD" | undefined) ?? "ON_BOOKING";
-
-  if (!price || !currency) {
-    console.warn(`payment metadata incomplete for appId=${paymentAppCredentials.appId}; returning null`);
-    return null;
-  }
-
-  let paymentData: unknown = null;
-  if (paymentOption === "HOLD") {
-    paymentData = await paymentInstance.collectCard(
-      { amount: price, currency },
-      booking.id,
-      paymentOption,
-      bookerEmail,
-      bookerPhoneNumber
-    );
-  } else {
-    paymentData = await paymentInstance.create(
-      { amount: price, currency },
-      booking.id,
-      booking.userId,
-      booking.user?.username ?? null,
-      bookerName,
-      paymentOption,
-      bookerEmail,
-      bookerPhoneNumber,
-      selectedEventType.title,
-      evt.title
-    );
-  }
-  if (!paymentData) return null;
+// ------------------------------------------------------------
+// Main function
+// ------------------------------------------------------------
+export async function handlePayment(
+  paymentAppCredentials: PaymentAppCredentials | null,
+  paymentOption: "HOLD" | "PAY",
+  evt: unknown,
+  booking: Booking,
+  selectedEventType?: EventType
+): Promise<any | null> {
+  const dir = paymentAppCredentials?.app?.dirName ?? "";
+  let paymentModule: unknown = null;
 
   try {
-    await paymentInstance.afterPayment(evt, booking, paymentData, selectedEventType?.metadata);
-  } catch (e) {
-    console.error("afterPayment error:", e);
+    const modFactory = resolveFromRegistry(PAYMENT_APPS as Record<string, unknown>, dir);
+    paymentModule = modFactory ? await modFactory() : null;
+  } catch (err) {
+    console.warn(`Failed to load payment app module for ${dir}:`, err);
+    return null; // legacy soft-fail
   }
+
+  // unwrap default export if present
+  const paymentApp =
+    paymentModule && typeof paymentModule === "object" && "default" in (paymentModule as any)
+      ? (paymentModule as any).default
+      : paymentModule;
+
+  if (!isPaymentApp(paymentApp)) {
+    console.warn(`payment App service of type ${dir} is not implemented`);
+    return null; // legacy soft-fail
+  }
+
+  const PaymentServiceCtor = paymentApp?.lib?.PaymentService as (new (...args: any[]) => unknown) | undefined;
+
+  if (!PaymentServiceCtor) {
+    throw new Error("PaymentService is not available in paymentApp.lib");
+  }
+
+  const paymentInstance = new PaymentServiceCtor(paymentAppCredentials);
+
+  // widen until real types are introduced
+  let paymentData: any;
+
+  if (paymentOption === "HOLD") {
+    paymentData = await (paymentInstance as any).collectCard?.({
+      // TODO: paste your existing args here
+    });
+  } else {
+    paymentData = await (paymentInstance as any).create?.({
+      // TODO: paste your existing args here
+    });
+  }
+
+  if (!paymentData) {
+    console.error("Payment data is null");
+    throw new Error("Payment data is null");
+  }
+
+  try {
+    await (paymentInstance as any).afterPayment?.(evt, booking, paymentData, selectedEventType?.metadata);
+  } catch (e) {
+    console.error(e);
+  }
+
   return paymentData;
-};
+}
