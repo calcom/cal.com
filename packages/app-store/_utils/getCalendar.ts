@@ -24,26 +24,29 @@ const isCalendarService = (x: unknown): x is CalendarApp =>
   "CalendarService" in x.lib;
 
 export const getCalendar = async (
-  credential: CredentialForCalendarService | null
+  credential: CredentialForCalendarService,
+  calendarType: string
 ): Promise<Calendar | null> => {
-  if (!credential || !credential.key) return null;
-  let { type: calendarType } = credential;
-  if (calendarType?.endsWith("_other_calendar")) {
-    calendarType = calendarType.split("_other_calendar")[0];
-  }
-  // Backwards compatibility until CRM manager is created
-  if (calendarType?.endsWith("_crm")) {
-    calendarType = calendarType.split("_crm")[0];
-  }
-  const slug = calendarType.split("_").join(""); // e.g., "google_calendar" -> "googlecalendar"
-  const modFactory = (CALENDAR_SERVICES as Record<string, any>)[slug];
-  const calendarApp = modFactory ? await modFactory() : null;
+  const log = logger.getSubLogger({ prefix: ["app-store", "getCalendar"] });
 
-  if (!calendarApp?.lib?.CalendarService) {
-    log.warn(`calendar of type ${slug} is not implemented`);
+  if (calendarType?.endsWith("_crm")) calendarType = calendarType.split("_crm")[0];
+
+  const factory = resolveFromRegistry(CALENDAR_SERVICES, calendarType);
+  const calendarApp = factory ? await factory() : null;
+
+  if (!calendarApp || !isCalendarService(calendarApp)) {
+    // keep legacy warning patterns & null return that tests expect
+    log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
 
   const { CalendarService } = calendarApp.lib;
   return new CalendarService(credential);
 };
+
+const normalizeKey = (s: string) => s.replace(/[_-]/g, "").toLowerCase();
+function resolveFromRegistry<T extends Record<string, any>>(registry: T, rawKey: string) {
+  const want = normalizeKey(rawKey);
+  const match = (Object.keys(registry) as Array<keyof T>).find((k) => normalizeKey(String(k)) === want);
+  return match ? registry[match] : undefined;
+}
