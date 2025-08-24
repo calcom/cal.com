@@ -1,11 +1,11 @@
 import { createCachedImport } from "../createCachedImport";
 
 const paymentLoaders = {
-  alby: createCachedImport(() => import("../../alby")),
-  paypal: createCachedImport(() => import("../../paypal")),
-  stripepayment: createCachedImport(() => import("../../stripepayment")),
-  hitpay: createCachedImport(() => import("../../hitpay")),
-  btcpayserver: createCachedImport(() => import("../../btcpayserver")),
+  alby: createCachedImport(() => import("../../alby/lib")),
+  paypal: createCachedImport(() => import("../../paypal/lib")),
+  stripepayment: createCachedImport(() => import("../../stripepayment/lib")),
+  hitpay: createCachedImport(() => import("../../hitpay/lib")),
+  btcpayserver: createCachedImport(() => import("../../btcpayserver/lib")),
 };
 
 if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {

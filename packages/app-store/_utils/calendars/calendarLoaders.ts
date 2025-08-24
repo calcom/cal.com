@@ -1,16 +1,16 @@
 import { createCachedImport } from "../createCachedImport";
 
 const calendarLoaders = {
-  applecalendar: createCachedImport(() => import("../../applecalendar")),
-  caldavcalendar: createCachedImport(() => import("../../caldavcalendar")),
-  googlecalendar: createCachedImport(() => import("../../googlecalendar")),
-  "ics-feedcalendar": createCachedImport(() => import("../../ics-feedcalendar")),
-  larkcalendar: createCachedImport(() => import("../../larkcalendar")),
-  office365calendar: createCachedImport(() => import("../../office365calendar")),
-  exchange2013calendar: createCachedImport(() => import("../../exchange2013calendar")),
-  exchange2016calendar: createCachedImport(() => import("../../exchange2016calendar")),
-  exchangecalendar: createCachedImport(() => import("../../exchangecalendar")),
-  zohocalendar: createCachedImport(() => import("../../zohocalendar")),
+  applecalendar: createCachedImport(() => import("../../applecalendar/lib")),
+  caldavcalendar: createCachedImport(() => import("../../caldavcalendar/lib")),
+  googlecalendar: createCachedImport(() => import("../../googlecalendar/lib")),
+  "ics-feedcalendar": createCachedImport(() => import("../../ics-feedcalendar/lib")),
+  larkcalendar: createCachedImport(() => import("../../larkcalendar/lib")),
+  office365calendar: createCachedImport(() => import("../../office365calendar/lib")),
+  exchange2013calendar: createCachedImport(() => import("../../exchange2013calendar/lib")),
+  exchange2016calendar: createCachedImport(() => import("../../exchange2016calendar/lib")),
+  exchangecalendar: createCachedImport(() => import("../../exchangecalendar/lib")),
+  zohocalendar: createCachedImport(() => import("../../zohocalendar/lib")),
 };
 
 export type CalendarLoaderKey = keyof typeof calendarLoaders;
