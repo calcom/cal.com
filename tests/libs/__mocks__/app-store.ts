@@ -40,15 +40,15 @@ export const mockCalendarServices = () => {
   }));
 };
 export const mockAnalyticsServices = () => {
-  doMock("@calcom/app-store/analytics.services.generated", () => ({
-    ANALYTICS_SERVICES: {
-      dub: jest.fn(async () => ({
+  doMock("@calcom/app-store/analytics.apps.generated", () => ({
+    ANALYTICS_APPS: {
+      dub: async () => ({
         lib: {
           AnalyticsService: class {
             async sendEvent() { return { ok: true }; }
           },
         },
-      })),
+      }),
     },
   }));
 };
