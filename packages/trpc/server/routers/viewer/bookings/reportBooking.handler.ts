@@ -1,5 +1,9 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import {
+  isTeamAdmin,
+  isTeamOwner,
+  getMembershipIdsWhereUserIsAdminOwner,
+} from "@calcom/lib/server/queries/teams";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -48,9 +52,6 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
         },
       },
       reports: {
-        where: {
-          reportedById: user.id,
-        },
         select: {
           id: true,
         },
@@ -73,24 +74,15 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
       (await isTeamOwner(user.id, booking.eventType.teamId));
   }
 
-  // For team admins, also check if they can see this booking through team membership
-  // This matches the logic in get.handler.ts where team admins can see bookings from their team members
+  // Check if user can access this booking through team membership
+  // This reuses the same logic as get.handler.ts
   let canAccessThroughTeamMembership = false;
 
-  // Get all memberships where user is ADMIN/OWNER (same logic as get.handler.ts)
-  const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((membership) => membership.id);
+  // Get all memberships where user is ADMIN/OWNER (reusing shared utility)
+  const membershipIdsWhereUserIsAdminOwner = await getMembershipIdsWhereUserIsAdminOwner(
+    user.id,
+    user?.profile?.organizationId
+  );
 
   if (membershipIdsWhereUserIsAdminOwner.length > 0) {
     // Get all team member emails where user is admin/owner
@@ -133,53 +125,51 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     canAccessThroughTeamMembership = hasTeamMemberAttendee || isBookingOwnerTeamMember || isTeamAdminOrOwner;
   }
 
-  if (!isBookingOwner && !isAttendee && !canAccessThroughTeamMembership) {
+  if (!isBookingOwner && !isAttendee && !isTeamAdminOrOwner && !canAccessThroughTeamMembership) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
   }
 
-  // Check if user has already reported this booking or any in the recurring series
-  const existingReports = booking.reports;
+  // Check if booking has already been reported
+  if (booking.reports && booking.reports.length > 0) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "This booking has already been reported" });
+  }
 
   if (booking.recurringEventId) {
-    // For recurring bookings, check if user has reported any booking in the series
-    const recurringReports = await prisma.bookingReport.findMany({
+    // For recurring bookings, check if any booking in the series has been reported
+    const existingRecurringReport = await prisma.bookingReport.findFirst({
       where: {
-        reportedById: user.id,
         booking: {
           recurringEventId: booking.recurringEventId,
         },
       },
     });
 
-    if (recurringReports.length > 0) {
+    if (existingRecurringReport) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "You have already reported this recurring booking series",
+        message: "This recurring booking series has already been reported",
       });
     }
-  } else if (existingReports.length > 0) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "You have already reported this booking" });
   }
 
   // For recurring bookings, report all remaining instances
   let reportedBookingIds: number[] = [bookingId];
 
   if (booking.recurringEventId) {
-    // Get all future bookings in the recurring series
-    const futureRecurringBookings = await prisma.booking.findMany({
+    // Get all remaining bookings in the series from the selected occurrence onward
+    const remainingRecurringBookings = await prisma.booking.findMany({
       where: {
         recurringEventId: booking.recurringEventId,
+        startTime: { gte: booking.startTime },
       },
-      select: {
-        id: true,
-      },
+      select: { id: true },
+      orderBy: { startTime: "asc" },
     });
-
-    reportedBookingIds = futureRecurringBookings.map((b) => b.id);
+    reportedBookingIds = remainingRecurringBookings.map((b) => b.id);
   }
 
-  // Create reports for all relevant bookings
-  await prisma.bookingReport.createMany({
+  // Create reports for all relevant bookings (tolerate duplicates under concurrency)
+  const createResult = await prisma.bookingReport.createMany({
     data: reportedBookingIds.map((id) => ({
       bookingId: id,
       reportedById: user.id,
@@ -187,9 +177,10 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
       description,
       cancelled: cancelBooking,
     })),
+    skipDuplicates: true,
   });
 
-  const bookingReport = { id: reportedBookingIds[0] }; // For backward compatibility
+  const reportedBooking = { id: reportedBookingIds[0] };
 
   // Cancel booking if requested and conditions are met
   let cancellationError = null;
@@ -214,20 +205,19 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     }
   }
 
-  const isRecurring = booking.recurringEventId && reportedBookingIds.length > 1;
-  const baseMessage = isRecurring
-    ? `${reportedBookingIds.length} recurring bookings reported`
-    : "Booking reported";
+  const createdCount = createResult.count;
+  const isRecurring = Boolean(booking.recurringEventId) && createdCount > 1;
+  const baseMessage = isRecurring ? `${createdCount} recurring bookings reported` : "Booking reported";
 
   return {
     success: true,
     message: cancellationError
-      ? `${baseMessage} successfully but cancellation failed`
+      ? `${baseMessage} successfully, but cancellation failed`
       : cancelBooking
       ? `${baseMessage} and cancelled successfully`
       : `${baseMessage} successfully`,
-    reportId: bookingReport.id,
-    reportedCount: reportedBookingIds.length,
+    bookingId: reportedBooking.id,
+    reportedCount: createdCount,
     cancellationError: cancellationError ? String(cancellationError) : undefined,
   };
 };

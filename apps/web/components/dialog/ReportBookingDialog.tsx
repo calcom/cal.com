@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -91,10 +91,19 @@ export function ReportBookingDialog({
     }
   };
 
+  const translatedOptions = useMemo(
+    () => REPORT_REASON_OPTIONS.map((option) => ({ ...option, label: t(option.label) })),
+    [t]
+  );
+
   const cancelBooking = form.watch("cancelBooking");
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}>
       <DialogContent className="sm:max-w-md" enableOverflow>
         <DialogHeader title={t("report_booking")} subtitle={t("report_booking_subtitle")} />
 
@@ -108,10 +117,8 @@ export function ReportBookingDialog({
                 <SelectField
                   label={t("reason")}
                   placeholder={t("select_reason")}
-                  options={REPORT_REASON_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
-                  value={REPORT_REASON_OPTIONS.map((option) => ({ ...option, label: t(option.label) })).find(
-                    (option) => option.value === field.value
-                  )}
+                  options={translatedOptions}
+                  value={translatedOptions.find((option) => option.value === field.value)}
                   onChange={(selectedOption) => {
                     if (selectedOption) {
                       field.onChange(selectedOption.value);
