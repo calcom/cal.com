@@ -162,23 +162,31 @@ export async function getConnectedApps({
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
-      const teams = await Promise.all(
-        credentials
-          .filter((c) => c.appId === app.slug && c.teamId)
-          .map(async (c) => {
-            const team = userTeams.find((team) => team.id === c.teamId);
-            if (!team) {
-              return null;
-            }
-            return {
-              teamId: team.id,
-              name: team.name,
-              logoUrl: team.logoUrl,
-              credentialId: c.id,
-              isAdmin: checkAdminOrOwner(team.members[0].role),
-            };
-          })
-      );
+      const teams = (
+        await Promise.all(
+          credentials
+            .filter((c) => c.appId === app.slug && c.teamId)
+            .map(async (c) => {
+              const team = userTeams.find((team) => team.id === c.teamId);
+              if (!team) {
+                return null;
+              }
+              return {
+                teamId: team.id,
+                name: team.name,
+                logoUrl: team.logoUrl,
+                credentialId: c.id,
+                isAdmin: checkAdminOrOwner(team.members[0].role),
+              };
+            })
+        )
+      ).filter(Boolean) as {
+        teamId: number;
+        name: string;
+        logoUrl: string | null;
+        credentialId: number;
+        isAdmin: boolean;
+      }[];
       // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
         name: user.name,
@@ -189,7 +197,7 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = await loadPaymentApp(paymentCredential?.app?.dirName);
+        const paymentApp = await loadPaymentApp(credential?.app?.dirName);
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
           const PaymentService = paymentApp?.lib?.PaymentService;
           if (!PaymentService) return;

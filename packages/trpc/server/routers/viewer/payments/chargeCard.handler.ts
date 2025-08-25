@@ -131,7 +131,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
   }
 
-  const paymentApp = await loadPaymentApp(paymentAppCredentials?.app?.dirName);
+  const paymentApp = await loadPaymentApp(paymentCredential?.app?.dirName);
 
   if (!paymentApp?.lib?.PaymentService) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
