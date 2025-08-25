@@ -8,7 +8,7 @@ type AppStoreMetaData = {
   [key in keyof RawAppStoreMetaData]: () => Promise<Omit<AppMeta, "dirName"> & { dirName: string }>;
 };
 
-// Lazy loading wrapper for app metadata - now calls the lazy functions
+
 const createLazyAppMetadata = (key: string, lazyFunction: () => Promise<any>) => {
   return async () => {
     const rawMetadata = await lazyFunction();
