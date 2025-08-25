@@ -3,8 +3,8 @@ import { Icon, type IconName } from "@calid/features/ui/components/icon/Icon";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-export const badgeStyles = cva(
-  "inline-flex items-center rounded border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+const badgeVariants = cva(
+  "inline-flex items-center rounded-md text-[12px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -12,13 +12,12 @@ export const badgeStyles = cva(
         secondary: "bg-muted text-subtle hover:bg-subtle/80",
         destructive: "border bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
-        success: "bg-white border-green-600 text-green-600",
-        minimal: "text-default border-subtle border rounded-2xl",
+        success: "border bg-white border-green-600 text-green-600",
       },
       size: {
-        sm: "px-1 py-1 text-[10px] leading-none",
-        md: "py-1 px-1.5 text-xs leading-none",
-        lg: "py-1 px-1.5 text-sm leading-none rounded-lg",
+        sm: "h-5 px-2 text-xs",
+        md: "h-6 px-2.5 text-sm",
+        lg: "h-7 px-3 text-base",
       },
     },
     defaultVariants: {
@@ -28,7 +27,7 @@ export const badgeStyles = cva(
   }
 );
 
-type InferredBadgeStyles = VariantProps<typeof badgeStyles>;
+type InferredBadgeStyles = VariantProps<typeof badgeVariants>;
 
 type IconOrDot =
   | {
@@ -57,21 +56,11 @@ export type BadgeProps =
   | (BadgeBaseProps & Omit<React.HTMLAttributes<HTMLButtonElement>, "onClick"> & { onClick: () => void });
 
 export const Badge = function Badge(props: BadgeProps) {
-  const {
-    customStartIcon,
-    variant,
-    className,
-    size,
-    startIcon,
-    withDot,
-    children,
-    rounded,
-    customDot,
-    ...passThroughProps
-  } = props;
+  const { customStartIcon, variant, className, size, startIcon, withDot, children, ...passThroughProps } =
+    props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
   const StartIcon = startIcon;
-  const classes = cn(badgeStyles({ variant, size }), rounded && "h-5 w-5 rounded-full p-0", className);
+  const classes = cn(badgeVariants({ variant, size }), className);
 
   const Children = () => (
     <>
