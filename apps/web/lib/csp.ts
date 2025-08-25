@@ -31,7 +31,7 @@ function getCspPolicy(nonce: string) {
     } app.cal.com;
 	  font-src 'self';
 	  img-src 'self' ${WEBAPP_URL} https://img.youtube.com https://eu.ui-avatars.com/api/ data:;
-    connect-src 'self' https://collector.insights.com
+    connect-src 'self' https://collector.insights.com${IS_PRODUCTION ? "" : " ws: wss:"}
 	`;
 }
 
