@@ -338,8 +338,8 @@ describe("updateQuantitySubscriptionFromStripe", () => {
   describe("For an organization", () => {
     it("should not update subscription when team members are less than metadata.orgSeats", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
-      const FAKE_SUB_ID = "FAKE_SUB_ID";
+      const FAKE_SUBITEM_ID = "si_FAKE_SUBITEM_ID";
+      const FAKE_SUB_ID = "sub_FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
       const consoleInfoSpy = vi.spyOn(console, "info");
 
@@ -363,7 +363,7 @@ describe("updateQuantitySubscriptionFromStripe", () => {
           items: {
             data: [
               {
-                id: "FAKE_SUBITEM_ID",
+                id: FAKE_SUBITEM_ID,
                 quantity: FAKE_SUBSCRIPTION_QTY_IN_STRIPE,
               },
             ],
@@ -384,8 +384,8 @@ describe("updateQuantitySubscriptionFromStripe", () => {
 
     it("should update subscription when team members are more than metadata.orgSeats", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-      const FAKE_SUB_ID = "FAKE_SUB_ID";
-      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
+      const FAKE_SUBITEM_ID = "si_FAKE_SUBITEM_ID";
+      const FAKE_SUB_ID = "sub_FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
       const membersInTeam = 4;
       const organization = await createOrgWithMembersAndPaymentData({
@@ -434,8 +434,8 @@ describe("updateQuantitySubscriptionFromStripe", () => {
 
     it("should not update subscription when team members are less than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
-      const FAKE_SUB_ID = "FAKE_SUB_ID";
+      const FAKE_SUBITEM_ID = "si_FAKE_SUBITEM_ID";
+      const FAKE_SUB_ID = "sub_FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
       const membersInTeam = 2;
       const consoleInfoSpy = vi.spyOn(console, "info");
@@ -453,7 +453,7 @@ describe("updateQuantitySubscriptionFromStripe", () => {
           items: {
             data: [
               {
-                id: "FAKE_SUBITEM_ID",
+                id: FAKE_SUBITEM_ID,
                 quantity: FAKE_SUBSCRIPTION_QTY_IN_STRIPE,
               },
             ],
@@ -480,8 +480,8 @@ describe("updateQuantitySubscriptionFromStripe", () => {
 
     it("should update subscription when team members are more than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-      const FAKE_SUB_ID = "FAKE_SUB_ID";
-      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
+      const FAKE_SUBITEM_ID = "si_FAKE_SUBITEM_ID";
+      const FAKE_SUB_ID = "sub_FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
       const membersInTeam = 35;
       const organization = await createOrgWithMembersAndPaymentData({
@@ -537,8 +537,8 @@ describe("getTeamWithPaymentMetadata", () => {
         isOrganization: true,
         name: "TestTeam",
         metadata: {
-          subscriptionId: "FAKE_SUB_ID",
-          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+          subscriptionId: "sub_FAKE_SUB_ID",
+          subscriptionItemId: "si_FAKE_SUB_ITEM_ID",
         },
       },
     });
@@ -552,7 +552,7 @@ describe("getTeamWithPaymentMetadata", () => {
         name: "TestTeam",
         metadata: {
           paymentId: "FAKE_PAY_ID",
-          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+          subscriptionItemId: "si_FAKE_SUB_ITEM_ID",
         },
       },
     });
@@ -566,7 +566,7 @@ describe("getTeamWithPaymentMetadata", () => {
         name: "TestTeam",
         metadata: {
           paymentId: "FAKE_PAY_ID",
-          subscriptionId: "FAKE_SUB_ID",
+          subscriptionId: "sub_FAKE_SUB_ID",
         },
       },
     });
@@ -580,8 +580,8 @@ describe("getTeamWithPaymentMetadata", () => {
         name: "TestTeam",
         metadata: {
           paymentId: "FAKE_PAY_ID",
-          subscriptionId: "FAKE_SUB_ID",
-          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+          subscriptionId: "sub_FAKE_SUB_ID",
+          subscriptionItemId: "si_FAKE_SUB_ITEM_ID",
         },
       },
     });
@@ -597,13 +597,64 @@ describe("getTeamWithPaymentMetadata", () => {
         metadata: {
           orgSeats: 5,
           paymentId: "FAKE_PAY_ID",
-          subscriptionId: "FAKE_SUB_ID",
-          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+          subscriptionId: "sub_FAKE_SUB_ID",
+          subscriptionItemId: "si_FAKE_SUB_ITEM_ID",
         },
       },
     });
     const teamWithPaymentData = await getTeamWithPaymentMetadata(team.id);
     expect(teamWithPaymentData.metadata.orgSeats).toEqual(5);
+  });
+
+  it("should error if subscriptionId doesn't start with 'sub_'", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          paymentId: "FAKE_PAY_ID",
+          subscriptionId: "invalid_sub_id",
+          subscriptionItemId: "si_FAKE_SUB_ITEM_ID",
+        },
+      },
+    });
+    expect(() => getTeamWithPaymentMetadata(team.id)).rejects.toThrow(
+      "subscriptionId must start with 'sub_'"
+    );
+  });
+
+  it("should error if subscriptionItemId doesn't start with 'si_'", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          paymentId: "FAKE_PAY_ID",
+          subscriptionId: "sub_FAKE_SUB_ID",
+          subscriptionItemId: "invalid_item_id",
+        },
+      },
+    });
+    expect(() => getTeamWithPaymentMetadata(team.id)).rejects.toThrow(
+      "subscriptionItemId must start with 'si_'"
+    );
+  });
+
+  it("should parse successfully with valid prefixes", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          paymentId: "FAKE_PAY_ID",
+          subscriptionId: "sub_FAKE_SUB_ID",
+          subscriptionItemId: "si_FAKE_SUB_ITEM_ID",
+        },
+      },
+    });
+    const teamWithPaymentData = await getTeamWithPaymentMetadata(team.id);
+    expect(teamWithPaymentData.metadata.subscriptionId).toEqual("sub_FAKE_SUB_ID");
+    expect(teamWithPaymentData.metadata.subscriptionItemId).toEqual("si_FAKE_SUB_ITEM_ID");
   });
 });
 

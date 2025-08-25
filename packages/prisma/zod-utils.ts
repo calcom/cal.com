@@ -376,8 +376,18 @@ export const teamMetadataSchema = z
     defaultConferencingApp: schemaDefaultConferencingApp.optional(),
     requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
-    subscriptionId: z.string().nullable(),
-    subscriptionItemId: z.string().nullable(),
+    subscriptionId: z
+      .string()
+      .refine((val) => val.startsWith("sub_"), {
+        message: "subscriptionId must start with 'sub_'",
+      })
+      .nullable(),
+    subscriptionItemId: z
+      .string()
+      .refine((val) => val.startsWith("si_"), {
+        message: "subscriptionItemId must start with 'si_'",
+      })
+      .nullable(),
     orgSeats: z.number().nullable(),
     orgPricePerSeat: z.number().nullable(),
     migratedToOrgFrom: z

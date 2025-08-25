@@ -21,8 +21,8 @@ const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
   // Redefine paymentId, subscriptionId and subscriptionItemId to ensure that they are present and nonNullable
   paymentId: z.string(),
-  subscriptionId: z.string(),
-  subscriptionItemId: z.string(),
+  subscriptionId: z.string().startsWith("sub_", "subscriptionId must start with 'sub_'"),
+  subscriptionItemId: z.string().startsWith("si_", "subscriptionItemId must start with 'si_'"),
   orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
 
