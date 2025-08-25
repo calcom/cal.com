@@ -17,7 +17,6 @@ export const ENDPOINTS = [
   "dsync",
   "eventTypes",
   "features",
-  "highPerf",
   "i18n",
   "insights",
   "me",
