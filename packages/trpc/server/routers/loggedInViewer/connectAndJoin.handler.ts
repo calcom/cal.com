@@ -239,6 +239,7 @@ export const Handler = async ({ ctx, input }: Options) => {
       startTime: updatedBooking.startTime,
       id: updatedBooking.id,
       location: updatedBooking.location,
+      uid: updatedBooking.uid,
     },
     triggerForUser: !eventType?.teamId || (eventType?.teamId && eventType?.parentId),
     organizerUser: { id: user.id },
