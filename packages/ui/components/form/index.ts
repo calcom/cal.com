@@ -14,6 +14,7 @@ export {
   FilterSearchField,
 } from "./inputs/Input";
 
+export { MultiEmailInput } from "./inputs/MultiEmailInput";
 export { MultiOptionInput } from "./inputs/MultiOptionInput";
 
 export { InputFieldWithSelect } from "./inputs/InputFieldWithSelect";
