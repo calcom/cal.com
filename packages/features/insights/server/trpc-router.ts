@@ -1053,7 +1053,7 @@ export const insightsRouter = router({
     }),
 });
 
-async function getEventTypeList({
+export async function getEventTypeList({
   prisma,
   teamId,
   userId,
