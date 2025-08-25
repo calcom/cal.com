@@ -35,8 +35,12 @@ export const getCalendar = async (
   if (calendarType?.endsWith("_crm")) {
     calendarType = calendarType.split("_crm")[0];
   }
-  const slug = calendarType.split("_").join(""); // e.g., "google_calendar" -> "googlecalendar"
-  const modFactory = (CALENDAR_SERVICES as Record<string, any>)[slug];
+  const slug = calendarType.replace(/[_-]/g, "").toLowerCase(); // e.g., "google_calendar" -> "googlecalendar"
+  const modFactory =
+    (CALENDAR_SERVICES as Record<string, any>)[slug] ??
+    // legacy fallback (in case generated keys contain punctuation or old index still exists)
+    (CALENDAR_SERVICES as Record<string, any>)[calendarType] ??
+    null;
   const calendarApp = modFactory ? await modFactory() : null;
 
   if (!calendarApp?.lib?.CalendarService) {

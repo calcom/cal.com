@@ -59,11 +59,25 @@ export const mockAnalyticsServices = () => {
   }));
 };
 
+
+
+export const mockVideoAdapters = () => {
+  doMock("@calcom/app-store/conferencing.videoAdapters.generated", () => ({
+    VIDEO_ADAPTERS: {
+      zoomvideo: async () => ({ lib: { VideoAdapter: class {} }, metadata: { name: "Zoom" } }),
+      dailyvideo: async () => ({ lib: { VideoAdapter: class {} }, metadata: { name: "Daily" } }),
+    },
+  }));
+};
+
 // Update the backwards-compat wrapper
 export const mockAppStore = () => {
   mockPaymentApps();
   mockCalendarServices();
   mockAnalyticsServices();
+  mockVideoAdapters(); // ← add this
 };
 
 const doMock = require("doMock");
+
+

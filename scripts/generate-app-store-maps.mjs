@@ -63,19 +63,31 @@ function findSlugsWithSignature(slugs, relSig) {
   );
 }
 
+function normalizeKey(slug) {
+  // Lowercase, strip out all non-alphanumeric chars
+  // "ics-feed_calendar" -> "icsfeedcalendar"
+  return slug.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 function writeFactoryMap({ exportName, outFile, slugs }) {
   const lines = [
     "// AUTO-GENERATED. Do not edit.",
     "/* eslint-disable */",
     `export const ${exportName} = {`,
-    ...slugs.map((slug) => `  "${slug}": () => import("./${slug}/index"),`),
+    ...slugs.map(
+      (slug) =>
+        `  "${normalizeKey(slug)}": () => import("./${slug}/index"),`
+    ),
     `} as const;`,
     "",
   ];
   const outPath = path.join(APP_STORE, outFile);
   fs.writeFileSync(outPath, lines.join("\n"), "utf8");
-  console.log(`✔ wrote ${path.relative(ROOT, outPath)} (${slugs.length} entries)`);
+  console.log(
+    `✔ wrote ${path.relative(ROOT, outPath)} (${slugs.length} entries)`
+  );
 }
+
 
 (function main() {
   if (!isDir(APP_STORE)) {
