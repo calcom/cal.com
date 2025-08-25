@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cal.com Embed Troubleshooter</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 20px;
+      background: #f9fafb;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #111827;
+      margin-bottom: 10px;
+    }
+    
+    .description {
+      color: #6b7280;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    
+    .bookmarklet-section {
+      background: #f3f4f6;
+      padding: 24px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    
+    .bookmarklet-button {
+      display: inline-block;
+      background: #3b82f6;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+      cursor: move;
+    }
+    
+    .bookmarklet-button:hover {
+      background: #2563eb;
+    }
+    
+    .instructions {
+      margin-top: 20px;
+      padding: 20px;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+    }
+    
+    .instructions h3 {
+      margin-top: 0;
+      color: #1e40af;
+    }
+    
+    .instructions ol {
+      margin: 10px 0;
+      padding-left: 20px;
+      color: #3730a3;
+    }
+    
+    .instructions li {
+      margin-bottom: 8px;
+    }
+    
+    .features {
+      margin-top: 30px;
+    }
+    
+    .features h3 {
+      color: #111827;
+      margin-bottom: 15px;
+    }
+    
+    .feature-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: start;
+    }
+    
+    .feature-icon {
+      color: #059669;
+      margin-right: 10px;
+      font-size: 18px;
+    }
+    
+    .feature-text {
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cal.com Embed Troubleshooter</h1>
+    <p class="description">
+      A diagnostic tool for troubleshooting Cal.com embeds on any website. 
+      This bookmarklet helps you quickly identify issues with Cal.com embed installations, 
+      configuration problems, and provides recommendations for fixes.
+    </p>
+    
+    <div class="bookmarklet-section">
+      <h2>Install Bookmarklet</h2>
+      <p>Drag this button to your bookmarks bar:</p>
+      <a href="javascript:(function(){if(window.__calEmbedTroubleshooter){window.__calEmbedTroubleshooter.toggle();return}const s=document.createElement('script');s.src='https://cal.com/embed/troubleshooter.js';document.head.appendChild(s)})()" class="bookmarklet-button">
+        Cal.com Troubleshooter
+      </a>
+      
+      <div class="instructions">
+        <h3>How to use:</h3>
+        <ol>
+          <li>Drag the button above to your browser's bookmarks bar</li>
+          <li>Navigate to any page with Cal.com embeds</li>
+          <li>Click the bookmarklet to open the troubleshooter</li>
+          <li>Review the diagnostic results and recommendations</li>
+        </ol>
+      </div>
+    </div>
+    
+    <div class="features">
+      <h3>Features</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Detects if <code>window.Cal</code> is properly initialized</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Identifies all Cal.com embed elements on the page</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Monitors network requests to Cal.com</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Captures console errors related to embeds</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Checks for configuration issues</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Validates security policies (CSP, CORS)</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Provides actionable recommendations</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span class="feature-text">Real-time monitoring with refresh capability</span>
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+      <h3>Development</h3>
+      <p style="color: #6b7280;">
+        To test locally, you can copy the contents of <code>bookmarklet-loader.js</code> 
+        and paste it into your browser's console on any page with Cal.com embeds.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
