@@ -297,6 +297,10 @@ export default class BiginCrmService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+
+  async createCustomEventObject() {
+    console.log("Not implemented");
+  }
 }
 
 const toISO8601String = (date: Date) => {
