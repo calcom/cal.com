@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { AnalyticsService, AnalyticsServiceClass } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { ANALYTICS_SERVICES } from "../analytics.apps.generated";
+import { ANALYTICS_APPS } from "../analytics.apps.generated";
 
 const log = logger.getSubLogger({ prefix: ["AnalyticsManager"] });
 
@@ -31,10 +31,10 @@ export const getAnalyticsService = async ({
   const analyticsName = analyticsType.split("_")[0];
 
   // Use the generated analytics services map
-  const modFactory = (ANALYTICS_SERVICES as Record<string, any>)[analyticsName];
+  const modFactory = (ANALYTICS_APPS as Record<string, any>)[analyticsName];
 
   if (!modFactory) {
-    log.warn(`analytics app '${analyticsName}' not found in ANALYTICS_SERVICES`);
+    log.warn(`analytics app '${analyticsName}' not found in ANALYTICS_APPS`);
     return null;
   }
 
