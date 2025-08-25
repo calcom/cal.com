@@ -51,6 +51,24 @@ const getMonthOptions = (): MonthOption[] => {
   return options;
 };
 
+/**
+ * Renders the Billing Credits UI for viewing monthly credits, purchasing additional credits, and downloading an expense log.
+ *
+ * This client component:
+ * - Shows current monthly credits (progress, total, remaining) and additional/available credits.
+ * - Provides a form to purchase additional credits (quantity, min 50) and navigates to a purchase session URL on success.
+ * - Lets the user download an expense CSV for a selected month.
+ *
+ * Rendering is gated by feature and org/path context:
+ * - Returns null when SMS credits are disabled or when org context/path and branding conditions are not met.
+ *
+ * Side effects:
+ * - Initiates a server mutation to create a purchase session and navigates to the returned session URL.
+ * - Fetches expense CSV data and triggers a client-side CSV download.
+ * - Displays error toasts for purchase or download failures.
+ *
+ * Returns a JSX element or null when gated/while data is unavailable.
+ */
 export default function BillingCredits() {
   const { t } = useLocale();
   const router = useRouter();

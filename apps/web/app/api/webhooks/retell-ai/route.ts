@@ -58,6 +58,14 @@ const RetellWebhookSchema = z.object({
     .passthrough(),
 });
 
+/**
+ * Process a `call_analyzed` webhook payload: validate duration, resolve the originating phone number, compute cost, and charge credits.
+ *
+ * Expects `callData` to contain at least `{ from_number, call_id, call_cost }` where `call_cost.total_duration_seconds` is a positive finite number.
+ *
+ * @param callData - The parsed webhook call object (should include `from_number`, `call_id`, and a `call_cost` with `total_duration_seconds`).
+ * @returns An object `{ success: boolean, message: string }` on successful charge or when charging fails; returns `undefined` if validation fails or the call cannot be processed (e.g., missing phone record or owner).
+ */
 async function handleCallAnalyzed(callData: any) {
   const { from_number, call_id, call_cost } = callData;
   if (
@@ -134,18 +142,20 @@ async function handleCallAnalyzed(callData: any) {
 }
 
 /**
- * Retell AI Webhook Handler
+ * Next.js POST handler for Retell AI webhooks.
  *
- * Setup Instructions:
- * 1. Add this webhook URL to your Retell AI dashboard: https://yourdomain.com/api/webhooks/retell-ai
- * 2. Ensure your domain is accessible from the internet (for local development, use ngrok or similar)
- * 3. Set the RETELL_AI_KEY environment variable with your Retell API key (must have webhook badge)
+ * Verifies the Retell webhook signature, accepts only `call_analyzed` events for outbound calls,
+ * and delegates charging to `handleCallAnalyzed`. Inbound calls and non-`call_analyzed` events are
+ * ignored and return 200. Signature or API key failures return 401.
  *
- * This webhook will:
- * - Verify webhook signature for security
- * - Receive call_analyzed events from Retell AI
- * - Charge credits based on the call cost from the user's or team's credit balance
- * - Log all transactions for audit purposes
+ * Configuration:
+ * - Register this endpoint in your Retell AI dashboard (e.g. https://yourdomain.com/api/webhooks/retell-ai).
+ * - Set RETELL_AI_KEY to the Retell webhook secret used to verify `x-retell-signature`.
+ *
+ * Responses:
+ * - 401 when the signature or RETELL_AI_KEY is missing/invalid.
+ * - 200 for ignored events (non-`call_analyzed`), inbound calls, successful processing, and internal
+ *   errors (internal errors return 200 intentionally to prevent Retell from retrying).
  */
 async function handler(request: NextRequest) {
   const rawBody = await request.text();

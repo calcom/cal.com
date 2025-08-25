@@ -18,6 +18,34 @@ interface ExecuteAIPhoneCallPayload {
 }
 const log = logger.getSubLogger({ prefix: [`[[executeAIPhoneCall] `] });
 
+/**
+ * Orchestrates creating and sending an AI-generated outbound phone call for a workflow reminder.
+ *
+ * Parses a JSON payload describing the call, validates the workflow reminder and booking data,
+ * enforces feature gating, credits and rate limits, constructs dynamic template variables from the
+ * booking and responses, invokes the configured AI phone service to create the call, and persists
+ * the call reference back to the workflow reminder.
+ *
+ * The payload must be a JSON-serialized ExecuteAIPhoneCallPayload containing at minimum:
+ * workflowReminderId, agentId, fromNumber, toNumber, bookingUid, providerAgentId, and optional
+ * userId/teamId for billing/rate-limiting context.
+ *
+ * Behavior and side effects:
+ * - If the global "cal-ai-voice-agents" feature is disabled, the function returns early without side effects.
+ * - On success, creates an AI phone call and updates the corresponding workflowReminder.referenceId and marks it scheduled.
+ *
+ * Errors thrown:
+ * - "Invalid JSON payload" when the input cannot be parsed.
+ * - "Reminder not found or not scheduled" when the workflow reminder is missing or not scheduled.
+ * - Errors when there are insufficient credits for the associated user/team.
+ * - Errors when no rate limit identifier can be derived.
+ * - "No booking found" when the reminder has no booking.
+ * - "No phone number found for attendee" when there is no recipient number.
+ * - Any error returned by the AI phone service or persisted by the database is propagated.
+ *
+ * Notes:
+ * - The function expects the AI phone service provider to be available via createDefaultAIPhoneServiceProvider.
+ */
 export async function executeAIPhoneCall(payload: string) {
   let data: ExecuteAIPhoneCallPayload;
   try {

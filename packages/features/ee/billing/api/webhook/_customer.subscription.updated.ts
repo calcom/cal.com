@@ -27,6 +27,17 @@ const handler = async (data: Data) => {
 
 type Subscription = Data["object"];
 
+/**
+ * Update a CalAI phone number's subscriptionStatus from a Stripe subscription object.
+ *
+ * Maps the Stripe `subscription.status` to the local PhoneNumberSubscriptionStatus, persists
+ * the updated status to the `calAiPhoneNumber` record identified by `phoneNumber.id`, and
+ * returns a summary of the update.
+ *
+ * @param subscription - Stripe subscription object; must include `id` and `status`.
+ * @param phoneNumber - Internal CalAI phone number record containing at least `id` (primary key).
+ * @returns An object with `success: true`, the Stripe `subscriptionId`, and the resolved local `status`.
+ */
 async function handleCalAIPhoneNumberSubscriptionUpdate(
   subscription: Subscription,
   phoneNumber: { id: number; phoneNumber: string }

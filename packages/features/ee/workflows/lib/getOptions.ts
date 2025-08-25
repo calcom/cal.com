@@ -17,6 +17,18 @@ import {
   ATTENDEE_WORKFLOW_TEMPLATES,
 } from "./constants";
 
+/**
+ * Build workflow action options for UI components.
+ *
+ * Returns an array of option objects for every Workflow action with a translated, capitalized label,
+ * the action value, and a `needsCredits` flag indicating whether the action requires credits.
+ *
+ * The `needsCredits` flag is true when the action is an SMS or WhatsApp action and the caller is not
+ * on an orgs plan, or when the action is a Cal AI action.
+ *
+ * @param isOrgsPlan - When true, org-level plan discounts/exemptions apply (affects `needsCredits`)
+ * @returns Array of objects with shape `{ label: string, value: WorkflowActions, needsCredits: boolean }`
+ */
 export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
   return WORKFLOW_ACTIONS.map((action) => {
     const actionString = t(`${action.toLowerCase()}_action`);
