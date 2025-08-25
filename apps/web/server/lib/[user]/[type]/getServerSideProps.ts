@@ -8,6 +8,7 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -45,9 +46,25 @@ async function processReschedule({
 }) {
   if (!rescheduleUid) return;
 
-  const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+  const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id, true);
 
-  if (booking?.eventType?.disableRescheduling) {
+  // Check if user is a host or owner of the event type
+  const userId = session?.user?.id;
+  const userIsHost = checkIfUserIsHost(
+    userId,
+    {
+      user: booking?.user || null,
+      attendees: booking?.attendees || [],
+    },
+    {
+      users: booking?.eventType?.users,
+      hosts: booking?.eventType?.hosts as unknown as { user: { id: number; email: string } }[],
+    }
+  );
+  const userIsOwnerOfEventType = booking?.eventType?.owner?.id === userId;
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
+
+  if (booking?.eventType?.disableRescheduling && !isHostOrOwner) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,

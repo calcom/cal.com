@@ -22,6 +22,8 @@ export interface BookingActionContext {
   isCalVideoLocation: boolean;
   showPendingPayment: boolean;
   cardCharged: boolean;
+  isHostOrOwner: boolean;
+  hasTeamOrOrgPermissions: boolean;
   attendeeList: Array<{
     name: string;
     email: string;
@@ -101,6 +103,8 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     isBookingInPast,
     isDisabledRescheduling,
     isBookingFromRoutingForm,
+    isHostOrOwner,
+    hasTeamOrOrgPermissions,
     getSeatReferenceUid,
     t,
   } = context;
@@ -114,7 +118,8 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
         booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
       }`,
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || 
+        (isDisabledRescheduling && !isHostOrOwner && !hasTeamOrOrgPermissions),
     },
     {
       id: "reschedule_request",
@@ -122,7 +127,8 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || 
+        (isDisabledRescheduling && !isHostOrOwner && !hasTeamOrOrgPermissions),
     },
     isBookingFromRoutingForm
       ? {
@@ -202,15 +208,16 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isPending, isConfirmed } =
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isPending, isConfirmed, isHostOrOwner, hasTeamOrOrgPermissions } =
     context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
-      return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
+      return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || 
+             (isDisabledRescheduling && !isHostOrOwner && !hasTeamOrOrgPermissions);
     case "cancel":
-      return isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed);
+      return (isDisabledCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) || (isBookingInPast && isPending && !isConfirmed);
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "meeting_session_details":

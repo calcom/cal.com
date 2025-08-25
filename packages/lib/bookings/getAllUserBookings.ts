@@ -29,6 +29,7 @@ type GetOptions = {
     attendeeEmail?: string | TextFilterValue;
     attendeeName?: string | TextFilterValue;
     bookingUid?: string | undefined;
+    includeHostAndTeamPermissions?: boolean;
   };
   sort?: SortOptions;
 };

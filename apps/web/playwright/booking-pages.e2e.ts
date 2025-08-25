@@ -1,5 +1,7 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
+import type { createUsersFixture } from "playwright/fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -14,6 +16,7 @@ import {
   bookTimeSlot,
   confirmBooking,
   confirmReschedule,
+  doOnOrgDomain,
   expectSlotNotAllowedToBook,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
@@ -21,6 +24,61 @@ import {
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
+
+async function testOrgMemberAction({
+  page,
+  users,
+  org,
+  bookingId,
+  role,
+  action,
+  testName,
+}: {
+  page: Page;
+  users: ReturnType<typeof createUsersFixture>;
+  org: {
+    id: number;
+    slug: string;
+  };
+  bookingId: string | undefined;
+  role: "ADMIN" | "OWNER";
+  action: "reschedule" | "cancel";
+  testName: string;
+}) {
+  const orgMember = await users.create({
+    username: `org-${role.toLowerCase()}-${action}`,
+    name: `Org ${role} ${action}`,
+    organizationId: org.id,
+    roleInOrganization: role,
+  });
+
+  await orgMember.apiLogin();
+
+  if (!bookingId) throw new Error("Booking ID not found");
+
+  await doOnOrgDomain({ orgSlug: org.slug, page }, async ({ page, goToUrlWithErrorHandling }) => {
+    const { success } = await goToUrlWithErrorHandling(`/booking/${bookingId}`);
+    if (!success) {
+      throw new Error(`Failed to navigate to booking page: /booking/${bookingId}`);
+    }
+    await page.waitForLoadState("networkidle");
+
+    if (action === "reschedule") {
+      await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
+      await page.locator('[data-testid="reschedule-link"]').click();
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await confirmReschedule(page);
+      await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
+    } else {
+      await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
+      await page.locator('[data-testid="cancel"]').click();
+      await page.locator('[data-testid="cancel_reason"]').fill(`${testName} cancellation test`);
+      await page.locator('[data-testid="confirm_cancel"]').click();
+      await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+    }
+  });
+}
+
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
@@ -633,13 +691,15 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     bookingId = pathSegments[pathSegments.length - 1];
   });
 
-  test("Reschedule and cancel buttons should be hidden on success page", async ({ page }) => {
+  test("Reschedule and cancel buttons should be hidden on success page for attendees", async ({ page }) => {
+    // For attendees, the buttons should be hidden when cancellation/rescheduling is disabled
     await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
     await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 
   test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
     await page.goto(`/reschedule/${bookingId}`);
+    await expect(page).toHaveURL(`/reschedule/${bookingId}`);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -648,6 +708,7 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
 
   test("Using rescheduleUid query parameter should redirect to success page", async ({ page }) => {
     await page.goto(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
+    await expect(page).toHaveURL(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -668,7 +729,33 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     const responseBody = await response.json();
     expect(responseBody.message).toBe("This event type does not allow cancellations");
   });
+
+  test("Host should be able to cancel even when cancellation is disabled", async ({ page, users }) => {
+    const [user] = users.get();
+    await user.apiLogin();
+
+    await page.goto(`/booking/${bookingId}`);
+    await expect(page).toHaveURL(`/booking/${bookingId}`);
+    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="cancel_reason"]').fill("Host cancellation test");
+    await page.locator('[data-testid="confirm_cancel"]').click();
+    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+  });
+
+  test("Host should be able to reschedule even when rescheduling is disabled", async ({ page, users }) => {
+    const [user] = users.get();
+    await user.apiLogin();
+
+    await page.goto(`/booking/${bookingId}`);
+    await expect(page).toHaveURL(`/booking/${bookingId}`);
+    await page.locator('[data-testid="reschedule-link"]').click();
+    await page.waitForURL((url) => url.searchParams.has("rescheduleUid"));
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
+  });
 });
+
 test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({ page, users }) => {
   const user = await users.create({
     name: `Test-user-${randomString(4)}`,
@@ -760,5 +847,123 @@ test.describe("GTM container", () => {
 
     const scriptContent = await injectedScript.textContent();
     expect(scriptContent).toContain("googletagmanager");
+  });
+});
+
+test.describe("Organization members can cancel and reschedule when disabled", () => {
+  let bookingId: string | undefined;
+  let org: any;
+  let user: any;
+  let team: any;
+  let teamEventSlug: string;
+
+  test.beforeEach(async ({ page, users, prisma, orgs }) => {
+    user = await users.create(
+      {
+        name: `Test-user-${randomString(4)}`,
+        username: `test-user-${randomString(4)}`,
+      },
+      {
+        hasTeam: true,
+        teammates: [{ name: "teammate-1" }],
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    const { team: userTeam } = await user.getFirstTeamMembership();
+    team = userTeam;
+
+    const teamEvent = await user.getFirstTeamEvent(team.id);
+    teamEventSlug = teamEvent.slug;
+
+    await prisma.eventType.update({
+      where: { id: teamEvent.id },
+      data: {
+        title: "No Cancel No Reschedule",
+        disableCancelling: true,
+        disableRescheduling: true,
+      },
+    });
+
+    org = await orgs.create({
+      name: "Test Org",
+    });
+
+    await prisma.team.update({
+      where: { id: team.id },
+      data: { parentId: org.id },
+    });
+
+    await doOnOrgDomain(
+      {
+        orgSlug: org.slug,
+        page,
+      },
+      async ({ page, goToUrlWithErrorHandling }) => {
+        const { success } = await goToUrlWithErrorHandling(`/team/${team.slug}/${teamEventSlug}`);
+        if (!success) {
+          throw new Error(`Failed to navigate to team event page: /team/${team.slug}/${teamEventSlug}`);
+        }
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page, {
+          name: "Test-user-1",
+          email: "test-booker@example.com",
+        });
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+        const url = new URL(page.url());
+        const pathSegments = url.pathname.split("/");
+        bookingId = pathSegments[pathSegments.length - 1];
+      }
+    );
+  });
+
+  test("Organization Admin should be able to reschedule even when disabled", async ({ page, users }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "ADMIN",
+      action: "reschedule",
+      testName: "Org Admin",
+    });
+  });
+
+  test("Organization Admin should be able to cancel even when disabled", async ({ page, users }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "ADMIN",
+      action: "cancel",
+      testName: "Org Admin",
+    });
+  });
+
+  test("Organization Owner should be able to reschedule even when disabled", async ({ page, users }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "OWNER",
+      action: "reschedule",
+      testName: "Org Owner",
+    });
+  });
+
+  test("Organization Owner should be able to cancel even when disabled", async ({ page, users }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "OWNER",
+      action: "cancel",
+      testName: "Org Owner",
+    });
   });
 });

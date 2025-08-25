@@ -45,7 +45,12 @@ function getResponsesFromOldBooking(
   };
 }
 
-async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boolean) {
+async function getBooking(
+  prisma: PrismaClient,
+  uid: string,
+  isSeatedEvent?: boolean,
+  includeHostsAndOwner = false
+) {
   const rawBooking = await prisma.booking.findUnique({
     where: {
       uid,
@@ -65,6 +70,29 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
       eventType: {
         select: {
           disableRescheduling: true,
+          ...(includeHostsAndOwner && {
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            owner: {
+              select: {
+                id: true,
+              },
+            },
+          }),
         },
       },
       attendees: {
@@ -123,7 +151,7 @@ export const getBookingWithResponses = <
 
 export default getBooking;
 
-export const getBookingForReschedule = async (uid: string, userId?: number) => {
+export const getBookingForReschedule = async (uid: string, userId?: number, includeHostsAndOwner = false) => {
   let rescheduleUid: string | null = null;
   const theBooking = await prisma.booking.findUnique({
     where: {
@@ -202,7 +230,12 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
   // and we return null here.
   if (!theBooking && !rescheduleUid) return null;
 
-  const booking = await getBooking(prisma, rescheduleUid || uid, bookingSeatReferenceUid ? true : false);
+  const booking = await getBooking(
+    prisma,
+    rescheduleUid || uid,
+    bookingSeatReferenceUid ? true : false,
+    includeHostsAndOwner
+  );
 
   if (!booking) return null;
 
@@ -275,6 +308,9 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     location: null,
     eventType: {
       disableRescheduling: false,
+      hosts: [],
+      users: [],
+      owner: null,
     },
     // mask attendee emails for seated events
     attendees: booking.attendees.map((attendee) => ({
