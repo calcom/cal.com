@@ -1,4 +1,3 @@
-// Simple script to generate lazy loading metadata
 const fs = require('fs');
 const path = require('path');
 
@@ -6,12 +5,11 @@ const APP_STORE_PATH = path.join(__dirname, '../app-store');
 
 console.log('Generating lazy loading metadata...');
 
-// Function to create lazy-loaded metadata
 function generateLazyMetadataFile() {
   const apps = [];
   const templates = [];
 
-  // Read all directories in the app store
+
   const dirs = fs.readdirSync(APP_STORE_PATH);
 
   for (const dir of dirs) {
@@ -76,7 +74,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
       importPath = `./${app.path}/config.json`;
       isMetadata = false;
     } else {
-      continue; // Skip if neither exists
+      continue;
     }
 
     const varName = app.name.replace(/[-.]/g, '_');
@@ -99,7 +97,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
 
   output += '};\n';
 
-  // Write to file
+
   const outputPath = path.join(APP_STORE_PATH, 'apps.metadata.generated.ts');
   fs.writeFileSync(outputPath, output, 'utf8');
 
