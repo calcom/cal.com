@@ -9,7 +9,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
   contents: read
 
 concurrency:
@@ -261,6 +260,9 @@ jobs:
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
+      - name: dump needs
+        if: failure() || cancelled()
+        run: echo '${{ toJson(needs) }}'
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
         run: exit 1

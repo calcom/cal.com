@@ -263,29 +263,44 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
-    // on timezone change update timezone of default schedule
-    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    // Only automatically update default schedule timezone if user has never set a timezone preference
+    // This prevents the bug where changing browser timezone automatically updates default schedule timezone
+    const defaultSchedule = await prisma.schedule.findFirst({
+      where: {
+        id: user.defaultScheduleId || undefined,
+      },
+      select: {
+        id: true,
+        timeZone: true,
+      },
+    });
 
-    if (!user.defaultScheduleId) {
-      // set default schedule if not already set
-      await prisma.user.update({
+    // Only update if the default schedule doesn't have an explicitly set timezone
+    // (i.e., it's using the default user timezone)
+    if (defaultSchedule && (!defaultSchedule.timeZone || defaultSchedule.timeZone === user.timeZone)) {
+      const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+
+      if (!user.defaultScheduleId) {
+        // set default schedule if not already set
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultScheduleId,
+          },
+        });
+      }
+
+      await prisma.schedule.updateMany({
         where: {
-          id: user.id,
+          id: defaultScheduleId,
         },
         data: {
-          defaultScheduleId,
+          timeZone: data.timeZone,
         },
       });
     }
-
-    await prisma.schedule.updateMany({
-      where: {
-        id: defaultScheduleId,
-      },
-      data: {
-        timeZone: data.timeZone,
-      },
-    });
   }
 
   // Notify stripe about the change

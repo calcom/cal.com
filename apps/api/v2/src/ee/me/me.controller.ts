@@ -61,10 +61,20 @@ export class MeController {
     @Body() bodySchedule: UpdateManagedUserInput
   ): Promise<UpdateMeOutput> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
+
+    // Only automatically update default schedule timezone if user has never set a timezone preference
+    // This prevents the bug where changing browser timezone automatically updates default schedule timezone
     if (bodySchedule.timeZone && user.defaultScheduleId) {
-      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
-        timeZone: bodySchedule.timeZone,
-      });
+      // Check if the default schedule has an explicitly set timezone
+      const defaultSchedule = await this.schedulesService.getSchedule(user.defaultScheduleId);
+
+      // Only update if the default schedule doesn't have an explicitly set timezone
+      // (i.e., it's using the default user timezone)
+      if (defaultSchedule && (!defaultSchedule.timeZone || defaultSchedule.timeZone === user.timeZone)) {
+        await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
+          timeZone: bodySchedule.timeZone,
+        });
+      }
     }
 
     const me = userSchemaResponse.parse(updatedUser);
