@@ -42,9 +42,29 @@ type RhfFormFields = RhfForm["fields"];
 
 type RhfFormField = RhfFormFields[number];
 
+type DataStore = {
+  options: Record<
+    string,
+    {
+      source: { label: string };
+      value: { label: string; value: string; inputPlaceholder?: string }[];
+    }
+  >;
+};
+
 function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
   return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
 }
+
+const getLocationFieldType = (field: RhfFormField) => {
+  const baseFieldType = fieldTypesConfigMap[field.type];
+
+  if (field.name === "location") {
+    return { ...baseFieldType, label: "Location" };
+  }
+
+  return baseFieldType;
+};
 
 /**
  * It works with a react-hook-form only.
@@ -71,15 +91,7 @@ export const FormBuilder = function FormBuilder({
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
-  dataStore: {
-    options: Record<
-      string,
-      {
-        source: { label: string };
-        value: { label: string; value: string; inputPlaceholder?: string }[];
-      }
-    >;
-  };
+  dataStore: DataStore;
   /**
    * This is kind of a hack to allow certain fields to be just shown as required when they might not be required in a strict sense
    * e.g. Location field has a default value at backend so API can send no location but formBuilder in UI doesn't allow it.
@@ -226,7 +238,7 @@ export const FormBuilder = function FormBuilder({
               return null;
             }
 
-            const fieldType = fieldTypesConfigMap[field.type];
+            const fieldType = getLocationFieldType(field);
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -565,7 +577,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[formFieldType]}
+              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
