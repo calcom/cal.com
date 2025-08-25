@@ -80,6 +80,48 @@ export const _generateMetadata = async (
   };
 };
 
+export const _generateMetadataForStaticPage = (
+  title: string,
+  description: string,
+  hideBranding?: boolean,
+  origin?: string,
+  pathname?: string
+) => {
+  const _pathname = pathname ?? "";
+  const canonical = buildCanonical({ path: _pathname, origin: origin ?? CAL_URL });
+  const titleSuffix = `| ${APP_NAME}`;
+  const displayedTitle = title.includes(titleSuffix) || hideBranding ? title : `${title} ${titleSuffix}`;
+  const metadataBase = new URL(IS_CALCOM ? getCalcomUrl() : WEBAPP_URL);
+
+  const metadata = {
+    title: title.length === 0 ? APP_NAME : displayedTitle,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      description: truncateOnWord(description, 158),
+      url: canonical,
+      type: "website",
+      siteName: APP_NAME,
+      title: displayedTitle,
+    },
+    metadataBase,
+  };
+  const image =
+    SEO_IMG_OGIMG +
+    constructGenericImage({
+      title: metadata.title,
+      description: metadata.description,
+    });
+
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      images: [image],
+    },
+  };
+};
+
 export const generateMeetingMetadata = async (
   meeting: MeetingImageProps,
   getTitle: (t: TFunction<string, undefined>) => string,
