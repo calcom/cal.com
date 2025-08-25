@@ -21,7 +21,7 @@ export function useFilterPopoverOpen(columnId: string) {
         clearTimeout(timeoutId);
       }
     };
-  }, [filterToOpen, columnId]);
+  }, [filterToOpen.current, columnId]);
 
   const onOpenChange = useCallback(
     (open: boolean) => {

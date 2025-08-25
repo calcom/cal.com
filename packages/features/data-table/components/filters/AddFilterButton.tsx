@@ -90,8 +90,8 @@ function AddFilterButtonComponent<TData>(
                   <CommandItem
                     key={column.id}
                     onSelect={() => {
-                      addFilter(column.id);
                       if (filterToOpen) filterToOpen.current = column.id;
+                      addFilter(column.id);
                       setOpen(false);
                     }}
                     className="flex items-center justify-between px-4 py-2"
