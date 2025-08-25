@@ -75,6 +75,7 @@ const OrgGeneralView = ({
     },
     [error]
   );
+  const { data: user } = trpc.viewer.me.get.useQuery();
 
   if (isPending) return <SkeletonLoader />;
   if (!currentOrg) {
