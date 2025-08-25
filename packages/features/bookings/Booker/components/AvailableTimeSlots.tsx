@@ -1,4 +1,3 @@
-import type { UseScheduleForEventReturnType } from "bookings/Booker/hooks/useScheduleForEvent";
 import { useCallback, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -15,6 +14,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
+import type { UseScheduleForEventReturnType } from "../hooks/useScheduleForEvent";
 import { getQueryParam } from "../utils/query-param";
 
 type AvailableTimeSlotsProps = {
