@@ -117,7 +117,7 @@ export async function _onFormSubmission(
 
   const { userId, teamId } = getWebhookTargetEntity(form);
 
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId || undefined, teamId });
 
   const subscriberOptionsFormSubmitted = {
     userId,
@@ -200,7 +200,7 @@ export async function _onFormSubmission(
           );
           await sendResponseEmail(form, orderedResponses, form.userWithEmails);
         }
-      } else if (form.settings?.emailOwnerOnSubmission) {
+      } else if (form.settings?.emailOwnerOnSubmission && form.user) {
         moduleLogger.debug(
           `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
         );
@@ -229,9 +229,9 @@ export const sendResponseEmail = async (
   }
 };
 
-function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: number } }) {
+function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: number } | null }) {
   // If it's a team form, the target must be team webhook
   // If it's a user form, the target must be user webhook
   const isTeamForm = form.teamId;
-  return { userId: isTeamForm ? null : form.user.id, teamId: isTeamForm ? form.teamId : null };
+  return { userId: isTeamForm ? null : form.user?.id || null, teamId: isTeamForm ? form.teamId : null };
 }
