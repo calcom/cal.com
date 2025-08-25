@@ -336,6 +336,11 @@ export class InsightsBookingBaseService {
       return Prisma.sql`"userName" ILIKE ${`%${value.data.operand}%`}`;
     }
 
+    if (id === "rating" && isSingleSelectFilterValue(value)) {
+      const ratingValue = typeof value.data === "number" ? value.data : Number(value.data);
+      return Prisma.sql`"rating" = ${ratingValue}`;
+    }
+
     return null;
   }
 

@@ -15,6 +15,7 @@ type DummyTableRow = {
   paid: boolean;
   userEmail: string | null;
   userName: string | null;
+  rating: number | null;
 };
 
 const emptyData: DummyTableRow[] = [];
@@ -103,6 +104,19 @@ export const useInsightsBookings = () => {
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
+          },
+        },
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+      }),
+      columnHelper.accessor("rating", {
+        id: "rating",
+        header: t("rating"),
+        size: 150,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
           },
         },
         enableColumnFilter: true,
