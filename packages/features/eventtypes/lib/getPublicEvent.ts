@@ -106,11 +106,6 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             name: true,
             bannerUrl: true,
             logoUrl: true,
-            organizationSettings: {
-              select: {
-                disableAutoFillOnBookingPage: true,
-              },
-            },
           },
         },
         isPrivate: true,
@@ -165,15 +160,6 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             theme: true,
             brandColor: true,
             darkBrandColor: true,
-            parent: {
-              select: {
-                organizationSettings: {
-                  select: {
-                    disableAutoFillOnBookingPage: true,
-                  },
-                },
-              },
-            },
           },
         },
       },
@@ -469,6 +455,20 @@ export const getPublicEvent = async (
     hosts: fetchAllUsers ? hosts : undefined,
   };
 
+  const organizationId = eventWithUserProfiles.owner?.profile?.organizationId;
+  const disableAutoFillOnBookingPage = organizationId
+    ? await prisma.organizationSettings
+        .findUnique({
+          where: {
+            organizationId,
+          },
+          select: {
+            disableAutoFillOnBookingPage: true,
+          },
+        })
+        .then((res) => res?.disableAutoFillOnBookingPage)
+    : false;
+
   let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
     (await getOwnerFromUsersArray(prisma, event.id));
@@ -585,6 +585,7 @@ export const getPublicEvent = async (
     disableRescheduling: event.disableRescheduling,
     allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
     interfaceLanguage: event.interfaceLanguage,
+    disableAutoFillOnBookingPage,
   };
 };
 
