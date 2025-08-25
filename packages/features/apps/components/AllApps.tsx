@@ -173,6 +173,7 @@ export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) 
         : true
     )
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
+    .filter((app) => app.slug !== "daily-video")
     .sort(function (a, b) {
       if (a.name < b.name) return -1;
       else if (a.name > b.name) return 1;

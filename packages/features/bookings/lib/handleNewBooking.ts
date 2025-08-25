@@ -15,6 +15,7 @@ import processExternalId from "@calcom/app-store/_utils/calendars/processExterna
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
+  JitsiLocationType,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
@@ -998,7 +999,7 @@ async function handler(
     } else if (organizationDefaultLocation) {
       locationBodyString = organizationDefaultLocation;
     } else {
-      locationBodyString = "integrations:daily";
+      locationBodyString = JitsiLocationType;
     }
   }
 
