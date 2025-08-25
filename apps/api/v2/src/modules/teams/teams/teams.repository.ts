@@ -2,7 +2,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { teamMetadataStrictSchema } from "@calcom/platform-libraries";
+import { teamMetadataSchema } from "@calcom/platform-libraries";
 import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
@@ -87,7 +87,7 @@ export class TeamsRepository {
 
   async setDefaultConferencingApp(teamId: number, appSlug?: string, appLink?: string) {
     const team = await this.getById(teamId);
-    const teamMetadata = teamMetadataStrictSchema.parse(team?.metadata);
+    const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
     if (!team) {
       throw new NotFoundException("user not found");
