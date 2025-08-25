@@ -1,0 +1,475 @@
+import dayjs from "@calcom/dayjs";
+import type { TimeUnit } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import type {
+  BookingCreatedDTO,
+  BookingCancelledDTO,
+  BookingRequestedDTO,
+  BookingRescheduledDTO,
+  BookingPaidDTO,
+  BookingPaymentInitiatedDTO,
+  BookingNoShowDTO,
+  WebhookTriggerArgs,
+  BookingRejectedDTO,
+  WebhookSubscriber,
+} from "../dto/types";
+import type { IWebhookNotifier, IWebhookService, ITasker, IBookingWebhookService } from "../interface";
+import { TaskerProvider } from "../provider/TaskerProvider";
+import type {
+  BookingCreatedParams,
+  BookingCancelledParams,
+  BookingRequestedParams,
+  BookingRescheduledParams,
+  BookingPaidParams,
+  BookingPaymentInitiatedParams,
+  BookingNoShowParams,
+  BookingRejectedParams,
+  ScheduleMeetingWebhooksParams,
+  CancelScheduledMeetingWebhooksParams,
+  ScheduleNoShowWebhooksParams,
+} from "../types";
+
+export class BookingWebhookService implements IBookingWebhookService {
+  constructor(
+    private readonly webhookNotifier: IWebhookNotifier,
+    private readonly webhookService: IWebhookService,
+    private readonly tasker?: ITasker
+  ) {}
+
+  private async getTasker(): Promise<ITasker> {
+    const tasker = this.tasker ?? (await TaskerProvider.load());
+    return tasker;
+  }
+
+  async emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    return this.emitBookingCreated({
+      evt: args.evt,
+      booking: {
+        ...args.booking,
+        startTime: args.booking.startTime ?? new Date(args.evt.startTime),
+      },
+      eventType: args.eventType,
+      status: args.status,
+      metadata: args.metadata,
+      platformParams: args.platformParams,
+      platformClientId: args.platformClientId,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  async emitBookingCancelledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    return this.emitBookingCancelled({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      cancelledBy: args.cancelledBy,
+      cancellationReason: args.cancellationReason,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  async emitBookingRequestedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    return this.emitBookingRequested({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  async emitBookingRescheduledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    return this.emitBookingRescheduled({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      rescheduleId: args.rescheduleId,
+      rescheduleUid: args.rescheduleUid,
+      rescheduleStartTime: args.rescheduleStartTime,
+      rescheduleEndTime: args.rescheduleEndTime,
+      rescheduledBy: args.rescheduledBy,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  async emitBookingPaidFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    return this.emitBookingPaid({
+      evt: args.evt,
+      booking: args.booking,
+      eventType: args.eventType,
+      paymentId: args.paymentId,
+      paymentData: args.paymentData,
+      teamId: args.teamId,
+      orgId: args.orgId,
+      platformClientId: args.platformClientId,
+      isDryRun: args.isDryRun,
+    });
+  }
+
+  async emitBookingPaymentInitiated(params: BookingPaymentInitiatedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingPaymentInitiatedDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+      paymentId: params.paymentId,
+      paymentData: params.paymentData,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingCreated(params: BookingCreatedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingCreatedDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId ?? params.platformParams?.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+      status: params.status || "ACCEPTED",
+      metadata: params.metadata,
+      platformParams: params.platformParams,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingCancelled(params: BookingCancelledParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingCancelledDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+      cancelledBy: params.cancelledBy,
+      cancellationReason: params.cancellationReason,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingRequested(params: BookingRequestedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingRequestedDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+    };
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingRescheduled(params: BookingRescheduledParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingRescheduledDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+      rescheduleId: params.rescheduleId,
+      rescheduleUid: params.rescheduleUid,
+      rescheduleStartTime: params.rescheduleStartTime,
+      rescheduleEndTime: params.rescheduleEndTime,
+      rescheduledBy: params.rescheduledBy,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingPaid(params: BookingPaidParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingPaidDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+      paymentId: params.paymentId,
+      paymentData: params.paymentData,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingNoShow(params: BookingNoShowParams): Promise<void> {
+    const dto: BookingNoShowDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.bookingId,
+      eventTypeId: params.eventTypeId,
+      userId: params.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      message: params.message,
+      bookingUid: params.bookingUid,
+      attendees: params.attendees,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingRejected(params: BookingRejectedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingRejectedDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      status: "REJECTED",
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async scheduleMeetingWebhooks(params: ScheduleMeetingWebhooksParams): Promise<void> {
+    const webhookService = this.webhookService;
+
+    const subscribersMeetingStarted = await webhookService.getSubscribers({
+      userId: params.booking.userId,
+      eventTypeId: params.booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+    });
+
+    const subscribersMeetingEnded = await webhookService.getSubscribers({
+      userId: params.booking.userId,
+      eventTypeId: params.booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+    });
+
+    const schedulePromises: Promise<void>[] = [];
+
+    for (const subscriber of subscribersMeetingStarted) {
+      schedulePromises.push(
+        webhookService.scheduleTimeBasedWebhook(
+          WebhookTriggerEvents.MEETING_STARTED,
+          params.booking.startTime,
+          {
+            id: params.booking.id,
+            uid: params.booking.uid,
+            eventTypeId: params.booking.eventTypeId,
+            userId: params.booking.userId,
+            teamId: params.teamId,
+            responses: params.booking.responses,
+          },
+          subscriber,
+          params.evt as unknown as Record<string, unknown>,
+          params.isDryRun
+        )
+      );
+    }
+
+    for (const subscriber of subscribersMeetingEnded) {
+      schedulePromises.push(
+        webhookService.scheduleTimeBasedWebhook(
+          WebhookTriggerEvents.MEETING_ENDED,
+          params.booking.endTime,
+          {
+            id: params.booking.id,
+            uid: params.booking.uid,
+            eventTypeId: params.booking.eventTypeId,
+            userId: params.booking.userId,
+            teamId: params.teamId,
+            responses: params.booking.responses,
+          },
+          subscriber,
+          params.evt as unknown as Record<string, unknown>,
+          params.isDryRun
+        )
+      );
+    }
+
+    await Promise.all(schedulePromises);
+  }
+
+  async cancelScheduledMeetingWebhooks(params: CancelScheduledMeetingWebhooksParams): Promise<void> {
+    const webhookService = this.webhookService;
+    await webhookService.cancelScheduledWebhooks(
+      params.bookingId,
+      [WebhookTriggerEvents.MEETING_STARTED, WebhookTriggerEvents.MEETING_ENDED],
+      params.isDryRun
+    );
+  }
+
+  async scheduleNoShowWebhooks(params: ScheduleNoShowWebhooksParams): Promise<void> {
+    const webhookService = this.webhookService;
+
+    try {
+      const tasker = await this.getTasker();
+      const noShowPromises: Promise<string | void>[] = [];
+
+      const subscribersHostsNoShow = await webhookService.getSubscribers({
+        userId: params.triggerForUser ? params.organizerUser.id : null,
+        eventTypeId: params.booking.eventTypeId,
+        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+        teamId: params.teamId,
+        orgId: params.orgId,
+        oAuthClientId: params.oAuthClientId,
+      });
+
+      noShowPromises.push(
+        ...subscribersHostsNoShow.map((webhook: WebhookSubscriber) => {
+          if (params.booking.startTime && webhook.time && webhook.timeUnit) {
+            const scheduledAt = dayjs
+              .utc(params.booking.startTime)
+              .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
+              .toDate();
+
+            return tasker.create(
+              "triggerHostNoShowWebhook",
+              {
+                triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+                bookingId: params.booking.id,
+                webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
+              },
+              { scheduledAt }
+            );
+          }
+          return Promise.resolve();
+        })
+      );
+
+      const subscribersGuestsNoShow = await webhookService.getSubscribers({
+        userId: params.triggerForUser ? params.organizerUser.id : null,
+        eventTypeId: params.booking.eventTypeId,
+        triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        teamId: params.teamId,
+        orgId: params.orgId,
+        oAuthClientId: params.oAuthClientId,
+      });
+
+      noShowPromises.push(
+        ...subscribersGuestsNoShow.map((webhook: WebhookSubscriber) => {
+          if (params.booking.startTime && webhook.time && webhook.timeUnit) {
+            const scheduledAt = dayjs
+              .utc(params.booking.startTime)
+              .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
+              .toDate();
+
+            return tasker.create(
+              "triggerGuestNoShowWebhook",
+              {
+                triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+                bookingId: params.booking.id,
+                webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
+              },
+              { scheduledAt }
+            );
+          }
+          return Promise.resolve();
+        })
+      );
+
+      await Promise.all(noShowPromises);
+    } catch (error) {
+      console.error("Failed to schedule no-show webhooks:", error);
+    }
+  }
+}
