@@ -12,6 +12,7 @@ export const apiHandlers = {
   basecamp3: import("./basecamp3/api"),
   bigbluebutton: import("./bigbluebutton/api"),
   bolna: import("./bolna/api"),
+  btcpayserver: import("./btcpayserver/api"),
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
   chatbase: import("./chatbase/api"),

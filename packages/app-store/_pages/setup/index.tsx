@@ -17,6 +17,7 @@ export const AppSetupMap = {
   paypal: dynamic(() => import("../../paypal/pages/setup")),
   hitpay: dynamic(() => import("../../hitpay/pages/setup")),
   bigbluebutton: dynamic(() => import("../../bigbluebutton/pages/setup")),
+  btcpayserver: dynamic(() => import("../../btcpayserver/pages/setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {

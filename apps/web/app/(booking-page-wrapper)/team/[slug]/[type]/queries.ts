@@ -13,6 +13,7 @@ import { getTeamEventType } from "@calcom/features/eventtypes/lib/getTeamEventTy
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -102,7 +103,7 @@ export async function getEnrichedEventType({
 }
 
 export async function shouldUseApiV2ForTeamSlots(teamId: number): Promise<boolean> {
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(teamId, "use-api-v2-for-team-slots");
   const useApiV2 = teamHasApiV2Route && Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 
@@ -122,12 +123,14 @@ export async function getCRMData(
   const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
+  const crmRecordIdParam = query["cal.crmRecordId"];
 
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
   let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
     ? crmContactOwnerRecordType[0]
     : crmContactOwnerRecordType;
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
+  let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
   if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
@@ -137,6 +140,7 @@ export async function getCRMData(
       email,
       recordType,
       crmAppSlug: crmAppSlugQuery,
+      recordId: crmRecordIdQuery,
     } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
       query,
       eventData,
@@ -145,11 +149,24 @@ export async function getCRMData(
     teamMemberEmail = email ?? undefined;
     crmOwnerRecordType = recordType ?? undefined;
     crmAppSlug = crmAppSlugQuery ?? undefined;
+    crmRecordId = crmRecordIdQuery ?? undefined;
   }
 
   return {
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    crmRecordId,
   };
+}
+
+export async function getTeamId(teamSlug: string, orgSlug: string | null): Promise<number | null> {
+  const teamRepo = new TeamRepository(prisma);
+  const team = await teamRepo.findFirstBySlugAndParentSlug({
+    slug: teamSlug,
+    parentSlug: orgSlug,
+    select: { id: true },
+  });
+
+  return team?.id ?? null;
 }

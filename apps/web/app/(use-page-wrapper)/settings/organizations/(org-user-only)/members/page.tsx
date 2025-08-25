@@ -3,7 +3,8 @@ import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import prisma from "@calcom/prisma";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";
@@ -19,7 +20,9 @@ export const generateMetadata = async () =>
 
 const getCachedAttributes = unstable_cache(
   async (orgId: number) => {
-    return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
+    const attributeRepo = new PrismaAttributeRepository(prisma);
+
+    return await attributeRepo.findAllByOrgIdWithOptions({ orgId });
   },
   undefined,
   { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour

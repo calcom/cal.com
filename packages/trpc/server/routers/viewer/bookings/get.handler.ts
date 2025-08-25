@@ -99,6 +99,18 @@ export async function getBookings({
         role: {
           in: ["ADMIN", "OWNER"],
         },
+        ...(user.orgId && {
+          OR: [
+            {
+              teamId: user.orgId,
+            },
+            {
+              team: {
+                parentId: user.orgId,
+              },
+            },
+          ],
+        }),
       },
       select: {
         id: true,
@@ -139,10 +151,12 @@ export async function getBookings({
       userIdsWhereUserIsAdminOrOwner.includes(userId)
     );
 
+    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
+
     //  Scope depends on `user.orgId`:
     // - Throw an error if trying to filter by usersIds that are not within your ORG
     // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam) {
+    if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permissions to fetch bookings for specified userIds",
@@ -503,6 +517,20 @@ export async function getBookings({
                     "varchar" // Or 'text' - use the actual SQL data type
                   )
                   .as("schedulingType"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Host")
+                    .select((eb) => [
+                      "Host.userId",
+                      jsonObjectFrom(
+                        eb
+                          .selectFrom("users")
+                          .select(["users.id", "users.email"])
+                          .whereRef("Host.userId", "=", "users.id")
+                      ).as("user"),
+                    ])
+                    .whereRef("Host.eventTypeId", "=", "EventType.id")
+                ).as("hosts"),
                 "EventType.length",
                 jsonObjectFrom(
                   eb
@@ -510,6 +538,12 @@ export async function getBookings({
                     .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("HostGroup")
+                    .select(["HostGroup.id", "HostGroup.name"])
+                    .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
+                ).as("hostGroups"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),
@@ -640,10 +674,29 @@ export async function getBookings({
     })
   );
 
+  const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+    if (booking.user?.id === userId) {
+      return true;
+    }
+
+    if (!booking.eventType?.hosts || booking.eventType.hosts.length === 0) {
+      return false;
+    }
+
+    const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
+
+    return booking.eventType.hosts.some(({ user: hostUser }) => {
+      return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
+    });
+  };
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
-      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+      // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
+      if (
+        booking.seatsReferences.length &&
+        !booking.eventType?.seatsShowAttendees &&
+        !checkIfUserIsHost(user.id, booking)
+      ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 

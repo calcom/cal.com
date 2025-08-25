@@ -11,6 +11,7 @@ import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
 import { metadata as bigbluebutton__metadata_ts } from "./bigbluebutton/_metadata";
 import bolna_config_json from "./bolna/config.json";
+import btcpayserver_config_json from "./btcpayserver/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import chatbase_config_json from "./chatbase/config.json";
@@ -119,6 +120,7 @@ export const appStoreMetadata = {
   basecamp3: basecamp3_config_json,
   bigbluebutton: bigbluebutton__metadata_ts,
   bolna: bolna_config_json,
+  btcpayserver: btcpayserver_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   chatbase: chatbase_config_json,
