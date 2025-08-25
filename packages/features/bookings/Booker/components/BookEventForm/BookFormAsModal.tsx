@@ -10,8 +10,8 @@ import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent } from "@calcom/ui/components/dialog";
 
 import { getDurationFormatted } from "../../../components/event-meta/Duration";
+import { useEvent } from "../../hooks/useEvent";
 import { FromTime } from "../../utils/dates";
-import { useEvent } from "../../utils/event";
 import { useBookerTime } from "../hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {

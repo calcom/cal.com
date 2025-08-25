@@ -3,7 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
-import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/getTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -18,9 +18,8 @@ export type UseScheduleWithCacheArgs = {
   month?: string | null;
   timezone?: string | null;
   selectedDate?: string | null;
-  prefetchNextMonth?: boolean;
   duration?: number | null;
-  monthCount?: number | null;
+  monthCount?: number;
   dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
@@ -37,9 +36,8 @@ export const useSchedule = ({
   eventSlug,
   eventId,
   selectedDate,
-  prefetchNextMonth,
   duration,
-  monthCount,
+  monthCount = 1,
   dayCount,
   rescheduleUid,
   isTeamEvent,
@@ -50,13 +48,13 @@ export const useSchedule = ({
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
-  const [startTime, endTime] = useTimesForSchedule({
+  const [startTime, endTime] = getTimesForSchedule({
     month,
     monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
   });
+
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
@@ -85,7 +83,6 @@ export const useSchedule = ({
     // @TODO: Old code fetched 2 days ago if we were fetching the current month.
     // Do we want / need to keep that behavior?
     startTime,
-    // if `prefetchNextMonth` is true, two months are fetched at once.
     endTime,
     timeZone: timezone!,
     duration: duration ? `${duration}` : undefined,
