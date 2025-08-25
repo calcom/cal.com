@@ -7,12 +7,12 @@ import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsights
 import type { HeaderRow } from "@calcom/features/insights/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-type DummyTableRow = {
+type WorkflowTableRow = {
   eventTypeId: number | null;
-  workflowId: number | null;
+  workflowType: string | null;
 };
 
-const emptyData: DummyTableRow[] = [];
+const emptyData: WorkflowTableRow[] = [];
 const dummyHeaders: HeaderRow[] = [];
 
 export const useInsightsWorkflows = () => {
@@ -27,7 +27,7 @@ export const useInsightsWorkflows = () => {
   });
 
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<DummyTableRow>();
+    const columnHelper = createColumnHelper<WorkflowTableRow>();
     return [
       columnHelper.accessor("eventTypeId", {
         id: "eventTypeId",
@@ -42,10 +42,10 @@ export const useInsightsWorkflows = () => {
         enableSorting: false,
         cell: () => null,
       }),
-      columnHelper.accessor("workflowId", {
-        id: "workflowId",
-        header: t("workflow"),
-        size: 200,
+      columnHelper.accessor("workflowType", {
+        id: "workflowType",
+        header: t("workflow_type"),
+        size: 3,
         meta: {
           filter: {
             type: ColumnFilterType.SINGLE_SELECT,
@@ -58,7 +58,7 @@ export const useInsightsWorkflows = () => {
     ];
   }, [t]);
 
-  const table = useReactTable<DummyTableRow>({
+  const table = useReactTable<WorkflowTableRow>({
     data: emptyData,
     columns,
     getCoreRowModel: getCoreRowModel(),

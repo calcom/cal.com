@@ -2,6 +2,7 @@
 
 import { useInsightsWorkflows } from "@calid/features/insights/hooks/useInsightsWorkflows";
 import { WorkflowKPICards } from "@calid/features/insights/workflows/WorkflowKPICards";
+import { WorkflowStatusLineChart } from "@calid/features/insights/workflows/WorkflowStatusLineChart";
 
 import type { FilterableColumn } from "@calcom/features/data-table";
 import { ColumnFilterType, DataTableFilters, DateRangeFilter } from "@calcom/features/data-table";
@@ -49,8 +50,7 @@ function InsightsWorkflowPageContent() {
       </div>
       <div className="mb-4 space-y-4">
         <WorkflowKPICards />
-
-        {/* <WorkflowStatusLineChart /> */}
+        <WorkflowStatusLineChart />
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}
           <a

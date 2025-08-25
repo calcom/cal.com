@@ -1,5 +1,5 @@
 import { cn } from "@calid/features/lib/cn";
-import { Icon } from "@calid/features/ui";
+import { Icon, type IconName } from "@calid/features/ui/components/icon/Icon";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -85,7 +85,7 @@ export const Badge = function Badge(props: BadgeProps) {
           <Icon
             name={StartIcon}
             data-testid="start-icon"
-            className="stroke-[3px] mx-1"
+            className="mx-1 stroke-[3px]"
             style={{ width: 12, height: 12 }}
           />
         ) : null)}

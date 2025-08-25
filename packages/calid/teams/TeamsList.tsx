@@ -190,7 +190,9 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                   <Badge variant="secondary">{teamUrl(team?.slug ?? null, team?.parent?.slug ?? null)}</Badge>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Badge variant="secondary">{team.role}</Badge>
+                  <Badge variant="secondary">
+                    {team.role.charAt(0).toUpperCase() + team.role.slice(1).toLowerCase()}
+                  </Badge>
                   <TooltipProvider>
                     <Tooltip delayDuration={0}>
                       <TooltipTrigger asChild>

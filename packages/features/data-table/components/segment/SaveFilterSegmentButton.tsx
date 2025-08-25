@@ -191,7 +191,7 @@ export function SaveFilterSegmentButton() {
           <DialogTitle>{t("save_segment")}</DialogTitle>
         </DialogHeader>
 
-        <Form form={form} handleSubmit={onSubmit} className="mb-4">
+        <Form form={form} handleSubmit={onSubmit}>
           {selectedSegment ? (
             <div className="mb-4">
               <RadioGroup

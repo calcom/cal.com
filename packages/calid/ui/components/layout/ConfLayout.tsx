@@ -6,8 +6,8 @@ import React, { useEffect, useState } from "react";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Steps } from "@calcom/ui/form";
-import { SkeletonText } from "@calcom/ui/skeleton";
+import { Steps } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { Button } from "../button";
 import { StepCard } from "../card/stepcard";

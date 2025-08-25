@@ -85,6 +85,7 @@ function DownloadButton({
     <Button
       type="button" // Change from submit to button
       color="secondary"
+      className="border-default"
       variant="icon"
       onClick={handleDownload}
       disabled={isDownloading}

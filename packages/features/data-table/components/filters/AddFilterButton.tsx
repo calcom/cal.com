@@ -1,16 +1,21 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@calid/features/ui/components/tooltip";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 
@@ -67,14 +72,19 @@ function AddFilterButtonComponent<TData>(
           </PopoverTrigger>
         )}
         {variant === "sm" && (
-          <Tooltip content={t("add_filter")}>
-            <PopoverTrigger asChild>
-              <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
-                <span className="sr-only">{t("filter")}</span>
-                <Icon name="plus" />
-              </Button>
-            </PopoverTrigger>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
+                    <span className="sr-only">{t("filter")}</span>
+                    <Icon name="plus" />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent>{t("add_filter")}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         <PopoverContent className="w-[200px] p-0" align="start">
           <Command>

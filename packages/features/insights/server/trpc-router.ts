@@ -1,3 +1,4 @@
+import { WorkflowEventsInsights } from "@calid/features/insights/server/workflow-events";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
@@ -8,6 +9,7 @@ import {
   routingFormStatsInputSchema,
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
+  workflowRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
 import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
@@ -19,10 +21,9 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { getTimeView, getTimeLine, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
+import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
-import { WorkflowEventsInsights } from "./workflow-events";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
@@ -1128,41 +1129,13 @@ export const insightsRouter = router({
     }),
 
   workflowsTimeline: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        timeView: z.enum(["week", "month", "year", "day"]),
-        type: WorkflowMethodsSchema.optional().nullable(),
-      })
-    )
+    .input(workflowRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const {
-        teamId,
-        eventTypeId,
-        userId,
-        type,
-        startDate: startDateString,
-        endDate: endDateString,
-        timeView: inputTimeView,
-      } = input;
-      // Convert to UTC
-      let startDate = dayjs.utc(startDateString).startOf("day");
-      let endDate = dayjs.utc(endDateString).endOf("day");
-      let timeView = inputTimeView;
-
-      if (timeView === "week" && endDate.diff(startDate, "day") < 14) {
-        timeView = "day";
-      }
-
-      // Ensure weeks start on Monday
-      if (timeView === "week") {
-        startDate = startDate.startOf("week");
-        endDate = endDate.endOf("week");
-      }
-
+      const { userId, teamId, eventTypeId, type, startDate, endDate } = input;
       // Build where conditions dynamically
       const whereConditions = [
-        { createdAt: { gte: startDate.toISOString() } },
-        { createdAt: { lte: endDate.toISOString() } },
+        { createdAt: { gte: startDate } },
+        { createdAt: { lte: endDate } },
         eventTypeId ? { eventTypeId } : null,
         type ? { type } : null,
       ].filter(Boolean) as Prisma.WorkflowInsightsWhereInput[];
