@@ -334,6 +334,17 @@ export class TeamRepository {
     });
   }
 
+  async getCancellationReasonSettings(teamId: number | null) {
+    if (!teamId) return null;
+    return await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: {
+        mandatoryCancellationReasonForHost: true,
+        mandatoryCancellationReasonForAttendee: true,
+      },
+    });
+  }
+
   async findParentOrganizationByTeamId(teamId: number) {
     const team = await this.prismaClient.team.findUnique({
       where: {
