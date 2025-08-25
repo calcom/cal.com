@@ -147,6 +147,7 @@ const commons = {
   instantMeetingParameters: [],
   eventTypeColor: null,
   hostGroups: [],
+  bookingRequiresAuthentication: false,
 };
 
 export const dynamicEvent = {

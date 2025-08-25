@@ -809,7 +809,7 @@ export class InsightsBookingBaseService {
   }
 
   async getMembersStatsWithCount(
-    type: "all" | "cancelled" | "noShow" = "all",
+    type: "all" | "accepted" | "cancelled" | "noShow" = "all",
     sortOrder: "ASC" | "DESC" = "DESC"
   ): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
@@ -819,6 +819,8 @@ export class InsightsBookingBaseService {
       additionalCondition = Prisma.sql`AND status = 'cancelled'`;
     } else if (type === "noShow") {
       additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+    } else if (type === "accepted") {
+      additionalCondition = Prisma.sql`AND status = 'accepted'`;
     }
 
     const bookingsFromTeam = await this.prisma.$queryRaw<

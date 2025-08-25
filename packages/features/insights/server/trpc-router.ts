@@ -321,7 +321,6 @@ function createInsightsBookingService(
   dateTarget: "createdAt" | "startTime" = "createdAt"
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
-
   return getInsightsBookingService({
     options: {
       scope,
@@ -559,6 +558,28 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  membersWithMostCompletedBookings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("accepted", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  membersWithLeastCompletedBookings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("accepted", "ASC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
