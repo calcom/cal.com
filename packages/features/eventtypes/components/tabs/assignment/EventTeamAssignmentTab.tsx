@@ -5,7 +5,6 @@ import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 import { v4 as uuidv4 } from "uuid";
-
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AddMembersWithSwitch, {
   mapUserToValue,
@@ -36,6 +35,68 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 import WeightDescription from "../../WeightDescription";
+
+const EMAIL_REGEX =
+  /(?:^|[\s,;])([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,})(?=$|[\s,;])/g;
+
+const parseEmails = (input: string): string[] => {
+  if (!input) return [];
+  const found = new Set<string>();
+  let m: RegExpExecArray | null;
+  EMAIL_REGEX.lastIndex = 0;
+  while ((m = EMAIL_REGEX.exec(input)) !== null) {
+    const email = m[1].trim().toLowerCase();
+    if (email) found.add(email);
+  }
+  return Array.from(found);
+};
+
+const dedupeHosts = (hosts: Host[]): Host[] => {
+  const seenById = new Set<number>();
+  const seenByEmail = new Set<string>();
+  const result: Host[] = [];
+  for (const h of hosts) {
+    if (typeof h.userId === "number") {
+      if (seenById.has(h.userId)) continue;
+      seenById.add(h.userId);
+      result.push(h);
+    } else if (typeof h.email === "string" && h.email) {
+      const key = h.email.toLowerCase();
+      if (seenByEmail.has(key)) continue;
+      seenByEmail.add(key);
+      result.push({ ...h, email: key });
+    } else {
+      result.push(h);
+    }
+  }
+  return result;
+};
+
+/**
+ * Expand any Host entries whose `email` contains multiple comma/space-separated emails
+ * into multiple pending-email Hosts.
+ */
+const expandCommaSeparatedEmailHosts = (incoming: Host[]): Host[] => {
+  const expanded: Host[] = [];
+  for (const h of incoming) {
+    // Only expand if it's an email host AND it looks like multiple emails
+    if (h.email && /[,;\s].+@/.test(h.email)) {
+      const emails = parseEmails(h.email);
+      for (const e of emails) {
+        expanded.push({
+          ...h,
+          email: e,
+          isPending: true,
+          userId: undefined,
+          scheduleId: null,
+        });
+      }
+    } else {
+      expanded.push(h);
+    }
+  }
+  return dedupeHosts(expanded);
+};
 
 export type EventTeamAssignmentTabCustomClassNames = {
   assignmentType?: {
@@ -165,38 +226,33 @@ const FixedHosts = ({
 
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
 
-  const handleFixedHostsActivation = useCallback(() => {
-    const currentHosts = getValues("hosts");
-    setValue(
-      "hosts",
-      teamMembers.map((teamMember) => {
-        const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-        return {
-          isFixed: true,
-          userId: parseInt(teamMember.value, 10),
-          priority: host?.priority ?? 2,
-          weight: host?.weight ?? 100,
-          // if host was already added, retain scheduleId and groupId
-          scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-          groupId: host?.groupId || null,
-        };
-      }),
-      { shouldDirty: true }
+  //   convert select option into Host (userId OR email)
+  const mapToHost = (teamMember: TeamMember, isFixed: boolean, currentHosts: Host[]): Host => {
+    const existing = currentHosts.find(
+      (host) =>
+        (host.userId && host.userId === parseInt(teamMember.value, 10)) ||
+        (host.email && host.email === teamMember.value)
     );
-  }, [getValues, setValue, teamMembers]);
 
-  const handleFixedHostsToggle = useCallback(
-    (checked: boolean) => {
-      if (!checked) {
-        const rrHosts = getValues("hosts")
-          .filter((host) => !host.isFixed)
-          .sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
-        setValue("hosts", rrHosts, { shouldDirty: true });
-      }
-      setIsDisabled(checked);
-    },
-    [getValues, setValue]
-  );
+    if (/^\d+$/.test(teamMember.value)) {
+      return {
+        isFixed,
+        userId: parseInt(teamMember.value, 10),
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: existing?.scheduleId || teamMember.defaultScheduleId,
+      };
+    } else {
+      return {
+        isFixed,
+        email: teamMember.value,
+        isPending: true,
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: null,
+      };
+    }
+  };
 
   return (
     <div className={classNames("mt-5 rounded-lg", customClassNames?.container)}>
@@ -224,13 +280,20 @@ const FixedHosts = ({
               groupId={null}
               teamMembers={teamMembers}
               value={value}
-              onChange={onChange}
+              onChange={(hosts) => onChange(expandCommaSeparatedEmailHosts(hosts))}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
               customClassNames={customClassNames?.addMembers}
-              onActive={handleFixedHostsActivation}
+              onActive={() => {
+                const currentHosts = getValues("hosts");
+                setValue(
+                  "hosts",
+                  teamMembers.map((tm) => mapToHost(tm, true, currentHosts)),
+                  { shouldDirty: true }
+                );
+              }}
             />
           </div>
         </>
@@ -256,12 +319,19 @@ const FixedHosts = ({
               teamMembers={teamMembers}
               customClassNames={customClassNames?.addMembers}
               value={value}
-              onChange={onChange}
+              onChange={(hosts) => onChange(expandCommaSeparatedEmailHosts(hosts))}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
-              onActive={handleFixedHostsActivation}
+              onActive={() => {
+                const currentHosts = getValues("hosts");
+                setValue(
+                  "hosts",
+                  teamMembers.map((tm) => mapToHost(tm, true, currentHosts)),
+                  { shouldDirty: true }
+                );
+              }}
             />
           </div>
         </SettingsToggle>
@@ -301,7 +371,7 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue, getValues, control, formState } = useFormContext<FormValues>();
+  const { setValue, getValues, control } = useFormContext<FormValues>();
   const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
@@ -426,7 +496,7 @@ const RoundRobinHosts = ({
         teamId={teamId}
         teamMembers={teamMembers}
         value={value}
-        onChange={onChange}
+        onChange={(hosts) => onChange(expandCommaSeparatedEmailHosts(hosts))}
         assignAllTeamMembers={assignAllTeamMembers}
         setAssignAllTeamMembers={setAssignAllTeamMembers}
         isSegmentApplicable={isSegmentApplicable}
@@ -458,6 +528,33 @@ const RoundRobinHosts = ({
         <AddMembersWithSwitchComponent groupId={null} />
       </div>
     );
+  };
+
+  const mapToHost = (teamMember: TeamMember, isFixed: boolean, currentHosts: Host[]): Host => {
+    const existing = currentHosts.find(
+      (host) =>
+        (host.userId && host.userId === parseInt(teamMember.value, 10)) ||
+        (host.email && host.email === teamMember.value)
+    );
+
+    if (/^\d+$/.test(teamMember.value)) {
+      return {
+        isFixed,
+        userId: parseInt(teamMember.value, 10),
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: existing?.scheduleId || teamMember.defaultScheduleId,
+      };
+    } else {
+      return {
+        isFixed,
+        email: teamMember.value,
+        isPending: true,
+        priority: existing?.priority ?? 2,
+        weight: existing?.weight ?? 100,
+        scheduleId: null,
+      };
+    }
   };
 
   return (
@@ -511,42 +608,29 @@ const RoundRobinHosts = ({
             )}
           />
         </>
-        {!hostGroups.length ? (
-          <AddMembersWithSwitchComponent groupId={hostGroups[0]?.id ?? null} />
-        ) : (
-          <>
-            {/* Show unassigned hosts first */}
-            <UnassignedHostsGroup />
-
-            {/* Show all defined groups */}
-            {hostGroups.map((group, index) => {
-              const groupNumber = index + 1;
-
-              return (
-                <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
-                  <div className="-mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={group.name ?? ""}
-                        onChange={(e) => handleGroupNameChange(group.id, e.target.value)}
-                        className="border-none bg-transparent p-0 text-sm font-medium focus:outline-none focus:ring-0"
-                        placeholder={`Group ${groupNumber}`}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveGroup(group.id)}
-                      className="text-subtle hover:text-default rounded p-1">
-                      <Icon name="x" className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <AddMembersWithSwitchComponent groupId={group.id} />
-                </div>
-              );
-            })}
-          </>
-        )}
+        <AddMembersWithSwitch
+          placeholder={t("add_a_member")}
+          teamId={teamId}
+          teamMembers={teamMembers}
+          value={value}
+          onChange={(hosts) => onChange(expandCommaSeparatedEmailHosts(hosts))}
+          assignAllTeamMembers={assignAllTeamMembers}
+          setAssignAllTeamMembers={setAssignAllTeamMembers}
+          isSegmentApplicable={isSegmentApplicable}
+          automaticAddAllEnabled={true}
+          isRRWeightsEnabled={isRRWeightsEnabled}
+          isFixed={false}
+          containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+          onActive={() => {
+            const currentHosts = getValues("hosts");
+            setValue(
+              "hosts",
+              teamMembers.map((tm) => mapToHost(tm, false, currentHosts)),
+              { shouldDirty: true }
+            );
+          }}
+          customClassNames={customClassNames?.addMembers}
+        />
       </div>
     </div>
   );
