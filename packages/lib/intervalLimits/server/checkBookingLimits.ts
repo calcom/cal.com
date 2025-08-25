@@ -10,6 +10,7 @@ import { parseBookingLimit } from "../isBookingLimits";
 
 export interface ICheckBookingLimitsService {
   bookingRepo: BookingRepository;
+  membershipRepo: any; // Placeholder for now, will be replaced with actual type
 }
 
 export class CheckBookingLimitsService {
@@ -47,6 +48,44 @@ export class CheckBookingLimitsService {
   }
 
   checkBookingLimits = withReporting(this._checkBookingLimits.bind(this), "checkBookingLimits");
+
+  async checkMemberBookingLimits({
+    userId,
+    teamId,
+    eventStartDate,
+    rescheduleUid,
+    timeZone,
+    includeManagedEvents = false,
+  }: {
+    userId: number;
+    teamId: number;
+    eventStartDate: Date;
+    rescheduleUid?: string;
+    timeZone?: string | null;
+    includeManagedEvents?: boolean;
+  }) {
+    const membership = await this.dependencies.membershipRepo.getMembership({
+      userId,
+      teamId,
+    });
+
+    if (!membership?.bookingLimits || Object.keys(membership.bookingLimits).length === 0) {
+      return;
+    }
+
+    for (const [key, limit] of Object.entries(membership.bookingLimits)) {
+      await this._checkMemberBookingLimit({
+        eventStartDate,
+        key: key as IntervalLimitKey,
+        limitingNumber: limit as number,
+        rescheduleUid,
+        timeZone,
+        teamId,
+        userId,
+        includeManagedEvents,
+      });
+    }
+  }
 
   private async _checkBookingLimit({
     eventStartDate,
@@ -105,6 +144,47 @@ export class CheckBookingLimitsService {
       message: `booking_limit_reached`,
       statusCode: 403,
     });
+  }
+
+  private async _checkMemberBookingLimit({
+    eventStartDate,
+    key,
+    limitingNumber,
+    rescheduleUid,
+    timeZone,
+    teamId,
+    userId,
+    includeManagedEvents = false,
+  }: {
+    eventStartDate: Date;
+    key: IntervalLimitKey;
+    limitingNumber: number;
+    rescheduleUid?: string;
+    timeZone?: string | null;
+    teamId: number;
+    userId: number;
+    includeManagedEvents?: boolean;
+  }) {
+    const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
+    const unit = intervalLimitKeyToUnit(key);
+    const startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
+    const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
+
+    // Count ALL bookings for this member (personal + team) in the time period
+    const totalBookingsInPeriod = await this.dependencies.bookingRepo.getAllBookingsForMemberInPeriod({
+      userId,
+      teamId,
+      startDate,
+      endDate,
+      excludedUid: rescheduleUid,
+    });
+
+    if (totalBookingsInPeriod >= limitingNumber) {
+      throw new HttpError({
+        message: `member_booking_limit_reached`,
+        statusCode: 403,
+      });
+    }
   }
 
   checkBookingLimit = withReporting(this._checkBookingLimit.bind(this), "checkBookingLimit");
