@@ -945,4 +945,46 @@ export class BookingRepository {
       },
     });
   }
+
+  async getAllBookingsForMemberInPeriod({
+    userId,
+    teamId,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    userId: number;
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string;
+  }): Promise<number> {
+    const where: Prisma.BookingWhereInput = {
+      OR: [
+        // Personal event type bookings
+        {
+          eventType: {
+            userId,
+            teamId: null,
+          },
+        },
+        // Team event type bookings - count ALL team events for the member
+        {
+          eventType: {
+            teamId,
+          },
+        },
+      ],
+      startTime: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: BookingStatus.ACCEPTED,
+      ...(excludedUid && {
+        NOT: { uid: excludedUid },
+      }),
+    };
+
+    return await this.prismaClient.booking.count({ where });
+  }
 }
