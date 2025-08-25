@@ -57,16 +57,11 @@ function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
   return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
 }
 
-const getLocationFieldType = (field: RhfFormField, dataStore: DataStore) => {
+const getLocationFieldType = (field: RhfFormField) => {
   const baseFieldType = fieldTypesConfigMap[field.type];
 
-  if (field.type === "radioInput" && field.name === "location" && field.getOptionsAt === "locations") {
-    const locationOptions = dataStore.options.locations?.value || [];
-
-    // If there's only one location option, show its label to Location
-    if (locationOptions.length === 1) {
-      return { ...baseFieldType, label: "Location" };
-    }
+  if (field.name === "location") {
+    return { ...baseFieldType, label: "Location" };
   }
 
   return baseFieldType;
@@ -244,7 +239,7 @@ export const FormBuilder = function FormBuilder({
               return null;
             }
 
-            const fieldType = getLocationFieldType(field, dataStore);
+            const fieldType = getLocationFieldType(field);
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -369,7 +364,6 @@ export const FormBuilder = function FormBuilder({
       {fieldDialog.isOpen && (
         <FieldEditDialog
           dialog={fieldDialog}
-          dataStore={dataStore}
           onOpenChange={(isOpen) =>
             setFieldDialog({
               isOpen,
@@ -528,13 +522,11 @@ function FieldEditDialog({
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
-  dataStore,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
-  dataStore: DataStore;
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -586,11 +578,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={
-                dialog.data
-                  ? getLocationFieldType(dialog.data, dataStore)
-                  : fieldTypesConfigMap[formFieldType]
-              }
+              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
