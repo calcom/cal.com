@@ -1120,4 +1120,165 @@ export class InsightsBookingBaseService {
         (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     );
   }
+
+  private async isOwner(userId: number, targetId: number): Promise<boolean> {
+    // Check if the user is an owner of the organization or team
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
+    return Boolean(
+      membership && membership.accepted && membership.role && membership.role === MembershipRole.OWNER
+    );
+  }
+
+  private async getUserTeamRole(userId: number, teamId: number): Promise<MembershipRole | null> {
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId });
+    return membership?.accepted ? membership.role : null;
+  }
+
+  private async buildOOOAuthorizationConditions(): Promise<Prisma.Sql> {
+    if (!this.options || this.options.scope !== "team" || !this.options.teamId) {
+      return NOTHING_CONDITION;
+    }
+
+    const userRole = await this.getUserTeamRole(this.options.userId, this.options.teamId);
+
+    if (!userRole) {
+      return NOTHING_CONDITION;
+    }
+
+    if (userRole === MembershipRole.OWNER) {
+      const usersFromTeam = await MembershipRepository.findAllByTeamIds({
+        teamIds: [this.options.teamId],
+        select: { userId: true },
+      });
+      const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+      return userIdsFromTeam.length > 0
+        ? Prisma.sql`ooo."userId" = ANY(${userIdsFromTeam})`
+        : NOTHING_CONDITION;
+    }
+
+    return Prisma.sql`ooo."userId" = ${this.options.userId}`;
+  }
+
+  async getOutOfOfficeTrends() {
+    const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+
+    const data = await this.prisma.$queryRaw<
+      Array<{
+        Month: string;
+        formattedDateFull: string;
+        Vacation: number;
+        Sick: number;
+        Personal: number;
+        Meeting: number;
+        Other: number;
+      }>
+    >`
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', ooo."start"), 'Mon YYYY') as "Month",
+        TO_CHAR(DATE_TRUNC('month', ooo."start"), 'Month YYYY') as "formattedDateFull",
+        COUNT(CASE WHEN r.reason ILIKE '%vacation%' THEN 1 END)::int as "Vacation",
+        COUNT(CASE WHEN r.reason ILIKE '%sick%' THEN 1 END)::int as "Sick", 
+        COUNT(CASE WHEN r.reason ILIKE '%personal%' THEN 1 END)::int as "Personal",
+        COUNT(CASE WHEN r.reason ILIKE '%meeting%' THEN 1 END)::int as "Meeting",
+        COUNT(CASE WHEN r.reason NOT ILIKE '%vacation%' AND r.reason NOT ILIKE '%sick%' AND r.reason NOT ILIKE '%personal%' AND r.reason NOT ILIKE '%meeting%' THEN 1 END)::int as "Other"
+      FROM "OutOfOfficeEntry" ooo
+      LEFT JOIN "OutOfOfficeReason" r ON ooo."reasonId" = r.id
+      LEFT JOIN "User" u ON ooo."userId" = u.id
+      WHERE ${oooAuthConditions}
+        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
+        AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
+      GROUP BY DATE_TRUNC('month', ooo."start")
+      ORDER BY DATE_TRUNC('month', ooo."start") ASC
+    `;
+
+    return data;
+  }
+
+  async getMostOutOfOfficeTeamMembers() {
+    const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+
+    const data = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        name: string | null;
+        username: string | null;
+        email: string;
+        emailMd5: string;
+        count: number;
+      }>
+    >`
+      SELECT
+        u.id as "userId",
+        u.name,
+        u.username,
+        u.email,
+        u."emailMd5",
+        COUNT(ooo.id)::int as "count"
+      FROM "OutOfOfficeEntry" ooo
+      LEFT JOIN "User" u ON ooo."userId" = u.id
+      WHERE ${oooAuthConditions}
+        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
+        AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
+      GROUP BY u.id, u.name, u.username, u.email, u."emailMd5"
+      ORDER BY COUNT(ooo.id) DESC
+      LIMIT 10
+    `;
+
+    return data.map((row) => ({
+      userId: row.userId,
+      user: {
+        id: row.userId,
+        username: row.username,
+        name: row.name,
+        email: row.email,
+        avatarUrl: `/${row.username}/avatar.png`,
+      },
+      emailMd5: row.emailMd5,
+      count: row.count,
+    }));
+  }
+
+  async getLeastOutOfOfficeTeamMembers() {
+    const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+
+    const data = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        name: string | null;
+        username: string | null;
+        email: string;
+        emailMd5: string;
+        count: number;
+      }>
+    >`
+      SELECT
+        u.id as "userId",
+        u.name,
+        u.username,
+        u.email,
+        u."emailMd5",
+        COUNT(ooo.id)::int as "count"
+      FROM "OutOfOfficeEntry" ooo
+      LEFT JOIN "User" u ON ooo."userId" = u.id
+      WHERE ${oooAuthConditions}
+        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
+        AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
+      GROUP BY u.id, u.name, u.username, u.email, u."emailMd5"
+      ORDER BY COUNT(ooo.id) ASC
+      LIMIT 10
+    `;
+
+    return data.map((row) => ({
+      userId: row.userId,
+      user: {
+        id: row.userId,
+        username: row.username,
+        name: row.name,
+        email: row.email,
+        avatarUrl: `/${row.username}/avatar.png`,
+      },
+      emailMd5: row.emailMd5,
+      count: row.count,
+    }));
+  }
 }
