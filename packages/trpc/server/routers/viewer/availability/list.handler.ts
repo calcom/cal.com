@@ -1,3 +1,4 @@
+import { hasLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -51,10 +52,14 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     defaultScheduleId = null;
   }
 
+  // Check if user has locked default availability restrictions
+  const lockedDefaultAvailability = await hasLockedDefaultAvailabilityRestriction(user.id);
+
   return {
     schedules: schedules.map((schedule) => ({
       ...schedule,
       isDefault: schedule.id === defaultScheduleId,
+      lockedDefaultAvailability,
     })),
   };
 };
