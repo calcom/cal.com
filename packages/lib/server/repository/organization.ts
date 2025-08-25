@@ -302,6 +302,21 @@ export class OrganizationRepository {
     };
   }
 
+  static async getDisableAutoFillOnBookingPageSetting(organizationId: number | null): Promise<boolean> {
+    if (!organizationId) return false;
+
+    const organizationSettings = await prisma.organizationSettings.findUnique({
+      where: {
+        organizationId,
+      },
+      select: {
+        disableAutoFillOnBookingPage: true,
+      },
+    });
+
+    return organizationSettings?.disableAutoFillOnBookingPage ?? false;
+  }
+
   static async findTeamsInOrgIamNotPartOf({ userId, parentId }: { userId: number; parentId: number | null }) {
     const teamsInOrgIamNotPartOf = await prisma.team.findMany({
       where: {

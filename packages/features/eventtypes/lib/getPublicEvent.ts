@@ -14,6 +14,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
@@ -455,19 +456,10 @@ export const getPublicEvent = async (
     hosts: fetchAllUsers ? hosts : undefined,
   };
 
-  const organizationId = eventWithUserProfiles.owner?.profile?.organizationId;
-  const disableAutoFillOnBookingPage = organizationId
-    ? await prisma.organizationSettings
-        .findUnique({
-          where: {
-            organizationId,
-          },
-          select: {
-            disableAutoFillOnBookingPage: true,
-          },
-        })
-        .then((res) => res?.disableAutoFillOnBookingPage)
-    : false;
+  const organizationId = eventWithUserProfiles.owner?.profile?.organizationId || null;
+  const disableAutoFillOnBookingPage = await OrganizationRepository.getDisableAutoFillOnBookingPageSetting(
+    organizationId
+  );
 
   let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
