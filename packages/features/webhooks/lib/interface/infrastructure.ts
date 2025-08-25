@@ -4,4 +4,5 @@ export interface ITasker {
     data: any,
     options?: { scheduledAt?: Date; referenceUid?: string }
   ): Promise<string | void>;
+  cancelWithReference(referenceUid: string, jobName: string): Promise<string | null>;
 }

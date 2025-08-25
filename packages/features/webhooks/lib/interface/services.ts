@@ -1,6 +1,7 @@
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber, WebhookTriggerArgs } from "../dto/types";
+import type { WebhookPayload } from "../factory/types";
 import type {
   BookingPaymentInitiatedParams,
   BookingCreatedParams,
@@ -19,13 +20,22 @@ export interface GetSubscribersOptions {
   userId?: number | null;
   eventTypeId?: number | null;
   triggerEvent: WebhookTriggerEvents;
-  teamId?: number | null;
+  teamId?: number | number[] | null;
   orgId?: number | null;
   oAuthClientId?: string | null;
 }
 
+export interface IWebhookRepository {
+  getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]>;
+}
+
 export interface IWebhookService {
   getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]>;
+  processWebhooks(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscribers: WebhookSubscriber[]
+  ): Promise<void>;
   scheduleTimeBasedWebhook(
     trigger: WebhookTriggerEvents,
     scheduledAt: Date,
@@ -37,6 +47,14 @@ export interface IWebhookService {
   cancelScheduledWebhooks(
     bookingId: number,
     triggers: WebhookTriggerEvents[],
+    isDryRun?: boolean
+  ): Promise<void>;
+  scheduleDelayedWebhooks(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    scheduledAt: Date,
+    options?: { teamId?: number | number[] | null; orgId?: number | null },
+    subscribers?: WebhookSubscriber[],
     isDryRun?: boolean
   ): Promise<void>;
 }
