@@ -1,0 +1,4 @@
+# Actionlint configuration for custom self-hosted runner labels
+self-hosted-runner:
+  labels:
+    - buildjet-2vcpu-ubuntu-2204

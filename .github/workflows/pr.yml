@@ -9,7 +9,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
   contents: read
 
 concurrency:
@@ -258,11 +257,11 @@ jobs:
         e2e-app-store,
         e2e-atoms,
       ]
-    if: needs.changes.outputs.has-files-requiring-all-checks == 'true'
+    if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: dump needs
-        if: always()
+        if: failure() || cancelled()
         run: echo '${{ toJson(needs) }}'
       - name: fail if conditional jobs failed
         if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
