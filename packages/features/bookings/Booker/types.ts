@@ -1,3 +1,4 @@
+import type { UseScheduleForEventReturnType } from "bookings/Booker/hooks/useScheduleForEvent";
 import type React from "react";
 
 import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
