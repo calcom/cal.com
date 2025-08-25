@@ -15,13 +15,11 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
   const userIp = getIP(req);
 
   const traceContext = distributedTracing.updateTrace(req.traceContext, {
-    userIp: userIp || "unknown",
     eventTypeId: req.body?.eventTypeId?.toString() || "null",
   });
   const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("API book event request started", {
-    userIp,
     eventTypeId: req.body?.eventTypeId,
   });
 
