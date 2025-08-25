@@ -3488,6 +3488,7 @@
   "webhook_metadata": "Metadata",
   "stats": "Stats",
   "booking_status": "Booking status",
+  "APPSTORE_VISIT": "Visit",
   "location_custom_label_input_label": "Custom label on booking page",
   "meeting_link": "Meeting link",
   "my_bookings": "My Bookings",
