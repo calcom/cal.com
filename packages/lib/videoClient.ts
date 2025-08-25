@@ -1,10 +1,10 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import appStore from "@calcom/app-store";
 import { VIDEO_ADAPTERS } from "@calcom/app-store/conferencing.videoAdapters.generated";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
@@ -21,6 +21,19 @@ const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 const translator = short();
 
 // factory
+
+// Swallow email-template errors so they never break booking flows.
+// (E.g., if the broken-integration email template expects fields that are missing)
+const safeNotifyBrokenVideoIntegration = async (calEvent: CalendarEvent, logCtx?: unknown) => {
+  try {
+    await safeNotifyBrokenVideoIntegration(calEvent, {
+      where: "videoClient",
+      action: "send_broken_integration_email",
+    });
+  } catch (err) {
+    log.error("sendBrokenIntegrationEmail failed", safeStringify(err), safeStringify(logCtx));
+  }
+};
 const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
   const videoAdapters: VideoApiAdapter[] = [];
 
@@ -29,7 +42,11 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
     const modFactory = (VIDEO_ADAPTERS as Record<string, any>)[appName];
 
-    const app = modFactory ? await modFactory() : null;
+    let app = modFactory ? await modFactory() : null;
+    if (!app) {
+      const appImportFn = (appStore as Record<string, any>)[appName];
+      app = appImportFn ? await appImportFn() : null;
+    }
 
     if (!app) {
       log.error(`Couldn't get adapter for ${appName}`);
@@ -108,7 +125,10 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
     log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
-    await sendBrokenIntegrationEmail(calEvent, "video");
+    await safeNotifyBrokenVideoIntegration(calEvent, {
+      where: "videoClient",
+      action: "send_broken_integration_email",
+    });
     log.error(
       "createMeeting failed",
       safeStringify(err),
@@ -137,7 +157,10 @@ const updateMeeting = async (
   const canCallUpdateMeeting = !!(credential && bookingRef);
   const updatedMeeting = canCallUpdateMeeting
     ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
-        await sendBrokenIntegrationEmail(calEvent, "video");
+        await safeNotifyBrokenVideoIntegration(calEvent, {
+          where: "videoClient",
+          action: "send_broken_integration_email",
+        });
         log.error("updateMeeting failed", e, calEvent);
         success = false;
         return undefined;
