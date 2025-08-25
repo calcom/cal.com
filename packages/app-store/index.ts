@@ -1,6 +1,3 @@
-const appStoreStart = performance.now();
-console.log(`[PERF] App Store registry creation started at ${appStoreStart}ms`);
-
 const appStore = {
   alby: createCachedImport(() => import("./alby")),
   applecalendar: createCachedImport(() => import("./applecalendar")),
@@ -45,10 +42,6 @@ const appStore = {
   hitpay: createCachedImport(() => import("./hitpay")),
   btcpayserver: createCachedImport(() => import("./btcpayserver")),
 };
-
-const appStoreEnd = performance.now();
-console.log(`[PERF] App Store registry creation completed in ${appStoreEnd - appStoreStart}ms`);
-console.log(`[PERF] App Store registry contains ${Object.keys(appStore).length} services`);
 
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
   let cachedModule: T | undefined;
