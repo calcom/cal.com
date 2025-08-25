@@ -8,8 +8,6 @@
 /infra/**/* @calcom/Foundation
 /packages/app-store/applecalendar/**/* @calcom/Foundation
 /packages/app-store/caldavcalendar/**/* @calcom/Foundation
-/packages/app-store/exchange2013calendar/**/* @calcom/Foundation
-/packages/app-store/exchange2016calendar/**/* @calcom/Foundation
 /packages/app-store/exchangecalendar/**/* @calcom/Foundation
 /packages/app-store/feishucalendar/**/* @calcom/Foundation
 /packages/app-store/googlecalendar/**/* @calcom/Foundation

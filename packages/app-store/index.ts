@@ -31,8 +31,6 @@ const appStore = {
   giphy: createCachedImport(() => import("./giphy")),
   zapier: createCachedImport(() => import("./zapier")),
   make: createCachedImport(() => import("./make")),
-  exchange2013calendar: createCachedImport(() => import("./exchange2013calendar")),
-  exchange2016calendar: createCachedImport(() => import("./exchange2016calendar")),
   exchangecalendar: createCachedImport(() => import("./exchangecalendar")),
   facetime: createCachedImport(() => import("./facetime")),
   sylapsvideo: createCachedImport(() => import("./sylapsvideo")),
@@ -47,12 +45,29 @@ const appStore = {
 
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
   let cachedModule: T | undefined;
+  let isLoading = false;
+  let loadingPromise: Promise<T> | undefined;
 
   return async () => {
-    if (!cachedModule) {
-      cachedModule = await importFunc();
-    }
-    return cachedModule;
+    if (cachedModule) return cachedModule;
+    if (isLoading && loadingPromise) return loadingPromise;
+
+    isLoading = true;
+    loadingPromise = importFunc()
+      .then((module) => {
+        cachedModule = module;
+        isLoading = false;
+        return module;
+      })
+      .catch((err) => {
+        throw err;
+      })
+      .finally(() => {
+        isLoading = false;
+        loadingPromise = undefined;
+      });
+
+    return loadingPromise;
   };
 }
 
