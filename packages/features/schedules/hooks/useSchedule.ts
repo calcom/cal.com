@@ -55,13 +55,6 @@ export const useSchedule = ({
     selectedDate,
   });
 
-  console.log({
-    month,
-    monthCount,
-    dayCount,
-    selectedDate,
-  });
-
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
