@@ -63,13 +63,9 @@ const getLocationFieldType = (field: RhfFormField, dataStore: DataStore) => {
   if (field.type === "radioInput" && field.name === "location" && field.getOptionsAt === "locations") {
     const locationOptions = dataStore.options.locations?.value || [];
 
-    // If there's only one location option, show its specific input type
+    // If there's only one location option, show its label to Location
     if (locationOptions.length === 1) {
-      const singleLocationValue = locationOptions[0].value;
-      const optionInput = field.optionsInputs?.[singleLocationValue];
-      if (optionInput?.type) {
-        return fieldTypesConfigMap[optionInput.type as keyof typeof fieldTypesConfigMap] || baseFieldType;
-      }
+      return { ...baseFieldType, label: "Location" };
     }
   }
 
