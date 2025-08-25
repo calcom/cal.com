@@ -69,9 +69,32 @@ export const EventDuration = ({
   const isEmbed = useIsEmbed();
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
-    // Only store event duration in url if event has multiple durations.
-    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
+    // Check if we're rescheduling (state is "booking") or if there's no selected duration yet
+    if (state === "booking" || !selectedDuration) {
+      // Always use the current event length when rescheduling or initializing
       setSelectedDuration(event.length);
+    }
+  }, [
+    selectedDuration,
+    setSelectedDuration,
+    event.metadata?.multipleDuration,
+    event.length,
+    isDynamicEvent,
+    state,
+  ]);
+
+  useEffect(() => {
+    // If the event length changes (e.g., after rescheduling), update selectedDuration
+    if (
+      selectedDuration !== event.length &&
+      (!event.metadata?.multipleDuration || event.metadata.multipleDuration.includes(event.length))
+    ) {
+      setSelectedDuration(event.length);
+    }
+    // If no selectedDuration and event has multiple durations or is dynamic, set to event.length
+    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent)) {
+      setSelectedDuration(event.length);
+    }
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   useEffect(() => {
