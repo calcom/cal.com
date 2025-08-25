@@ -468,6 +468,7 @@ export async function handleConfirmation(args: {
       teamId,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
+      traceContext: spanContext,
     });
 
     const eventTypeInfo: EventTypeInfo = {

@@ -20,7 +20,7 @@ type ScheduleNoShowTriggersArgs = {
   orgId?: number | null;
   oAuthClientId?: string | null;
   isDryRun?: boolean;
-  traceContext?: TraceContext;
+  traceContext: TraceContext;
 };
 
 const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
@@ -36,16 +36,14 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     traceContext,
   } = args;
 
-  const spanContext = traceContext
-    ? distributedTracing.createSpan(traceContext, "schedule_no_show_triggers")
-    : undefined;
-  const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : undefined;
+  const spanContext = distributedTracing.createSpan(traceContext, "schedule_no_show_triggers");
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
 
   if (tracingLogger) {
     tracingLogger.info("Scheduling no-show triggers", {
       bookingId: booking.id,
       eventTypeId,
-      originalTraceId: traceContext?.traceId,
+      originalTraceId: traceContext.traceId,
     });
   }
 

@@ -5,6 +5,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import { getMeetingSessionsFromRoomName } from "@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName";
 import { triggerHostNoShow } from "@calcom/features/tasker/tasks/triggerNoShow/triggerHostNoShow";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -25,6 +26,12 @@ describe("scheduleNoShowTriggers Integration", () => {
   const testEventTypeId = 67890;
   const testBookingIds = [98765, 98766];
   const testBookingId = 123456;
+  const mockTraceContext: TraceContext = {
+    traceId: "test-trace-id",
+    spanId: "test-span-id",
+    operation: "test-operation",
+    meta: {},
+  };
 
   beforeAll(async () => {
     testUser = await prisma.user.create({
@@ -107,6 +114,7 @@ describe("scheduleNoShowTriggers Integration", () => {
       organizerUser: { id: testUser.id },
       eventTypeId: testEventTypeId,
       triggerForUser: true,
+      traceContext: mockTraceContext,
     });
 
     const createdTasks = await prisma.task.findMany({
@@ -138,6 +146,7 @@ describe("scheduleNoShowTriggers Integration", () => {
       organizerUser: { id: testUser.id },
       eventTypeId: testEventTypeId,
       triggerForUser: true,
+      traceContext: mockTraceContext,
     });
 
     const createdTasks = await prisma.task.findMany({

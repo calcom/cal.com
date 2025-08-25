@@ -2449,6 +2449,7 @@ async function handler(
         teamId,
         orgId,
         isDryRun,
+        traceContext,
       });
     }
   } catch (error) {

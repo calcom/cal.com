@@ -17,27 +17,19 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
-export async function handlePaymentSuccess(
-  paymentId: number,
-  bookingId: number,
-  traceContext?: TraceContext
-) {
+export async function handlePaymentSuccess(paymentId: number, bookingId: number, traceContext: TraceContext) {
   const paymentMeta = {
     paymentId: paymentId.toString(),
     bookingId: bookingId.toString(),
   };
 
-  const spanContext = traceContext
-    ? distributedTracing.createSpan(traceContext, "payment_success_processing", paymentMeta)
-    : distributedTracing.createTrace("payment_success_processing_fallback", {
-        meta: paymentMeta,
-      });
+  const spanContext = distributedTracing.createSpan(traceContext, "payment_success_processing", paymentMeta);
   const tracingLogger = distributedTracing.getTracingLogger(spanContext);
 
   tracingLogger.info("Processing payment success", {
     paymentId,
     bookingId,
-    originalTraceId: traceContext?.traceId,
+    originalTraceId: traceContext.traceId,
   });
 
   tracingLogger.debug(`handling payment success for bookingId ${bookingId}`);

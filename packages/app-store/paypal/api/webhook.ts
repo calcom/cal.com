@@ -8,6 +8,8 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 
 export const config = {
@@ -19,7 +21,8 @@ export const config = {
 export async function handlePaypalPaymentSuccess(
   payload: z.infer<typeof eventSchema>,
   rawPayload: string,
-  webhookHeaders: WebHookHeadersType
+  webhookHeaders: WebHookHeadersType,
+  traceContext: TraceContext
 ) {
   const payment = await prisma.payment.findFirst({
     where: {
@@ -62,10 +65,28 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  return await handlePaymentSuccess(payment.id, payment.bookingId);
+  const spanContext = distributedTracing.createSpan(traceContext, "paypal_payment_success", {
+    paymentId: payment.id.toString(),
+    bookingId: payment.bookingId.toString(),
+    paypalOrderId: payload?.resource?.id || "unknown",
+  });
+
+  return await handlePaymentSuccess(payment.id, payment.bookingId, spanContext);
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const webhookMeta = {
+    method: req.method || "unknown",
+    userAgent: req.headers["user-agent"] || "unknown",
+    contentType: req.headers["content-type"] || "unknown",
+  };
+
+  const traceContext = distributedTracing.createTrace("paypal_webhook_handler", {
+    meta: webhookMeta,
+  });
+
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
+
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
@@ -89,11 +110,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: parsedPayload } = parse;
 
     if (parsedPayload.event_type === "CHECKOUT.ORDER.APPROVED") {
-      return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
+      return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data, traceContext);
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    tracingLogger.error("PayPal Webhook Error", {
+      message: err.message,
+      statusCode: err.statusCode,
+      stack: IS_PRODUCTION ? undefined : err.stack,
+    });
     res.status(200).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,

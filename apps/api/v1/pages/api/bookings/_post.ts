@@ -245,6 +245,7 @@ async function handler(req: NextApiRequest) {
         userId,
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+        traceContext: req.traceContext,
       },
       getBookingDataSchemaForApi
     );

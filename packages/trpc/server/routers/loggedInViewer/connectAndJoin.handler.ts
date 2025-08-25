@@ -245,6 +245,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     eventTypeId: eventType?.id ?? null,
     teamId: eventType?.teamId,
     orgId: user.organizationId,
+    traceContext: ctx.traceContext,
   });
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };
