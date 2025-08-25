@@ -404,96 +404,65 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  // Handle hostGroups updates
-  if (hostGroups !== undefined) {
-    const existingHostGroups = await ctx.prisma.hostGroup.findMany({
-      where: {
-        eventTypeId: id,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
+  if (teamId && hosts) {
+    const emailHosts = hosts.filter((h: any) => "email" in h);
+    const userHosts = hosts.filter((h: any) => "userId" in h);
 
-    await Promise.all(
-      hostGroups.map(async (group) => {
-        await ctx.prisma.hostGroup.upsert({
-          where: { id: group.id },
-          update: { name: group.name },
-          create: {
-            id: group.id,
-            name: group.name,
-            eventTypeId: id,
-          },
-        });
-      })
-    );
-
-    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
-
-    // Delete groups that are no longer in the new list
-    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
-
-    if (groupsToDelete.length > 0) {
-      await ctx.prisma.hostGroup.deleteMany({
+    // handle invites for email hosts
+    for (const invite of emailHosts) {
+      await ctx.prisma.teamInvite.upsert({
         where: {
-          id: {
-            in: groupsToDelete.map((group) => group.id),
-          },
+          email_teamId: { email: invite.email, teamId },
+        },
+        update: {},
+        create: {
+          email: invite.email,
+          teamId,
+          role: "MEMBER",
+          invitedBy: ctx.user.id,
         },
       });
     }
-  }
 
-  if (teamId && hosts) {
-    // check if all hosts can be assigned (memberships that have accepted invite)
-    const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
-    // guard against missing IDs, this may mean a member has just been removed
-    // or this request was forged.
-    // we let this pass through on organization sub-teams
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-      });
+    // Now process userHosts with your existing logic
+    const memberships = await ctx.prisma.membership.findMany({
+      where: {
+        teamId,
+        accepted: true,
+      },
+    });
+    const teamMemberIds = memberships.map((m) => m.userId);
+
+    if (!userHosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+      throw new TRPCError({ code: "FORBIDDEN" });
     }
 
-    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
-
-    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
-    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
-    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+    const oldHostsSet = new Set(eventType.hosts.map((h) => h.userId));
+    const newHostsSet = new Set(userHosts.map((h) => h.userId));
+    const existingHosts = userHosts.filter((h) => oldHostsSet.has(h.userId));
+    const newHosts = userHosts.filter((h) => !oldHostsSet.has(h.userId));
+    const removedHosts = eventType.hosts.filter((h) => !newHostsSet.has(h.userId));
 
     data.hosts = {
       deleteMany: {
-        OR: removedHosts.map((host) => ({
-          userId: host.userId,
+        OR: removedHosts.map((h) => ({
+          userId: h.userId,
           eventTypeId: id,
         })),
       },
-      create: newHosts.map((host) => {
-        return {
-          ...host,
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          groupId: host.groupId,
-        };
-      }),
-      update: existingHosts.map((host) => ({
-        where: {
-          userId_eventTypeId: {
-            userId: host.userId,
-            eventTypeId: id,
-          },
-        },
+      create: newHosts.map((h) => ({
+        ...h,
+        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
+        priority: h.priority ?? 2,
+        weight: h.weight ?? 100,
+      })),
+      update: existingHosts.map((h) => ({
+        where: { userId_eventTypeId: { userId: h.userId, eventTypeId: id } },
         data: {
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          scheduleId: host.scheduleId ?? null,
-          groupId: host.groupId,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
+          priority: h.priority ?? 2,
+          weight: h.weight ?? 100,
+          scheduleId: h.scheduleId ?? null,
         },
       })),
     };

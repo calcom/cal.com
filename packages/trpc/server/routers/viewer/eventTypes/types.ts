@@ -34,20 +34,9 @@ const aiPhoneCallConfig = z
   })
   .optional();
 
-const calVideoSettingsSchema = z
-  .object({
-    disableRecordingForGuests: z.boolean().nullish(),
-    disableRecordingForOrganizer: z.boolean().nullish(),
-    enableAutomaticTranscription: z.boolean().nullish(),
-    enableAutomaticRecordingForOrganizer: z.boolean().nullish(),
-    disableTranscriptionForGuests: z.boolean().nullish(),
-    disableTranscriptionForOrganizer: z.boolean().nullish(),
-    redirectUrlOnExit: z.string().url().nullish(),
-  })
-  .optional()
-  .nullable();
+// existing host with userId
+const userHostSchema = z.object({
 
-const hostSchema = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
   isFixed: z.boolean().optional(),
@@ -61,6 +50,15 @@ const hostGroupSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
 });
+
+// new pending host (invite by email)
+const emailHostSchema = z.object({
+  email: z.string().email(),
+  isPending: z.boolean().default(true),
+});
+
+// allow both
+const hostSchema = z.union([userHostSchema, emailHostSchema]);
 
 const childSchema = z.object({
   owner: z.object({
