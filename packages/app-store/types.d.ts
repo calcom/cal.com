@@ -5,6 +5,8 @@ import type { EventTypeFormMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui/components/button";
 
+import type { GetAppData, SetAppData } from "./EventTypeAppContext";
+
 export type IntegrationOAuthCallbackState = {
   returnTo?: string;
   onErrorReturnTo: string;
@@ -48,7 +50,7 @@ export interface InstallAppButtonProps {
 export type EventTypeAppCardComponentProps = {
   // Limit what data should be accessible to apps
   eventType: Pick<
-    z.infer<typeof EventTypeModel>,
+    z.infer<typeof import("@calcom/prisma/zod")._EventTypeModel>,
     | "id"
     | "title"
     | "description"
@@ -70,7 +72,7 @@ export type EventTypeAppCardComponentProps = {
 export type EventTypeAppSettingsComponentProps = {
   // Limit what data should be accessible to apps\
   eventType: Pick<
-    z.infer<typeof EventTypeModel>,
+    z.infer<typeof import("@calcom/prisma/zod")._EventTypeModel>,
     "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "team"
   > & {
     URL: string;
@@ -85,4 +87,5 @@ export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>
 
 export type EventTypeAppSettingsComponent = React.FC<EventTypeAppSettingsComponentProps>;
 
-export type EventTypeModel = z.infer<typeof EventTypeModel>;
+// Remove circular reference - EventTypeModel should be imported from prisma
+// export type EventTypeModel = z.infer<typeof EventTypeModel>;

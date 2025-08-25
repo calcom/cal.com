@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import appStore from "@calcom/app-store";
+import { loadApp } from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
@@ -108,15 +108,13 @@ export const paymentsRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
       }
 
-      const paymentApp = (await appStore[
-        paymentCredential?.app?.dirName as keyof typeof appStore
-      ]?.()) as PaymentApp | null;
+      const paymentApp = (await loadApp(paymentCredential?.app?.dirName || "")) as PaymentApp | null;
 
       if (!(paymentApp && paymentApp.lib && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
       }
 
-      const PaymentService = paymentApp.lib.PaymentService;
+      const PaymentService = paymentApp.lib!.PaymentService;
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
