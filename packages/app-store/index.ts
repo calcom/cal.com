@@ -53,11 +53,19 @@ function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
     if (isLoading && loadingPromise) return loadingPromise;
 
     isLoading = true;
-    loadingPromise = importFunc().then((module) => {
-      cachedModule = module;
-      isLoading = false;
-      return module;
-    });
+    loadingPromise = importFunc()
+      .then((module) => {
+        cachedModule = module;
+        isLoading = false;
+        return module;
+      })
+      .catch((err) => {
+        throw err;
+      })
+      .finally(() => {
+        isLoading = false;
+        loadingPromise = undefined;
+      });
 
     return loadingPromise;
   };
