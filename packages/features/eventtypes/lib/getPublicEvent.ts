@@ -369,6 +369,7 @@ export const getPublicEvent = async (
       showInstantEventConnectNowModal: false,
       autoTranslateDescriptionEnabled: false,
       fieldTranslations: [],
+      disableAutoFillOnBookingPage: false,
     };
   }
 
