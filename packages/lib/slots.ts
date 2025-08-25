@@ -67,17 +67,20 @@ function buildSlotsWithDateRanges({
     }
   }
 
-  const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+  // Fix applied here: Use timezone-aware 'now' to calculate minimum booking notice
+  const nowInTimeZone = dayjs().tz(timeZone);
+  const startTimeWithMinNotice = nowInTimeZone.add(minimumBookingNotice, "minute");
 
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+    let slotStartTime = range.start.isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
 
+    // Align slotStartTime to interval boundaries
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
