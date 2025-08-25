@@ -35,10 +35,10 @@ async function ensureSignupIsEnabled(body: Record<string, string>) {
 }
 
 async function handler(req: NextRequest) {
-  const remoteIp = getIP(req);
   // Use a try catch instead of returning res every time
   try {
     const body = await parseRequestData(req);
+    const remoteIp = getIP(req);
     await checkCfTurnstileToken({
       token: req.headers.get("cf-access-token") as string,
       remoteIp,
