@@ -14,6 +14,7 @@ import {
 } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
+import { getVideoApps } from "@calcom/app-store/_utils/videos/getVideoApps";
 import {
   CONFERENCING_APPS,
   CAL_VIDEO,
@@ -23,7 +24,7 @@ import {
 } from "@calcom/platform-constants";
 import { userMetadata } from "@calcom/platform-libraries";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
-import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
+import { handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class ConferencingService {
@@ -93,7 +94,7 @@ export class ConferencingService {
     }
     const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-    const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
+    const foundApp = getVideoApps(credentials, true).filter((app) => app.slug === appSlug)[0];
 
     const appLocation = foundApp?.appData?.location;
 

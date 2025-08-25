@@ -4,7 +4,9 @@ import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
+import { getCalendarApps } from "@calcom/app-store/_utils/calendars/getCalendarApps";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getVideoApps } from "@calcom/app-store/_utils/videos/getVideoApps";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
@@ -149,7 +151,8 @@ export default class EventManager {
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
-    this.calendarCredentials = appCredentials
+    this.calendarCredentials = getCalendarApps(user.credentials, true)
+      .flatMap((app) => app.credentials.map((creds) => ({ ...creds, appName: app.name })))
       .filter(
         // Backwards compatibility until CRM manager is implemented
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
@@ -162,7 +165,8 @@ export default class EventManager {
       // Also, those credentials have consistent permission for all the members avoiding the scenario where user doesn't give all permissions
       .sort(delegatedCredentialFirst);
 
-    this.videoCredentials = appCredentials
+    this.videoCredentials = getVideoApps(user.credentials, true)
+      .flatMap((app) => app.credentials.map((creds) => ({ ...creds, appName: app.name })))
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
       // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
