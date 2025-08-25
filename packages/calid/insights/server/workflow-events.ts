@@ -25,20 +25,12 @@ type WorkflowStatusAggregate = {
   _all: number;
 };
 
-type WorkflowAggregateResult = {
-  [date: string]: WorkflowStatusAggregate;
-};
-
 class WorkflowEventsInsights {
   static countGroupedWorkflowByStatusForRanges = async (
     whereConditional: Prisma.WorkflowInsightsWhereInput,
-    dateRanges: {
-      startDate: string;
-      endDate: string;
-      formattedDate: string;
-    }[]
-  ): Promise<WorkflowAggregateResult> => {
-    // Prepare conditions from whereConditional
+    dateRanges: { startDate: string; endDate: string }[],
+    timeZone: string
+  ): Promise<Record<string, WorkflowStatusAggregate>> => {
     const conditions: string[] = [];
 
     if (whereConditional.AND) {
@@ -46,10 +38,12 @@ class WorkflowEventsInsights {
         if (condition.createdAt) {
           const dateFilter = condition.createdAt as Prisma.DateTimeFilter;
           if (dateFilter.gte) {
-            conditions.push(`"createdAt" >= '${dateFilter.gte}'`);
+            const gte = dayjs(dateFilter.gte).tz(timeZone).format(); // normalize to TZ
+            conditions.push(`"createdAt" >= '${gte}'`);
           }
           if (dateFilter.lte) {
-            conditions.push(`"createdAt" <= '${dateFilter.lte}'`);
+            const lte = dayjs(dateFilter.lte).tz(timeZone).format();
+            conditions.push(`"createdAt" <= '${lte}'`);
           }
         }
         if (condition.eventTypeId) {
@@ -58,7 +52,7 @@ class WorkflowEventsInsights {
               const ids = condition.eventTypeId.in.map((id: number) => `'${id}'`).join(",");
               conditions.push(`"eventTypeId" IN (${ids})`);
             } else {
-              conditions.push(`FALSE`); // Prevents an invalid `IN ()` clause
+              conditions.push(`FALSE`);
             }
           } else {
             conditions.push(`"eventTypeId" = ${condition.eventTypeId}`);
@@ -72,57 +66,38 @@ class WorkflowEventsInsights {
 
     const whereClause = conditions.length > 0 ? `(${conditions.join(" AND ")})` : "TRUE";
 
-    const data = await prisma.$queryRaw<
-      {
-        periodStart: Date;
-        insightsCount: number;
-        status: string;
-      }[]
-    >`
+    const data = await prisma.$queryRaw<{ periodStart: Date; insightsCount: number; status: string }[]>`
     SELECT
       "periodStart",
       CAST(COUNT(*) AS INTEGER) AS "insightsCount",
       "status"
     FROM (
-      SELECT
-        "createdAt" AS "periodStart",
-        "status"
-      FROM
-        "WorkflowInsights"
-      WHERE
-        ${Prisma.raw(whereClause)}
+      SELECT "createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${Prisma.raw(`'${timeZone}'`)} AS "periodStart",
+             "status"
+      FROM "WorkflowInsights"
+      WHERE ${Prisma.raw(whereClause)}
     ) AS filtered_dates
-    GROUP BY
-      "periodStart",
-      "status"
-    ORDER BY
-      "periodStart";
-    `;
+    GROUP BY "periodStart", "status"
+    ORDER BY "periodStart";
+  `;
 
-    // Initialize the aggregate object with expected date keys
-    const aggregate: WorkflowAggregateResult = {};
-    dateRanges.forEach(({ formattedDate }) => {
-      aggregate[formattedDate] = {
-        DELIVERED: 0,
-        READ: 0,
-        FAILED: 0,
-        _all: 0,
-      };
+    // Aggregate per range as before
+    const aggregate: Record<string, WorkflowStatusAggregate> = {};
+    dateRanges.forEach(({ startDate, endDate }) => {
+      aggregate[`${startDate}_${endDate}`] = { DELIVERED: 0, READ: 0, FAILED: 0, _all: 0 };
     });
 
-    // Process fetched data and map it to the correct formattedDate
     data.forEach(({ periodStart, insightsCount, status }) => {
       const matchingRange = dateRanges.find(({ startDate, endDate }) =>
-        dayjs(periodStart).isBetween(startDate, endDate, null, "[]")
+        dayjs(periodStart).tz(timeZone).isBetween(startDate, endDate, null, "[]")
       );
-
       if (!matchingRange) return;
 
-      const formattedDate = matchingRange.formattedDate;
+      const key = `${matchingRange.startDate}_${matchingRange.endDate}`;
       const statusKey = status as keyof WorkflowStatusAggregate;
 
-      aggregate[formattedDate][statusKey] += Number(insightsCount);
-      aggregate[formattedDate]["_all"] += Number(insightsCount);
+      aggregate[key][statusKey] += Number(insightsCount);
+      aggregate[key]._all += Number(insightsCount);
     });
 
     return aggregate;

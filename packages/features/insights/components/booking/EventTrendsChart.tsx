@@ -25,6 +25,8 @@ export const EventTrendsChart = () => {
     },
   });
 
+  console.log("eventTrends", eventTrends);
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess) return null;

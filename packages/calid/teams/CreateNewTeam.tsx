@@ -13,7 +13,7 @@ import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc/react";
-import { Form, TextField } from "@calcom/ui/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 
 const querySchema = z.object({
   returnTo: z.string().optional(),

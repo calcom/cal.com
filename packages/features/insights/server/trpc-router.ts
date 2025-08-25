@@ -1131,7 +1131,7 @@ export const insightsRouter = router({
   workflowsTimeline: userBelongsToTeamProcedure
     .input(workflowRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { userId, teamId, eventTypeId, type, startDate, endDate } = input;
+      const { userId, teamId, eventTypeId, type, startDate, endDate, timeZone } = input;
       // Build where conditions dynamically
       const whereConditions = [
         { createdAt: { gte: startDate } },
@@ -1142,7 +1142,7 @@ export const insightsRouter = router({
 
       const whereQuery: Prisma.WorkflowInsightsWhereInput = whereConditions.length
         ? { AND: whereConditions }
-        : {};
+        : { AND: [] };
 
       const eventTypeIds: number[] = [];
       if (userId) {
@@ -1165,56 +1165,40 @@ export const insightsRouter = router({
         eventTypeIds.push(..._eventTypeIds);
       }
 
-      if (!eventTypeId)
+      if (!eventTypeId && eventTypeIds.length > 0)
         (whereQuery.AND as Prisma.WorkflowInsightsWhereInput[]).push({ eventTypeId: { in: eventTypeIds } });
 
-      const timeline = (await getTimeLine(timeView, startDate, endDate)) || [];
-
-      const dateFormat = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-
-      // Generate date ranges with correct week alignment
-      const dateRanges = timeline.map((date) => {
-        let startOfRange = dayjs.utc(date).startOf(timeView);
-        let endOfRange = dayjs.utc(date).endOf(timeView);
-
-        if (timeView === "week") {
-          startOfRange = dayjs.utc(date).startOf("week");
-          endOfRange = startOfRange.endOf("week");
-        }
-
-        return {
-          startDate: startOfRange.toISOString(),
-          endDate: endOfRange.toISOString(),
-          formattedDate: startOfRange.format(dateFormat),
-        };
+      const timeView = getTimeView(input.startDate, input.endDate);
+      const dateRanges = getDateRanges({
+        startDate: input.startDate,
+        endDate: input.endDate,
+        timeZone: ctx.user.timeZone,
+        timeView,
+        weekStart: ctx.user.weekStart,
       });
 
       // Fetch aggregated counts
       const countsByStatus = await WorkflowEventsInsights.countGroupedWorkflowByStatusForRanges(
         whereQuery,
-        dateRanges
+        dateRanges,
+        timeZone
       );
 
       const ranges = dateRanges.map(({ startDate, endDate, formattedDate }) => {
-        const WorkflowData = {
+        const key = `${startDate}_${endDate}`;
+        const stats = countsByStatus[key] || { DELIVERED: 0, READ: 0, FAILED: 0, _all: 0 };
+
+        return {
           startDate,
           endDate,
-          formattedDate,
-          Sent: 0,
-          Read: 0,
-          Failed: 0,
-          Total: 0,
+          formattedDate: formattedDate,
+          Sent: stats.DELIVERED,
+          Read: stats.READ,
+          Failed: stats.FAILED,
+          Total: stats._all,
         };
-
-        const countsForDateRange = countsByStatus[formattedDate];
-        if (countsForDateRange) {
-          WorkflowData["Sent"] = countsForDateRange[WorkflowStatus.DELIVERED] || 0;
-          WorkflowData["Read"] = countsForDateRange[WorkflowStatus.READ] || 0;
-          WorkflowData["Failed"] = countsForDateRange[WorkflowStatus.FAILED] || 0;
-          WorkflowData["Total"] = WorkflowData["Sent"] + WorkflowData["Read"] + WorkflowData["Failed"];
-        }
-        return WorkflowData;
       });
+
       return ranges;
     }),
 });
