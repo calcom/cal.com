@@ -115,7 +115,7 @@ async function updateBookingLocationInDb({
           optionValue: "",
         },
       },
-      iCalSequence: (evt.iCalSequence || 0) + 1,
+      iCalSequence: evt.iCalSequence ?? undefined,
     },
   });
 }
@@ -261,6 +261,8 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     location: newLocationInEvtFormat,
     conferenceCredentialId,
   });
+
+  evt.iCalSequence = (booking.iCalSequence || 0) + 1;
 
   const eventManager = new EventManager({
     ...ctx.user,
