@@ -31,8 +31,11 @@ export async function applySelectFilter(page: Page, columnId: string, value: str
 }
 
 export async function selectOptionValue(page: Page, columnId: string, value: string) {
-  await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).waitFor();
-  await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).click();
+  // Wait for the option to be attached and visible before clicking
+  const option = page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value });
+  await option.waitFor({ state: "attached" });
+  await option.waitFor({ state: "visible" });
+  await option.click();
 }
 
 export async function applyTextFilter(page: Page, columnId: string, operator: string, operand?: string) {
