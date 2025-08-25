@@ -4,8 +4,8 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import {
   rawDataInputSchema,
-  routingFormResponsesInputSchema,
-  routingFormStatsInputSchema,
+  insightsRoutingServiceInputSchema,
+  insightsRoutingServicePaginatedInputSchema,
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
@@ -321,7 +321,6 @@ function createInsightsBookingService(
   dateTarget: "createdAt" | "startTime" = "createdAt"
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
-
   return getInsightsBookingService({
     options: {
       scope,
@@ -559,6 +558,28 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  membersWithMostCompletedBookings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("accepted", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  membersWithLeastCompletedBookings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("accepted", "ASC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -827,55 +848,44 @@ export const insightsRouter = router({
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
-    .input(routingFormStatsInputSchema)
+    .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormStats({
-        teamId: input.teamId,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        isAll: input.isAll,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId,
-        userId: ctx.user.id,
-        memberUserIds: input.memberUserIds,
-        columnFilters: input.columnFilters,
-        sorting: input.sorting,
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      return await insightsRoutingService.getRoutingFormStats();
     }),
   routingFormResponses: userBelongsToTeamProcedure
-    .input(routingFormResponsesInputSchema)
+    .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
-        teamId: input.teamId,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        isAll: input.isAll,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId,
-        userId: ctx.user.id,
-        memberUserIds: input.memberUserIds,
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      return await insightsRoutingService.getTableData({
+        sorting: input.sorting,
         limit: input.limit,
         offset: input.offset,
-        columnFilters: input.columnFilters,
-        sorting: input.sorting,
       });
     }),
   routingFormResponsesForDownload: userBelongsToTeamProcedure
-    .input(routingFormResponsesInputSchema)
+    .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
-        teamId: input.teamId,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        isAll: input.isAll,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId,
+      const headersPromise = RoutingEventsInsights.getRoutingFormHeaders({
         userId: ctx.user.id,
-        memberUserIds: input.memberUserIds,
-        limit: input.limit ?? BATCH_SIZE,
-        offset: input.offset,
-        columnFilters: input.columnFilters,
+        teamId: input.selectedTeamId,
+        isAll: input.scope === "org",
+        organizationId: ctx.user.organizationId,
+        routingFormId: (input.columnFilters || []).find((filter) => filter.id === "formId")?.value?.data as
+          | string
+          | undefined,
+      });
+
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      const dataPromise = insightsRoutingService.getTableData({
         sorting: input.sorting,
+        limit: input.limit,
+        offset: input.offset,
+      });
+
+      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
+        headersPromise,
+        dataPromise,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure
