@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("create event type using CreateEventTypeAtom", async ({ page }) => {
+test("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
   await page.goto("/");
 
   await page.goto("/event-types");
@@ -9,22 +9,33 @@ test("create event type using CreateEventTypeAtom", async ({ page }) => {
 
   await expect(page.locator("body")).toBeVisible();
 
-  await page.fill('[data-testid="event-type-quick-chat"]', "e2e event");
+  await page.fill(
+    '[data-testid="create-team-event-type-atom"] [data-testid="event-type-quick-chat"]',
+    "Platform team e2e event"
+  );
 
-  await page.fill('textarea[placeholder="A quick video meeting."]', "This is an e2e test event description");
+  await page.waitForSelector(
+    '[data-testid="create-team-event-type-atom"] button[type="submit"]:has-text("Continue")',
+    { state: "visible" }
+  );
+  await page.locator('[data-testid="create-team-event-type-atom"] button[value="COLLECTIVE"]').check();
 
-  await page.waitForSelector('button[type="submit"]:has-text("Continue")', { state: "visible" });
-  await page.click('button[type="submit"]:has-text("Continue")');
+  await page
+    .locator('[data-testid="create-team-event-type-atom"] button[type="submit"]:has-text("Continue")')
+    .click();
 
-  await expect(page.locator('h1:has-text("E2e Event")')).toBeVisible();
-  await expect(page.locator('p:has-text("/e2e-event")')).toBeVisible();
+  await expect(page.locator('h1:has-text("Platform Team E2e Event")')).toBeVisible();
+  await expect(page.locator('p:has-text("/platform-team-e2e-event")')).toBeVisible();
 
-  await page.locator('[data-testid="event-type-card"] h1:has-text("E2e Event")').click();
+  await page.locator('[data-testid="team-event-type-card"] h1:has-text("Platform team e2e event")').click();
 
   await expect(page.locator('[data-testid="event-type-settings-atom"]')).toBeVisible();
 
   await expect(page.locator('[data-testid="vertical-tab-availability"]')).toBeVisible();
   await page.locator('[data-testid="vertical-tab-availability"]').click();
+
+  await expect(page.locator('[data-testid="vertical-tab-assignment"]')).toBeVisible();
+  await page.locator('[data-testid="vertical-tab-assignment"]').click();
 
   await expect(page.locator('[data-testid="vertical-tab-event_limit_tab_title"]')).toBeVisible();
   await page.locator('[data-testid="vertical-tab-event_limit_tab_title"]').click();
@@ -45,10 +56,10 @@ test("create event type using CreateEventTypeAtom", async ({ page }) => {
 
   await page.locator('[data-testid="update-eventtype"]').click();
 
-  await expect(page.locator('h1:has-text("E2e Event")')).toBeVisible();
-  await expect(page.locator('p:has-text("/e2e-event")')).toBeVisible();
+  await expect(page.locator('h1:has-text("Platform Team E2e Event")')).toBeVisible();
+  await expect(page.locator('p:has-text("/platform-team-e2e-event")')).toBeVisible();
 
-  await page.locator('[data-testid="event-type-card"] h1:has-text("E2e Event")').click();
+  await page.locator('[data-testid="team-event-type-card"] h1:has-text("Platform team e2e event")').click();
 
   await expect(page.locator('[data-testid="event-type-settings-atom"]')).toBeVisible();
 
