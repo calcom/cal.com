@@ -17,6 +17,7 @@ export const getEventTypesFromDB = async (id: number) => {
     darkBrandColor: true,
     email: true,
     timeZone: true,
+    isPlatformManaged: true,
   };
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -75,6 +76,7 @@ export const getEventTypesFromDB = async (id: number) => {
               hideBranding: true,
             },
           },
+          createdByOAuthClientId: true,
         },
       },
       workflows: {

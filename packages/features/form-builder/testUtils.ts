@@ -97,15 +97,20 @@ export const pageObject = {
   },
   dialog: {
     isFieldShowingAsRequired: ({ dialog }: { dialog: TestingLibraryElement }) => {
-      return (
-        within(dialog.getByTestId("field-required")).getByText("Yes").getAttribute("aria-checked") === "true"
-      );
+      const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+      return checkbox.checked;
     },
     makeFieldOptional: ({ dialog }: { dialog: TestingLibraryElement }) => {
-      fireEvent.click(within(dialog.getByTestId("field-required")).getByText("No"));
+      const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+      if (checkbox.checked) {
+        fireEvent.click(checkbox);
+      }
     },
     makeFieldRequired: ({ dialog }: { dialog: TestingLibraryElement }) => {
-      fireEvent.click(within(dialog.getByTestId("field-required")).getByText("Yes"));
+      const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+      if (!checkbox.checked) {
+        fireEvent.click(checkbox);
+      }
     },
     queryIdentifierInput: ({ dialog }: { dialog: TestingLibraryElement }) => {
       return dialog.getByLabelText("identifier");
@@ -249,10 +254,8 @@ export const expectScenario = {
     expect(identifierInput.disabled).toBe(true);
   },
   toHaveRequirablityToggleDisabled: ({ dialog }: { dialog: TestingLibraryElement }) => {
-    const no = within(dialog.getByTestId("field-required")).getByText("No") as HTMLButtonElement;
-    const yes = within(dialog.getByTestId("field-required")).getByText("Yes") as HTMLButtonElement;
-    expect(no.disabled).toBe(true);
-    expect(yes.disabled).toBe(true);
+    const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+    expect(checkbox.disabled).toBe(true);
   },
   toHaveLabelChangeAllowed: ({ dialog }: { dialog: TestingLibraryElement }) => {
     const labelInput = dialog.getByLabelText("label");
@@ -267,6 +270,10 @@ export const expectScenario = {
   toHaveSourceBadge: ({ identifier, sourceLabel }: { identifier: string; sourceLabel: string }) => {
     const field = getFieldInTheList({ identifier });
     expect(field.getByText(sourceLabel)).not.toBeNull();
+  },
+  toNotHaveOptionalBadge: ({ identifier }: { identifier: string }) => {
+    const field = getFieldInTheList({ identifier });
+    expect(field.queryByTestId("optional")).toBeNull();
   },
   toHaveRequiredBadge: ({ identifier }: { identifier: string }) => {
     const field = getFieldInTheList({ identifier });
