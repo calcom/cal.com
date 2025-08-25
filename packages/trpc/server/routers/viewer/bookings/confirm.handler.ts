@@ -19,6 +19,8 @@ import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import {
   BookingStatus,
@@ -37,6 +39,7 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 type ConfirmOptions = {
   ctx: {
     user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
+    traceContext: TraceContext;
   };
   input: TConfirmInputSchema;
 };
@@ -242,6 +245,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     ...(platformClientParams ? platformClientParams : {}),
   };
 
+  const traceContext: TraceContext = distributedTracing.updateTrace(ctx.traceContext, {
+    bookingUid: booking.uid || "unknown",
+    confirmed: String(confirmed),
+    eventTypeId: booking.eventType?.id?.toString() || "null",
+    userId: user.id.toString(),
+    teamId: booking.eventType?.teamId?.toString() || "null",
+  });
+
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEventId) {
     if (
@@ -301,6 +312,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      traceContext,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -377,7 +389,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
