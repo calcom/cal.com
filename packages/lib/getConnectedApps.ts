@@ -184,9 +184,9 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await loadApp(app.dirName)) as PaymentApp | null;
+        const paymentApp = (await loadApp(app.dirName || "")) as PaymentApp | null;
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
-          const PaymentService = paymentApp.lib.PaymentService;
+          const PaymentService = paymentApp.lib!.PaymentService;
           const paymentInstance = new PaymentService(credential);
           isSetupAlready = paymentInstance.isSetupAlready();
         }

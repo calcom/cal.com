@@ -125,13 +125,13 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
   }
 
-  const paymentApp = (await loadApp(paymentCredential?.app?.dirName)) as PaymentApp;
+  const paymentApp = (await loadApp(paymentCredential?.app?.dirName || "")) as PaymentApp;
 
   if (!paymentApp?.lib?.PaymentService) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const PaymentService = paymentApp.lib.PaymentService as any;
+  const PaymentService = paymentApp.lib!.PaymentService as any;
   const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {

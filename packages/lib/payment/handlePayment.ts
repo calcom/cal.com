@@ -60,7 +60,7 @@ const handlePayment = async ({
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;
   }
-  const PaymentService = paymentApp.lib.PaymentService;
+  const PaymentService = paymentApp.lib!.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
