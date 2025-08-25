@@ -45,7 +45,8 @@ export const IS_CALCOM =
   (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
+    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.eu"));
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
@@ -230,3 +231,5 @@ export const IS_SMS_CREDITS_ENABLED =
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
 
 export const NEXTJS_CACHE_TTL = 3600; // 1 hour
+
+export const DEFAULT_GROUP_ID = "default_group_id";
