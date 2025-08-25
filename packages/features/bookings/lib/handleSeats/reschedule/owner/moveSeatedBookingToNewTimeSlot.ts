@@ -24,11 +24,9 @@ const moveSeatedBookingToNewTimeSlot = async (
 
   const spanContext = traceContext
     ? distributedTracing.createSpan(traceContext, "move_seated_booking_to_new_time_slot", {
-        meta: {
           bookingId: seatedBooking.id.toString(),
           rescheduleUid: rescheduleUid || "null",
           eventTypeId: rescheduleSeatedBookingObject.eventType.id.toString(),
-        },
       })
     : distributedTracing.createTrace("move_seated_booking_to_new_time_slot_fallback", {
         meta: {

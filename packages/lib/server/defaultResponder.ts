@@ -25,7 +25,11 @@ export function defaultResponder<T>(
     let ok = false;
     const operation = endpointRoute?.replace(/^\//, "").replace(/\//g, "_") || "api_request";
     const traceContext = distributedTracing.createTrace(operation, {
-      meta: { method: req.method, url: req.url, body: req.body },
+      meta: { 
+        method: req.method || "", 
+        url: req.url || "", 
+        body: JSON.stringify(req.body) 
+      },
     });
     const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 

@@ -1,4 +1,4 @@
-import type { Logger } from "tslog";
+import type { Logger, ILogObj } from "tslog";
 
 export interface TraceContext {
   traceId: string;
@@ -14,7 +14,7 @@ export interface IdGenerator {
 }
 
 export class DistributedTracing {
-  constructor(private idGenerator: IdGenerator, private loggerInstance: Logger) {}
+  constructor(private idGenerator: IdGenerator, private loggerInstance: Logger<ILogObj>) {}
 
   createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
     const { traceId, spanId, meta, ...otherContext } = context || {};
