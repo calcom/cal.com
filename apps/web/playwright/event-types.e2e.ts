@@ -446,7 +446,13 @@ test.describe("Event Types tests", () => {
     });
   });
 
-  test("should create recurring event and successfully book multiple occurrences", async ({ page }) => {
+  test("should create recurring event and successfully book multiple occurrences", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    await page.goto("/event-types");
     const nonce = randomString(3);
     const eventTitle = `Recurring Event Test ${nonce}`;
 
