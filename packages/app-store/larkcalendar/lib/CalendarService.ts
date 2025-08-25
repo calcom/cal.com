@@ -401,26 +401,48 @@ export default class LarkCalendarService implements Calendar {
 
   private translateAttendees = (event: CalendarEvent): LarkEventAttendee[] => {
     const attendeeArray: LarkEventAttendee[] = [];
+
+    // 1. Create a set of optional guest emails for easy lookup.
+    const optionalGuestEmails = new Set(
+      event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
+    );
+
+    // 2. Add the main booker as a required attendee.
     event.attendees
       .filter((att) => att.email)
       .forEach((att) => {
-        const attendee: LarkEventAttendee = {
+        attendeeArray.push({
           type: "third_party",
           is_optional: false,
           third_party_email: att.email,
-        };
-        attendeeArray.push(attendee);
+        });
       });
+
+    // 3. Add the REQUIRED team members, filtering out any who are optional.
     event.team?.members.forEach((member) => {
-      if (member.email !== this.credential.user?.email) {
-        const attendee: LarkEventAttendee = {
+      if (
+        member.email &&
+        member.email !== this.credential.user?.email &&
+        !optionalGuestEmails.has(member.email.toLowerCase())
+      ) {
+        attendeeArray.push({
           type: "third_party",
           is_optional: false,
           third_party_email: member.email,
-        };
-        attendeeArray.push(attendee);
+        });
       }
     });
+
+    // 4. Add the OPTIONAL team members.
+    if (event.optionalGuestTeamMembers) {
+      event.optionalGuestTeamMembers.forEach(({ email }) => {
+        attendeeArray.push({
+          type: "third_party",
+          is_optional: true,
+          third_party_email: email,
+        });
+      });
+    }
 
     return attendeeArray;
   };
