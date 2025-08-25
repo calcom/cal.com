@@ -22,6 +22,7 @@ import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateWorkflowsList } from "@calcom/web/app/cache/workflows";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
@@ -196,8 +197,9 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        await utils.viewer.workflows.get.invalidate({ id: +workflow.id });
-
+        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
+        revalidateWorkflowsList();
+        setFormData(workflow);
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
