@@ -31,6 +31,16 @@ function BasePhoneInput({
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
 
+  // This is to trigger validation on prefill value changes
+  useEffect(() => {
+    if (value) {
+      const sanitized = value.trim().replace(/\s+/g, "").replace(/^\+?/, "+");
+      if (value !== sanitized) {
+        onChange(sanitized);
+      }
+    }
+  }, []);
+
   if (!isPlatform) {
     return (
       <BasePhoneInputWeb name={name} className={className} onChange={onChange} value={value} {...rest} />
@@ -45,12 +55,12 @@ function BasePhoneInput({
       disableSearchIcon
       country={defaultCountry}
       inputProps={{
-        name: name,
+        name,
         required: rest.required,
         placeholder: rest.placeholder,
       }}
-      onChange={(value) => {
-        onChange(`+${value}`);
+      onChange={(val: string) => {
+        onChange(`+${val}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -84,6 +94,17 @@ function BasePhoneInputWeb({
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
+
+  // This is to trigger validation on prefill value changes
+  useEffect(() => {
+    if (value) {
+      const sanitized = value.trim().replace(/\s+/g, "").replace(/^\+?/, "+");
+      if (value !== sanitized) {
+        onChange(sanitized);
+      }
+    }
+  }, []);
+
   return (
     <PhoneInput
       {...rest}
@@ -92,12 +113,12 @@ function BasePhoneInputWeb({
       enableSearch
       disableSearchIcon
       inputProps={{
-        name: name,
+        name,
         required: rest.required,
         placeholder: rest.placeholder,
       }}
-      onChange={(value) => {
-        onChange(`+${value}`);
+      onChange={(val: string) => {
+        onChange(`+${val}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
