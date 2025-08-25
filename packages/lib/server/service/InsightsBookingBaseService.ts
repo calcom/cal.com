@@ -324,7 +324,7 @@ export class InsightsBookingBaseService {
     }
 
     if (id === "paid" && isSingleSelectFilterValue(value)) {
-      const paidValue = typeof value.data === "boolean" ? value.data : value.data === "true";
+      const paidValue = value.data === "true";
       return Prisma.sql`"paid" = ${paidValue}`;
     }
 
