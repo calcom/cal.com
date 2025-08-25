@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
@@ -17,6 +18,7 @@ export type PageWrapperProps = Readonly<{
 
 function usePageStatus() {
   const [pageStatus, setPageStatus] = useState("200");
+  const pathname = usePathname();
 
   useEffect(() => {
     const checkForErrorPage = () => {
@@ -38,7 +40,7 @@ function usePageStatus() {
     // Check after a small delay to ensure content has rendered
     const timer = setTimeout(checkForErrorPage, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [pathname]);
 
   return pageStatus;
 }
