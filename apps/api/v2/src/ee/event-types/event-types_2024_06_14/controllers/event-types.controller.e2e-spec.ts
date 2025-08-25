@@ -498,6 +498,7 @@ describe("Event types Endpoints", () => {
           lightThemeHex: "#fafafa",
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
+        bookingRequiresAuthentication: true,
       };
 
       return request(app.getHttpServer())
@@ -570,6 +571,7 @@ describe("Event types Endpoints", () => {
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
+          expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
           eventType = responseBody.data;
         });
     });
@@ -1026,6 +1028,7 @@ describe("Event types Endpoints", () => {
           lightThemeHex: "#fafafa",
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
+        bookingRequiresAuthentication: false,
       };
 
       return request(app.getHttpServer())
@@ -1120,6 +1123,8 @@ describe("Event types Endpoints", () => {
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
+
+          expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
         });
     });
 
@@ -2028,7 +2033,6 @@ describe("Event types Endpoints", () => {
     const username = name;
     let user: User;
     let legacyEventTypeId1: number;
-    let legacyEventTypeId2: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
