@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
@@ -195,11 +195,19 @@ const useNavigationItems = (isPlatformNavigation = false) => {
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
 
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
       {desktopNavigationItems.map((item) => (
-        <NavigationItem key={item.name} item={item} />
+        <NavigationItem
+          key={item.name}
+          item={{
+            ...item,
+            isTooltipOpen: openTooltip === item.name,
+            setOpenTooltip: setOpenTooltip,
+          }}
+        />
       ))}
       <div className="text-subtle mt-0.5 lg:hidden">
         <KBarTrigger />

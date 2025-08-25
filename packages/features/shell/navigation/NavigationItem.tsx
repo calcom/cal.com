@@ -16,6 +16,7 @@ const usePersistedExpansionState = (itemName: string) => {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
@@ -26,6 +27,7 @@ const usePersistedExpansionState = (itemName: string) => {
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
     } catch (_error) {}
   };
@@ -36,6 +38,8 @@ const usePersistedExpansionState = (itemName: string) => {
 export type NavigationItemType = {
   name: string;
   href: string;
+  isTooltipOpen?: boolean;
+  setOpenTooltip?: (name: string | null) => void;
   isLoading?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
@@ -73,6 +77,8 @@ export const NavigationItem: React.FC<{
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+  const isTooltipOpen = item.isTooltipOpen || false;
+  const setOpenTooltip = item.setOpenTooltip;
 
   if (!shouldDisplayNavigationItem) return null;
 
@@ -86,13 +92,51 @@ export const NavigationItem: React.FC<{
   return (
     <Fragment>
       {isParentNavigationItem ? (
-        <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+        <Tooltip
+          side="right"
+          open={isTooltipOpen}
+          // onOpenChange={() => {}}
+          content={
+            <div className="pointer-events-auto flex flex-col space-y-1 p-1">
+              <span className="text-subtle px-2 text-xs font-semibold uppercase tracking-wide">
+                {t(item.name)}
+              </span>
+              <div className="flex flex-col">
+                {item.child?.map((childItem) => {
+                  const childIsCurrent =
+                    typeof childItem.isCurrent === "function"
+                      ? childItem.isCurrent({ isChild: true, item: childItem, pathname })
+                      : defaultIsCurrent({ isChild: true, item: childItem, pathname });
+                  return (
+                    <Link
+                      key={childItem.name}
+                      href={childItem.href}
+                      aria-current={childIsCurrent ? "page" : undefined}
+                      className={classNames(
+                        "group relative block rounded-md px-3 py-1 text-sm font-medium",
+                        childIsCurrent
+                          ? "bg-emphasis text-white"
+                          : "hover:bg-emphasis text-mute hover:text-emphasis"
+                      )}>
+                      {t(childItem.name)}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          }
+          className="lg:hidden">
           <button
             data-test-id={item.name}
             aria-label={t(item.name)}
             aria-expanded={isExpanded}
             aria-current={current ? "page" : undefined}
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+              if (setOpenTooltip) {
+                setOpenTooltip(isTooltipOpen ? null : item.name);
+              }
+            }}
             className={classNames(
               "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               "[&[aria-current='page']]:!bg-transparent",
@@ -120,7 +164,10 @@ export const NavigationItem: React.FC<{
               <SkeletonText className="h-[20px] w-full" />
             )}
             {shouldShowChevron && (
-              <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="ml-auto h-4 w-4" />
+              <Icon
+                name={isExpanded ? "chevron-up" : "chevron-down"}
+                className="ml-auto hidden h-4 w-4 lg:inline"
+              />
             )}
           </button>
         </Tooltip>
