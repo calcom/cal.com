@@ -174,7 +174,7 @@ function CreateDelegationDialog({
         serviceAccountKey: validatedKey.data,
       });
     } catch (e) {
-      console.log("error", e);
+      console.error(e);
       form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
       return;
     }
