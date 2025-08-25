@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { loadApp, hasApp, getAvailableApps, clearAppCache, lazyAppStore } from "./lazy-loader";
+import * as lazyLoaderModule from "./lazy-loader";
 
 // Mock the dynamic imports to avoid actual module loading during tests
 vi.mock("./stripepayment", () => ({
@@ -78,7 +79,7 @@ describe("lazy-loader", () => {
     });
 
     it("should not invoke any loader for non-existent apps with optional chaining", () => {
-      const loadAppSpy = vi.spyOn({ loadApp }, "loadApp");
+      const loadAppSpy = vi.spyOn(lazyLoaderModule, "loadApp");
 
       // This should not call loadApp since the property is undefined
       const result = lazyAppStore["does-not-exist"]?.();
