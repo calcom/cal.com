@@ -31,7 +31,7 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const { activeFilters, addFilter } = useDataTable();
+  const { activeFilters, addFilter, filterToOpen } = useDataTable();
   const [open, setOpen] = useState(false);
 
   const filterableColumns = useFilterableColumns(table);
@@ -91,6 +91,7 @@ function AddFilterButtonComponent<TData>(
                     key={column.id}
                     onSelect={() => {
                       addFilter(column.id);
+                      if (filterToOpen) filterToOpen.current = column.id;
                       setOpen(false);
                     }}
                     className="flex items-center justify-between px-4 py-2"

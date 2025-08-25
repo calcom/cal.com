@@ -12,6 +12,7 @@ export function useFilterPopoverOpen(columnId: string) {
     if (filterToOpen.current === columnId) {
       timeoutId = setTimeout(() => {
         setOpen(true);
+        filterToOpen.current = undefined; // Reset after opening
       }, 0);
     }
 
