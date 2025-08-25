@@ -258,9 +258,12 @@ jobs:
         e2e-app-store,
         e2e-atoms,
       ]
-    if: always()
+    if: needs.changes.outputs.has-files-requiring-all-checks == 'true'
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
+      - name: dump needs
+        if: always()
+        run: echo '${{ toJson(needs) }}'
       - name: fail if conditional jobs failed
         if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
         run: exit 1
