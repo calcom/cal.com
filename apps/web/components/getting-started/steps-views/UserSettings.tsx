@@ -3,20 +3,22 @@
 import { PhoneNumberField, usePhoneNumberField, isPhoneNumberComplete } from "@calid/features/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { FULL_NAME_LENGTH_MAX_LIMIT, PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
+import { designationTypes, professionTypeAndEventTypes, customEvents } from "@calcom/lib/customEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import { Select } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
@@ -80,12 +82,45 @@ const UserSettings = (props: IUserSettingsProps) => {
     resolver: zodResolver(userSettingsSchema),
   });
 
+  const watchedPhoneNumber = useWatch({
+    control,
+    name: "metadata.phoneNumber",
+  });
+
   useEffect(() => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+
+  const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
+    (key) => ({
+      value: key,
+      label: designationTypes[key],
+    })
+  );
+  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const utils = trpc.useUtils();
   const onSuccess = async () => {
+    if (eventTypes?.length === 0 && selectedBusiness !== null) {
+      await Promise.all(
+        professionTypeAndEventTypes[selectedBusiness].map(async (event): Promise<void> => {
+          const eventType = {
+            ...event,
+            title: customEvents[event.title],
+            description: customEvents[event.description as string],
+            length: (event.length as number[])[0],
+            metadata: {
+              multipleDuration: event.length as number[],
+            },
+          };
+
+          return createEventType.mutate(eventType);
+        })
+      );
+    }
+
     await utils.viewer.me.invalidate();
     nextStep();
   };
@@ -99,7 +134,20 @@ const UserSettings = (props: IUserSettingsProps) => {
   );
 
   const onSubmit = handleSubmit((data) => {
+    if (
+      isPhoneFieldMandatory &&
+      data.metadata.phoneNumber &&
+      (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
+    ) {
+      showToast(t("phone_verification_required"), "error");
+      return;
+    }
+
     mutation.mutate({
+      metadata: {
+        currentOnboardingStep: "connected-calendar",
+        phoneNumber: data.metadata.phoneNumber,
+      },
       name: data.name,
       timeZone: selectedTimeZone,
     });
@@ -155,6 +203,23 @@ const UserSettings = (props: IUserSettingsProps) => {
           onDeleteNumber={handlePhoneDelete}
           isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
         />
+
+        <div className="w-full">
+          <label htmlFor="timeZone" className="text-default block text-sm font-medium">
+            {t("business_type")}
+          </label>
+
+          <Select
+            className="mt-2 text-sm capitalize"
+            onChange={(input) => {
+              if (input) {
+                setSelectedBusiness(input.value);
+              }
+            }}
+            options={designationTypeOptions}
+            // defaultValue={user?.metadata?.designation || designationTypeOptions[0]}
+          />
+        </div>
 
         {/* Timezone select field */}
         <div className="w-full">

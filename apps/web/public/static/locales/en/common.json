@@ -1,4 +1,5 @@
 {
+  "business_type": "Business type",
   "meeting_notes_saved": "Meeting notes saved",
   "phone_number_required": "Phone number is required",
   "number_valid": "Number is valid",
