@@ -13,7 +13,9 @@ export const createFeatureFixture = (page: Page) => {
   // IIF to add all features to store on creation
   return {
     init: async () => {
-      const features = await prisma.feature.findMany();
+      const features = await prisma.feature.findMany({
+        where: {},
+      });
       store.features = features;
       initalFeatures = features;
       return features;
