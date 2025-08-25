@@ -7,6 +7,7 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -33,7 +34,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider timeZone={timeZone}>
+    <DataTableProvider useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
