@@ -824,7 +824,8 @@ export async function getAllWorkflowsFromEventType(
     } | null;
     metadata?: Prisma.JsonValue;
   } | null,
-  userId?: number | null
+  userId?: number | null,
+  triggerEvents?: WorkflowTriggerEvents[]
 ) {
   if (!eventType) return [];
 
@@ -852,7 +853,8 @@ export async function getAllWorkflowsFromEventType(
     userId,
     teamId,
     orgId,
-    workflowsLockedForUser
+    workflowsLockedForUser,
+    triggerEvents
   );
 
   return allWorkflows;

@@ -1,4 +1,6 @@
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import type { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import type { Workflow } from "./types";
 
@@ -32,15 +34,28 @@ export const getAllWorkflows = async (
   userId?: number | null,
   teamId?: number | null,
   orgId?: number | null,
-  workflowsLockedForUser = true
+  workflowsLockedForUser = true,
+  allowedTriggerEvents?: WorkflowTriggerEvents[]
 ) => {
-  const allWorkflows = eventTypeWorkflows;
+  const allWorkflows = eventTypeWorkflows.filter((workflow) => {
+    if (!allowedTriggerEvents) return true;
+    return allowedTriggerEvents.includes(workflow.trigger);
+  });
+  const workflowWhere: Prisma.WorkflowWhereInput | undefined =
+    allowedTriggerEvents && allowedTriggerEvents.length > 0
+      ? {
+          trigger: {
+            in: allowedTriggerEvents,
+          },
+        }
+      : undefined;
 
   if (orgId) {
     if (teamId) {
       const orgTeamWorkflowsRel = await prisma.workflowsOnTeams.findMany({
         where: {
           teamId: teamId,
+          workflow: workflowWhere,
         },
         select: {
           workflow: {
@@ -54,6 +69,7 @@ export const getAllWorkflows = async (
     } else if (userId) {
       const orgUserWorkflowsRel = await prisma.workflowsOnTeams.findMany({
         where: {
+          workflow: workflowWhere,
           team: {
             members: {
               some: {
@@ -79,6 +95,7 @@ export const getAllWorkflows = async (
       where: {
         teamId: orgId,
         isActiveOnAll: true,
+        ...workflowWhere,
       },
       select: workflowSelect,
     });
@@ -90,6 +107,7 @@ export const getAllWorkflows = async (
       where: {
         teamId,
         isActiveOnAll: true,
+        ...workflowWhere,
       },
       select: workflowSelect,
     });
@@ -102,6 +120,7 @@ export const getAllWorkflows = async (
         userId,
         teamId: null,
         isActiveOnAll: true,
+        ...workflowWhere,
       },
       select: workflowSelect,
     });

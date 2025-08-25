@@ -2,13 +2,15 @@ import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
@@ -19,11 +21,28 @@ const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"]
 export async function handleBookingRequested(args: {
   evt: CalendarEvent;
   booking: {
+    smsReminderNumber: string | null;
     eventType: {
+      owner: {
+        hideBranding: boolean;
+      } | null;
       team?: {
         parentId: number | null;
       } | null;
       currency: string;
+      hosts?:
+        | {
+            user: {
+              email: string;
+              destinationCalendar?:
+                | {
+                    primaryEmail: string | null;
+                  }
+                | null
+                | undefined;
+            };
+          }[]
+        | undefined;
       description: string | null;
       id: number;
       length: number;
@@ -83,6 +102,26 @@ export async function handleBookingRequested(args: {
       })
     );
     await Promise.all(promises);
+
+    const bookingRequestedWorkflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId, [
+      WorkflowTriggerEvents.BOOKING_REQUESTED,
+    ]);
+    if (bookingRequestedWorkflows.length > 0) {
+      await scheduleWorkflowReminders({
+        workflows: bookingRequestedWorkflows,
+        smsReminderNumber: booking.smsReminderNumber,
+        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        calendarEvent: {
+          ...evt,
+          bookerUrl: evt.bookerUrl as string,
+          eventType: {
+            slug: evt.type,
+            hosts: booking.eventType?.hosts,
+            schedulingType: evt.schedulingType,
+          },
+        },
+      });
+    }
   } catch (error) {
     // Silently fail
     log.error("Error in handleBookingRequested", safeStringify(error));

@@ -75,7 +75,12 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
@@ -525,6 +530,9 @@ async function handler(
 
   const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
   const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
+  const isNormalBookingOrFirstRecurringSlot = input.bookingData.allRecurringDates
+    ? input.bookingData.isFirstRecurringSlot
+    : true;
 
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
@@ -1344,12 +1352,25 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
+  const workflowTriggerEvents: WorkflowTriggerEvents[] = [];
+
+  if (rescheduleUid) {
+    workflowTriggerEvents.push(WorkflowTriggerEvents.RESCHEDULE_EVENT);
+    workflowTriggerEvents.push(WorkflowTriggerEvents.BEFORE_EVENT, WorkflowTriggerEvents.AFTER_EVENT);
+  } else if (!isConfirmedByDefault) {
+    workflowTriggerEvents.push(WorkflowTriggerEvents.BOOKING_REQUESTED);
+  } else if (isConfirmedByDefault && isNormalBookingOrFirstRecurringSlot) {
+    workflowTriggerEvents.push(WorkflowTriggerEvents.NEW_EVENT);
+    workflowTriggerEvents.push(WorkflowTriggerEvents.BEFORE_EVENT, WorkflowTriggerEvents.AFTER_EVENT);
+  }
+
   const workflows = await getAllWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
     },
-    organizerUser.id
+    organizerUser.id,
+    workflowTriggerEvents
   );
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2210,6 +2231,47 @@ async function handler(
       isDryRun,
     });
 
+    const workflowsForPaymentInitiated = await getAllWorkflowsFromEventType(
+      {
+        ...eventType,
+        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+      },
+      organizerUser.id,
+      [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED]
+    );
+
+    if (workflowsForPaymentInitiated.length > 0) {
+      try {
+        const calendarEventForWorkflow = {
+          ...evt,
+          rescheduleReason,
+          metadata,
+          eventType: {
+            slug: eventType.slug,
+            schedulingType: eventType.schedulingType,
+            hosts: eventType.hosts,
+          },
+          bookerUrl,
+        };
+
+        if (isNormalBookingOrFirstRecurringSlot) {
+          await scheduleWorkflowReminders({
+            workflows: workflowsForPaymentInitiated,
+            smsReminderNumber: smsReminderNumber || null,
+            calendarEvent: calendarEventForWorkflow,
+            hideBranding: !!eventType.owner?.hideBranding,
+            seatReferenceUid: evt.attendeeSeatId,
+            isDryRun,
+          });
+        }
+      } catch (error) {
+        loggerWithEventDetails.error(
+          "Error while scheduling workflow reminders for booking payment initiated",
+          JSON.stringify({ error })
+        );
+      }
+    }
+
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
     const bookingResponse = {
@@ -2375,11 +2437,6 @@ async function handler(
       workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
-      isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
-      isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: input.bookingData.allRecurringDates
-        ? input.bookingData.isFirstRecurringSlot
-        : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,

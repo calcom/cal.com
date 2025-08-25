@@ -2120,6 +2120,7 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send emails to the booker as well as organizer for booking request and awaiting approval
             3. Should trigger BOOKING_REQUESTED webhook
+            4. Should trigger BOOKING_REQUESTED workflow
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2153,6 +2154,13 @@ describe("handleNewBooking", () => {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -2248,6 +2256,7 @@ describe("handleNewBooking", () => {
         1. Should create a booking in the database with status PENDING
         2. Should send emails to the booker as well as organizer for booking request and awaiting approval
         3. Should trigger BOOKING_REQUESTED webhook
+        4. Should trigger BOOKING_REQUESTED workflow
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2281,6 +2290,13 @@ describe("handleNewBooking", () => {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -2343,6 +2359,7 @@ describe("handleNewBooking", () => {
           });
 
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeTriggered({ emails, emailsToReceive: [booker.email] });
 
           expectBookingRequestedEmails({
             booker,
@@ -2537,6 +2554,13 @@ describe("handleNewBooking", () => {
                 template: "REMINDER",
                 activeOn: [1],
               },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
+                action: "EMAIL_ATTENDEE",
+                template: "REMINDER",
+                activeOn: [1],
+              },
             ],
             eventTypes: [
               {
@@ -2606,6 +2630,7 @@ describe("handleNewBooking", () => {
           });
 
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [booker.email], emails });
 
           expectBookingRequestedEmails({ booker, organizer, emails });
 
@@ -2813,9 +2838,10 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send email to the booker for Payment request
             3. Should trigger BOOKING_PAYMENT_INITIATED webhook
-            4. Once payment is successful, should trigger BOOKING_CREATED webhook
-            5. Workflow should not trigger before payment is made
-            6. Workflow triggers once payment is successful
+            4. Should trigger BOOKING_PAYMENT_INITIATED workflow
+            5. Once payment is successful, should trigger BOOKING_CREATED webhook
+            6. Workflow should not trigger before payment is made
+            7. Workflow triggers once payment is successful
       `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2824,6 +2850,8 @@ describe("handleNewBooking", () => {
             name: "Booker",
           });
 
+          const bookingInitiatedEmail = "booking_initiated@workflow.com";
+          const bookingPaidEmail = "booking_paid@workflows.com";
           const organizer = getOrganizer({
             name: "Organizer",
             email: "organizer@example.com",
@@ -2848,6 +2876,24 @@ describe("handleNewBooking", () => {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_PAYMENT_INITIATED",
+                action: "EMAIL_ADDRESS",
+                sendTo: bookingInitiatedEmail,
+                verifiedAt: new Date("2023-01-01T00:00:00.000Z"),
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_PAID",
+                action: "EMAIL_ADDRESS",
+                sendTo: bookingPaidEmail,
+                verifiedAt: new Date("2023-01-01T00:00:00.000Z"),
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -2928,7 +2974,9 @@ describe("handleNewBooking", () => {
             }),
           });
 
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [bookingPaidEmail], emails });
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [bookingInitiatedEmail], emails });
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
 
@@ -2962,6 +3010,7 @@ describe("handleNewBooking", () => {
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             paidEvent: true,
           });
+          expectWorkflowToBeTriggered({ emailsToReceive: [bookingPaidEmail], emails });
         },
         timeout
       );
@@ -2971,10 +3020,13 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send email to the booker for Payment request
             3. Should trigger BOOKING_PAYMENT_INITIATED webhook
-            4. Once payment is successful, should trigger BOOKING_REQUESTED webhook
-            5. Booking should still stay in pending state
+            4. Should trigger BOOKING_PAYMENT_INITIATED workflow
+            5. Once payment is successful, should trigger BOOKING_REQUESTED webhook
+            6. Should trigger BOOKING_REQUESTED workflow
+            7. Booking should still stay in pending state
       `,
         async ({ emails }) => {
+          const bookingInitiatedEmail = "booking_initiated@workflow.com";
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
@@ -3007,6 +3059,22 @@ describe("handleNewBooking", () => {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_PAYMENT_INITIATED",
+                verifiedAt: new Date("2023-01-01T00:00:00.000Z"),
+                action: "EMAIL_ADDRESS",
+                sendTo: bookingInitiatedEmail,
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -3085,6 +3153,7 @@ describe("handleNewBooking", () => {
           });
 
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [booker.email], emails });
 
           expectAwaitingPaymentEmails({
             organizer,
@@ -3100,6 +3169,7 @@ describe("handleNewBooking", () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             paymentId: createdBooking.paymentId!,
           });
+          expectWorkflowToBeTriggered({ emailsToReceive: [bookingInitiatedEmail], emails });
 
           // FIXME: Right now we need to reset the test Emails because email expects only tests first email content for an email address
           // Reset Test Emails to test for more Emails
@@ -3128,6 +3198,7 @@ describe("handleNewBooking", () => {
             paidEvent: true,
             eventType: scenarioData.eventTypes[0],
           });
+          expectWorkflowToBeTriggered({ emailsToReceive: [booker.email], emails });
         },
         timeout
       );

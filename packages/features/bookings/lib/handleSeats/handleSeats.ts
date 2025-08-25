@@ -109,7 +109,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     };
     try {
       await scheduleWorkflowReminders({
-        workflows,
+        workflows: workflows,
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
           ...evt,
@@ -123,9 +123,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
             },
           },
         },
-        isNotConfirmed: evt.requiresConfirmation || false,
-        isRescheduleEvent: !!rescheduleUid,
-        isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
         isDryRun,
