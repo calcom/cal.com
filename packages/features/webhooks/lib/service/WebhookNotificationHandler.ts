@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 
 import type { WebhookEventDTO } from "../dto/types";
 import { WebhookPayloadFactory } from "../factory/WebhookPayloadFactory";
-import { WebhookService } from "../service/WebhookService";
+import { WebhookService } from "./WebhookService";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookNotificationHandler]"] });
 

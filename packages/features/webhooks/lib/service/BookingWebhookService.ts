@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type {
   BookingCreatedDTO,
@@ -13,92 +12,37 @@ import type {
   BookingNoShowDTO,
   WebhookTriggerArgs,
   BookingRejectedDTO,
+  WebhookSubscriber,
 } from "../dto/types";
-import { WebhookNotifier } from "../notifier/WebhookNotifier";
-import { WebhookService } from "./WebhookService";
+import type { IWebhookNotifier, IWebhookService, ITasker, IBookingWebhookService } from "../interface";
+import { TaskerProvider } from "../provider/TaskerProvider";
+import type {
+  BookingCreatedParams,
+  BookingCancelledParams,
+  BookingRequestedParams,
+  BookingRescheduledParams,
+  BookingPaidParams,
+  BookingPaymentInitiatedParams,
+  BookingNoShowParams,
+  BookingRejectedParams,
+  ScheduleMeetingWebhooksParams,
+  CancelScheduledMeetingWebhooksParams,
+  ScheduleNoShowWebhooksParams,
+} from "../types";
 
-/**
- * Specialized service for booking lifecycle webhook events.
- *
- * @description This service provides high-level methods for emitting booking-related
- * webhook events throughout the booking lifecycle (created, cancelled, rescheduled, paid, etc.).
- * It serves as the primary interface that business logic should use for webhook emissions,
- * handling the complexity of mapping booking data to standardized webhook DTOs and
- * coordinating with the webhook notification system.
- *
- * @responsibilities
- * - Creates properly structured DTOs for all booking lifecycle events
- * - Handles booking data mapping and validation for webhook delivery
- * - Manages different booking states and their specific webhook requirements
- * - Provides a unified interface for all booking-related webhook emissions
- * - Coordinates with WebhookNotifier for reliable event emission
- * - Supports dry-run testing for booking webhook flows
- *
- * @features
- * - Static methods for easy integration without instantiation
- * - Support for complete booking lifecycle (create, cancel, reschedule, payment, etc.)
- * - Automatic timestamp generation and DTO construction
- * - Flexible parameter handling with comprehensive booking context
- * - Built-in dry-run support for testing webhook flows
- * - Platform integration support with custom URLs and client IDs
- * - Payment webhook support with transaction data
- *
- * @example Emitting a booking created webhook
- * ```typescript
- * await BookingWebhookService.emitBookingCreated({
- *   trigger: WebhookTriggerEvents.BOOKING_CREATED,
- *   evt: calendarEvent,
- *   booking: { id: 123, eventTypeId: 456, userId: 789 },
- *   eventType: { id: 456, title: "30min Meeting", price: 0 },
- *   status: "ACCEPTED",
- *   teamId: 101
- * });
- * ```
- *
- * @example Emitting a booking cancellation webhook
- * ```typescript
- * await BookingWebhookService.emitBookingCancelled({
- *   trigger: WebhookTriggerEvents.BOOKING_CANCELLED,
- *   evt: calendarEvent,
- *   booking: { id: 123, eventTypeId: 456, userId: 789 },
- *   eventType: { id: 456, title: "30min Meeting" },
- *   cancelledBy: "user@example.com",
- *   cancellationReason: "Schedule conflict"
- * });
- * ```
- *
- * @example Emitting a booking payment webhook
- * ```typescript
- * await BookingWebhookService.emitBookingPaid({
- *   trigger: WebhookTriggerEvents.BOOKING_PAID,
- *   evt: calendarEvent,
- *   booking: { id: 123, eventTypeId: 456, userId: 789 },
- *   eventType: { id: 456, title: "Consultation", price: 10000, currency: "USD" },
- *   paymentId: 999,
- *   paymentData: { amount: 10000, currency: "USD", status: "succeeded" }
- * });
- * ```
- *
- * @example Testing booking webhook with dry-run
- * ```typescript
- * await BookingWebhookService.emitBookingCreated({
- *   trigger: WebhookTriggerEvents.BOOKING_CREATED,
- *   evt: calendarEvent,
- *   booking: bookingData,
- *   eventType: eventTypeData,
- *   isDryRun: true
- * });
- * // Webhook processing is simulated without actual delivery
- * ```
- *
- * @see WebhookNotifier For the underlying webhook emission mechanism
- * @see BookingCreatedDTO For booking creation event structure
- * @see BookingCancelledDTO For booking cancellation event structure
- * @see BookingPaidDTO For booking payment event structure
- * @see WebhookTriggerArgs For the unified parameter interface
- */
-export class BookingWebhookService {
-  static async emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+export class BookingWebhookService implements IBookingWebhookService {
+  constructor(
+    private readonly webhookNotifier: IWebhookNotifier,
+    private readonly webhookService: IWebhookService,
+    private readonly tasker?: ITasker
+  ) {}
+
+  private async getTasker(): Promise<ITasker> {
+    const tasker = this.tasker ?? (await TaskerProvider.load());
+    return tasker;
+  }
+
+  async emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void> {
     if (!args.eventType) {
       throw new Error("eventType is required for booking webhook events");
     }
@@ -120,7 +64,7 @@ export class BookingWebhookService {
     });
   }
 
-  static async emitBookingCancelledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+  async emitBookingCancelledFromArgs(args: WebhookTriggerArgs): Promise<void> {
     if (!args.eventType) {
       throw new Error("eventType is required for booking webhook events");
     }
@@ -138,7 +82,7 @@ export class BookingWebhookService {
     });
   }
 
-  static async emitBookingRequestedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+  async emitBookingRequestedFromArgs(args: WebhookTriggerArgs): Promise<void> {
     if (!args.eventType) {
       throw new Error("eventType is required for booking webhook events");
     }
@@ -154,7 +98,7 @@ export class BookingWebhookService {
     });
   }
 
-  static async emitBookingRescheduledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+  async emitBookingRescheduledFromArgs(args: WebhookTriggerArgs): Promise<void> {
     if (!args.eventType) {
       throw new Error("eventType is required for booking webhook events");
     }
@@ -175,7 +119,7 @@ export class BookingWebhookService {
     });
   }
 
-  static async emitBookingPaidFromArgs(args: WebhookTriggerArgs): Promise<void> {
+  async emitBookingPaidFromArgs(args: WebhookTriggerArgs): Promise<void> {
     if (!args.eventType) {
       throw new Error("eventType is required for booking webhook events");
     }
@@ -193,35 +137,16 @@ export class BookingWebhookService {
     });
   }
 
-  static async emitBookingPaymentInitiated(params: {
-    evt: CalendarEvent;
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-    };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      teamId?: number | null;
-    };
-    paymentId?: number;
-    paymentData?: Record<string, unknown>;
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingPaymentInitiated(params: BookingPaymentInitiatedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     const dto: BookingPaymentInitiatedDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
-      eventTypeId: params.eventType?.id,
+      eventTypeId: params.eventType.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
@@ -233,41 +158,10 @@ export class BookingWebhookService {
       paymentData: params.paymentData,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitBookingCreated(params: {
-    evt: CalendarEvent;
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-      startTime: Date;
-      smsReminderNumber?: string | null;
-    };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      teamId?: number | null;
-    };
-    status?: "ACCEPTED" | "PENDING";
-    metadata?: Record<string, unknown>;
-    platformParams?: {
-      platformClientId?: string;
-      platformRescheduleUrl?: string;
-      platformCancelUrl?: string;
-      platformBookingUrl?: string;
-    };
-    platformClientId?: string;
-    teamId?: number | null;
-    orgId?: number | null;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingCreated(params: BookingCreatedParams): Promise<void> {
     if (!params.eventType) {
       throw new Error("eventType is required for booking webhook events");
     }
@@ -289,39 +183,19 @@ export class BookingWebhookService {
       platformParams: params.platformParams,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitBookingCancelled(params: {
-    evt: CalendarEvent;
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-      smsReminderNumber?: string | null;
-    };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      teamId?: number | null;
-    };
-    cancelledBy?: string;
-    cancellationReason?: string;
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingCancelled(params: BookingCancelledParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     const dto: BookingCancelledDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
-      eventTypeId: params.eventType?.id,
+      eventTypeId: params.eventType.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
@@ -333,36 +207,19 @@ export class BookingWebhookService {
       cancellationReason: params.cancellationReason,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitBookingRequested(params: {
-    evt: CalendarEvent;
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-    };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      teamId?: number | null;
-    };
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingRequested(params: BookingRequestedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     const dto: BookingRequestedDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
-      eventTypeId: params.eventType?.id,
+      eventTypeId: params.eventType.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
@@ -371,42 +228,19 @@ export class BookingWebhookService {
       eventType: params.eventType,
       booking: params.booking,
     };
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitBookingRescheduled(params: {
-    evt: CalendarEvent;
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-      smsReminderNumber?: string | null;
-    };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      teamId?: number | null;
-    };
-    rescheduleId?: number;
-    rescheduleUid?: string;
-    rescheduleStartTime?: string;
-    rescheduleEndTime?: string;
-    rescheduledBy?: string;
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingRescheduled(params: BookingRescheduledParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     const dto: BookingRescheduledDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
-      eventTypeId: params.eventType?.id,
+      eventTypeId: params.eventType.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
@@ -421,38 +255,19 @@ export class BookingWebhookService {
       rescheduledBy: params.rescheduledBy,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitBookingPaid(params: {
-    evt: CalendarEvent;
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-    };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      teamId?: number | null;
-    };
-    paymentId?: number;
-    paymentData?: Record<string, unknown>;
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingPaid(params: BookingPaidParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     const dto: BookingPaidDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
-      eventTypeId: params.eventType?.id,
+      eventTypeId: params.eventType.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
@@ -464,21 +279,10 @@ export class BookingWebhookService {
       paymentData: params.paymentData,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitBookingNoShow(params: {
-    message: string;
-    bookingUid: string;
-    bookingId?: number;
-    attendees: { email: string; noShow: boolean }[];
-    userId?: number | null;
-    eventTypeId?: number | null;
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingNoShow(params: BookingNoShowParams): Promise<void> {
     const dto: BookingNoShowDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
       createdAt: new Date().toISOString(),
@@ -493,37 +297,19 @@ export class BookingWebhookService {
       attendees: params.attendees,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitBookingRejected(params: {
-    evt: CalendarEvent;
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-      smsReminderNumber?: string | null;
-    };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      teamId?: number | null;
-    };
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
+  async emitBookingRejected(params: BookingRejectedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     const dto: BookingRejectedDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
-      eventTypeId: params.eventType?.id,
+      eventTypeId: params.eventType.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
@@ -534,30 +320,11 @@ export class BookingWebhookService {
       booking: params.booking,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  /**
-   * Schedules meeting lifecycle webhooks (MEETING_STARTED, MEETING_ENDED)
-   * Replaces legacy scheduleTrigger usage
-   */
-  static async scheduleMeetingWebhooks(params: {
-    booking: {
-      id: number;
-      uid: string;
-      eventTypeId: number | null;
-      userId: number | null;
-      startTime: Date;
-      endTime: Date;
-      responses?: any;
-    };
-    evt: CalendarEvent;
-    teamId?: number | null;
-    orgId?: number | null;
-    oAuthClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void> {
-    const webhookService = new WebhookService();
+  async scheduleMeetingWebhooks(params: ScheduleMeetingWebhooksParams): Promise<void> {
+    const webhookService = this.webhookService;
 
     const subscribersMeetingStarted = await webhookService.getSubscribers({
       userId: params.booking.userId,
@@ -568,7 +335,6 @@ export class BookingWebhookService {
       oAuthClientId: params.oAuthClientId,
     });
 
-    // Get subscribers for MEETING_ENDED
     const subscribersMeetingEnded = await webhookService.getSubscribers({
       userId: params.booking.userId,
       eventTypeId: params.booking.eventTypeId,
@@ -623,15 +389,8 @@ export class BookingWebhookService {
     await Promise.all(schedulePromises);
   }
 
-  /**
-   * Cancels scheduled meeting webhooks for a booking
-   * Replaces legacy deleteWebhookScheduledTriggers usage
-   */
-  static async cancelScheduledMeetingWebhooks(params: {
-    bookingId: number;
-    isDryRun?: boolean;
-  }): Promise<void> {
-    const webhookService = new WebhookService();
+  async cancelScheduledMeetingWebhooks(params: CancelScheduledMeetingWebhooksParams): Promise<void> {
+    const webhookService = this.webhookService;
     await webhookService.cancelScheduledWebhooks(
       params.bookingId,
       [WebhookTriggerEvents.MEETING_STARTED, WebhookTriggerEvents.MEETING_ENDED],
@@ -639,34 +398,11 @@ export class BookingWebhookService {
     );
   }
 
-  /**
-   * Schedules no-show webhooks for hosts and guests
-   * Replaces legacy scheduleNoShowTriggers functionality
-   */
-  static async scheduleNoShowWebhooks(params: {
-    booking: {
-      id: number;
-      startTime: Date;
-      eventTypeId: number | null;
-      userId: number | null;
-      uid: string;
-    };
-    organizerUser: {
-      id: number;
-      username: string | null;
-    };
-    eventType?: {
-      teamId?: number | null;
-    };
-    teamId?: number | null;
-    orgId?: number | null;
-    oAuthClientId?: string;
-    triggerForUser?: boolean;
-  }): Promise<void> {
-    const webhookService = new WebhookService();
+  async scheduleNoShowWebhooks(params: ScheduleNoShowWebhooksParams): Promise<void> {
+    const webhookService = this.webhookService;
 
     try {
-      const tasker = (await import("@calcom/features/tasker")).default;
+      const tasker = await this.getTasker();
       const noShowPromises: Promise<string | void>[] = [];
 
       const subscribersHostsNoShow = await webhookService.getSubscribers({
@@ -679,7 +415,7 @@ export class BookingWebhookService {
       });
 
       noShowPromises.push(
-        ...subscribersHostsNoShow.map((webhook) => {
+        ...subscribersHostsNoShow.map((webhook: WebhookSubscriber) => {
           if (params.booking.startTime && webhook.time && webhook.timeUnit) {
             const scheduledAt = dayjs
               .utc(params.booking.startTime)
@@ -710,7 +446,7 @@ export class BookingWebhookService {
       });
 
       noShowPromises.push(
-        ...subscribersGuestsNoShow.map((webhook) => {
+        ...subscribersGuestsNoShow.map((webhook: WebhookSubscriber) => {
           if (params.booking.startTime && webhook.time && webhook.timeUnit) {
             const scheduledAt = dayjs
               .utc(params.booking.startTime)
