@@ -6,4 +6,7 @@
   min-height: 300px;
   margin: 0 auto;
   width: 100%;
+  display: block !important;
+  color-scheme: unset !important;
+  background: transparent !important;
 }
