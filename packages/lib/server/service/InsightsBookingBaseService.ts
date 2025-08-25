@@ -5,7 +5,11 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
-import { isSingleSelectFilterValue, isMultiSelectFilterValue } from "@calcom/features/data-table/lib/utils";
+import {
+  isSingleSelectFilterValue,
+  isMultiSelectFilterValue,
+  isTextFilterValue,
+} from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -317,6 +321,24 @@ export class InsightsBookingBaseService {
     if (id === "status" && isMultiSelectFilterValue(value)) {
       const statusValues = value.data.map((status) => Prisma.sql`${status}::"BookingStatus"`);
       return Prisma.sql`"status" IN (${Prisma.join(statusValues)})`;
+    }
+
+    if (id === "paid" && isSingleSelectFilterValue(value)) {
+      const paidValue = value.data === "true";
+      return Prisma.sql`"paid" = ${paidValue}`;
+    }
+
+    if (id === "userEmail" && isTextFilterValue(value)) {
+      return Prisma.sql`"userEmail" ILIKE ${`%${value.data.operand}%`}`;
+    }
+
+    if (id === "userName" && isTextFilterValue(value)) {
+      return Prisma.sql`"userName" ILIKE ${`%${value.data.operand}%`}`;
+    }
+
+    if (id === "rating" && isSingleSelectFilterValue(value)) {
+      const ratingValue = typeof value.data === "number" ? value.data : Number(value.data);
+      return Prisma.sql`"rating" = ${ratingValue}`;
     }
 
     return null;
