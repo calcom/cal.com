@@ -198,6 +198,8 @@ const nextConfig = (phase) => {
       turbopackPersistentCaching: process.env.NODE_ENV === "development",
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
+      webpackMemoryOptimizations: true,
+      webpackBuildWorker: true,
     },
     productionBrowserSourceMaps: true,
     /* We already do type check on GH actions */
@@ -233,7 +235,15 @@ const nextConfig = (phase) => {
     images: {
       unoptimized: true,
     },
-    webpack: (config, { webpack, buildId, isServer }) => {
+    webpack: (config, { webpack, buildId, isServer, dev }) => {
+      if (!dev) {
+        if (config.cache) {
+          config.cache = Object.freeze({
+            type: "memory",
+          });
+        }
+      }
+
       if (isServer) {
         // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
         config.plugins.push(
