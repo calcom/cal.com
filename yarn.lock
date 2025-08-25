@@ -2493,7 +2493,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.321"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.332"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3553,13 +3553,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.321":
-  version: 0.0.321
-  resolution: "@calcom/platform-libraries@npm:0.0.321"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.332":
+  version: 0.0.332
+  resolution: "@calcom/platform-libraries@npm:0.0.332"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 634b092311d9952d6ce1eec3a55fc18ab314d282d087ca7d9e9baf3f53f1e718e81d2b2cb6613f377d129c864290eb14f89770cfdd0c14e8968a34db093163f5
+  checksum: 740a326a6c87297411ef0627e0d52a24ee46f447bf8afc098222f2422fc6f8f24f8704a51749f5719dc86030138af760831b2cd115843136e026cded4cf88022
   languageName: node
   linkType: hard
 
@@ -4119,6 +4119,7 @@ __metadata:
     node-mocks-http: ^1.11.0
     nodemailer: ^6.7.8
     nuqs: ^1.20.0
+    openid-client: 6.5.0
     otplib: ^12.0.1
     postcss: ^8.4.18
     posthog-js: ^1.164.1

@@ -268,7 +268,8 @@
     },
     "@calcom/prisma#db-seed": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": ["@calcom/prisma#db-migrate"],
+      "env": ["DAILY_API_KEY"]
     },
     "@calcom/prisma#db-up": {
       "cache": false
@@ -401,7 +402,9 @@
       "cache": false,
       "inputs": ["./migrations/**/*.sql", "./prisma/migrations/**/*.sql"]
     },
-    "db-seed": {},
+    "db-seed": {
+      "env": ["DAILY_API_KEY"]
+    },
     "deploy": {
       "cache": false,
       "dependsOn": ["@calcom/web#build"]
