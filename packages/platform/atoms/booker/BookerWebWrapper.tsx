@@ -127,6 +127,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
+    disableAutoFillOnBookingPage: event.data?.disableAutoFillOnBookingPage ?? false,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({

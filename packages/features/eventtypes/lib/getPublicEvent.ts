@@ -14,6 +14,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
@@ -233,7 +234,9 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
-export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>> & {
+  disableAutoFillOnBookingPage?: boolean;
+};
 
 export async function getEventTypeHosts({
   hosts,
@@ -366,6 +369,7 @@ export const getPublicEvent = async (
       showInstantEventConnectNowModal: false,
       autoTranslateDescriptionEnabled: false,
       fieldTranslations: [],
+      disableAutoFillOnBookingPage: false,
     };
   }
 
@@ -454,6 +458,11 @@ export const getPublicEvent = async (
     subsetOfHosts: hosts,
     hosts: fetchAllUsers ? hosts : undefined,
   };
+
+  const organizationId = eventWithUserProfiles.owner?.profile?.organizationId || null;
+  const disableAutoFillOnBookingPage = organizationId
+    ? await OrganizationRepository.getDisableAutoFillOnBookingPageSetting(organizationId)
+    : false;
 
   let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
@@ -571,6 +580,7 @@ export const getPublicEvent = async (
     disableRescheduling: event.disableRescheduling,
     allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
     interfaceLanguage: event.interfaceLanguage,
+    disableAutoFillOnBookingPage,
   };
 };
 
