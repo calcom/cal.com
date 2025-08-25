@@ -234,7 +234,9 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
-export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>> & {
+  disableAutoFillOnBookingPage?: boolean;
+};
 
 export async function getEventTypeHosts({
   hosts,
@@ -457,9 +459,9 @@ export const getPublicEvent = async (
   };
 
   const organizationId = eventWithUserProfiles.owner?.profile?.organizationId || null;
-  const disableAutoFillOnBookingPage = await OrganizationRepository.getDisableAutoFillOnBookingPageSetting(
-    organizationId
-  );
+  const disableAutoFillOnBookingPage = organizationId
+    ? await OrganizationRepository.getDisableAutoFillOnBookingPageSetting(organizationId)
+    : false;
 
   let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
