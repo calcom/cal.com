@@ -25,3 +25,43 @@ The [/ee](https://github.com/calcom/cal.com/tree/main/apps/web/ee) subfolder is 
 6. Open [Stripe Webhooks](https://dashboard.stripe.com/webhooks) and add `<CALENDSO URL>/api/integrations/stripepayment/webhook` as webhook for connected applications.
 7. Select all `payment_intent` events for the webhook.
 8. Copy the webhook secret (`whsec_...`) to `STRIPE_WEBHOOK_SECRET` in the .env file.
+
+## Enabling Adaptive Currencies
+
+Stripe Adaptive Currencies automatically converts prices to local currencies based on customer IP address and works with Checkout Sessions used in subscription flows.
+
+### Setup Steps:
+
+1. **Enable Adaptive Currencies in Environment:**
+   - Add `STRIPE_ADAPTIVE_CURRENCIES_ENABLED=true` to your `.env` file
+   - When disabled (default), all checkout sessions will use USD currency
+   - When enabled, Stripe will automatically detect customer location and convert prices
+
+2. **Enable Adaptive Pricing in Stripe Dashboard:**
+   - Navigate to [Stripe Dashboard → Connect → Settings](https://dashboard.stripe.com/settings/connect)
+   - Enable "Adaptive pricing" under the Connect settings
+   - Configure supported currencies and regions as needed
+
+3. **Verify Webhook Configuration:**
+   - Ensure your webhook endpoint handles `checkout.session.completed` events
+   - Currency conversion metadata will be included in webhook payloads
+   - No additional webhook events are required for Adaptive Currencies
+
+4. **Test Configuration:**
+   - Use VPN or proxy to test from different geographic locations (focus on USD/EUR regions)
+   - Verify that checkout sessions automatically display local currencies
+   - Confirm that webhook events include proper currency conversion data
+
+### Supported Flows:
+
+- ✅ Team/Organization subscriptions (`packages/features/ee/teams/lib/payments.ts`)
+- ✅ Premium username subscriptions (`packages/app-store/stripepayment/api/subscription.ts`)  
+- ✅ Platform billing subscriptions (`apps/api/v2/src/modules/billing/services/billing.service.ts`)
+- ❌ Booking payments (uses Payment Intents API, not compatible with Adaptive Currencies)
+
+### Notes:
+
+- Adaptive Currencies only works with Stripe Checkout Sessions, not Payment Intents
+- Currency conversion is handled automatically by Stripe based on customer location
+- No code changes are required once enabled in the Stripe Dashboard
+- All subscription flows in Cal.com already use compatible Checkout Sessions
