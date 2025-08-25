@@ -74,41 +74,38 @@ const childSchema = z.object({
 });
 
 /** Optional fields */
-const BaseEventTypeUpdateInput = _EventTypeModel
-  .extend({
-    isInstantEvent: z.boolean(),
-    instantMeetingParameters: z.array(z.string()),
-    instantMeetingExpiryTimeOffsetInSeconds: z.number(),
-    aiPhoneCallConfig,
-    calVideoSettings: calVideoSettingsSchema,
-    calAiPhoneScript: z.string(),
-    customInputs: z.array(customInputSchema),
-    destinationCalendar: _DestinationCalendarModel
-      .pick({
-        integration: true,
-        externalId: true,
-      })
-      .nullable(),
-    users: z.array(stringOrNumber),
-    children: z.array(childSchema),
-    hosts: z.array(hostSchema),
-    schedule: z.number().nullable(),
-    instantMeetingSchedule: z.number().nullable(),
-    multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])),
-    assignAllTeamMembers: z.boolean(),
-    isRRWeightsEnabled: z.boolean(),
-    metadata: EventTypeMetaDataSchema,
-    bookingFields: eventTypeBookingFields,
-    assignRRMembersUsingSegment: z.boolean().optional(),
-    rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
-    useEventLevelSelectedCalendars: z.boolean().optional(),
-    seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
-    hostGroups: z.array(hostGroupSchema).optional(),
-    optionalGuestTeamMembers: z
-      .array(z.object({ id: z.number() }))
-      .nullable()
-      .optional(),
-  })
+const BaseEventTypeUpdateInput = EventTypeSchema.extend({
+  isInstantEvent: z.boolean(),
+  instantMeetingParameters: z.array(z.string()),
+  instantMeetingExpiryTimeOffsetInSeconds: z.number(),
+  aiPhoneCallConfig,
+  calVideoSettings: calVideoSettingsSchema,
+  calAiPhoneScript: z.string(),
+  customInputs: z.array(customInputSchema),
+  destinationCalendar: DestinationCalendarSchema.pick({
+    integration: true,
+    externalId: true,
+  }).nullable(),
+  users: z.array(stringOrNumber),
+  children: z.array(childSchema),
+  hosts: z.array(hostSchema),
+  schedule: z.number().nullable(),
+  instantMeetingSchedule: z.number().nullable(),
+  multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])),
+  assignAllTeamMembers: z.boolean(),
+  isRRWeightsEnabled: z.boolean(),
+  metadata: EventTypeMetaDataSchema,
+  bookingFields: eventTypeBookingFields,
+  assignRRMembersUsingSegment: z.boolean().optional(),
+  rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
+  useEventLevelSelectedCalendars: z.boolean().optional(),
+  seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
+  hostGroups: z.array(hostGroupSchema).optional(),
+  optionalGuestTeamMembers: z
+    .array(z.object({ id: z.number() }))
+    .nullable()
+    .optional(),
+})
   .partial()
   .extend(EventTypeSchema.pick({ id: true }).shape);
 

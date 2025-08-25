@@ -99,7 +99,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     restrictionScheduleId,
     calVideoSettings,
     hostGroups,
-    optionalGuestTeamMembers = [],
+    optionalGuestTeamMembers,
     ...rest
   } = input;
 
@@ -455,9 +455,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (teamId) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
-    if (optionalGuestTeamMembers && optionalGuestTeamMembers.length > 0) {
-      // Deduplicate IDs to prevent duplicate connections
-      const ids = optionalGuestTeamMembers.map(({ id }) => id);
+    if (optionalGuestTeamMembers !== undefined) {
+      // Treat null as clear; handle duplicates and membership in one pass
+      const ids = (optionalGuestTeamMembers ?? []).map(({ id }) => id);
       const uniqueIds = Array.from(new Set(ids));
       if (uniqueIds.length !== ids.length) {
         throw new TRPCError({
@@ -465,10 +465,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           message: "Duplicate optional guest team members are not allowed.",
         });
       }
-      if (optionalGuestTeamMembers.every((each) => teamMemberIds.includes(each.id))) {
+      const teamMemberIdSet = new Set(teamMemberIds);
+      if (uniqueIds.every((id) => teamMemberIdSet.has(id))) {
+        // Replace the entire set (also clears when uniqueIds is empty)
         data.optionalGuestTeamMembers = {
-          set: [],
-          connect: uniqueIds.map((id) => ({ id })),
+          set: uniqueIds.map((id) => ({ id })),
         };
       } else {
         throw new TRPCError({
