@@ -16,6 +16,24 @@ interface IConnectCalendarsProps {
 
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep, isPageLoading } = props;
+
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async (_data, _context) => {
+      nextStep();
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
+  const handleNextStep = () => {
+    updateProfileMutation.mutate({
+      metadata: {
+        currentOnboardingStep: "connected-video",
+      },
+    });
+  };
+
   const queryConnectedCalendars = trpc.viewer.calendars.connectedCalendars.useQuery({
     onboarding: true,
     eventTypeId: null,
@@ -63,7 +81,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
 
       {/* Connect calendars list */}
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
-        <List className="bg-default divide-subtle border-subtle mx-1 divide-y rounded-md border p-0 dark:bg-black sm:mx-0">
+        <List className="bg-default divide-subtle border-subtle mx-1 divide-y rounded-md border p-0 sm:mx-0 dark:bg-black">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item) => (
               <li key={item.title}>
@@ -90,7 +108,11 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
         loading={isPageLoading}
-        onClick={() => nextStep()}
+        onClick={() => {
+          console.log("connected video step");
+          handleNextStep();
+          nextStep();
+        }}
         disabled={disabledNextButton}>
         {firstCalendar ? `${t("continue")}` : `${t("next_step_text")}`}
       </Button>

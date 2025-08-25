@@ -18,6 +18,23 @@ interface ISetupAvailabilityProps {
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { defaultScheduleId } = props;
 
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async (_data, _context) => {
+      nextStep();
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
+  const handleNextStep = () => {
+    updateProfileMutation.mutate({
+      metadata: {
+        currentOnboardingStep: "user-profile",
+      },
+    });
+  };
+
   const { t } = useLocale();
   const { nextStep } = props;
 
@@ -40,6 +57,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       throw new Error(error.message);
     },
     onSuccess: () => {
+      handleNextStep();
       nextStep();
     },
   };

@@ -797,6 +797,7 @@ export class UserRepository {
       },
       select: {
         completedOnboarding: true,
+        metadata: true,
         teams: {
           select: {
             accepted: true,
