@@ -28,7 +28,14 @@ import type {
   AfterGuestsNoShowDTO,
   EventTypeInfo,
 } from "../dto/types";
-import type { WebhookPayload, FormSubmittedPayload, RecordingPayload } from "./types";
+import type {
+  WebhookPayload,
+  FormSubmittedPayload,
+  RecordingPayload,
+  MeetingPayload,
+  InstantMeetingPayload,
+  NoShowWebhookPayload,
+} from "./types";
 
 // ============================================================================
 // BOOKING NORMALIZATION TYPES & UTILITIES (merged from BookingWebhookFactory)
@@ -373,8 +380,10 @@ export class WebhookPayloadFactory {
 
   private static createFormSubmittedPayload(dto: FormSubmittedDTO): WebhookPayload {
     const payload: FormSubmittedPayload = {
-      form: dto.form,
-      response: dto.response,
+      formId: dto.form.id,
+      formName: dto.form.name,
+      teamId: dto.teamId,
+      responses: dto.response.data,
     };
 
     return {
@@ -571,8 +580,10 @@ export class WebhookPayloadFactory {
 
   private static createFormSubmittedNoEventPayload(dto: FormSubmittedNoEventDTO): WebhookPayload {
     const payload: FormSubmittedPayload = {
-      form: dto.form,
-      response: dto.response,
+      formId: dto.form.id,
+      formName: dto.form.name,
+      teamId: dto.teamId,
+      responses: dto.response.data,
     };
 
     return {
@@ -610,7 +621,7 @@ export class WebhookPayloadFactory {
 
   private static createMeetingStartedPayload(dto: MeetingStartedDTO): WebhookPayload {
     // For meeting events, we use the booking data directly since it contains all necessary information
-    const payload = { ...dto.booking };
+    const payload: MeetingPayload = { ...dto.booking };
 
     return {
       triggerEvent: dto.triggerEvent,
@@ -620,11 +631,7 @@ export class WebhookPayloadFactory {
   }
 
   private static createMeetingEndedPayload(dto: MeetingEndedDTO): WebhookPayload {
-    const payload = {
-      triggerEvent: dto.triggerEvent,
-      createdAt: dto.createdAt,
-      ...dto.booking,
-    };
+    const payload: MeetingPayload = { ...dto.booking };
 
     return {
       triggerEvent: dto.triggerEvent,
@@ -634,9 +641,7 @@ export class WebhookPayloadFactory {
   }
 
   private static createInstantMeetingPayload(dto: InstantMeetingDTO): WebhookPayload {
-    const payload = {
-      triggerEvent: dto.triggerEvent,
-      createdAt: dto.createdAt,
+    const payload: InstantMeetingPayload = {
       title: dto.title,
       body: dto.body,
       icon: dto.icon,
@@ -654,9 +659,7 @@ export class WebhookPayloadFactory {
   }
 
   private static createAfterHostsNoShowPayload(dto: AfterHostsNoShowDTO): WebhookPayload {
-    const payload = {
-      triggerEvent: dto.triggerEvent,
-      createdAt: dto.createdAt,
+    const payload: NoShowWebhookPayload = {
       bookingId: dto.bookingId,
       webhook: dto.webhook,
     };
@@ -669,7 +672,7 @@ export class WebhookPayloadFactory {
   }
 
   private static createAfterGuestsNoShowPayload(dto: AfterGuestsNoShowDTO): WebhookPayload {
-    const payload = {
+    const payload: NoShowWebhookPayload = {
       bookingId: dto.bookingId,
       webhook: dto.webhook,
     };

@@ -99,6 +99,10 @@ import { WebhookService } from "./WebhookService";
  */
 export class BookingWebhookService {
   static async emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     return this.emitBookingCreated({
       evt: args.evt,
       booking: {
@@ -117,6 +121,10 @@ export class BookingWebhookService {
   }
 
   static async emitBookingCancelledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     return this.emitBookingCancelled({
       evt: args.evt,
       booking: args.booking,
@@ -131,6 +139,10 @@ export class BookingWebhookService {
   }
 
   static async emitBookingRequestedFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     return this.emitBookingRequested({
       evt: args.evt,
       booking: args.booking,
@@ -143,6 +155,10 @@ export class BookingWebhookService {
   }
 
   static async emitBookingRescheduledFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     return this.emitBookingRescheduled({
       evt: args.evt,
       booking: args.booking,
@@ -160,6 +176,10 @@ export class BookingWebhookService {
   }
 
   static async emitBookingPaidFromArgs(args: WebhookTriggerArgs): Promise<void> {
+    if (!args.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     return this.emitBookingPaid({
       evt: args.evt,
       booking: args.booking,
@@ -189,7 +209,7 @@ export class BookingWebhookService {
       currency: string;
       length: number;
       teamId?: number | null;
-    } | null;
+    };
     paymentId?: number;
     paymentData?: Record<string, unknown>;
     teamId?: number | null;
@@ -234,7 +254,7 @@ export class BookingWebhookService {
       currency: string;
       length: number;
       teamId?: number | null;
-    } | null;
+    };
     status?: "ACCEPTED" | "PENDING";
     metadata?: Record<string, unknown>;
     platformParams?: {
@@ -248,11 +268,15 @@ export class BookingWebhookService {
     orgId?: number | null;
     isDryRun?: boolean;
   }): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
     const dto: BookingCreatedDTO = {
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       createdAt: new Date().toISOString(),
       bookingId: params.booking.id,
-      eventTypeId: params.eventType?.id,
+      eventTypeId: params.eventType.id,
       userId: params.booking.userId,
       teamId: params.teamId,
       orgId: params.orgId,
@@ -285,7 +309,7 @@ export class BookingWebhookService {
       currency: string;
       length: number;
       teamId?: number | null;
-    } | null;
+    };
     cancelledBy?: string;
     cancellationReason?: string;
     teamId?: number | null;
@@ -328,7 +352,7 @@ export class BookingWebhookService {
       currency: string;
       length: number;
       teamId?: number | null;
-    } | null;
+    };
     teamId?: number | null;
     orgId?: number | null;
     platformClientId?: string;
@@ -367,7 +391,7 @@ export class BookingWebhookService {
       currency: string;
       length: number;
       teamId?: number | null;
-    } | null;
+    };
     rescheduleId?: number;
     rescheduleUid?: string;
     rescheduleStartTime?: string;
@@ -416,7 +440,7 @@ export class BookingWebhookService {
       currency: string;
       length: number;
       teamId?: number | null;
-    } | null;
+    };
     paymentId?: number;
     paymentData?: Record<string, unknown>;
     teamId?: number | null;
@@ -489,7 +513,7 @@ export class BookingWebhookService {
       currency: string;
       length: number;
       teamId?: number | null;
-    } | null;
+    };
     teamId?: number | null;
     orgId?: number | null;
     platformClientId?: string;

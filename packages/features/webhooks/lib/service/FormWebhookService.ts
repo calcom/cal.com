@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../dto/types";
+import type { FormSubmittedPayload } from "../factory/types";
 import { WebhookNotifier } from "../notifier/WebhookNotifier";
 import { WebhookService } from "./WebhookService";
 
@@ -166,15 +167,15 @@ export class FormWebhookService extends WebhookService {
 
     // Create webhook payload using our architecture
     const payload = {
+      triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+      createdAt: new Date().toISOString(),
       payload: {
-        responseId: params.responseId,
-        form: {
-          ...params.form,
-          teamId: params.form.teamId ?? null,
-        },
-        responses: params.responses,
+        formId: params.form.id,
+        formName: params.form.name,
+        teamId: params.teamId ?? null,
         redirect: params.redirect,
-      },
+        responses: params.responses,
+      } as FormSubmittedPayload,
     };
 
     // Use the centralized scheduling method from WebhookService
