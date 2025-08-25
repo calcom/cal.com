@@ -565,7 +565,7 @@ export async function bookTeamEvent({
 
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
-  await expect(page.getByTestId(`404-page`)).toBeVisible();
+  await expect(page.getByTestId(`app-router-not-found-page`)).toBeVisible();
 }
 
 export async function setupOrgMember(users: CreateUsersFixture) {

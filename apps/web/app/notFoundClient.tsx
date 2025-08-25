@@ -104,7 +104,7 @@ export function NotFound({ host }: { host: string }) {
   }
 
   return (
-    <div className="bg-default min-h-screen px-4" data-testid="404-page">
+    <div className="bg-default min-h-screen px-4" data-testid="app-router-not-found-page">
       <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
         <div className="text-center">
           <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">{t("error_404")}</p>
