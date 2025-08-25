@@ -159,7 +159,6 @@ describe("ToolbarPlugin", () => {
     const linkButton = screen.getByTestId("button-link");
     fireEvent.click(linkButton);
   });
-
   // Additional tests
   it("calls setText when editor content changes", async () => {
     render(
@@ -192,12 +191,13 @@ describe("ToolbarPlugin", () => {
       </TestWrapper>
     );
 
-    // Wait for initial render
+    // Wait for initial render and clear previous calls
     await waitFor(() => {
       expect(setFirstRender).toHaveBeenCalledWith(false);
     });
 
-    // Update getText mock and trigger update
+    // Clear mocks to focus on the update behavior
+    vi.clearAllMocks();
     getText.mockReturnValue("<p>Updated content</p>");
 
     await act(async () => {
@@ -215,7 +215,7 @@ describe("ToolbarPlugin", () => {
       );
     });
 
-    // Wait for content update
+    // The unified effect should reinitialize with new content
     await waitFor(
       () => {
         expect(setText).toHaveBeenCalledWith(expect.stringContaining("Updated content"));
@@ -248,6 +248,94 @@ describe("ToolbarPlugin", () => {
       },
       { timeout: 3000 }
     );
+  });
+
+  it("reinitializes editor when updateTemplate changes", async () => {
+    const getText = vi.fn(() => "<p>Test content</p>");
+    const setText = vi.fn();
+
+    const { rerender } = render(
+      <TestWrapper>
+        <ToolbarPlugin
+          {...defaultProps}
+          getText={getText}
+          setText={setText}
+          updateTemplate={false}
+          firstRender={false}
+        />
+      </TestWrapper>
+    );
+
+    // Clear initial calls
+    await waitFor(() => expect(setText).toHaveBeenCalled());
+    vi.clearAllMocks();
+
+    // Change updateTemplate to trigger re-initialization
+    await act(async () => {
+      rerender(
+        <TestWrapper>
+          <ToolbarPlugin
+            {...defaultProps}
+            getText={getText}
+            setText={setText}
+            updateTemplate={true}
+            firstRender={false}
+          />
+        </TestWrapper>
+      );
+    });
+
+    await waitFor(() => {
+      expect(setText).toHaveBeenCalled();
+    });
+  });
+
+  it("clears previous content when updating template", async () => {
+    const getText = vi.fn(() => "<p>First content</p>");
+    const setText = vi.fn();
+
+    const { rerender } = render(
+      <TestWrapper>
+        <ToolbarPlugin
+          {...defaultProps}
+          getText={getText}
+          setText={setText}
+          updateTemplate={false}
+          firstRender={false}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => expect(setText).toHaveBeenCalled());
+
+    // Change content and trigger update
+    getText.mockReturnValue("<p>Second content</p>");
+    vi.clearAllMocks();
+
+    await act(async () => {
+      rerender(
+        <TestWrapper>
+          <ToolbarPlugin
+            {...defaultProps}
+            getText={getText}
+            setText={setText}
+            updateTemplate={true}
+            firstRender={false}
+          />
+        </TestWrapper>
+      );
+    });
+
+    await waitFor(() => {
+      // Ensure the content contains only the new content, not duplicated
+      const setTextCalls = setText.mock.calls;
+      const lastCall = setTextCalls[setTextCalls.length - 1];
+      const htmlContent = lastCall[0];
+
+      // Should contain "Second content" but not "First contentSecond content"
+      expect(htmlContent).toContain("Second content");
+      expect(htmlContent).not.toMatch(/First content.*Second content/);
+    });
   });
 
   it("calls setText after content update", async () => {
