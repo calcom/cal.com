@@ -2170,6 +2170,8 @@
   "no_event_types_found": "找不到活動類型",
   "average_event_duration": "平均活動時間長度",
   "bookings_by_hour": "按小時統計的預約",
+  "most_booked_members": "最多預約",
+  "least_booked_members": "最少預約",
   "events_created": "已建立的活動",
   "events_completed": "已完成的活動",
   "events_cancelled": "活動已取消",

@@ -2170,6 +2170,8 @@
   "no_event_types_found": "이벤트 타입을 찾을 수 없습니다",
   "average_event_duration": "평균 이벤트 기간",
   "bookings_by_hour": "시간별 예약",
+  "most_booked_members": "가장 많이 예약된 멤버",
+  "least_booked_members": "가장 적게 예약된 멤버",
   "events_created": "생성된 이벤트",
   "events_completed": "완료된 이벤트",
   "events_cancelled": "이벤트가 취소되었습니다",

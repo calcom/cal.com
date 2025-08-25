@@ -2170,6 +2170,8 @@
   "no_event_types_found": "কোনও ইভেন্টের ধরণ পাওয়া যায় নি",
   "average_event_duration": "গড় ইভেন্টের সময়কাল",
   "bookings_by_hour": "ঘন্টা অনুযায়ী বুকিং",
+  "most_booked_members": "সবচেয়ে বেশি বুক করা সদস্য",
+  "least_booked_members": "সবচেয়ে কম বুক করা সদস্য",
   "events_created": "ইভেন্টগুলি তৈরি",
   "events_completed": "ইভেন্টগুলি সম্পন্ন হয়েছে",
   "events_cancelled": "ঘটনা বাতিল",

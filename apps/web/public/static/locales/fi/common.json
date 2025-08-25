@@ -2170,6 +2170,8 @@
   "no_event_types_found": "Tapahtumatyyppejä ei löytynyt",
   "average_event_duration": "Keskimääräinen tapahtuman kesto",
   "bookings_by_hour": "Varaukset tunneittain",
+  "most_booked_members": "Eniten varatut",
+  "least_booked_members": "Vähiten varatut",
   "events_created": "Luodut tapahtumat",
   "events_completed": "Suoritetut tapahtumat",
   "events_cancelled": "Peruutetut tapahtumat",

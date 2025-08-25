@@ -2170,6 +2170,8 @@
   "no_event_types_found": "Etkinlik türü bulunamadı",
   "average_event_duration": "Ortalama Etkinlik Süresi",
   "bookings_by_hour": "Saate Göre Rezervasyonlar",
+  "most_booked_members": "En Çok Rezervasyon Yapılan",
+  "least_booked_members": "En Az Rezervasyon Yapılan",
   "events_created": "Oluşturulan Etkinlikler",
   "events_completed": "Tamamlanan Etkinlikler",
   "events_cancelled": "Etkinlikler iptal edildi",

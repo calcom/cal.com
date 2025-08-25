@@ -2170,6 +2170,8 @@
   "no_event_types_found": "Ühtegi sündmuse tüüpi ei leitud",
   "average_event_duration": "Ürituse keskmine kestus",
   "bookings_by_hour": "Broneeringud tunni kaupa",
+  "most_booked_members": "Kõige rohkem broneeritud",
+  "least_booked_members": "Kõige vähem broneeritud",
   "events_created": "Loodud sündmused",
   "events_completed": "Sündmused lõpetatud",
   "events_cancelled": "Sündmused tühistatud",

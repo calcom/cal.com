@@ -2170,6 +2170,8 @@
   "no_event_types_found": "Nem található eseménytípus",
   "average_event_duration": "Esemény átlagos időtartama",
   "bookings_by_hour": "Foglalások óránként",
+  "most_booked_members": "Legtöbbet foglalt tagok",
+  "least_booked_members": "Legkevesebbet foglalt tagok",
   "events_created": "Események létrehozva",
   "events_completed": "Befejezett események",
   "events_cancelled": "Események törölve",

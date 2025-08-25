@@ -2170,6 +2170,8 @@
   "no_event_types_found": "Geen gebeurtenistypen gevonden",
   "average_event_duration": "Gemiddelde gebeurtenisduur",
   "bookings_by_hour": "Boekingen per uur",
+  "most_booked_members": "Meest geboekt",
+  "least_booked_members": "Minst geboekt",
   "events_created": "Gemaakte gebeurtenissen",
   "events_completed": "Voltooide gebeurtenissen",
   "events_cancelled": "Afspraken geannuleerd",

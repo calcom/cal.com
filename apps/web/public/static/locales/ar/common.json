@@ -2170,6 +2170,8 @@
   "no_event_types_found": "لم يتم العثور على أنواع للأحداث",
   "average_event_duration": "متوسط مدة الحدث",
   "bookings_by_hour": "الحجوزات حسب الساعة",
+  "most_booked_members": "الأعضاء الأكثر حجزاً",
+  "least_booked_members": "الأعضاء الأقل حجزاً",
   "events_created": "تم إنشاء الأحداث",
   "events_completed": "تم اكتمال الأحداث",
   "events_cancelled": "تم إلغاء الأحداث",

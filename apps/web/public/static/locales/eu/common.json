@@ -2170,6 +2170,8 @@
   "no_event_types_found": "Ez da gertaera motarik aurkitu",
   "average_event_duration": "Batez besteko gertaera iraupena",
   "bookings_by_hour": "Erreserbak orduaren arabera",
+  "most_booked_members": "Gehien erreserbatutakoak",
+  "least_booked_members": "Gutxien erreserbatutakoak",
   "events_created": "Sortutako gertaerak",
   "events_completed": "Burututako gertaerak",
   "events_cancelled": "Bertan behera utzitako gertaerak",

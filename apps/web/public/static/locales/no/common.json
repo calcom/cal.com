@@ -2170,6 +2170,8 @@
   "no_event_types_found": "Ingen hendelsestyper funnet",
   "average_event_duration": "Gjennomsnittlig hendelsesvarighet",
   "bookings_by_hour": "Bookinger etter time",
+  "most_booked_members": "Mest booket",
+  "least_booked_members": "Minst booket",
   "events_created": "Opprettede hendelser",
   "events_completed": "Fullførte hendelser",
   "events_cancelled": "Hendelser kansellert",
