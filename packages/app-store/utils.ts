@@ -29,10 +29,10 @@ async function getAppMetadata(appName: string): Promise<AppMeta | null> {
   }
 
   try {
-    // Since appStoreMetadata is now a map of lazy imports, we need to await it
+
     const metadata = await (appStoreMetadata as any)[appName];
     if (metadata) {
-      // Remove unwanted properties
+
       const cleanMetadata = { ...metadata };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
