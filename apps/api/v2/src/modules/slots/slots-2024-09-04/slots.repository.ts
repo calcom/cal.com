@@ -56,6 +56,29 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
+  async getExistingSlotsReservationCount(eventTypeId: number, startDate: string, endDate: string) {
+    return this.dbRead.prisma.selectedSlots.count({
+      where: {
+        eventTypeId,
+        slotUtcStartDate: startDate,
+        slotUtcEndDate: endDate,
+        // Only consider non-expired reservations
+        releaseAt: { gt: DateTime.utc().toJSDate() },
+      },
+    });
+  }
+
+  async getExistingBooking(eventTypeId: number, slotStartTime: Date, slotEndTime: Date) {
+    return this.dbRead.prisma.booking.findFirst({
+      where: {
+        eventTypeId,
+        startTime: slotStartTime,
+        endTime: slotEndTime,
+      },
+      select: { attendees: true, status: true },
+    });
+  }
+
   async createSlot(
     userId: number,
     eventTypeId: number,
