@@ -551,6 +551,9 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
     const bookingRepo = new BookingRepository(prisma);
+
+    const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+
     const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
@@ -560,13 +563,20 @@ async function handler(
     });
 
     if (existingBooking) {
+      const hasPayments = existingBooking.payment.length > 0;
+      const isPaidBooking = existingBooking.paid || !hasPayments;
+
+      const shouldShowPaymentForm = requiresPayment && !isPaidBooking;
+
+      const firstPayment = shouldShowPaymentForm ? existingBooking.payment[0] : undefined;
+
       const bookingResponse = {
         ...existingBooking,
         user: {
           ...existingBooking.user,
           email: null,
         },
-        paymentRequired: false,
+        paymentRequired: shouldShowPaymentForm,
         seatReferenceUid: "",
       };
 
@@ -575,8 +585,8 @@ async function handler(
         luckyUsers: bookingResponse.userId ? [bookingResponse.userId] : [],
         isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
-        paymentUid: undefined,
-        paymentId: undefined,
+        paymentUid: firstPayment?.uid,
+        paymentId: firstPayment?.id,
       };
     }
   }
@@ -1910,7 +1920,7 @@ async function handler(
 
         if (!isDryRun) {
           sendRoundRobinRescheduledEmailsAndSMS(
-            copyEventAdditionalInfo,
+            { ...copyEventAdditionalInfo, iCalUID },
             rescheduledMembers,
             eventType.metadata
           );
