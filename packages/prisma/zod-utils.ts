@@ -188,6 +188,7 @@ export const eventTypeLocations = z.array(
     hostPhoneNumber: z.string().optional(),
     credentialId: z.number().optional(),
     teamName: z.string().optional(),
+    customLabel: z.string().optional(),
   })
 );
 
@@ -682,6 +683,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
   customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
