@@ -89,7 +89,6 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
-      ...(process.env.STRIPE_ADAPTIVE_CURRENCIES_ENABLED !== "true" && { currency: "usd" }),
       subscription_data: {
         metadata: {
           teamId: teamId.toString(),
@@ -117,7 +116,6 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
-      ...(process.env.STRIPE_ADAPTIVE_CURRENCIES_ENABLED !== "true" && { currency: "usd" }),
     });
 
     if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");

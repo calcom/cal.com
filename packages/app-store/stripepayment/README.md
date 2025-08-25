@@ -28,26 +28,21 @@ The [/ee](https://github.com/calcom/cal.com/tree/main/apps/web/ee) subfolder is 
 
 ## Enabling Adaptive Currencies
 
-Stripe Adaptive Currencies automatically converts prices to local currencies based on customer IP address and works with Checkout Sessions used in subscription flows.
+Stripe Adaptive Currencies (now called Adaptive Pricing) automatically converts prices to local currencies based on customer IP address and works with Checkout Sessions used in subscription flows.
 
 ### Setup Steps:
 
-1. **Enable Adaptive Currencies in Environment:**
-   - Add `STRIPE_ADAPTIVE_CURRENCIES_ENABLED=true` to your `.env` file
-   - When disabled (default), all checkout sessions will use USD currency
-   - When enabled, Stripe will automatically detect customer location and convert prices
-
-2. **Enable Adaptive Pricing in Stripe Dashboard:**
+1. **Enable Adaptive Pricing in Stripe Dashboard:**
    - Navigate to [Stripe Dashboard → Connect → Settings](https://dashboard.stripe.com/settings/connect)
    - Enable "Adaptive pricing" under the Connect settings
    - Configure supported currencies and regions as needed
 
-3. **Verify Webhook Configuration:**
+2. **Verify Webhook Configuration:**
    - Ensure your webhook endpoint handles `checkout.session.completed` events
    - Currency conversion metadata will be included in webhook payloads
    - No additional webhook events are required for Adaptive Currencies
 
-4. **Test Configuration:**
+3. **Test Configuration:**
    - Use VPN or proxy to test from different geographic locations (focus on USD/EUR regions)
    - Verify that checkout sessions automatically display local currencies
    - Confirm that webhook events include proper currency conversion data
@@ -59,9 +54,15 @@ Stripe Adaptive Currencies automatically converts prices to local currencies bas
 - ✅ Platform billing subscriptions (`apps/api/v2/src/modules/billing/services/billing.service.ts`)
 - ❌ Booking payments (uses Payment Intents API, not compatible with Adaptive Currencies)
 
+### Currency Behavior:
+
+- **With Adaptive Pricing enabled**: Stripe automatically detects customer location and converts prices to local currency
+- **Without Adaptive Pricing**: Stripe uses your account's default currency setting
+- **No environment variables needed**: Currency handling is managed entirely by Stripe based on Dashboard configuration
+
 ### Notes:
 
 - Adaptive Currencies only works with Stripe Checkout Sessions, not Payment Intents
 - Currency conversion is handled automatically by Stripe based on customer location
-- No code changes are required once enabled in the Stripe Dashboard
+- No code changes are required - currency parameter is omitted to allow Stripe's automatic handling
 - All subscription flows in Cal.com already use compatible Checkout Sessions
