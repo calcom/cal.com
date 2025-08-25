@@ -1070,7 +1070,7 @@ async function getEventTypeList({
     isOwnerAdminOfParentTeam: boolean;
   };
 }) {
-  if (!teamId && !userId) {
+  if (!teamId && !userId && !isAll) {
     return [];
   }
 
