@@ -610,6 +610,8 @@ model CreditExpenseLog {
   date            DateTime
   smsSid          String?
   smsSegments     Int?
+  callDuration    Int?
+  externalRef     String?       @unique
 }
 
 enum CreditType {

@@ -1,11 +1,14 @@
 import { z } from "zod";
 
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
+import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
@@ -243,7 +246,7 @@ export class WorkflowRepository {
     if (!filtered) {
       const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === "MEMBER"
+          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
@@ -295,7 +298,7 @@ export class WorkflowRepository {
 
       const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === "MEMBER"
+          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
@@ -383,6 +386,40 @@ export class WorkflowRepository {
     return remindersToDelete;
   }
 
+  static async getActiveOnEventTypeIds({
+    workflowId,
+    userId,
+    teamId,
+  }: {
+    workflowId: number;
+    userId: number;
+    teamId?: number | null;
+  }) {
+    const workflow = await prisma.workflow.findFirst({
+      where: {
+        id: workflowId,
+        userId,
+        teamId: teamId ?? undefined,
+      },
+      select: {
+        activeOn: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
+    });
+
+    if (!workflow) {
+      throw new HttpError({
+        statusCode: 404,
+        message: "Workflow not found",
+      });
+    }
+
+    return workflow.activeOn.map((active) => active.eventTypeId);
+  }
+
   static async deleteAllWorkflowReminders(
     remindersToDelete:
       | {
@@ -398,6 +435,7 @@ export class WorkflowRepository {
       [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
+      [WorkflowMethods.AI_PHONE_CALL]: (id, referenceId) => deleteScheduledAIPhoneCall(id, referenceId),
     };
 
     if (!remindersToDelete) return Promise.resolve();

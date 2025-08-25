@@ -47,7 +47,7 @@ export const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with 
 
   ## Task Steps
   1. I am here to learn more about your issue and help schedule an appointment with our support team.
-  2. If {{email}} is not unknown then Use name {{name}} and email {{email}} for creating booking else Ask for user name and email and Confirm the name and email with user by reading it back to user.
+  2. If {{ATTENDEE_EMAIL}} is not unknown then Use name {{ATTENDEE_NAME}} and email {{ATTENDEE_EMAIL}} for creating booking else Ask for user name and email and Confirm the name and email with user by reading it back to user.
   3. Ask user for \"When would you want to meet with one of our representatives\".
   4. Call function check_availability to check for availability in the user provided time range.
     - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
