@@ -1,10 +1,9 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
 import { AppRepository } from "@calcom/lib/server/repository/app/PrismaAppRepository";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
-import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -64,74 +63,54 @@ export async function getAppRegistry() {
 export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
   // Get teamIds to grab existing credentials
 
-  const dbApps = await prisma.app.findMany({
-    where: { enabled: true },
-    select: {
-      ...safeAppSelect,
-      credentials: {
-        where: { OR: [{ userId }, { teamId: { in: userAdminTeams } }] },
-        select: safeCredentialSelect,
+  const [dbApps, user, delegationCredentials, installCountPerApp] = await Promise.all([
+    appRepository.getAllEnabledAppsWithCredentials({ userId, teamIds }),
+    prisma.user.findUnique({
+      where: {
+        id: userId,
       },
-    },
-    orderBy: {
-      credentials: {
-        _count: "desc",
+      select: {
+        email: true,
+        id: true,
+        metadata: true,
       },
-    },
-  });
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      email: true,
-      id: true,
-      metadata: true,
-    },
-  });
-
-  const delegationCredentials = user
-    ? await getAllDelegationCredentialsForUser({ user: { id: userId, email: user.email } })
-    : [];
+    }),
+    user ? await getAllDelegationCredentialsForUser({ user: { id: userId, email: user.email } }) : [],
+    getInstallCountPerApp(),
+  ]);
 
   const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
   const apps = [] as (App & {
     credentials: Credential[];
     isDefault?: boolean;
   })[];
-  const installCountPerApp = await getInstallCountPerApp();
-  for await (const dbapp of dbApps) {
+  for await (const app of dbApps) {
     const delegationCredentialsForApp = delegationCredentials.filter(
-      (credential) => credential.appId === dbapp.slug
+      (credential) => credential.appId === app.slug
     );
-    const nonDelegationCredentialsForApp = dbapp.credentials;
+    const nonDelegationCredentialsForApp = app.credentials;
     const allCredentials = [...delegationCredentialsForApp, ...nonDelegationCredentialsForApp];
-    const app = await getAppWithMetadata(dbapp);
-    if (!app) continue;
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-    app.createdAt = dbapp.createdAt.toISOString();
+    app.createdAt = app.createdAt.toISOString();
     let dependencyData: TDependencyData = [];
     if (app.dependencies) {
       dependencyData = app.dependencies.map((dependency) => {
-        const dependencyInstalled = dbApps.some(
-          (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
-        );
+        const dependencyApp = dbApps.find((dbAppIterator) => dbAppIterator.slug === dependency);
+        const dependencyInstalled = dependencyApp?.credentials.length || false;
         // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-        const dependencyName = getAppFromSlug(dependency)?.name;
-        return { name: dependencyName, installed: dependencyInstalled };
+        return { name: dependencyApp?.name || "", installed: dependencyInstalled };
       });
     }
 
     apps.push({
       ...app,
-      categories: dbapp.categories,
+      categories: app.categories,
       credentials: allCredentials,
       installed: true,
-      installCount: installCountPerApp[dbapp.slug] || 0,
-      isDefault: usersDefaultApp === dbapp.slug,
+      installCount: installCountPerApp[app.slug] || 0,
+      isDefault: usersDefaultApp === app.slug,
       ...(app.dependencies && { dependencyData }),
     });
   }
