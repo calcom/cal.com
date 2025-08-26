@@ -30,6 +30,7 @@ import type {
   BookingHandlerInput,
   CreateBookingData,
   CreateBookingMeta,
+  LegacyHandlerResult,
 } from "@calcom/features/bookings/lib/dto/types";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
@@ -100,17 +101,12 @@ import type { CacheService } from "../../../calendar-cache/lib/getShouldServeCac
 import type { EventPayloadType, EventTypeInfo } from "../../../webhooks/lib/sendPayload";
 import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
-import getBookingDataSchema from "../getBookingDataSchema";
 import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
-import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import type { CheckBookingAndDurationLimitsService } from "../handleNewBooking/checkBookingAndDurationLimits";
-import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "../handleNewBooking/createBooking";
 import type { Booking } from "../handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
-import { getBookingData } from "../handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
-import { getEventType } from "../handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
@@ -118,14 +114,13 @@ import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
-import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
-import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
-import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
+import { type IQuickEnrichmentService } from "../utils/phases/quickEnrichment";
+import { QuickValidationService, type IQuickValidationService } from "../utils/phases/quickValidation";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -413,9 +408,8 @@ function formatAvailabilitySnapshot(data: {
 
 export async function legacyHandler(
   input: BookingHandlerInput,
-  bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema,
   deps: IBookingCreateServiceDependencies
-) {
+): Promise<LegacyHandlerResult> {
   const {
     bookingData: rawBookingData,
     userId,
@@ -429,25 +423,47 @@ export async function legacyHandler(
     areCalendarEventsEnabled = true,
   } = input;
 
-  const { prisma, bookingRepository, cacheService, checkBookingAndDurationLimitsService } = deps;
+  const {
+    prisma,
+    cacheService,
+    checkBookingAndDurationLimitsService,
+    quickEnrichmentService,
+    quickValidationService,
+    bookingRepository,
+  } = deps;
 
   const isPlatformBooking = !!platformClientId;
 
-  const eventType = await getEventType({
+  const quickEnrichmentResult = await quickEnrichmentService.enrich({
     eventTypeId: rawBookingData.eventTypeId,
-    eventTypeSlug: rawBookingData.eventTypeSlug,
+    eventTypeSlug: rawBookingData.eventTypeSlug || "",
+  });
+  const { eventType } = quickEnrichmentResult;
+
+  // Get user schedule for eventTimeZone calculation
+  const user = eventType.users.find((user) => user.id === eventType.userId);
+  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
+  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
+
+  // Phase 2: Quick validation
+  const quickValidationResult = await quickValidationService.validate({
+    ...quickEnrichmentResult,
+    rawBookingData,
+    userId,
+    eventTimeZone: eventTimeZone || undefined,
   });
 
-  const bookingDataSchema = bookingDataSchemaGetter({
-    view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
-    bookingFields: eventType.bookingFields,
-  });
-
-  const bookingData = await getBookingData({
-    reqBody: rawBookingData,
-    eventType,
-    schema: bookingDataSchema,
-  });
+  const {
+    bookingData,
+    bookerEmail,
+    bookerPhoneNumber,
+    bookerName,
+    additionalNotes,
+    location,
+    reqBody,
+    isDryRun,
+    loggerWithEventDetails,
+  } = quickValidationResult;
 
   const {
     recurringCount,
@@ -457,39 +473,19 @@ export async function legacyHandler(
     hasHashedBookingLink,
     language,
     appsStatus: reqAppsStatus,
-    name: bookerName,
-    attendeePhoneNumber: bookerPhoneNumber,
-    email: bookerEmail,
     guests: reqGuests,
-    location,
-    notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
-    _isDryRun: isDryRun = false,
     _shouldServeCache,
-    ...reqBody
   } = bookingData;
 
   let troubleshooterData = buildTroubleshooterData({
     eventType,
   });
-
-  const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
-
-  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
-
-  if (!rawBookingData.rescheduleUid) {
-    await checkActiveBookingsLimitForBooker({
-      eventTypeId,
-      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-      bookerEmail,
-      offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
-    });
-  }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
@@ -502,6 +498,7 @@ export async function legacyHandler(
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
 
+  // This is purely eventType validation and should ideally be done when creating the eventType.
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
     throw new HttpError({
       statusCode: 400,
@@ -564,6 +561,7 @@ export async function legacyHandler(
       };
 
       return {
+        _type: "existing",
         ...bookingResponse,
         luckyUsers: bookingResponse.userId ? [bookingResponse.userId] : [],
         isDryRun,
@@ -604,26 +602,6 @@ export async function legacyHandler(
       },
     })
   );
-
-  const user = eventType.users.find((user) => user.id === eventType.userId);
-  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
-  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
-
-  await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
-    reqBody.start,
-    reqBody.timeZone,
-    eventType,
-    eventTimeZone,
-    loggerWithEventDetails
-  );
-
-  validateEventLength({
-    reqBodyStart: reqBody.start,
-    reqBodyEnd: reqBody.end,
-    eventTypeMultipleDuration: eventType.metadata?.multipleDuration,
-    eventTypeLength: eventType.length,
-    logger: loggerWithEventDetails,
-  });
 
   const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
 
@@ -685,6 +663,7 @@ export async function legacyHandler(
     location,
   });
 
+  // PhasesRefactor: This one fetches a lot of bookings to determine the limits being crossed, so it can't be part of validation phase
   await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
     eventType,
     reqBodyStart: reqBody.start,
@@ -1075,12 +1054,12 @@ export async function legacyHandler(
     },
   ];
 
+  // Guests blacklisted validation moved to quickValidation.ts
   const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
-
   const guestsRemoved: string[] = [];
-  const guests = (reqGuests || []).reduce((guestArray, guest) => {
+  const guests = (reqGuests || []).reduce((guestArray: Invitee, guest: string) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
     if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
       guestsRemoved.push(guest);
@@ -1386,8 +1365,14 @@ export async function legacyHandler(
         ...(isDryRun ? { troubleshooterData } : {}),
       };
       return {
+        _type: "success" as const,
         ...bookingResponse,
         ...luckyUserResponse,
+        paymentRequired: false as const,
+        references: newBooking.references || [],
+        seatReferenceUid: evt.attendeeSeatId ?? "",
+        luckyUsers: luckyUserResponse?.luckyUsers || [],
+        status: newBooking.status || BookingStatus.ACCEPTED,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2217,11 +2202,12 @@ export async function legacyHandler(
         email: null,
       },
       videoCallUrl: metadata?.videoCallUrl,
-      // Ensure seatReferenceUid is properly typed as string | null
-      seatReferenceUid: evt.attendeeSeatId,
+      // Ensure seatReferenceUid is properly typed as string
+      seatReferenceUid: evt.attendeeSeatId ?? "",
     };
 
     return {
+      _type: "payment_required" as const,
       ...bookingResponse,
       ...luckyUserResponse,
       message: "Payment required",
@@ -2230,6 +2216,7 @@ export async function legacyHandler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
+      luckyUsers: luckyUserResponse?.luckyUsers || [],
     };
   }
 
@@ -2425,13 +2412,16 @@ export async function legacyHandler(
   };
 
   return {
+    _type: "success" as const,
     ...bookingResponse,
     ...luckyUserResponse,
+    paymentRequired: false as const,
     isDryRun,
     ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
-    seatReferenceUid: evt.attendeeSeatId,
+    seatReferenceUid: evt.attendeeSeatId ?? "",
     videoCallUrl: metadata?.videoCallUrl,
+    luckyUsers: luckyUserResponse?.luckyUsers || [],
   };
 }
 
@@ -2440,6 +2430,8 @@ export interface IBookingCreateServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prisma: PrismaClient;
   bookingRepository: BookingRepository;
+  quickEnrichmentService: IQuickEnrichmentService;
+  quickValidationService: IQuickValidationService;
 }
 
 export class BookingCreateService {
@@ -2450,13 +2442,21 @@ export class BookingCreateService {
     schemaGetter?: BookingDataSchemaGetter;
   }) {
     const bookingMeta = input.bookingMeta ?? {};
+
+    // Create updated quick validation service if custom schema getter is provided
+    const quickValidationService = input.schemaGetter
+      ? new QuickValidationService({ bookingDataSchemaGetter: input.schemaGetter })
+      : this.deps.quickValidationService;
+
     return legacyHandler(
       {
         bookingData: input.bookingData,
         ...bookingMeta,
       },
-      input.schemaGetter,
-      this.deps
+      {
+        ...this.deps,
+        quickValidationService,
+      }
     );
   }
 }
