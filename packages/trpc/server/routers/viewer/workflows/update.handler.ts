@@ -793,9 +793,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     teamId: userWorkflow.teamId || undefined,
                   });
                 } catch (error) {
-                  const message = `Failed to add tools for event type ${eventTypeId} to agent ${
-                    agent.providerAgentId
-                  }: ${error instanceof Error ? error.message : "Unknown error"}`;
+                  const message = `${error instanceof Error ? error.message : "Unknown error"}`;
                   externalToolErrors.push(message);
                   log.error(message);
                 }
@@ -814,6 +812,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     if (externalToolErrors.length > 0) {
       log.error(`Agent tool update errors for workflow ${id}:`, externalToolErrors);
+      throw new Error(`${externalToolErrors.join("; ")}`);
     }
   }
 
