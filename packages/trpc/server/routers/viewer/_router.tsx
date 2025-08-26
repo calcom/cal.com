@@ -25,7 +25,6 @@ import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
-import { highPerfRouter } from "./highPerf/_router";
 import { i18nRouter } from "./i18n/_router";
 import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
@@ -79,7 +78,6 @@ export const viewerRouter = router({
   googleWorkspace: googleWorkspaceRouter,
   admin: adminRouter,
   attributes: attributesRouter,
-  highPerf: highPerfRouter,
   routingForms: routingFormsRouter,
   credits: creditsRouter,
   ooo: oooRouter,

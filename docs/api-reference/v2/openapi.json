@@ -4264,9 +4264,7 @@
             }
           }
         },
-        "tags": [
-          "Orgs / Teams / Event Types / Private Links"
-        ]
+        "tags": ["Orgs / Teams / Event Types / Private Links"]
       },
       "get": {
         "operationId": "OrganizationsEventTypesPrivateLinksController_getPrivateLinks",
@@ -4328,9 +4326,7 @@
             }
           }
         },
-        "tags": [
-          "Orgs / Teams / Event Types / Private Links"
-        ]
+        "tags": ["Orgs / Teams / Event Types / Private Links"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId}": {
@@ -4402,9 +4398,7 @@
             }
           }
         },
-        "tags": [
-          "Orgs / Teams / Event Types / Private Links"
-        ]
+        "tags": ["Orgs / Teams / Event Types / Private Links"]
       },
       "delete": {
         "operationId": "OrganizationsEventTypesPrivateLinksController_deletePrivateLink",
@@ -4474,9 +4468,7 @@
             }
           }
         },
-        "tags": [
-          "Orgs / Teams / Event Types / Private Links"
-        ]
+        "tags": ["Orgs / Teams / Event Types / Private Links"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
@@ -5323,6 +5315,95 @@
         "tags": ["Orgs / Teams / Routing forms / Responses"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/schedules": {
+      "get": {
+        "operationId": "OrganizationsTeamsSchedulesController_getTeamSchedules",
+        "summary": "Get all team member schedules",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Schedules"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
@@ -5488,6 +5569,22 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           },
           {
@@ -12637,6 +12734,69 @@
         "tags": ["Teams / Memberships"]
       }
     },
+    "/v2/teams/{teamId}/schedules": {
+      "get": {
+        "operationId": "TeamsSchedulesController_getTeamSchedules",
+        "summary": "Get all team member schedules",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Schedules"]
+      }
+    },
     "/v2/teams/{teamId}/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_requestEmailVerificationCode",
@@ -15574,6 +15734,14 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "locations": {
             "type": "array",
             "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
@@ -17053,6 +17221,13 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -17082,6 +17257,8 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
           "ownerId",
           "users"
         ]
@@ -17379,6 +17556,14 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "locations": {
             "type": "array",
@@ -18943,6 +19128,14 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "schedulingType": {
             "type": "string",
             "enum": ["collective", "roundRobin", "managed"],
@@ -19345,6 +19538,13 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "teamId": {
             "type": "number"
@@ -19754,6 +19954,14 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "hosts": {
             "type": "array",
@@ -20852,6 +21060,7 @@
           },
           "unit": {
             "type": "object",
+            "enum": ["hour", "minute", "day"],
             "description": "Unit for the offset time",
             "example": "hour"
           }
@@ -20872,6 +21081,7 @@
           "type": {
             "type": "string",
             "default": "beforeEvent",
+            "enum": ["beforeEvent"],
             "description": "Trigger type for the workflow",
             "example": "beforeEvent"
           }
@@ -20892,6 +21102,7 @@
           "type": {
             "type": "string",
             "default": "afterEvent",
+            "enum": ["afterEvent"],
             "description": "Trigger type for the workflow",
             "example": "afterEvent"
           }
@@ -20904,6 +21115,7 @@
           "type": {
             "type": "string",
             "default": "eventCancelled",
+            "enum": ["eventCancelled"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20915,6 +21127,7 @@
           "type": {
             "type": "string",
             "default": "newEvent",
+            "enum": ["newEvent"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20926,6 +21139,7 @@
           "type": {
             "type": "string",
             "default": "rescheduleEvent",
+            "enum": ["rescheduleEvent"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20945,6 +21159,7 @@
           "type": {
             "type": "string",
             "default": "afterGuestsCalVideoNoShow",
+            "enum": ["afterGuestsCalVideoNoShow"],
             "description": "Trigger type for the workflow",
             "example": "afterGuestsCalVideoNoShow"
           }
@@ -20965,6 +21180,7 @@
           "type": {
             "type": "string",
             "default": "afterHostsCalVideoNoShow",
+            "enum": ["afterHostsCalVideoNoShow"],
             "description": "Trigger type for the workflow",
             "example": "afterHostsCalVideoNoShow"
           }
@@ -21436,6 +21652,17 @@
         "properties": {
           "type": {
             "type": "object",
+            "enum": [
+              [
+                "beforeEvent",
+                "eventCancelled",
+                "newEvent",
+                "afterEvent",
+                "rescheduleEvent",
+                "afterHostsCalVideoNoShow",
+                "afterGuestsCalVideoNoShow"
+              ]
+            ],
             "description": "Trigger type for the workflow"
           }
         },
@@ -22121,13 +22348,7 @@
             "example": "2025-12-31T23:59:59.000Z"
           }
         },
-        "required": [
-          "linkId",
-          "eventTypeId",
-          "isExpired",
-          "bookingUrl",
-          "expiresAt"
-        ]
+        "required": ["linkId", "eventTypeId", "isExpired", "bookingUrl", "expiresAt"]
       },
       "UsageBasedPrivateLinkOutput": {
         "type": "object",
@@ -22164,14 +22385,7 @@
             "example": 3
           }
         },
-        "required": [
-          "linkId",
-          "eventTypeId",
-          "isExpired",
-          "bookingUrl",
-          "maxUsageCount",
-          "usageCount"
-        ]
+        "required": ["linkId", "eventTypeId", "isExpired", "bookingUrl", "maxUsageCount", "usageCount"]
       },
       "CreatePrivateLinkOutput": {
         "type": "object",
@@ -22193,10 +22407,7 @@
             ]
           }
         },
-        "required": [
-          "status",
-          "data"
-        ]
+        "required": ["status", "data"]
       },
       "GetPrivateLinksOutput": {
         "type": "object",
@@ -22221,10 +22432,7 @@
             }
           }
         },
-        "required": [
-          "status",
-          "data"
-        ]
+        "required": ["status", "data"]
       },
       "UpdatePrivateLinkOutput": {
         "type": "object",
@@ -22246,10 +22454,7 @@
             ]
           }
         },
-        "required": [
-          "status",
-          "data"
-        ]
+        "required": ["status", "data"]
       },
       "DeletePrivateLinkOutput": {
         "type": "object",
@@ -22274,10 +22479,7 @@
             }
           }
         },
-        "required": [
-          "status",
-          "data"
-        ]
+        "required": ["status", "data"]
       },
       "StripConnectOutputDto": {
         "type": "object",
@@ -26263,205 +26465,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamMembershipOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "CreatePrivateLinkInput": {
-        "type": "object",
-        "properties": {
-          "expiresAt": {
-            "type": "string",
-            "description": "Expiration date for time-based links",
-            "format": "date-time",
-            "example": "2024-12-31T23:59:59.000Z"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "Maximum number of times the link can be used. If omitted and expiresAt is not provided, defaults to 1 (one time use).",
-            "example": 10,
-            "minimum": 1,
-            "default": 1
-          }
-        }
-      },
-      "TimeBasedPrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "linkId": {
-            "type": "string",
-            "description": "The private link ID",
-            "example": "abc123def456"
-          },
-          "eventTypeId": {
-            "type": "number",
-            "description": "Event type ID this link belongs to",
-            "example": 123
-          },
-          "isExpired": {
-            "type": "boolean",
-            "description": "Whether the link is currently expired",
-            "example": false
-          },
-          "bookingUrl": {
-            "type": "string",
-            "description": "Full booking URL for this private link",
-            "format": "uri",
-            "example": "https://cal.com/d/abc123def456/30min"
-          },
-          "expiresAt": {
-            "type": "string",
-            "description": "Expiration date for this time-based link",
-            "format": "date-time",
-            "example": "2025-12-31T23:59:59.000Z"
-          }
-        },
-        "required": ["linkId", "eventTypeId", "isExpired", "bookingUrl", "expiresAt"]
-      },
-      "UsageBasedPrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "linkId": {
-            "type": "string",
-            "description": "The private link ID",
-            "example": "abc123def456"
-          },
-          "eventTypeId": {
-            "type": "number",
-            "description": "Event type ID this link belongs to",
-            "example": 123
-          },
-          "isExpired": {
-            "type": "boolean",
-            "description": "Whether the link is currently expired",
-            "example": false
-          },
-          "bookingUrl": {
-            "type": "string",
-            "description": "Full booking URL for this private link",
-            "format": "uri",
-            "example": "https://cal.com/d/abc123def456/30min"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "Maximum number of times this link can be used",
-            "example": 10
-          },
-          "usageCount": {
-            "type": "number",
-            "description": "Current usage count for this link",
-            "example": 3
-          }
-        },
-        "required": ["linkId", "eventTypeId", "isExpired", "bookingUrl", "maxUsageCount", "usageCount"]
-      },
-      "CreatePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Created private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-              }
-            ]
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetPrivateLinksOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "array",
-            "description": "Array of private links for the event type (mix of time-based and usage-based)",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-                },
-                {
-                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-                }
-              ]
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdatePrivateLinkBody": {
-        "type": "object",
-        "properties": {
-          "expiresAt": {
-            "format": "date-time",
-            "type": "string",
-            "description": "New expiration date for time-based links",
-            "example": "2024-12-31T23:59:59.000Z"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "New maximum number of times the link can be used",
-            "example": 10,
-            "minimum": 1
-          }
-        }
-      },
-      "UpdatePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Updated private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-              }
-            ]
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "DeletePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "description": "Deleted link information",
-            "properties": {
-              "linkId": {
-                "type": "string",
-                "example": "abc123def456"
-              },
-              "message": {
-                "type": "string",
-                "example": "Private link deleted successfully"
-              }
-            }
           }
         },
         "required": ["status", "data"]

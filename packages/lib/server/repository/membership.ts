@@ -474,5 +474,28 @@ export class MembershipRepository {
       },
     });
     return teams;
+
+  async findTeamAdminsByTeamId({ teamId }: { teamId: number }) {
+    return await this.prismaClient.membership.findMany({
+      where: {
+        team: {
+          id: teamId,
+          parentId: {
+            not: null,
+          },
+        },
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+      select: {
+        user: {
+          select: {
+            email: true,
+            locale: true,
+          },
+        },
+      },
+    });
   }
 }
