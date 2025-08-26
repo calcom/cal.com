@@ -26,34 +26,45 @@ type Option = {
   label: string;
 };
 
-type res = Awaited<
+type MembershipEventType = Awaited<
   ReturnType<typeof MembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
 >[number]["team"]["eventTypes"][number];
 
-type EventType = Omit<res, "forwardParamsSuccessRedirect"> & {
+type EventType = Omit<MembershipEventType, "forwardParamsSuccessRedirect"> & {
   children?: { id: number }[];
   canSendCalVideoTranscriptionEmails?: boolean;
 };
 
-export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => {
-  await checkRateLimitAndThrowError({
-    identifier: `eventTypes:getActiveOnOptions.handler:${ctx.user.id}`,
-    rateLimitingType: "common",
-  });
+type EventTypeGroup = {
+  teamId?: number | null;
+  parentId?: number | null;
+  bookerUrl?: string;
+  profile: {
+    slug?: string | null;
+    name: string;
+    image?: string;
+    eventTypesLockedByOrg?: boolean;
+  };
+  eventTypes?: EventType[];
+};
 
+const fetchEventTypeGroups = async ({
+  ctx,
+  profile,
+  parentOrgHasLockedEventTypes,
+  skipEventTypes,
+  teamId,
+}: {
+  ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
+  profile: NonNullable<Awaited<ReturnType<typeof ProfileRepository.findByUpId>>>;
+  parentOrgHasLockedEventTypes: boolean | undefined;
+  skipEventTypes: boolean;
+  teamId?: number;
+}): Promise<EventTypeGroup[]> => {
   const user = ctx.user;
-  const teamId = input?.teamId;
-  const isOrg = input?.isOrg;
-
-  const skipTeamOptions = !isOrg;
-  const skipEventTypes = !!isOrg;
-
   const userProfile = ctx.user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
-  const parentOrgHasLockedEventTypes =
-    profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
-
   const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
       {
@@ -89,10 +100,6 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
         ),
   ]);
 
-  if (!profile) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-  }
-
   const memberships = profileMemberships.map((membership) => ({
     ...membership,
     team: {
@@ -101,21 +108,9 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
     },
   }));
 
-  type EventTypeGroup = {
-    teamId?: number | null;
-    parentId?: number | null;
-    bookerUrl?: string;
-    profile: {
-      slug?: (typeof profile)["username"] | null;
-      name: (typeof profile)["name"];
-      image?: string;
-      eventTypesLockedByOrg?: boolean;
-    };
-    eventTypes?: EventType[];
-  };
+  const eventTypeGroups: EventTypeGroup[] = [];
 
-  let eventTypeGroups: EventTypeGroup[] = [];
-
+  // Add user's personal event types
   eventTypeGroups.push({
     teamId: null,
     profile: {
@@ -126,102 +121,199 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
     eventTypes: profileEventTypes as EventType[],
   });
 
-  eventTypeGroups = ([] as EventTypeGroup[]).concat(
-    eventTypeGroups,
-    await Promise.all(
-      memberships
-        .filter((mmship) => {
-          if (mmship?.team?.isOrganization) {
-            return false;
-          }
-          return true;
-        })
-        .map(async (membership) => {
-          const team = {
-            ...membership.team,
-            metadata: teamMetadataSchema.parse(membership.team.metadata),
-          };
+  // Add team event types
+  const teamGroups = await Promise.all(
+    memberships
+      .filter((membership) => !membership?.team?.isOrganization)
+      .map(async (membership) => {
+        const team = {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        };
 
-          const eventTypes = team.eventTypes;
-          return {
-            teamId: team.id,
-            parentId: team.parentId,
-            profile: {
-              name: team.name,
-            },
-            eventTypes: eventTypes
-              ?.filter((evType) => {
-                const res = evType.userId === null || evType.userId === user.id;
-                return res;
-              })
-              ?.filter((evType) =>
-                membership.role === MembershipRole.MEMBER
-                  ? evType.schedulingType !== SchedulingType.MANAGED
-                  : true
-              ),
-          };
-        })
-    )
+        const eventTypes = team.eventTypes
+          ?.filter((evType) => evType.userId === null || evType.userId === user.id)
+          ?.filter((evType) =>
+            membership.role === MembershipRole.MEMBER
+              ? evType.schedulingType !== SchedulingType.MANAGED
+              : true
+          );
+
+        return {
+          teamId: team.id,
+          parentId: team.parentId,
+          profile: {
+            name: team.name,
+          },
+          eventTypes,
+        };
+      })
   );
 
-  let teamOptions: Option[] = [];
+  return eventTypeGroups.concat(teamGroups);
+};
 
-  if (!skipTeamOptions) {
-    const profileTeamsOptions = eventTypeGroups
-      .map((group) => ({
-        ...group.profile,
-        teamId: group.teamId,
-      }))
-      .filter((profile) => !!profile.teamId)
-      .map((profile) => {
-        return {
-          value: String(profile.teamId) || "",
-          label: profile.name || profile.slug || "",
-        };
-      });
-
-    const otherTeams = await listOtherTeamHandler({ ctx });
-    const otherTeamsOptions = otherTeams
-      ? otherTeams.map((team) => {
-          return {
-            value: String(team.id) || "",
-            label: team.name || team.slug || "",
-          };
-        })
-      : [];
-
-    teamOptions = profileTeamsOptions.concat(otherTeamsOptions);
+const fetchTeamOptions = async ({
+  ctx,
+  eventTypeGroups,
+  skipTeamOptions,
+}: {
+  ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
+  eventTypeGroups: EventTypeGroup[];
+  skipTeamOptions: boolean;
+}): Promise<Option[]> => {
+  if (skipTeamOptions) {
+    return [];
   }
 
-  const eventTypeOptions =
-    eventTypeGroups.reduce((options, group) => {
-      //       /** don't show team event types for user workflow */
-      if (!teamId && group.teamId) return options;
-      //       /** only show correct team event types for team workflows */
-      if (teamId && teamId !== group.teamId) return options;
+  const profileTeamsOptions = eventTypeGroups
+    .filter((group) => !!group.teamId)
+    .map((group) => ({
+      value: String(group.teamId),
+      label: group.profile.name || group.profile.slug || "",
+    }));
 
-      return [
-        ...options,
-        ...(group?.eventTypes
-          ?.filter((evType) => {
-            const metadata = EventTypeMetaDataSchema.parse(evType.metadata);
-            return (
-              !metadata?.managedEventConfig ||
-              !!metadata?.managedEventConfig.unlockedFields?.workflows ||
-              !!teamId
-            );
-          })
-          ?.map((eventType) => ({
-            value: String(eventType.id),
-            label: `${eventType.title} ${
-              eventType?.children && eventType.children.length ? `(+${eventType.children.length})` : ``
-            }`,
-          })) ?? []),
-      ];
-    }, [] as Option[]) || [];
+  const otherTeams = await listOtherTeamHandler({ ctx });
+  const otherTeamsOptions = otherTeams
+    ? otherTeams.map((team) => ({
+        value: String(team.id),
+        label: team.name || team.slug || "",
+      }))
+    : [];
+
+  return profileTeamsOptions.concat(otherTeamsOptions);
+};
+
+const fetchRoutingFormOptions = async ({
+  ctx,
+  userId,
+  teamId,
+}: {
+  ctx: { prisma: PrismaClient };
+  userId: number;
+  teamId?: number;
+}): Promise<Option[]> => {
+  const routingFormQuery = {
+    select: {
+      id: true,
+      name: true,
+      disabled: true,
+    },
+    orderBy: [
+      {
+        name: "asc" as const,
+      },
+    ],
+  };
+
+  let routingForms;
+
+  if (teamId) {
+    // For team workflows: show forms from that specific team
+    routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
+      where: {
+        teamId: teamId,
+        team: {
+          members: {
+            some: {
+              userId: userId,
+              accepted: true,
+            },
+          },
+        },
+      },
+      ...routingFormQuery,
+    });
+  } else {
+    // For user workflows: show only personal forms (not team forms)
+    routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
+      where: {
+        userId: userId,
+        teamId: null, // Only personal forms, not team forms
+      },
+      ...routingFormQuery,
+    });
+  }
+
+  return routingForms
+    .filter((form) => !form.disabled)
+    .map((form) => ({
+      value: form.id,
+      label: form.name,
+    }));
+};
+
+export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => {
+  await checkRateLimitAndThrowError({
+    identifier: `eventTypes:getActiveOnOptions.handler:${ctx.user.id}`,
+    rateLimitingType: "common",
+  });
+
+  const user = ctx.user;
+  const teamId = input?.teamId;
+  const isOrg = input?.isOrg;
+
+  const shouldIncludeTeamOptions = isOrg;
+  const shouldSkipEventTypes = isOrg;
+
+  const userProfile = ctx.user.profile;
+  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  const parentOrgHasLockedEventTypes =
+    profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
+
+  if (!profile) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+  }
+
+  const eventTypeGroups = await fetchEventTypeGroups({
+    ctx,
+    profile,
+    parentOrgHasLockedEventTypes,
+    skipEventTypes: shouldSkipEventTypes,
+    teamId,
+  });
+
+  const teamOptions = await fetchTeamOptions({
+    ctx,
+    eventTypeGroups,
+    skipTeamOptions: !shouldIncludeTeamOptions,
+  });
+
+  const eventTypeOptions = eventTypeGroups.reduce((options, group) => {
+    // Don't show team event types for user workflow
+    if (!teamId && group.teamId) return options;
+    // Only show correct team event types for team workflows
+    if (teamId && teamId !== group.teamId) return options;
+
+    const groupEventTypes =
+      group?.eventTypes
+        ?.filter((evType) => {
+          const metadata = EventTypeMetaDataSchema.parse(evType.metadata);
+          return (
+            !metadata?.managedEventConfig ||
+            !!metadata?.managedEventConfig.unlockedFields?.workflows ||
+            !!teamId
+          );
+        })
+        ?.map((eventType) => ({
+          value: String(eventType.id),
+          label: `${eventType.title}${
+            eventType?.children && eventType.children.length ? ` (+${eventType.children.length})` : ""
+          }`,
+        })) ?? [];
+
+    return [...options, ...groupEventTypes];
+  }, [] as Option[]);
+
+  const routingFormOptions = await fetchRoutingFormOptions({
+    ctx,
+    userId: user.id,
+    teamId,
+  });
 
   return {
     eventTypeOptions,
     teamOptions,
+    routingFormOptions,
   };
 };

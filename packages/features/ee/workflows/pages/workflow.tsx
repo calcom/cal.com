@@ -96,11 +96,8 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
     { enabled: !isPendingWorkflow }
   );
 
-  const { data: routingFormData, isPending: isPendingRoutingForms } =
-    trpc.viewer.workflows.getRoutingFormOptions.useQuery({ teamId }, { enabled: !isPendingWorkflow });
-
   const teamOptions = data?.teamOptions ?? [];
-  const routingFormOptions = routingFormData?.routingFormOptions ?? [];
+  const routingFormOptions = data?.routingFormOptions ?? [];
 
   let allEventTypeOptions = data?.eventTypeOptions ?? [];
   const distinctEventTypes = new Set();
@@ -116,7 +113,7 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
 
   const readOnly = !workflow?.permissions.canUpdate;
 
-  const isPending = isPendingWorkflow || isPendingEventTypes || isPendingRoutingForms;
+  const isPending = isPendingWorkflow || isPendingEventTypes;
 
   useEffect(() => {
     requestAnimationFrame(() => {
