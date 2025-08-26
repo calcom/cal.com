@@ -9,7 +9,7 @@ type GetTimesForScheduleProps = {
 
 const parseMonth = (monthString: string) => {
   const [year, month] = monthString.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1));
+  return new Date(year, month - 1);
 };
 
 export const getTimesForSchedule = ({
