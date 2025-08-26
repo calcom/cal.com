@@ -489,6 +489,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       );
     };
 
+    const arePhoneNumbersActive = getActivePhoneNumbers(
+      agentData?.outboundPhoneNumbers?.map((phone) => ({
+        ...phone,
+        subscriptionStatus: phone.subscriptionStatus ?? undefined,
+      }))
+    );
+
     return (
       <>
         <div className="my-3 flex justify-center">
@@ -696,23 +703,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
-                      {getActivePhoneNumbers(
-                        agentData.outboundPhoneNumbers?.map((phone) => ({
-                          ...phone,
-                          subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                        }))
-                      ).length > 0 ? (
+                      {arePhoneNumbersActive.length > 0 ? (
                         <div className="flex items-center gap-2">
                           <Icon name="phone" className="text-emphasis h-4 w-4" />
                           <span className="text-emphasis text-sm">
-                            {formatPhoneNumber(
-                              getActivePhoneNumbers(
-                                agentData.outboundPhoneNumbers?.map((phone) => ({
-                                  ...phone,
-                                  subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                                }))
-                              )[0].phoneNumber
-                            )}
+                            {formatPhoneNumber(arePhoneNumbersActive[0].phoneNumber)}
                           </span>
                           <Badge variant="green" size="sm" withDot>
                             {t("active")}
@@ -725,21 +720,24 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button
-                        color="secondary"
-                        onClick={() => setIsTestAgentDialogOpen(true)}
-                        disabled={
-                          props.readOnly ||
-                          !getActivePhoneNumbers(
-                            agentData.outboundPhoneNumbers?.map((phone) => ({
-                              ...phone,
-                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                            }))
-                          ).length
-                        }>
-                        <Icon name="phone" className="mr-2 h-4 w-4" />
-                        {t("test_agent")}
-                      </Button>
+                      {arePhoneNumbersActive.length > 0 ? (
+                        <Button
+                          color="secondary"
+                          onClick={() => setIsTestAgentDialogOpen(true)}
+                          disabled={props.readOnly || !arePhoneNumbersActive.length}>
+                          <Icon name="phone" className="mr-2 h-4 w-4" />
+                          {t("test_agent")}
+                        </Button>
+                      ) : (
+                        <Button
+                          color="secondary"
+                          onClick={() => {
+                            setIsAgentConfigurationSheetOpen(true);
+                          }}
+                          disabled={props.readOnly}>
+                          {t("connect_phone_number")}
+                        </Button>
+                      )}
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
                           <Button
