@@ -97,13 +97,16 @@ describe("getTimesForSchedule", () => {
   });
 
   it("can select the next 7 days from now", () => {
+    // starts the day on 2025-08-23T00:00:00+01:00, 23:00 in UTC
     vi.setSystemTime(new Date("2025-08-23T01:00:00+01:00"));
     {
       const [startTime, endTime] = getTimesForSchedule({
         dayCount: 7,
       });
-      expect(startTime).toBe("2025-08-22T23:00:00.000Z");
-      expect(endTime).toBe("2025-08-29T23:00:00.000Z");
+      expect(toLocalIsoWithOffset(new Date(startTime)).toString().startsWith("2025-08-23T00:00:00")).toBe(
+        true
+      );
+      expect(toLocalIsoWithOffset(new Date(endTime)).toString().startsWith("2025-08-30T00:00:00")).toBe(true);
     }
   });
 
