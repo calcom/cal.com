@@ -1940,7 +1940,7 @@ async function handler(
 
         if (!isDryRun) {
           sendRoundRobinRescheduledEmailsAndSMS(
-            copyEventAdditionalInfo,
+            { ...copyEventAdditionalInfo, iCalUID },
             rescheduledMembers,
             eventType.metadata
           );
