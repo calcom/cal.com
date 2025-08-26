@@ -778,7 +778,7 @@ export class EventTypeRepository {
     // This is more efficient than using a complex join with team.members in the query
     const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
 
-    return await this.prismaClient.eventType.findFirst({
+    const en = await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           {
@@ -805,6 +805,8 @@ export class EventTypeRepository {
       },
       select: CompleteEventTypeSelect,
     });
+    console.log("ev in findById: ", en?.locations);
+    return en;
   }
 
   async findByIdForOrgAdmin({ id, organizationId }: { id: number; organizationId: number }) {

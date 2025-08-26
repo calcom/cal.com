@@ -59,6 +59,7 @@ import {
   CheckboxField,
   Switch,
   SettingsToggle,
+  Select,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -68,6 +69,7 @@ import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmails
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
+import { Skeleton } from "@calcom/ui/components/skeleton";
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -118,6 +120,7 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
   >;
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
+  orgId: number | null;
   customClassNames?: EventAdvancedTabCustomClassNames;
 };
 
@@ -128,6 +131,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
     error: unknown;
   };
   showBookerLayoutSelector: boolean;
+  localeOptions?: { value: string; label: string }[];
   verifiedEmails?: string[];
 };
 
@@ -251,6 +255,7 @@ const destinationCalendarComponents = {
               />
             </div>
           )}
+          {!showConnectedCalendarSettings && <p className="text-emphasis mb-2 block text-sm font-medium leading-none">{t("add_to_calendar")}</p>}
           {!useEventTypeDestinationCalendarEmail &&
             verifiedSecondaryEmails.length > 0 &&
             !isTeamEventType && (
@@ -409,6 +414,8 @@ export const EventAdvancedTab = ({
   showBookerLayoutSelector,
   customClassNames,
   verifiedEmails,
+  orgId,
+  localeOptions,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -455,6 +462,10 @@ export const EventAdvancedTab = ({
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
   const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+  const interfaceLanguageOptions =
+    localeOptions && localeOptions.length > 0
+      ? [{ label: t("visitors_browser_language"), value: "" }, ...localeOptions]
+      : [];
 
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -479,7 +490,7 @@ export const EventAdvancedTab = ({
     );
   };
 
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps, shouldLockIndicator } = useLockedFieldsManager({
     eventType,
     translate: t,
     formMethods,
@@ -535,6 +546,7 @@ export const EventAdvancedTab = ({
     }
   );
 
+  const autoTranslateDescriptionEnabled = formMethods.watch("autoTranslateDescriptionEnabled");
   const userTimeZone = extractHostTimezone({
     userId: eventType.userId,
     teamId: eventType.teamId,
@@ -705,6 +717,53 @@ export const EventAdvancedTab = ({
           />
         )}
       />
+      <div
+      className={classNames(
+        "border-subtle space-y-6 rounded-lg border p-6",
+      )}>
+      {!isPlatform && (
+        <div className="[&_label]:my-1 [&_label]:font-normal">
+          <SettingsToggle
+            title={t("translate_description_button")}
+            checked={!!autoTranslateDescriptionEnabled}
+            onCheckedChange={(value) => {
+              formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
+            }}
+            disabled={!orgId}
+            tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+            data-testid="ai_translation_toggle"
+          />
+        </div>
+      )}
+      {!isPlatform && interfaceLanguageOptions.length > 0 && (
+        <div>
+          <Skeleton
+            as={Label}
+            loadingClassName="w-16"
+            htmlFor="interfaceLanguage"
+            >
+            {t("interface_language")}
+            {shouldLockIndicator("interfaceLanguage")}
+          </Skeleton>
+          <Controller
+            name="interfaceLanguage"
+            control={formMethods.control}
+            defaultValue={eventType.interfaceLanguage ?? ""}
+            render={({ field: { value, onChange } }) => (
+              <Select<{ label: string; value: string }>
+                data-testid="event-interface-language"
+                className="capitalize"
+                options={interfaceLanguageOptions}
+                onChange={(option) => {
+                  onChange(option?.value);
+                }}
+                value={interfaceLanguageOptions.find((option) => option.value === value)}
+              />
+            )}
+          />
+        </div>
+      )}
+      </div>
       <Controller
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (

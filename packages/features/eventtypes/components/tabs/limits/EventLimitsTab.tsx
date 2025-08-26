@@ -31,6 +31,8 @@ import {
 } from "@calcom/ui/components/form";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Icon } from "@calcom/ui/components/icon";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -248,6 +250,7 @@ function RollingLimitRadioItem({
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
         <div className="-ml-6 flex flex-col py-2">
+          <div className="flex items-center">
           <CheckboxField
             checked={!!rollingExcludeUnavailableDays}
             disabled={isDisabled}
@@ -270,6 +273,15 @@ function RollingLimitRadioItem({
               );
             }}
           />
+          <Tooltip content={t("always_show_x_days_description", {
+              x: periodDaysWatch,
+            })}>
+            <Icon
+              name="info"
+              className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+            />
+          </Tooltip>
+          </div>
         </div>
       </div>
     </div>

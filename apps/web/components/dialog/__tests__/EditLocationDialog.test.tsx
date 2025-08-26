@@ -81,7 +81,7 @@ describe("EditLocationDialog", () => {
               },
               {
                 value: "integrations:daily",
-                label: "Cal Video (Global)",
+                label: "Cal Video (Default)",
                 disabled: false,
                 icon: "/app-store/dailyvideo/icon.svg",
                 slug: "daily-video",

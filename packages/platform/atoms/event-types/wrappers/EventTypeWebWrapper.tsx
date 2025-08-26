@@ -236,6 +236,7 @@ const EventTypeWeb = ({
         user={user}
         isUserLoading={isLoggedInUserPending}
         showToast={showToast}
+        orgId={orgBranding?.id ?? null}
       />
     ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,

@@ -12,8 +12,8 @@ type GetOptions = {
   input: TGetInputSchema;
 };
 
-export const getHandler = ({ ctx, input }: GetOptions) => {
-  return getEventTypeById({
+export const getHandler = async ({ ctx, input }: GetOptions) => {
+  const ev = await getEventTypeById({
     currentOrganizationId: ctx.user.profile?.organizationId ?? null,
     eventTypeId: input.id,
     userId: ctx.user.id,
@@ -21,4 +21,6 @@ export const getHandler = ({ ctx, input }: GetOptions) => {
     isTrpcCall: true,
     isUserOrganizationAdmin: !!ctx.user?.organization?.isOrgAdmin,
   });
+  // console.log(ev);
+  return ev;
 };
