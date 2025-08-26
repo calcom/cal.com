@@ -3066,6 +3066,32 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/exchange2013calendar@workspace:packages/app-store/exchange2013calendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/exchange2013calendar@workspace:packages/app-store/exchange2013calendar"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+    "@calcom/ui": "*"
+    ews-javascript-api: ^0.11.0
+    react-hook-form: ^7.43.3
+  languageName: unknown
+  linkType: soft
+
+"@calcom/exchange2016calendar@workspace:packages/app-store/exchange2016calendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/exchange2016calendar@workspace:packages/app-store/exchange2016calendar"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+    "@calcom/ui": "*"
+    ews-javascript-api: ^0.11.0
+    react-hook-form: ^7.43.3
+  languageName: unknown
+  linkType: soft
+
 "@calcom/exchangecalendar@workspace:packages/app-store/exchangecalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/exchangecalendar@workspace:packages/app-store/exchangecalendar"
