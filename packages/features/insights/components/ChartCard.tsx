@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
@@ -21,12 +21,12 @@ export function ChartCard({
   legendSize,
   children,
 }: {
-  title: string | React.ReactNode;
+  title: string | ReactNode;
   subtitle?: string;
   cta?: { label: string; onClick: () => void };
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const legendComponent = legend && legend.length > 0 ? <Legend items={legend} size={legendSize} /> : null;
 
