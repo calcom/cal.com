@@ -94,6 +94,7 @@
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
+    "@types/react-google-recaptcha": "^2.1.9",
     "@vitest/ui": "^2.1.1",
     "c8": "^7.13.0",
     "checkly": "latest",
@@ -127,6 +128,7 @@
     "eslint": "^8.34.0",
     "inngest": "^3.13.0",
     "p-limit": "^6.2.0",
+    "react-google-recaptcha": "^3.1.0",
     "turbo": "^1.10.1"
   },
   "resolutions": {

@@ -1,4 +1,5 @@
 import type { User as UserType } from "@prisma/client";
+import type { PeriodType, SchedulingType, CaptchaType } from "@calcom/prisma/enums";
 import type { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -88,6 +89,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     allowReschedulingCancelledBookings: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
+    captchaType: true,
     teamId: true,
     team: {
       select: {

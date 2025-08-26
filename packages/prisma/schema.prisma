@@ -42,6 +42,13 @@ enum PeriodType {
   RANGE          @map("range")
 }
 
+enum CaptchaType {
+  OFF    @map("off")
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+}
+
 enum CreationSource {
   API_V1 @map("api_v1")
   API_V2 @map("api_v2")
@@ -209,6 +216,7 @@ model EventType {
   restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
 
   workflowInsights WorkflowInsights[]
+  captchaType      CaptchaType        @default(OFF)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])

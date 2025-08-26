@@ -146,6 +146,7 @@ export const useEventTypeForm = ({
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
       disableCancelling: eventType.disableCancelling,
       disableRescheduling: eventType.disableRescheduling,
+      captchaType: eventType.captchaType,
     };
   }, [eventType, periodDates]);
 

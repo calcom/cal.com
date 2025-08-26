@@ -79,7 +79,8 @@ export const BookingFields = ({
         if (field.name === SystemField.Enum.guests) {
           readOnly = false;
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
-          hidden = isDynamicGroupBooking ? true : !!field.hidden;
+          // hidden = isDynamicGroupBooking ? true : !!field.hidden;
+          hidden = !!field.hidden;
         }
 
         // We don't show `notes` field during reschedule but since it's a query param we better valid if rescheduleUid brought any bookingData
