@@ -1,6 +1,3 @@
-const appStoreStart = performance.now();
-console.log(`[PERF] App Store registry creation started at ${appStoreStart}ms`);
-
 const appStore = {
   alby: createCachedImport(() => import("./alby")),
   applecalendar: createCachedImport(() => import("./applecalendar")),
@@ -46,10 +43,6 @@ const appStore = {
   btcpayserver: createCachedImport(() => import("./btcpayserver")),
 };
 
-const appStoreEnd = performance.now();
-console.log(`[PERF] App Store registry creation completed in ${appStoreEnd - appStoreStart}ms`);
-console.log(`[PERF] App Store registry contains ${Object.keys(appStore).length} services`);
-
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
   let cachedModule: T | undefined;
   let isLoading = false;
@@ -60,11 +53,19 @@ function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
     if (isLoading && loadingPromise) return loadingPromise;
 
     isLoading = true;
-    loadingPromise = importFunc().then((module) => {
-      cachedModule = module;
-      isLoading = false;
-      return module;
-    });
+    loadingPromise = importFunc()
+      .then((module) => {
+        cachedModule = module;
+        isLoading = false;
+        return module;
+      })
+      .catch((err) => {
+        throw err;
+      })
+      .finally(() => {
+        isLoading = false;
+        loadingPromise = undefined;
+      });
 
     return loadingPromise;
   };
