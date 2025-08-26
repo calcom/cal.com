@@ -58,4 +58,5 @@ export interface MemberPermissions {
   canInvite: boolean;
   canChangeMemberRole: boolean;
   canRemove: boolean;
+  canImpersonate: boolean;
 }

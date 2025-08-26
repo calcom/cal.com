@@ -66,6 +66,7 @@ const Page = async () => {
       CustomAction.Invite,
       CustomAction.ChangeMemberRole,
       CustomAction.Remove,
+      CustomAction.Impersonate,
     ],
     fallbackRoles: {
       [CustomAction.ListMembers]: {
@@ -80,6 +81,9 @@ const Page = async () => {
       [CustomAction.Remove]: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
       },
+      [CustomAction.Impersonate]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
     },
   });
 
@@ -89,6 +93,7 @@ const Page = async () => {
     canInvite: permissions[CustomAction.Invite],
     canChangeMemberRole: permissions[CustomAction.ChangeMemberRole],
     canRemove: permissions[CustomAction.Remove],
+    canImpersonate: permissions[CustomAction.Impersonate],
   };
 
   const facetedTeamValues = {
