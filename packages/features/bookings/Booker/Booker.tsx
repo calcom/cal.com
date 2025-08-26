@@ -185,11 +185,13 @@ const BookerComponent = ({
 
   // Cloudflare Turnstile Captcha
   const shouldRenderCaptcha = !!(
-    !process.env.NEXT_PUBLIC_IS_E2E &&
-    renderCaptcha &&
-    CLOUDFLARE_SITE_ID &&
-    CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
-    (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
+    // !process.env.NEXT_PUBLIC_IS_E2E &&
+    (
+      renderCaptcha &&
+      CLOUDFLARE_SITE_ID &&
+      CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
+      (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
+    )
   );
 
   const onAvailableTimeSlotSelect = (time: string) => {
@@ -448,7 +450,7 @@ const BookerComponent = ({
               {EventBooker}
             </BookerSection>
 
-            <BookerSection
+            {/* <BookerSection
               key="datepicker"
               area="main"
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
@@ -463,7 +465,7 @@ const BookerComponent = ({
                 scrollToTimeSlots={scrollToTimeSlots}
                 showNoAvailabilityDialog={showNoAvailabilityDialog}
               />
-            </BookerSection>
+            </BookerSection> */}
 
             <BookerSection
               key="large-calendar"
