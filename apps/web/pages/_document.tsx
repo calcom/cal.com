@@ -1,3 +1,4 @@
+import { platform } from "@todesktop/client-core";
 import type { IncomingMessage } from "http";
 import { dir } from "i18next";
 import type { DocumentContext, DocumentProps } from "next/document";
@@ -49,6 +50,7 @@ class MyDocument extends Document<Props> {
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";
+              window.calIsDesktopApp = ${platform.todesktop.isDesktopApp()};
               (${applyTheme.toString()})();
               (${applyToDesktopClass.toString()})();
             `,
