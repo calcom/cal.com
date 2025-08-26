@@ -3,7 +3,7 @@
 import { Fragment } from "react";
 
 import classNames from "@calcom/ui/classNames";
-import { PanelCard, PanelCardItem } from "@calcom/ui/components/card";
+import { PanelCard } from "@calcom/ui/components/card";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type LegendItem = {
@@ -37,7 +37,26 @@ export function ChartCard({
   );
 }
 
-export { PanelCardItem as ChartCardItem };
+export function ChartCardItem({
+  count,
+  className,
+  children,
+}: {
+  count?: number | string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={classNames(
+        "text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0",
+        className
+      )}>
+      <div className="text-sm font-medium">{children}</div>
+      {count !== undefined && <div className="text-sm font-medium">{count}</div>}
+    </div>
+  );
+}
 
 function Legend({ items, size = "default" }: { items: LegendItem[]; size?: LegendSize }) {
   return (

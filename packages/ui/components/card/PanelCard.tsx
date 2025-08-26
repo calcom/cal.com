@@ -1,8 +1,5 @@
 "use client";
 
-import { type ReactNode } from "react";
-
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 
 export function PanelCard({
@@ -43,27 +40,6 @@ export function PanelCard({
         )}
         {children}
       </div>
-    </div>
-  );
-}
-
-export function PanelCardItem({
-  count,
-  className,
-  children,
-}: {
-  count?: number | string;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className={classNames(
-        "text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0",
-        className
-      )}>
-      <div className="text-sm font-medium">{children}</div>
-      {count !== undefined && <div className="text-sm font-medium">{count}</div>}
     </div>
   );
 }
