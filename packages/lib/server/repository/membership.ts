@@ -474,6 +474,7 @@ export class MembershipRepository {
       },
     });
     return teams;
+  }
 
   async findTeamAdminsByTeamId({ teamId }: { teamId: number }) {
     return await this.prismaClient.membership.findMany({
