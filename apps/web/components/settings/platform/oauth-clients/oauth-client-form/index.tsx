@@ -37,6 +37,7 @@ export type FormValues = {
   bookingRescheduleRedirectUri?: string;
   areEmailsEnabled?: boolean;
   areDefaultEventTypesEnabled?: boolean;
+  areCalendarEventsEnabled?: boolean;
 };
 
 export const OAuthClientForm = ({
@@ -235,6 +236,27 @@ export const OAuthClientForm = ({
           <label htmlFor="areEmailsEnabled" className="cursor-pointer px-2 text-base font-semibold">
             Enable emails
           </label>
+        </div>
+        <div className="mt-6">
+          <div className="flex items-center">
+            <input
+              {...register("areCalendarEventsEnabled")}
+              id="areCalendarEventsEnabled"
+              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              type="checkbox"
+              disabled={isFormDisabled}
+            />
+            <label htmlFor="areCalendarEventsEnabled" className="cursor-pointer px-2 text-base font-semibold">
+              Enable calendar events
+            </label>
+            <Tooltip
+              className="max-w-[400px] whitespace-normal"
+              content="If enabled and the managed user has calendar connected, an event in the calendar will be created. By default true. Disable it if you want to create events in the calendar manually.">
+              <div className="ml-1">
+                <Icon name="info" className="h-4 w-4 text-gray-500" aria-hidden="true" />
+              </div>
+            </Tooltip>
+          </div>
         </div>
         <div className="mt-6">
           <div className="flex items-center">

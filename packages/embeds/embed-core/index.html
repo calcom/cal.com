@@ -1,13 +1,8 @@
 <html>
   <head>
     <title>Embed Playground</title>
-    <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
-    <!-- <script src="./src/embed.ts" type="module"></script> -->
+     <script type="text/javascript" src="./playground/lib/playground-init.ts"></script>
     <script>
-      const url = new URL(document.URL);
-      window.only = url.searchParams.get("only")
-      window.calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
-
       let popupRescheduleUid = null;
       let calLink = null;
       const initialNamespace = (url.searchParams.get("only") || "").split("ns:")[1] || "";
@@ -16,29 +11,11 @@
         popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
         calLink = searchParams.get("calLink");
       })()
-      function generateRandomHexColor() {
-        // Generate a random integer between 0 and 16777215 (FFFFFF in hex)
-        const randomInt = Math.floor(Math.random() * 16777216);
-
-        // Convert the integer to a hex string with 6 digits and add leading zeros if necessary
-        const hexString = randomInt.toString(16).padStart(6, "0");
-
-        // Return the hex string with a '#' prefix
-        return `#${hexString}`;
-      }
+      
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
-      function scrollToIframeInPlayground() {
-        const url = new URL(document.URL);
-        // Only run the example specified by only=, avoids distraction and faster to test.
-        const only = (window.only = url.searchParams.get("only") || '');
-        const elementIdentifier = only !== "all" ? only.replace("ns:", "") : null;
-        if (elementIdentifier) {
-          location.hash = "#cal-booking-place-" + elementIdentifier + "-iframe";
-        }
-      }
-      
+     
       function addInlineEmbedInNewNamespaceWithoutReload(selector) {
         Cal("init", "withoutReloadNamespace", {
           debug: true,
@@ -377,10 +354,10 @@
           </button>
           <button
             onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
-            backgroundColor: generateRandomHexColor(),
+            backgroundColor: window.generateRandomHexColor(),
           },
           disabledDateButton: {
-            backgroundColor: generateRandomHexColor(),
+            backgroundColor: window.generateRandomHexColor(),
           },}})})()">
             Change 'enabledDateButton` and `disabledDateButton` background Color[Deprecated]
           </button>
@@ -422,7 +399,16 @@
       </div>
     </div>
     <div class="inline-embed-container" id="cal-booking-place-hideEventTypeDetails">
-      <h3><a href="?only=hideEventTypeDetails">Hide EventType Details Test</a></h3>
+      <h3><a href="?only=ns:hideEventTypeDetails">Hide EventType Details Test</a></h3>
+      <div class="place"></div>
+    </div>
+
+    <div class="inline-embed-container" style="width: 500px; overflow-y: scroll;" id="cal-booking-place-windowScrollToTimeslot">
+      <h3><a href="?only=ns:windowScrollToTimeslot">Scroll to Timeslot Test - Selecting a date would scroll the window to the timeslot</a></h3>
+      <div class="place"></div>
+    </div>
+    <div class="inline-embed-container" style="height: 500px; width: 500px; overflow-y: scroll;" id="cal-booking-place-containerScrollToTimeslot">
+      <h3><a href="?only=ns:containerScrollToTimeslot">Container Scroll Test - Selecting a date would scroll the element to the timeslot</a></h3>
       <div class="place"></div>
     </div>
     <div class="inline-embed-container" id="cal-booking-place-conflicting-theme">
@@ -474,7 +460,7 @@
         </div>
       </div>
     </div>
-    <script type="module" src="./playground.ts"></script>
+    <script type="module" src="./playground/lib/playground.ts"></script>
     <script>
       if (initialNamespace.startsWith("skeletonDemo")) {
         document.getElementById("misc-embeds").style.display = "none";

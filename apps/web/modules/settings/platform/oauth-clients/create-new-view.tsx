@@ -56,6 +56,7 @@ export default function CreateOAuthClient() {
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
       areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
+      areCalendarEventsEnabled: data.areCalendarEventsEnabled,
     });
   };
 
@@ -76,7 +77,24 @@ export default function CreateOAuthClient() {
                 </p>
               </div>
             </div>
-            <OAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
+            <OAuthClientForm
+              isPending={isSaving}
+              onSubmit={onSubmit}
+              defaultValues={{
+                areCalendarEventsEnabled: true,
+                areEmailsEnabled: true,
+                eventTypeRead: true,
+                eventTypeWrite: true,
+                bookingRead: true,
+                bookingWrite: true,
+                scheduleRead: true,
+                scheduleWrite: true,
+                appsRead: true,
+                appsWrite: true,
+                profileRead: true,
+                profileWrite: true,
+              }}
+            />
           </div>
         </Shell>
       </div>

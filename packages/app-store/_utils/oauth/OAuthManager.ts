@@ -1,7 +1,12 @@
 /**
- * Manages OAuth2.0 tokens for an app and resourceOwner. It automatically refreshes the token when needed.
- * It is aware of the credential sync endpoint and can sync the token from the third party source.
- * It is unaware of Prisma and App logic. It is just a utility to manage OAuth2.0 tokens with life cycle methods
+ * Manages OAuth2.0 as well as JWT tokens(For JWT tokens, only Google Calendar use it at the moment) for an app and resourceOwner.
+ * What it does
+ * - It automatically refreshes the token if needed when making a request.
+ * - It is aware of the credential sync endpoint and can sync the token from the third party source.
+ * - It is kept unaware of Prisma and App logic. It is just a utility to manage OAuth2.0 tokens with life cycle methods
+ *
+ * What it doesn't do yet
+ * - It doesn't have a flow to re-send the request if the access-token had been communicated as invalid after making the request itself. It relies on the caller to make the next request in which it will actually refresh the token.
  *
  * For a recommended usage example, see Zoom VideoApiAdapter.ts
  */
@@ -89,7 +94,13 @@ export class OAuthManager {
     currentTokenObject,
     fetchNewTokenObject,
     updateTokenObject,
+    /**
+     * The fn must not crash. It is the responsibility of the caller to handle any error and appropriately decide what to return
+     */
     isTokenObjectUnusable,
+    /**
+     * The fn must not crash. It is the responsibility of the caller to handle any error and appropriately decide what to return
+     */
     isAccessTokenUnusable,
     invalidateTokenObject,
     expireAccessToken,

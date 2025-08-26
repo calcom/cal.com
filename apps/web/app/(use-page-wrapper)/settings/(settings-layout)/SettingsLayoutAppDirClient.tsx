@@ -10,7 +10,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
-import type { AppFlags } from "@calcom/features/flags/config";
+import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
@@ -28,8 +28,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
-
-type TeamFeatures = Record<number, Record<keyof AppFlags, boolean>> | null;
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -94,7 +92,8 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           ? [
               {
                 name: "members",
-                href: `/settings/organizations/${orgBranding.slug}/members`,
+                href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
+                isExternalLink: true,
               },
             ]
           : []),
@@ -148,6 +147,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
         { name: "oAuth", href: "/settings/admin/oAuth" },
         { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
+        { name: "Playground", href: "/settings/admin/playground" },
       ],
     },
   ];
@@ -181,7 +181,15 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
+const useTabs = ({
+  isDelegationCredentialEnabled,
+  isPbacEnabled,
+  canViewRoles,
+}: {
+  isDelegationCredentialEnabled: boolean;
+  isPbacEnabled: boolean;
+  canViewRoles?: boolean;
+}) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -214,6 +222,15 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
           newArray.push({
             name: "delegation_credential",
             href: "/settings/organizations/delegation-credential",
+          });
+        }
+
+        // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
+        // This prevents showing the menu item when user has no organization permissions
+        if (isPbacEnabled && canViewRoles) {
+          newArray.push({
+            name: "roles_and_permissions",
+            href: "/settings/organizations/roles",
           });
         }
 
@@ -276,10 +293,40 @@ interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
-  teamFeatures?: TeamFeatures;
+  teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 }
 
-const TeamListCollapsible = () => {
+const TeamRolesNavItem = ({
+  team,
+  teamFeatures,
+}: {
+  team: { id: number; parentId?: number | null };
+  teamFeatures?: Record<number, TeamFeatures>;
+}) => {
+  const { t } = useLocale();
+
+  // Always call the hook first (Rules of Hooks)
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: team.parentId || 0, // Use 0 as fallback when no parentId
+    feature: "pbac",
+  });
+
+  // Only show for sub-teams (teams with parentId) AND when parent has PBAC enabled
+  if (!team.parentId || !isPbacEnabled) return null;
+
+  return (
+    <VerticalTabItem
+      name={t("roles_and_permissions")}
+      href={`/settings/teams/${team.id}/roles`}
+      textClassNames="px-3 text-emphasis font-medium text-sm"
+      disableChevron
+    />
+  );
+};
+
+const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
@@ -388,12 +435,8 @@ const TeamListCollapsible = () => {
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
-                  <VerticalTabItem
-                    name={t("event_types_page_title")}
-                    href={`/event-types?teamId=${team.id}`}
-                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                    disableChevron
-                  />
+                  {/* Show roles only for sub-teams with PBAC-enabled parent */}
+                  <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
@@ -444,6 +487,7 @@ const SettingsSidebarContainer = ({
   navigationIsOpenedOnMobile,
   bannersHeight,
   teamFeatures,
+  canViewRoles,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
@@ -456,14 +500,24 @@ const SettingsSidebarContainer = ({
   >();
   const session = useSession();
 
+  const organizationId = session.data?.user?.org?.id;
+
   const isDelegationCredentialEnabled = useIsFeatureEnabledForTeam({
     teamFeatures,
-    teamId: session.data?.user?.org?.id,
+    teamId: organizationId,
     feature: "delegation-credential",
+  });
+
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "pbac",
   });
 
   const tabsWithPermissions = useTabs({
     isDelegationCredentialEnabled,
+    isPbacEnabled,
+    canViewRoles,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
@@ -571,7 +625,7 @@ const SettingsSidebarContainer = ({
                         </Skeleton>
                       </div>
                     </Link>
-                    <TeamListCollapsible />
+                    <TeamListCollapsible teamFeatures={teamFeatures} />
                     {(!orgBranding?.id || isOrgAdminOrOwner) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
@@ -737,10 +791,16 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 export type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
-  teamFeatures?: TeamFeatures;
+  teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({ children, teamFeatures, ...rest }: SettingsLayoutProps) {
+export default function SettingsLayoutAppDirClient({
+  children,
+  teamFeatures,
+  canViewRoles,
+  ...rest
+}: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -773,6 +833,7 @@ export default function SettingsLayoutAppDirClient({ children, teamFeatures, ...
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
           teamFeatures={teamFeatures}
+          canViewRoles={canViewRoles}
         />
       }
       drawerState={state}
@@ -794,7 +855,8 @@ type SidebarContainerElementProps = {
   sideContainerOpen: boolean;
   bannersHeight?: number;
   setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  teamFeatures?: TeamFeatures;
+  teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 };
 
 const SidebarContainerElement = ({
@@ -802,6 +864,7 @@ const SidebarContainerElement = ({
   bannersHeight,
   setSideContainerOpen,
   teamFeatures,
+  canViewRoles,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -818,6 +881,7 @@ const SidebarContainerElement = ({
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
         teamFeatures={teamFeatures}
+        canViewRoles={canViewRoles}
       />
     </>
   );

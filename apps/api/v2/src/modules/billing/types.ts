@@ -7,4 +7,13 @@ export enum PlatformPlan {
   PER_ACTIVE_USER = "PER_ACTIVE_USER",
 }
 
-export type PlatformPlanType = "FREE" | "STARTER" | "ESSENTIALS" | "SCALE" | "ENTERPRISE" | "PER_ACTIVE_USER";
+export const orderedPlans = [
+  "FREE",
+  "STARTER",
+  "ESSENTIALS",
+  "SCALE",
+  "PER_ACTIVE_USER",
+  "ENTERPRISE",
+] as const;
+
+export type PlatformPlanType = (typeof orderedPlans)[number];

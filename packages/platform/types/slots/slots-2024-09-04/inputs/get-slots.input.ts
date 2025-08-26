@@ -78,6 +78,16 @@ export class GetAvailableSlotsInput_2024_09_04 {
     enum: SlotFormat,
   })
   format?: SlotFormat;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+    example: "abc123def456",
+  })
+  bookingUidToReschedule?: string;
 }
 
 export const ById_2024_09_04_type = "byEventTypeId";

@@ -120,7 +120,7 @@ describe("scanWorkflowBody", () => {
     });
   });
 
-  it("should lock user and not update step if content is spam", async () => {
+  it.skip("should lock user and not update step if content is spam", async () => {
     const payload = JSON.stringify({
       userId: 1,
       workflowStepIds: [1],

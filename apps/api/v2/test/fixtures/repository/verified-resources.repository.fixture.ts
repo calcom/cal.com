@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export class VerifiedResourcesRepositoryFixtures {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -14,6 +14,10 @@ export class VerifiedResourcesRepositoryFixtures {
 
   async createPhone(data: Prisma.VerifiedNumberCreateInput) {
     return this.prismaWriteClient.verifiedNumber.create({ data });
+  }
+
+  async createEmail(data: Prisma.VerifiedEmailCreateInput) {
+    return this.prismaWriteClient.verifiedEmail.create({ data });
   }
 
   async deleteEmailById(id: number) {
