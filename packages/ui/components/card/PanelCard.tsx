@@ -1,4 +1,4 @@
-"use client";
+import type { ReactNode } from "react";
 
 import { Button } from "@calcom/ui/components/button";
 
@@ -9,11 +9,11 @@ export function PanelCard({
   headerContent,
   children,
 }: {
-  title: string | React.ReactNode;
+  title: string | ReactNode;
   subtitle?: string;
   cta?: { label: string; onClick: () => void };
-  headerContent?: React.ReactNode;
-  children: React.ReactNode;
+  headerContent?: ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1 pb-1">
