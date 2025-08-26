@@ -4,6 +4,11 @@ import { generateSkeleton } from "../ui/skeleton";
 function getStyle() {
   return `
   <style>
+    /* Fix for grid layout issues - prevents footer doubling */
+    cal-modal-box {
+      position: absolute;
+    }
+    
     .my-backdrop {
       position:fixed;
       width:100%;
