@@ -89,7 +89,6 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
-      currency: "usd",
       subscription_data: {
         metadata: {
           teamId: teamId.toString(),
@@ -117,7 +116,6 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
-      currency: "usd",
     });
 
     if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
@@ -403,7 +401,6 @@ export class BillingService implements OnModuleDestroy {
       fromReschedule?: string | null;
     }
   ) {
-
     if (this.configService.get("e2e")) {
       return true;
     }
@@ -465,7 +462,6 @@ export class BillingService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     try {
-      
       await this.billingQueue.close();
     } catch (err) {
       this.logger.error(err);

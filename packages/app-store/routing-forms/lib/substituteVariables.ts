@@ -1,3 +1,4 @@
+import { getHumanReadableFieldResponseValue } from "@calcom/lib/server/service/routingForm/responseData/getHumanReadableFieldResponseValue";
 import slugify from "@calcom/lib/slugify";
 
 import type { FormResponse, NonRouterRoute, Field } from "../types/types";
@@ -30,7 +31,13 @@ export const substituteVariables = (
       }
       const identifier = getFieldIdentifier(field);
       if (identifier.toLowerCase() === variable.toLowerCase()) {
-        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, slugify(response[key].value.toString() || ""));
+        const humanReadableValues = getHumanReadableFieldResponseValue({
+          field,
+          value: response[key].value,
+        });
+        // ['abc', 'def'] ----toString---> 'abc,def' ----slugify---> 'abc-def'
+        const valueToSubstitute = slugify(humanReadableValues.toString());
+        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, valueToSubstitute);
       }
     }
   });
