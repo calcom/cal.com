@@ -908,6 +908,8 @@ model SelectedCalendar {
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
 
+  calendarSubscription CalendarSubscription?
+
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
@@ -2512,4 +2514,31 @@ model CalAiPhoneNumber {
   @@index([teamId])
   @@index([inboundAgentId])
   @@index([outboundAgentId])
+}
+
+model CalendarSubscription {
+  id                 String           @id @default(uuid())
+  selectedCalendarId String           @unique
+  // Webhook subscription details (provider-agnostic)
+  channelId          String?
+  channelKind        String?
+  channelResourceId  String?
+  channelResourceUri String?
+  channelResource    String?
+  clientState        String?
+  channelExpiration  DateTime?
+  syncCursor         String?
+  // Sync management
+  syncErrors         Int              @default(0)
+  maxSyncErrors      Int              @default(5)
+  backoffUntil       DateTime?
+  // Timestamps
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  // Relations
+  selectedCalendar   SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
+
+  @@index([channelExpiration, syncErrors, backoffUntil])
+  @@index([syncCursor])
+  @@index([selectedCalendarId])
 }
