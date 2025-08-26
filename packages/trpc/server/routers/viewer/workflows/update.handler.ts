@@ -353,20 +353,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             });
           }
 
-          await ctx.prisma.$transaction(async (tx) => {
-            await tx.workflowReminder.deleteMany({
-              where: {
-                id: {
-                  in: remindersFromStep.map((reminder) => reminder.id),
-                },
-              },
-            });
-
-            await tx.workflowStep.delete({
-              where: {
-                id: oldStep.id,
-              },
-            });
+          await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
+          await ctx.prisma.workflowStep.delete({
+            where: {
+              id: oldStep.id,
+            },
           });
 
           const aiPhoneService = createDefaultAIPhoneServiceProvider();
