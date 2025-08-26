@@ -99,6 +99,18 @@ export async function getBookings({
         role: {
           in: ["ADMIN", "OWNER"],
         },
+        ...(user.orgId && {
+          OR: [
+            {
+              teamId: user.orgId,
+            },
+            {
+              team: {
+                parentId: user.orgId,
+              },
+            },
+          ],
+        }),
       },
       select: {
         id: true,
@@ -139,10 +151,12 @@ export async function getBookings({
       userIdsWhereUserIsAdminOrOwner.includes(userId)
     );
 
+    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
+
     //  Scope depends on `user.orgId`:
     // - Throw an error if trying to filter by usersIds that are not within your ORG
     // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam) {
+    if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permissions to fetch bookings for specified userIds",

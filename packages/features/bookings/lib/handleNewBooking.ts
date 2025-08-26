@@ -54,6 +54,7 @@ import {
 } from "@calcom/lib/delegationCredential/server";
 import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
 import { getCacheService } from "@calcom/lib/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -67,7 +68,6 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -550,6 +550,9 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
     const bookingRepo = new BookingRepository(prisma);
+
+    const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+
     const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
@@ -559,13 +562,20 @@ async function handler(
     });
 
     if (existingBooking) {
+      const hasPayments = existingBooking.payment.length > 0;
+      const isPaidBooking = existingBooking.paid || !hasPayments;
+
+      const shouldShowPaymentForm = requiresPayment && !isPaidBooking;
+
+      const firstPayment = shouldShowPaymentForm ? existingBooking.payment[0] : undefined;
+
       const bookingResponse = {
         ...existingBooking,
         user: {
           ...existingBooking.user,
           email: null,
         },
-        paymentRequired: false,
+        paymentRequired: shouldShowPaymentForm,
         seatReferenceUid: "",
       };
 
@@ -574,8 +584,8 @@ async function handler(
         luckyUsers: bookingResponse.userId ? [bookingResponse.userId] : [],
         isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
-        paymentUid: undefined,
-        paymentId: undefined,
+        paymentUid: firstPayment?.uid,
+        paymentId: firstPayment?.id,
       };
     }
   }
@@ -893,7 +903,8 @@ async function handler(
             memberId: eventTypeWithUsers.users[0].id ?? null,
             teamId: eventType.teamId,
           });
-          const newLuckyUser = await getLuckyUser({
+          const luckyUserService = getLuckyUserService();
+          const newLuckyUser = await luckyUserService.getLuckyUser({
             // find a lucky user that is not already in the luckyUsers array
             availableUsers: freeUsers,
             // only hosts from the same group
@@ -1430,6 +1441,8 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
+  const skipDeleteEventsAndMeetings = changedOrganizer;
+
   const isBookingRequestedReschedule =
     !!originalRescheduledBooking &&
     !!originalRescheduledBooking.rescheduled &&
@@ -1702,7 +1715,8 @@ async function handler(
       undefined,
       changedOrganizer,
       previousHostDestinationCalendar,
-      isBookingRequestedReschedule
+      isBookingRequestedReschedule,
+      skipDeleteEventsAndMeetings
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1906,7 +1920,7 @@ async function handler(
 
         if (!isDryRun) {
           sendRoundRobinRescheduledEmailsAndSMS(
-            copyEventAdditionalInfo,
+            { ...copyEventAdditionalInfo, iCalUID },
             rescheduledMembers,
             eventType.metadata
           );
