@@ -10,6 +10,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
@@ -123,15 +124,29 @@ const handleMarkNoShow = async ({
         select: {
           startTime: true,
           endTime: true,
+          title: true,
           metadata: true,
           uid: true,
           location: true,
+          destinationCalendar: true,
           smsReminderNumber: true,
+          userPrimaryEmail: true,
           eventType: {
             select: {
+              id: true,
+              hideOrganizerEmail: true,
+              customReplyToEmail: true,
               schedulingType: true,
               slug: true,
               title: true,
+              metadata: true,
+              parentId: true,
+              teamId: true,
+              parent: {
+                select: {
+                  teamId: true,
+                },
+              },
               workflows: {
                 select: {
                   workflow: {
@@ -151,6 +166,8 @@ const handleMarkNoShow = async ({
               team: {
                 select: {
                   parentId: true,
+                  name: true,
+                  id: true,
                 },
               },
             },
@@ -161,14 +178,19 @@ const handleMarkNoShow = async ({
               name: true,
               timeZone: true,
               locale: true,
+              phoneNumber: true,
             },
           },
           user: {
             select: {
+              id: true,
               email: true,
               name: true,
+              destinationCalendar: true,
               timeZone: true,
               locale: true,
+              username: true,
+              timeFormat: true,
             },
           },
         },
@@ -178,33 +200,50 @@ const handleMarkNoShow = async ({
         const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
 
         if (workflows.length > 0) {
+          const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
+          // Cache translations to avoid requesting multiple times.
+          const translations = new Map();
+          const attendeesListPromises = booking.attendees.map(async (attendee) => {
+            const locale = attendee.locale ?? "en";
+            let translate = translations.get(locale);
+            if (!translate) {
+              translate = await getTranslation(locale, "common");
+              translations.set(locale, translate);
+            }
+            return {
+              name: attendee.name,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              phoneNumber: attendee.phoneNumber,
+              language: {
+                translate,
+                locale,
+              },
+            };
+          });
+          const attendeesList = await Promise.all(attendeesListPromises);
           try {
             const organizer = booking.user || booking.eventType.owner;
             const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata);
             const bookerUrl = await getBookerBaseUrl(booking.eventType?.team?.parentId ?? null);
             const calendarEvent: ExtendedCalendarEvent = {
               type: booking.eventType.slug,
-              title: booking.eventType.title,
+              title: booking.title,
               startTime: booking.startTime.toISOString(),
               endTime: booking.endTime.toISOString(),
               organizer: {
-                email: organizer?.email || "",
-                name: organizer?.name || "",
+                id: booking.user?.id,
+                email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+                name: booking.user?.name || "Nameless",
+                username: booking.user?.username || undefined,
                 timeZone: organizer?.timeZone || "UTC",
+                timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
                 language: {
-                  translate: t,
-                  locale: organizer?.locale || "en",
+                  translate: tOrganizer,
+                  locale: booking.user?.locale ?? "en",
                 },
               },
-              attendees: booking.attendees.map((attendee) => ({
-                email: attendee.email,
-                name: attendee.name,
-                timeZone: attendee.timeZone || "UTC",
-                language: {
-                  translate: t,
-                  locale: attendee.locale || "en",
-                },
-              })),
+              attendees: attendeesList,
               uid: booking.uid,
               location: booking.location || "",
               eventType: {
@@ -212,12 +251,27 @@ const handleMarkNoShow = async ({
                 schedulingType: booking.eventType.schedulingType,
                 hosts: [],
               },
+              destinationCalendar: booking.destinationCalendar
+                ? [booking.destinationCalendar]
+                : booking.user?.destinationCalendar
+                ? [booking.user?.destinationCalendar]
+                : [],
               bookerUrl,
               ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
                 ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
                 : {}),
               rescheduleReason: null,
               cancellationReason: null,
+              hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+              eventTypeId: booking.eventType?.id,
+              customReplyToEmail: booking.eventType?.customReplyToEmail,
+              team: !!booking.eventType?.team
+                ? {
+                    name: booking.eventType.team.name,
+                    id: booking.eventType.team.id,
+                    members: [],
+                  }
+                : undefined,
             };
 
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
