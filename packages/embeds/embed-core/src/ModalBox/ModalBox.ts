@@ -45,15 +45,18 @@ export class ModalBox extends EmbedElement {
   /**
    * Close the modal box - It is like a forced close
    */
-  private explicitClose() {
+  private explicitClose(options: { remove?: boolean; delayMs?: number } = {}) {
+    const { remove = false, delayMs = 100 } = options;
     this.show(false);
     const event = new Event("close");
     this.dispatchEvent(event);
 
-    // Remove the modal from DOM after a short delay to ensure animations complete
-    setTimeout(() => {
-      this.removeFromDOM();
-    }, 100);
+    // Only remove from DOM if explicitly requested (for real close, not prerender)
+    if (remove) {
+      setTimeout(() => {
+        this.removeFromDOM();
+      }, delayMs);
+    }
   }
 
   /**
@@ -78,7 +81,7 @@ export class ModalBox extends EmbedElement {
     if (this.isLoaderRunning() || this.isShowingMessage()) {
       return;
     }
-    this.explicitClose();
+    this.explicitClose({ remove: true });
   }
 
   /**
@@ -217,13 +220,13 @@ export class ModalBox extends EmbedElement {
     } else if (newValue == "loaded") {
       this.onStateLoaded();
     } else if (newValue == "closed") {
-      this.explicitClose();
+      this.explicitClose({ remove: true });
     } else if (newValue === "failed" || newValue === "has-message") {
       this.onStateFailedOrMessage();
     } else if (newValue === "prerendering") {
       // We do a close here because we don't want the loaders to show up when the modal is prerendering
       // As per HTML, both skeleton/loader are configured to be shown by default, so we need to hide them and infact we don't want to show up anything unexpected so we completely hide the customElement itself
-      this.explicitClose();
+      this.explicitClose({ remove: false });
     } else if (newValue === "reopened") {
       // Show in whatever state it is
       this.open();
@@ -254,7 +257,7 @@ export class ModalBox extends EmbedElement {
 
     if (closeEl) {
       closeEl.onclick = () => {
-        this.explicitClose();
+        this.explicitClose({ remove: true });
       };
     }
   }

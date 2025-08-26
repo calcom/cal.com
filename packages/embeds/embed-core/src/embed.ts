@@ -833,14 +833,19 @@ export class Cal {
    * Clean up any existing modals to prevent DOM accumulation
    */
   cleanupExistingModals() {
-    // Remove all existing modal elements from the DOM
+    // Only clean up active modals, preserve prerendered ones
     document.querySelectorAll("cal-modal-box").forEach((modalEl) => {
-      if (modalEl.parentNode) {
-        modalEl.parentNode.removeChild(modalEl);
+      const el = modalEl as HTMLElement;
+      const state = el.getAttribute("state");
+
+      // Don't touch prerendering or prerendered modals
+      if (state !== "prerendering" && state !== "prerendered") {
+        // Set state to closed to trigger proper cleanup
+        el.setAttribute("state", "closed");
       }
     });
 
-    // Reset modal references
+    // Reference will be reset by the close cleanup; clear proactively too
     this.modalBox = undefined;
   }
 }
@@ -1055,8 +1060,11 @@ class CalApi {
       throw new Error("iframeAttrs should be an object");
     }
 
-    // Clean up any existing modals before creating a new one
-    this.cal.cleanupExistingModals();
+    // Only clean up existing modals if we're not prerendering
+    // This prevents interference with prerender tests
+    if (!isPrerendering) {
+      this.cal.cleanupExistingModals();
+    }
 
     const containerEl = document.body;
     const calConfig = this.cal.getCalConfig();
@@ -1299,6 +1307,13 @@ class CalApi {
 
     // Reset modal references
     this.cal.modalBox = undefined;
+  }
+
+  /**
+   * Clean up any existing modals to prevent DOM accumulation
+   */
+  cleanupExistingModals() {
+    this.cal.cleanupExistingModals();
   }
 
   on<T extends keyof EventDataMap>({
