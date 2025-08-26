@@ -181,7 +181,10 @@ async function createApp(
   /** This is used so credentials gets linked to the correct app */
   type: Prisma.CredentialCreateInput["type"],
   keys?: Prisma.AppCreateInput["keys"],
-  isTemplate?: boolean
+  isTemplate?: boolean,
+  description?: string,
+  logo?: string,
+  extendsFeature?: string
 ) {
   try {
     const foundApp = await prisma.app.findFirst({
@@ -208,7 +211,7 @@ async function createApp(
     });
 
     // We need to enable seeded apps as they are used in tests.
-    const data = { slug, dirName, categories, keys, enabled: true };
+    const data = { slug, dirName, categories, keys, enabled: true, description, logo, extendsFeature };
 
     if (!foundApp) {
       await prisma.app.create({
@@ -239,6 +242,99 @@ async function createApp(
   } catch (e) {
     console.log(`Could not upsert app: ${slug}. Error:`, e);
   }
+}
+
+async function generateDynamicMetadata() {
+  const fs = await import("fs");
+
+  const path = await import("path");
+
+  const APP_STORE_PATH = path.join(__dirname, "../app-store");
+
+  const appDirs: { name: string; path: string }[] = [];
+
+  const metadata: Record<string, any> = {};
+
+  // Get all app directories (same logic as getExportedObject)
+
+  fs.readdirSync(APP_STORE_PATH).forEach(function (dir) {
+    if (dir === "ee" || dir === "templates") {
+      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach(function (subDir) {
+        if (fs.statSync(path.join(APP_STORE_PATH, dir, subDir)).isDirectory()) {
+          appDirs.push({
+            name: subDir,
+
+            path: path.join(dir, subDir),
+          });
+        }
+      });
+    } else {
+      if (fs.statSync(path.join(APP_STORE_PATH, dir)).isDirectory()) {
+        // Skip generated files and non-app directories
+
+        if (dir.includes("generated") || dir.startsWith(".") || dir === "node_modules") {
+          return;
+        }
+
+        appDirs.push({
+          name: dir,
+
+          path: dir,
+        });
+      }
+    }
+  });
+
+  // Read metadata from each app directory (same logic as forEachAppDir)
+
+  for (const appDir of appDirs) {
+    const configPath = path.join(APP_STORE_PATH, appDir.path, "config.json");
+
+    const metadataPath = path.join(APP_STORE_PATH, appDir.path, "_metadata.ts");
+
+    let app;
+
+    if (fs.existsSync(configPath)) {
+      try {
+        app = JSON.parse(fs.readFileSync(configPath).toString());
+      } catch (error) {
+        console.warn(`Failed to parse config.json for ${appDir.name}:`, error);
+
+        continue;
+      }
+    } else if (fs.existsSync(metadataPath)) {
+      try {
+        // Use require to load the metadata
+
+        delete require.cache[require.resolve(metadataPath)];
+
+        app = require(metadataPath).metadata;
+      } catch (error) {
+        console.warn(`Failed to load _metadata.ts for ${appDir.name}:`, error);
+
+        continue;
+      }
+    } else {
+      // Skip apps without metadata
+
+      continue;
+    }
+
+    const finalApp = {
+      ...app,
+      name: appDir.name,
+      path: appDir.path,
+      dirName: app.dirName || appDir.name,
+    };
+
+    // Use the app name as the key
+
+    metadata[appDir.name] = finalApp;
+  }
+
+  console.log(`📊 Loaded metadata for ${Object.keys(metadata).length} apps`);
+
+  return metadata;
 }
 
 export default async function main() {
@@ -392,7 +488,10 @@ export default async function main() {
     });
   }
 
-  for (const [, app] of Object.entries(appStoreMetadata)) {
+  const dynamicMetadata = await generateDynamicMetadata();
+  console.log(dynamicMetadata);
+
+  for (const [, app] of Object.entries(dynamicMetadata)) {
     if (app.isTemplate && process.argv[2] !== "seed-templates") {
       continue;
     }
@@ -407,7 +506,10 @@ export default async function main() {
       validatedCategories,
       app.type,
       undefined,
-      app.isTemplate
+      app.isTemplate,
+      app.description,
+      app.logo,
+      app.extendsFeature
     );
   }
 
