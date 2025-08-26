@@ -9,6 +9,7 @@ import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
   isTextFilterValue,
+  isNumberFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -336,9 +337,21 @@ export class InsightsBookingBaseService {
       return Prisma.sql`"userName" ILIKE ${`%${value.data.operand}%`}`;
     }
 
-    if (id === "rating" && isSingleSelectFilterValue(value)) {
-      const ratingValue = typeof value.data === "number" ? value.data : Number(value.data);
-      return Prisma.sql`"rating" = ${ratingValue}`;
+    if (id === "rating" && isNumberFilterValue(value)) {
+      const ratingValue = value.data.operand;
+      const operator = value.data.operator;
+
+      if (operator === "eq") {
+        return Prisma.sql`"rating" = ${ratingValue}`;
+      } else if (operator === "gt") {
+        return Prisma.sql`"rating" > ${ratingValue}`;
+      } else if (operator === "gte") {
+        return Prisma.sql`"rating" >= ${ratingValue}`;
+      } else if (operator === "lt") {
+        return Prisma.sql`"rating" < ${ratingValue}`;
+      } else if (operator === "lte") {
+        return Prisma.sql`"rating" <= ${ratingValue}`;
+      }
     }
 
     return null;
