@@ -11,14 +11,14 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
-import type { TGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
+import type { TGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 
-type GetTeamAndEventTypeOptions = {
+type GetActiveOnOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: TGetTeamAndEventTypeOptionsSchema;
+  input: TGetActiveOnOptionsSchema;
 };
 
 type Option = {
@@ -35,9 +35,9 @@ type EventType = Omit<res, "forwardParamsSuccessRedirect"> & {
   canSendCalVideoTranscriptionEmails?: boolean;
 };
 
-export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEventTypeOptions) => {
+export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => {
   await checkRateLimitAndThrowError({
-    identifier: `eventTypes:getTeamAndEventTypeOptions.handler:${ctx.user.id}`,
+    identifier: `eventTypes:getActiveOnOptions.handler:${ctx.user.id}`,
     rateLimitingType: "common",
   });
 
