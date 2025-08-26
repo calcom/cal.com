@@ -1,10 +1,7 @@
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TToggleInputSchema } from "./toggle.schema";
@@ -21,30 +18,11 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
   const { prisma } = ctx;
   const { enabled, slug } = input;
 
-  // Get app name from metadata
-  const localApps = getLocalAppMetadata();
-  const appMetadata = localApps.find((localApp) => localApp.slug === slug);
-
-  if (!appMetadata) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
-  }
-
-  const app = await prisma.app.upsert({
+  const app = await prisma.app.update({
     where: {
       slug,
     },
-    update: {
-      enabled,
-      dirName: appMetadata?.dirName || appMetadata?.slug || "",
-    },
-    create: {
-      slug,
-      dirName: appMetadata?.dirName || appMetadata?.slug || "",
-      categories:
-        (appMetadata?.categories as AppCategories[]) ||
-        ([appMetadata?.category] as AppCategories[]) ||
-        undefined,
-      keys: undefined,
+    data: {
       enabled,
     },
   });
@@ -90,7 +68,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
 
           await sendDisabledAppEmail({
             email: credential.user.email,
-            appName: appMetadata?.name || app.slug,
+            appName: app?.name || app.slug,
             appType: app.categories,
             t,
           });
@@ -154,7 +132,7 @@ export const toggleHandler = async ({ input, ctx }: ToggleOptions) => {
 
               await sendDisabledAppEmail({
                 email: user.email,
-                appName: appMetadata?.name || app.slug,
+                appName: app?.name || app.slug,
                 appType: app.categories,
                 t,
                 title: eventType.title,
