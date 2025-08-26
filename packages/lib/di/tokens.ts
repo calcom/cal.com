@@ -55,4 +55,8 @@ export const DI_TOKENS = {
   BOOKING_CREATE_SERVICE_MODULE: Symbol("BookingCreateServiceModule"),
   BOOKING_CREATE_FACTORY: Symbol("BookingCreateFactory"),
   BOOKING_CREATE_FACTORY_MODULE: Symbol("BookingCreateFactoryModule"),
+  ENRICHMENT_BEFORE_VALIDATION_SERVICE: Symbol("EnrichmentBeforeValidationService"),
+  BOOKING_VALIDATION_SERVICE: Symbol("BookingValidationService"),
+  ALLOW_BOOKING_SERVICE: Symbol("AllowBookingService"),
+  BOOKING_DATA_SCHEMA_GETTER: Symbol("BookingDataSchemaGetter"),
 };

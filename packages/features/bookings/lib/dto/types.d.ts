@@ -9,9 +9,12 @@ import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBo
 import type { SchedulingType } from "@calcom/prisma/client";
 import type { BookingCreateBody as MasterCreateBookingData } from "@calcom/prisma/zod/custom/booking";
 import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import type { PartialReference } from "@calcom/types/EventManager";
 
+import type { Booking } from "../handleNewBooking/createBooking";
 import type { BookingCreateService } from "../service/BookingCreateService";
 import type { InstantBookingCreateService } from "../service/InstantBookingCreateService";
+import type { ExistingBookingResponse } from "../utils/phases/allowBooking";
 
 export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
@@ -90,3 +93,102 @@ export type CreateInstantBookingResponse = {
 export type BookingCreateResult = Awaited<ReturnType<BookingCreateService["create"]>>;
 
 export type InstantBookingCreateResult = Awaited<ReturnType<InstantBookingCreateService["create"]>>;
+
+// Type for booking with additional fields from the creation process
+export type CreatedBooking = Booking & {
+  appsStatus?: import("@calcom/types/Calendar").AppsStatus[];
+  paymentUid?: string;
+  paymentId?: number;
+};
+
+// Base user type that ensures timeZone and name are always available
+type BookingUser = {
+  id?: number;
+  name?: string | null;
+  username?: string | null;
+  email?: null;
+  timeZone?: string;
+} | null;
+
+// Discriminated union for legacyHandler return types
+export type LegacyHandlerResult =
+  // Early return case - existing booking found (from allowBookingService)
+  | (Omit<ExistingBookingResponse, "user"> & {
+      _type: "existing";
+      user: BookingUser;
+      paymentUid?: string;
+    })
+  // Payment required case
+  | {
+      _type: "payment_required";
+      id?: number;
+      uid?: string;
+      title?: string;
+      description?: string | null;
+      startTime?: Date;
+      endTime?: Date;
+      location?: string | null;
+      status?: import("@calcom/prisma/enums").BookingStatus;
+      metadata?: import("@prisma/client").Prisma.JsonValue | null;
+      user?: BookingUser;
+      attendees?: Array<{
+        id: number;
+        name: string;
+        email: string;
+        timeZone: string;
+        phoneNumber: string | null;
+      }>;
+      eventType?: {
+        id?: number;
+        title?: string;
+        slug?: string;
+      } | null;
+      paymentRequired: true;
+      message: string;
+      paymentUid?: string;
+      paymentId?: number;
+      isDryRun?: boolean;
+      troubleshooterData?: Record<string, unknown>;
+      luckyUsers?: number[];
+      userPrimaryEmail?: string | null;
+      responses?: import("@prisma/client").Prisma.JsonValue | null;
+      references?: PartialReference[] | CreatedBooking["references"];
+      seatReferenceUid?: string;
+      videoCallUrl?: string | null;
+    }
+  // Successful booking case
+  | {
+      _type: "success";
+      id?: number;
+      uid?: string;
+      title?: string;
+      description?: string | null;
+      startTime?: Date;
+      endTime?: Date;
+      location?: string | null;
+      status?: import("@calcom/prisma/enums").BookingStatus;
+      metadata?: import("@prisma/client").Prisma.JsonValue | null;
+      user?: BookingUser;
+      attendees?: Array<{
+        id: number;
+        name: string;
+        email: string;
+        timeZone: string;
+        phoneNumber: string | null;
+      }>;
+      eventType?: {
+        id?: number;
+        title?: string;
+        slug?: string;
+      } | null;
+      paymentRequired: false;
+      isDryRun?: boolean;
+      troubleshooterData?: Record<string, unknown>;
+      luckyUsers?: number[];
+      paymentUid?: string;
+      userPrimaryEmail?: string | null;
+      responses?: import("@prisma/client").Prisma.JsonValue | null;
+      references?: PartialReference[] | CreatedBooking["references"];
+      seatReferenceUid?: string;
+      videoCallUrl?: string | null;
+    };
