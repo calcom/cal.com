@@ -213,6 +213,7 @@ const fetchRoutingFormOptions = async ({
     routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
       where: {
         teamId: teamId,
+        disabled: false,
         team: {
           members: {
             some: {
@@ -230,17 +231,16 @@ const fetchRoutingFormOptions = async ({
       where: {
         userId: userId,
         teamId: null, // Only personal forms, not team forms
+        disabled: false,
       },
       ...routingFormQuery,
     });
   }
 
-  return routingForms
-    .filter((form) => !form.disabled)
-    .map((form) => ({
-      value: form.id,
-      label: form.name,
-    }));
+  return routingForms.map((form) => ({
+    value: form.id,
+    label: form.name,
+  }));
 };
 
 export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => {
