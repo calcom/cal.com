@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.6.5",
+  "version": "5.6.6",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -44,8 +44,8 @@
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
-    "@daily-co/daily-js": "^0.76.0",
-    "@daily-co/daily-react": "^0.22.0",
+    "@daily-co/daily-js": "^0.83.1",
+    "@daily-co/daily-react": "^0.23.2",
     "@dub/analytics": "^0.0.27",
     "@dub/embed-core": "^0.0.10",
     "@dub/embed-react": "^0.0.10",
