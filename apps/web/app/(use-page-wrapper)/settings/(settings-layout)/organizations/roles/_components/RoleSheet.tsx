@@ -13,7 +13,6 @@ import {
   getPermissionsForScope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField, Checkbox, Label } from "@calcom/ui/components/form";
