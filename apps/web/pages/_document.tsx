@@ -38,7 +38,13 @@ class MyDocument extends Document<Props> {
     const newLocale = this.props.newLocale || "en";
     const newDir = dir(newLocale);
 
-    const isDesktopApp = platform.todesktop.isDesktopApp();
+    const isDesktopApp = (() => {
+      try {
+        return platform.todesktop.isDesktopApp();
+      } catch {
+        return false;
+      }
+    })();
 
     return (
       <Html
