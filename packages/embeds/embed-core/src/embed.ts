@@ -828,6 +828,21 @@ export class Cal {
       },
     });
   }
+
+  /**
+   * Clean up any existing modals to prevent DOM accumulation
+   */
+  cleanupExistingModals() {
+    // Remove all existing modal elements from the DOM
+    document.querySelectorAll("cal-modal-box").forEach((modalEl) => {
+      if (modalEl.parentNode) {
+        modalEl.parentNode.removeChild(modalEl);
+      }
+    });
+
+    // Reset modal references
+    this.modalBox = undefined;
+  }
 }
 
 class CalApi {
@@ -1039,6 +1054,10 @@ class CalApi {
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
       throw new Error("iframeAttrs should be an object");
     }
+
+    // Clean up any existing modals before creating a new one
+    this.cal.cleanupExistingModals();
+
     const containerEl = document.body;
     const calConfig = this.cal.getCalConfig();
     // Clone so that it doesn't mutate the original config
@@ -1259,7 +1278,27 @@ class CalApi {
     // A request, to close from the iframe, should close the modal
     this.cal.actionManager.on("__closeIframe", () => {
       this.cal.modalBox?.setAttribute("state", "closed");
+
+      // Clean up the modal after it's closed
+      setTimeout(() => {
+        this.cleanupClosedModals();
+      }, 100);
     });
+  }
+
+  /**
+   * Clean up any closed modals to prevent DOM accumulation
+   */
+  private cleanupClosedModals() {
+    // Remove all closed modal elements from the DOM
+    document.querySelectorAll("cal-modal-box[state='closed']").forEach((modalEl) => {
+      if (modalEl.parentNode) {
+        modalEl.parentNode.removeChild(modalEl);
+      }
+    });
+
+    // Reset modal references
+    this.cal.modalBox = undefined;
   }
 
   on<T extends keyof EventDataMap>({
@@ -1627,12 +1666,32 @@ function initializeGlobalCalProps() {
   if (!globalCal.config) {
     globalCal.config = {};
   }
+  // Clean up any remaining modals when the page is unloaded
+  window.addEventListener("beforeunload", () => {
+    document.querySelectorAll("cal-modal-box").forEach((modalEl) => {
+      if (modalEl.parentNode) {
+        modalEl.parentNode.removeChild(modalEl);
+      }
+    });
+  });
 
   // This is disabled by default because if we miss any param in reserved list, we might end up breaking embed Booking Form for a lot of users.
   // Better to be conservative and let the user decide if he wants to forward the params or not.
   // TODO: Going forward, Booking Form should maintain a list of params used by it and then we can enable this by default after using that list itself as reserved list.
   // Use if configured by user otherwise set default
   globalCal.config.forwardQueryParams = globalCal.config.forwardQueryParams ?? false;
+
+  // Periodic cleanup to prevent DOM accumulation (runs every 30 seconds)
+  setInterval(() => {
+    const closedModals = document.querySelectorAll("cal-modal-box[state='closed']");
+    if (closedModals.length > 0) {
+      closedModals.forEach((modalEl) => {
+        if (modalEl.parentNode) {
+          modalEl.parentNode.removeChild(modalEl);
+        }
+      });
+    }
+  }, 30000);
 }
 
 function log(...args: unknown[]) {

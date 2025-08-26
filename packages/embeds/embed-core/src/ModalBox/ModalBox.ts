@@ -49,6 +49,20 @@ export class ModalBox extends EmbedElement {
     this.show(false);
     const event = new Event("close");
     this.dispatchEvent(event);
+
+    // Remove the modal from DOM after a short delay to ensure animations complete
+    setTimeout(() => {
+      this.removeFromDOM();
+    }, 100);
+  }
+
+  /**
+   * Remove the modal element from the DOM completely
+   */
+  private removeFromDOM() {
+    if (this.parentNode) {
+      this.parentNode.removeChild(this);
+    }
   }
 
   isShowingMessage() {
