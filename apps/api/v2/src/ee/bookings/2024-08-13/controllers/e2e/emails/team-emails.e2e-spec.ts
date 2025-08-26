@@ -213,6 +213,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       slug: `event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: type === "COLLECTIVE",
+      locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
     });
     await Promise.all(
       hostIds.map((userId) =>
