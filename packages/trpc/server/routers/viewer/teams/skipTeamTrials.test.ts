@@ -31,7 +31,7 @@ vi.mock("@calcom/prisma", () => ({
     user: {
       update: vi.fn().mockResolvedValue({}),
     },
-    membership: {
+    team: {
       findMany: vi.fn(),
     },
   },
@@ -69,7 +69,7 @@ describe("skipTeamTrialsHandler", () => {
   });
 
   it("should set user's trialEndsAt to null", async () => {
-    vi.mocked(prisma.membership.findMany).mockResolvedValueOnce([]);
+    vi.mocked(prisma.team.findMany).mockResolvedValueOnce([]);
 
     // @ts-expect-error - simplified context for testing
     await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
@@ -85,15 +85,13 @@ describe("skipTeamTrialsHandler", () => {
   });
 
   it("should end trials for all teams where user is OWNER", async () => {
-    // Mock memberships where user is owner
+    // Mock teams where user is owner
     const mockTeams = [
       { id: 101, name: "Team 1" },
       { id: 102, name: "Team 2" },
     ];
 
-    const mockMemberships = [{ team: mockTeams[0] }, { team: mockTeams[1] }];
-
-    vi.mocked(prisma.membership.findMany).mockResolvedValueOnce(mockMemberships);
+    vi.mocked(prisma.team.findMany).mockResolvedValueOnce(mockTeams);
 
     mockGetSubscriptionStatus
       .mockResolvedValueOnce("trialing") // First team is in trial
@@ -104,14 +102,15 @@ describe("skipTeamTrialsHandler", () => {
 
     expect(prisma.user.update).toHaveBeenCalled();
 
-    expect(prisma.membership.findMany).toHaveBeenCalledWith({
+    expect(prisma.team.findMany).toHaveBeenCalledWith({
       where: {
-        userId: mockCtx.user.id,
-        accepted: true,
-        role: "OWNER",
-      },
-      select: {
-        team: true,
+        members: {
+          some: {
+            userId: mockCtx.user.id,
+            accepted: true,
+            role: "OWNER",
+          },
+        },
       },
     });
 
