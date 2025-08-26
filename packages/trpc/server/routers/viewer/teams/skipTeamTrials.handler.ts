@@ -1,6 +1,7 @@
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -29,18 +30,9 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
       },
     });
 
-    const memberships = await prisma.membership.findMany({
-      where: {
-        userId: ctx.user.id,
-        accepted: true,
-        role: "OWNER",
-      },
-      select: {
-        team: true,
-      },
+    const ownedTeams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
+      role: "OWNER",
     });
-
-    const ownedTeams = memberships.map((membership) => membership.team);
 
     for (const team of ownedTeams) {
       const teamBillingService = new InternalTeamBilling(team);
