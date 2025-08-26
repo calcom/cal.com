@@ -1168,6 +1168,7 @@ model App {
   logo           String?
   extendsFeature String?
   dependencies   String[]
+  appData        Json?
 
   @@index([enabled])
 }

@@ -182,6 +182,7 @@ async function createApp({
   logo,
   extendsFeature,
   dependencies,
+  appData,
 }: {
   /** The App identifier in the DB also used for public page in `/apps/[slug]` */
   slug: Prisma.AppCreateInput["slug"];
@@ -191,13 +192,14 @@ async function createApp({
   categories: Prisma.AppCreateInput["categories"];
   /** This is used so credentials gets linked to the correct app */
   type: Prisma.CredentialCreateInput["type"];
-  name?: string;
+  name?: Prisma.AppCreateInput["name"];
   keys?: Prisma.AppCreateInput["keys"];
-  isTemplate?: boolean;
-  description?: string;
-  logo?: string;
-  extendsFeature?: string;
-  dependencies?: string[];
+  isTemplate?: Prisma.AppCreateInput["isTemplate"];
+  description?: Prisma.AppCreateInput["description"];
+  logo?: Prisma.AppCreateInput["logo"];
+  extendsFeature?: Prisma.AppCreateInput["extendsFeature"];
+  dependencies?: Prisma.AppCreateInput["dependencies"];
+  appData?: Prisma.AppCreateInput["appData"];
 }) {
   try {
     const foundApp = await prisma.app.findFirst({
@@ -236,6 +238,7 @@ async function createApp({
       logo,
       extendsFeature,
       ...(dependencies !== undefined && { dependencies }),
+      ...(appData !== undefined && { appData }),
     };
 
     if (!foundApp) {
@@ -686,6 +689,7 @@ export default async function main() {
       logo: app.logo,
       extendsFeature: app.extendsFeature,
       dependencies: app?.dependencies,
+      appData: app?.appData,
     });
   }
 
