@@ -84,8 +84,6 @@ export class WorkflowService {
     isNormalBookingOrFirstRecurringSlot: boolean;
   }) {
     if (workflows.length <= 0) return;
-    console.log("workflows: ", workflows);
-    console.log("isConfirmedByDefault: ", isConfirmedByDefault);
     const workflowsToTrigger: Workflow[] = [];
     if (isRescheduleEvent) {
       workflowsToTrigger.push(
