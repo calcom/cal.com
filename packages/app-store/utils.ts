@@ -79,9 +79,9 @@ async function getAllApps(): Promise<AppMeta[]> {
   return Object.values(allAppsMap);
 }
 
-// Export the lazy versions
-export const ALL_APPS_MAP = getAllAppsMetadata();
-export const ALL_APPS = getAllApps();
+// Export the lazy functions - these will be called async when needed
+export const getAllAppsMap = getAllAppsMetadata;
+export const getAllAppsList = getAllApps;
 
 /**
  * This should get all available apps to the user based on his saved
