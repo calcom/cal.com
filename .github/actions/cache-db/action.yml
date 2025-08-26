@@ -23,7 +23,6 @@ runs:
         E2E_TEST_CALCOM_QA_EMAIL: ${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}
         E2E_TEST_CALCOM_QA_PASSWORD: ${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}
         E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
-        DAILY_API_KEY: ${{ inputs.CI_DAILY_API_KEY }}
       with:
         path: ${{ inputs.path }}
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
