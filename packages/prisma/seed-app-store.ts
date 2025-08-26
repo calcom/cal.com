@@ -170,21 +170,35 @@ async function seedAppData() {
   });
 }
 
-async function createApp(
+async function createApp({
+  slug,
+  dirName,
+  categories,
+  type,
+  name,
+  keys,
+  isTemplate,
+  description,
+  logo,
+  extendsFeature,
+  dependencies,
+}: {
   /** The App identifier in the DB also used for public page in `/apps/[slug]` */
-  slug: Prisma.AppCreateInput["slug"],
+  slug: Prisma.AppCreateInput["slug"];
   /** The directory name for `/packages/app-store/[dirName]` */
-  dirName: Prisma.AppCreateInput["dirName"],
-  categories: Prisma.AppCreateInput["categories"],
+  dirName: Prisma.AppCreateInput["dirName"];
+  /** The categories for the app */
+  categories: Prisma.AppCreateInput["categories"];
   /** This is used so credentials gets linked to the correct app */
-  type: Prisma.CredentialCreateInput["type"],
-  name: string,
-  keys?: Prisma.AppCreateInput["keys"],
-  isTemplate?: boolean,
-  description?: string,
-  logo?: string,
-  extendsFeature?: string
-) {
+  type: Prisma.CredentialCreateInput["type"];
+  name?: string;
+  keys?: Prisma.AppCreateInput["keys"];
+  isTemplate?: boolean;
+  description?: string;
+  logo?: string;
+  extendsFeature?: string;
+  dependencies?: string[];
+}) {
   try {
     const foundApp = await prisma.app.findFirst({
       /**
@@ -221,6 +235,7 @@ async function createApp(
       description,
       logo,
       extendsFeature,
+      ...(dependencies !== undefined && { dependencies }),
     };
 
     if (!foundApp) {
@@ -318,7 +333,7 @@ async function generateDynamicMetadata() {
 
         delete require.cache[require.resolve(metadataPath)];
 
-        app = import(metadataPath).metadata;
+        app = require(metadataPath).metadata;
       } catch (error) {
         console.warn(`Failed to load _metadata.ts for ${appDir.name}:`, error);
 
@@ -349,44 +364,84 @@ async function generateDynamicMetadata() {
 
 export default async function main() {
   // Calendar apps
-  await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
+  await createApp({
+    slug: "apple-calendar",
+    dirName: "applecalendar",
+    categories: ["calendar"],
+    type: "apple_calendar",
+  });
   if (
     process.env.BASECAMP3_CLIENT_ID &&
     process.env.BASECAMP3_CLIENT_SECRET &&
     process.env.BASECAMP3_USER_AGENT
   ) {
-    await createApp("basecamp3", "basecamp3", ["other"], "basecamp3_other", {
-      client_id: process.env.BASECAMP3_CLIENT_ID,
-      client_secret: process.env.BASECAMP3_CLIENT_SECRET,
-      user_agent: process.env.BASECAMP3_USER_AGENT,
+    await createApp({
+      slug: "basecamp3",
+      dirName: "basecamp3",
+      categories: ["other"],
+      type: "basecamp3_other",
+      keys: {
+        client_id: process.env.BASECAMP3_CLIENT_ID,
+        client_secret: process.env.BASECAMP3_CLIENT_SECRET,
+        user_agent: process.env.BASECAMP3_USER_AGENT,
+      },
     });
   }
-  await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
+  await createApp({
+    slug: "caldav-calendar",
+    dirName: "caldavcalendar",
+    categories: ["calendar"],
+    type: "caldav_calendar",
+  });
   try {
     const { client_secret, client_id, redirect_uris } = JSON.parse(
       process.env.GOOGLE_API_CREDENTIALS || ""
     ).web;
-    await createApp("google-calendar", "googlecalendar", ["calendar"], "google_calendar", {
-      client_id,
-      client_secret,
-      redirect_uris,
+    await createApp({
+      slug: "google-calendar",
+      dirName: "googlecalendar",
+      categories: ["calendar"],
+      type: "google_calendar",
+      keys: {
+        client_id,
+        client_secret,
+        redirect_uris,
+      },
     });
-    await createApp("google-meet", "googlevideo", ["conferencing"], "google_video", {
-      client_id,
-      client_secret,
-      redirect_uris,
+    await createApp({
+      slug: "google-meet",
+      dirName: "googlevideo",
+      categories: ["conferencing"],
+      type: "google_video",
+      keys: {
+        client_id,
+        client_secret,
+        redirect_uris,
+      },
     });
   } catch (e) {
     if (e instanceof Error) console.error("Error adding google credentials to DB:", e.message);
   }
   if (process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET) {
-    await createApp("office365-calendar", "office365calendar", ["calendar"], "office365_calendar", {
-      client_id: process.env.MS_GRAPH_CLIENT_ID,
-      client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+    await createApp({
+      slug: "office365-calendar",
+      dirName: "office365calendar",
+      categories: ["calendar"],
+      type: "office365_calendar",
+      keys: {
+        client_id: process.env.MS_GRAPH_CLIENT_ID,
+        client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+      },
     });
-    await createApp("msteams", "office365video", ["conferencing"], "office365_video", {
-      client_id: process.env.MS_GRAPH_CLIENT_ID,
-      client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+    await createApp({
+      slug: "msteams",
+      dirName: "office365video",
+      categories: ["conferencing"],
+      type: "office365_video",
+      keys: {
+        client_id: process.env.MS_GRAPH_CLIENT_ID,
+        client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+      },
     });
   }
   if (
@@ -394,81 +449,178 @@ export default async function main() {
     process.env.LARK_OPEN_APP_SECRET &&
     process.env.LARK_OPEN_VERIFICATION_TOKEN
   ) {
-    await createApp("lark-calendar", "larkcalendar", ["calendar"], "lark_calendar", {
-      app_id: process.env.LARK_OPEN_APP_ID,
-      app_secret: process.env.LARK_OPEN_APP_SECRET,
-      open_verification_token: process.env.LARK_OPEN_VERIFICATION_TOKEN,
+    await createApp({
+      slug: "lark-calendar",
+      dirName: "larkcalendar",
+      categories: ["calendar"],
+      type: "lark_calendar",
+      keys: {
+        app_id: process.env.LARK_OPEN_APP_ID,
+        app_secret: process.env.LARK_OPEN_APP_SECRET,
+        open_verification_token: process.env.LARK_OPEN_VERIFICATION_TOKEN,
+      },
     });
   }
   // Video apps
   if (process.env.DAILY_API_KEY) {
-    await createApp("daily-video", "dailyvideo", ["conferencing"], "daily_video", {
-      api_key: process.env.DAILY_API_KEY,
-      scale_plan: process.env.DAILY_SCALE_PLAN,
+    await createApp({
+      slug: "daily-video",
+      dirName: "dailyvideo",
+      categories: ["conferencing"],
+      type: "daily_video",
+      keys: {
+        api_key: process.env.DAILY_API_KEY,
+        scale_plan: process.env.DAILY_SCALE_PLAN,
+      },
     });
   }
   if (process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET) {
-    await createApp("tandem", "tandemvideo", ["conferencing"], "tandem_video", {
-      client_id: process.env.TANDEM_CLIENT_ID as string,
-      client_secret: process.env.TANDEM_CLIENT_SECRET as string,
-      base_url: (process.env.TANDEM_BASE_URL as string) || "https://tandem.chat",
+    await createApp({
+      slug: "tandem",
+      dirName: "tandemvideo",
+      categories: ["conferencing"],
+      type: "tandem_video",
+      keys: {
+        client_id: process.env.TANDEM_CLIENT_ID,
+        client_secret: process.env.TANDEM_CLIENT_SECRET,
+      },
     });
   }
   if (process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET) {
-    await createApp("zoom", "zoomvideo", ["conferencing"], "zoom_video", {
-      client_id: process.env.ZOOM_CLIENT_ID,
-      client_secret: process.env.ZOOM_CLIENT_SECRET,
+    await createApp({
+      slug: "zoom",
+      dirName: "zoomvideo",
+      categories: ["conferencing"],
+      type: "zoom_video",
+      keys: {
+        client_id: process.env.ZOOM_CLIENT_ID,
+        client_secret: process.env.ZOOM_CLIENT_SECRET,
+      },
     });
   }
-  await createApp("jitsi", "jitsivideo", ["conferencing"], "jitsi_video");
+  if (process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET) {
+    await createApp({
+      slug: "tandem",
+      dirName: "tandemvideo",
+      categories: ["conferencing"],
+      type: "tandem_video",
+      keys: {
+        client_id: process.env.TANDEM_CLIENT_ID,
+        client_secret: process.env.TANDEM_CLIENT_SECRET,
+      },
+    });
+  }
+  await createApp({
+    slug: "jitsi",
+    dirName: "jitsivideo",
+    categories: ["conferencing"],
+    type: "jitsi_video",
+    keys: {
+      client_id: process.env.JITSI_CLIENT_ID,
+      client_secret: process.env.JITSI_CLIENT_SECRET,
+    },
+  });
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
-    await createApp("hubspot", "hubspot", ["crm"], "hubspot_other_calendar", {
-      client_id: process.env.HUBSPOT_CLIENT_ID,
-      client_secret: process.env.HUBSPOT_CLIENT_SECRET,
+    await createApp({
+      slug: "hubspot",
+      dirName: "hubspot",
+      categories: ["crm"],
+      type: "hubspot_other_calendar",
+      keys: {
+        client_id: process.env.HUBSPOT_CLIENT_ID,
+        client_secret: process.env.HUBSPOT_CLIENT_SECRET,
+      },
     });
   }
   if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
-    await createApp("salesforce", "salesforce", ["crm"], "salesforce_other_calendar", {
-      consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
-      consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
+    await createApp({
+      slug: "salesforce",
+      dirName: "salesforce",
+      categories: ["crm"],
+      type: "salesforce_other_calendar",
+      keys: {
+        consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
+        consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
+      },
     });
   }
   if (process.env.ZOHOCRM_CLIENT_ID && process.env.ZOHOCRM_CLIENT_SECRET) {
-    await createApp("zohocrm", "zohocrm", ["crm"], "zohocrm_other_calendar", {
-      client_id: process.env.ZOHOCRM_CLIENT_ID,
-      client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
+    await createApp({
+      slug: "zohocrm",
+      dirName: "zohocrm",
+      categories: ["crm"],
+      type: "zohocrm_other_calendar",
+      keys: {
+        client_id: process.env.ZOHOCRM_CLIENT_ID,
+        client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
+      },
     });
   }
 
-  await createApp("wipe-my-cal", "wipemycalother", ["automation"], "wipemycal_other");
+  await createApp({
+    slug: "wipe-my-cal",
+    dirName: "wipemycalother",
+    categories: ["automation"],
+    type: "wipe-my-cal_other",
+  });
   if (process.env.GIPHY_API_KEY) {
-    await createApp("giphy", "giphy", ["other"], "giphy_other", {
-      api_key: process.env.GIPHY_API_KEY,
+    await createApp({
+      slug: "giphy",
+      dirName: "giphy",
+      categories: ["other"],
+      type: "giphy_other",
+      keys: {
+        api_key: process.env.GIPHY_API_KEY,
+      },
     });
   }
 
   if (process.env.VITAL_API_KEY && process.env.VITAL_WEBHOOK_SECRET) {
-    await createApp("vital-automation", "vital", ["automation"], "vital_other", {
-      mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
-      region: process.env.VITAL_REGION || "us",
-      api_key: process.env.VITAL_API_KEY,
-      webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
+    await createApp({
+      slug: "vital-automation",
+      dirName: "vital",
+      categories: ["automation"],
+      type: "vital_other",
+      keys: {
+        mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
+        region: process.env.VITAL_REGION || "us",
+        api_key: process.env.VITAL_API_KEY,
+        webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
+      },
     });
   }
 
   if (process.env.ZAPIER_INVITE_LINK) {
-    await createApp("zapier", "zapier", ["automation"], "zapier_automation", {
-      invite_link: process.env.ZAPIER_INVITE_LINK,
+    await createApp({
+      slug: "zapier",
+      dirName: "zapier",
+      categories: ["automation"],
+      type: "zapier_automation",
+      keys: {
+        invite_link: process.env.ZAPIER_INVITE_LINK,
+      },
     });
   }
-  await createApp("make", "make", ["automation"], "make_automation", {
-    invite_link: "https://make.com/en/hq/app-invitation/6cb2772b61966508dd8f414ba3b44510",
+  await createApp({
+    slug: "make",
+    dirName: "make",
+    categories: ["automation"],
+    type: "make_automation",
+    keys: {
+      invite_link: "https://make.com/en/hq/app-invitation/6cb2772b61966508dd8f414ba3b44510",
+    },
   });
 
   if (process.env.HUDDLE01_API_TOKEN) {
-    await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video", {
-      apiKey: process.env.HUDDLE01_API_TOKEN,
+    await createApp({
+      slug: "huddle01",
+      dirName: "huddle01video",
+      categories: ["conferencing"],
+      type: "huddle01_video",
+      keys: {
+        apiKey: process.env.HUDDLE01_API_TOKEN,
+      },
     });
   }
 
@@ -481,20 +633,32 @@ export default async function main() {
     process.env.PAYMENT_FEE_FIXED &&
     process.env.PAYMENT_FEE_PERCENTAGE
   ) {
-    await createApp("stripe", "stripepayment", ["payment"], "stripe_payment", {
-      client_id: process.env.STRIPE_CLIENT_ID,
-      client_secret: process.env.STRIPE_PRIVATE_KEY,
-      payment_fee_fixed: Number(process.env.PAYMENT_FEE_FIXED),
-      payment_fee_percentage: Number(process.env.PAYMENT_FEE_PERCENTAGE),
-      public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
-      webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+    await createApp({
+      slug: "stripe",
+      dirName: "stripepayment",
+      categories: ["payment"],
+      type: "stripe_payment",
+      keys: {
+        client_id: process.env.STRIPE_CLIENT_ID,
+        client_secret: process.env.STRIPE_PRIVATE_KEY,
+        payment_fee_fixed: Number(process.env.PAYMENT_FEE_FIXED),
+        payment_fee_percentage: Number(process.env.PAYMENT_FEE_PERCENTAGE),
+        public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
+        webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+      },
     });
   }
 
   if (process.env.CLOSECOM_CLIENT_ID && process.env.CLOSECOM_CLIENT_SECRET) {
-    await createApp("closecom", "closecom", ["crm"], "closecom_crm", {
-      client_id: process.env.CLOSECOM_CLIENT_ID,
-      client_secret: process.env.CLOSECOM_CLIENT_SECRET,
+    await createApp({
+      slug: "closecom",
+      dirName: "closecom",
+      categories: ["crm"],
+      type: "closecom_crm",
+      keys: {
+        client_id: process.env.CLOSECOM_CLIENT_ID,
+        client_secret: process.env.CLOSECOM_CLIENT_SECRET,
+      },
     });
   }
 
@@ -510,18 +674,19 @@ export default async function main() {
       (category): category is AppCategories => category in AppCategories
     );
 
-    await createApp(
-      app.slug,
-      app.dirName ?? app.slug,
-      validatedCategories,
-      app.name,
-      app.type,
-      undefined,
-      app.isTemplate,
-      app.description,
-      app.logo,
-      app.extendsFeature
-    );
+    await createApp({
+      slug: app.slug,
+      dirName: app.dirName ?? app.slug,
+      categories: validatedCategories,
+      name: app.name,
+      type: app.type,
+      keys: undefined,
+      isTemplate: app.isTemplate,
+      description: app.description,
+      logo: app.logo,
+      extendsFeature: app.extendsFeature,
+      dependencies: app?.dependencies,
+    });
   }
 
   await seedAppData();
