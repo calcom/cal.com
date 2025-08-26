@@ -400,9 +400,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     } catch (error) {
       // Silently fail
+      // Silently fail
       console.error(
-        "Error while scheduling workflow reminders for booking payment initiated",
-        JSON.stringify({ error })
+        "Error while scheduling workflow reminders for BOOKING_REJECTED:",
+        error instanceof Error ? error.message : String(error)
       );
     }
   }
