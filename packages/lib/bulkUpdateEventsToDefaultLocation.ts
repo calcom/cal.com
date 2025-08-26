@@ -1,5 +1,5 @@
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { PrismaAppRepository } from "@calcom/lib/server/repository/app/PrismaAppRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -24,24 +24,51 @@ export const bulkUpdateEventsToDefaultLocation = async ({
     });
   }
 
-  const foundApp = getAppFromSlug(defaultApp.appSlug);
-  const appType = foundApp?.appData?.location?.type;
+  if (!defaultApp.appSlug) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Default conferencing app slug not set",
+    });
+  }
+
+  const appRepository = new PrismaAppRepository();
+  const [appDataResult, credentialResult] = await Promise.allSettled([
+    appRepository.getAppDataFromSlug(defaultApp.appSlug),
+    prisma.credential.findFirst({
+      where: {
+        userId: user.id,
+        appId: defaultApp.appSlug,
+      },
+      select: {
+        id: true,
+      },
+    }),
+  ]);
+
+  if (appDataResult.status === "rejected") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Failed to fetch default conferencing app data: ${appDataResult.reason}`,
+    });
+  }
+
+  if (credentialResult.status === "rejected") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Failed to fetch default conferencing app credential: ${credentialResult.reason}`,
+    });
+  }
+
+  const appData = appDataResult.value;
+  const credential = credentialResult.value;
+
+  const appType = appData?.location?.type;
   if (!appType) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `Default conferencing app '${defaultApp.appSlug}' doesnt exist.`,
     });
   }
-
-  const credential = await prisma.credential.findFirst({
-    where: {
-      userId: user.id,
-      appId: foundApp.slug,
-    },
-    select: {
-      id: true,
-    },
-  });
 
   return await prisma.eventType.updateMany({
     where: {
