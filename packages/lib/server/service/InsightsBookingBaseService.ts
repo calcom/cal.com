@@ -3,6 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
@@ -330,27 +331,23 @@ export class InsightsBookingBaseService {
     }
 
     if (id === "userEmail" && isTextFilterValue(value)) {
-      return Prisma.sql`"userEmail" ILIKE ${`%${value.data.operand}%`}`;
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userEmail" ${condition}`;
+      }
     }
 
     if (id === "userName" && isTextFilterValue(value)) {
-      return Prisma.sql`"userName" ILIKE ${`%${value.data.operand}%`}`;
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userName" ${condition}`;
+      }
     }
 
     if (id === "rating" && isNumberFilterValue(value)) {
-      const ratingValue = value.data.operand;
-      const operator = value.data.operator;
-
-      if (operator === "eq") {
-        return Prisma.sql`"rating" = ${ratingValue}`;
-      } else if (operator === "gt") {
-        return Prisma.sql`"rating" > ${ratingValue}`;
-      } else if (operator === "gte") {
-        return Prisma.sql`"rating" >= ${ratingValue}`;
-      } else if (operator === "lt") {
-        return Prisma.sql`"rating" < ${ratingValue}`;
-      } else if (operator === "lte") {
-        return Prisma.sql`"rating" <= ${ratingValue}`;
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"rating" ${condition}`;
       }
     }
 
