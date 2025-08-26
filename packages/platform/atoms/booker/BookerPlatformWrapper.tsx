@@ -17,7 +17,7 @@ import { useBookingForm } from "@calcom/features/bookings/Booker/components/hook
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/getTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
@@ -249,7 +249,7 @@ const BookerPlatformWrapperComponent = (
 
   const { timezone } = useTimePreferences();
 
-  const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
+  const [calculatedStartTime, calculatedEndTime] = getTimesForSchedule({
     month,
     monthCount,
     dayCount,
