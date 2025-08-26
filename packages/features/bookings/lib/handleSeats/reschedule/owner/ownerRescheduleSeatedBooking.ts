@@ -17,7 +17,7 @@ const ownerRescheduleSeatedBooking = async (
   seatedBooking: SeatedBooking,
   resultBooking: HandleSeatsResultBooking | null,
   eventManager: EventManager,
-  traceContext?: TraceContext
+  traceContext: TraceContext
 ) => {
   const { originalRescheduledBooking, tAttendees } = rescheduleSeatedBookingObject;
   const { evt } = rescheduleSeatedBookingObject;

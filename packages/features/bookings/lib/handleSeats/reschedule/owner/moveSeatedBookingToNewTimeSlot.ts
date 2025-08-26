@@ -18,23 +18,15 @@ const moveSeatedBookingToNewTimeSlot = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatedBooking: SeatedBooking,
   eventManager: EventManager,
-  traceContext?: TraceContext
+  traceContext: TraceContext
 ) => {
   const { rescheduleUid } = rescheduleSeatedBookingObject;
 
-  const spanContext = traceContext
-    ? distributedTracing.createSpan(traceContext, "move_seated_booking_to_new_time_slot", {
-          bookingId: seatedBooking.id.toString(),
-          rescheduleUid: rescheduleUid || "null",
-          eventTypeId: rescheduleSeatedBookingObject.eventType.id.toString(),
-      })
-    : distributedTracing.createTrace("move_seated_booking_to_new_time_slot_fallback", {
-        meta: {
-          bookingId: seatedBooking.id.toString(),
-          rescheduleUid: rescheduleUid || "null",
-          eventTypeId: rescheduleSeatedBookingObject.eventType.id.toString(),
-        },
-      });
+  const spanContext = distributedTracing.createSpan(traceContext, "move_seated_booking_to_new_time_slot", {
+    bookingId: seatedBooking.id.toString(),
+    rescheduleUid: rescheduleUid || "null",
+    eventTypeId: rescheduleSeatedBookingObject.eventType.id.toString(),
+  });
   const loggerWithEventDetails = distributedTracing.getTracingLogger(spanContext);
   const {
     rescheduleReason,

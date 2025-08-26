@@ -23,9 +23,9 @@ const rescheduleSeatedBooking = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatedBooking: SeatedBooking,
   resultBooking: HandleSeatsResultBooking | null,
-  traceContext?: TraceContext
+  traceContext: TraceContext
 ) => {
-  const loggerWithEventDetails = traceContext ? distributedTracing.getTracingLogger(traceContext) : undefined;
+  const loggerWithEventDetails = distributedTracing.getTracingLogger(traceContext);
   const { evt, eventType, allCredentials, organizerUser, bookerEmail, tAttendees, bookingSeat, reqUserId } =
     rescheduleSeatedBookingObject;
 
@@ -136,7 +136,8 @@ const rescheduleSeatedBooking = async (
       seatAttendee,
       newTimeSlotBooking,
       originalBookingEvt,
-      eventManager
+      eventManager,
+      traceContext
     );
   }
 

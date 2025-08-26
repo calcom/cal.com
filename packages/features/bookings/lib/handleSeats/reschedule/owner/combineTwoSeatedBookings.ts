@@ -20,9 +20,9 @@ const combineTwoSeatedBookings = async (
   seatedBooking: SeatedBooking,
   newTimeSlotBooking: NewTimeSlotBooking,
   eventManager: EventManager,
-  traceContext?: TraceContext
+  traceContext: TraceContext
 ) => {
-  const loggerWithEventDetails = traceContext ? distributedTracing.getTracingLogger(traceContext) : undefined;
+  const loggerWithEventDetails = distributedTracing.getTracingLogger(traceContext);
   const {
     eventType,
     tAttendees,
@@ -137,7 +137,7 @@ const combineTwoSeatedBookings = async (
 
   if (noEmail !== true && isConfirmedByDefault) {
     // TODO send reschedule emails to attendees of the old booking
-    loggerWithEventDetails?.debug("Emails: Sending reschedule emails - handleSeats");
+    loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,
