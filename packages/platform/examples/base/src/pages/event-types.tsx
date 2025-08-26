@@ -33,13 +33,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const handleSubmit = () => {
     eventTypeRef.current?.handleFormSubmit({
       onSuccess: () => {
-        console.log('Event type updated successfully');
+        console.log("Event type updated successfully");
         // Additional success handling logic here
       },
       onError: (error) => {
-        console.error('Error updating event type:', error);
+        console.error("Error updating event type:", error);
         // Additional error handling logic here
-      }
+      },
     });
   };
   const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
