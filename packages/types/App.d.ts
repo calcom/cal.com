@@ -37,7 +37,7 @@ type PaidAppData = {
   mode?: "subscription" | "one_time";
 };
 
-type AppData = {
+export type AppData = {
   /**
    * TODO: We must assert that if `location` is set in App config.json, then it must have atleast Messaging or Conferencing as a category.
    * This is because we fetch only those credentials(as an optimization) which match that category.

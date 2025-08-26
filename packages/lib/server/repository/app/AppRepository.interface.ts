@@ -1,3 +1,5 @@
+import type { AppData } from "@calcom/types/App";
+
 interface AppMetadataResult {
   slug: string;
   dirName: string;
@@ -21,4 +23,5 @@ export interface AppRepositoryInterface {
     userId: number;
     teamIds?: number[];
   }): Promise<AppMetadataResult[]>;
+  getAppDataFromSlug(slug: string): Promise<AppData | null>;
 }
