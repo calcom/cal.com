@@ -303,7 +303,7 @@ export class MembershipRepository {
     });
   }
 
-  static async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+  async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
     return await prisma.membership.findUnique({
       where: {
         userId_teamId: {
@@ -312,6 +312,11 @@ export class MembershipRepository {
         },
       },
     });
+  }
+
+  static async findUniqueByUserIdAndTeamId(passThroughProps: { userId: number; teamId: number }) {
+    const instance = new MembershipRepository();
+    return instance.findUniqueByUserIdAndTeamId(passThroughProps);
   }
 
   static async findByTeamIdForAvailability({ teamId }: { teamId: number }) {
