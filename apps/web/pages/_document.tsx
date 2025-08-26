@@ -38,6 +38,8 @@ class MyDocument extends Document<Props> {
     const newLocale = this.props.newLocale || "en";
     const newDir = dir(newLocale);
 
+    const isDesktopApp = platform.todesktop.isDesktopApp();
+
     return (
       <Html
         lang={newLocale}
@@ -50,7 +52,7 @@ class MyDocument extends Document<Props> {
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";
-              window.calIsDesktopApp = ${platform.todesktop.isDesktopApp()};
+              window.calIsDesktopApp = ${isDesktopApp};
               (${applyTheme.toString()})();
               (${applyToDesktopClass.toString()})();
             `,
