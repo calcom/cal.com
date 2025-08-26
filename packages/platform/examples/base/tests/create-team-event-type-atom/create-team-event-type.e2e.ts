@@ -51,10 +51,10 @@ test("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
   await expect(page.locator('[data-testid="vertical-tab-payments"]')).toBeVisible();
   await page.locator('[data-testid="vertical-tab-payments"]').click();
 
-  await expect(page.locator('[data-testid="vertical-tab-event_setup_tab_title"]')).toBeVisible();
+  await expect(page.locator('[data-testid="vertical-tab-basics"]')).toBeVisible();
+  await page.locator('[data-testid="vertical-tab-basics"]').click();
 
-  await page.locator('[data-testid="vertical-tab-event_setup_tab_title"]').click();
-
+  await expect(page.locator('textarea[name="description"]')).toBeVisible();
   await page.fill('textarea[name="description"]', generateRandomText());
 
   await page.locator('[data-testid="update-eventtype"]').click();
