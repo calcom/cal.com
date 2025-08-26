@@ -2,7 +2,7 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,7 +35,8 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
   if (activeOnEventTypeIds.length === 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "No event types selected or saved in workflow activeOn",
+      message:
+        "This workflow has no event types selected or saved. Please choose at least one event type to continue.",
     });
   }
 
