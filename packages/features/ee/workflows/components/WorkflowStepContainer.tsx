@@ -529,7 +529,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             StartIcon="trash-2"
                             color="destructive"
                             onClick={() => {
-                              // Check if this is a CAL_AI action with a phone number
                               if (
                                 isCalAIAction(step.action) &&
                                 agentData?.outboundPhoneNumbers &&
@@ -605,6 +604,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               }
 
                               setIsEmailSubjectNeeded(false);
+                              form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
                             } else if (isWhatsappAction(val.value)) {
                               setNumberRequiredConfigs(val.value === WorkflowActions.WHATSAPP_NUMBER, false);
 
@@ -613,6 +613,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               }
 
                               setIsEmailSubjectNeeded(false);
+                              form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
                             } else if (isCalAIAction(val.value)) {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIsNeeded(false);
@@ -626,6 +627,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsSenderIsNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
                               setIsEmailSubjectNeeded(true);
+                              form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
                             }
 
                             form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);
@@ -635,11 +637,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actionOptions?.map((option) => ({
-                          ...option,
-                          creditsTeamId: teamId ?? creditsTeamId,
-                          isOrganization: props.isOrganization,
-                        }))}
+                        options={actionOptions
+                          ?.filter((option) => {
+                            if (
+                              (isCalAIAction(option.value) && form.watch("selectAll")) ||
+                              (isCalAIAction(option.value) && props.isOrganization)
+                            ) {
+                              return false;
+                            }
+                            return true;
+                          })
+                          ?.map((option) => ({
+                            ...option,
+                            creditsTeamId: teamId ?? creditsTeamId,
+                            isOrganization: props.isOrganization,
+                          }))}
                       />
                     );
                   }}

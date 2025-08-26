@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogHeader, DialogFooter as BaseDialogFooter } from "@calcom/ui/components/dialog";
@@ -688,17 +689,85 @@ export function AgentConfigurationSheet({
       <Dialog open={isBuyDialogOpen} onOpenChange={setIsBuyDialogOpen}>
         <DialogContent type="creation">
           <div className="flex flex-col">
-            <div className="mb-4">
-              <h3 className="text-emphasis text-lg font-bold">{t("buy_new_number")}</h3>
-              <p className="text-default text-sm">
-                {t("buy_number_cost_x_per_month", {
-                  priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
-                })}
-              </p>
+            <div>
+              <h3 className="text-emphasis text-xl font-bold">{t("buy_a_new_number")}</h3>
+
+              <p className="text-default mb-4 leading-tight">{t("buy_a_new_number_description")}</p>
+
+              <div className="mb-2">
+                <h4 className="text-emphasis font-semibold">{t("purchasable_numbers")}</h4>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇺🇸</span>
+                    <span className="text-default">United States</span>
+                  </div>
+                  <span className="text-emphasisfont-medium">
+                    {t("price_per_month", {
+                      priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-emphasis font-semibold">{t("supported_call_destinations")}</h4>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇺🇸</span>
+                    <span className="text-default">United States</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇮🇳</span>
+                    <span className="text-default">India</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇦🇺</span>
+                    <span className="text-default">Australia</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇩🇪</span>
+                    <span className="text-default">Germany</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇪🇸</span>
+                    <span className="text-default">Spain</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇬🇧</span>
+                    <span className="text-default">United Kingdom</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇲🇽</span>
+                    <span className="text-default">Mexico</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇫🇷</span>
+                    <span className="text-default">France</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇯🇵</span>
+                    <span className="text-default">Japan</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇨🇦</span>
+                    <span className="text-default">Canada</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🇮🇹</span>
+                    <span className="text-default">Italy</span>
+                  </div>
+                </div>
+              </div>
+
+              <Alert
+                className="mt-2"
+                severity="info"
+                message={t("only_us_phone_numbers_can_be_purchased_here")}
+              />
             </div>
             <BaseDialogFooter showDivider className="relative">
               <Button onClick={() => setIsBuyDialogOpen(false)} color="secondary">
-                {t("cancel")}
+                {t("close")}
               </Button>
               <Button
                 StartIcon="external-link"
@@ -714,9 +783,7 @@ export function AgentConfigurationSheet({
                 }}
                 loading={buyNumberMutation.isPending}
                 disabled={buyNumberMutation.isPending}>
-                {t("buy_number_for_x_per_month", {
-                  priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
-                })}
+                Buy US Number ($5/month)
               </Button>
             </BaseDialogFooter>
           </div>

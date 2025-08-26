@@ -15,7 +15,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isCalAIAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -58,6 +58,11 @@ export default function WorkflowDetailsPage(props: Props) {
   } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const hasCalAIAction = () => {
+    const steps = form.getValues("steps") || [];
+    return steps.some((step) => isCalAIAction(step.action));
+  };
 
   const permissions = _permissions || {
     canView: !teamId ? true : !props.readOnly,
@@ -168,25 +173,27 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
-          <div className="mt-3">
-            <Controller
-              name="selectAll"
-              render={({ field: { value, onChange } }) => (
-                <CheckboxField
-                  description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
-                  disabled={props.readOnly}
-                  onChange={(e) => {
-                    onChange(e);
-                    if (e.target.value) {
-                      setSelectedOptions(allOptions);
-                      form.setValue("activeOn", allOptions);
-                    }
-                  }}
-                  checked={value}
-                />
-              )}
-            />
-          </div>
+          {!hasCalAIAction() && (
+            <div className="mt-3">
+              <Controller
+                name="selectAll"
+                render={({ field: { value, onChange } }) => (
+                  <CheckboxField
+                    description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
+                    disabled={props.readOnly}
+                    onChange={(e) => {
+                      onChange(e);
+                      if (e.target.value) {
+                        setSelectedOptions(allOptions);
+                        form.setValue("activeOn", allOptions);
+                      }
+                    }}
+                    checked={value}
+                  />
+                )}
+              />
+            </div>
+          )}
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
           {permissions.canDelete && (
             <Button

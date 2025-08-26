@@ -121,7 +121,10 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   });
 
   const activePhoneNumbers = workflowStep?.agent?.outboundPhoneNumbers?.filter(
-    (phoneNumber) => phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+    (phoneNumber) =>
+      phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+      phoneNumber.subscriptionStatus === null ||
+      phoneNumber.subscriptionStatus === undefined
   );
 
   if (!workflowStep?.agent) {

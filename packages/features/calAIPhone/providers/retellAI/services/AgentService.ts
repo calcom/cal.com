@@ -174,7 +174,9 @@ export class AgentService {
       });
       throw new HttpError({
         statusCode: 500,
-        message: `Failed to update agent general tools ${agentId}`,
+        message: `Failed to update agent general tools ${agentId}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
     }
   }
