@@ -4,8 +4,8 @@ import { generateSkeleton } from "../ui/skeleton";
 function getStyle() {
   return `
   <style>
-    /* Fix for grid layout issues - prevents footer doubling */
-    cal-modal-box {
+    /* Fix for grid layout issues - prevents footer doubling (host must be out of normal flow) */
+    :host {
       position: absolute;
     }
     
