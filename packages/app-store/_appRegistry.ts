@@ -2,6 +2,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
+import { AppRepository } from "@calcom/lib/server/repository/app/PrismaAppRepository";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -38,25 +39,23 @@ export async function getAppWithMetadata(app: { dirName: string } | { slug: stri
 
 /** Mainly to use in listings for the frontend, use in getStaticProps or getServerSideProps */
 export async function getAppRegistry() {
-  const dbApps = await prisma.app.findMany({
-    where: { enabled: true },
-    select: { dirName: true, slug: true, categories: true, enabled: true, createdAt: true },
-  });
+  const appRepository = new AppRepository();
+  const [dbApps, installCountPerApp] = await Promise.all([
+    appRepository.getAllEnabledApps(),
+    getInstallCountPerApp(),
+  ]);
   const apps = [] as App[];
-  const installCountPerApp = await getInstallCountPerApp();
-  for await (const dbapp of dbApps) {
-    const app = await getAppWithMetadata(dbapp);
-    if (!app) continue;
+  for await (const app of dbApps) {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-    app.createdAt = dbapp.createdAt.toISOString();
+    app.createdAt = app.createdAt.toISOString();
     apps.push({
       ...app,
-      category: app.category || "other",
+      category: app.categories[0] || "other",
       installed:
         true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
-      installCount: installCountPerApp[dbapp.slug] || 0,
+      installCount: installCountPerApp[app.slug] || 0,
     });
   }
   return apps;
