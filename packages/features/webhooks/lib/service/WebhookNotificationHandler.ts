@@ -1,16 +1,21 @@
 import logger from "@calcom/lib/logger";
 
 import type { WebhookEventDTO } from "../dto/types";
-import { WebhookPayloadFactory } from "../factory/WebhookPayloadFactory";
-import type { WebhookService } from "./WebhookService";
+import type { WebhookPayloadFactory } from "../factory/WebhookPayloadFactory";
+import type { IWebhookService } from "../interface/services";
+import type { IWebhookNotificationHandler } from "../interface/webhook";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookNotificationHandler]"] });
 
-export class WebhookNotificationHandler {
-  constructor(private readonly webhookService: WebhookService) {}
+export class WebhookNotificationHandler implements IWebhookNotificationHandler {
+  constructor(
+    private readonly webhookService: IWebhookService,
+    private readonly webhookPayloadFactory: WebhookPayloadFactory
+  ) {}
 
   async handleNotification(dto: WebhookEventDTO, isDryRun = false): Promise<void> {
     const trigger = dto.triggerEvent;
+
     try {
       if (isDryRun) {
         log.debug(`Dry run mode - skipping webhook notification for: ${trigger}`);
@@ -38,7 +43,7 @@ export class WebhookNotificationHandler {
         return;
       }
 
-      const webhookPayload = WebhookPayloadFactory.createPayload(dto);
+      const webhookPayload = this.webhookPayloadFactory.createPayload(dto);
 
       await this.webhookService.processWebhooks(trigger, webhookPayload, subscribers);
 

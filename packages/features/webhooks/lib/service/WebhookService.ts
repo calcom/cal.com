@@ -6,12 +6,12 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type { ITasker } from "../interface/infrastructure";
-import type { IWebhookRepository } from "../interface/services";
+import type { IWebhookRepository, IWebhookService } from "../interface/services";
 import { TaskerProvider } from "../provider/TaskerProvider";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookService]"] });
 
-export class WebhookService {
+export class WebhookService implements IWebhookService {
   constructor(
     private readonly repository: IWebhookRepository,
     private readonly tasker?: ITasker // Optional for fallback import

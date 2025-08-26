@@ -1,38 +1,13 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import defaultPrisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber } from "../dto/types";
+import type { IWebhookRepository } from "../interface/repository";
 import type { GetSubscribersOptions } from "./types";
 
-/**
- * Repository for fetching webhook subscribers and configurations from the database.
- *
- * @description This repository provides data access methods for webhook-related database operations,
- * abstracting the underlying database queries and providing a clean interface for webhook data retrieval.
- * It follows the repository pattern to separate data access logic from business logic.
- *
- * @responsibilities
- * - Fetches webhook subscribers based on trigger events and organizational context
- * - Retrieves webhook configurations and subscription details from the database
- * - Provides filtered queries for active webhooks and specific event types
- * - Abstracts database schema details from the service layer
- *
- * @example Fetching webhooks for a booking event
- * ```typescript
- * const repository = new WebhookRepository();
- * const webhooks = await repository.findWebhooksByTrigger({
- *   triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
- *   teamId: 123
- * });
- * // Returns array of webhook subscribers for the event
- * ```
- *
- * @access Should only be called from WebhookService to maintain proper layering
- * @see WebhookService For business logic that uses this repository
- */
-export class WebhookRepository {
+export class WebhookRepository implements IWebhookRepository {
   constructor(private prisma: PrismaClient = defaultPrisma) {}
 
   async getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]> {
@@ -56,7 +31,7 @@ export class WebhookRepository {
           parentId: true,
         },
       });
-      managedParentEventTypeId = managedChildEventType?.parentId;
+      managedParentEventTypeId = managedChildEventType?.parentId ?? undefined;
     }
 
     const webhooks = await this.getSubscribersRaw({
@@ -75,7 +50,7 @@ export class WebhookRepository {
       appId: webhook.appId,
       secret: webhook.secret,
       time: webhook.time,
-      timeUnit: webhook.timeUnit as string | null,
+      timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers as any[],
     }));
   }
@@ -209,7 +184,7 @@ export class WebhookRepository {
       appId: webhook.appId,
       secret: webhook.secret,
       time: webhook.time,
-      timeUnit: webhook.timeUnit as string | null,
+      timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers,
     };
   }

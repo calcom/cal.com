@@ -86,76 +86,23 @@ interface BaseWebhookPayload {
   cancelledBy: string | null;
 }
 
-/**
- * Transforms internal webhook DTOs into standardized external webhook payloads.
- *
- * @description This factory serves as the boundary between Cal.com's internal data structures
- * and the external webhook API contract, ensuring consistent payload format across all webhook events.
- * Incorporates robust booking normalization logic merged from BookingWebhookFactory.
- *
- * @responsibilities
- * - Converts DTOs (internal format) to Payloads (external webhook format)
- * - Adds UTC timezone offsets for consistent datetime handling
- * - Normalizes data structures across different webhook event types
- * - Ensures backward compatibility with existing webhook consumers
- * - Applies business rules and defaults for payload generation
- * - Provides robust field normalization with fallbacks and validation
- *
- * @example Basic usage
- * ```typescript
- * const dto: BookingCreatedDTO = { triggerEvent: "BOOKING_CREATED", ... };
- * const payload = WebhookPayloadFactory.createPayload(dto);
- * // Returns: { triggerEvent: "BOOKING_CREATED", createdAt: "...", payload: {...} }
- * ```
- *
- */
 export class WebhookPayloadFactory {
-  // ============================================================================
-  // BOOKING NORMALIZATION HELPERS (merged from BookingWebhookFactory)
-  // ============================================================================
-
-  /**
-   * Extracts event type with smart fallback logic
-   * @param params Booking payload parameters
-   * @returns Event type string with fallbacks: eventSlug || title || ""
-   */
-  private static getType(params: BaseWebhookPayload): string {
+  getType(params: BaseWebhookPayload): string {
     return params.eventSlug || params.title || "";
   }
-
-  /**
-   * Ensures title is never null/undefined
-   * @param params Booking payload parameters
-   * @returns Title string, defaulting to empty string
-   */
-  private static getTitle(params: BaseWebhookPayload): string {
+  getTitle(params: BaseWebhookPayload): string {
     return params.title || "";
   }
 
-  /**
-   * Normalizes destination calendar to array format
-   * @param params Booking payload parameters
-   * @returns Array containing destination calendar or empty array
-   */
-  private static getDestinationCalendar(params: BaseWebhookPayload): DestinationCalendar[] {
+  getDestinationCalendar(params: BaseWebhookPayload): DestinationCalendar[] {
     return params.destinationCalendar ? [params.destinationCalendar] : [];
   }
 
-  /**
-   * Validates and processes custom inputs to ensure proper object structure
-   * @param params Booking payload parameters
-   * @returns Validated custom inputs object or undefined
-   */
-  private static getCustomInputs(params: BaseWebhookPayload): Record<string, unknown> | undefined {
+  getCustomInputs(params: BaseWebhookPayload): Record<string, unknown> | undefined {
     return isObjectButNotArray(params.customInputs) ? params.customInputs : undefined;
   }
 
-  /**
-   * Creates normalized booking base payload (merged from BookingWebhookFactory)
-   * @param params Booking base parameters
-   * @returns Normalized base booking payload
-   */
-  private static createBookingBasePayload(params: BaseWebhookPayload): Record<string, unknown> {
+  createBookingBasePayload(params: BaseWebhookPayload): Record<string, unknown> {
     const {
       bookingId,
       title,
@@ -194,7 +141,7 @@ export class WebhookPayloadFactory {
       smsReminderNumber,
     };
   }
-  static createPayload(dto: WebhookEventDTO): WebhookPayload {
+  createPayload(dto: WebhookEventDTO): WebhookPayload {
     switch (dto.triggerEvent) {
       case WebhookTriggerEvents.BOOKING_CREATED:
         return this.createBookingCreatedPayload(dto as BookingCreatedDTO);
@@ -237,7 +184,7 @@ export class WebhookPayloadFactory {
     }
   }
 
-  private static createBookingCreatedPayload(dto: BookingCreatedDTO): WebhookPayload {
+  createBookingCreatedPayload(dto: BookingCreatedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: dto.eventType as EventTypeInfo,
@@ -257,7 +204,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createBookingCancelledPayload(dto: BookingCancelledDTO): WebhookPayload {
+  createBookingCancelledPayload(dto: BookingCancelledDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: dto.eventType as EventTypeInfo,
@@ -277,7 +224,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createBookingRequestedPayload(dto: BookingRequestedDTO): WebhookPayload {
+  createBookingRequestedPayload(dto: BookingRequestedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: dto.eventType as EventTypeInfo,
@@ -293,7 +240,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createBookingRescheduledPayload(dto: BookingRescheduledDTO): WebhookPayload {
+  createBookingRescheduledPayload(dto: BookingRescheduledDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: dto.eventType as EventTypeInfo,
@@ -315,7 +262,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createBookingPaidPayload(dto: BookingPaidDTO): WebhookPayload {
+  createBookingPaidPayload(dto: BookingPaidDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: dto.eventType as EventTypeInfo,
@@ -333,7 +280,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createBookingRejectedPayload(dto: BookingRejectedDTO): WebhookPayload {
+  createBookingRejectedPayload(dto: BookingRejectedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: dto.eventType as EventTypeInfo,
@@ -351,7 +298,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createBookingNoShowPayload(dto: BookingNoShowDTO): WebhookPayload {
+  createBookingNoShowPayload(dto: BookingNoShowDTO): WebhookPayload {
     const payload: BookingNoShowUpdatedPayload = {
       message: dto.message,
       bookingUid: dto.bookingUid,
@@ -366,7 +313,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createOOOCreatedPayload(dto: OOOCreatedDTO): WebhookPayload {
+  createOOOCreatedPayload(dto: OOOCreatedDTO): WebhookPayload {
     const payload: OOOEntryPayloadType = {
       oooEntry: dto.oooEntry,
     };
@@ -378,7 +325,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createFormSubmittedPayload(dto: FormSubmittedDTO): WebhookPayload {
+  createFormSubmittedPayload(dto: FormSubmittedDTO): WebhookPayload {
     const payload: FormSubmittedPayload = {
       formId: dto.form.id,
       formName: dto.form.name,
@@ -393,13 +340,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  /**
-   * Builds event payload with robust normalization and proper typing
-   * Uses merged BookingWebhookFactory normalization for booking-like data
-   * @param params Event payload parameters with proper types
-   * @returns Normalized event payload
-   */
-  private static buildEventPayload(params: {
+  buildEventPayload(params: {
     evt: CalendarEvent;
     eventType: EventTypeInfo;
     bookingId?: number;
@@ -516,12 +457,7 @@ export class WebhookPayloadFactory {
     return payload;
   }
 
-  /**
-   * Adds UTC timezone offsets to event organizer and attendees
-   * @param evt Event object with organizer and attendees
-   * @returns Event object with UTC offsets added
-   */
-  private static addUTCOffset(evt: CalendarEvent): Record<string, unknown> {
+  addUTCOffset(evt: CalendarEvent): Record<string, unknown> {
     if (!evt) return evt as Record<string, unknown>;
 
     const eventWithOffset = { ...evt } as Record<string, unknown>;
@@ -560,7 +496,7 @@ export class WebhookPayloadFactory {
     return eventWithOffset;
   }
 
-  private static createBookingPaymentInitiatedPayload(dto: BookingPaymentInitiatedDTO): WebhookPayload {
+  createBookingPaymentInitiatedPayload(dto: BookingPaymentInitiatedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: dto.eventType as EventTypeInfo,
@@ -578,7 +514,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createFormSubmittedNoEventPayload(dto: FormSubmittedNoEventDTO): WebhookPayload {
+  createFormSubmittedNoEventPayload(dto: FormSubmittedNoEventDTO): WebhookPayload {
     const payload: FormSubmittedPayload = {
       formId: dto.form.id,
       formName: dto.form.name,
@@ -593,7 +529,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createRecordingReadyPayload(dto: RecordingReadyDTO): WebhookPayload {
+  createRecordingReadyPayload(dto: RecordingReadyDTO): WebhookPayload {
     const payload: RecordingPayload = {
       downloadLink: dto.downloadLink,
     };
@@ -605,7 +541,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createTranscriptionGeneratedPayload(dto: TranscriptionGeneratedDTO): WebhookPayload {
+  createTranscriptionGeneratedPayload(dto: TranscriptionGeneratedDTO): WebhookPayload {
     const eventPayload = this.buildEventPayload({
       evt: dto.evt,
       eventType: null as unknown as EventTypeInfo,
@@ -619,7 +555,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createMeetingStartedPayload(dto: MeetingStartedDTO): WebhookPayload {
+  createMeetingStartedPayload(dto: MeetingStartedDTO): WebhookPayload {
     // For meeting events, we use the booking data directly since it contains all necessary information
     const payload: MeetingPayload = { ...dto.booking };
 
@@ -630,7 +566,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createMeetingEndedPayload(dto: MeetingEndedDTO): WebhookPayload {
+  createMeetingEndedPayload(dto: MeetingEndedDTO): WebhookPayload {
     const payload: MeetingPayload = { ...dto.booking };
 
     return {
@@ -640,7 +576,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createInstantMeetingPayload(dto: InstantMeetingDTO): WebhookPayload {
+  createInstantMeetingPayload(dto: InstantMeetingDTO): WebhookPayload {
     const payload: InstantMeetingPayload = {
       title: dto.title,
       body: dto.body,
@@ -658,7 +594,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createAfterHostsNoShowPayload(dto: AfterHostsNoShowDTO): WebhookPayload {
+  createAfterHostsNoShowPayload(dto: AfterHostsNoShowDTO): WebhookPayload {
     const payload: NoShowWebhookPayload = {
       bookingId: dto.bookingId,
       webhook: dto.webhook,
@@ -671,7 +607,7 @@ export class WebhookPayloadFactory {
     };
   }
 
-  private static createAfterGuestsNoShowPayload(dto: AfterGuestsNoShowDTO): WebhookPayload {
+  createAfterGuestsNoShowPayload(dto: AfterGuestsNoShowDTO): WebhookPayload {
     const payload: NoShowWebhookPayload = {
       bookingId: dto.bookingId,
       webhook: dto.webhook,
