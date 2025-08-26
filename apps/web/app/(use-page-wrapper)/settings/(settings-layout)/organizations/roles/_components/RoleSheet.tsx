@@ -13,11 +13,12 @@ import {
   getPermissionsForScope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/button";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextField, Checkbox, Label } from "@calcom/ui/components/form";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import { Form, TextField, Checkbox, Label } from "@calcom/ui/form";
 
 import { revalidateTeamRoles } from "../actions";
 import { AdvancedPermissionGroup } from "./AdvancedPermissionGroup";
@@ -154,7 +155,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
         teamId,
         roleId: role.id,
         name: values.name,
-        permissions: values.permissions as any,
+        permissions: values.permissions,
         color: values.color,
       });
     } else {
@@ -163,7 +164,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
         name: values.name,
         description: values.description,
         color: values.color,
-        permissions: values.permissions as any,
+        permissions: values.permissions,
       });
     }
   };
