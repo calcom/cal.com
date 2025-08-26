@@ -6,7 +6,6 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZFilteredListInputSchema } from "./filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
-import { ZGetRoutingFormOptionsInputSchema } from "./getRoutingFormOptions.schema";
 import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
 import { ZListInputSchema } from "./list.schema";
@@ -26,7 +25,7 @@ type WorkflowsRouterHandlerCache = {
   sendVerificationCode?: typeof import("./sendVerificationCode.handler").sendVerificationCodeHandler;
   verifyPhoneNumber?: typeof import("./verifyPhoneNumber.handler").verifyPhoneNumberHandler;
   getVerifiedNumbers?: typeof import("./getVerifiedNumbers.handler").getVerifiedNumbersHandler;
-  getRoutingFormOptions?: typeof import("./getRoutingFormOptions.handler").getRoutingFormOptionsHandler;
+
   getWorkflowActionOptions?: typeof import("./getWorkflowActionOptions.handler").getWorkflowActionOptionsHandler;
   filteredList?: typeof import("./filteredList.handler").filteredListHandler;
   getVerifiedEmails?: typeof import("./getVerifiedEmails.handler").getVerifiedEmailsHandler;
@@ -245,25 +244,6 @@ export const workflowsRouter = router({
     });
   }),
 
-  getRoutingFormOptions: authedProcedure
-    .input(ZGetRoutingFormOptionsInputSchema)
-    .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getRoutingFormOptions) {
-        UNSTABLE_HANDLER_CACHE.getRoutingFormOptions = await import("./getRoutingFormOptions.handler").then(
-          (mod) => mod.getRoutingFormOptionsHandler
-        );
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getRoutingFormOptions) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getRoutingFormOptions({
-        ctx,
-        input,
-      });
-    }),
   filteredList: authedProcedure.input(ZFilteredListInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.filteredList) {
       UNSTABLE_HANDLER_CACHE.filteredList = await import("./filteredList.handler").then(
