@@ -8,9 +8,17 @@ interface AppMetadataResult {
   logo?: string | null;
   enabled: boolean;
   extendsFeature?: string | null;
+  dependencies?: string[];
 }
 
 export interface AppRepositoryInterface {
   getMetadataFromSlug(slug: string): Promise<AppMetadataResult | null>;
   getAllEnabledApps(): Promise<AppMetadataResult[]>;
+  getAllEnabledAppsWithCredentials({
+    userId,
+    teamIds,
+  }: {
+    userId: number;
+    teamIds?: number[];
+  }): Promise<AppMetadataResult[]>;
 }
