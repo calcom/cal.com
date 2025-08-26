@@ -61,8 +61,6 @@ export const getEventTypeById = async ({
     prisma,
   });
 
-  console.log("raw ev: ", rawEventType);
-
   if (!rawEventType) {
     if (isTrpcCall) {
       throw new TRPCError({ code: "NOT_FOUND" });
@@ -72,7 +70,6 @@ export const getEventTypeById = async ({
   }
 
   const { locations, metadata, ...restEventType } = rawEventType;
-  console.log("locations after destructuring: ", locations);
   const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };

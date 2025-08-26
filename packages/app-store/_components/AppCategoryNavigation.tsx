@@ -29,7 +29,6 @@ const AppCategoryNavigation = ({
 }) => {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const appCategories = useMemo(() => getAppCategories(baseURL, useQueryParam), [baseURL, useQueryParam]);
-  console.log("appCategories: ", appCategories);
 
   return (
     <div className={cs("flex flex-col xl:flex-row xl:space-x-6", classNames?.root ?? className)}>

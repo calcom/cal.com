@@ -100,9 +100,7 @@ export async function getLocationGroupedOptions(
     credentials = buildNonDelegationCredentials(nonDelegationCredentials);
   }
 
-  console.log("credentials: ", credentials);
   const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });
-  console.log("integrations: ", integrations);
 
   integrations.forEach((app) => {
     // All apps that are labeled as a locationOption are video apps.
@@ -114,12 +112,10 @@ export async function getLocationGroupedOptions(
           : app.categories[0] || app.category;
       if (!groupByCategory) groupByCategory = AppCategories.conferencing;
 
-      console.log("app: ", app);
       for (const { teamName } of app.credentials.map((credential) => ({
         teamName: credential.team?.name,
       }))) {
         const label = `${app.locationOption.label} ${teamName ? `(${teamName})` : ""}`;
-        console.log("teamName: ", teamName);
         const option = {
           ...app.locationOption,
           label,

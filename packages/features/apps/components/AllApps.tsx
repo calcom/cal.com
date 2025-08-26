@@ -63,7 +63,6 @@ interface CategoryTabProps {
 function CategoryTab({ selectedCategory, categories, searchText, onCategoryChange }: CategoryTabProps) {
   const { t } = useLocale();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
-  console.log("categories: ", categories);
 
   const handleLeft = () => {
     if (ref.current) {
