@@ -1,6 +1,6 @@
-import { workflowSelect } from "ee/workflows/lib/getAllWorkflows";
 import { type TFunction } from "i18next";
 
+import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
