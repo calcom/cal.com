@@ -84,7 +84,9 @@ export class WorkflowService {
     isNormalBookingOrFirstRecurringSlot: boolean;
   }) {
     if (workflows.length <= 0) return;
+
     const workflowsToTrigger: Workflow[] = [];
+
     if (isRescheduleEvent) {
       workflowsToTrigger.push(
         ...workflows.filter(
@@ -97,18 +99,19 @@ export class WorkflowService {
       workflowsToTrigger.push(
         ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_REQUESTED)
       );
-    } else if (isConfirmedByDefault && isNormalBookingOrFirstRecurringSlot) {
+    } else if (isConfirmedByDefault) {
       workflowsToTrigger.push(
         ...workflows.filter(
           (workflow) =>
-            workflow.trigger === WorkflowTriggerEvents.NEW_EVENT ||
-            this._beforeAfterEventTriggers.includes(workflow.trigger)
+            this._beforeAfterEventTriggers.includes(workflow.trigger) ||
+            (isNormalBookingOrFirstRecurringSlot
+              ? workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+              : false)
         )
       );
     }
 
     if (workflowsToTrigger.length === 0) return;
-    console.log("workflowsToTrigger: ", workflowsToTrigger);
 
     await scheduleWorkflowReminders({
       ...args,
