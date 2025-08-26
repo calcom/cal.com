@@ -232,11 +232,11 @@ export class SlotsService_2024_09_04 {
     const fixedHosts = hosts.filter((host) => host.isFixed === true);
     const nonFixedHosts = hosts.filter((host) => host.isFixed === false);
 
-    if (fixedHosts) {
+    if (fixedHosts.length > 0) {
       await this.validateFixedHostsAvailability(eventTypeId, startDate, endDate, fixedHosts);
+    } else {
+      await this.validateNonFixedHostsAvailability(eventTypeId, startDate, endDate, nonFixedHosts);
     }
-
-    await this.validateNonFixedHostsAvailability(eventTypeId, startDate, endDate, nonFixedHosts);
   }
 
   async validateFixedHostsAvailability(
