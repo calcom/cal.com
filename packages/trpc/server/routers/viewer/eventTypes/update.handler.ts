@@ -21,6 +21,7 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -405,8 +406,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (teamId && hosts) {
-    const emailHosts = hosts.filter((h: any) => "email" in h);
-    const userHosts = hosts.filter((h: any) => "userId" in h);
+  const emailHosts = hosts.filter((h: { email?: string }) => "email" in h);
+  const userHosts = hosts.filter((h: { userId?: number }) => "userId" in h);
 
     // handle invites for email hosts
     for (const invite of emailHosts) {
@@ -527,6 +528,131 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     multiplePrivateLinks,
     connectedMultiplePrivateLinks,
   });
+  if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
+    const multiplePrivateLinksToBeInserted = multiplePrivateLinks.filter(
+      (link) => !connectedMultiplePrivateLinks.includes(link)
+    );
+    const singleLinksToBeDeleted = connectedMultiplePrivateLinks.filter(
+      (link) => !multiplePrivateLinks.includes(link)
+    );
+    if (singleLinksToBeDeleted.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
+        where: {
+          eventTypeId: input.id,
+          link: {
+            in: singleLinksToBeDeleted,
+          },
+        },
+      });
+    }
+    if (multiplePrivateLinksToBeInserted.length > 0) {
+      await ctx.prisma.hashedLink.createMany({
+        data: multiplePrivateLinksToBeInserted.map((link) => {
+          return {
+            link: link,
+            eventTypeId: input.id,
+          };
+        }),
+      });
+    }
+  } else {
+    // Delete all the single-use links for this event.
+    if (connectedMultiplePrivateLinks.length > 0) {
+      await ctx.prisma.hashedLink.deleteMany({
+        where: {
+          eventTypeId: input.id,
+          link: {
+            in: connectedMultiplePrivateLinks,
+          },
+        },
+      });
+    }
+    if (teamId && hosts) {
+      // Separate userId-based and email-based hosts
+      const userIdHosts = hosts.filter((host) => host.userId);
+      const emailHosts = hosts.filter((host) => host.email && host.isPending);
+
+      // Existing validation for userId hosts only
+      const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+      if (!userIdHosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+        });
+      }
+
+      //  Process email-based hosts - invite them to team as Members
+      if (emailHosts.length > 0) {
+        // Import the invitation function
+        const { inviteMembersWithNoInviterPermissionCheck } = await import(
+          "../teams/inviteMember/inviteMember.handler"
+        );
+
+        try {
+          await inviteMembersWithNoInviterPermissionCheck({
+            inviterName: ctx.user.name,
+            teamId: teamId,
+            language: ctx.user.locale || "en",
+            creationSource: "INVITATION" as string,
+            orgSlug: eventType.team?.slug || null,
+            invitations: emailHosts
+              .filter((host) => host.email)
+              .map((host) => ({
+                usernameOrEmail: host.email,
+                role: MembershipRole.MEMBER,
+              })),
+            isDirectUserAction: false, // Since this is automated
+          });
+        } catch (error) {
+          // Log the error but don't fail the entire operation
+          console.warn("Failed to invite some email hosts:", error);
+        }
+      }
+
+      // Update host processing to handle both types
+      const allHosts = [...userIdHosts, ...emailHosts];
+      const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+      const newHostsSet = new Set(allHosts.filter((h) => h.userId).map((host) => host.userId));
+
+      const existingHosts = allHosts.filter((newHost) => newHost.userId && oldHostsSet.has(newHost.userId));
+      const newHosts = allHosts.filter((newHost) => !newHost.userId || !oldHostsSet.has(newHost.userId));
+      const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+
+      data.hosts = {
+        deleteMany: {
+          OR: removedHosts.map((host) => ({
+            userId: host.userId,
+            eventTypeId: id,
+          })),
+        },
+        create: newHosts
+          .filter((host) => host.userId)
+          .map((host) => {
+            return {
+          userId: host.userId ?? 0,
+              isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+              priority: host.priority ?? 2,
+              weight: host.weight ?? 100,
+              groupId: host.groupId,
+            };
+          }),
+        update: existingHosts.map((host) => ({
+          where: {
+            userId_eventTypeId: {
+              userId: host.userId ?? 0,
+              eventTypeId: id,
+            },
+          },
+          data: {
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+            priority: host.priority ?? 2,
+            weight: host.weight ?? 100,
+            scheduleId: host.scheduleId ?? null,
+            groupId: host.groupId,
+          },
+        })),
+      };
+    }
+  }
 
   if (assignAllTeamMembers !== undefined) {
     data.assignAllTeamMembers = assignAllTeamMembers;

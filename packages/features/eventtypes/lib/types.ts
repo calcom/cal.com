@@ -28,7 +28,7 @@ export type Host = {
   isFixed: boolean;
   email?: string; // NEW → for invited emails
   isPending?: boolean; // NEW → mark invite as pending
-  userId: number;
+  userId?: number;
   priority: number;
   weight: number;
   scheduleId?: number | null;

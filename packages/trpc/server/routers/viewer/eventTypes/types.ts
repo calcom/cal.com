@@ -35,30 +35,34 @@ const aiPhoneCallConfig = z
   .optional();
 
 // existing host with userId
-const userHostSchema = z.object({
-
-  userId: z.number(),
-  profileId: z.number().or(z.null()).optional(),
-  isFixed: z.boolean().optional(),
-  priority: z.number().min(0).max(4).optional().nullable(),
-  weight: z.number().min(0).optional().nullable(),
-  scheduleId: z.number().optional().nullable(),
-  groupId: z.string().optional().nullable(),
-});
+// Removed unused userHostSchema
 
 const hostGroupSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
 });
-
-// new pending host (invite by email)
-const emailHostSchema = z.object({
-  email: z.string().email(),
-  isPending: z.boolean().default(true),
-});
-
 // allow both
-const hostSchema = z.union([userHostSchema, emailHostSchema]);
+const hostSchema = z
+  .object({
+    userId: z.number().optional(), //  Make optional
+    email: z.string().email().optional(), //  Add email support
+    isPending: z.boolean().optional(), //  Add pending status
+    profileId: z.number().or(z.null()).optional(),
+    isFixed: z.boolean().optional(),
+    priority: z.number().min(0).max(4).optional().nullable(),
+    weight: z.number().min(0).optional().nullable(),
+    scheduleId: z.number().optional().nullable(),
+    groupId: z.string().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      //  Ensure either userId OR email is provided
+      return data.userId !== undefined || data.email !== undefined;
+    },
+    {
+      message: "Either userId or email must be provided",
+    }
+  );
 
 const childSchema = z.object({
   owner: z.object({

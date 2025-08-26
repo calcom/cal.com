@@ -21662,6 +21662,7 @@ __metadata:
     prettier: ^2.8.6
     prismock: ^1.33.4
     resize-observer-polyfill: ^1.5.1
+    ts-node-maintained: ^10.9.6
     tsc-absolute: ^1.0.0
     turbo: ^2.5.5
     typescript: 5.9.0-beta
@@ -44699,6 +44700,44 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 7b09bc9bafbd963af5f42508991403c528da3dd8bdfddc496fa8deff9146e28122ba2c51d2c6cea3cb480c0554b030af04a71fa139ae02b260c0521cb4c8f0e4
+  languageName: node
+  linkType: hard
+
+"ts-node-maintained@npm:^10.9.6":
+  version: 10.9.6
+  resolution: "ts-node-maintained@npm:10.9.6"
+  dependencies:
+    "@cspotcode/source-map-support": ^0.8.0
+    "@tsconfig/node10": ^1.0.7
+    "@tsconfig/node12": ^1.0.7
+    "@tsconfig/node14": ^1.0.0
+    "@tsconfig/node16": ^1.0.2
+    acorn: ^8.4.1
+    acorn-walk: ^8.1.1
+    arg: ^4.1.0
+    create-require: ^1.1.0
+    diff: ^4.0.1
+    make-error: ^1.1.1
+    v8-compile-cache-lib: ^3.0.1
+    yn: 3.1.1
+  peerDependencies:
+    "@swc/core": ">=1.2.50"
+    "@swc/wasm": ">=1.2.50"
+    "@types/node": "*"
+    typescript: ">=2.7"
+  peerDependenciesMeta:
+    "@swc/core":
+      optional: true
+    "@swc/wasm":
+      optional: true
+  bin:
+    ts-node: dist/bin.js
+    ts-node-cwd: dist/bin-cwd.js
+    ts-node-esm: dist/bin-esm.js
+    ts-node-script: dist/bin-script.js
+    ts-node-transpile-only: dist/bin-transpile.js
+    ts-script: dist/bin-script-deprecated.js
+  checksum: d943a465cd301acdce3aaddd2b971b33e67284d4fd5cb6a25456b1fad3ce33543d4ce7d49eb56fae46f956510c2c3f7535444070165cb15a7667903966868998
   languageName: node
   linkType: hard
 

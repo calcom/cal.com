@@ -419,7 +419,15 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
+  static async findByIdWithAdminAccess({
+    id,
+    userId,
+    teamId,
+  }: {
+    id: string;
+    userId: number;
+    teamId?: number;
+  }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
