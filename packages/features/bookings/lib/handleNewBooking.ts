@@ -11,7 +11,6 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -69,6 +68,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { AppRepository } from "@calcom/lib/server/repository/app/PrismaAppRepository";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
@@ -1066,8 +1066,11 @@ async function handler(
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
-      locationBodyString = app?.appData?.location?.type || locationBodyString;
+      const appRepository = new AppRepository();
+      const appData = await appRepository.getAppDataFromSlug(
+        organizerMetadata.defaultConferencingApp.appSlug
+      );
+      locationBodyString = appData?.location?.type || locationBodyString;
       if (isManagedEventType || isTeamEventType) {
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
           organizerMetadata?.defaultConferencingApp?.appLink;
