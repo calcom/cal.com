@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+import { generateRandomText } from "../../src/lib/generateRandomText";
+
 test("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
   await page.goto("/");
 
@@ -24,7 +26,7 @@ test("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
     .locator('[data-testid="create-team-event-type-atom"] button[type="submit"]:has-text("Continue")')
     .click();
 
-  await expect(page.locator('h1:has-text("Platform Team E2e Event")')).toBeVisible();
+  await expect(page.locator('h1:has-text("Platform team e2e event")')).toBeVisible();
   await expect(page.locator('p:has-text("/platform-team-e2e-event")')).toBeVisible();
 
   await page.locator('[data-testid="team-event-type-card"] h1:has-text("Platform team e2e event")').click();
@@ -50,13 +52,14 @@ test("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
   await page.locator('[data-testid="vertical-tab-payments"]').click();
 
   await expect(page.locator('[data-testid="vertical-tab-event_setup_tab_title"]')).toBeVisible();
+
   await page.locator('[data-testid="vertical-tab-event_setup_tab_title"]').click();
 
-  await page.locator('[data-testid="duration"]').fill("45");
+  await page.fill('textarea[name="description"]', generateRandomText());
 
   await page.locator('[data-testid="update-eventtype"]').click();
 
-  await expect(page.locator('h1:has-text("Platform Team E2e Event")')).toBeVisible();
+  await expect(page.locator('h1:has-text("Platform team e2e event")')).toBeVisible();
   await expect(page.locator('p:has-text("/platform-team-e2e-event")')).toBeVisible();
 
   await page.locator('[data-testid="team-event-type-card"] h1:has-text("Platform team e2e event")').click();

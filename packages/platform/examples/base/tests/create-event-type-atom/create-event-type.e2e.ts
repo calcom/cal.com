@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+import { generateRandomText } from "../../src/lib/generateRandomText";
+
 test("create event type using CreateEventTypeAtom", async ({ page }) => {
   await page.goto("/");
 
@@ -9,17 +11,17 @@ test("create event type using CreateEventTypeAtom", async ({ page }) => {
 
   await expect(page.locator("body")).toBeVisible();
 
-  await page.fill('[data-testid="event-type-quick-chat"]', "e2e event");
+  await page.fill('[data-testid="event-type-quick-chat"]', "Individual e2e event");
 
   await page.fill('textarea[placeholder="A quick video meeting."]', "This is an e2e test event description");
 
   await page.waitForSelector('button[type="submit"]:has-text("Continue")', { state: "visible" });
   await page.click('button[type="submit"]:has-text("Continue")');
 
-  await expect(page.locator('h1:has-text("E2e Event")')).toBeVisible();
-  await expect(page.locator('p:has-text("/e2e-event")')).toBeVisible();
+  await expect(page.locator('h1:has-text("Individual e2e event")')).toBeVisible();
+  await expect(page.locator('p:has-text("/individual-e2e-event")')).toBeVisible();
 
-  await page.locator('[data-testid="event-type-card"] h1:has-text("E2e Event")').click();
+  await page.locator('[data-testid="event-type-card"] h1:has-text("Individual e2e event")').click();
 
   await expect(page.locator('[data-testid="event-type-settings-atom"]')).toBeVisible();
 
@@ -41,12 +43,12 @@ test("create event type using CreateEventTypeAtom", async ({ page }) => {
   await expect(page.locator('[data-testid="vertical-tab-event_setup_tab_title"]')).toBeVisible();
   await page.locator('[data-testid="vertical-tab-event_setup_tab_title"]').click();
 
-  await page.locator('[data-testid="duration"]').fill("45");
+  await page.fill('textarea[name="description"]', generateRandomText());
 
   await page.locator('[data-testid="update-eventtype"]').click();
 
-  await expect(page.locator('h1:has-text("E2e Event")')).toBeVisible();
-  await expect(page.locator('p:has-text("/e2e-event")')).toBeVisible();
+  await expect(page.locator('h1:has-text("Individual e2e event")')).toBeVisible();
+  await expect(page.locator('p:has-text("/individual-e2e-event")')).toBeVisible();
 
   await page.locator('[data-testid="event-type-card"] h1:has-text("E2e Event")').click();
 
