@@ -6,22 +6,33 @@ import type { AppRepositoryInterface } from "./AppRepository.interface";
 export class PrismaAppRepository implements AppRepositoryInterface {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
+  private appMetadataSelect = {
+    slug: true,
+    dirName: true,
+    type: true,
+    categories: true,
+    name: true,
+    description: true,
+    logo: true,
+    enabled: true,
+    extendsFeature: true,
+  };
+
   async getMetadataFromSlug(slug: string) {
     return await this.prismaClient.app.findUnique({
       where: {
         slug,
       },
-      select: {
-        slug: true,
-        dirName: true,
-        type: true,
-        categories: true,
-        name: true,
-        description: true,
-        logo: true,
+      select: this.appMetadataSelect,
+    });
+  }
+
+  async getAllEnabledApps() {
+    return await this.prismaClient.app.findMany({
+      where: {
         enabled: true,
-        extendsFeature: true,
       },
+      select: this.appMetadataSelect,
     });
   }
 }
