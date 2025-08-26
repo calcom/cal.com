@@ -3,7 +3,6 @@ import type { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -14,6 +13,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { AppRepository } from "@calcom/lib/server/repository/app/PrismaAppRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
@@ -290,8 +290,9 @@ export const getPublicEvent = async (
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
     if (preferedLocationType?.appSlug) {
-      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
-      const appType = foundApp?.appData?.location?.type;
+      const appRepository = new AppRepository();
+      const appData = await appRepository.getAppDataFromSlug(preferedLocationType.appSlug);
+      const appType = appData?.appData?.location?.type;
       if (appType) {
         // Replace the location with the preferred location type
         // This will still be default to daily if the app is not found
@@ -606,8 +607,9 @@ const getPublicEventRefactored = async (
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
     if (preferedLocationType?.appSlug) {
-      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
-      const appType = foundApp?.appData?.location?.type;
+      const appRepository = new AppRepository();
+      const appData = await appRepository.getAppDataFromSlug(preferedLocationType.appSlug);
+      const appType = appData?.location?.type;
       if (appType) {
         // Replace the location with the preferred location type
         // This will still be default to daily if the app is not found
