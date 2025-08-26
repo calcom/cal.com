@@ -469,7 +469,7 @@ test.describe("Event Types tests", () => {
 
       await expect(page.locator("[data-testid=recurring-dates]")).toBeVisible();
 
-      await bookTimeSlot(page);
+      await bookTimeSlot(page, { isRecurringEvent: true });
 
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 

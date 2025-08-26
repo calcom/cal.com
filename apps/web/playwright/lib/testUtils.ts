@@ -155,6 +155,7 @@ export const bookTimeSlot = async (
     title?: string;
     attendeePhoneNumber?: string;
     expectedStatusCode?: number;
+    isRecurringEvent?: boolean;
   }
 ) => {
   // --- fill form
@@ -166,7 +167,8 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await submitAndWaitForResponse(page, "/api/book/event", {
+  const url = opts?.isRecurringEvent ? "/api/book/recurring-event" : "/api/book/event";
+  await submitAndWaitForResponse(page, url, {
     action: () => page.locator('[data-testid="confirm-book-button"]').click(),
     expectedStatusCode: opts?.expectedStatusCode,
   });
