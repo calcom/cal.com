@@ -167,7 +167,7 @@ export const bookTimeSlot = async (
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
   await submitAndWaitForResponse(page, "/api/book/event", {
-    action: () => page.locator('[name="email"]').press("Enter"),
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
     expectedStatusCode: opts?.expectedStatusCode,
   });
 };

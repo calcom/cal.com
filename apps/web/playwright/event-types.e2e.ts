@@ -444,44 +444,37 @@ test.describe("Event Types tests", () => {
       await expect(currentTimezone).toHaveClass(/cursor-not-allowed/);
       await expect(page.getByText("New York")).toBeVisible();
     });
-  });
+    test("should create recurring event and successfully book multiple occurrences", async ({ page }) => {
+      const nonce = randomString(3);
+      const eventTitle = `Recurring Event Test ${nonce}`;
 
-  test("should create recurring event and successfully book multiple occurrences", async ({
-    page,
-    users,
-  }) => {
-    const user = await users.create();
-    await user.apiLogin();
-    await page.goto("/event-types");
-    const nonce = randomString(3);
-    const eventTitle = `Recurring Event Test ${nonce}`;
+      await createNewUserEventType(page, { eventTitle });
 
-    await createNewUserEventType(page, { eventTitle });
+      await page.waitForSelector('[data-testid="event-title"]');
+      await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+      await page.click("[data-testid=vertical-tab-recurring]");
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
+      await page.click("[data-testid=recurring-event-check]");
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
 
-    await page.waitForSelector('[data-testid="event-title"]');
-    await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
-    await page.click("[data-testid=vertical-tab-recurring]");
-    await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
-    await page.click("[data-testid=recurring-event-check]");
-    await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
+      await page.locator("[data-testid=recurring-event-collapsible] input[type=number]").nth(1).fill("3");
 
-    await page.locator("[data-testid=recurring-event-collapsible] input[type=number]").nth(1).fill("3");
+      await saveEventType(page);
 
-    await saveEventType(page);
+      await gotoBookingPage(page);
 
-    await gotoBookingPage(page);
+      await expect(page.locator("[data-testid=occurrence-input]")).toHaveValue("3");
 
-    await expect(page.locator("[data-testid=occurrence-input]")).toHaveValue("3");
+      await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await selectFirstAvailableTimeSlotNextMonth(page);
+      await expect(page.locator("[data-testid=recurring-dates]")).toBeVisible();
 
-    await expect(page.locator("[data-testid=recurring-dates]")).toBeVisible();
+      await bookTimeSlot(page);
 
-    await bookTimeSlot(page);
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-    await expect(page.locator("text=3 occurrences")).toBeVisible();
+      await expect(page.locator("text=3 occurrences")).toBeVisible();
+    });
   });
 
   test.describe("Interface Language Tests", () => {
