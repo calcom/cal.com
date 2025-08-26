@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
@@ -19,7 +18,6 @@ type ListLocalOptions = {
 export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
   const { prisma } = ctx;
   const category = input.category;
-  const localApps = getLocalAppMetadata();
 
   const dbApps = await prisma.app.findMany({
     where: {
@@ -32,16 +30,21 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
       keys: true,
       enabled: true,
       dirName: true,
+      categories: true,
+      name: true,
+      type: true,
+      logo: true,
+      description: true,
     },
   });
 
-  return localApps.flatMap((app) => {
+  return dbApps.flatMap((app) => {
     // Filter applications that does not belong to the current requested category.
-    if (!(app.category === category || app.categories?.some((appCategory) => appCategory === category))) {
+    if (!app.categories?.some((appCategory) => appCategory === category)) {
       return [];
     }
 
-    // Find app metadata
+    // Find app metadatas
     const dbData = dbApps.find((dbApp) => dbApp.slug === app.slug);
 
     // If the app already contains keys then return
@@ -50,14 +53,12 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
         name: app.name,
         slug: app.slug,
         logo: app.logo,
-        title: app.title,
         type: app.type,
         description: app.description,
         // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
         keys: dbData.keys as Prisma.JsonObject | null,
         dirName: app.dirName || app.slug,
         enabled: dbData?.enabled || false,
-        isTemplate: app.isTemplate,
       };
     }
 
@@ -80,7 +81,6 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
       slug: app.slug,
       logo: app.logo,
       type: app.type,
-      title: app.title,
       description: app.description,
       enabled: dbData?.enabled ?? false,
       dirName: app.dirName ?? app.slug,
