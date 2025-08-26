@@ -15,7 +15,7 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { CreditType } from "@calcom/prisma/enums";
+import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -60,6 +60,7 @@ export class CreditService {
     smsSid,
     smsSegments,
     callDuration,
+    creditFor,
     externalRef,
   }: {
     userId?: number;
@@ -69,6 +70,7 @@ export class CreditService {
     smsSid?: string;
     smsSegments?: number;
     callDuration?: number;
+    creditFor?: CreditUsageType;
     externalRef?: string;
   }) {
     if (externalRef) {
@@ -116,6 +118,7 @@ export class CreditService {
           creditType,
           smsSegments,
           callDuration,
+          creditFor,
           tx,
           externalRef,
         });
@@ -321,10 +324,11 @@ export class CreditService {
     creditType: CreditType;
     smsSegments?: number;
     callDuration?: number;
+    creditFor?: CreditUsageType;
     tx: PrismaTransaction;
     externalRef?: string;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, tx } = props;
+    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, tx } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
@@ -361,6 +365,7 @@ export class CreditService {
           creditBalanceId: creditBalance.id,
           credits,
           creditType,
+          creditFor,
           date: new Date(),
           bookingUid,
           smsSid,

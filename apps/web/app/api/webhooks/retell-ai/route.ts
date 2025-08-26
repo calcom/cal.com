@@ -8,6 +8,7 @@ import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import { CreditUsageType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
 
@@ -105,6 +106,7 @@ async function handleCallAnalyzed(callData: any) {
       teamId: teamId ?? undefined,
       credits: creditsToDeduct,
       callDuration: call_cost.total_duration_seconds,
+      creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
       externalRef: `retell:${call_id}`,
     });
   } catch (e) {
