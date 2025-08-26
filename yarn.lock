@@ -2493,7 +2493,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.321"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.333"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3066,32 +3066,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/exchange2013calendar@workspace:packages/app-store/exchange2013calendar":
-  version: 0.0.0-use.local
-  resolution: "@calcom/exchange2013calendar@workspace:packages/app-store/exchange2013calendar"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/prisma": "*"
-    "@calcom/types": "*"
-    "@calcom/ui": "*"
-    ews-javascript-api: ^0.11.0
-    react-hook-form: ^7.43.3
-  languageName: unknown
-  linkType: soft
-
-"@calcom/exchange2016calendar@workspace:packages/app-store/exchange2016calendar":
-  version: 0.0.0-use.local
-  resolution: "@calcom/exchange2016calendar@workspace:packages/app-store/exchange2016calendar"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/prisma": "*"
-    "@calcom/types": "*"
-    "@calcom/ui": "*"
-    ews-javascript-api: ^0.11.0
-    react-hook-form: ^7.43.3
-  languageName: unknown
-  linkType: soft
-
 "@calcom/exchangecalendar@workspace:packages/app-store/exchangecalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/exchangecalendar@workspace:packages/app-store/exchangecalendar"
@@ -3553,13 +3527,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.321":
-  version: 0.0.321
-  resolution: "@calcom/platform-libraries@npm:0.0.321"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.333":
+  version: 0.0.333
+  resolution: "@calcom/platform-libraries@npm:0.0.333"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 634b092311d9952d6ce1eec3a55fc18ab314d282d087ca7d9e9baf3f53f1e718e81d2b2cb6613f377d129c864290eb14f89770cfdd0c14e8968a34db093163f5
+  checksum: 321c792aeb36ec69b7a02756ac550736bd9a71e4544fcebd9ab625bc2132edd5bf3e86295af05d797ff82de0ec35f3954c7409543e4325b7cbbbb55ce786ef60
   languageName: node
   linkType: hard
 
@@ -4014,8 +3988,8 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@calcom/ui": "*"
-    "@daily-co/daily-js": ^0.76.0
-    "@daily-co/daily-react": ^0.22.0
+    "@daily-co/daily-js": ^0.83.1
+    "@daily-co/daily-react": ^0.23.2
     "@dub/analytics": ^0.0.27
     "@dub/embed-core": ^0.0.10
     "@dub/embed-react": ^0.0.10
@@ -4119,6 +4093,7 @@ __metadata:
     node-mocks-http: ^1.11.0
     nodemailer: ^6.7.8
     nuqs: ^1.20.0
+    openid-client: 6.5.0
     otplib: ^12.0.1
     postcss: ^8.4.18
     posthog-js: ^1.164.1
@@ -4618,22 +4593,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@daily-co/daily-js@npm:^0.76.0":
-  version: 0.76.0
-  resolution: "@daily-co/daily-js@npm:0.76.0"
+"@daily-co/daily-js@npm:^0.83.1":
+  version: 0.83.1
+  resolution: "@daily-co/daily-js@npm:0.83.1"
   dependencies:
     "@babel/runtime": ^7.12.5
     "@sentry/browser": ^8.33.1
     bowser: ^2.8.1
     dequal: ^2.0.3
     events: ^3.1.0
-  checksum: 3a7c144527800696b6b7fda6ddcb329b8a27d72ad234f6b0e3088389ec27406816319889d70d684ecb99c6d0efea0d53edeb0ecc0383ed6caaf2050763182ffe
+  checksum: bbd3bca7b531aba1607e47f25e851e553f618072630218c07709f396003c831de370861edc82d25e6a97f04bf1cba19e7c1312adbba8e1d80051e711edbdcd48
   languageName: node
   linkType: hard
 
-"@daily-co/daily-react@npm:^0.22.0":
-  version: 0.22.0
-  resolution: "@daily-co/daily-react@npm:0.22.0"
+"@daily-co/daily-react@npm:^0.23.2":
+  version: 0.23.2
+  resolution: "@daily-co/daily-react@npm:0.23.2"
   dependencies:
     fast-deep-equal: ^3.1.3
     lodash.throttle: ^4.1.1
@@ -4642,7 +4617,7 @@ __metadata:
     jotai: ^2
     react: ^16.8 || ^17.0 || ^18.0 || ^19.0
     react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0
-  checksum: c82e36b05fc905ad65cb9d16542790ce11b8ee43a8ec1eb081e8c74d8c12c7d14e1674f557028ed06ae49aef399117ba8278bbaa4f248d5aec2c2eb11e839e00
+  checksum: ead01bb5b49e1756d901fed9a5011673d932b2697e0551eb7b9f26c6392bf8f495b60ba351bd9c4f867ec1d0eb9bce14dae682447493e1f4f643e434b59bb186
   languageName: node
   linkType: hard
 
@@ -21633,7 +21608,7 @@ __metadata:
   dependencies:
     "@changesets/changelog-github": ^0.5.1
     "@changesets/cli": 2.29.4
-    "@daily-co/daily-js": ^0.76.0
+    "@daily-co/daily-js": ^0.83.1
     "@evyweb/ioctopus": ^1.2.0
     "@jetstreamapp/soql-parser-js": ^6.1.0
     "@next/third-parties": ^14.2.5
