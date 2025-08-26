@@ -9,13 +9,13 @@ export function PanelCard({
   title,
   subtitle,
   cta,
-  headerActions,
+  headerContent,
   children,
 }: {
   title: string | React.ReactNode;
   subtitle?: string;
   cta?: { label: string; onClick: () => void };
-  headerActions?: React.ReactNode;
+  headerContent?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -27,7 +27,7 @@ export function PanelCard({
           title
         )}
         <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
-          {headerActions}
+          {headerContent}
           {cta && (
             <Button className="shrink-0" color="secondary" onClick={cta.onClick}>
               {cta.label}

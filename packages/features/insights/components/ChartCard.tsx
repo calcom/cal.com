@@ -31,7 +31,7 @@ export function ChartCard({
   const legendComponent = legend && legend.length > 0 ? <Legend items={legend} size={legendSize} /> : null;
 
   return (
-    <PanelCard title={title} subtitle={subtitle} cta={cta} headerActions={legendComponent}>
+    <PanelCard title={title} subtitle={subtitle} cta={cta} headerContent={legendComponent}>
       {children}
     </PanelCard>
   );
