@@ -14,7 +14,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
 import type { TeamQuery } from "@calcom/platform-libraries";
 import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/platform-libraries/app-store";
-import { getEnabledAppsFromCredentials, getAppFromSlug } from "@calcom/platform-libraries/app-store";
+import { getEnabledAppsFromCredentials } from "@calcom/platform-libraries/app-store";
 import type {
   App,
   TDependencyData,
@@ -318,14 +318,12 @@ export class EventTypesAtomService {
             let dependencyData: TDependencyData = [];
             if (app.dependencies?.length) {
               dependencyData = app.dependencies.map((dependency) => {
-                const dependencyInstalled = enabledApps.some(
-                  (dbAppIterator: EnabledAppType) =>
-                    dbAppIterator.credentials.length && dbAppIterator.slug === dependency
-                );
+                const enabledApp = enabledApps.find((app) => app.slug === dependency);
+
+                const dependencyInstalled = enabledApp && enabledApp.credentials.length > 0;
                 // If the app marked as dependency is simply deleted from the codebase,
                 // we can have the situation where App is marked installed in DB but we couldn't get the app.
-                const dependencyName = getAppFromSlug(dependency)?.name;
-                return { name: dependencyName, installed: dependencyInstalled };
+                return { name: enabledApp?.name, installed: dependencyInstalled };
               });
             }
             const credentialOwner: CredentialOwner = {
