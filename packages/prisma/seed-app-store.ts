@@ -5,8 +5,6 @@
 import type { Prisma } from "@prisma/client";
 import dotEnv from "dotenv";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-
 import prisma from ".";
 import { AppCategories } from "./enums";
 
@@ -180,6 +178,7 @@ async function createApp(
   categories: Prisma.AppCreateInput["categories"],
   /** This is used so credentials gets linked to the correct app */
   type: Prisma.CredentialCreateInput["type"],
+  name: string,
   keys?: Prisma.AppCreateInput["keys"],
   isTemplate?: boolean,
   description?: string,
@@ -211,7 +210,18 @@ async function createApp(
     });
 
     // We need to enable seeded apps as they are used in tests.
-    const data = { slug, dirName, categories, keys, enabled: true, description, logo, extendsFeature };
+    const data = {
+      slug,
+      dirName,
+      categories,
+      keys,
+      name,
+      type,
+      enabled: true,
+      description,
+      logo,
+      extendsFeature,
+    };
 
     if (!foundApp) {
       await prisma.app.create({
@@ -308,7 +318,7 @@ async function generateDynamicMetadata() {
 
         delete require.cache[require.resolve(metadataPath)];
 
-        app = require(metadataPath).metadata;
+        app = import(metadataPath).metadata;
       } catch (error) {
         console.warn(`Failed to load _metadata.ts for ${appDir.name}:`, error);
 
@@ -504,6 +514,7 @@ export default async function main() {
       app.slug,
       app.dirName ?? app.slug,
       validatedCategories,
+      app.name,
       app.type,
       undefined,
       app.isTemplate,

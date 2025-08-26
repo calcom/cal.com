@@ -1155,6 +1155,8 @@ model App {
   keys           Json?
   // One or multiple categories to which this app belongs
   categories     AppCategories[]
+  name           String?
+  type           String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   credentials    Credential[]
