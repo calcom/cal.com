@@ -775,28 +775,11 @@ export const EventTeamAssignmentTab = ({
     getValues("assignAllTeamMembers") ?? false
   );
 
-  // Unused variables prefixed with _
-  const _formState = useFormContext<FormValues>().formState;
-  const [isDisabled, setIsDisabled] = useState(false);
-
   const resetRROptions = useCallback(() => {
     setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
     setValue("assignAllTeamMembers", false, { shouldDirty: true });
     setAssignAllTeamMembers(false);
   }, [setValue, setAssignAllTeamMembers]);
-
-  // Used version, not prefixed
-  const handleFixedHostsToggle = useCallback(
-    (checked: boolean) => {
-      setIsDisabled(checked);
-      if (!checked) {
-        const allHosts = getValues("hosts");
-        const nonFixedHosts = allHosts.filter((host: Host) => !host.isFixed);
-        setValue("hosts", nonFixedHosts, { shouldDirty: true });
-      }
-    },
-    [getValues, setValue, setIsDisabled, resetRROptions]
-  );
 
   const handleSchedulingTypeChange = useCallback(
     (schedulingType: SchedulingType | undefined, onChange: (value: SchedulingType | undefined) => void) => {

@@ -2,9 +2,9 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
-
 import type { Props } from "react-select";
 import CreatableSelect from "react-select/creatable";
+
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
@@ -13,13 +13,15 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
 // Email utilities
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+const EMAIL_RE =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 const isValidEmail = (val: string) => EMAIL_RE.test(val.trim());
 const parseEmails = (input: string) =>
   input
@@ -102,16 +104,18 @@ export const CheckedTeamSelect = ({
         classNames={customClassNames?.hostsSelect?.innerClassNames as any}
         onChange={(newVal) => props.onChange(newVal)}
         onCreateOption={(inputValue) => {
-          if (isValidEmail(inputValue)) {
-            const newOption: CheckedSelectOption = {
-              value: inputValue,
-              label: `${inputValue} (invite pending)`,
-              avatar: "", // no avatar for pending
+          const emails = parseEmails(inputValue);
+          const validEmails = emails.filter(isValidEmail);
+          if (validEmails.length > 0) {
+            const newOptions = validEmails.map((email) => ({
+              value: email,
+              label: `${email} (invite pending)`,
+              avatar: "",
               isPending: true,
-            };
-            props.onChange([...(value || []), newOption]);
+            }));
+            props.onChange([...(value || []), ...newOptions]);
           } else {
-            alert("Invalid email address");
+            showToast("Please enter valid email address(es)", "error");
           }
         }}
       />
