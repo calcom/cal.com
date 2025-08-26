@@ -24,8 +24,10 @@ export async function applySelectFilter(page: Page, columnId: string, value: str
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
     await addFilter(page, columnId);
+    // Popover is already open after addFilter, do not call openFilter
+  } else {
+    await openFilter(page, columnId);
   }
-  await openFilter(page, columnId);
   await selectOptionValue(page, columnId, value);
   await page.keyboard.press("Escape");
 }
@@ -42,8 +44,10 @@ export async function applyTextFilter(page: Page, columnId: string, operator: st
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
     await addFilter(page, columnId);
+    // Popover is already open after addFilter, do not call openFilter
+  } else {
+    await openFilter(page, columnId);
   }
-  await openFilter(page, columnId);
 
   await page.getByTestId(`text-filter-options-select-${columnId}`).click();
   await page
@@ -64,8 +68,10 @@ export async function applyNumberFilter(page: Page, columnId: string, operator: 
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
     await addFilter(page, columnId);
+    // Popover is already open after addFilter, do not call openFilter
+  } else {
+    await openFilter(page, columnId);
   }
-  await openFilter(page, columnId);
 
   await page.getByTestId(`number-filter-options-select-${columnId}`).click();
   await page
