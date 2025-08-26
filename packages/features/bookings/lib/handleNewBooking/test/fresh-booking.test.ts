@@ -2518,6 +2518,7 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send emails to the booker as well as organizer for booking request and awaiting approval
             3. Should trigger BOOKING_REQUESTED webhook
+            4. Should trigger BOOKING_REQUESTED workflows
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;

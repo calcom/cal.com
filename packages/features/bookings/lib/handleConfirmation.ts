@@ -6,7 +6,6 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -20,6 +19,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import type { PrismaClient } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -92,23 +92,7 @@ export async function handleConfirmation(args: {
   const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
-  const allWorkflows = await getAllWorkflowsFromEventType(eventType, booking.userId, [
-    WorkflowTriggerEvents.NEW_EVENT,
-    WorkflowTriggerEvents.BOOKING_PAID,
-    WorkflowTriggerEvents.BEFORE_EVENT,
-    WorkflowTriggerEvents.AFTER_EVENT,
-  ]);
-  const newEventWorkflows = allWorkflows.filter(
-    (workflow) => workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
-  );
-  const beforeAfterWorkflows = allWorkflows.filter(
-    (workflow) =>
-      workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
-      workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT
-  );
-  const bookingPaidWorkflows = allWorkflows.filter(
-    (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_PAID
-  );
+  const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -130,18 +114,18 @@ export async function handleConfirmation(args: {
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
-      if (allWorkflows) {
+      if (workflows) {
         isHostConfirmationEmailsDisabled =
           eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
         isAttendeeConfirmationEmailDisabled =
           eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
 
         if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(allWorkflows);
+          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
         }
 
         if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(allWorkflows);
+          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
         }
       }
 
@@ -369,7 +353,7 @@ export async function handleConfirmation(args: {
       if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
         await scheduleMandatoryReminder({
           evt: evtOfBooking,
-          workflows: allWorkflows,
+          workflows,
           requiresConfirmation: false,
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
           seatReferenceUid: evt.attendeeSeatId,
@@ -377,15 +361,14 @@ export async function handleConfirmation(args: {
         });
       }
 
-      const workflowsToTrigger: Workflow[] = [...beforeAfterWorkflows];
-      if (isFirstBooking) {
-        workflowsToTrigger.push(...newEventWorkflows);
-      }
-      await scheduleWorkflowReminders({
-        workflows: workflowsToTrigger,
+      await WorkflowService.scheduleWorkflowsForNewBooking({
+        workflows: workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        isConfirmedByDefault: true,
+        isNormalBookingOrFirstRecurringSlot: isFirstBooking,
+        isRescheduleEvent: false,
       });
     }
   } catch (error) {
@@ -587,11 +570,12 @@ export async function handleConfirmation(args: {
           bookerUrl: evt.bookerUrl || "",
         };
 
-        await scheduleWorkflowReminders({
-          workflows: bookingPaidWorkflows,
+        await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+          workflows,
           smsReminderNumber: booking.smsReminderNumber,
           calendarEvent: calendarEventForWorkflow,
           hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
+          triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         });
       } catch (error) {
         log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));

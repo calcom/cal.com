@@ -2,12 +2,12 @@ import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -103,12 +103,10 @@ export async function handleBookingRequested(args: {
     );
     await Promise.all(promises);
 
-    const bookingRequestedWorkflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId, [
-      WorkflowTriggerEvents.BOOKING_REQUESTED,
-    ]);
-    if (bookingRequestedWorkflows.length > 0) {
-      await scheduleWorkflowReminders({
-        workflows: bookingRequestedWorkflows,
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
+    if (workflows.length > 0) {
+      await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+        workflows,
         smsReminderNumber: booking.smsReminderNumber,
         hideBranding: !!booking.eventType?.owner?.hideBranding,
         calendarEvent: {
@@ -120,6 +118,7 @@ export async function handleBookingRequested(args: {
             schedulingType: evt.schedulingType,
           },
         },
+        triggers: [WorkflowTriggerEvents.BOOKING_REQUESTED],
       });
     }
   } catch (error) {

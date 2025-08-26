@@ -32,7 +32,6 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -72,6 +71,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -1352,25 +1352,12 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflowTriggerEvents: WorkflowTriggerEvents[] = [];
-
-  if (rescheduleUid) {
-    workflowTriggerEvents.push(WorkflowTriggerEvents.RESCHEDULE_EVENT);
-    workflowTriggerEvents.push(WorkflowTriggerEvents.BEFORE_EVENT, WorkflowTriggerEvents.AFTER_EVENT);
-  } else if (!isConfirmedByDefault) {
-    workflowTriggerEvents.push(WorkflowTriggerEvents.BOOKING_REQUESTED);
-  } else if (isConfirmedByDefault && isNormalBookingOrFirstRecurringSlot) {
-    workflowTriggerEvents.push(WorkflowTriggerEvents.NEW_EVENT);
-    workflowTriggerEvents.push(WorkflowTriggerEvents.BEFORE_EVENT, WorkflowTriggerEvents.AFTER_EVENT);
-  }
-
   const workflows = await getAllWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
     },
-    organizerUser.id,
-    workflowTriggerEvents
+    organizerUser.id
   );
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2231,45 +2218,35 @@ async function handler(
       isDryRun,
     });
 
-    const workflowsForPaymentInitiated = await getAllWorkflowsFromEventType(
-      {
-        ...eventType,
-        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
-      },
-      organizerUser.id,
-      [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED]
-    );
+    try {
+      const calendarEventForWorkflow = {
+        ...evt,
+        rescheduleReason,
+        metadata,
+        eventType: {
+          slug: eventType.slug,
+          schedulingType: eventType.schedulingType,
+          hosts: eventType.hosts,
+        },
+        bookerUrl,
+      };
 
-    if (workflowsForPaymentInitiated.length > 0) {
-      try {
-        const calendarEventForWorkflow = {
-          ...evt,
-          rescheduleReason,
-          metadata,
-          eventType: {
-            slug: eventType.slug,
-            schedulingType: eventType.schedulingType,
-            hosts: eventType.hosts,
-          },
-          bookerUrl,
-        };
-
-        if (isNormalBookingOrFirstRecurringSlot) {
-          await scheduleWorkflowReminders({
-            workflows: workflowsForPaymentInitiated,
-            smsReminderNumber: smsReminderNumber || null,
-            calendarEvent: calendarEventForWorkflow,
-            hideBranding: !!eventType.owner?.hideBranding,
-            seatReferenceUid: evt.attendeeSeatId,
-            isDryRun,
-          });
-        }
-      } catch (error) {
-        loggerWithEventDetails.error(
-          "Error while scheduling workflow reminders for booking payment initiated",
-          JSON.stringify({ error })
-        );
+      if (isNormalBookingOrFirstRecurringSlot) {
+        await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+          workflows,
+          smsReminderNumber: smsReminderNumber || null,
+          calendarEvent: calendarEventForWorkflow,
+          hideBranding: !!eventType.owner?.hideBranding,
+          seatReferenceUid: evt.attendeeSeatId,
+          isDryRun,
+          triggers: [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED],
+        });
       }
+    } catch (error) {
+      loggerWithEventDetails.error(
+        "Error while scheduling workflow reminders for booking payment initiated",
+        JSON.stringify({ error })
+      );
     }
 
     // TODO: Refactor better so this booking object is not passed
@@ -2433,13 +2410,16 @@ async function handler(
   }
 
   try {
-    await scheduleWorkflowReminders({
+    await WorkflowService.scheduleWorkflowsForNewBooking({
       workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
+      isConfirmedByDefault,
+      isNormalBookingOrFirstRecurringSlot,
+      isRescheduleEvent: !!rescheduleUid,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

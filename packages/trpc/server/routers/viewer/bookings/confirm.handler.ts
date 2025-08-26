@@ -8,7 +8,6 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -19,6 +18,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -382,13 +382,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
-    const workflowsToTriggerForRejected = await getAllWorkflowsFromEventType(booking.eventType, undefined, [
-      WorkflowTriggerEvents.BOOKING_REJECTED,
-    ]);
-
-    if (workflowsToTriggerForRejected.length > 0) {
-      await scheduleWorkflowReminders({
-        workflows: workflowsToTriggerForRejected,
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType);
+    try {
+      await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+        workflows,
         smsReminderNumber: booking.smsReminderNumber,
         calendarEvent: {
           ...evt,
@@ -399,7 +396,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           },
         },
         hideBranding: !!booking.eventType?.owner?.hideBranding,
+        triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
       });
+    } catch (error) {
+      // Silently fail
+      console.error(
+        "Error while scheduling workflow reminders for booking payment initiated",
+        JSON.stringify({ error })
+      );
     }
   }
 

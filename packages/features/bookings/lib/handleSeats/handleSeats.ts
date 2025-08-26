@@ -1,10 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -108,7 +108,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...reqBodyMetadata,
     };
     try {
-      await scheduleWorkflowReminders({
+      await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows: workflows,
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
@@ -126,6 +126,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
         isDryRun,
+        isConfirmedByDefault: !evt.requiresConfirmation || true,
+        isRescheduleEvent: !!rescheduleUid,
+        isNormalBookingOrFirstRecurringSlot: true,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

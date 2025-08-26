@@ -1,7 +1,7 @@
+import { workflowSelect } from "ee/workflows/lib/getAllWorkflows";
 import { type TFunction } from "i18next";
 
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -9,6 +9,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
@@ -119,10 +120,34 @@ const handleMarkNoShow = async ({
 
       const booking = await prisma.booking.findUnique({
         where: { uid: bookingUid },
-        include: {
+        select: {
+          startTime: true,
+          endTime: true,
+          metadata: true,
+          uid: true,
+          location: true,
+          smsReminderNumber: true,
           eventType: {
-            include: {
-              owner: true,
+            select: {
+              schedulingType: true,
+              slug: true,
+              title: true,
+              workflows: {
+                select: {
+                  workflow: {
+                    select: workflowSelect,
+                  },
+                },
+              },
+              owner: {
+                select: {
+                  hideBranding: true,
+                  email: true,
+                  name: true,
+                  timeZone: true,
+                  locale: true,
+                },
+              },
               team: {
                 select: {
                   parentId: true,
@@ -150,11 +175,9 @@ const handleMarkNoShow = async ({
       });
 
       if (booking?.eventType) {
-        const noShowUpdatedworkflows = await getAllWorkflowsFromEventType(booking.eventType, userId, [
-          WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
-        ]);
+        const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
 
-        if (noShowUpdatedworkflows.length > 0) {
+        if (workflows.length > 0) {
           try {
             const organizer = booking.user || booking.eventType.owner;
             const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata);
@@ -197,11 +220,12 @@ const handleMarkNoShow = async ({
               cancellationReason: null,
             };
 
-            await scheduleWorkflowReminders({
-              workflows: noShowUpdatedworkflows,
+            await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+              workflows,
               smsReminderNumber: booking.smsReminderNumber,
               hideBranding: booking.eventType.owner?.hideBranding,
               calendarEvent,
+              triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
             });
           } catch (error) {
             logger.error("Error while scheduling workflow reminders for booking no-show updated", error);
