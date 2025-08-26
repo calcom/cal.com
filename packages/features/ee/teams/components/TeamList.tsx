@@ -1,9 +1,6 @@
 import { useState } from "react";
 
-import {
-  ORG_SELF_SERVE_ENABLED,
-  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
-} from "@calcom/lib/constants";
+import { ORG_SELF_SERVE_ENABLED } from "@calcom/lib/constants";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -61,7 +58,7 @@ export default function TeamList(props: Props) {
       {ORG_SELF_SERVE_ENABLED &&
         !props.pending &&
         !orgId &&
-        props.teams.length >= ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE &&
+        props.teams.length >= 1 &&
         props.teams.map(
           (team, i) =>
             team.role !== "MEMBER" &&
@@ -71,10 +68,14 @@ export default function TeamList(props: Props) {
                   <Card
                     icon={<Icon name="building" className="h-5 w-5 text-red-700" />}
                     variant="basic"
-                    title={t("You have a lot of teams")}
-                    description={t(
-                      "Consider consolidating your teams in an organisation, unify billing, admin tools and analytics."
-                    )}
+                    title={props.teams.length === 1 ? t("you_have_one_team") : t("You have a lot of teams")}
+                    description={
+                      props.teams.length === 1
+                        ? t("consider_consolidating_one_team_org")
+                        : t(
+                            "Consider consolidating your teams in an organisation, unify billing, admin tools and analytics."
+                          )
+                    }
                     actionButton={{
                       href: `/settings/organizations/new`,
                       child: t("set_up_your_organization"),

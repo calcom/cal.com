@@ -1,4 +1,6 @@
 {
+  "you_have_one_team": "You have one team",
+  "consider_consolidating_one_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your team.",
   "identity_provider": "Identity provider",
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
   "day_one": "{{count}} day",
