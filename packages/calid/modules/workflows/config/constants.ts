@@ -38,6 +38,7 @@ const ATTENDEE_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.RATING,
+  WorkflowTemplates.THANKYOU,
 ] as const;
 
 const WHATSAPP_WORKFLOW_TEMPLATES = [

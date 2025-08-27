@@ -33,7 +33,7 @@ const createPlaceholderValues = () => {
     meetingTitle: "{EVENT_NAME}",
     regionTimezone: "{TIMEZONE}",
     participantName: "{ORGANIZER}",
-    recipientIdentity: "{NAME}",
+    recipientIdentity: "{ATTENDEE_FIRST_NAME}",
   };
 };
 
@@ -53,8 +53,8 @@ const calculateFormattedTimestamps = (
   };
 };
 
-const generateSubjectHeader = (eventTitle: string): string => {
-  return `Thank You for Attending: ${eventTitle}`;
+const generateSubjectHeader = (eventTitle: string, recipientName?: string): string => {
+  return `Thank You ${recipientName} for Attending: ${eventTitle}`;
 };
 
 const constructOpeningMessage = (recipientName?: string): string => {
@@ -127,7 +127,7 @@ const processGratitudeEmail = (config: GratitudeEmailConfiguration): MessageOutp
     };
   }
 
-  const subjectLine = generateSubjectHeader(contentData.meetingTitle);
+  const subjectLine = generateSubjectHeader(contentData.meetingTitle, contentData.recipientIdentity);
 
   const openingSection = constructOpeningMessage(contentData.recipientIdentity);
   const eventInfoSection = buildEventInformationBlock(contentData.meetingTitle);

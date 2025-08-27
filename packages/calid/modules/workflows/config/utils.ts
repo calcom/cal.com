@@ -224,8 +224,16 @@ function getWorkflowTemplateOptions(
       ? ATTENDEE_WORKFLOW_TEMPLATES
       : BASIC_WORKFLOW_TEMPLATES;
 
+  // Helper to convert string to Title Case
+  const toTitleCase = (str: string) =>
+    str
+      .toLowerCase()
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
   return availableTemplates.map((template) => ({
-    label: t(`${template.toLowerCase()}`),
+    // label as titleCase
+    label: t(`${toTitleCase(template)}`),
     value: template,
   }));
 }
