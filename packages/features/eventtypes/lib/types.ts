@@ -26,9 +26,9 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
   isFixed: boolean;
-  email?: string; // NEW → for invited emails
-  isPending?: boolean; // NEW → mark invite as pending
-  userId?: number;
+  userId?: number; // Change: made optional
+  email?: string; // Change: added
+  isPending?: boolean; // Change: added
   priority: number;
   weight: number;
   scheduleId?: number | null;
