@@ -464,11 +464,11 @@ export function AgentConfigurationSheet({
                   />
                 </div>
 
-                {/* <div className="border-subtle bg-default rounded-lg border p-4">
-                  <div className="mb-4 flex items-center justify-between">
+                {/* <div className="p-4 rounded-lg border border-subtle bg-default">
+                  <div className="flex justify-between items-center mb-4">
                     <div>
-                      <h4 className="text-emphasis text-sm font-medium">{t("Functions")}</h4>
-                      <p className="text-subtle text-xs">
+                      <h4 className="text-sm font-medium text-emphasis">{t("Functions")}</h4>
+                      <p className="text-xs text-subtle">
                         {t(
                           "Enable your agent with capabilities such as calendar bookings, call termination, etc."
                         )}
@@ -480,7 +480,7 @@ export function AgentConfigurationSheet({
                       color="secondary"
                       size="sm"
                       disabled={readOnly}>
-                      <Icon name="plus" className="mr-2 h-4 w-4" />
+                      <Icon name="plus" className="mr-2 w-4 h-4" />
                       {t("Add Function")}
                     </Button>
                   </div>
@@ -488,21 +488,21 @@ export function AgentConfigurationSheet({
                     {toolFields.map((tool, idx) => (
                       <div
                         key={tool.id}
-                        className="border-subtle bg-muted hover:bg-default flex items-center justify-between rounded-lg border p-4 transition-colors">
+                        className="flex justify-between items-center p-4 rounded-lg border transition-colors border-subtle bg-muted hover:bg-default">
                         <div className="flex gap-3">
-                          <div className="bg-default border-subtle flex h-8 w-8 items-center justify-center rounded-md border">
-                            <Icon name="zap" className="text-emphasis h-4 w-4" />
+                          <div className="flex justify-center items-center w-8 h-8 rounded-md border bg-default border-subtle">
+                            <Icon name="zap" className="w-4 h-4 text-emphasis" />
                           </div>
                           <div>
-                            <p className="text-emphasis font-medium">{tool.name}</p>
-                            <p className="text-subtle text-sm">
+                            <p className="font-medium text-emphasis">{tool.name}</p>
+                            <p className="text-sm text-subtle">
                               {tool.type === "check_availability_cal" && t("Check Availability")}
                               {tool.type === "book_appointment_cal" && t("Book Appointment")}
                               {tool.type === "end_call" && t("End Call")}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex gap-2 items-center">
                           <Button
                             type="button"
                             size="sm"
@@ -510,7 +510,7 @@ export function AgentConfigurationSheet({
                             variant="icon"
                             onClick={() => openEditToolDialog(idx)}
                             disabled={readOnly}>
-                            <Icon name="pencil" className="h-4 w-4" />
+                            <Icon name="pencil" className="w-4 h-4" />
                           </Button>
                           {tool.name !== "end_call" && (
                             <Button
@@ -520,17 +520,17 @@ export function AgentConfigurationSheet({
                               size="sm"
                               onClick={() => handleToolDelete(idx)}
                               disabled={readOnly}>
-                              <Icon name="trash" className="h-4 w-4" />
+                              <Icon name="trash" className="w-4 h-4" />
                             </Button>
                           )}
                         </div>
                       </div>
                     ))}
                     {toolFields.length === 0 && (
-                      <div className="border-subtle bg-muted flex flex-col items-center justify-center rounded-lg border p-6 text-center">
-                        <Icon name="zap" className="text-subtle h-6 w-6" />
-                        <p className="text-subtle mt-2 text-sm">{t("No functions configured yet")}</p>
-                        <p className="text-subtle text-xs">
+                      <div className="flex flex-col justify-center items-center p-6 text-center rounded-lg border border-subtle bg-muted">
+                        <Icon name="zap" className="w-6 h-6 text-subtle" />
+                        <p className="mt-2 text-sm text-subtle">{t("No functions configured yet")}</p>
+                        <p className="text-xs text-subtle">
                           {t("Add functions to enable advanced capabilities")}
                         </p>
                       </div>
@@ -688,30 +688,22 @@ export function AgentConfigurationSheet({
 
       <Dialog open={isBuyDialogOpen} onOpenChange={setIsBuyDialogOpen}>
         <DialogContent type="creation">
+          <DialogHeader
+            title={t("buy_a_new_number")}
+            subtitle={t("buy_number_for_x_per_month", {
+              priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
+            })}
+          />
           <div className="flex flex-col">
             <div>
-              <h3 className="text-emphasis text-xl font-bold">{t("buy_a_new_number")}</h3>
-
-              <p className="text-default mb-4 leading-tight">{t("buy_a_new_number_description")}</p>
-
-              <div className="mb-2">
-                <h4 className="text-emphasis font-semibold">{t("purchasable_numbers")}</h4>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🇺🇸</span>
-                    <span className="text-default">United States</span>
-                  </div>
-                  <span className="text-emphasisfont-medium">
-                    {t("price_per_month", {
-                      priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
-                    })}
-                  </span>
-                </div>
-              </div>
-
               <div>
-                <h4 className="text-emphasis font-semibold">{t("supported_call_destinations")}</h4>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                <Alert
+                  className="mb-4"
+                  severity="info"
+                  message={t("only_us_phone_numbers_can_be_purchased_here")}
+                />
+                <Label>{t("supported_call_destinations")}</Label>
+                <div className="-mb-4 grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">🇺🇸</span>
                     <span className="text-default">United States</span>
@@ -758,12 +750,6 @@ export function AgentConfigurationSheet({
                   </div>
                 </div>
               </div>
-
-              <Alert
-                className="mt-2"
-                severity="info"
-                message={t("only_us_phone_numbers_can_be_purchased_here")}
-              />
             </div>
             <BaseDialogFooter showDivider className="relative">
               <Button onClick={() => setIsBuyDialogOpen(false)} color="secondary">
@@ -1113,7 +1099,7 @@ export function AgentConfigurationSheet({
 //                   onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, timezone: e.target.value }))}
 //                   placeholder={t("America/Los_Angeles")}
 //                 />
-//                 <p className="text-subtle mt-1 text-xs">{t("Required for Cal.com calendar integration")}</p>
+//                 <p className="mt-1 text-xs text-subtle">{t("Required for Cal.com calendar integration")}</p>
 //               </div>
 //             </>
 //           )}
