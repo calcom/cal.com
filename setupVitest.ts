@@ -3,8 +3,6 @@ import ResizeObserver from "resize-observer-polyfill";
 import { vi, expect } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
 import type { CalendarService } from "@calcom/types/Calendar";
-import prismaMock from "./tests/libs/__mocks__/prisma";
-import { v4 as uuidv4 } from "uuid";
 
 global.ResizeObserver = ResizeObserver;
 const fetchMocker = createFetchMock(vi);
@@ -78,6 +76,7 @@ class MockPaymentService {
     selectedEventTypeTitle?: string,
     eventTitle?: string
   ) {
+    const { default: prismaMock } = await import("./tests/libs/__mocks__/prisma");
     const externalId = "mock_payment_external_id";
     
     const paymentCreateData = {
