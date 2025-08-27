@@ -16,7 +16,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
-import { showToast } from "@calcom/ui/toast";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 

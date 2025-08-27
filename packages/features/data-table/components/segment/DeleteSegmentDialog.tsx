@@ -21,7 +21,7 @@ export function DeleteSegmentDialog({
     onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_deleted"), "success");
-      if (segmentId === id) {
+      if (segmentId && segmentId.type === "user" && segmentId.id === id) {
         setSegmentId(null);
       }
       onClose();
