@@ -21,14 +21,7 @@ interface TestAgentDialogProps {
   form: UseFormReturn<FormValues>;
 }
 
-export function TestAgentDialog({
-  open,
-  onOpenChange,
-  agentId,
-  teamId,
-  workflowId,
-  form,
-}: TestAgentDialogProps) {
+export function TestAgentDialog({ open, onOpenChange, agentId, teamId, form }: TestAgentDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
