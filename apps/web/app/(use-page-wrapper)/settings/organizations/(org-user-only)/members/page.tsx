@@ -10,6 +10,7 @@ import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permi
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
+
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -27,7 +28,9 @@ export const generateMetadata = async () =>
 
 const getCachedAttributes = unstable_cache(
   async (orgId: number) => {
-    return await PrismaAttributeRepository.findAllByOrgIdWithOptions({ orgId });
+    const attributeRepo = new PrismaAttributeRepository(prisma);
+
+    return await attributeRepo.findAllByOrgIdWithOptions({ orgId });
   },
   undefined,
   { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour

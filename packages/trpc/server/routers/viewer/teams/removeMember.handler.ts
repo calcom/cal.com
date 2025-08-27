@@ -115,7 +115,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     }
   }
 
-  await TeamService.removeMembers(teamIds, memberIds, isOrg);
+  await TeamService.removeMembers({ teamIds, userIds: memberIds, isOrg });
 };
 
 export default removeMemberHandler;
