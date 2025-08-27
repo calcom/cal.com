@@ -1041,7 +1041,6 @@ export class AvailableSlotsService {
         queuedFormResponseId,
       });
     }
-
     const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
       await this.dependencies.qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
         eventType,
