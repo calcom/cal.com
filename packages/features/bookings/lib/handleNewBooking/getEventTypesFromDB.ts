@@ -68,6 +68,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         lockedTimeZone: true,
         requiresConfirmation: true,
         requiresConfirmationForFreeEmail: true,
+        requiresConfirmationForReschedule: true,
         requiresBookerEmailVerification: true,
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,

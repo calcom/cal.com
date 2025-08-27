@@ -35,7 +35,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
   const eventTypes = await prisma.$queryRaw<RawEventType[]>`
     SELECT data."id", data."title", data."description", data."length", data."schedulingType"::text,
       data."recurringEvent", data."slug", data."hidden", data."price", data."currency",
-      data."lockTimeZoneToggleOnBookingPage", data."lockedTimeZone", data."requiresConfirmation", data."requiresBookerEmailVerification",
+      data."lockTimeZoneToggleOnBookingPage", data."lockedTimeZone", data."requiresConfirmation", data."requiresConfirmationForReschedule", data."requiresBookerEmailVerification",
       data."metadata", data."canSendCalVideoTranscriptionEmails"
       FROM (
         SELECT "EventType"."id", "EventType"."title", "EventType"."description",
@@ -43,7 +43,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
           "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
           "EventType"."price", "EventType"."currency",
           "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
-          "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
+          "EventType"."requiresConfirmationForReschedule", "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
           "EventType"."canSendCalVideoTranscriptionEmails"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL AND "EventType"."userId" = ${userId}
@@ -53,7 +53,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
         "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
         "EventType"."price", "EventType"."currency",
         "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
-        "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
+        "EventType"."requiresConfirmationForReschedule", "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
         "EventType"."canSendCalVideoTranscriptionEmails"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL

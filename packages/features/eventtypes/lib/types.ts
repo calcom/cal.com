@@ -94,6 +94,7 @@ export type FormValues = {
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot: boolean;
   requiresConfirmationForFreeEmail: boolean;
+  requiresConfirmationForReschedule: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;

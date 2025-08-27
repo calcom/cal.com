@@ -15,6 +15,7 @@ export const eventTypeSelect = {
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
+  requiresConfirmationForReschedule: true,
   requiresConfirmationWillBlockSlot: true,
   autoTranslateDescriptionEnabled: true,
   position: true,

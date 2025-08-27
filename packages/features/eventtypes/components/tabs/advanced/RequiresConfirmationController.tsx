@@ -77,6 +77,7 @@ export default function RequiresConfirmationController({
 
   const requiresConfirmationWillBlockSlot = formMethods.getValues("requiresConfirmationWillBlockSlot");
   const requiresConfirmationForFreeEmail = formMethods.getValues("requiresConfirmationForFreeEmail");
+  const requiresConfirmationForReschedule = formMethods.getValues("requiresConfirmationForReschedule");
 
   return (
     <div className="block items-start sm:flex">
@@ -108,6 +109,7 @@ export default function RequiresConfirmationController({
                 if (!val) {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", false, { shouldDirty: true });
                   formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
+                  formMethods.setValue("requiresConfirmationForReschedule", false, { shouldDirty: true });
                 }
                 onRequiresConfirmation(val);
               }}>
@@ -261,6 +263,21 @@ export default function RequiresConfirmationController({
                             onChange={(e) => {
                               // We set should dirty to properly detect when we can submit the form
                               formMethods.setValue("requiresConfirmationForFreeEmail", e.target.checked, {
+                                shouldDirty: true,
+                              });
+                            }}
+                          />
+                          <CheckboxField
+                            checked={requiresConfirmationForReschedule}
+                            descriptionAsLabel
+                            description={t("require_confirmation_for_reschedule")}
+                            className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                            descriptionClassName={
+                              customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                            }
+                            onChange={(e) => {
+                              // We set should dirty to properly detect when we can submit the form
+                              formMethods.setValue("requiresConfirmationForReschedule", e.target.checked, {
                                 shouldDirty: true,
                               });
                             }}
