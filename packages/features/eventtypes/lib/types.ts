@@ -214,16 +214,11 @@ export type CheckboxClassNames = {
   container?: string;
 };
 export type SelectClassNames = {
-  innerClassNames?: {
-    input?: string;
-    option?: string;
-    control?: string;
-    singleValue?: string;
-    valueContainer?: string;
-    multiValue?: string;
-    menu?: string;
-    menuList?: string;
-  };
+  innerClassNames?: import("react-select").ClassNamesConfig<
+    CheckedSelectOption,
+    true,
+    import("react-select").GroupBase<CheckedSelectOption>
+  >;
   select?: string;
   label?: string;
   container?: string;

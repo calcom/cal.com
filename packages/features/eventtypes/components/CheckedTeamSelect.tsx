@@ -1,13 +1,12 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Props, Options } from "react-select";
+import React, { useState } from "react";
+import type { Props, Options, GroupBase, ClassNamesConfig } from "react-select";
 import CreatableSelect from "react-select/creatable";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
-import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -15,9 +14,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
 // Email utilities
 const EMAIL_RE =
@@ -28,6 +24,7 @@ const parseEmails = (input: string) =>
     .split(/[,\s]+/)
     .map((s) => s.trim())
     .filter(Boolean);
+
 export type CheckedSelectOption = {
   avatar?: string;
   label: string;
@@ -37,7 +34,7 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
-  isPending?: boolean; //  NEW
+  isPending?: boolean;
   groupId?: string | null;
 };
 
@@ -54,8 +51,6 @@ export type CheckedTeamSelectCustomClassNames = {
       removeButton?: string;
     };
   };
-  priorityDialog?: PriorityDialogCustomClassNames;
-  weightDialog?: WeightDialogCustomClassNames;
 };
 
 export const CheckedTeamSelect = ({
@@ -73,27 +68,34 @@ export const CheckedTeamSelect = ({
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
 }) => {
+  // ✅ Hooks MUST come after props destructure
   const isPlatform = useIsPlatform();
-  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
-  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
-
-  const [currentOption, setCurrentOption] = useState(value[0] ?? null);
-
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
+  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
+  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const [currentOption, setCurrentOption] = useState<CheckedSelectOption | null>(null);
+
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
-  const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
-    const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
-
-    const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
-    props.onChange(newValueAllGroups);
-  };
+  // Helper
+  function getPriorityTextAndColor(priority?: number) {
+    switch (priority) {
+      case 0:
+        return { text: "Low", color: "text-gray-500" };
+      case 1:
+        return { text: "Medium", color: "text-blue-500" };
+      case 2:
+        return { text: "High", color: "text-red-500" };
+      default:
+        return { text: "Normal", color: "text-black" };
+    }
+  }
 
   return (
     <>
-      <CreatableSelect<CheckedSelectOption, true>
+      <CreatableSelect<CheckedSelectOption, true, GroupBase<CheckedSelectOption>>
         {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
@@ -102,7 +104,13 @@ export const CheckedTeamSelect = ({
         options={options}
         value={value}
         className={customClassNames?.hostsSelect?.select}
-        classNames={customClassNames?.hostsSelect?.innerClassNames as any}
+        classNames={
+          customClassNames?.hostsSelect?.innerClassNames as ClassNamesConfig<
+            CheckedSelectOption,
+            true,
+            GroupBase<CheckedSelectOption>
+          >
+        }
         onChange={(newVal) => props.onChange(newVal)}
         onCreateOption={(inputValue) => {
           const emails = parseEmails(inputValue);
@@ -113,6 +121,7 @@ export const CheckedTeamSelect = ({
               label: `${email} (invite pending)`,
               avatar: "",
               isPending: true,
+              groupId: groupId ?? null,
             }));
             props.onChange([...(value || []), ...newOptions]);
           } else {
@@ -128,20 +137,22 @@ export const CheckedTeamSelect = ({
           customClassNames?.selectedHostList?.container
         )}
         ref={animationRef}>
-        {value.map((option, index) => (
+        {valueFromGroup.map((option, index) => (
           <li
             key={option.value}
             className={classNames(
-              `flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`,
+              `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
               customClassNames?.selectedHostList?.listItem?.container
             )}>
-            {!isPlatform && option.avatar && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-            {(!option.avatar || isPlatform) && (
+            {!isPlatform && option.avatar ? (
+              <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+            ) : (
               <Icon
                 name="user"
                 className={classNames("mt-0.5 h-4 w-4", customClassNames?.selectedHostList?.listItem?.avatar)}
               />
             )}
+
             <p
               className={classNames(
                 "text-emphasis my-auto ms-3 text-sm",
@@ -151,21 +162,20 @@ export const CheckedTeamSelect = ({
             </p>
 
             <div className="ml-auto flex items-center">
-              {/* Skip priority/weight for pending emails */}
               {!option.isPending && !option.isFixed && (
                 <>
                   <Tooltip content={t("change_priority")}>
                     <Button
                       color="minimal"
-                      onClick={() => {
-                        setPriorityDialogOpen(true);
-                        setCurrentOption(option);
-                      }}
                       className={classNames(
                         "mr-6 h-2 p-0 text-sm hover:bg-transparent",
                         getPriorityTextAndColor(option.priority).color,
                         customClassNames?.selectedHostList?.listItem?.changePriorityButton
-                      )}>
+                      )}
+                      onClick={() => {
+                        setPriorityDialogOpen(true);
+                        setCurrentOption(option);
+                      }}>
                       {t(getPriorityTextAndColor(option.priority).text)}
                     </Button>
                   </Tooltip>
@@ -199,46 +209,6 @@ export const CheckedTeamSelect = ({
           </li>
         ))}
       </ul>
-
-      {currentOption && !currentOption.isFixed && !currentOption.isPending && (
-        <>
-          <PriorityDialog
-            isOpenDialog={priorityDialogOpen}
-            setIsOpenDialog={setPriorityDialogOpen}
-            option={currentOption}
-            options={options}
-            onChange={props.onChange}
-            customClassNames={customClassNames?.priorityDialog}
-          />
-          <WeightDialog
-            isOpenDialog={weightDialogOpen}
-            setIsOpenDialog={setWeightDialogOpen}
-            option={currentOption}
-            options={options}
-            onChange={props.onChange}
-            customClassNames={customClassNames?.weightDialog}
-          />
-        </>
-      )}
     </>
   );
 };
-
-const getPriorityTextAndColor = (priority?: number) => {
-  switch (priority) {
-    case 0:
-      return { text: "lowest", color: "text-gray-300" };
-    case 1:
-      return { text: "low", color: "text-gray-400" };
-    case 2:
-      return { text: "medium", color: "text-gray-500" };
-    case 3:
-      return { text: "high", color: "text-gray-600" };
-    case 4:
-      return { text: "highest", color: "text-gray-700" };
-    default:
-      return { text: "medium", color: "text-gray-500" };
-  }
-};
-
-export default CheckedTeamSelect;

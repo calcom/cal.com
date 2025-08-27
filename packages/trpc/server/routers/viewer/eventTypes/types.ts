@@ -81,7 +81,8 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     instantMeetingParameters: z.array(z.string()),
     instantMeetingExpiryTimeOffsetInSeconds: z.number(),
     aiPhoneCallConfig,
-    calVideoSettings: calVideoSettingsSchema,
+    // calVideoSettingsSchema must be imported from the correct file if used
+    calVideoSettings: z.unknown(),
     calAiPhoneScript: z.string(),
     customInputs: z.array(customInputSchema),
     destinationCalendar: _DestinationCalendarModel

@@ -4,7 +4,7 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import { createWebhookSignature, jsonParse } from "./sendPayload";
 
-export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
+export async function handleWebhookScheduledTriggers(prisma: PrismaClient): Promise<void> {
   await prisma.webhookScheduledTriggers.deleteMany({
     where: {
       startAfter: {
@@ -32,7 +32,7 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     },
   });
 
-  const fetchPromises: Promise<any>[] = [];
+  const fetchPromises: Promise<unknown>[] = [];
 
   // run jobs
   for (const job of jobsToRun) {

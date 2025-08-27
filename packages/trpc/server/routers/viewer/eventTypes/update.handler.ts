@@ -272,6 +272,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (customInputs) {
+    if (!id) throw new Error("Missing eventType id");
     data.customInputs = handleCustomInputs(customInputs, id);
   }
 
@@ -411,8 +412,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     // handle invites for email hosts
     for (const invite of emailHosts) {
+      if (!invite.email) continue;
       const normalizedEmail = invite.email.trim().toLowerCase();
-      await ctx.prisma.teamInvite.upsert({
+      await ctx.prisma.teamInvitation.upsert({
         where: {
           email_teamId: { email: normalizedEmail, teamId },
         },
@@ -457,16 +459,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
         priority: h.priority ?? 2,
         weight: h.weight ?? 100,
+        userId: h.userId,
       })),
-      update: existingHosts.map((h) => ({
-        where: { userId_eventTypeId: { userId: h.userId, eventTypeId: id } },
-        data: {
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
-          priority: h.priority ?? 2,
-          weight: h.weight ?? 100,
-          scheduleId: h.scheduleId ?? null,
-        },
-      })),
+      update: existingHosts
+        .filter((h) => typeof h.userId === "number")
+        .map((h) => ({
+          where: { userId_eventTypeId: { userId: h.userId as number, eventTypeId: id } },
+          data: {
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
+            priority: h.priority ?? 2,
+            weight: h.weight ?? 100,
+            scheduleId: h.scheduleId ?? null,
+          },
+        })),
     };
   }
 
@@ -549,13 +554,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         );
         try {
           await inviteMembersWithNoInviterPermissionCheck({
-            inviterName: ctx.user.name,
+            inviterName: ctx.user?.name ?? null,
             teamId: teamId,
             language: ctx.user.locale || "en",
-            creationSource: "INVITATION" as string,
+            creationSource: CreationSource.INVITATION,
             orgSlug: eventType.team?.slug || null,
             invitations: emailHosts
-              .filter((host) => host.email)
+              .filter((host) => typeof host.email === "string" && host.email)
               .map((host) => ({
                 usernameOrEmail: host.email,
                 role: MembershipRole.MEMBER,
