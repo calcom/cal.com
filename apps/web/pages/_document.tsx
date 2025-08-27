@@ -1,3 +1,4 @@
+import { platform } from "@todesktop/client-core";
 import type { IncomingMessage } from "http";
 import { dir } from "i18next";
 import type { DocumentContext, DocumentProps } from "next/document";
@@ -37,6 +38,14 @@ class MyDocument extends Document<Props> {
     const newLocale = this.props.newLocale || "en";
     const newDir = dir(newLocale);
 
+    const isDesktopApp = (() => {
+      try {
+        return platform.todesktop.isDesktopApp();
+      } catch {
+        return false;
+      }
+    })();
+
     return (
       <Html
         lang={newLocale}
@@ -49,6 +58,7 @@ class MyDocument extends Document<Props> {
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";
+              window.calIsDesktopApp = ${isDesktopApp};
               (${applyTheme.toString()})();
               (${applyToDesktopClass.toString()})();
             `,
