@@ -28,7 +28,14 @@ export function getCalApi(
   const { namespace = "", embedJsUrl } = options;
   return new Promise(function tryReadingFromWindow(resolve) {
     const globalCal = EmbedSnippet(embedJsUrl);
-    globalCal("init", namespace);
+
+    globalCal("init");
+
+    if (namespace) {
+      globalCal("init", namespace);
+      globalCal("initNamespace", namespace);
+    }
+
     const api = namespace ? globalCal.ns[namespace as keyof typeof globalCal.ns] : globalCal;
     if (!api) {
       setTimeout(() => {
