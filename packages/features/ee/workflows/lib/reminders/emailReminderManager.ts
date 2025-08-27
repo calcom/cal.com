@@ -19,6 +19,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
@@ -314,11 +315,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   /**
    * @deprecated only needed for SendGrid, use SMTP with tasker instead
    */
-  if (
-    triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-    triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
-  ) {
+  if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
     try {
       const promises = sendTo.map((email) => sendSendgridMail({ ...mailData, to: email }));
       // TODO: Maybe don't await for this?

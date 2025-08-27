@@ -40,6 +40,16 @@ import {
   OnFormSubmittedTriggerDto,
   FORM_SUBMITTED_NO_EVENT,
   FORM_SUBMITTED,
+  OnNoShowUpdateTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnPaidTriggerDto,
+  BOOKING_REQUESTED,
+  BOOKING_REJECTED,
+  BOOKING_PAYMENT_INITIATED,
+  BOOKING_PAID,
+  BOOKING_NO_SHOW_UPDATED,
 } from "./workflow-trigger.input";
 
 export type UpdateWorkflowStepDto =
@@ -125,6 +135,11 @@ export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWha
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnRescheduleTriggerDto,
+  OnNoShowUpdateTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnPaidTriggerDto,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
   UpdateEmailAddressWorkflowStepDto,
@@ -163,6 +178,11 @@ export class UpdateWorkflowDto {
       { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnFormSubmittedTriggerDto) },
       { $ref: getSchemaPath(OnFormSubmittedNoEventTriggerDto) },
+      { $ref: getSchemaPath(OnRejectedTriggerDto) },
+      { $ref: getSchemaPath(OnRequestedTriggerDto) },
+      { $ref: getSchemaPath(OnPaidTriggerDto) },
+      { $ref: getSchemaPath(OnPaymentInitiatedTriggerDto) },
+      { $ref: getSchemaPath(OnNoShowUpdateTriggerDto) },
     ],
   })
   @IsOptional()
@@ -180,6 +200,11 @@ export class UpdateWorkflowDto {
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
         { value: OnFormSubmittedTriggerDto, name: FORM_SUBMITTED },
         { value: OnFormSubmittedNoEventTriggerDto, name: FORM_SUBMITTED_NO_EVENT },
+        { value: OnRequestedTriggerDto, name: BOOKING_REQUESTED },
+        { value: OnRejectedTriggerDto, name: BOOKING_REJECTED },
+        { value: OnPaymentInitiatedTriggerDto, name: BOOKING_PAYMENT_INITIATED },
+        { value: OnPaidTriggerDto, name: BOOKING_PAID },
+        { value: OnNoShowUpdateTriggerDto, name: BOOKING_NO_SHOW_UPDATED },
       ],
     },
   })
@@ -189,6 +214,11 @@ export class UpdateWorkflowDto {
     | OnCreationTriggerDto
     | OnRescheduleTriggerDto
     | OnCancelTriggerDto
+    | OnRejectedTriggerDto
+    | OnRequestedTriggerDto
+    | OnPaidTriggerDto
+    | OnPaymentInitiatedTriggerDto
+    | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
     | OnAfterCalVideoHostsNoShowTriggerDto;
 
