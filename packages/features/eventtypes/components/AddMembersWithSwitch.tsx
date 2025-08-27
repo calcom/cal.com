@@ -195,7 +195,9 @@ export function AddMembersWithSwitch({
           {!groupId && (
             <AssignAllTeamMembers
               onAssignAll={() => setAssignAllTeamMembers(true)}
-              disabled={assignAllTeamMembers}
+              disabled={false}
+              checked={assignAllTeamMembers}
+              onCheckedChange={(checked) => setAssignAllTeamMembers(checked)}
             />
           )}
 
@@ -221,7 +223,9 @@ export function AddMembersWithSwitch({
             {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && !groupId && (
               <AssignAllTeamMembers
                 onAssignAll={() => setAssignAllTeamMembers(true)}
-                disabled={assignAllTeamMembers}
+                disabled={false}
+                checked={assignAllTeamMembers}
+                onCheckedChange={(checked) => setAssignAllTeamMembers(checked)}
               />
             )}
           </div>
