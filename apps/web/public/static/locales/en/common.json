@@ -1541,6 +1541,7 @@
   "open": "Open",
   "close": "Close",
   "upgrade": "Upgrade",
+  "buy_us_number_button": "Buy US number for {{priceInDollars}}/month",
   "upgrade_to_access_recordings_title": "Upgrade to access recordings",
   "upgrade_to_access_recordings_description": "Recordings are only available as part of our teams plan. Upgrade to start recording your calls",
   "upgrade_to_cal_ai_phone_number_description": "Upgrade to Enterprise to generate an AI Agent phone number that can call guests to schedule calls",

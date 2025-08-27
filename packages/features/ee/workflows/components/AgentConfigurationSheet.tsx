@@ -783,7 +783,7 @@ export function AgentConfigurationSheet({
                 }}
                 loading={buyNumberMutation.isPending}
                 disabled={buyNumberMutation.isPending}>
-                Buy US Number ($5/month)
+                {t("buy_us_number_button", { priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE })}
               </Button>
             </BaseDialogFooter>
           </div>
