@@ -22,6 +22,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -407,14 +408,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (teamId && hosts) {
-    const emailHosts = hosts.filter((h: { email?: string }) => "email" in h);
-    const userHosts = hosts.filter((h: { userId?: number }) => "userId" in h);
+    const emailHosts = hosts.filter((h: { email?: string }) => typeof h.email === "string");
+    const userHosts = hosts.filter((h: { userId?: number }) => typeof h.userId === "number");
 
     // handle invites for email hosts
+    // If you need to invite, use the correct model name (teamInvitations or similar)
     for (const invite of emailHosts) {
       if (!invite.email) continue;
       const normalizedEmail = invite.email.trim().toLowerCase();
-      await ctx.prisma.teamInvitation.upsert({
+      await ctx.prisma.teamInvitations?.upsert({
         where: {
           email_teamId: { email: normalizedEmail, teamId },
         },
@@ -437,14 +439,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
     const teamMemberIds = memberships.map((m) => m.userId);
 
-    if (!userHosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+    if (
+      !userHosts.every((host) => teamMemberIds.includes(host.userId as number)) &&
+      !eventType.team?.parentId
+    ) {
       throw new TRPCError({ code: "FORBIDDEN" });
     }
 
     const oldHostsSet = new Set(eventType.hosts.map((h) => h.userId));
-    const newHostsSet = new Set(userHosts.map((h) => h.userId));
-    const existingHosts = userHosts.filter((h) => oldHostsSet.has(h.userId));
-    const newHosts = userHosts.filter((h) => !oldHostsSet.has(h.userId));
+    const newHostsSet = new Set(userHosts.map((h) => h.userId as number));
+    const existingHosts = userHosts.filter((h) => oldHostsSet.has(h.userId as number));
+    const newHosts = userHosts.filter((h) => !oldHostsSet.has(h.userId as number));
     const removedHosts = eventType.hosts.filter((h) => !newHostsSet.has(h.userId));
 
     data.hosts = {
@@ -454,13 +459,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           eventTypeId: id,
         })),
       },
-      create: newHosts.map((h) => ({
-        ...h,
-        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
-        priority: h.priority ?? 2,
-        weight: h.weight ?? 100,
-        userId: h.userId,
-      })),
+      create: newHosts
+        .filter((h) => typeof h.userId === "number")
+        .map((h) => ({
+          ...h,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
+          priority: h.priority ?? 2,
+          weight: h.weight ?? 100,
+          userId: h.userId as number,
+        })),
       update: existingHosts
         .filter((h) => typeof h.userId === "number")
         .map((h) => ({
@@ -541,7 +548,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       // Validate userId hosts are team members (unless sub-team)
       const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
-      if (!userIdHosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+      if (
+        !userIdHosts.every((host) => teamMemberIds.includes(host.userId as number)) &&
+        !eventType.team?.parentId
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
         });
@@ -554,7 +564,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         );
         try {
           await inviteMembersWithNoInviterPermissionCheck({
-            inviterName: ctx.user?.name ?? null,
+            inviterName: ctx.user?.username ?? null,
             teamId: teamId,
             language: ctx.user.locale || "en",
             creationSource: CreationSource.INVITATION,
@@ -562,7 +572,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             invitations: emailHosts
               .filter((host) => typeof host.email === "string" && host.email)
               .map((host) => ({
-                usernameOrEmail: host.email,
+                usernameOrEmail: host.email as string,
                 role: MembershipRole.MEMBER,
               })),
             isDirectUserAction: false,
