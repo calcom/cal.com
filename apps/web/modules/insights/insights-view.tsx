@@ -22,6 +22,7 @@ import {
   MostCompletedTeamMembersTable,
   LeastCompletedTeamMembersTable,
   PopularEventsTable,
+  RecentNoShowGuestsChart,
   RecentFeedbackTable,
   TimezoneBadge,
 } from "@calcom/features/insights/components/booking";
@@ -92,6 +93,7 @@ function InsightsPageContent() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
+          <RecentNoShowGuestsChart />
           <HighestNoShowHostTable />
           <div className="sm:col-span-2">
             <PopularEventsTable />

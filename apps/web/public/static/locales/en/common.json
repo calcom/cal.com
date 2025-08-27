@@ -3273,6 +3273,8 @@
   "routing_form_select_members_to_email": "Send email responses to",
   "routing_incomplete_booking_tab": "Incomplete Bookings",
   "include_no_show_in_rr_calculation": "Include no show bookings in round robin calculations",
+  "recent_no_show_guests": "Recent No-Show Guests",
+  "email_copied": "Email copied to clipboard",
   "matching": "Matching",
   "event_redirect": "Event Redirect",
   "reset_form": "Reset Form",

@@ -1,0 +1,73 @@
+"use client";
+
+import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
+
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard, ChartCardItem } from "../ChartCard";
+import { LoadingInsight } from "../LoadingInsights";
+
+export const RecentNoShowGuestsChart = () => {
+  const { t } = useLocale();
+  const { copyToClipboard } = useCopy();
+  const insightsBookingParams = useInsightsBookingParameters();
+
+  const { data, isSuccess, isPending } = trpc.viewer.insights.recentNoShowGuests.useQuery(
+    insightsBookingParams,
+    {
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
+
+  if (isPending) return <LoadingInsight />;
+
+  if (!isSuccess || !data) return null;
+
+  const handleCopyEmail = (email: string) => {
+    copyToClipboard(email);
+    showToast(t("email_copied"), "success");
+  };
+
+  return (
+    <ChartCard title={t("recent_no_show_guests")}>
+      <div>
+        {data.map((item, index) => (
+          <ChartCardItem key={`${item.bookingId}-${index}`}>
+            <div className="flex w-full items-center justify-between">
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-subtle mr-1.5 h-5 w-[2px] shrink-0 rounded-sm" />
+                  <p className="font-medium">{item.guestName}</p>
+                </div>
+                <div className="text-subtle ml-3.5 text-sm">
+                  <p>{item.eventTypeName}</p>
+                  <p>{new Date(item.startTime).toLocaleString()}</p>
+                </div>
+              </div>
+              <Button
+                variant="icon"
+                color="minimal"
+                size="sm"
+                StartIcon="copy"
+                onClick={() => handleCopyEmail(item.guestEmail)}
+                className="h-8 w-8"
+              />
+            </div>
+          </ChartCardItem>
+        ))}
+      </div>
+      {data.length === 0 && (
+        <div className="flex h-60 text-center">
+          <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>
+        </div>
+      )}
+    </ChartCard>
+  );
+};
