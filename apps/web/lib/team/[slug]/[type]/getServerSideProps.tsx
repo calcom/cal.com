@@ -54,7 +54,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  // Check for managed event type and return 404
   if (eventData.schedulingType === SchedulingType.MANAGED) {
     return { notFound: true } as const;
   }
