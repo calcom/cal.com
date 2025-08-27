@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
-import type { Props } from "react-select";
+import type { Props, Options } from "react-select";
 import CreatableSelect from "react-select/creatable";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -38,6 +38,7 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   isPending?: boolean; //  NEW
+  groupId?: string | null;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
