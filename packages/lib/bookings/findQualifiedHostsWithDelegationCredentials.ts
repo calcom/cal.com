@@ -46,13 +46,15 @@ function getFallBackWithContactOwner<T extends { user: { id: number } }>(
   return [...fallbackHosts, contactOwner];
 }
 
-const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
-  return host.isFixed !== true;
-};
+function isFixedHost<T extends { isFixed?: boolean }>(host: T): host is T & { isFixed: true } {
+  return host.isFixed === true; // Handle undefined case
+}
 
-const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
-  return host.isFixed;
-};
+function isRoundRobinHost<T extends { isFixed?: boolean }>(
+  host: T
+): host is T & { isFixed: false | undefined } {
+  return host.isFixed !== true; // Treat undefined as round-robin
+}
 
 export class QualifiedHostsService {
   constructor(public readonly dependencies: IQualifiedHostsService) {}

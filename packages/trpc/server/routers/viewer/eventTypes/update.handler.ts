@@ -22,7 +22,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -416,7 +415,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     for (const invite of emailHosts) {
       if (!invite.email) continue;
       const normalizedEmail = invite.email.trim().toLowerCase();
-      await ctx.prisma.teamInvitations?.upsert({
+      await ctx.prisma.teamInvite?.upsert({
         where: {
           email_teamId: { email: normalizedEmail, teamId },
         },
@@ -567,7 +566,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             inviterName: ctx.user?.username ?? null,
             teamId: teamId,
             language: ctx.user.locale || "en",
-            creationSource: CreationSource.INVITATION,
+            // creationSource: CreationSource.INVITATION,
             orgSlug: eventType.team?.slug || null,
             invitations: emailHosts
               .filter((host) => typeof host.email === "string" && host.email)
