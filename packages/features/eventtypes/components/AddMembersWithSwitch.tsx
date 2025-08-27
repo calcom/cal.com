@@ -176,11 +176,8 @@ export function AddMembersWithSwitch({
         <>
           {!groupId && (
             <AssignAllTeamMembers
-              assignAllTeamMembers={assignAllTeamMembers}
-              setAssignAllTeamMembers={setAssignAllTeamMembers}
-              onActive={onActive}
-              onInactive={onAssignAllTeamMembersInactive}
-              customClassNames={customClassNames?.assingAllTeamMembers}
+              onAssignAll={() => setAssignAllTeamMembers(true)}
+              disabled={assignAllTeamMembers}
             />
           )}
 
@@ -205,11 +202,8 @@ export function AddMembersWithSwitch({
           <div className="mb-2">
             {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && !groupId && (
               <AssignAllTeamMembers
-                assignAllTeamMembers={assignAllTeamMembers}
-                setAssignAllTeamMembers={setAssignAllTeamMembers}
-                onActive={onActive}
-                onInactive={onAssignAllTeamMembersInactive}
-                customClassNames={customClassNames?.assingAllTeamMembers}
+                onAssignAll={() => setAssignAllTeamMembers(true)}
+                disabled={assignAllTeamMembers}
               />
             )}
           </div>

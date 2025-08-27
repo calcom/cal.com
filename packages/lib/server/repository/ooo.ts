@@ -14,9 +14,7 @@ export class PrismaOOORepository {
   }) {
     return this.prismaClient.outOfOfficeEntry.findMany({
       where: {
-        userId: {
-          in: allUserIds,
-        },
+        userId: { in: allUserIds },
         start: { lte: endTimeDate },
         end: { gte: startTimeDate },
       },
@@ -31,12 +29,11 @@ export class PrismaOOORepository {
     });
   }
 
-  async findUserOOODays({ userId, dateTo, dateFrom }: { userId: number; dateTo: string; dateFrom: string }) {
+  async findUserOOODays({ userId, dateFrom, dateTo }: { userId: number; dateFrom: string; dateTo: string }) {
     return this.prismaClient.outOfOfficeEntry.findMany({
       where: {
         userId,
-        start: { lte: new Date(dateTo) },
-        end: { gte: new Date(dateFrom) },
+        AND: [{ start: { lte: dateTo } }, { end: { gte: dateFrom } }],
       },
       select: {
         id: true,
