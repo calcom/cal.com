@@ -1103,7 +1103,7 @@ export class InsightsBookingBaseService {
       }>
     >`
       WITH booking_attendee_stats AS (
-        SELECT 
+        SELECT
           b.id as booking_id,
           b."startTime",
           b.title as event_type_name,
@@ -1116,7 +1116,7 @@ export class InsightsBookingBaseService {
         HAVING COUNT(a.id) > 0 AND COUNT(a.id) = COUNT(CASE WHEN a."noShow" = true THEN 1 END)
       ),
       recent_no_shows AS (
-        SELECT 
+        SELECT
           bas.booking_id,
           bas."startTime",
           bas.event_type_name,
@@ -1127,7 +1127,7 @@ export class InsightsBookingBaseService {
         INNER JOIN "Attendee" a ON a."bookingId" = bas.booking_id
         WHERE a."noShow" = true
       )
-      SELECT 
+      SELECT
         booking_id as "bookingId",
         "startTime",
         event_type_name as "eventTypeName",

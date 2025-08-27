@@ -12,7 +12,7 @@ import { LoadingInsight } from "../LoadingInsights";
 
 export const RecentNoShowGuestsChart = () => {
   const { t } = useLocale();
-  const { copyToClipboard } = useCopy();
+  const { copyToClipboard, isCopied } = useCopy();
   const insightsBookingParams = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.recentNoShowGuests.useQuery(
@@ -36,10 +36,10 @@ export const RecentNoShowGuestsChart = () => {
   };
 
   return (
-    <ChartCard title={t("recent_no_show_guests")}>
-      <div>
-        {data.map((item, index) => (
-          <ChartCardItem key={`${item.bookingId}-${index}`}>
+    <ChartCard title={t("recent_no_show_guests")} className="h-full">
+      <div className="sm:max-h-[30.6rem] sm:overflow-y-auto">
+        {data.map((item) => (
+          <ChartCardItem key={item.bookingId}>
             <div className="flex w-full items-center justify-between">
               <div className="flex flex-col space-y-1">
                 <div className="flex items-center space-x-2">
@@ -52,13 +52,12 @@ export const RecentNoShowGuestsChart = () => {
                 </div>
               </div>
               <Button
-                variant="icon"
                 color="minimal"
                 size="sm"
-                StartIcon="copy"
-                onClick={() => handleCopyEmail(item.guestEmail)}
-                className="h-8 w-8"
-              />
+                StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+                onClick={() => handleCopyEmail(item.guestEmail)}>
+                {!isCopied ? t("email") : t("copied")}
+              </Button>
             </div>
           </ChartCardItem>
         ))}
