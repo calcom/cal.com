@@ -1,6 +1,8 @@
 import { isSMSOrWhatsappAction } from "@calid/features/modules/workflows/config/utils";
 import { Icon } from "@calid/features/ui";
 
+import classNames from "@calcom/ui/classNames";
+
 import type { WorkflowStep } from "../config/types";
 
 const DEFAULT_STYLE_CLASSES = "mr-1.5 inline h-3 w-3";

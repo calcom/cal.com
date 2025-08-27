@@ -144,6 +144,8 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
+      disableCancelling: eventType.disableCancelling,
+      disableRescheduling: eventType.disableRescheduling,
     };
   }, [eventType, periodDates]);
 
@@ -176,6 +178,18 @@ export const useEventTypeForm = ({
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFieldsSchema,
           locations: locationsResolver(t),
+          successRedirectUrl: z
+            .string()
+            .url({
+              message: t("invalid_url_error_message", {
+                label: t("redirect_success_booking"),
+                //pass raw sampleUrl below, as // is being encoded to https:&#x2F;&#x2F;example.com
+                sampleUrl: "https://example.com",
+                interpolation: { escapeValue: false },
+              }),
+            })
+            .optional()
+            .or(z.literal("")),
           calVideoSettings: z
             .object({
               redirectUrlOnExit: z.string().url().nullish(),

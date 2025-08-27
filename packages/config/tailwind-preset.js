@@ -81,6 +81,7 @@ module.exports = {
           default: "var(--cal-bg-primary)",
           emphasis: "var(--cal-bg-primary-emphasis)",
           muted: "var(--cal-bg-primary-muted)",
+          active: "var(--cal-bg-active)",
         },
 
         // Brand
@@ -316,6 +317,10 @@ module.exports = {
         // Outline - red
         "button-outline-red-focused":
           "0px 0px 0px 1px rgba(255, 255, 255, 0.32), 0px 0px 0px 2px rgba(220, 38, 38, 0.15)",
+      },
+      cursor: {
+        grab: "grab",
+        grabbing: "grabbing",
       },
     },
   },

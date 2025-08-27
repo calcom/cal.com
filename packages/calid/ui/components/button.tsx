@@ -1,6 +1,11 @@
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import type { IconName } from "@calid/features/ui/components/icon/Icon";
-import { Tooltip } from "@calid/features/ui/components/tooltip";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipContent,
+  TooltipTrigger,
+} from "@calid/features/ui/components/tooltip";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { LinkProps } from "next/link";
@@ -351,14 +356,19 @@ const Wrapper = ({
   }
 
   return (
-    <Tooltip
-      data-testid="tooltip"
-      className={tooltipClassName}
-      content={tooltip}
-      side={tooltipSide}
-      sideOffset={tooltipOffset}>
-      {children}
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+
+        <TooltipContent
+          side={tooltipSide}
+          sideOffset={tooltipOffset}
+          className={tooltipClassName}
+          data-testid="tooltip">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 

@@ -45,7 +45,6 @@ export const EventTypeDescription = ({
     ...eventType,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
-
   return (
     <>
       <div className={classNames("text-subtle", className)}>

@@ -1251,7 +1251,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                       {/* Phone Number Input for SMS/WhatsApp specific actions */}
                                       {(step.action === WorkflowActions.SMS_NUMBER ||
                                         step.action === WorkflowActions.WHATSAPP_NUMBER) && (
-                                        <div className="bg-muted rounded-md p-4">
+                                        <div className="bg-default rounded-md">
                                           <Label className="pt-4">
                                             {step.action === WorkflowActions.WHATSAPP_NUMBER
                                               ? "WhatsApp Number"
@@ -1345,7 +1345,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
                                       {/* Email Address Input for EMAIL_ADDRESS action */}
                                       {step.action === WorkflowActions.EMAIL_ADDRESS && (
-                                        <div className="bg-muted rounded-md p-4">
+                                        <div className="bg-default rounded-md">
                                           <Label>Email address</Label>
                                           <div className="block sm:flex">
                                             <Input
@@ -1427,7 +1427,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
                                       {/* Sender Configuration for SMS (not WhatsApp) */}
                                       {isSMSAction(step.action) && (
-                                        <div className="bg-muted rounded-md p-4">
+                                        <div className="bg-default rounded-md">
                                           <div className="pt-4">
                                             <div className="flex items-center">
                                               <Label>{t("sender_id")}</Label>
@@ -1452,7 +1452,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
                                       {/* Sender Name for WhatsApp and Email */}
                                       {(isWhatsappAction(step.action) || isEmailAction(step.action)) && (
-                                        <div className="bg-muted rounded-md p-4">
+                                        <div className="bg-default rounded-md">
                                           <div className="pt-4">
                                             <Label>
                                               {isWhatsappAction(step.action)
@@ -1520,7 +1520,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                       </div>
 
                                       {/* Message Content */}
-                                      <div className="bg-muted rounded-md p-4">
+                                      <div className="bg-default rounded-md">
                                         {/* Email Subject for Email Actions */}
                                         {isEmailAction(step.action) && (
                                           <div className="mb-6">
@@ -1653,7 +1653,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
                 {/* Read-only indicator */}
                 {readOnly && (
-                  <div className="rounded-md bg-yellow-50 p-4">
+                  <div className="rounded-md bg-yellow-50">
                     <div className="flex">
                       <Icon name="info" className="h-5 w-5 text-yellow-400" aria-hidden="true" />
                       <div className="ml-3">

@@ -4256,6 +4256,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calid/features@workspace:packages/calid"
   dependencies:
+    "@calcom/atoms": "*"
+    "@dnd-kit/core": ^6.3.1
+    "@dnd-kit/sortable": ^10.0.0
+    "@dnd-kit/utilities": ^3.2.2
     "@radix-ui/react-accordion": ^1.2.0
     "@radix-ui/react-alert-dialog": ^1.1.1
     "@radix-ui/react-aspect-ratio": ^1.1.0
@@ -4700,6 +4704,55 @@ __metadata:
   peerDependencies:
     moment: ^2.24.0
   checksum: c4847f9d1bf09bb22c1acc5806fc50825c0bdb52408c9fec8cc5f9a65f16a8014870b5890a0eeb73b2c53a6487c35acbd2ab2a5c49068ff5a5dccbcb5c9e654b
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/accessibility@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "@dnd-kit/accessibility@npm:3.1.1"
+  dependencies:
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: f71b98b29e005d15c1300922b201bea9189aceeb15662e6e86231034f72b53812566361f8c14b0521278ac104f9703ca069d43f2c73862ea10181a2211ca5b27
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/core@npm:^6.3.1":
+  version: 6.3.1
+  resolution: "@dnd-kit/core@npm:6.3.1"
+  dependencies:
+    "@dnd-kit/accessibility": ^3.1.1
+    "@dnd-kit/utilities": ^3.2.2
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: abe5ca5c63af2652b50df2636111a8eecb1560338f3b57e27af0d4eac31f89a278347049dbd59897aeec262477ef88d7a906a79254360c40480e490ee910947c
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/sortable@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "@dnd-kit/sortable@npm:10.0.0"
+  dependencies:
+    "@dnd-kit/utilities": ^3.2.2
+    tslib: ^2.0.0
+  peerDependencies:
+    "@dnd-kit/core": ^6.3.0
+    react: ">=16.8.0"
+  checksum: c853cb65d2ffb3d58d400d9f1c993b00413932acf5cf5b780c76acf3b1057aa88e7866021c6b178c4b33fc17db7fe7640584dba4449772e02edcb72cc797eeb0
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/utilities@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "@dnd-kit/utilities@npm:3.2.2"
+  dependencies:
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 8a5015c2faa52760ab82a64287b2ac6a3d798867a1bca5ccbc1178560dbd9a1f9f1a21faea80f590ba1a4277c3eb7e7c4d3b4a39f1f32171bf6bc8174b370547
   languageName: node
   linkType: hard
 

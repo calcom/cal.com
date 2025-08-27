@@ -1,3 +1,4 @@
+import { TIME_UNITS } from "@calid/features/modules/workflows/config/constants";
 import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
@@ -14,7 +15,7 @@ export const ZEditInputSchema = webhookIdAndEventTypeIdSchema.extend({
   appId: z.string().optional().nullable(),
   secret: z.string().optional().nullable(),
   time: z.number().nullable().optional(),
-  timeUnit: z.enum(TIME_UNIT).nullable().optional(),
+  timeUnit: z.enum(TIME_UNITS).nullable().optional(),
 });
 
 export type TEditInputSchema = z.infer<typeof ZEditInputSchema>;

@@ -48,14 +48,14 @@ export default function AppCard({
   const isPlatform = useIsPlatform();
 
   return (
-    <Section className={classNames(!app?.isInstalled && "rounded-xl")}>
+    <Section className={classNames(!app?.isInstalled && "bg-default border-muted rounded-xl border")}>
       <Section.Header
         rawHeading={
           <div>
             <div className="flex w-full items-center gap-1">
               <Section.Title>{app?.name}</Section.Title>
               {!app?.isInstalled && (
-                <span className="bg-emphasis ml-1 rounded px-1 py-0.5 text-xs font-medium leading-3 tracking-[0.01em]">
+                <span className="bg-muted text-muted ml-1 rounded px-1 py-1 text-xs font-semibold leading-3 tracking-[0.01em]">
                   {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
                 </span>
               )}

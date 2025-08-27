@@ -175,6 +175,7 @@
   --cal-bg-brand: hsla(0, 0%, 98%, 1); /* gray-50 */
   --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1); /* stone-100 */
   --cal-bg-brand-muted: hsla(0, 0%, 96%, 1); /* stone-100 */
+  --cal-bg-primary-active:hsla(207, 100%, 45%, 1);
 
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */

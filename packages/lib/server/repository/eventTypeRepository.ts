@@ -62,6 +62,7 @@ const userSelect = {
   username: true,
   id: true,
   timeZone: true,
+  email: true,
 } satisfies Prisma.UserSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(

@@ -1,12 +1,11 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import { Provider as TooltipPrimitiveProvider } from "@radix-ui/react-tooltip";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
 
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import classNames from "@calcom/ui/classNames";
 
-import { Tooltip } from "./tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip";
 
 type Maybe<T> = T | null | undefined;
 
@@ -20,7 +19,7 @@ export type AvatarProps = {
   href?: string | null;
   fallback?: React.ReactNode;
   accepted?: boolean;
-  asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
+  asChild?: boolean;
   indicator?: React.ReactNode;
   "data-testid"?: string;
 };
@@ -30,13 +29,13 @@ const avatarClasses = cva(
   {
     variants: {
       size: {
-        xs: "w-4 h-4 min-w-4 min-h-4 max-h-4", // 16px
-        xsm: "w-5 h-5 min-w-5 min-h-5", // 20px
-        sm: "w-6 h-6 min-w-6 min-h-6", // 24px
-        md: "w-8 h-8 min-w-8 min-h-8", // 32px
-        mdLg: "w-10 h-10 min-w-10 min-h-10", // 40px
-        lg: "w-16 h-16 min-w-16 min-h-16", // 64px
-        xl: "w-24 h-24 min-w-24 min-h-24", // 96px
+        xs: "w-4 h-4 min-w-4 min-h-4 max-h-4",
+        xsm: "w-5 h-5 min-w-5 min-h-5",
+        sm: "w-6 h-6 min-w-6 min-h-6",
+        md: "w-8 h-8 min-w-8 min-h-8",
+        mdLg: "w-10 h-10 min-w-10 min-h-10",
+        lg: "w-16 h-16 min-w-16 min-h-16",
+        xl: "w-24 h-24 min-w-24 min-h-24",
       },
       shape: {
         circle: "rounded-full",
@@ -71,6 +70,7 @@ export function Avatar(props: AvatarProps) {
   const { imageSrc, size = "md", alt, title, href, indicator } = props;
   const avatarClass = avatarClasses({ size, shape: props.shape });
   const rootClass = classNames("aspect-square rounded-full", avatarClass);
+
   let avatar = (
     <AvatarPrimitive.Root
       data-testid={props?.["data-testid"]}
@@ -79,22 +79,18 @@ export function Avatar(props: AvatarProps) {
         indicator ? "overflow-visible" : "overflow-hidden",
         props.className
       )}>
-      <>
-        <AvatarPrimitive.Image
-          src={imageSrc ?? undefined}
-          alt={alt}
-          className={classNames("aspect-square", avatarClass)}
-        />
-        <AvatarPrimitive.Fallback
-          delayMs={600}
-          asChild={props.asChild}
-          className="flex h-full items-center justify-center">
-          <>
-            {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
-          </>
-        </AvatarPrimitive.Fallback>
-        {indicator}
-      </>
+      <AvatarPrimitive.Image
+        src={imageSrc ?? undefined}
+        alt={alt}
+        className={classNames("aspect-square", avatarClass)}
+      />
+      <AvatarPrimitive.Fallback
+        delayMs={600}
+        asChild={props.asChild}
+        className="flex h-full items-center justify-center">
+        {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
+      </AvatarPrimitive.Fallback>
+      {indicator}
     </AvatarPrimitive.Root>
   );
 
@@ -107,10 +103,13 @@ export function Avatar(props: AvatarProps) {
   }
 
   return title ? (
-    <TooltipPrimitiveProvider>
-      <Tooltip content={title}>{avatar}</Tooltip>
-    </TooltipPrimitiveProvider>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{avatar}</TooltipTrigger>
+        <TooltipContent>{title}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   ) : (
-    <>{avatar}</>
+    avatar
   );
 }
