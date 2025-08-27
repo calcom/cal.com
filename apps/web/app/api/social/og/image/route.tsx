@@ -6,6 +6,9 @@ import { z, ZodError } from "zod";
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
+// Cache configuration for Vercel/Next.js
+export const revalidate = 0; // Cache indefinitely, invalidate manually
+
 const meetingSchema = z.object({
   imageType: z.literal("meeting"),
   title: z.string(),
@@ -13,6 +16,7 @@ const meetingSchema = z.object({
   usernames: z.string().array(),
   meetingProfileName: z.string(),
   meetingImage: z.string().nullable().optional(),
+  eventTypeId: z.string(),
 });
 
 const appSchema = z.object({
@@ -30,7 +34,7 @@ const genericSchema = z.object({
 
 async function handler(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const imageType = searchParams.get("type");
+  const imageType = searchParams.get("type") || "unknown";
 
   try {
     const fontResults = await Promise.allSettled([
@@ -60,17 +64,35 @@ async function handler(req: NextRequest) {
       fonts,
     };
 
+    // Generate cache tag only for meeting type, using eventTypeId
+    const generateCacheTag = (type: string, params: URLSearchParams) => {
+      const eventTypeId = params.get("eventTypeId");
+      if (type === "meeting" && eventTypeId) {
+        return `og-image:meeting:${eventTypeId}`;
+      }
+      return null;
+    };
+
+    const cacheTag = generateCacheTag(imageType, searchParams);
+    const cacheHeaders = {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+      ...(cacheTag ? { "x-cache-tag": cacheTag } : {}),
+    } as const;
+
     switch (imageType) {
       case "meeting": {
         try {
-          const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
-            names: searchParams.getAll("names"),
-            usernames: searchParams.getAll("usernames"),
-            title: searchParams.get("title"),
-            meetingProfileName: searchParams.get("meetingProfileName"),
-            meetingImage: searchParams.get("meetingImage"),
-            imageType,
-          });
+          const { names, usernames, title, meetingProfileName, meetingImage, eventTypeId } =
+            meetingSchema.parse({
+              names: searchParams.getAll("names"),
+              usernames: searchParams.getAll("usernames"),
+              title: searchParams.get("title"),
+              meetingProfileName: searchParams.get("meetingProfileName"),
+              meetingImage: searchParams.get("meetingImage"),
+              eventTypeId: searchParams.get("eventTypeId"),
+              imageType,
+            });
 
           const img = new ImageResponse(
             (
@@ -85,9 +107,7 @@ async function handler(req: NextRequest) {
 
           return new Response(img.body, {
             status: 200,
-            headers: {
-              "Content-Type": "image/png",
-            },
+            headers: cacheHeaders,
           });
         } catch (error) {
           if (error instanceof ZodError) {
@@ -95,7 +115,7 @@ async function handler(req: NextRequest) {
               JSON.stringify({
                 error: "Invalid parameters for meeting image",
                 message:
-                  "Required parameters: title, meetingProfileName. Optional: names, usernames, meetingImage",
+                  "Required parameters: title, meetingProfileName, eventTypeId. Optional: names, usernames, meetingImage",
               }),
               {
                 status: 400,
@@ -118,9 +138,7 @@ async function handler(req: NextRequest) {
 
           return new Response(img.body, {
             status: 200,
-            headers: {
-              "Content-Type": "image/png",
-            },
+            headers: cacheHeaders,
           });
         } catch (error) {
           if (error instanceof ZodError) {
@@ -151,9 +169,7 @@ async function handler(req: NextRequest) {
 
           return new Response(img.body, {
             status: 200,
-            headers: {
-              "Content-Type": "image/png",
-            },
+            headers: cacheHeaders,
           });
         } catch (error) {
           if (error instanceof ZodError) {
