@@ -33,11 +33,17 @@ function BasePhoneInput({
 
   // This is to trigger validation on prefill value changes
   useEffect(() => {
-    if (value) {
-      const sanitized = value.trim().replace(/\s+/g, "").replace(/^\+?/, "+");
-      if (value !== sanitized) {
-        onChange(sanitized);
-      }
+    if (!value) return;
+
+    const sanitized = value
+      .trim()
+      .replace(/[^\d+]/g, "")
+      .replace(/^\+?/, "+");
+
+    if (sanitized === "+" || sanitized === "") return;
+
+    if (value !== sanitized) {
+      onChange(sanitized);
     }
   }, []);
 
@@ -94,16 +100,6 @@ function BasePhoneInputWeb({
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
-
-  // This is to trigger validation on prefill value changes
-  useEffect(() => {
-    if (value) {
-      const sanitized = value.trim().replace(/\s+/g, "").replace(/^\+?/, "+");
-      if (value !== sanitized) {
-        onChange(sanitized);
-      }
-    }
-  }, []);
 
   return (
     <PhoneInput
