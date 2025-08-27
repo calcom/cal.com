@@ -7,7 +7,8 @@ import React, { useState, useRef, useEffect } from "react";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -24,7 +25,7 @@ export type BookingItemProps = BookingItem & {
 };
 
 export function BookingExpandedCard(props: BookingItemProps) {
-  const { description: additionalNotes, id, startTime, endTime } = props;
+  const { description: additionalNotes, id, startTime, endTime, responses } = props;
 
   const isBookingInPast = new Date(props.endTime) < new Date();
 
@@ -81,6 +82,33 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const popupRef = useRef<HTMLDivElement>(null);
 
+  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.phone as string | undefined;
+  const openWhatsAppChat = (phoneNumber: string) => {
+    // Dimensions and other properties of the popup window
+    const width = 800;
+    const height = 600;
+    const left = (window.innerWidth - width) / 2;
+    const top = (window.innerHeight - height) / 2;
+    const options = `width=${width},height=${height},left=${left},top=${top},resizable,scrollbars=yes,status=1`;
+
+    const generateWhatsAppLink = (phoneNumber: string): string => {
+      const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
+      const urlEndcodedTextMessage = encodeURIComponent(
+        `Hi, I'm running late by 5 minutes. I'll be there soon.`
+      );
+
+      // this opens the whatsapp web instead of defaulting to whatsapp app (linux doesn't support app)
+      // const whatsappLink = `https://web.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
+
+      const whatsappLink = `https://api.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
+      return whatsappLink;
+    };
+    //Generating the whatsapp link
+    const url = generateWhatsAppLink(phoneNumber);
+    // Open the popup window with the provided URL and options
+    window.open(url, "_blank", options);
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
@@ -114,7 +142,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
               <div className="text-foreground mb-1 text-sm font-medium">Duration</div>
               <div className="text-muted-foreground text-sm">
                 {endTime && startTime
-                  ? Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000) + " min"
+                  ? `${Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000)} min`
                   : "-"}
               </div>
             </div>
@@ -218,6 +246,11 @@ export function BookingExpandedCard(props: BookingItemProps) {
                     handleMarkNoShow();
                   }}>
                   {t("mark_as_no_show")}
+                </Button>
+              )}
+              {attendeePhoneNo && (
+                <Button color="secondary" onClick={() => openWhatsAppChat(attendeePhoneNo)}>
+                  {t("whatsapp_chat")}
                 </Button>
               )}
             </div>

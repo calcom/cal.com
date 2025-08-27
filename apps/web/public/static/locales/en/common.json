@@ -5,6 +5,7 @@
   "notify_calendly_import": "Notify past bookers about your migration",
   "schedule": "Schedule",
   "choose_a_meeting_type": "Choose a meeting type",
+  "whatsapp_chat":"Chat on WhatsApp",
   "identity_provider": "Identity provider",
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
   "day_one": "{{count}} day",

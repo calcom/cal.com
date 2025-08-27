@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@calid/features/ui";
+import type { HorizontalTabItemProps } from "@calid/features/ui";
+import { HorizontalTabs } from "@calid/features/ui";
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, useRef } from "react";
@@ -24,13 +27,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
-
-import {Icon} from "@calcom/ui/components/icon"
-import {Button} from "@calid/features/ui"
-
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import type { HorizontalTabItemProps } from "@calid/features/ui";
-import { HorizontalTabs } from "@calid/features/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -272,17 +270,9 @@ function BookingsContent({ status }: BookingsProps) {
               />
             );
           } else if (props.row.original.type === "today") {
-            return (
-              <p className="w-full py-2 pl-2 text-sm font-semibold uppercase leading-4">
-                {t("today")}
-              </p>
-            );
+            return <p className="w-full py-2 pl-2 text-sm font-semibold uppercase leading-4">{t("today")}</p>;
           } else if (props.row.original.type === "next") {
-            return (
-              <p className="w-full py-2 pl-2 text-sm font-semibold capitalize leading-4">
-                {t("next")}
-              </p>
-            );
+            return <p className="w-full py-2 pl-2 text-sm font-semibold capitalize leading-4">{t("next")}</p>;
           }
         },
       }),
@@ -392,10 +382,13 @@ function BookingsContent({ status }: BookingsProps) {
         />
 
         <div className="flex h-[32px] flex-row gap-4 ">
-          <Button color="secondary" onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2">
-              <Icon name="filter" className="h-4 w-4" />
-              <span>{t("filter")}</span>
-            </Button>
+          <Button
+            color="secondary"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center space-x-2">
+            <Icon name="filter" className="h-4 w-4" />
+            <span>{t("filter")}</span>
+          </Button>
 
           <DataTableSegment.SaveButton />
           <DataTableSegment.Select />
@@ -425,7 +418,7 @@ function BookingsContent({ status }: BookingsProps) {
                 ToolbarLeft={
                   <>
                     {showFilters && (
-                      <div className="p-4 bg-muted rounded-md flex flex-row gap-2">
+                      <div className="bg-muted flex flex-row gap-2 rounded-md p-4">
                         <DataTableFilters.FilterBar table={table} />
                         <DataTableFilters.ClearFiltersButton />
                       </div>
