@@ -138,7 +138,6 @@ export class EventTypeRepository {
   };
 
   async create(data: IEventType) {
-    console.log(data);
     return await this.prismaClient.eventType.create({
       data: this.generateCreateEventTypeData(data),
       include: {
