@@ -2493,7 +2493,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.333"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.335"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3553,13 +3553,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.333":
-  version: 0.0.333
-  resolution: "@calcom/platform-libraries@npm:0.0.333"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.335":
+  version: 0.0.335
+  resolution: "@calcom/platform-libraries@npm:0.0.335"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 321c792aeb36ec69b7a02756ac550736bd9a71e4544fcebd9ab625bc2132edd5bf3e86295af05d797ff82de0ec35f3954c7409543e4325b7cbbbb55ce786ef60
+  checksum: 1c4568a47c118f2e0501a392bc259d1a8ca97d88bd13a53d80655f0eee068152aa9086bc1d90cfad4349268bca3c570a3762d622bff811954d0a84104473b8ce
   languageName: node
   linkType: hard
 
@@ -4049,6 +4049,7 @@ __metadata:
     "@tanstack/react-query": ^5.17.15
     "@team-plain/typescript-sdk": ^5.9.0
     "@testing-library/react": ^13.3.0
+    "@todesktop/client-core": ^1.20.0
     "@types/accept-language-parser": 1.5.2
     "@types/async": ^3.2.15
     "@types/bcryptjs": ^2.4.2
@@ -16844,6 +16845,59 @@ __metadata:
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
   checksum: 4cb8a81fea1fea83a42619e9545137b51636bb7a3182c596bb468e5664f1e4699a275c2d0fb8b6dcc3fe2684f9d87b0637ab7cb4f566051539146872c9141fcb
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-core@npm:^1.20.0":
+  version: 1.20.0
+  resolution: "@todesktop/client-core@npm:1.20.0"
+  dependencies:
+    "@todesktop/client-electron-types": ^28.0.0
+    "@todesktop/client-electron-updater-types": ^5.2.3
+    "@todesktop/client-todesktop-runtime-types": 1.5.7-beta.2
+    "@todesktop/client-util": ^1.4.0
+    "@types/node": ^18.11.8
+  checksum: ee1ba688266b5f88dc570943cae29254e49316a7068fd465d5d01a07ca6a98b1cbec18870fd1c6a8e0588d827b87f52401f088fefb1ab609206ed1496f47dcf2
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-electron-types@npm:^28.0.0":
+  version: 28.0.0
+  resolution: "@todesktop/client-electron-types@npm:28.0.0"
+  checksum: dfbac24ba0bd91c06e68467c6aa8cc173f6ee0a5bb4ce600f2978ac1740b12f78c51b320e91c41c524afd7fd0cd872b70d76a4ff4655fd2deae69478c751862f
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-electron-updater-types@npm:^5.2.3":
+  version: 5.3.0
+  resolution: "@todesktop/client-electron-updater-types@npm:5.3.0"
+  checksum: cc573d96d7450bcb0b1e3fd3c046fc99ffd994141185104c42527675f8833048488cc1488b6a93bc2c163f8c59a28837378d73dbb91028827e8819c5e9ca0a0a
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-todesktop-runtime-types@npm:1.5.7-beta.2":
+  version: 1.5.7-beta.2
+  resolution: "@todesktop/client-todesktop-runtime-types@npm:1.5.7-beta.2"
+  checksum: 063144cdb77788938aa64869825f385010d98041267e9bd5d2c2650e59603713c72f94368172080285185d82321c546aae5bbfa9808ab0682eace6c6e9c83837
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-todesktop-runtime-types@npm:^1.5.7":
+  version: 1.5.7
+  resolution: "@todesktop/client-todesktop-runtime-types@npm:1.5.7"
+  checksum: 826ad20608bc44d21c4ab20e6c57b5b57c9ac6cc270248652ce33a0741f4a6a8ee1dcfda06e674b51d4e2c1c25fec9bece0b09b0793969ec1407b874605d1cd9
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-util@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@todesktop/client-util@npm:1.4.0"
+  dependencies:
+    "@todesktop/client-electron-types": ^28.0.0
+    "@todesktop/client-electron-updater-types": ^5.2.3
+    "@todesktop/client-todesktop-runtime-types": ^1.5.7
+    nanoid: ^4.0.2
+  checksum: b0e81c3c2477eb382c88b692b9243b1e8674560fc483cbd4dc8ffed08090d559f335440d5d3d0132a2332d6d137514f80a39c52b82e058a6b83ae4dda25f6910
   languageName: node
   linkType: hard
 
@@ -35437,6 +35491,15 @@ __metadata:
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 3be20d8866a57a6b6d218e82549711c8352ed969f9ab3c45379da28f405363ad4c9aeb0b39e9abc101a529ca65a72ff9502b00bf74a912c4b64a9d62dfd26c29
+  languageName: node
+  linkType: hard
+
+"nanoid@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "nanoid@npm:4.0.2"
+  bin:
+    nanoid: bin/nanoid.js
+  checksum: 747c399cea4664dd0be1d0ec498ffd1ef8f1f5221676fc8b577e3f46f66d9afcddb9595d63d19a2e78d0bc6cc33984f65e66bf1682c850b9e26288883d96b53f
   languageName: node
   linkType: hard
 
