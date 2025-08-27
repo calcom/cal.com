@@ -44,6 +44,7 @@ export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
+export { default as cityTimezones } from "./city-timezones-compat";
 
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";

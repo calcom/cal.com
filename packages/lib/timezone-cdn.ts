@@ -1,4 +1,5 @@
-const CDN_URL = "https://cdn.jsdelivr.net/npm/city-timezones@1.2.1/data/cityMap.json";
+const CDN_URL =
+  process.env.TIMEZONE_CDN_URL || "https://cdn.jsdelivr.net/npm/city-timezones@1.2.1/data/cityMap.json";
 
 interface CityData {
   city: string;

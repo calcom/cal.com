@@ -34,6 +34,7 @@ export type Environment = {
   IS_TEAM_BILLING_ENABLED: boolean;
   // Used to enable/disable the rewrite of /api/v2 to /v2, active by default.
   REWRITE_API_V2_PREFIX: string;
+  TIMEZONE_CDN_URL: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
