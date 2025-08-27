@@ -4,7 +4,7 @@ import type { Options } from "react-select";
 import { Label } from "@calcom/ui/components/form";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
-import CheckedTeamSelect from "./CheckedTeamSelect";
+import { CheckedTeamSelect } from "./CheckedTeamSelect";
 
 export default function CheckedHostField({
   labelText,

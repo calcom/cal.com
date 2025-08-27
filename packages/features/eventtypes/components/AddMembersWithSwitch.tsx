@@ -20,6 +20,16 @@ import type {
 import CheckedHostField from "./CheckedHostField";
 import type { CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 
+// Helper function to sort by label
+const sortByLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label);
+
+// Helper function to map user to value
+export const mapUserToValue = (user: { id: number; name?: string | null; email: string }) => ({
+  value: user.id.toString(),
+  label: user.name || user.email,
+  avatar: "",
+});
+
 function MembersSegmentWithToggle({
   teamId,
   assignRRMembersUsingSegment,
@@ -218,8 +228,27 @@ export function AddMembersWithSwitch({
           <div className="mb-2">
             <CheckedHostField
               data-testid={rest["data-testid"]}
-              value={value}
-              onChange={onChange}
+              value={value.map((host) => ({
+                value: host.userId?.toString() ?? host.email ?? "",
+                label: host.email ?? host.userId?.toString() ?? "",
+                avatar: "",
+                priority: host.priority ?? null,
+                weight: host.weight ?? null,
+                isFixed: host.isFixed ?? false,
+                groupId: host.groupId ?? null,
+              }))}
+              onChange={(options) => {
+                onChange(
+                  options.map((option) => ({
+                    userId: parseInt(option.value) || undefined,
+                    email: option.label,
+                    isFixed: option.isFixed ?? false,
+                    priority: option.priority ?? undefined,
+                    weight: option.weight ?? undefined,
+                    groupId: option.groupId ?? null,
+                  }))
+                );
+              }}
               isFixed={isFixed}
               className="mb-2"
               options={teamMembers

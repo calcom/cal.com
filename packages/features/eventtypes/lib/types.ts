@@ -13,6 +13,14 @@ import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
+// Import and re-export CheckedSelectOption
+import type { CheckedSelectOption } from "./components/CheckedTeamSelect";
+
+// Re-export for convenience
+export type { AttributesQueryValue };
+
+export type { CheckedSelectOption };
+
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {

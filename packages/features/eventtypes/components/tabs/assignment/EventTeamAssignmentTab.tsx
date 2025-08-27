@@ -731,7 +731,7 @@ export const EventTeamAssignmentTab = ({
   teamMembers,
   eventType,
   customClassNames,
-  orgId: _orgId,
+  orgId,
   isSegmentApplicable,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
@@ -877,15 +877,6 @@ export const EventTeamAssignmentTab = ({
                         className="w-full text-sm"
                         classNames={{ container: "w-full" }}>
                         <strong className="mb-1 block">
-                          {/* Button to use handleFixedHostsToggle and avoid unused error */}
-                          <div className="mt-4">
-                            <Button
-                              color="secondary"
-                              size="sm"
-                              onClick={() => handleFixedHostsToggle(!isDisabled)}>
-                              Toggle Fixed Hosts
-                            </Button>
-                          </div>
                           {t("rr_distribution_method_availability_title")}
                         </strong>
                         <p>{t("rr_distribution_method_availability_description")}</p>
