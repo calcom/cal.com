@@ -6,8 +6,6 @@ import { z, ZodError } from "zod";
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-export const runtime = "edge";
-
 const meetingSchema = z.object({
   imageType: z.literal("meeting"),
   title: z.string(),
@@ -89,8 +87,6 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=31536000, immutable",
-              "CDN-Cache-Control": "public, max-age=31536000, immutable",
             },
           });
         } catch (error) {
@@ -124,8 +120,6 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=31536000, immutable",
-              "CDN-Cache-Control": "public, max-age=31536000, immutable",
             },
           });
         } catch (error) {
@@ -159,8 +153,6 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=31536000, immutable",
-              "CDN-Cache-Control": "public, max-age=31536000, immutable",
             },
           });
         } catch (error) {
