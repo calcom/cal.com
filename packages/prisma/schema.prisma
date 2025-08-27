@@ -432,6 +432,8 @@ model User {
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
   integrationAccounts            IntegrationAccounts[]
+  bannerUrl                      String?
+  faviconUrl                     String?
 
   @@unique([email])
   @@unique([email, username])
@@ -1821,11 +1823,13 @@ model Avatar {
   // different every time to pop the cache.
   objectKey String @unique
 
-  isHeader Boolean @default(false)
-  isBanner Boolean @default(false)
+  isHeader  Boolean @default(false)
+  isBanner  Boolean @default(false)
+  isFavicon Boolean @default(false)
 
-  @@unique([teamId, userId, isHeader])
-  @@unique([teamId, userId, isBanner])
+  // @@unique([teamId, userId, isHeader])
+  // @@unique([teamId, userId, isFavicon])
+  @@unique([teamId, userId, isBanner, isFavicon, isHeader])
   @@map(name: "avatars")
 }
 

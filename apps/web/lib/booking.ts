@@ -18,6 +18,8 @@ export const getEventTypesFromDB = async (id: number) => {
     darkBrandColor: true,
     email: true,
     timeZone: true,
+    bannerUrl: true,
+    faviconUrl: true,
   };
   const eventType = await prisma.eventType.findUnique({
     where: {

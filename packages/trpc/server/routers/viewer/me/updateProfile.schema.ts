@@ -52,6 +52,9 @@ export const ZUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
+
+  bannerUrl: z.string().nullable().optional(),
+  faviconUrl: z.string().nullable().optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

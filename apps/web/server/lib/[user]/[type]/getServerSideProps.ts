@@ -271,6 +271,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const props: Props = {
     eventData: eventData,
     user: username,
+    userBannerUrl: user.bannerUrl,
     slug,
     isBrandingHidden: shouldHideBrandingForUserEvent({
       eventTypeId: eventData.id,
@@ -282,6 +283,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
   };
+
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({
       props,
@@ -328,8 +330,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     // const originalUrl = resolvedUrl;
     const fullUrl = `${protocol}://${host}${pathname}`;
     if (fullUrl) {
-      console.log("Constructed url: ", fullUrl);
-
       const url = new URL(fullUrl);
       url.searchParams.delete("slot");
       return {

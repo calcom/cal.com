@@ -49,6 +49,8 @@ const userSelect = {
     },
   },
   defaultScheduleId: true,
+  bannerUrl: true,
+  faviconUrl: true,
 } satisfies Prisma.UserSelect;
 
 export const getPublicEventSelect = (fetchAllUsers: boolean) => {

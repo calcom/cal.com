@@ -17,7 +17,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import { Form, TextField, Checkbox, Label } from "@calcom/ui/form";
+import { Form, TextField, Checkbox, Label } from "@calcom/ui/components/form";
 
 import { revalidateTeamRoles } from "../actions";
 import { AdvancedPermissionGroup } from "./AdvancedPermissionGroup";

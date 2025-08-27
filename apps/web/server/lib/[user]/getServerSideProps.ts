@@ -183,6 +183,8 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         avatarUrl: user.avatarUrl,
         verified: user.verified,
         profile: user.profile,
+        bannerUrl: user.bannerUrl,
+        faviconUrl: user.faviconUrl,
       })),
       entity: {
         ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),

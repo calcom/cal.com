@@ -27,8 +27,12 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     sessionUser
   );
 
-  const user = await new UserRepository(prisma).enrichUserWithTheProfile({
-    user: sessionUser,
+  const userRepo = new UserRepository(prisma);
+
+  const fullUser = await userRepo.findById({ id: sessionUser.id });
+
+  const user = await userRepo.enrichUserWithTheProfile({
+    user: fullUser,
     upId: session.upId,
   });
 
@@ -145,5 +149,8 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
     isTeamAdminOrOwner,
+
+    bannerUrl: user.bannerUrl,
+    faviconUrl: user.faviconUrl,
   };
 };

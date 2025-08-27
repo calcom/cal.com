@@ -3,6 +3,7 @@
 import { Button, Icon } from "@calid/features/ui";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import {
@@ -66,6 +67,8 @@ export function UserPage(props: PageProps) {
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
+
+  const BrandingComponent = dynamic(() => import("@calid/features/branding/BrandingComponent"));
 
   return (
     <div
@@ -188,6 +191,14 @@ export function UserPage(props: PageProps) {
         </div>
 
         {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
+
+        <div key="logo" className={classNames("flex w-full justify-center [&_img]:h-[32px]")}>
+          <BrandingComponent
+            logoOnly
+            hideBranding={user.hideBranding}
+            bannerUrl={user.bannerUrl ?? undefined}
+          />
+        </div>
       </main>
       {/* <Toaster position="bottom-right" className="bg-default" /> */}
     </div>

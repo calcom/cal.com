@@ -11,7 +11,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Select } from "@calcom/ui/components/form";
-import { Form, TextField } from "@calcom/ui/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 
 type SchedulingOption = { value: SchedulingType; label: string };
 

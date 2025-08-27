@@ -172,6 +172,7 @@ export const getDynamicEventName = (dynamicNames: string[], slug: string): strin
 };
 
 export const getDefaultEvent = (slug: string) => {
+  console.log("Default event")
   const event = defaultEvents.find((obj) => {
     return obj.slug === slug;
   });
