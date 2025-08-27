@@ -945,4 +945,16 @@ export class BookingRepository {
       },
     });
   }
+
+  async findLatestBookingByFormId(formId: string) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        routedFromRoutingFormReponse: {
+          formId,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    });
+  }
 }

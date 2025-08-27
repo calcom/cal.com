@@ -3,6 +3,7 @@ import { z } from "zod";
 import incompleteBookingActionFunctions from "@calcom/app-store/routing-forms/lib/incompleteBooking/actionFunctions";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/trpc/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 
 export type ResponseData = {
@@ -40,13 +41,8 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
-  const bookingFromResponse = await prisma.booking.findFirst({
-    where: {
-      routedFromRoutingFormReponse: {
-        id: responseId,
-      },
-    },
-  });
+  const bookingRepository = new BookingRepository(prisma);
+  const bookingFromResponse = await bookingRepository.findLatestBookingByFormId(formSubmissionEvent.formId);
 
   if (bookingFromResponse) {
     return;
