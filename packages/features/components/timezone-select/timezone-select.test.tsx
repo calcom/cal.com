@@ -92,13 +92,13 @@ describe("Test TimezoneSelect", () => {
 
       expect(dawsonEl).toBeInTheDocument();
 
-      const singleValueEl = dawsonEl.parentElement;
-      const valueContainerEl = singleValueEl?.parentElement;
-      const controlEl = valueContainerEl?.parentElement;
-      const inputEl = screen.getByRole("combobox", { hidden: true }).parentElement;
-      const optionEl = screen.getByText(optionMockValues[0]).parentElement?.parentElement;
-      const menuListEl = optionEl?.parentElement;
-      const menuEl = menuListEl?.parentElement;
+      const singleValueEl = document.querySelector(".test1");
+      const valueContainerEl = document.querySelector(".test2");
+      const controlEl = document.querySelector(".test3");
+      const inputEl = document.querySelector(".test4");
+      const optionEl = document.querySelector(".test5");
+      const menuListEl = document.querySelector(".test6");
+      const menuEl = document.querySelector(".test7");
 
       expect(singleValueEl).toHaveClass(classNames.singleValue());
       expect(valueContainerEl).toHaveClass(classNames.valueContainer());
@@ -136,7 +136,7 @@ describe("Test TimezoneSelect", () => {
       await openMenu();
 
       const dawsonEl = screen.getByText("Pacific/Honolulu GMT -10:00");
-      const multiValueEl = dawsonEl.parentElement?.parentElement;
+      const multiValueEl = document.querySelector(".test8");
       expect(multiValueEl).toHaveClass(classNames.multiValue());
 
       const inputEl = screen.getByRole("combobox", { hidden: true }).parentElement;
