@@ -19,6 +19,8 @@ export function ChartCard({
   cta,
   legend,
   legendSize,
+  enabledLegend,
+  onSeriesToggle,
   children,
 }: {
   title: string | ReactNode;
@@ -26,9 +28,14 @@ export function ChartCard({
   cta?: { label: string; onClick: () => void };
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
+  enabledLegend?: Array<LegendItem>;
+  onSeriesToggle?: (label: string) => void;
   children: ReactNode;
 }) {
-  const legendComponent = legend && legend.length > 0 ? <Legend items={legend} size={legendSize} /> : null;
+  const legendComponent =
+    legend && legend.length > 0 ? (
+      <Legend items={legend} size={legendSize} enabledItems={enabledLegend} onItemToggle={onSeriesToggle} />
+    ) : null;
 
   return (
     <PanelCard title={title} subtitle={subtitle} cta={cta} headerContent={legendComponent}>
@@ -58,28 +65,49 @@ export function ChartCardItem({
   );
 }
 
-function Legend({ items, size = "default" }: { items: LegendItem[]; size?: LegendSize }) {
+function Legend({
+  items,
+  size = "default",
+  enabledItems,
+  onItemToggle,
+}: {
+  items: LegendItem[];
+  size?: LegendSize;
+  enabledItems?: LegendItem[];
+  onItemToggle?: (label: string) => void;
+}) {
+  const isClickable = !!onItemToggle;
+
   return (
     <div className="bg-default flex items-center gap-2 rounded-lg px-1.5 py-1">
-      {items.map((item, index) => (
-        <Fragment key={item.label}>
-          <div
-            className="relative flex items-center gap-2 rounded-md px-1.5 py-0.5"
-            style={{ backgroundColor: `${item.color}33` }}>
-            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-            <Tooltip content={item.label}>
-              <p
-                className={classNames(
-                  "text-default truncate py-0.5 text-sm font-medium leading-none",
-                  size === "sm" ? "w-16" : ""
-                )}>
-                {item.label}
-              </p>
-            </Tooltip>
-          </div>
-          {index < items.length - 1 && <div className="bg-muted h-5 w-[1px]" />}
-        </Fragment>
-      ))}
+      {items.map((item, index) => {
+        const isEnabled = enabledItems ? enabledItems.some((enabled) => enabled.label === item.label) : true;
+
+        return (
+          <Fragment key={item.label}>
+            <div
+              className={classNames(
+                "relative flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-opacity",
+                isClickable && "cursor-pointer hover:bg-gray-100",
+                !isEnabled && "opacity-50"
+              )}
+              style={{ backgroundColor: `${item.color}33` }}
+              onClick={isClickable ? () => onItemToggle(item.label) : undefined}>
+              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+              <Tooltip content={item.label}>
+                <p
+                  className={classNames(
+                    "text-default truncate py-0.5 text-sm font-medium leading-none",
+                    size === "sm" ? "w-16" : ""
+                  )}>
+                  {item.label}
+                </p>
+              </Tooltip>
+            </div>
+            {index < items.length - 1 && <div className="bg-muted h-5 w-[1px]" />}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
