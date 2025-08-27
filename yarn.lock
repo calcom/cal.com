@@ -2493,7 +2493,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.318"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.333"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3363,6 +3363,7 @@ __metadata:
     "@formbricks/api": ^1.7.0
     "@formbricks/js": ^2.1.0
     "@sendgrid/client": ^7.7.0
+    "@unkey/ratelimit": ^2.1.3
     "@vercel/og": ^0.6.3
     city-timezones: ^1.2.1
     i18next: ^23.2.3
@@ -3552,13 +3553,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.318":
-  version: 0.0.318
-  resolution: "@calcom/platform-libraries@npm:0.0.318"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.333":
+  version: 0.0.333
+  resolution: "@calcom/platform-libraries@npm:0.0.333"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: a83dcb75ca855232a676a95bc57db0b4bff98b0b85aaa67df7af9b761278b21fcba47142c03ca03217aaa1fd71513f6440ee9ecae94ab39b29f80ff840dbe9d7
+  checksum: 321c792aeb36ec69b7a02756ac550736bd9a71e4544fcebd9ab625bc2132edd5bf3e86295af05d797ff82de0ec35f3954c7409543e4325b7cbbbb55ce786ef60
   languageName: node
   linkType: hard
 
@@ -4013,8 +4014,8 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@calcom/ui": "*"
-    "@daily-co/daily-js": ^0.76.0
-    "@daily-co/daily-react": ^0.22.0
+    "@daily-co/daily-js": ^0.83.1
+    "@daily-co/daily-react": ^0.23.2
     "@dub/analytics": ^0.0.27
     "@dub/embed-core": ^0.0.10
     "@dub/embed-react": ^0.0.10
@@ -4048,6 +4049,7 @@ __metadata:
     "@tanstack/react-query": ^5.17.15
     "@team-plain/typescript-sdk": ^5.9.0
     "@testing-library/react": ^13.3.0
+    "@todesktop/client-core": ^1.20.0
     "@types/accept-language-parser": 1.5.2
     "@types/async": ^3.2.15
     "@types/bcryptjs": ^2.4.2
@@ -4071,7 +4073,6 @@ __metadata:
     "@types/stripe": ^8.0.417
     "@types/turndown": ^5.0.1
     "@types/uuid": 8.3.1
-    "@unkey/ratelimit": ^0.1.1
     "@upstash/redis": ^1.35.2
     "@vercel/edge-config": ^0.1.1
     "@vercel/edge-functions-ui": ^0.2.1
@@ -4119,6 +4120,7 @@ __metadata:
     node-mocks-http: ^1.11.0
     nodemailer: ^6.7.8
     nuqs: ^1.20.0
+    openid-client: 6.5.0
     otplib: ^12.0.1
     postcss: ^8.4.18
     posthog-js: ^1.164.1
@@ -4618,22 +4620,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@daily-co/daily-js@npm:^0.76.0":
-  version: 0.76.0
-  resolution: "@daily-co/daily-js@npm:0.76.0"
+"@daily-co/daily-js@npm:^0.83.1":
+  version: 0.83.1
+  resolution: "@daily-co/daily-js@npm:0.83.1"
   dependencies:
     "@babel/runtime": ^7.12.5
     "@sentry/browser": ^8.33.1
     bowser: ^2.8.1
     dequal: ^2.0.3
     events: ^3.1.0
-  checksum: 3a7c144527800696b6b7fda6ddcb329b8a27d72ad234f6b0e3088389ec27406816319889d70d684ecb99c6d0efea0d53edeb0ecc0383ed6caaf2050763182ffe
+  checksum: bbd3bca7b531aba1607e47f25e851e553f618072630218c07709f396003c831de370861edc82d25e6a97f04bf1cba19e7c1312adbba8e1d80051e711edbdcd48
   languageName: node
   linkType: hard
 
-"@daily-co/daily-react@npm:^0.22.0":
-  version: 0.22.0
-  resolution: "@daily-co/daily-react@npm:0.22.0"
+"@daily-co/daily-react@npm:^0.23.2":
+  version: 0.23.2
+  resolution: "@daily-co/daily-react@npm:0.23.2"
   dependencies:
     fast-deep-equal: ^3.1.3
     lodash.throttle: ^4.1.1
@@ -4642,7 +4644,7 @@ __metadata:
     jotai: ^2
     react: ^16.8 || ^17.0 || ^18.0 || ^19.0
     react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0
-  checksum: c82e36b05fc905ad65cb9d16542790ce11b8ee43a8ec1eb081e8c74d8c12c7d14e1674f557028ed06ae49aef399117ba8278bbaa4f248d5aec2c2eb11e839e00
+  checksum: ead01bb5b49e1756d901fed9a5011673d932b2697e0551eb7b9f26c6392bf8f495b60ba351bd9c4f867ec1d0eb9bce14dae682447493e1f4f643e434b59bb186
   languageName: node
   linkType: hard
 
@@ -16846,6 +16848,59 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@todesktop/client-core@npm:^1.20.0":
+  version: 1.20.0
+  resolution: "@todesktop/client-core@npm:1.20.0"
+  dependencies:
+    "@todesktop/client-electron-types": ^28.0.0
+    "@todesktop/client-electron-updater-types": ^5.2.3
+    "@todesktop/client-todesktop-runtime-types": 1.5.7-beta.2
+    "@todesktop/client-util": ^1.4.0
+    "@types/node": ^18.11.8
+  checksum: ee1ba688266b5f88dc570943cae29254e49316a7068fd465d5d01a07ca6a98b1cbec18870fd1c6a8e0588d827b87f52401f088fefb1ab609206ed1496f47dcf2
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-electron-types@npm:^28.0.0":
+  version: 28.0.0
+  resolution: "@todesktop/client-electron-types@npm:28.0.0"
+  checksum: dfbac24ba0bd91c06e68467c6aa8cc173f6ee0a5bb4ce600f2978ac1740b12f78c51b320e91c41c524afd7fd0cd872b70d76a4ff4655fd2deae69478c751862f
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-electron-updater-types@npm:^5.2.3":
+  version: 5.3.0
+  resolution: "@todesktop/client-electron-updater-types@npm:5.3.0"
+  checksum: cc573d96d7450bcb0b1e3fd3c046fc99ffd994141185104c42527675f8833048488cc1488b6a93bc2c163f8c59a28837378d73dbb91028827e8819c5e9ca0a0a
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-todesktop-runtime-types@npm:1.5.7-beta.2":
+  version: 1.5.7-beta.2
+  resolution: "@todesktop/client-todesktop-runtime-types@npm:1.5.7-beta.2"
+  checksum: 063144cdb77788938aa64869825f385010d98041267e9bd5d2c2650e59603713c72f94368172080285185d82321c546aae5bbfa9808ab0682eace6c6e9c83837
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-todesktop-runtime-types@npm:^1.5.7":
+  version: 1.5.7
+  resolution: "@todesktop/client-todesktop-runtime-types@npm:1.5.7"
+  checksum: 826ad20608bc44d21c4ab20e6c57b5b57c9ac6cc270248652ce33a0741f4a6a8ee1dcfda06e674b51d4e2c1c25fec9bece0b09b0793969ec1407b874605d1cd9
+  languageName: node
+  linkType: hard
+
+"@todesktop/client-util@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@todesktop/client-util@npm:1.4.0"
+  dependencies:
+    "@todesktop/client-electron-types": ^28.0.0
+    "@todesktop/client-electron-updater-types": ^5.2.3
+    "@todesktop/client-todesktop-runtime-types": ^1.5.7
+    nanoid: ^4.0.2
+  checksum: b0e81c3c2477eb382c88b692b9243b1e8674560fc483cbd4dc8ffed08090d559f335440d5d3d0132a2332d6d137514f80a39c52b82e058a6b83ae4dda25f6910
+  languageName: node
+  linkType: hard
+
 "@todesktop/tailwind-variants@npm:^1.0.0":
   version: 1.0.1
   resolution: "@todesktop/tailwind-variants@npm:1.0.1"
@@ -18866,40 +18921,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@unkey/api@npm:^0.19.4":
-  version: 0.19.4
-  resolution: "@unkey/api@npm:0.19.4"
-  dependencies:
-    "@unkey/rbac": ^0.1.11
-  checksum: 974bb7fd5462aab55250ddd93c9785f0a1cfed19354e17bf2dbffb30ce5f3c3192dcafe71b9af36cdc7212760e1e0f3762fc8e6b0373db24c175a9e406a7a2a7
-  languageName: node
-  linkType: hard
-
-"@unkey/ratelimit@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@unkey/ratelimit@npm:0.1.1"
-  dependencies:
-    "@unkey/api": ^0.19.4
-  checksum: ec1d5fcf14787700d0a6e16a64e372683f9edcf08c052dbf84b8ef1c2c798d6d5162e7cb1a954d847381ab53db039747490507c0ed02c88eeea06268c02e4d56
-  languageName: node
-  linkType: hard
-
-"@unkey/ratelimit@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "@unkey/ratelimit@npm:2.1.2"
+"@unkey/ratelimit@npm:^2.1.3":
+  version: 2.1.3
+  resolution: "@unkey/ratelimit@npm:2.1.3"
   dependencies:
     "@unkey/api": 2.0.3
-  checksum: 645959a8f2e458fc671cc4ea3d51497e76ee9ff967a9c233dacd51caaa7d0fa20386cf47ec138026113c18527cd2a24f6f941d0b0c0bd7723c8bf9e17c87baa5
-  languageName: node
-  linkType: hard
-
-"@unkey/rbac@npm:^0.1.11":
-  version: 0.1.11
-  resolution: "@unkey/rbac@npm:0.1.11"
-  dependencies:
-    zod: ^3.22.4
-    zod-error: ^1.5.0
-  checksum: 69fddda11453363da7b6fd881d97d21a6bb31be3c234dec51e5837634be71531ada0d69c51d37ef4d0540fb5d65ce7cbd8843380d30c70741135b27e10878e5d
+  checksum: 1b95ce568eb650d5cb23a17da60e1da41d486b1831dc419cfdbec17b95927d50165c24200324ac45ff3a405ad72bb6cecc9cd0ac18177a80694f0a547fcbb59c
   languageName: node
   linkType: hard
 
@@ -21661,7 +21688,7 @@ __metadata:
   dependencies:
     "@changesets/changelog-github": ^0.5.1
     "@changesets/cli": 2.29.4
-    "@daily-co/daily-js": ^0.76.0
+    "@daily-co/daily-js": ^0.83.1
     "@evyweb/ioctopus": ^1.2.0
     "@jetstreamapp/soql-parser-js": ^6.1.0
     "@next/third-parties": ^14.2.5
@@ -21669,7 +21696,6 @@ __metadata:
     "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^16.0.1
-    "@unkey/ratelimit": ^2.1.2
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.1
     c8: ^7.13.0
@@ -35467,6 +35493,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nanoid@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "nanoid@npm:4.0.2"
+  bin:
+    nanoid: bin/nanoid.js
+  checksum: 747c399cea4664dd0be1d0ec498ffd1ef8f1f5221676fc8b577e3f46f66d9afcddb9595d63d19a2e78d0bc6cc33984f65e66bf1682c850b9e26288883d96b53f
+  languageName: node
+  linkType: hard
+
 "napi-build-utils@npm:^2.0.0":
   version: 2.0.0
   resolution: "napi-build-utils@npm:2.0.0"
@@ -47809,15 +47844,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-error@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "zod-error@npm:1.5.0"
-  dependencies:
-    zod: ^3.20.2
-  checksum: 1ee6f642f3dcabc2a9610d67f1986f94c338bcf38d152e788dafc4703e488fc7624c189c5948649beb566e2d37444cea064afea662924ac2e8504920e7863ded
-  languageName: node
-  linkType: hard
-
 "zod-prisma@npm:^0.5.4":
   version: 0.5.4
   resolution: "zod-prisma@npm:0.5.4"
@@ -47847,7 +47873,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.22.4, zod@npm:^3.20.2, zod@npm:^3.22.4":
+"zod@npm:3.22.4, zod@npm:^3.22.4":
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f

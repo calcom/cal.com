@@ -80,70 +80,99 @@ export class PrismaOOORepository {
     });
   }
 
-  async findUserOOODays({userId, dateTo, dateFrom}: {userId: number, dateTo: string, dateFrom: string}) {
+  async findUserOOODays({ userId, dateTo, dateFrom }: { userId: number; dateTo: string; dateFrom: string }) {
     return this.prismaClient.outOfOfficeEntry.findMany({
-            where: {
-              userId,
-              OR: [
-                // outside of range
-                // (start <= 'dateTo' AND end >= 'dateFrom')
-                {
-                  start: {
-                    lte: dateTo,
-                  },
-                  end: {
-                    gte: dateFrom,
-                  },
-                },
-                // start is between dateFrom and dateTo but end is outside of range
-                // (start <= 'dateTo' AND end >= 'dateTo')
-                {
-                  start: {
-                    lte: dateTo,
-                  },
-    
-                  end: {
-                    gte: dateTo,
-                  },
-                },
-                // end is between dateFrom and dateTo but start is outside of range
-                // (start <= 'dateFrom' OR end <= 'dateTo')
-                {
-                  start: {
-                    lte: dateFrom,
-                  },
-    
-                  end: {
-                    lte: dateTo,
-                  },
-                },
-              ],
+      where: {
+        userId,
+        OR: [
+          // outside of range
+          // (start <= 'dateTo' AND end >= 'dateFrom')
+          {
+            start: {
+              lte: dateTo,
             },
-            select: {
-              id: true,
-              start: true,
-              end: true,
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-              toUser: {
-                select: {
-                  id: true,
-                  username: true,
-                  name: true,
-                },
-              },
-              reason: {
-                select: {
-                  id: true,
-                  emoji: true,
-                  reason: true,
-                },
-              },
+            end: {
+              gte: dateFrom,
             },
-          });
+          },
+          // start is between dateFrom and dateTo but end is outside of range
+          // (start <= 'dateTo' AND end >= 'dateTo')
+          {
+            start: {
+              lte: dateTo,
+            },
+
+            end: {
+              gte: dateTo,
+            },
+          },
+          // end is between dateFrom and dateTo but start is outside of range
+          // (start <= 'dateFrom' OR end <= 'dateTo')
+          {
+            start: {
+              lte: dateFrom,
+            },
+
+            end: {
+              lte: dateTo,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        start: true,
+        end: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        toUser: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+        reason: {
+          select: {
+            id: true,
+            emoji: true,
+            reason: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findOOOEntriesInInterval({
+    userIds,
+    startDate,
+    endDate,
+  }: {
+    userIds: number[];
+    startDate: Date;
+    endDate: Date;
+  }) {
+    return this.prismaClient.outOfOfficeEntry.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+        start: {
+          lte: endDate,
+        },
+        end: {
+          gte: startDate,
+        },
+      },
+      select: {
+        start: true,
+        end: true,
+        userId: true,
+      },
+    });
   }
 }
