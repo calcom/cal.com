@@ -475,7 +475,7 @@ describe("Booking Actions", () => {
       expect(isActionDisabled("cancel", context)).toBe(true);
     });
 
-    it("should disable cancelling all past bookings (current behavior before fix)", () => {
+    it("should disable cancelling all past bookings", () => {
       const pastConfirmedContext = createMockContext({
         isBookingInPast: true,
         isPending: false,
@@ -493,7 +493,7 @@ describe("Booking Actions", () => {
       expect(isActionDisabled("cancel", pastPendingContext)).toBe(true);
     });
 
-    it("should allow cancelling future bookings regardless of status", () => {
+    it("should allow cancelling future bookings when cancelling is not disabled", () => {
       const futureContext = createMockContext({
         isBookingInPast: false,
         isPending: true,

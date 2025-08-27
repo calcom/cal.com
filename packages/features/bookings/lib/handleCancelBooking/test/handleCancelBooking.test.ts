@@ -421,7 +421,7 @@ describe("Cancel Booking", () => {
     });
   });
 
-  test("Should block cancelling past bookings (current behavior before fix)", async () => {
+  test("Should block cancelling past bookings", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
     const booker = getBooker({
