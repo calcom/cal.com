@@ -36,7 +36,10 @@ export const RecentNoShowGuestsChart = () => {
   };
 
   return (
-    <ChartCard title={t("recent_no_show_guests")} className="h-full">
+    <ChartCard
+      title={t("recent_no_show_guests")}
+      titleTooltip={t("recent_no_show_guests_tooltip")}
+      className="h-full">
       <div className="sm:max-h-[30.6rem] sm:overflow-y-auto">
         {data.map((item) => (
           <ChartCardItem key={item.bookingId}>

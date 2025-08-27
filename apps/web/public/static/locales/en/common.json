@@ -3274,6 +3274,7 @@
   "routing_incomplete_booking_tab": "Incomplete Bookings",
   "include_no_show_in_rr_calculation": "Include no show bookings in round robin calculations",
   "recent_no_show_guests": "Recent No-Show Guests",
+  "recent_no_show_guests_tooltip": "Shows bookings where all attendees were no-shows, not partial no-shows",
   "matching": "Matching",
   "event_redirect": "Event Redirect",
   "reset_form": "Reset Form",

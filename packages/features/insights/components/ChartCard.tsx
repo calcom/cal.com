@@ -21,6 +21,7 @@ export function ChartCard({
   legendSize,
   children,
   className,
+  titleTooltip,
 }: {
   title: string | ReactNode;
   subtitle?: string;
@@ -28,6 +29,7 @@ export function ChartCard({
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
   className?: string;
+  titleTooltip?: string;
   children: ReactNode;
 }) {
   const legendComponent = legend && legend.length > 0 ? <Legend items={legend} size={legendSize} /> : null;
@@ -38,7 +40,8 @@ export function ChartCard({
       subtitle={subtitle}
       cta={cta}
       headerContent={legendComponent}
-      className={className}>
+      className={className}
+      titleTooltip={titleTooltip}>
       {children}
     </PanelCard>
   );

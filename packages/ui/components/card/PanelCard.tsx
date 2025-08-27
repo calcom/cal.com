@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
+import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 
 export function PanelCard({
@@ -9,6 +10,7 @@ export function PanelCard({
   cta,
   headerContent,
   className,
+  titleTooltip,
   children,
 }: {
   title: string | ReactNode;
@@ -16,6 +18,7 @@ export function PanelCard({
   cta?: { label: string; onClick: () => void };
   headerContent?: ReactNode;
   className?: string;
+  titleTooltip?: string;
   children: ReactNode;
 }) {
   return (
@@ -26,7 +29,10 @@ export function PanelCard({
       )}>
       <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
         {typeof title === "string" ? (
-          <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
+            {titleTooltip && <InfoBadge content={titleTooltip} />}
+          </div>
         ) : (
           title
         )}
