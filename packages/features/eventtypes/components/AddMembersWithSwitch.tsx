@@ -2,9 +2,9 @@ import { useMemo, type Dispatch, type SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
+import { AssignAllTeamMembers } from "@calcom/atoms/add-members-switch";
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
 import { AddMembersWithSwitchWebWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchWebWrapper";
-import AssignAllTeamMembers from "@calcom/atoms/add-members-switch/AssignAllTeamMembers";
 import SettingsToggle from "@calcom/atoms/add-members-switch/SettingsToggle";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Segment } from "@calcom/features/Segment";
