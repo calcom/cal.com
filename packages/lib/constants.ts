@@ -249,3 +249,5 @@ export const RETELL_AI_TEST_EVENT_TYPE_MAP = (() => {
     return null;
   }
 })();
+// Environment variable for configuring past booking reschedule behavior per team
+export const ENV_PAST_BOOKING_RESCHEDULE_CHANGE = process.env._CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE;

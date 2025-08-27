@@ -6,12 +6,155 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
+import { ENV_PAST_BOOKING_RESCHEDULE_CHANGE } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { JsonValue } from "@calcom/types/Json";
+
+export type RescheduleValidationInput = {
+  booking: {
+    uid: string;
+    status: BookingStatus;
+    endTime: Date | null;
+    responses?: JsonValue;
+    eventType: {
+      disableRescheduling?: boolean | null;
+      allowReschedulingPastBookings?: boolean | null;
+      allowReschedulingCancelledBookings?: boolean | null;
+      teamId?: number | null;
+    } | null;
+    dynamicEventSlugRef?: string | null;
+  };
+  eventUrl: string;
+  allowRescheduleForCancelledBooking?: boolean;
+  bookingSeat?: {
+    data: JsonValue;
+    booking: {
+      uid: string;
+      id: number;
+    };
+  };
+};
+
+type RescheduleValidationResult =
+  | {
+      redirect: {
+        destination: string;
+        permanent: boolean;
+      };
+    }
+  | {
+      notFound: true;
+    }
+  | null;
+
+/**
+ * Parses the PAST_BOOKING_RESCHEDULE_NO_BOOKING_BEHAVIOUR environment variable and checks if the given team ID
+ * should apply the redirect behavior for past bookings
+ */
+function isNewBehaviorForPastBookingRescheduleEnabledForTeam(teamId: number | null | undefined): boolean {
+  if (!teamId) {
+    return false;
+  }
+
+  if (!ENV_PAST_BOOKING_RESCHEDULE_CHANGE) {
+    return false;
+  }
+
+  const configuredTeamIds = ENV_PAST_BOOKING_RESCHEDULE_CHANGE.split(",")
+    .map((id) => id.trim())
+    .filter((id) => id !== "")
+    .map((id) => parseInt(id, 10))
+    .filter((id) => !isNaN(id));
+
+  return configuredTeamIds.includes(teamId);
+}
+
+/**
+ * Determines the appropriate redirect for a reschedule request based on booking status and event type settings
+ * Returns null if reschedule should proceed normally
+ */
+export function determineReschedulePreventionRedirect(
+  input: RescheduleValidationInput
+): RescheduleValidationResult {
+  const { booking, eventUrl, allowRescheduleForCancelledBooking, bookingSeat } = input;
+
+  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
+  if (isDisabledRescheduling) {
+    return {
+      redirect: {
+        destination: `/booking/${booking.uid}`,
+        permanent: false,
+      },
+    };
+  }
+
+  const isNonRescheduleableBooking =
+    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+  const isForcedRescheduleForCancelledBooking = allowRescheduleForCancelledBooking;
+
+  if (isNonRescheduleableBooking && !isForcedRescheduleForCancelledBooking) {
+    const canBookThroughCancelledBookingRescheduleLink =
+      booking.eventType?.allowReschedulingCancelledBookings;
+    const allowedToBeBookedThroughCancelledBookingRescheduleLink =
+      booking.status === BookingStatus.CANCELLED && canBookThroughCancelledBookingRescheduleLink;
+    return {
+      redirect: {
+        destination: allowedToBeBookedThroughCancelledBookingRescheduleLink
+          ? eventUrl
+          : `/booking/${booking.uid}`,
+        permanent: false,
+      },
+    };
+  }
+
+  if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
+    // TODO: Show something in UI to let user know that this booking is not rescheduleable
+    return {
+      notFound: true,
+    };
+  }
+
+  const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
+  if (isBookingInPast && !booking.eventType?.allowReschedulingPastBookings) {
+    // Check if this team should apply the redirect behavior for past bookings
+    const isNewPastBookingRescheduleBehaviour = isNewBehaviorForPastBookingRescheduleEnabledForTeam(
+      booking.eventType?.teamId
+    );
+
+    if (isNewPastBookingRescheduleBehaviour) {
+      return {
+        redirect: {
+          destination: `/booking/${booking.uid}`,
+          permanent: false,
+        },
+      };
+    }
+
+    const destinationUrlSearchParams = new URLSearchParams();
+    const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
+    const name = getFullName(getSafe<string | { firstName: string; lastName?: string }>(responses, ["name"]));
+    const email = getSafe<string>(responses, ["email"]);
+
+    if (name) destinationUrlSearchParams.set("name", name);
+    if (email) destinationUrlSearchParams.set("email", email);
+
+    const searchParamsString = destinationUrlSearchParams.toString();
+    return {
+      redirect: {
+        destination: searchParamsString ? `${eventUrl}?${searchParamsString}` : eventUrl,
+        permanent: false,
+      },
+    };
+  }
+
+  // Allow reschedule to proceed - default behaviour
+  return null;
+}
 
 const querySchema = z.object({
   uid: z.string(),
@@ -40,7 +183,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const {
     uid,
     seatReferenceUid: maybeSeatReferenceUid,
-    bookingSeat,
+    bookingSeat: _bookingSeat,
   } = await maybeGetBookingUidFromSeat(prisma, bookingUid);
 
   const booking = await prisma.booking.findUnique({
@@ -63,6 +206,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           allowReschedulingCancelledBookings: true,
           team: {
             select: {
+              id: true,
               parentId: true,
               slug: true,
             },
@@ -112,62 +256,28 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
-  const isForcedRescheduleForCancelledBooking = allowRescheduleForCancelledBooking;
-  // If booking is already REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
-  // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
-  // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
-  // This comes from query param and thus is considered forced
-  const canBookThroughCancelledBookingRescheduleLink = booking.eventType?.allowReschedulingCancelledBookings;
-  const isNonRescheduleableBooking =
-    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+  // Check if reschedule should be redirected based on booking status and event type settings
+  const rescheduleRedirect = determineReschedulePreventionRedirect({
+    booking: {
+      uid,
+      status: booking.status,
+      endTime: booking.endTime,
+      responses: booking.responses,
+      eventType: booking.eventType
+        ? {
+            ...booking.eventType,
+            teamId: booking.eventType.team?.id || null,
+          }
+        : null,
+      dynamicEventSlugRef: booking.dynamicEventSlugRef,
+    },
+    eventUrl,
+    allowRescheduleForCancelledBooking,
+    bookingSeat: _bookingSeat,
+  });
 
-  if (isDisabledRescheduling) {
-    return {
-      redirect: {
-        destination: `/booking/${uid}`,
-        permanent: false,
-      },
-    };
-  }
-
-  if (isNonRescheduleableBooking && !isForcedRescheduleForCancelledBooking) {
-    const canReschedule =
-      booking.status === BookingStatus.CANCELLED && canBookThroughCancelledBookingRescheduleLink;
-    return {
-      redirect: {
-        destination: canReschedule ? eventUrl : `/booking/${uid}`,
-        permanent: false,
-      },
-    };
-  }
-
-  if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
-    // TODO: Show something in UI to let user know that this booking is not rescheduleable
-    return {
-      notFound: true,
-    } as {
-      notFound: true;
-    };
-  }
-
-  const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
-  if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
-    const destinationUrlSearchParams = new URLSearchParams();
-    const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
-    const name = getFullName(getSafe<string | { firstName: string; lastName?: string }>(responses, ["name"]));
-    const email = getSafe<string>(responses, ["email"]);
-
-    if (name) destinationUrlSearchParams.set("name", name);
-    if (email) destinationUrlSearchParams.set("email", email);
-
-    const searchParamsString = destinationUrlSearchParams.toString();
-    return {
-      redirect: {
-        destination: searchParamsString ? `${eventUrl}?${searchParamsString}` : eventUrl,
-        permanent: false,
-      },
-    };
+  if (rescheduleRedirect) {
+    return rescheduleRedirect;
   }
 
   // if booking event type is for a seated event and no seat reference uid is provided, throw not found
