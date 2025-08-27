@@ -29,7 +29,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId, workflowI
       setTestPhoneNumber("");
     },
     onError: (error: { message: string }) => {
-      showToast(error.message, "error");
+      showToast(t(error.message), "error");
     },
   });
 

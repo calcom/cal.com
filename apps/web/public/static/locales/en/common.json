@@ -2714,6 +2714,7 @@
   "send_email": "Send email",
   "cal_ai_phone_call_action": "Call attendee using Cal.ai Voice Agent",
   "cal_ai_agent_configuration": "Cal.ai Agent Configuration",
+  "choose_at_least_one_event_type_test_call": "Please choose at least one event type to make a test call.",
   "mark_as_no_show": "Mark as no-show",
   "unmark_as_no_show": "Unmark no-show",
   "account_unlinked_success": "Account unlinked successfully",
