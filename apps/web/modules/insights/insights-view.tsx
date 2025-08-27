@@ -93,10 +93,9 @@ function InsightsPageContent() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
-          <RecentNoShowGuestsChart />
           <HighestNoShowHostTable />
           <div className="sm:col-span-2">
-            <PopularEventsTable />
+            <RecentNoShowGuestsChart />
           </div>
         </div>
 
@@ -105,6 +104,12 @@ function InsightsPageContent() {
           <LowestRatedMembersTable />
           <div className="sm:col-span-2">
             <RecentFeedbackTable />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
           </div>
         </div>
 
