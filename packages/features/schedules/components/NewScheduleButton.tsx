@@ -77,7 +77,9 @@ export function NewScheduleButton({
             id="name"
             required
             placeholder={t("default_schedule_name")}
-            {...register("name")}
+            {...register("name", {
+              setValueAs: (v) => (!v || v.trim() === "" ? null : v),
+            })}
           />
           <DialogFooter>
             <DialogClose />
