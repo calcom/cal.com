@@ -26,7 +26,7 @@ const parseEmails = (input: string) =>
     .filter(Boolean);
 
 export type CheckedSelectOption = {
-  avatar?: string; // Change: made optional
+  avatar?: string;
   label: string;
   value: string;
   priority?: number;
@@ -34,8 +34,9 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
-  isPending?: boolean; // Change: added
-  groupId: string | null;
+  isPending?: boolean;
+  profileId?: number;
+  groupId?: string | null;
 };
 
 export type CheckedTeamSelectCustomClassNames = {

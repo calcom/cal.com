@@ -25,14 +25,15 @@ export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
-  isFixed: boolean;
-  userId?: number; // Change: made optional
-  email?: string; // Change: added
-  isPending?: boolean; // Change: added
-  priority: number;
-  weight: number;
+  userId?: number;
+  email?: string;
+  isPending?: boolean;
+  profileId?: number;
+  isFixed?: boolean;
+  priority?: number;
+  weight?: number;
   scheduleId?: number | null;
-  groupId: string | null;
+  groupId?: string | null;
 };
 export type TeamMember = {
   value: string;
