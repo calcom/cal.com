@@ -114,10 +114,12 @@ type AgentConfigurationSheetProps = {
   teamId?: number;
   workflowId?: string;
   workflowStepId?: number;
+  activeTab?: "prompt" | "phoneNumber";
 };
 
 export function AgentConfigurationSheet({
   open,
+  activeTab: _activeTab,
   onOpenChange,
   agentId,
   agentData,
@@ -130,7 +132,7 @@ export function AgentConfigurationSheet({
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
-  const [activeTab, setActiveTab] = useState<"prompt" | "phoneNumber">("prompt");
+  const [activeTab, setActiveTab] = useState<"prompt" | "phoneNumber">(_activeTab ?? "prompt");
   const [isBuyDialogOpen, setIsBuyDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);

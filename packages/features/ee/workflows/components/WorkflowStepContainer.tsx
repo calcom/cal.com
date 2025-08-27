@@ -136,7 +136,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
-  const [isAgentConfigurationSheetOpen, setIsAgentConfigurationSheetOpen] = useState(false);
+  const [agentConfigurationSheet, setAgentConfigurationSheet] = useState<{
+    open: boolean;
+    activeTab?: "prompt" | "phoneNumber";
+  }>({
+    open: false,
+    activeTab: "prompt",
+  });
 
   const creditsTeamId = userTeams?.find(
     (team) => team.accepted && (team.role === MembershipRole.ADMIN || team.role === MembershipRole.OWNER)
@@ -159,7 +165,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
         await utils.viewer.aiVoiceAgent.get.invalidate({ id: data.id });
       }
-      setIsAgentConfigurationSheetOpen(true);
+      setAgentConfigurationSheet((prev) => ({ ...prev, open: true }));
     },
     onError: (error: { message: string }) => {
       showToast(error.message, "error");
@@ -744,7 +750,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <Button
                           color="secondary"
                           onClick={() => {
-                            setIsAgentConfigurationSheetOpen(true);
+                            setAgentConfigurationSheet((prev) => ({
+                              ...prev,
+                              open: true,
+                              activeTab: "phoneNumber",
+                            }));
                           }}
                           disabled={props.readOnly}>
                           {t("connect_phone_number")}
@@ -765,7 +775,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             <DropdownItem
                               type="button"
                               StartIcon="pencil"
-                              onClick={() => setIsAgentConfigurationSheetOpen(true)}>
+                              onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "prompt" })}>
                               {t("edit")}
                             </DropdownItem>
                           </DropdownMenuItem>
@@ -1358,25 +1368,28 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        <AgentConfigurationSheet
-          open={isAgentConfigurationSheetOpen}
-          onOpenChange={setIsAgentConfigurationSheetOpen}
-          agentId={stepAgentId}
-          agentData={agentData}
-          onUpdate={(data) => {
-            updateAgentMutation.mutate({
-              id: stepAgentId!,
-              teamId: teamId,
-              generalPrompt: data.generalPrompt,
-              beginMessage: data.beginMessage,
-              generalTools: data.generalTools,
-            });
-          }}
-          readOnly={props.readOnly}
-          teamId={teamId}
-          workflowId={params?.workflow as string}
-          workflowStepId={step?.id}
-        />
+        {agentConfigurationSheet.open && (
+          <AgentConfigurationSheet
+            open={agentConfigurationSheet.open}
+            activeTab={agentConfigurationSheet.activeTab}
+            onOpenChange={(val) => setAgentConfigurationSheet((prev) => ({ ...prev, open: val }))}
+            agentId={stepAgentId}
+            agentData={agentData}
+            onUpdate={(data) => {
+              updateAgentMutation.mutate({
+                id: stepAgentId!,
+                teamId: teamId,
+                generalPrompt: data.generalPrompt,
+                beginMessage: data.beginMessage,
+                generalTools: data.generalTools,
+              });
+            }}
+            readOnly={props.readOnly}
+            teamId={teamId}
+            workflowId={params?.workflow as string}
+            workflowStepId={step?.id}
+          />
+        )}
 
         {/* Test Agent Dialog */}
         {stepAgentId && (
