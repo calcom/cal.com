@@ -47,7 +47,7 @@ function getFallBackWithContactOwner<T extends { user: { id: number } }>(
 }
 
 const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
-  return host.isFixed === false;
+  return host.isFixed !== true;
 };
 
 const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {

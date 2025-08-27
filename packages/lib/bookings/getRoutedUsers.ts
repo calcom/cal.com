@@ -70,7 +70,7 @@ type BaseUser = {
 };
 
 type BaseHost<User extends BaseUser> = {
-  isFixed: boolean;
+  isFixed?: boolean;
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
