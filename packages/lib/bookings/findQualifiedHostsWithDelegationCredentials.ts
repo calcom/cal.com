@@ -122,8 +122,14 @@ export class QualifiedHostsService {
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
-    const fixedHosts = normalizedHosts.filter(isFixedHost);
-    const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
+    // Ensure isFixed is always a boolean
+    const normalizedHostsWithFixedBoolean = normalizedHosts.map((host) => ({
+      ...host,
+      isFixed: host.isFixed ?? false,
+    }));
+
+    const fixedHosts = normalizedHostsWithFixedBoolean.filter(isFixedHost);
+    const roundRobinHosts = normalizedHostsWithFixedBoolean.filter(isRoundRobinHost);
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(

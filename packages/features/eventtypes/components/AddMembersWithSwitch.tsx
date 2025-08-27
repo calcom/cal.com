@@ -8,56 +8,64 @@ import { AddMembersWithSwitchWebWrapper } from "@calcom/atoms/add-members-switch
 import SettingsToggle from "@calcom/atoms/add-members-switch/SettingsToggle";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Segment } from "@calcom/features/Segment";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import type {
+  FormValues,
+  SettingsToggleClassNames,
+  TeamMember,
+  Host,
+  AttributesQueryValue,
+} from "../lib/types";
 import CheckedHostField from "./CheckedHostField";
+import type { CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 
-FormValues,
-  function MembersSegmentWithToggle({
-    teamId,
-    assignRRMembersUsingSegment,
-    setAssignRRMembersUsingSegment,
-    rrSegmentQueryValue,
-    setRrSegmentQueryValue,
-    className,
-  }: {
-    teamId: number;
-    assignRRMembersUsingSegment: boolean;
-    setAssignRRMembersUsingSegment: (value: boolean) => void;
-    rrSegmentQueryValue: AttributesQueryValue | null;
-    setRrSegmentQueryValue: (value: AttributesQueryValue) => void;
-    className?: string;
-  }) {
-    const { t } = useLocale();
-    const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
-      setRrSegmentQueryValue(queryValue);
-    };
-    const isPlatform = useIsPlatform();
-    return (
-      <Controller<FormValues>
-        name="assignRRMembersUsingSegment"
-        render={() => (
-          <SettingsToggle
-            noIndentation
-            data-testid="segment-toggle"
-            title={t("filter_by_attributes")}
-            labelClassName="mt-0.5 font-normal"
-            checked={assignRRMembersUsingSegment}
-            onCheckedChange={(active) => {
-              setAssignRRMembersUsingSegment(active);
-            }}>
-            {!isPlatform && (
-              <Segment
-                teamId={teamId}
-                queryValue={rrSegmentQueryValue}
-                onQueryValueChange={onQueryValueChange}
-                className={className}
-              />
-            )}
-          </SettingsToggle>
-        )}
-      />
-    );
+function MembersSegmentWithToggle({
+  teamId,
+  assignRRMembersUsingSegment,
+  setAssignRRMembersUsingSegment,
+  rrSegmentQueryValue,
+  setRrSegmentQueryValue,
+  className,
+}: {
+  teamId: number;
+  assignRRMembersUsingSegment: boolean;
+  setAssignRRMembersUsingSegment: (value: boolean) => void;
+  rrSegmentQueryValue: AttributesQueryValue | null;
+  setRrSegmentQueryValue: (value: AttributesQueryValue) => void;
+  className?: string;
+}) {
+  const { t } = useLocale();
+  const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
+    setRrSegmentQueryValue(queryValue);
   };
+  const isPlatform = useIsPlatform();
+  return (
+    <Controller<FormValues>
+      name="assignRRMembersUsingSegment"
+      render={() => (
+        <SettingsToggle
+          noIndentation
+          data-testid="segment-toggle"
+          title={t("filter_by_attributes")}
+          labelClassName="mt-0.5 font-normal"
+          checked={assignRRMembersUsingSegment}
+          onCheckedChange={(active) => {
+            setAssignRRMembersUsingSegment(active);
+          }}>
+          {!isPlatform && (
+            <Segment
+              teamId={teamId}
+              queryValue={rrSegmentQueryValue}
+              onQueryValueChange={onQueryValueChange}
+              className={className}
+            />
+          )}
+        </SettingsToggle>
+      )}
+    />
+  );
+}
 
 export type AddMembersWithSwitchCustomClassNames = {
   assingAllTeamMembers?: SettingsToggleClassNames;

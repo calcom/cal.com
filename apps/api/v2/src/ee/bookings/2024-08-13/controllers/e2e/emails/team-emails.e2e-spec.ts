@@ -218,7 +218,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     await Promise.all(
       hostIds.map((userId) =>
         hostsRepositoryFixture.create({
-          isFixed: type === "COLLECTIVE",
+          isFixed: type === "COLLECTIVE" ? true : false,
           user: { connect: { id: userId } },
           eventType: { connect: { id: eventType.id } },
         })

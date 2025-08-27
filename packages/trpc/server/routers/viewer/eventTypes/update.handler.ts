@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { randomBytes } from "crypto";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
@@ -20,7 +21,12 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
+import {
+  SchedulingType,
+  EventTypeAutoTranslatedField,
+  RRTimestampBasis,
+  CreationSource,
+} from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
@@ -411,22 +417,30 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const userHosts = hosts.filter((h: { userId?: number }) => typeof h.userId === "number");
 
     // handle invites for email hosts
-    // If you need to invite, use the correct model name (teamInvitations or similar)
+    // Create verification tokens for team invites
     for (const invite of emailHosts) {
       if (!invite.email) continue;
       const normalizedEmail = invite.email.trim().toLowerCase();
-      await ctx.prisma.teamInvite?.upsert({
+
+      // Check if a verification token already exists for this email and team
+      const existingToken = await ctx.prisma.verificationToken.findFirst({
         where: {
-          email_teamId: { email: normalizedEmail, teamId },
-        },
-        update: {},
-        create: {
-          email: normalizedEmail,
+          identifier: normalizedEmail,
           teamId,
-          role: MembershipRole.MEMBER,
-          invitedBy: ctx.user.id,
         },
       });
+
+      if (!existingToken) {
+        // Create a new verification token for team invite
+        await ctx.prisma.verificationToken.create({
+          data: {
+            identifier: normalizedEmail,
+            token: randomBytes(32).toString("hex"),
+            expires: new Date(new Date().setHours(168)), // +1 week
+            teamId,
+          },
+        });
+      }
     }
 
     // Now process userHosts with your existing logic
@@ -566,7 +580,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             inviterName: ctx.user?.username ?? null,
             teamId: teamId,
             language: ctx.user.locale || "en",
-            // creationSource: CreationSource.INVITATION,
+            creationSource: CreationSource.WEBAPP,
             orgSlug: eventType.team?.slug || null,
             invitations: emailHosts
               .filter((host) => typeof host.email === "string" && host.email)

@@ -143,12 +143,12 @@ export async function getNormalizedHostsWithDelegationCredentials<
 }) {
   if (eventType.hosts?.length && eventType.schedulingType) {
     const hostsWithoutDelegationCredential = eventType.hosts.map((host) => ({
-      isFixed: host.isFixed,
+      isFixed: host.isFixed ?? false,
       user: host.user,
-      priority: host.priority,
-      weight: host.weight,
-      createdAt: host.createdAt,
-      groupId: host.groupId,
+      priority: host.priority ?? null,
+      weight: host.weight ?? null,
+      createdAt: host.createdAt ?? new Date(),
+      groupId: host.groupId ?? null,
     }));
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({

@@ -161,7 +161,7 @@ export class PrismaPhoneNumberRepository {
         updatedAt: true,
       },
       data: {
-        provider,
+        provider: provider ?? "default",
         userId,
         teamId,
         phoneNumber,
