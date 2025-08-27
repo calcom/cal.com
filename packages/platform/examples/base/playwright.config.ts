@@ -10,7 +10,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   timeout: DEFAULT_TEST_TIMEOUT,
-  fullyParallel: true,
+  fullyParallel: false,
   reporter: [
     ["list"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
