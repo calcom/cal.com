@@ -35,8 +35,7 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
   if (activeOnEventTypeIds.length === 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message:
-        "This workflow has no event types selected or saved. Please choose at least one event type to continue.",
+      message: "choose_at_least_one_event_type_test_call",
     });
   }
 
