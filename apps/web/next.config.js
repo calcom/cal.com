@@ -296,6 +296,10 @@ const nextConfig = (phase) => {
           destination: "/apps/routing-forms/:path*",
         },
         {
+          source: "/routing-forms",
+          destination: "/apps/routing-forms/forms",
+        },
+        {
           source: "/success/:path*",
           has: [
             {
@@ -548,12 +552,17 @@ const nextConfig = (phase) => {
         },
         {
           source: "/apps/routing-forms",
-          destination: "/routing/forms",
+          destination: "/apps/routing-forms/forms",
           permanent: false,
         },
         {
           source: "/api/app-store/:path*",
           destination: "/app-store/:path*",
+          permanent: true,
+        },
+        {
+          source: "/auth/new",
+          destination: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
           permanent: true,
         },
         {
@@ -651,6 +660,11 @@ const nextConfig = (phase) => {
         {
           source: "/settings/organizations/platform/:path*",
           destination: "/settings/platform",
+          permanent: true,
+        },
+        {
+          source: "/settings/admin/apps",
+          destination: "/settings/admin/apps/calendar",
           permanent: true,
         },
         // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
