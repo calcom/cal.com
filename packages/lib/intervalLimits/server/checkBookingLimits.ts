@@ -21,7 +21,8 @@ export class CheckBookingLimitsService {
     eventId: number,
     rescheduleUid?: string | undefined,
     timeZone?: string | null,
-    includeManagedEvents?: boolean
+    includeManagedEvents?: boolean,
+    weekStart?: number | null // Add weekStart parameter
   ) {
     const parsedBookingLimits = parseBookingLimit(bookingLimits);
     if (!parsedBookingLimits) return false;
@@ -36,6 +37,7 @@ export class CheckBookingLimitsService {
         timeZone,
         rescheduleUid,
         includeManagedEvents,
+        weekStart, // Pass weekStart to individual checks
       })
     );
 
@@ -58,6 +60,7 @@ export class CheckBookingLimitsService {
     teamId,
     user,
     includeManagedEvents = false,
+    weekStart = 0, // Default to Sunday
   }: {
     eventStartDate: Date;
     eventId?: number;
@@ -68,6 +71,7 @@ export class CheckBookingLimitsService {
     teamId?: number;
     user?: { id: number; email: string };
     includeManagedEvents?: boolean;
+    weekStart?: number | null;
   }) {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
 
@@ -75,8 +79,21 @@ export class CheckBookingLimitsService {
 
     const unit = intervalLimitKeyToUnit(key);
 
-    const startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
-    const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
+    let startDate: Date;
+    let endDate: Date;
+
+    // Handle week boundaries with custom week start
+    if (unit === "week" && weekStart !== null && weekStart !== undefined) {
+      const dayOfWeek = eventDateInOrganizerTz.day();
+      const daysToSubtract = (dayOfWeek - weekStart + 7) % 7;
+
+      startDate = eventDateInOrganizerTz.subtract(daysToSubtract, "day").startOf("day").toDate();
+
+      endDate = eventDateInOrganizerTz.subtract(daysToSubtract, "day").add(6, "day").endOf("day").toDate();
+    } else {
+      startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
+      endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
+    }
 
     let bookingsInPeriod;
 
