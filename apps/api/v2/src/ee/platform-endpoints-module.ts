@@ -1,6 +1,7 @@
 import { BookingsModule_2024_04_15 } from "@/ee/bookings/2024-04-15/bookings.module";
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
 import { CalendarsModule } from "@/ee/calendars/calendars.module";
+import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { GcalModule } from "@/ee/gcal/gcal.module";
@@ -14,7 +15,6 @@ import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.m
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsMembershipsModule } from "@/modules/teams/memberships/teams-memberships.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
-import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 

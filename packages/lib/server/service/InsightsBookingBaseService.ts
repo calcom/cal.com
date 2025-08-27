@@ -298,8 +298,16 @@ export class InsightsBookingBaseService {
       return null;
     }
 
-    if (id === "eventTypeId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
-      return Prisma.sql`("eventTypeId" = ${value.data}) OR ("eventParentId" = ${value.data})`;
+    if (id === "eventTypeId" && isMultiSelectFilterValue(value)) {
+      const eventTypeIds = value.data.map((id) => Number(id));
+
+      if (eventTypeIds.length === 0) {
+        return null;
+      }
+
+      return Prisma.sql`("eventTypeId" IN (${Prisma.join(eventTypeIds)}) OR "eventParentId" IN (${Prisma.join(
+        eventTypeIds
+      )}))`;
     }
 
     if (id === "userId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
@@ -801,7 +809,7 @@ export class InsightsBookingBaseService {
   }
 
   async getMembersStatsWithCount(
-    type: "all" | "cancelled" | "noShow" = "all",
+    type: "all" | "accepted" | "cancelled" | "noShow" = "all",
     sortOrder: "ASC" | "DESC" = "DESC"
   ): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
@@ -811,6 +819,8 @@ export class InsightsBookingBaseService {
       additionalCondition = Prisma.sql`AND status = 'cancelled'`;
     } else if (type === "noShow") {
       additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+    } else if (type === "accepted") {
+      additionalCondition = Prisma.sql`AND status = 'accepted'`;
     }
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
