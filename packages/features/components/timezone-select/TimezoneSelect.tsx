@@ -1,13 +1,13 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
-import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
-import { trpc } from "@calcom/trpc/react";
+import { fetchCityTimezonesFromCDN } from "@calcom/lib/timezone-cdn";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 
@@ -40,14 +40,11 @@ export type TimezoneSelectProps = SelectProps & {
   grow?: boolean;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
-  const { data = [], isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
-    {
-      CalComVersion: CALCOM_VERSION,
-    },
-    {
-      trpc: { context: { skipBatch: true } },
-    }
-  );
+  const { data = [], isPending } = useQuery({
+    queryKey: ["city-timezones-cdn"],
+    queryFn: fetchCityTimezonesFromCDN,
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours
+  });
   const cityTimezonesFormatted = data.map(({ city, timezone }) => ({ label: city, timezone }));
 
   return (
@@ -75,7 +72,7 @@ export function TimezoneSelectComponent({
   classNames: timezoneClassNames,
   timezoneSelectCustomClassname,
   components,
-  variant = "default",
+  variant: _variant = "default",
   isPending,
   value,
   size = "md",

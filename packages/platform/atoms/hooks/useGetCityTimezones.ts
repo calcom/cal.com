@@ -1,25 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse } from "@calcom/platform-types";
-
-import http from "../lib/http";
+import { fetchCityTimezonesFromCDN } from "@calcom/lib/timezone-cdn";
+import type { CityTimezone } from "@calcom/lib/timezone-cdn";
 
 type Timezones = { city: string; timezone: string }[];
 const useGetCityTimezones = () => {
-  const pathname = `/timezones`;
-
-  const { isLoading, data } = useQuery<Timezones>({
-    queryKey: ["city-timezones"],
-    queryFn: () => {
-      return http?.get<ApiResponse<Timezones>>(pathname).then((res) => {
-        if (res.data.status === SUCCESS_STATUS) {
-          return res.data.data;
-        }
-        throw new Error(res.data.error.message);
-      });
-    },
+  const { isLoading, data: rawData } = useQuery<CityTimezone[]>({
+    queryKey: ["city-timezones-cdn"],
+    queryFn: fetchCityTimezonesFromCDN,
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours
   });
+
+  const data: Timezones = rawData?.map(({ city, timezone }) => ({ city, timezone })) || [];
 
   return { isLoading, data };
 };

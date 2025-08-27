@@ -50,9 +50,6 @@ export { HttpError } from "@calcom/lib/http-error";
 
 export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 
-export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
-export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
-
 export { TRPCError } from "@trpc/server";
 export { createNewUsersConnectToOrgIfExists };
 

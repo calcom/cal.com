@@ -7,7 +7,6 @@ import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { router } from "../../trpc";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
-import { timezonesRouter } from "../publicViewer/timezones/_router";
 import { adminRouter } from "./admin/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
@@ -54,7 +53,6 @@ export const viewerRouter = router({
   eventTypes: eventTypesRouter,
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
-  timezones: timezonesRouter,
   organizations: viewerOrganizationsRouter,
   delegationCredential: delegationCredentialRouter,
   webhook: webhookRouter,
