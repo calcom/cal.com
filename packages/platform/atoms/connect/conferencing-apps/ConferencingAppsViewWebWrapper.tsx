@@ -50,13 +50,11 @@ export const InstalledConferencingApps = ({
   integrations,
   defaultConferencingApp,
   eventTypes,
-  isEventTypesFetching = false,
 }: {
   disconnectIntegrationModalCtrl: ReturnType<typeof useDisconnectIntegrationModalController>;
   integrations: IntegrationsOutput;
   defaultConferencingApp: DefaultConferencingApp;
   eventTypes: EventTypesList;
-  isEventTypesFetching?: boolean;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -140,7 +138,7 @@ export const InstalledConferencingApps = ({
       handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
       isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
       eventTypes={eventTypes}
-      isEventTypesFetching={isEventTypesFetching}
+      isEventTypesFetching={false}
       handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
       handleBulkEditDialogToggle={handleBulkEditDialogToggle}
     />
