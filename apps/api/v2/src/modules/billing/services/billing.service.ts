@@ -403,6 +403,7 @@ export class BillingService implements OnModuleDestroy {
       fromReschedule?: string | null;
     }
   ) {
+
     if (this.configService.get("e2e")) {
       return true;
     }
@@ -464,6 +465,7 @@ export class BillingService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     try {
+
       await this.billingQueue.close();
     } catch (err) {
       this.logger.error(err);
