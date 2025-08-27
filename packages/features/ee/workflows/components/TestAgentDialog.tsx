@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
@@ -10,15 +11,24 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
+import type { FormValues } from "../pages/workflow";
+
 interface TestAgentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   agentId: string;
   teamId?: number;
-  workflowId?: string;
+  form: UseFormReturn<FormValues>;
 }
 
-export function TestAgentDialog({ open, onOpenChange, agentId, teamId, workflowId }: TestAgentDialogProps) {
+export function TestAgentDialog({
+  open,
+  onOpenChange,
+  agentId,
+  teamId,
+  workflowId,
+  form,
+}: TestAgentDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
@@ -38,12 +48,18 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId, workflowI
       showToast(t("please_enter_phone_number"), "error");
       return;
     }
-    if (agentId && workflowId) {
+    const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
+    if (!firstEventTypeId) {
+      showToast(t("choose_at_least_one_event_type_test_call"), "error");
+      return;
+    }
+
+    if (agentId) {
       testCallMutation.mutate({
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
-        workflowId,
+        eventTypeId: parseInt(firstEventTypeId, 10),
       });
     }
   };

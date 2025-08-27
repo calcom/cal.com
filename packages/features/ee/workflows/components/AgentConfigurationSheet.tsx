@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useState, useRef, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -40,6 +41,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
+import type { FormValues } from "../pages/workflow";
 import { TestAgentDialog } from "./TestAgentDialog";
 
 // Utility functions for prompt display
@@ -115,6 +117,7 @@ type AgentConfigurationSheetProps = {
   workflowId?: string;
   workflowStepId?: number;
   activeTab?: "prompt" | "phoneNumber";
+  form: UseFormReturn<FormValues>;
 };
 
 export function AgentConfigurationSheet({
@@ -128,6 +131,7 @@ export function AgentConfigurationSheet({
   teamId,
   workflowId,
   workflowStepId: _workflowStepId,
+  form,
 }: AgentConfigurationSheetProps) {
   const { t } = useLocale();
 
@@ -964,7 +968,7 @@ export function AgentConfigurationSheet({
           onOpenChange={setIsTestAgentDialogOpen}
           agentId={agentId}
           teamId={teamId}
-          workflowId={workflowId}
+          form={form}
         />
       )}
 

@@ -1,7 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -18,6 +18,7 @@ type TestCallHandlerOptions = {
 
 export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) => {
   const timeZone = ctx.user.timeZone ?? "Europe/London";
+  const eventTypeId = input.eventTypeId;
 
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
@@ -26,22 +27,35 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
     return;
   }
 
-  const activeOnEventTypeIds = await WorkflowRepository.getActiveOnEventTypeIds({
-    workflowId: parseInt(input.workflowId),
+  const agent = await PrismaAgentRepository.findByIdWithCallAccess({
+    id: input.agentId,
     userId: ctx.user.id,
-    teamId: input.teamId,
   });
 
-  if (activeOnEventTypeIds.length === 0) {
+  if (!agent?.providerAgentId) {
+    logger.error(`Agent not found with agentId ${input.agentId}`);
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "choose_at_least_one_event_type_test_call",
+      message: "Agent not found",
     });
   }
 
-  const eventTypeId = activeOnEventTypeIds[0];
-
   const aiService = createDefaultAIPhoneServiceProvider();
+
+  try {
+    await aiService.updateToolsFromAgentId(agent.providerAgentId, {
+      eventTypeId,
+      timeZone,
+      userId: ctx.user.id,
+      teamId: input.teamId,
+    });
+  } catch (error) {
+    logger.error(`Failed to update tools for agent ${agent.providerAgentId}: ${error}`);
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to test the event type. Failed to update tools for agent",
+    });
+  }
 
   return await aiService.createTestCall({
     agentId: input.agentId,

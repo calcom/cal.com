@@ -1388,17 +1388,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
+            form={form}
           />
         )}
 
-        {/* Test Agent Dialog */}
         {stepAgentId && (
           <TestAgentDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
             agentId={stepAgentId}
             teamId={teamId}
-            workflowId={params?.workflow as string}
+            form={form}
           />
         )}
 
