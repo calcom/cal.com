@@ -156,6 +156,19 @@ interface CreateProviderOptions {
   config?: Partial<AIPhoneServiceProviderConfig>;
 }
 
+/**
+ * Create and return an AI phone service provider instance.
+ *
+ * Ensures the provider registry is initialized, determines the provider type
+ * (explicit `options.providerType` or the registry default), resolves an API key,
+ * builds a provider configuration (including `enableLogging` based on NODE_ENV),
+ * and delegates provider construction to the registry.
+ *
+ * @param options - Optional creation options. `options.providerType` overrides the registry default.
+ *                  `options.config` supplies provider-specific configuration (e.g., `apiKey`, timeouts).
+ * @returns The constructed AIPhoneServiceProvider instance for the selected provider type.
+ * @throws Error if no provider type is specified and no default provider is configured.
+ */
 export function createAIPhoneServiceProvider(options: CreateProviderOptions = {}): AIPhoneServiceProvider {
   // Ensure the registry is initialized before creating a provider
   ensureAIPhoneServiceRegistryInitialized();

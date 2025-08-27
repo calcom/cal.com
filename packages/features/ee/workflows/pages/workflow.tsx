@@ -48,6 +48,19 @@ type PageProps = {
   verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
 };
 
+/**
+ * Page component that loads, displays, and edits a workflow.
+ *
+ * Renders a workflow editor that seeds its form from either preloaded props or TRPC queries,
+ * handles audience selection, per-step translation/validation, and submits updates via a TRPC mutation.
+ * On load it populates the form (including translating stored dynamic variables into the UI locale),
+ * determines read-only state from workflow permissions, and fetches verified phone numbers/emails when needed.
+ * The Save action validates step bodies and contact verification, translates variables back to English for storage,
+ * calls the update mutation, updates the local TRPC cache, and shows success or error toasts.
+ *
+ * The component passes an onSaveWorkflow callback to WorkflowDetailsPage so that the inner editor can trigger the same
+ * validation + submit flow.
+ */
 function WorkflowPage({
   workflow: workflowId,
   workflowData: workflowDataProp,

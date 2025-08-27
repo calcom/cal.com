@@ -3,8 +3,11 @@ import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interfac
 import { RetellAIPhoneServiceProviderFactory } from "./providers/retellAI";
 
 /**
- * Initialize the AI Phone Service Registry
- * This function should be called during application startup
+ * Initialize and configure the AIPhoneServiceRegistry for application startup.
+ *
+ * Registers the available AI phone service providers and sets the default provider
+ * (Retell AI). In non-production environments, logs the chosen default and the
+ * list of available providers for debugging.
  */
 export function initializeAIPhoneServiceRegistry(): void {
   const defaultProvider = AIPhoneServiceProviderType.RETELL_AI;

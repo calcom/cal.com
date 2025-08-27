@@ -26,6 +26,17 @@ const checkoutSessionMetadataSchema = z.object({
 
 type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
 
+/**
+ * Handle a successful Stripe phone-number subscription checkout and redirect the user to the app.
+ *
+ * Parses `session_id` from the request URL query, fetches and validates the Stripe Checkout Session
+ * (including payment status, subscription presence, and required metadata), and returns a redirect
+ * response to the appropriate workflows success page. On any failure, returns a redirect to the
+ * workflows page with error details.
+ *
+ * @param request - Incoming NextRequest; must include a `session_id` query parameter.
+ * @returns A NextResponse performing the redirect to the success or error page.
+ */
 async function handler(request: NextRequest) {
   try {
     const { session_id } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
@@ -38,6 +49,13 @@ async function handler(request: NextRequest) {
   }
 }
 
+/**
+ * Retrieve a Stripe Checkout Session by ID, expanding the associated subscription.
+ *
+ * @param sessionId - The Stripe Checkout Session ID to fetch.
+ * @returns The fetched Checkout Session with `subscription` expanded.
+ * @throws HttpError with status 404 if the session is not found.
+ */
 async function getCheckoutSession(sessionId: string) {
   const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
   if (!session) {
@@ -46,6 +64,17 @@ async function getCheckoutSession(sessionId: string) {
   return session;
 }
 
+/**
+ * Validate a Stripe Checkout Session and extract its typed metadata for a phone-number subscription.
+ *
+ * Ensures the session has been paid, includes an associated subscription, and that `session.metadata`
+ * conforms to the checkout session metadata schema. Returns the parsed metadata on success.
+ *
+ * @param session - The Stripe Checkout Session produced by the checkout flow; must include `metadata` set by the application and an expanded `subscription`.
+ * @returns The validated and typed checkout session metadata (CheckoutSessionMetadata).
+ * @throws HttpError with status 402 if payment is not completed.
+ * @throws HttpError with status 400 if the subscription is missing or metadata validation fails.
+ */
 function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutSessionMetadata {
   if (session.payment_status !== "paid") {
     throw new HttpError({ statusCode: 402, message: "Payment required" });
@@ -66,6 +95,14 @@ function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutS
   return result.data;
 }
 
+/**
+ * Redirects the user to the post-checkout success page for the workflow (or workflows list).
+ *
+ * If `metadata.workflowId` is present the redirect target is `{WEBAPP_URL}/workflows/{workflowId}`, otherwise `{WEBAPP_URL}/workflows`.
+ *
+ * @param metadata - Checkout session metadata; `workflowId` controls whether the redirect targets a specific workflow page or the workflows list.
+ * @returns A NextResponse performing the redirect to the constructed success URL.
+ */
 function redirectToSuccess(metadata: CheckoutSessionMetadata) {
   const basePath = metadata.workflowId
     ? `${WEBAPP_URL}/workflows/${metadata.workflowId}`
@@ -74,6 +111,16 @@ function redirectToSuccess(metadata: CheckoutSessionMetadata) {
   return NextResponse.redirect(basePath);
 }
 
+/**
+ * Log an error and return a redirect response to the workflows page with error details.
+ *
+ * Logs the provided error, constructs a redirect URL to `${WEBAPP_URL}/workflows` with
+ * `error=true`, and includes a human-readable `message` query parameter. If `error` is an
+ * HttpError its message is forwarded; otherwise a generic message is used.
+ *
+ * @param error - The error to log and encode into the redirect query string.
+ * @returns A NextResponse that redirects the client to the workflows page with error information.
+ */
 function handleError(error: unknown) {
   log.error("Error handling phone number subscription success:", safeStringify(error));
 
