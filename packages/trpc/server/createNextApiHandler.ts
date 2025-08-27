@@ -56,10 +56,9 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
         const cacheRules = {
           session: "no-cache",
 
-          // i18n and cityTimezones are now being accessed using the CalComVersion, which updates on every release,
+          // i18n is now being accessed using the CalComVersion, which updates on every release,
           // letting the clients get the new versions when the version number changes.
           "i18n.get": SETTING_FOR_CACHED_BY_VERSION,
-          cityTimezones: SETTING_FOR_CACHED_BY_VERSION,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
           "slots.getSchedule": `no-cache`, // INFO: This needs the slots prefix because it lives us the public router
