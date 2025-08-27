@@ -18,7 +18,7 @@ function App() {
   const [, setLoaded] = useState(false);
   useEffect(() => {
     // Simulate state change causing config object to change, causing rerender of Cal
-    setTimeout(setLoaded.bind(true), 1000);
+    setTimeout(() => setLoaded(true), 1000);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (event: any) => {
       console.log(event.detail);
