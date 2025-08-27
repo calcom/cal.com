@@ -457,7 +457,6 @@ function generateFiles() {
 `;
   const filesToGenerate: [string, string[]][] = [
     ["analytics.services.generated.ts", analyticsOutput],
-    ["payment.services.generated.ts", paymentOutput],
     ["apps.metadata.generated.ts", metadataOutput],
     ["apps.server.generated.ts", serverOutput],
     ["apps.browser.generated.tsx", browserOutput],
@@ -466,6 +465,7 @@ function generateFiles() {
     ["bookerApps.metadata.generated.ts", bookerMetadataOutput],
     ["crm.apps.generated.ts", crmOutput],
     ["calendar.services.generated.ts", calendarOutput],
+    ["payment.services.generated.ts", paymentOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
     fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
