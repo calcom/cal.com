@@ -85,7 +85,7 @@ async function createTestTeam(data: {
   parentId?: number;
   metadata?: any;
   organizationSettings?: {
-    orgAutoAcceptEmail?: string;
+    orgAutoAcceptEmail: string;
     isOrganizationVerified?: boolean;
   };
 }): Promise<Team> {

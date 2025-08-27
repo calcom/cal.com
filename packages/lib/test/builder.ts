@@ -161,6 +161,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     customReplyToEmail: null,
     restrictionScheduleId: null,
     useBookerTimezone: false,
+    bookingRequiresAuthentication: false,
     ...eventType,
   };
 };

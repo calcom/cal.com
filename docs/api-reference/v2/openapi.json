@@ -4190,7 +4190,9 @@
             }
           }
         },
-        "tags": ["Orgs / Teams / Event Types"]
+        "tags": [
+          "Orgs / Teams / Event Types"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
@@ -5034,7 +5036,9 @@
             }
           }
         },
-        "tags": ["Orgs / Teams / Routing forms / Responses"]
+        "tags": [
+          "Orgs / Teams / Routing forms / Responses"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
@@ -5202,6 +5206,22 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           },
           {
@@ -8157,7 +8177,9 @@
             "required": true,
             "in": "path",
             "schema": {
-              "enum": ["google"],
+              "enum": [
+                "google"
+              ],
               "type": "string"
             }
           },
@@ -8180,6 +8202,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -9481,9 +9513,7 @@
             }
           }
         },
-        "tags": [
-          "Event Types Private Links"
-        ]
+        "tags": ["Event Types Private Links"]
       },
       "get": {
         "operationId": "EventTypesPrivateLinksController_getPrivateLinks",
@@ -9519,9 +9549,7 @@
             }
           }
         },
-        "tags": [
-          "Event Types Private Links"
-        ]
+        "tags": ["Event Types Private Links"]
       }
     },
     "/v2/event-types/{eventTypeId}/private-links/{linkId}": {
@@ -9577,9 +9605,7 @@
             }
           }
         },
-        "tags": [
-          "Event Types Private Links"
-        ]
+        "tags": ["Event Types Private Links"]
       },
       "delete": {
         "operationId": "EventTypesPrivateLinksController_deletePrivateLink",
@@ -9623,9 +9649,7 @@
             }
           }
         },
-        "tags": [
-          "Event Types Private Links"
-        ]
+        "tags": ["Event Types Private Links"]
       }
     },
     "/v2/organizations/{orgId}/organizations": {
@@ -12297,7 +12321,9 @@
             }
           }
         },
-        "tags": ["Teams / Memberships"]
+        "tags": [
+          "Teams / Memberships"
+        ]
       }
     },
     "/v2/teams/{teamId}/verified-resources/emails/verification-code/request": {
@@ -15237,6 +15263,14 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "locations": {
             "type": "array",
             "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
@@ -16716,6 +16750,13 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -16745,6 +16786,8 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
           "ownerId",
           "users"
         ]
@@ -17042,6 +17085,14 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "locations": {
             "type": "array",
@@ -18606,6 +18657,14 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "schedulingType": {
             "type": "string",
             "enum": ["collective", "roundRobin", "managed"],
@@ -19008,6 +19067,13 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "teamId": {
             "type": "number"
@@ -19417,6 +19483,14 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "hosts": {
             "type": "array",
@@ -20515,6 +20589,7 @@
           },
           "unit": {
             "type": "object",
+            "enum": ["hour", "minute", "day"],
             "description": "Unit for the offset time",
             "example": "hour"
           }
@@ -20535,6 +20610,7 @@
           "type": {
             "type": "string",
             "default": "beforeEvent",
+            "enum": ["beforeEvent"],
             "description": "Trigger type for the workflow",
             "example": "beforeEvent"
           }
@@ -20555,6 +20631,7 @@
           "type": {
             "type": "string",
             "default": "afterEvent",
+            "enum": ["afterEvent"],
             "description": "Trigger type for the workflow",
             "example": "afterEvent"
           }
@@ -20567,6 +20644,7 @@
           "type": {
             "type": "string",
             "default": "eventCancelled",
+            "enum": ["eventCancelled"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20578,6 +20656,7 @@
           "type": {
             "type": "string",
             "default": "newEvent",
+            "enum": ["newEvent"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20589,6 +20668,7 @@
           "type": {
             "type": "string",
             "default": "rescheduleEvent",
+            "enum": ["rescheduleEvent"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -20608,6 +20688,7 @@
           "type": {
             "type": "string",
             "default": "afterGuestsCalVideoNoShow",
+            "enum": ["afterGuestsCalVideoNoShow"],
             "description": "Trigger type for the workflow",
             "example": "afterGuestsCalVideoNoShow"
           }
@@ -20628,6 +20709,7 @@
           "type": {
             "type": "string",
             "default": "afterHostsCalVideoNoShow",
+            "enum": ["afterHostsCalVideoNoShow"],
             "description": "Trigger type for the workflow",
             "example": "afterHostsCalVideoNoShow"
           }
@@ -21099,6 +21181,17 @@
         "properties": {
           "type": {
             "type": "object",
+            "enum": [
+              [
+                "beforeEvent",
+                "eventCancelled",
+                "newEvent",
+                "afterEvent",
+                "rescheduleEvent",
+                "afterHostsCalVideoNoShow",
+                "afterGuestsCalVideoNoShow"
+              ]
+            ],
             "description": "Trigger type for the workflow"
           }
         },
@@ -21734,6 +21827,188 @@
             }
           }
         }
+      },
+      "CreatePrivateLinkInput": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date for time-based links",
+            "format": "date-time",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times the link can be used. If omitted and expiresAt is not provided, defaults to 1 (one time use).",
+            "example": 10,
+            "minimum": 1,
+            "default": 1
+          }
+        }
+      },
+      "TimeBasedPrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string",
+            "description": "The private link ID",
+            "example": "abc123def456"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event type ID this link belongs to",
+            "example": 123
+          },
+          "isExpired": {
+            "type": "boolean",
+            "description": "Whether the link is currently expired",
+            "example": false
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full booking URL for this private link",
+            "format": "uri",
+            "example": "https://cal.com/d/abc123def456/30min"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date for this time-based link",
+            "format": "date-time",
+            "example": "2025-12-31T23:59:59.000Z"
+          }
+        },
+        "required": ["linkId", "eventTypeId", "isExpired", "bookingUrl", "expiresAt"]
+      },
+      "UsageBasedPrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string",
+            "description": "The private link ID",
+            "example": "abc123def456"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event type ID this link belongs to",
+            "example": 123
+          },
+          "isExpired": {
+            "type": "boolean",
+            "description": "Whether the link is currently expired",
+            "example": false
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full booking URL for this private link",
+            "format": "uri",
+            "example": "https://cal.com/d/abc123def456/30min"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times this link can be used",
+            "example": 10
+          },
+          "usageCount": {
+            "type": "number",
+            "description": "Current usage count for this link",
+            "example": 3
+          }
+        },
+        "required": ["linkId", "eventTypeId", "isExpired", "bookingUrl", "maxUsageCount", "usageCount"]
+      },
+      "CreatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Created private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetPrivateLinksOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of private links for the event type (mix of time-based and usage-based)",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+                },
+                {
+                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+                }
+              ]
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Updated private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "DeletePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Deleted link information",
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "message": {
+                "type": "string",
+                "example": "Private link deleted successfully"
+              }
+            }
+          }
+        },
+        "required": ["status", "data"]
       },
       "StripConnectOutputDto": {
         "type": "object",
@@ -23315,7 +23590,10 @@
             ]
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "MeOrgOutput": {
         "type": "object",
@@ -25704,7 +25982,10 @@
             "$ref": "#/components/schemas/TeamMembershipOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreatePrivateLinkInput": {
         "type": "object",
@@ -26189,7 +26470,12 @@
       "CalendarEventResponseStatus": {
         "type": "string",
         "description": "Host's response to the invitation",
-        "enum": ["accepted", "pending", "declined", "needsAction"]
+        "enum": [
+          "accepted",
+          "pending",
+          "declined",
+          "needsAction"
+        ]
       },
       "CalendarEventAttendee": {
         "type": "object",
@@ -26216,6 +26502,11 @@
             "type": "boolean",
             "nullable": true,
             "description": "Indicates if this attendee's attendance is optional"
+          },
+          "host": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the host"
           }
         },
         "required": ["email"]
@@ -26243,7 +26534,9 @@
             "$ref": "#/components/schemas/CalendarEventResponseStatus"
           }
         },
-        "required": ["email"]
+        "required": [
+          "email"
+        ]
       },
       "CalendarSource": {
         "type": "string",
@@ -26337,6 +26630,15 @@
               "$ref": "#/components/schemas/CalendarEventHost"
             }
           },
+          "calendarEventOwner": {
+            "nullable": true,
+            "description": "The calendar account that owns this event. This is the primary calendar where the event is stored and cannot be modified without appropriate permissions. Changing this would require moving the event to a different calendar",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/calendarEventOwner"
+              }
+            ]
+          },
           "source": {
             "example": "google",
             "$ref": "#/components/schemas/CalendarSource"
@@ -26356,7 +26658,10 @@
             "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "RequestEmailVerificationInput": {
         "type": "object",
