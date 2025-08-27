@@ -62,6 +62,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import isPrismaObj from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -1143,6 +1144,10 @@ async function handler(
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
+      phoneNumber:
+        isPrismaObj(organizerUser.metadata) && organizerUser.metadata?.phoneNumber
+          ? (organizerUser.metadata?.phoneNumber as string)
+          : undefined,
     })
     .withAttendees(attendeesList)
     .withMetadataAndResponses({
