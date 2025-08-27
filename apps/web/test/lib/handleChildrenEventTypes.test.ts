@@ -121,6 +121,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateDescriptionEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -185,6 +186,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -296,6 +298,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -361,6 +364,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -427,6 +431,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
