@@ -1,3 +1,8 @@
+import {
+  canDisableParticipantNotifications,
+  canDisableOrganizerNotifications,
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
+import { Icon } from "@calid/features/ui";
 import { useState, Suspense } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -14,10 +19,6 @@ import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocat
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
 import type {
   FormValues,
@@ -59,7 +60,6 @@ import {
   Switch,
   SettingsToggle,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -1279,7 +1279,7 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-      {allowDisablingAttendeeConfirmationEmails(workflows) && (
+      {canDisableParticipantNotifications(workflows) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"
           render={({ field: { value, onChange } }) => (
@@ -1301,7 +1301,7 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-      {allowDisablingHostConfirmationEmails(workflows) && (
+      {canDisableOrganizerNotifications(workflows) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.host"
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}

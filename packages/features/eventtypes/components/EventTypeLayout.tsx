@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { useMemo, useState, Suspense } from "react";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import type { UseFormReturn } from "react-hook-form";
@@ -23,7 +24,6 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";

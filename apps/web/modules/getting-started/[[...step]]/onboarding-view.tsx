@@ -16,7 +16,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { StepCard } from "@calcom/ui/components/card";
 import { Steps } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 

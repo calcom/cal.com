@@ -1,13 +1,6 @@
 "use client";
-import { useSession } from "next-auth/react";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { useRouter } from "next/navigation";
-import { trpc } from "@calcom/trpc/react";
 
-import { MemberInvitationModalWithoutMembers } from "@calid/features/teams/MemberInvitationModal";
-// import MemberList from "@calcom/features/ee/teams/components/MemberList";
-import MemberList from "@calid/features/teams/MembersList";
-import { SecurityAndPrivacyPanel } from "@calid/features/teams/TeamSettingsView";
+import { MemberInvitationModalWithoutMembers } from "@calid/features/teams/components/MemberInvitationModal";
 import { useState } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -48,7 +41,7 @@ export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProp
             setShowMemberInvitationModal={setShowMemberInvitationModal}
             facetedTeamValues={facetedTeamValues}
           />
-          <SecurityAndPrivacyPanel team={team} />
+          {/* <SecurityAndPrivacyPanel team={team} /> */}
         </div>
       )}
       {!canLoggedInUserSeeMembers && (

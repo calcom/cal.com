@@ -1,14 +1,13 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Switch, Icon } from "@calid/features/ui";
-// import { Switch } from "@calcom/ui/components/form";
-// import { Icon } from "@calcom/ui/components/icon";
+import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 export type ICalendarSwitchProps = {

@@ -1,9 +1,6 @@
-import { TeamEditLayout } from "@calid/features/teams/TeamEditLayout";
-// import TeamSettingsView from "@calcom/features/ee/teams/pages/team-settings-view";
-import TeamSettingsView from "@calid/features/teams/TeamSettingsView";
+import { TeamEditLayout } from "@calid/features/modules/teams/components/TeamEditLayout";
+import TeamSettingsView from "@calid/features/modules/teams/settings/TeamSettingsView";
 import { _generateMetadata, getTranslate } from "app/_utils";
-
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -20,7 +17,7 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const teamId = parseInt(id);
   return (
     <TeamEditLayout teamId={teamId}>
-      <TeamSettingsView />
+      <TeamSettingsView teamId={teamId} />
     </TeamEditLayout>
   );
 };

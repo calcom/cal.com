@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,7 +15,6 @@ import {
   CommandSeparator,
   CommandGroup,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type {

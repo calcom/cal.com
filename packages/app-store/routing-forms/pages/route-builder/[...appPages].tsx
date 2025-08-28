@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, TextField, Textarea as TextArea } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
@@ -29,7 +29,6 @@ import { SelectWithValidation as Select } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";

@@ -19,7 +19,7 @@ import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 

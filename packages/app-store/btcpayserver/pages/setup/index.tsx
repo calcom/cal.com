@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -13,7 +14,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import KeyField from "../../components/KeyInput";

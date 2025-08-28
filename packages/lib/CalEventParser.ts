@@ -1,7 +1,8 @@
-import type { TFunction } from "i18next";
+import type { TFunction } from "next-i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import getRunningLateLink from "@calcom/features/bookings/lib/getRunningLateLink";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
@@ -13,26 +14,31 @@ const translator = short();
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
 export const getWhat = (calEvent: Pick<CalendarEvent, "title">, t: TFunction) => {
-  return `${t("what")}:\n${calEvent.title}`;
+  return `
+${t("what")}:
+${calEvent.title}
+  `;
 };
 
 export const getWhen = (
   calEvent: Pick<CalendarEvent, "organizer" | "attendees" | "seatsPerTimeSlot">,
   t: TFunction
 ) => {
-  const organizerTimezone = calEvent.organizer?.timeZone ?? "UTC";
-  const defaultTimezone = organizerTimezone;
-  const attendeeTimezone = calEvent.attendees?.[0]?.timeZone ?? defaultTimezone;
-
   return calEvent.seatsPerTimeSlot
-    ? `${t("organizer_timezone")}:\n${organizerTimezone}`
-    : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
+    ? `
+${t("organizer_timezone")}:
+${calEvent.organizer.timeZone}
+  `
+    : `
+${t("invitee_timezone")}:
+${calEvent.attendees[0].timeZone}
+  `;
 };
 
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
-    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team" | "hideOrganizerEmail"
+    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team"
   >,
   t: TFunction
 ) => {
@@ -41,40 +47,47 @@ export const getWho = (
     attendeesFromCalEvent = [];
   }
   const attendees = attendeesFromCalEvent
-    .map(
-      (attendee) =>
-        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : ""
-        }`
-    )
-    .join("\n");
+    .map((attendee) => {
+      return `
+${attendee?.name || t("guest")}
+${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
 
-  const organizer = calEvent.hideOrganizerEmail
-    ? `${calEvent.organizer.name} - ${t("organizer")}`
-    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+`;
+    })
+
+    .join("");
+
+  const organizer = `
+${calEvent.organizer.name} - ${t("organizer")}
+${calEvent.organizer.email}
+  `;
 
   const teamMembers = calEvent.team?.members
-    ? calEvent.team.members
-        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
-        .join("\n")
+    ? calEvent.team.members.map((member) => {
+        return `
+${member.name} - ${t("team_member")}
+${member.email}
+    `;
+      })
     : [];
 
-  return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
-    teamMembers.length ? `\n${teamMembers}` : ""
-  }`;
+  return `
+${t("who")}:
+${organizer + attendees + teamMembers.join("")}
+  `;
 };
 
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+  return `
+${t("additional_notes")}:
+${calEvent.additionalNotes}
+  `;
 };
 
-export const getUserFieldsResponses = (
-  calEvent: Parameters<typeof getLabelValueMapFromResponses>[0],
-  t: TFunction
-) => {
+export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValueMapFromResponses>[0]) => {
   const labelValueMap = getLabelValueMapFromResponses(calEvent);
 
   if (!labelValueMap) {
@@ -85,7 +98,7 @@ export const getUserFieldsResponses = (
       if (!labelValueMap) return "";
       if (labelValueMap[key] !== "") {
         return `
-${t(key)}:
+${key}:
 ${labelValueMap[key]}
   `;
       }
@@ -116,10 +129,10 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
   if (!calEvent.description) {
     return "";
   }
-  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
-  return `${t("description")}\n${plainText}`;
+  return `\n${t("description")}
+    ${calEvent.description}
+    `;
 };
-
 export const getLocation = (
   calEvent: Parameters<typeof getVideoCallUrlFromCalEvent>[0] & Parameters<typeof getProviderName>[0]
 ) => {
@@ -317,37 +330,106 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
 export const getRichDescription = (
   calEvent: RichDescriptionCalEvent,
   t_?: TFunction /*, attendee?: Person*/,
-  includeAppStatus = false
+  includeAppStatus = false,
+  forMail = false,
+  isOrganizer = true
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
-  // Join all parts with single newlines and remove extra whitespace
-  const parts = [
-    getCancellationReason(calEvent, t),
-    getWhat(calEvent, t),
-    getWhen(calEvent, t),
-    getWho(calEvent, t),
-    `${t("where")}:\n${getLocation(calEvent)}`,
-    getDescription(calEvent, t),
-    getAdditionalNotes(calEvent, t),
-    getUserFieldsResponses(calEvent, t),
-    includeAppStatus ? getAppsStatus(calEvent, t) : "",
-    // TODO: Only the original attendee can make changes to the event
-    // Guests cannot
-    calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t),
-    calEvent.paymentInfo ? `${t("pay_now")}:\n${calEvent.paymentInfo.link}` : "",
-  ]
-    .filter(Boolean) // Remove empty strings
-    .join("\n\n") // Double newline between major sections
-    .replace(/\n{3,}/g, "\n\n") // Ensure no more than double newlines
-    .trim();
+  return `
+${getCancellationReason(calEvent, t)}
+${getWhat(calEvent, t)}
+${getWhen(calEvent, t)}
+${getWho(calEvent, t)}
+${t("where")}:
+${getLocation(calEvent)}
+${getDescription(calEvent, t)}
+${getAdditionalNotes(calEvent, t)}
+${getUserFieldsResponses(calEvent)}
+${includeAppStatus ? getAppsStatus(calEvent, t) : ""}
+${
+  // TODO: Only the original attendee can make changes to the event
+  // Guests cannot
+  calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t)
+}
+${
+  calEvent.paymentInfo
+    ? `
+${t("pay_now")}:
+${calEvent.paymentInfo.link}
+`
+    : ""
+}
+${getRunningLateSection(calEvent, t, isOrganizer, forMail)}
+  `.trim();
+};
 
-  return parts;
+export const getRunningLateSection = (
+  calEvent: Pick<CalendarEvent, "attendees" | "organizer">,
+  t: TFunction,
+  isOrganizer: boolean,
+  forMail: boolean
+) => {
+  if (forMail) {
+    if (isOrganizer) {
+      return calEvent.attendees
+        .map((attendee) => {
+          if (!attendee.phoneNumber) return "";
+          return `${t("running_late")}:
+          <a href="${getRunningLateLink(attendee.phoneNumber)}" > ${t("connect_with_attendee", {
+            name: attendee.name,
+          })} </a>`;
+        })
+        .join("\n");
+    } else {
+      if (!calEvent.organizer.phoneNumber) return "";
+      return `${t("running_late")}:
+        <a href="${getRunningLateLink(calEvent.organizer.phoneNumber)}" > ${t("connect_with_host")} </a>`;
+    }
+  } else {
+    // For non-email case, ensure "Running Late" appears only once if there are any links
+    const links = [];
+
+    // Add the organizer link if available
+    if (calEvent.organizer.phoneNumber) {
+      links.push(
+        `<a href="${getRunningLateLink(calEvent.organizer.phoneNumber)}">${t("connect_with_host")}</a>`
+      );
+    }
+
+    // Add attendee links if available
+    const attendeesLinks = calEvent.attendees
+      .map((attendee) => {
+        if (!attendee.phoneNumber) return "";
+        return `<a href="${getRunningLateLink(attendee.phoneNumber)}">${t("connect_with_attendee", {
+          name: attendee.name,
+        })}</a>`;
+      })
+      .filter(Boolean) // Ensure we filter out any empty strings
+      .join("\n"); // Join without extra spaces
+
+    // If attendees links exist, add them to the main links array
+    if (attendeesLinks) {
+      links.push(attendeesLinks);
+    }
+
+    // If any links exist, add the "Running Late" title
+    if (links.length > 0) {
+      // Add "Running Late" only if there are valid links
+      links.unshift(`${t("running_late")}:`);
+    }
+
+    // Combine all parts and return without extra newlines
+    return links.join("\n").trim(); // Trim to avoid leading/trailing spaces
+  }
 };
 
 export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellationReason">, t: TFunction) => {
   if (!calEvent.cancellationReason) return "";
-  return `${t("cancellation_reason")}:\n${calEvent.cancellationReason}`;
+  return `
+${t("cancellation_reason")}:
+${calEvent.cancellationReason}
+ `;
 };
 
 export const isDailyVideoCall = (calEvent: Pick<CalendarEvent, "videoCallData">): boolean => {

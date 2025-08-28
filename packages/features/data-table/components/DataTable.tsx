@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
@@ -11,7 +12,6 @@ import { useEffect, useState, memo, useMemo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import {
   TableNew,

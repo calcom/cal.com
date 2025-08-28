@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,7 +10,6 @@ import {
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 
 enum PageType {
   ORG = "ORG",

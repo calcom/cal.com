@@ -1,8 +1,7 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 const Breadcrumb = React.forwardRef<
   HTMLElement,

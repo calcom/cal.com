@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { auth, Client, webln } from "@getalby/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,10 +9,9 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui/components/toast";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 

@@ -5,14 +5,21 @@ import * as SwitchPrimitives from "@radix-ui/react-switch";
 import type { ReactNode } from "react";
 import React from "react";
 
-import { Tooltip } from "./tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "./tooltip";
 
 const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
   if (!tooltip) {
     return <>{children}</>;
   }
-  return <Tooltip content={tooltip}>{children}</Tooltip>;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent>{tooltip}</TooltipContent>
+    </Tooltip>
+  );
 };
+
 export const Switch = (
   props: React.ComponentProps<typeof SwitchPrimitives.Root> & {
     label?: string | ReactNode;

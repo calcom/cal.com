@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import React, { Fragment } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -6,7 +7,6 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import { type IconName } from "@calcom/ui/components/icon";
 
 import { EventDetailBlocks } from "../../types";

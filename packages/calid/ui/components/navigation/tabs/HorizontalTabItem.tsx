@@ -1,12 +1,11 @@
+import { cn } from "@calid/features/lib/cn";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
-import classNames from "@calcom/ui/classNames";
 
 import { Avatar } from "../../avatar";
-import { Icon } from "../../icon/Icon";
-import type { IconName } from "../../icon/Icon";
+import { Icon, type IconName } from "../../icon/Icon";
 
 export type HorizontalTabItemProps = {
   name: string;
@@ -49,7 +48,7 @@ const HorizontalTabItem = function ({
       shallow={linkShallow}
       scroll={linkScroll}
       aria-disabled={props.disabled ? "true" : undefined}
-      className={classNames(
+      className={cn(
         isCurrent
           ? "text-active border-active border-b-2"
           : "text-subtle hover:border-emphasis hover:text-subtle border-b-2 border-transparent",
@@ -63,7 +62,7 @@ const HorizontalTabItem = function ({
       {props.icon && (
         <Icon
           name={props.icon}
-          className={classNames("-ml-0.5 me-2 hidden h-4 w-4 text-inherit sm:inline-block")}
+          className={cn("-ml-0.5 me-2 hidden h-4 w-4 text-inherit sm:inline-block")}
           aria-hidden="true"
         />
       )}

@@ -1,10 +1,10 @@
+import { Icon } from "@calid/features/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -16,6 +16,7 @@ const usePersistedExpansionState = (itemName: string) => {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
@@ -26,6 +27,7 @@ const usePersistedExpansionState = (itemName: string) => {
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
     } catch (_error) {}
   };

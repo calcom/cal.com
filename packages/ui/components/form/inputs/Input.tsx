@@ -10,8 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "../../alert";
 import { Icon } from "../../icon";
 import { Tooltip } from "../../tooltip";
-// import { Input, TextField, inputStyles } from "../inputs/TextField";
-import { Input, TextField, TextFieldProps } from "@calid/features/ui";
+import { Input, TextField, inputStyles } from "../inputs/TextField";
 import { Label } from "./Label";
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {

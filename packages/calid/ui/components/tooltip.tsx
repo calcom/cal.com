@@ -1,9 +1,8 @@
 "use client";
 
+import { cn } from "@calid/features/lib/cn";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as React from "react";
-
-import { cn } from "../../lib/cn";
 
 export const TooltipProvider = TooltipPrimitive.Provider;
 export const Tooltip = TooltipPrimitive.Root;

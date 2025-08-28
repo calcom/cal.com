@@ -1,4 +1,5 @@
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
+
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 function SkeletonLoader() {

@@ -1,9 +1,10 @@
+import type { WorkflowType } from "@calid/features/modules/workflows/config/types";
+import type { WorkflowStep } from "@calid/features/modules/workflows/config/types";
+import { deleteScheduledEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
+import { deleteScheduledSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
+import { deleteScheduledWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
 import { z } from "zod";
 
-import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
-import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
@@ -21,7 +22,7 @@ export const ZGetInputSchema = z.object({
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
-const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
+// const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
 const { include: includedFields } = {
   include: {
@@ -396,7 +397,7 @@ export class WorkflowRepository {
     const reminderMethods: {
       [x: string]: (id: number, referenceId: string | null) => void;
     } = {
-      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id),
+      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id, referenceId),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
     };

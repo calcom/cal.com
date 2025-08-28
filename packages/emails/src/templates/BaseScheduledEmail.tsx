@@ -1,6 +1,7 @@
-import type { TFunction } from "i18next";
+import type { TFunction } from "next-i18next";
 
 import dayjs from "@calcom/dayjs";
+import getRunningLateLink from "@calcom/features/bookings/lib/getRunningLateLink";
 import { formatPrice } from "@calcom/lib/price";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -123,7 +124,7 @@ export const BaseScheduledEmail = (
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
+      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (
@@ -137,6 +138,27 @@ export const BaseScheduledEmail = (
           withSpacer
         />
       )}
+      {props.isOrganizer
+        ? props.calEvent.attendees.map(
+            (attendee, index) =>
+              attendee.phoneNumber && (
+                <Info
+                  key={index}
+                  label={t("running_late")}
+                  description={t("connect_with_attendee", { name: attendee.name })}
+                  withSpacer
+                  link={getRunningLateLink(attendee.phoneNumber)}
+                />
+              )
+          )
+        : props.calEvent.organizer.phoneNumber && (
+            <Info
+              label={t("running_late")}
+              description={t("connect_with_host")}
+              withSpacer
+              link={getRunningLateLink(props.calEvent.organizer.phoneNumber)}
+            />
+          )}
     </BaseEmailHtml>
   );
 };

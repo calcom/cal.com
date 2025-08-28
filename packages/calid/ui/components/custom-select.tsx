@@ -1,7 +1,8 @@
-import { cn } from "@calid/features/lib/cn";
-import React, { useState, useRef, useEffect } from "react";
+"use client";
 
-import { Icon } from "@calcom/ui/components/icon";
+import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
+import React, { useState, useRef, useEffect } from "react";
 
 interface CustomSelectProps {
   value: string;
@@ -70,7 +71,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           {options.map((option) => (
             <div key={option.value}>
               {option.type === "header" ? (
-                <div className="text-muted-foreground bg-muted/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide">
+                <div className="text-muted-foreground bg-default px-4 py-2 text-xs font-semibold uppercase tracking-wide">
                   {option.label}
                 </div>
               ) : (
@@ -79,7 +80,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     onValueChange(option.value);
                     setIsOpen(false);
                   }}
-                  className="hover:bg-muted flex w-full items-center px-4 py-3 text-left transition-colors">
+                  className="hover:bg-muted bg-default flex w-full items-center px-4 py-3 text-left transition-colors">
                   {option.icon && <span className="mr-3 text-sm">{option.icon}</span>}
                   <span className="text-sm">{option.label}</span>
                 </button>

@@ -1,13 +1,6 @@
 "use client";
 
-import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@calid/features/ui/components/tooltip";
+import { Icon } from "@calid/features/ui";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";

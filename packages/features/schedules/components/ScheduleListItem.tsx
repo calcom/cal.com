@@ -1,6 +1,5 @@
 "use client";
 
-import { toast } from "@calid/features/hooks/use-toast";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import {
@@ -9,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
+import { triggerToast } from "@calid/features/ui/components/toast/toast";
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -16,7 +16,6 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -118,10 +117,7 @@ export function ScheduleListItem({
             <DropdownMenuItem
               onClick={() => {
                 if (!isDeletable) {
-                  toast({
-                    title: t("requires_at_least_one_schedule"),
-                    variant: "destructive",
-                  });
+                  triggerToast(t("requires_at_least_one_schedule"), "error");
                 } else {
                   deleteFunction({ scheduleId: schedule.id });
                 }

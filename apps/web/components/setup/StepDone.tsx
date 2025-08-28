@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 
 const StepDone = (props: {
   currentStep: number;

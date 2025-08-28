@@ -1,12 +1,6 @@
 "use client";
 
-import { Profile } from "@calid/features/ui/Profile";
-import type { HorizontalTabItemProps } from "@calid/features/ui";
-import { HorizontalTabs } from "@calid/features/ui";
-// import { Button } from "@calcom/ui/components/button";
-import { Button } from "@calid/features/ui";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { Icon } from "@calid/features/ui";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -14,11 +8,6 @@ import { useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
@@ -82,7 +71,7 @@ const Actions = ({
   return (
     <>
       <div className="flex items-center">
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
           <FormAction
             variant="ghost"
             data-testid="toggle-form"
@@ -119,7 +108,7 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button">
-              <Icon name="calendar" className="h-4 w-4"></Icon>
+              <Icon name="calendar" className="h-4 w-4" />
               {t("routing_incomplete_booking_tab")}
             </FormAction>
             <FormAction
@@ -129,7 +118,7 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button">
-              <Icon name="link" className="h-4 w-4"></Icon>
+              <Icon name="link" className="h-4 w-4" />
               {t("copy_link_to_form")}
             </FormAction>
             <FormAction
@@ -151,7 +140,7 @@ const Actions = ({
                 color="minimal"
                 type="button"
                 data-testid="view-responses">
-                <Icon name="eye" className="h-4 w-4"></Icon>
+                <Icon name="eye" className="h-4 w-4" />
                 {t("view_responses")}
               </FormAction>
             )}
@@ -298,7 +287,7 @@ export function Header({
             )} */}
           </div>
         </div>
-        <div className="flex"></div>
+        <div className="flex" />
 
         {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
         {/* Navigation Tabs - Left aligned */}

@@ -1,3 +1,10 @@
+import type { Workflow } from "@calid/features/modules/workflows/config/types";
+import {
+  canDisableParticipantNotifications,
+  canDisableOrganizerNotifications,
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
+import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
+import { scheduleMandatoryReminder } from "@calid/features/modules/workflows/utils/scheduleMandatoryReminder";
 import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -13,7 +20,6 @@ import {
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
   sendAttendeeRequestEmailAndSMS,
   sendOrganizerRequestEmail,
@@ -29,11 +35,6 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -61,6 +62,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import isPrismaObj from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -1142,6 +1144,10 @@ async function handler(
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
+      phoneNumber:
+        isPrismaObj(organizerUser.metadata) && organizerUser.metadata?.phoneNumber
+          ? (organizerUser.metadata?.phoneNumber as string)
+          : undefined,
     })
     .withAttendees(attendeesList)
     .withMetadataAndResponses({
@@ -1234,7 +1240,7 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows = await getAllWorkflowsFromEventType(
+  const workflows: Workflow[] = await getAllWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
@@ -1872,11 +1878,11 @@ async function handler(
           eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
 
         if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          isHostConfirmationEmailsDisabled = canDisableOrganizerNotifications(workflows);
         }
 
         if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          isAttendeeConfirmationEmailDisabled = canDisableParticipantNotifications(workflows);
         }
 
         loggerWithEventDetails.debug(
@@ -2173,15 +2179,14 @@ async function handler(
   };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
-    await scheduleMandatoryReminder({
-      evt: evtWithMetadata,
+    await scheduleMandatoryReminder(
+      evtWithMetadata,
       workflows,
-      requiresConfirmation: !isConfirmedByDefault,
-      hideBranding: !!eventType.owner?.hideBranding,
-      seatReferenceUid: evt.attendeeSeatId,
-      isPlatformNoEmail: noEmail && Boolean(platformClientId),
-      isDryRun,
-    });
+      !isConfirmedByDefault,
+      !!eventType.owner?.hideBranding,
+      evt.attendeeSeatId,
+      noEmail && Boolean(platformClientId)
+    );
   }
 
   try {

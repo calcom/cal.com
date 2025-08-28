@@ -1,3 +1,5 @@
+import { Icon } from "@calid/features/ui";
+
 import type {
   DefaultEventLocationType,
   EventLocationTypeFromApp,
@@ -8,7 +10,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const excludeNullValues = (value: unknown) => !!value;
@@ -121,7 +122,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
         {locations
           .map((loc) => getEventLocationType(loc.type))
           .map((eventLocationType) => (
-            <div className="flex flex-row border rounded-2xl border-subtle pl-2 py-1 justify-center me-2">
+            <div className="border-subtle me-2 flex flex-row justify-center rounded-2xl border py-1 pl-2">
               {eventLocationType.iconUrl === "/link.svg" ? (
                 <Icon name="link" className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
               ) : (

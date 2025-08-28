@@ -10,7 +10,7 @@ import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetr
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];

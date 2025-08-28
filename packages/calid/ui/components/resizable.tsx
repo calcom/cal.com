@@ -1,7 +1,8 @@
-import { cn } from "@calid/features/lib/cn";
-import * as ResizablePrimitive from "react-resizable-panels";
+"use client";
 
-import { Icon } from "@calcom/ui/components/icon";
+import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
+import * as ResizablePrimitive from "react-resizable-panels";
 
 const ResizablePanelGroup = ({
   className,

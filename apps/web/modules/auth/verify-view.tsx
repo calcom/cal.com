@@ -13,7 +13,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 import { showToast } from "@calcom/ui/components/toast";
 
 import Loader from "@components/Loader";

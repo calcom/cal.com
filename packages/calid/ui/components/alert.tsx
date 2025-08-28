@@ -7,13 +7,14 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
-        destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+        neutral: "bg-default border-subtle border-[1px] text-default",
+        info: "bg-semantic-info-subtle text-semantic-info",
+        warning: "bg-semantic-attention-subtle text-semantic-attention",
+        error: "bg-semantic-error-subtle text-semantic-error",
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "neutral",
     },
   }
 );

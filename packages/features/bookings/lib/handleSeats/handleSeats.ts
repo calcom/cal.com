@@ -1,7 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
+import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
+
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
@@ -80,7 +81,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // See if attendee is already signed up for timeslot
   if (
-    seatedBooking.attendees.find((attendee) => {
+    seatedBooking.attendees.find((attendee: { email: string }) => {
       return attendee.email === invitee[0].email;
     }) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
@@ -113,7 +114,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
           ...evt,
-          rescheduleReason,
+          // rescheduleReason,
           ...{
             metadata,
             eventType: {
@@ -128,7 +129,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
-        isDryRun,
+        // isDryRun,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

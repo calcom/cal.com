@@ -1,3 +1,4 @@
+import { sendCancelledReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
 import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { z } from "zod";
 
@@ -6,7 +7,6 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";

@@ -107,19 +107,19 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
-        return <Icon name="phone" className={"h-3.5 w-3.5"} />;
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
       case "userPhone":
-        return <Icon name="phone" className={"h-3.5 w-3.5"} />;
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
       case "inPerson":
-        return <Icon name="map-pin" className={"h-3.5 w-3.5"} />;
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
       case "attendeeInPerson":
-        return <Icon name="map-pin" className={"h-3.5 w-3.5"} />;
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
       case "link":
-        return <Icon name="link" className={"h-3.5 w-3.5"} />;
+        return <Icon name="link" className="h-3.5 w-3.5" />;
       case "somewhereElse":
-        return <Icon name="map" className={"h-3.5 w-3.5"} />;
+        return <Icon name="map" className="h-3.5 w-3.5" />;
       default:
-        return <Icon name="video" className={"h-3.5 w-3.5"} />;
+        return <Icon name="video" className="h-3.5 w-3.5" />;
     }
   };
 
@@ -285,10 +285,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               </div>
               <div className="mt-3 text-center sm:mt-0 sm:text-left" />
 
-              <div className="flex flex-row text-muted items-center pt-4">
-                <p className="text-emphasis text-sm pr-2 font-bold">{t("current_location")}:</p>
+              <div className="text-muted flex flex-row items-center pt-4">
+                <p className="text-emphasis pr-2 text-sm font-bold">{t("current_location")}:</p>
                 {getIconFromValue(booking.location)}
-                <p className=" pl-1 text-emphasis break-all text-sm">
+                <p className=" text-emphasis break-all pl-1 text-sm">
                   {getHumanReadableLocationValue(booking.location, t)}
                 </p>
               </div>

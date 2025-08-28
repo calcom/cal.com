@@ -1,12 +1,12 @@
 "use client";
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import type { Workflow } from "@calid/features/modules/workflows/config/types";
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type {
   EventTypeSetupProps,
   AvailabilityOption,

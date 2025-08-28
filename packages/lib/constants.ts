@@ -6,7 +6,7 @@ export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
 export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS || "";
-const IS_DEV = CALCOM_ENV === "development";
+export const IS_DEV = CALCOM_ENV === "development";
 export const SINGLE_ORG_SLUG = process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG;
 /** https://app.cal.com */
 export const WEBAPP_URL =
@@ -15,11 +15,11 @@ export const WEBAPP_URL =
   RAILWAY_STATIC_URL ||
   HEROKU_URL ||
   RENDER_URL ||
-  "http://localhost:3000";
-export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";
+  "http://localhost:3001";
+
 // OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
 // So for development purpose, we would stick to localhost only
-export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3000";
+export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3001";
 
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
@@ -27,8 +27,8 @@ export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.c
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cal.com";
 export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@cal.com";
 export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, Inc.";
-export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal";
-export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.com";
+export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal ID";
+export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal ID";
 export const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME;
 
 // This is the URL from which all Cal Links and their assets are served.
@@ -231,3 +231,34 @@ export const IS_SMS_CREDITS_ENABLED =
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
 
 export const NEXTJS_CACHE_TTL = 3600; // 1 hour
+export const TEAMS_ENABLED = process.env.NEXT_PUBLIC_TEAMS_ENABLED === "true" || false;
+export const ONEHASH_CHAT_ORIGIN = process.env.NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN;
+
+export const ONEHASH_CHAT_INTEGRATION_PAGE = `${ONEHASH_CHAT_ORIGIN}/app?to=cal_integration`;
+export const ONEHASH_CHAT_SYNC_BASE_URL = `${ONEHASH_CHAT_ORIGIN}/api/oh/integrations`;
+export const ONEHASH_API_KEY = process.env.ONEHASH_API_KEY;
+
+export const WHATSAPP_REMINDER_SID = process.env.WHATSAPP_REMINDER_SID;
+export const WHATSAPP_CANCELLED_SID = process.env.WHATSAPP_CANCELLED_SID;
+export const WHATSAPP_RESCHEDULED_SID = process.env.WHATSAPP_RESCHEDULED_SID;
+export const WHATSAPP_COMPLETED_SID = process.env.WHATSAPP_COMPLETED_SID;
+
+export const RECAPTCHA_KEY_LOW = process.env.NEXT_PUBLIC_RECAPTCHA_LOW;
+export const RECAPTCHA_KEY_MEDIUM = process.env.NEXT_PUBLIC_RECAPTCHA_MEDIUM;
+export const RECAPTCHA_KEY_HIGH = process.env.NEXT_PUBLIC_RECAPTCHA_HIGH;
+
+export const NGROK_URL = process.env.NGROK_URL;
+export const FIREBASE_SERVICE_ACCOUNT = process.env.FIREBASE_SERVICE_ACCOUNT;
+export const MOBILE_NOTIFICATIONS_ENABLED = process.env.MOBILE_NOTIFICATIONS_ENABLED;
+
+export const RECAPTCHA_SECRET_LOW = process.env.RECAPTCHA_SECRET_LOW;
+export const RECAPTCHA_SECRET_MEDIUM = process.env.RECAPTCHA_SECRET_MEDIUM;
+export const RECAPTCHA_SECRET_HIGH = process.env.RECAPTCHA_SECRET_HIGH;
+
+export const RAZORPAY_CLIENT_ID = process.env.NEXT_PUBLIC_RAZORPAY_CLIENT_ID;
+export const RAZORPAY_CLIENT_SECRET = process.env.RAZORPAY_CLIENT_SECRET;
+export const RAZORPAY_STATE_KEY = process.env.RAZORPAY_SECRET;
+
+export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_SECRET;
+export const RAZORPAY_REDIRECT_URL = `${WEBAPP_URL}/apps/razorpay/callback`;
+export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";

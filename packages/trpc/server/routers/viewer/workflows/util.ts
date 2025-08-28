@@ -1,14 +1,14 @@
+import type { Workflow as WorkflowType } from "@calid/features/modules/workflows/config/types";
+import { isSMSOrWhatsappAction } from "@calid/features/modules/workflows/config/utils";
+import { scheduleEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
+import { scheduleSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
+import { scheduleWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
+import emailRatingTemplate from "@calid/features/modules/workflows/templates/email/ratingTemplate";
+import emailReminderTemplate from "@calid/features/modules/workflows/templates/email/reminder";
+import { getAllWorkflows } from "@calid/features/modules/workflows/utils/getWorkflows";
 import type { Workflow } from "@prisma/client";
 import type { z } from "zod";
 
-import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
-import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
-import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
-import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
-import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
-import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
-import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import {
   getSmsReminderNumberField,
@@ -20,7 +20,6 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -737,9 +736,9 @@ export async function scheduleBookingReminders(
           template: step.template,
           sender: step.sender,
           workflowStepId: step.id,
-          verifiedAt: step?.verifiedAt ?? null,
-          userId,
-          teamId,
+          // verifiedAt: step?.verifiedAt ?? null,
+          // userId,
+          // teamId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -757,7 +756,7 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           userId: userId,
           teamId: teamId,
-          verifiedAt: step?.verifiedAt ?? null,
+          // verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -774,7 +773,7 @@ export async function scheduleBookingReminders(
           template: step.template,
           userId: userId,
           teamId: teamId,
-          verifiedAt: step?.verifiedAt ?? null,
+          // verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (booking.smsReminderNumber) {
         if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -793,7 +792,7 @@ export async function scheduleBookingReminders(
             sender: step.sender,
             userId: userId,
             teamId: teamId,
-            verifiedAt: step?.verifiedAt ?? null,
+            // verifiedAt: step?.verifiedAt ?? null,
           });
         } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
           await scheduleWhatsappReminder({
@@ -811,7 +810,7 @@ export async function scheduleBookingReminders(
             sender: step.sender,
             userId: userId,
             teamId: teamId,
-            verifiedAt: step?.verifiedAt ?? null,
+            // verifiedAt: step?.verifiedAt ?? null,
           });
         }
       }
@@ -852,7 +851,7 @@ export async function getAllWorkflowsFromEventType(
     metadata?: Prisma.JsonValue;
   } | null,
   userId?: number | null
-) {
+): Promise<WorkflowType[]> {
   if (!eventType) return [];
 
   const eventTypeWorkflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
@@ -961,17 +960,23 @@ export async function getEmailTemplateText(
   let { emailBody, emailSubject } = emailReminderTemplate({
     isEditingMode: true,
     locale,
-    t: await getTranslation(locale ?? "en", "common"),
     action,
     timeFormat,
   });
+  //  emailReminderTemplate({
+  //   isEditingMode: true,
+  //   locale,
+  //   // t: await getTranslation(locale ?? "en", "common"),
+  //   action,
+  //   timeFormat,
+  // });
 
   if (template === WorkflowTemplates.RATING) {
     const ratingTemplate = emailRatingTemplate({
       isEditingMode: true,
       locale,
       action,
-      t: await getTranslation(locale ?? "en", "common"),
+      // t: await getTranslation(locale ?? "en", "common"),
       timeFormat,
     });
 

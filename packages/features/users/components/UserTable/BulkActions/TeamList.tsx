@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import type { Table } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
@@ -15,7 +16,6 @@ import {
   CommandItem,
   CommandList,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 

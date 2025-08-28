@@ -1,6 +1,4 @@
-// import { Button } from "@calcom/ui/components/button";
-import { Button } from "@calid/features/ui";
-import { useRouter } from "next/navigation";
+import { Icon } from "@calid/features/ui";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -12,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
@@ -66,8 +63,7 @@ export function Header({
   if (isMonthView) {
     return (
       <div className="flex w-full flex-row items-center gap-2 pl-10">
-        
-        <div className="flex-1"></div>
+        <div className="flex-1" />
 
         {isMyLink && !isEmbed ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
@@ -10,19 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-
-import {
-  BooleanToggleGroupField,
-  Label,
-  SelectField,
-  MultiOptionInput,
-} from "@calcom/ui/components/form";
-
-import {
-  TextField,
-} from "@calid/features/ui";
-
-import { Icon } from "@calcom/ui/components/icon";
+import { BooleanToggleGroupField, Label, SelectField, MultiOptionInput } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";

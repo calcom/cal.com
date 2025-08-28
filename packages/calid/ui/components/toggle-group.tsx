@@ -1,5 +1,6 @@
-import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
-import type { ReactNode } from "react";
+"use client";
+
+import * as React from "react";
 
 import classNames from "@calcom/ui/classNames";
 

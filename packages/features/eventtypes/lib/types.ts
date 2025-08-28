@@ -173,6 +173,8 @@ export type FormValues = {
     redirectUrlOnExit?: string;
   };
   maxActiveBookingPerBookerOfferReschedule: boolean;
+  disableCancelling: boolean;
+  hideCalendarEventDetails: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

@@ -208,6 +208,11 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
+     const returnTo = await getAppOnboardingUrl({
+      slug: appMetadata.slug,
+      teamId,
+      step: AppOnboardingSteps.EVENT_TYPES_STEP,
+    });
     mutation.mutate({
       type: appMetadata.type,
       variant: appMetadata.variant,
@@ -215,13 +220,7 @@ const OnboardingPage = ({
       ...(teamId && { teamId }),
       // for oAuth apps
       ...(showEventTypesStep && {
-        returnTo:
-          WEBAPP_URL +
-          getAppOnboardingUrl({
-            slug: appMetadata.slug,
-            teamId,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
+        returnTo: WEBAPP_URL + returnTo,
       }),
     });
   };

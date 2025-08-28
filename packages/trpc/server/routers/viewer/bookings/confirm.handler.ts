@@ -1,3 +1,4 @@
+import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 import { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -7,13 +8,12 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import isPrismaObj, { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -121,6 +121,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          metadata: true,
         },
       },
       id: true,
@@ -218,6 +219,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       timeZone: booking.user?.timeZone || "Europe/London",
       timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
+      phoneNumber:
+        isPrismaObj(booking.user?.metadata) && booking.user?.metadata?.phoneNumber
+          ? (booking.user?.metadata?.phoneNumber as string)
+          : undefined,
     },
     attendees: attendeesList,
     location: booking.location ?? "",

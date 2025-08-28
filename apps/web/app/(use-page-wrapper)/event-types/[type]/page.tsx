@@ -1,3 +1,4 @@
+import { EventTypeWebWrapper } from "@calid/features/modules/event-types/pages/event-type";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -6,7 +7,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
+// import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
@@ -58,8 +59,16 @@ const ServerPage = async ({ params }: PageProps) => {
   if (!data?.eventType) {
     throw new Error("This event type does not exist");
   }
+  // const t = await getTranslate();
 
   return <EventTypeWebWrapper data={data} id={eventTypeId} />;
+
+  // {
+  //   /* <div className="flex w-full">
+  //        <EventTypesCTA userEventGroupsData={userEventGroupsData} />
+  //       <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
+  //     </div> */
+  // }
 };
 
 export default ServerPage;

@@ -20,7 +20,7 @@ import {
   ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { TextAreaField, Form, Label, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 

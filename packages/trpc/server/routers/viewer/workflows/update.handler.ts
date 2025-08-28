@@ -1,4 +1,5 @@
-import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isEmailAction } from "@calid/features/modules/workflows/config/utils";
+
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -35,7 +36,6 @@ type UpdateOptions = {
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
   const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
-
   const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,

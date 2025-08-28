@@ -1,10 +1,18 @@
-// import { cookies, headers } from "next/headers";
-// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-// import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-// import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import LegacyPage from "@calcom/features/ee/workflows/pages/index";
+import LegacyPage from "@calid/features/modules/workflows/pages/index";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
+import Shell from "@calcom/features/shell/Shell";
+
+// import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
+
+export const generateMetadata = async () =>
+  await _generateMetadata(
+    (t) => t("workflows"),
+    (t) => t("workflows_to_automate_notifications"),
+    undefined,
+    undefined,
+    "/event-types"
+  );
 const Page = async () => {
   // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const user = session?.user;
@@ -20,11 +28,12 @@ const Page = async () => {
   //     },
   //   });
   // } catch (err) {}
+  const t = await getTranslate();
 
   return (
-    <LegacyPage
-    //  filteredList={filteredList}
-    />
+    <Shell heading={t("workflows")} subtitle={t("workflows_to_automate_notifications")}>
+      <LegacyPage />
+    </Shell>
   );
 };
 

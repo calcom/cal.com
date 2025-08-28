@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@calcom/ui/components/button";
 import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
 import { Label, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 

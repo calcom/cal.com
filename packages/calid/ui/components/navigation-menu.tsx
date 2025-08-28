@@ -1,9 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,

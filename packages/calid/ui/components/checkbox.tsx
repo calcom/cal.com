@@ -1,8 +1,7 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
+import React from "react";
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
@@ -11,15 +10,19 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "data-[state=checked]:cal-bg-active border-active peer h-4 w-4 shrink-0 rounded-[4px] border disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:text-white",
+      "border-default peer h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
+      // checked state → fill background with active color
+      "data-[state=checked]:bg-active",
       className
     )}
     {...props}>
-    <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center text-current")}>
-      <Icon name="check" className="h-3 w-3 text-white" />
+    <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center")}>
+      {/* white checkmark inside active background */}
+      <Icon name="check" className="text-active h-4 w-4" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));
+
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
 export { Checkbox };

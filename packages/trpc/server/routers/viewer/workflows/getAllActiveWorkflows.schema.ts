@@ -1,11 +1,11 @@
-import { z } from "zod";
-
 import {
-  TIME_UNIT,
+  TIME_UNITS,
   WORKFLOW_ACTIONS,
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
-} from "@calcom/ee/workflows/lib/constants";
+} from "@calid/features/modules/workflows/config/constants";
+import { z } from "zod";
+
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 const ZWorkflow = z.object({
@@ -13,7 +13,7 @@ const ZWorkflow = z.object({
   name: z.string(),
   trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
   time: z.number().nullable(),
-  timeUnit: z.enum(TIME_UNIT).nullable(),
+  timeUnit: z.enum(TIME_UNITS).nullable(),
   userId: z.number().nullable(),
   teamId: z.number().nullable(),
   steps: z

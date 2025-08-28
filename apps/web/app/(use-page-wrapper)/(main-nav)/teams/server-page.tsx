@@ -1,4 +1,4 @@
-import { TeamsList } from "@calid/features/teams/TeamsList";
+import { TeamsList } from "@calid/features/modules/teams/pages/TeamsList";
 import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";

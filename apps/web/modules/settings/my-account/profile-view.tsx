@@ -14,7 +14,6 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -35,7 +34,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 

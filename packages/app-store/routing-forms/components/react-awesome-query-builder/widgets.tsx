@@ -1,9 +1,4 @@
-import {
-  Textarea,
-  Input as TextField,
-  Button as CalButton,
-} from "@calid/features/ui";
-
+import { Icon } from "@calid/features/ui";
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
 import type {
@@ -15,11 +10,8 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-//
-// import { Button as CalButton } from "@calcom/ui/components/button";
-// import { TextArea } from "@calcom/ui/components/form";
-// import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Button as CalButton } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation
@@ -126,7 +118,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <TextField
-      className="w-full mb-2"
+      className="mb-2 w-full"
       type={type}
       value={textValue}
       placeholder={placeholder}
@@ -262,10 +254,10 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
       data-testid={dataTestId}
       type="button"
       variant="outline"
-      className="w-full justify-center items-center"
+      className="w-full items-center justify-center"
       disabled={readonly}
       onClick={onClick}>
-        <Icon name="plus" className="h-3 w-3" />
+      <Icon name="plus" className="h-3 w-3" />
       {label}
     </CalButton>
   );
@@ -314,7 +306,9 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
       value = value == "any" ? "none" : "all";
     }
     const selectValue = options.find((option) => option.value === value);
-    const summary = !config.operators.__calReporting ? "For responses matching the following criteria" : "Query where";
+    const summary = !config.operators.__calReporting
+      ? "For responses matching the following criteria"
+      : "Query where";
     return (
       <div className="mb-[1px] flex items-center text-sm">
         <span>{summary}</span>

@@ -1,7 +1,6 @@
 "use client";
 
-// import { Button } from "@calcom/ui/components/button";
-import { Icon, Button } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   createColumnHelper,
@@ -22,7 +21,6 @@ import {
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
-  DataTableSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -40,7 +38,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
-import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
+import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -404,7 +402,7 @@ function OutOfOfficeEntriesListContent() {
                           components={[<span key="ooo-username" className="text-subtle font-bold" />]}
                         />
                       ) : (
-                        <div className="text-sm text-subtle">{t("ooo_not_forwarding")}</div>
+                        <div className="text-subtle text-sm">{t("ooo_not_forwarding")}</div>
                       )}
                     </p>
                   </div>
@@ -530,7 +528,6 @@ function OutOfOfficeEntriesListContent() {
         }
         ToolbarRight={
           <>
-
             {/* <DataTableFilters.ClearFiltersButton />
             <DataTableSegment.SaveButton />
             <DataTableSegment.Select /> */}

@@ -1,6 +1,7 @@
-import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
+import type { WorkflowType } from "@calid/features/modules/workflows/config/types";
+
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

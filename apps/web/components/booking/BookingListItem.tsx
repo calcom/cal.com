@@ -41,7 +41,7 @@ import {
   DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
 import { TextAreaField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon } from "@calid/features/ui";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
 import type { ActionType } from "@calcom/ui/components/table";

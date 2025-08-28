@@ -111,24 +111,28 @@ export const AppPage = ({
     isPaid: !!paid,
   });
 
-  const handleAppInstall = () => {
+  const handleAppInstall = async() => {
     setIsLoading(true);
     if (isConferencing(categories)) {
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: slug,
+        step: AppOnboardingSteps.EVENT_TYPES_STEP,
+      });
       mutation.mutate({
         type,
         variant,
         slug,
-        returnTo:
-          WEBAPP_URL +
-          getAppOnboardingUrl({
-            slug,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
+        returnTo: WEBAPP_URL + onBoardingUrl,
       });
     } else if (!availableForTeams) {
       mutation.mutate({ type });
     } else {
-      router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: slug,
+        step: AppOnboardingSteps.ACCOUNTS_STEP,
+      });
+
+      router.push(onBoardingUrl);
     }
   };
 
@@ -198,9 +202,9 @@ export const AppPage = ({
           if (useDefaultComponent) {
             props = {
               ...props,
-              onClick: () => {
-                handleAppInstall();
-              },
+             onClick: async () => {
+                            await handleAppInstall();
+                          },
               loading: isLoading,
             };
           }
@@ -218,9 +222,9 @@ export const AppPage = ({
           if (useDefaultComponent) {
             props = {
               ...props,
-              onClick: () => {
-                handleAppInstall();
-              },
+                 onClick: async () => {
+                        await handleAppInstall();
+                      },
               loading: isLoading,
             };
           }

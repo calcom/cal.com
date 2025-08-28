@@ -1,8 +1,9 @@
+"use client";
+
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import { OTPInput, OTPInputContext } from "input-otp";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 const InputOTP = React.forwardRef<
   React.ElementRef<typeof OTPInput>,

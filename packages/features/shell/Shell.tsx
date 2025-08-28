@@ -35,7 +35,7 @@ const Layout = (props: LayoutProps) => {
   return (
     <>
       <div>
-        <Toaster position="bottom-right" />
+        <Toaster position="bottom-center" />
       </div>
 
       <TimezoneChangeDialog />
@@ -134,8 +134,8 @@ export function ShellMain(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "bg-default sticky top-0 z-10 mb-0 flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+            "bg-default sticky top-0 z-10  mb-3 flex items-center md:mt-0"
+            // props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && (
             <Button

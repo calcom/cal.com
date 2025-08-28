@@ -125,6 +125,12 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     })
     .optional(),
   bookerLayouts: bookerLayouts.optional(),
+  iconParams: z
+    .object({
+      icon: z.string(), // <name_of_icon_from_lucide_library>
+      color: z.string().regex(/^#([0-9A-Fa-f]{6})$/, "Invalid hex color"), // validates hex
+    })
+    .optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(

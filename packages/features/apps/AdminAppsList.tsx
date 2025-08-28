@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
@@ -29,7 +30,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { List } from "@calcom/ui/components/list";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";

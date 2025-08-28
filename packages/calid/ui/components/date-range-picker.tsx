@@ -1,9 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import { addDays, format } from "date-fns";
 import * as React from "react";
 import type { DateRange } from "react-day-picker";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 import { Button } from "./button";
 import { Calendar } from "./calendar";
@@ -34,7 +33,7 @@ function DateRangePicker({ className, value, onChange }: DatePickerWithRangeProp
         <PopoverTrigger asChild>
           <Button
             id="date"
-            variant="outline"
+            color="secondary"
             className={cn("w-[300px] justify-start text-left font-normal", !date && "text-muted-foreground")}>
             <Icon name="calendar" className="mr-2 h-4 w-4" />
             {date?.from ? (

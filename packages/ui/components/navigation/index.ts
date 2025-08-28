@@ -1,3 +1,5 @@
+"use client";
+
 export { default as HorizontalTabItem } from "./tabs/HorizontalTabItem";
 export type { HorizontalTabItemProps } from "./tabs/HorizontalTabItem";
 export { default as HorizontalTabs } from "./tabs/HorizontalTabs";
