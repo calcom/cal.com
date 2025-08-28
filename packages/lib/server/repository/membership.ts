@@ -461,6 +461,21 @@ export class MembershipRepository {
     })) as unknown as Promise<MembershipDTOFromSelect<TSelect>[]>;
   }
 
+  static async findAllAcceptedTeamMemberships(userId: number, where?: Prisma.MembershipWhereInput) {
+    const teams = await prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId,
+            accepted: true,
+            ...(where ?? {}),
+          },
+        },
+      },
+    });
+    return teams;
+  }
+
   async findTeamAdminsByTeamId({ teamId }: { teamId: number }) {
     return await this.prismaClient.membership.findMany({
       where: {
