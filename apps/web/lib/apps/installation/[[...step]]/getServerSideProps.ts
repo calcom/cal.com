@@ -307,18 +307,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   if (!hasTeams && !credentialId) {
-    credentialId = await prisma.credential
-      .create({
-        data: {
-          appId: parsedAppSlug,
-          userId: user.id,
-          type: appMetadata.type,
-          key: {},
-          invalid: false,
+    try {
+      const { createDefaultInstallation } = await import("@calcom/app-store/_utils/installation");
+
+      const newCredential = await createDefaultInstallation({
+        appType: appMetadata.type,
+        user: {
+          id: user.id,
         },
-      })
-      .then((cred) => cred.id)
-      .catch(() => null);
+        slug: parsedAppSlug,
+        key: {},
+        teamId: undefined,
+      });
+
+      credentialId = newCredential.id;
+      console.log(`Auto-installed ${parsedAppSlug} for user ${user.id} (personal account - no teams)`);
+    } catch (error) {
+      console.error(`Failed to auto-install app ${parsedAppSlug} for user ${user.id}:`, error);
+    }
   }
 
   // dont allow app installation without credentialId
