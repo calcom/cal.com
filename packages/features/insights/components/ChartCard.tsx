@@ -85,25 +85,28 @@ function Legend({
 
         return (
           <Fragment key={item.label}>
-            <div
+            <button
+              type="button"
               className={classNames(
                 "relative flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-opacity",
                 isClickable && "cursor-pointer hover:bg-gray-100",
-                !isEnabled && "opacity-50"
+                !isEnabled && "opacity-25"
               )}
               style={{ backgroundColor: `${item.color}33` }}
+              aria-pressed={isEnabled}
+              aria-label={`Toggle ${item.label}`}
               onClick={isClickable ? () => onItemToggle(item.label) : undefined}>
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
               <Tooltip content={item.label}>
-                <p
+                <span
                   className={classNames(
                     "text-default truncate py-0.5 text-sm font-medium leading-none",
                     size === "sm" ? "w-16" : ""
                   )}>
                   {item.label}
-                </p>
+                </span>
               </Tooltip>
-            </div>
+            </button>
             {index < items.length - 1 && <div className="bg-muted h-5 w-[1px]" />}
           </Fragment>
         );

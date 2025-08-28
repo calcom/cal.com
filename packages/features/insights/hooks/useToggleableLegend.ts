@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 
 export const useToggleableLegend = <T extends { label: string }>(legend: T[], initialEnabled?: string[]) => {
   const [enabledSeries, setEnabledSeries] = useState<string[]>(
@@ -10,12 +10,12 @@ export const useToggleableLegend = <T extends { label: string }>(legend: T[], in
     [legend, enabledSeries]
   );
 
-  const toggleSeries = (label: string) => {
-    const newEnabledSeries = enabledSeries.includes(label)
-      ? enabledSeries.filter((s) => s !== label)
-      : [...enabledSeries, label];
-    setEnabledSeries(newEnabledSeries);
-  };
+  const toggleSeries = useCallback(
+    (label: string) => {
+      setEnabledSeries((prev) => (prev.includes(label) ? prev.filter((s) => s !== label) : [...prev, label]));
+    },
+    [setEnabledSeries]
+  );
 
   return {
     enabledLegend,
