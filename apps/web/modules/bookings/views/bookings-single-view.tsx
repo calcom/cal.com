@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
@@ -52,7 +53,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
@@ -411,7 +411,7 @@ export default function Success(props: PageProps) {
   })();
 
   return (
-    <div className={isEmbed ? "" : "-mt-2 bg-default h-screen"} data-testid="success-page">
+    <div className={isEmbed ? "" : "bg-default -mt-2 h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
@@ -463,7 +463,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
+                      className={classNames(isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -549,7 +549,7 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left sm:gap-x-0 rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -867,6 +867,7 @@ export default function Success(props: PageProps) {
                               uid: bookingInfo?.uid,
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
+                              isPaid: props.paymentStatus !== null,
                             }}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
@@ -1111,7 +1112,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle ltr:text-left rtl:text-right"
                   severity="warning"
                   message={
                     <div>

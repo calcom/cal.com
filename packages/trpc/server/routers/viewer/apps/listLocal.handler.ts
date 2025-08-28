@@ -2,14 +2,15 @@ import type { Prisma } from "@prisma/client";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
-import type { PrismaClient } from "@calcom/prisma";
-import { AppCategories } from "@calcom/prisma/enums";
 import {
   RAZORPAY_CLIENT_ID,
   RAZORPAY_CLIENT_SECRET,
   RAZORPAY_STATE_KEY,
   RAZORPAY_WEBHOOK_SECRET,
 } from "@calcom/lib/constants";
+import type { PrismaClient } from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TListLocalInputSchema } from "./listLocal.schema";
 

@@ -76,7 +76,9 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
       revalidateTeamsList();
       trackFormbricksAction("team_disbanded");
     },
-    async onError(err) {},
+    async onError(err) {
+      triggerToast(err.message, "error");
+    },
   });
 
   function teamUrl(slug: string | null, orgSlug: string | null) {

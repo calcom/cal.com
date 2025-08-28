@@ -29,7 +29,6 @@ const AppCategoryNavigation = ({
 }) => {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const appCategories = useMemo(() => getAppCategories(baseURL, useQueryParam), [baseURL, useQueryParam]);
-
   return (
     <div className={cs("flex flex-col", classNames?.root ?? className)}>
       <div className="block overflow-x-scroll">

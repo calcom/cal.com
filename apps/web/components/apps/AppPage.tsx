@@ -12,12 +12,20 @@ import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/uti
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  COMPANY_NAME,
+  ONEHASH_CHAT_INTEGRATION_PAGE,
+  SUPPORT_MAIL_ADDRESS,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
+import { Dropdown, DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/components/dropdown";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -52,6 +60,14 @@ export type AppPageProps = {
   dependencies?: string[];
   concurrentMeetings: AppType["concurrentMeetings"];
   paid?: AppType["paid"];
+};
+
+type OHChatAppCredential = {
+  account_user_id: number;
+  account_name: string;
+  user_email: string;
+  user_name: string;
+  credentialId: number;
 };
 
 export const AppPage = ({
@@ -111,7 +127,7 @@ export const AppPage = ({
     isPaid: !!paid,
   });
 
-  const handleAppInstall = async() => {
+  const handleAppInstall = async () => {
     setIsLoading(true);
     if (isConferencing(categories)) {
       const onBoardingUrl = await getAppOnboardingUrl({
@@ -151,6 +167,9 @@ export const AppPage = ({
    */
   const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
 
+  // OneHash Chat specific state
+  const [ohChatAppCredentials, setOhChatAppCredentials] = useState<OHChatAppCredential[]>([]);
+
   const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
@@ -165,8 +184,18 @@ export const AppPage = ({
           ? credentialsCount >= data.userAdminTeams.length
           : credentialsCount > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
+
+      // OneHash Chat specific logic
+      if (slug === "onehash-chat") {
+        setOhChatAppCredentials(
+          data?.credentials.map((c) => {
+            const key = isPrismaObjOrUndefined(c.key) ? (c.key as Record<string, number | string>) : {};
+            return { ...key, credentialId: c.id } as OHChatAppCredential;
+          }) || []
+        );
+      }
     },
-    [appDbQuery.data, availableForTeams]
+    [appDbQuery.data, availableForTeams, slug]
   );
 
   const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
@@ -193,6 +222,50 @@ export const AppPage = ({
       return <SkeletonButton className="h-10 w-24" />;
     }
 
+    // Special case for OneHash Chat
+    if (slug === "onehash-chat") {
+      return (
+        <div className="flex space-x-3">
+          <Button
+            color="primary"
+            onClick={() => {
+              window.location.href = ONEHASH_CHAT_INTEGRATION_PAGE;
+            }}
+            loading={isLoading}>
+            {existingCredentials.length > 0 ? t("install_another") : t("install_app")}
+          </Button>
+          {existingCredentials.length > 0 && (
+            <Dropdown modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button color="secondary">{t("remove_app")}</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {ohChatAppCredentials?.map((c, i) => {
+                  return (
+                    <div className="flex w-full gap-2 p-2" key={`${c.account_name}-${c.account_user_id}`}>
+                      <div className="mx-2 w-full text-start">
+                        <p>User : {c.user_email}</p>
+                        <p className="font-semibold text-indigo-600">Account: {c.account_name}</p>
+                      </div>
+                      <DisconnectIntegration
+                        buttonProps={{ color: "secondary" }}
+                        label={t("disconnect")}
+                        credentialId={c.credentialId}
+                        onSuccess={() => {
+                          appDbQuery.refetch();
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </DropdownMenuContent>
+            </Dropdown>
+          )}
+        </div>
+      );
+    }
+
+    // Original logic for other apps
     const MultiInstallButtonEl = (
       <InstallAppButton
         type={type}
@@ -202,9 +275,9 @@ export const AppPage = ({
           if (useDefaultComponent) {
             props = {
               ...props,
-             onClick: async () => {
-                            await handleAppInstall();
-                          },
+              onClick: async () => {
+                await handleAppInstall();
+              },
               loading: isLoading,
             };
           }
@@ -222,9 +295,9 @@ export const AppPage = ({
           if (useDefaultComponent) {
             props = {
               ...props,
-                 onClick: async () => {
-                        await handleAppInstall();
-                      },
+              onClick: async () => {
+                await handleAppInstall();
+              },
               loading: isLoading,
             };
           }
