@@ -3,9 +3,15 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
-import { isSingleSelectFilterValue, isMultiSelectFilterValue } from "@calcom/features/data-table/lib/utils";
+import {
+  isSingleSelectFilterValue,
+  isMultiSelectFilterValue,
+  isTextFilterValue,
+  isNumberFilterValue,
+} from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -298,8 +304,16 @@ export class InsightsBookingBaseService {
       return null;
     }
 
-    if (id === "eventTypeId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
-      return Prisma.sql`("eventTypeId" = ${value.data}) OR ("eventParentId" = ${value.data})`;
+    if (id === "eventTypeId" && isMultiSelectFilterValue(value)) {
+      const eventTypeIds = value.data.map((id) => Number(id));
+
+      if (eventTypeIds.length === 0) {
+        return null;
+      }
+
+      return Prisma.sql`("eventTypeId" IN (${Prisma.join(eventTypeIds)}) OR "eventParentId" IN (${Prisma.join(
+        eventTypeIds
+      )}))`;
     }
 
     if (id === "userId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
@@ -309,6 +323,32 @@ export class InsightsBookingBaseService {
     if (id === "status" && isMultiSelectFilterValue(value)) {
       const statusValues = value.data.map((status) => Prisma.sql`${status}::"BookingStatus"`);
       return Prisma.sql`"status" IN (${Prisma.join(statusValues)})`;
+    }
+
+    if (id === "paid" && isSingleSelectFilterValue(value)) {
+      const paidValue = value.data === "true";
+      return Prisma.sql`"paid" = ${paidValue}`;
+    }
+
+    if (id === "userEmail" && isTextFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userEmail" ${condition}`;
+      }
+    }
+
+    if (id === "userName" && isTextFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userName" ${condition}`;
+      }
+    }
+
+    if (id === "rating" && isNumberFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"rating" ${condition}`;
+      }
     }
 
     return null;
@@ -801,7 +841,7 @@ export class InsightsBookingBaseService {
   }
 
   async getMembersStatsWithCount(
-    type: "all" | "cancelled" | "noShow" = "all",
+    type: "all" | "accepted" | "cancelled" | "noShow" = "all",
     sortOrder: "ASC" | "DESC" = "DESC"
   ): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
@@ -811,6 +851,8 @@ export class InsightsBookingBaseService {
       additionalCondition = Prisma.sql`AND status = 'cancelled'`;
     } else if (type === "noShow") {
       additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+    } else if (type === "accepted") {
+      additionalCondition = Prisma.sql`AND status = 'accepted'`;
     }
 
     const bookingsFromTeam = await this.prisma.$queryRaw<

@@ -47,12 +47,29 @@ const appStore = {
 
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
   let cachedModule: T | undefined;
+  let isLoading = false;
+  let loadingPromise: Promise<T> | undefined;
 
   return async () => {
-    if (!cachedModule) {
-      cachedModule = await importFunc();
-    }
-    return cachedModule;
+    if (cachedModule) return cachedModule;
+    if (isLoading && loadingPromise) return loadingPromise;
+
+    isLoading = true;
+    loadingPromise = importFunc()
+      .then((module) => {
+        cachedModule = module;
+        isLoading = false;
+        return module;
+      })
+      .catch((err) => {
+        throw err;
+      })
+      .finally(() => {
+        isLoading = false;
+        loadingPromise = undefined;
+      });
+
+    return loadingPromise;
   };
 }
 

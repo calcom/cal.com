@@ -7,6 +7,8 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
+import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+
 import {
   createBookingScenario,
   getDate,
@@ -158,7 +160,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           },
@@ -212,7 +214,6 @@ describe("handleNewBooking", () => {
               uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
             },
           ],
           iCalUID: createdBooking.iCalUID,
@@ -324,7 +325,7 @@ describe("handleNewBooking", () => {
           });
 
           // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "GOOGLE_CALENDAR_EVENT_ID",
               uid: "MOCK_ID",
@@ -377,7 +378,6 @@ describe("handleNewBooking", () => {
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,
@@ -487,7 +487,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
@@ -540,7 +540,6 @@ describe("handleNewBooking", () => {
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,
@@ -773,7 +772,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
@@ -827,7 +826,6 @@ describe("handleNewBooking", () => {
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,
@@ -932,7 +930,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("applecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("applecalendar", {
             create: {
               uid: "MOCK_ID",
               id: "MOCKED_APPLE_CALENDAR_EVENT_ID",
@@ -987,7 +985,6 @@ describe("handleNewBooking", () => {
                 uid: "MOCKED_APPLE_CALENDAR_EVENT_ID",
                 meetingId: "MOCKED_APPLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
           });
@@ -3189,7 +3186,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             },
@@ -3243,7 +3240,6 @@ describe("handleNewBooking", () => {
                 uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,
@@ -3274,6 +3270,122 @@ describe("handleNewBooking", () => {
                 bookingData: mockBookingData,
               })
           ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
+        },
+        timeout
+      );
+
+      test(
+        `Payment retry scenario - should return existing payment UID and prevent duplicate bookings when retrying canceled payment`,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const scenarioData = getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                title: "Paid Event",
+                description: "It's a test Paid Event",
+                slotInterval: 30,
+                requiresConfirmation: false,
+                metadata: {
+                  apps: {
+                    stripe: {
+                      price: 100,
+                      enabled: true,
+                      currency: "usd",
+                    },
+                  },
+                },
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["stripe-payment"]],
+          });
+
+          await createBookingScenario(scenarioData);
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+          const { paymentUid } = mockPaymentApp({
+            metadataLookupKey: "stripe",
+            appStoreLookupKey: "stripepayment",
+          });
+          mockCalendarToHaveNoBusySlots("googlecalendar");
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "New York" },
+              },
+            },
+          });
+
+          const firstBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expect(firstBooking).toEqual(
+            expect.objectContaining({
+              paymentUid: expect.any(String),
+              paymentRequired: true,
+              uid: expect.any(String),
+            })
+          );
+
+          const firstBookingInDb = await prismaMock.booking.findUnique({
+            where: { uid: firstBooking.uid },
+            include: { payment: true },
+          });
+
+          expect(firstBookingInDb).toBeTruthy();
+          expect(firstBookingInDb?.payment).toHaveLength(1);
+          expect(firstBookingInDb?.paid).toBe(false);
+
+          const secondBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expect(secondBooking.uid).toBe(firstBooking.uid);
+          expect(secondBooking.paymentUid).toBe(firstBooking.paymentUid);
+          expect(secondBooking.paymentRequired).toBe(true);
+
+          const bookingsInDb = await prismaMock.booking.findMany({
+            where: {
+              eventTypeId: 1,
+              attendees: {
+                some: {
+                  email: booker.email,
+                },
+              },
+            },
+            include: { payment: true },
+          });
+
+          expect(bookingsInDb).toHaveLength(1);
+          expect(bookingsInDb[0].payment).toHaveLength(1);
+          expect(bookingsInDb[0].uid).toBe(firstBooking.uid);
         },
         timeout
       );

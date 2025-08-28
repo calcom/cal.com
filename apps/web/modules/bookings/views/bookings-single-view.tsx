@@ -26,6 +26,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
@@ -179,14 +180,13 @@ export default function Success(props: PageProps) {
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
-  const parsedRating = rating ? parseInt(rating, 10) : 3;
   const currentUserEmail =
     searchParams?.get("rescheduledBy") ??
     searchParams?.get("cancelledBy") ??
     session?.user?.email ??
     undefined;
 
-  const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
+  const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
@@ -1026,61 +1026,20 @@ export default function Success(props: PageProps) {
                   ) : (
                     <>
                       <div className="my-3 flex justify-center space-x-1">
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 1
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(1)}>
-                          😠
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 2
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(2)}>
-                          🙁
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 3
-                              ? "border-emphasis bg-emphasis"
-                              : " border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(3)}>
-                          😐
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 4
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(4)}>
-                          😄
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 5
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(5)}>
-                          😍
-                        </button>
+                        {RATING_OPTIONS.map((option) => (
+                          <button
+                            key={option.value}
+                            className={classNames(
+                              "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
+                              rateValue === option.value
+                                ? "border-emphasis bg-emphasis"
+                                : "border-muted bg-default opacity-50"
+                            )}
+                            disabled={isFeedbackSubmitted}
+                            onClick={() => setRateValue(option.value)}>
+                            {option.emoji}
+                          </button>
+                        ))}
                       </div>
                       <div className="my-4 space-y-1 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
