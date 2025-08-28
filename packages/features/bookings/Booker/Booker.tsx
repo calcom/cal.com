@@ -1,6 +1,7 @@
 import { Button, Icon } from "@calid/features/ui";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
@@ -83,6 +84,7 @@ const BookerComponent = ({
   timeZones,
   eventMetaChildren,
 }: BookerProps & WrappedBookerProps) => {
+  const router = useRouter();
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
@@ -319,7 +321,10 @@ const BookerComponent = ({
       // Split the pathname into segments
       const segments = u.pathname.split("/").filter(Boolean);
       // Remove the last segment
-      segments.pop();
+      console.log("URL: ", u);
+      if (!u.search.includes("slot")) {
+        segments.pop();
+      }
       // Rebuild pathname without last section
       u.pathname = "/" + segments.join("/");
       // Clear query params
@@ -349,7 +354,7 @@ const BookerComponent = ({
         <div>
           <Button
             onClick={() => {
-              router.back();
+              window.location = removeLastPathSection(window.location);
             }}
             variant="fab"
             color="secondary"
@@ -421,7 +426,7 @@ const BookerComponent = ({
                   {!hideEventTypeDetails && orgBannerUrl && (
                     <div
                       loading="eager"
-                      className="-mb-4 flex h-16 p-2 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
+                      className="-mb-4 flex h-16 object-cover p-2 ltr:rounded-tl-md rtl:rounded-tr-md"
                       alt="org banner"
                       style={{
                         backgroundImage: `url(${orgBannerUrl})`,

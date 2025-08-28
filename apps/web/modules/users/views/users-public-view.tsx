@@ -27,12 +27,10 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
   const { users, profile, eventTypes, entity } = props;
-  console.log("Profile: ", profile);
 
   const { t, i18n } = useLocale();
   const [user] = users; //To be used when we only have a single user, not dynamic group
 
-  console.log("User: ", user);
   useTheme(profile.theme);
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
