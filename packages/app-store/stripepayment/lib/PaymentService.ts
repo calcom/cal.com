@@ -92,17 +92,16 @@ export class PaymentService implements IAbstractPaymentService {
         automatic_payment_methods: {
           enabled: true,
         },
-        metadata: {
-          identifier: "cal.com",
+        metadata: this.generateMetadata({
           bookingId,
-          calAccountId: userId,
-          calUsername: username,
+          userId,
+          username,
           bookerName,
           bookerEmail: bookerEmail,
           bookerPhoneNumber: bookerPhoneNumber ?? null,
           eventTitle: eventTitle || "",
           bookingTitle: bookingTitle || "",
-        },
+        }),
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
