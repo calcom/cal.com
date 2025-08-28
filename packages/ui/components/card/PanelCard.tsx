@@ -48,11 +48,12 @@ export function PanelCard({
   return (
     <div
       className={classNames(
-        "bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1 pb-1",
+        "bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1",
+        !isCollapsed && "pb-1",
         className
       )}>
       <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
           {collapsible && (
             <Button
               size="sm"
@@ -68,10 +69,10 @@ export function PanelCard({
                 />
               }
               onClick={toggleCollapse}
-              className="text-muted"
+              className="text-muted -ml-2"
             />
           )}
-          {collapsible ? (
+          {collapsible && typeof title === "string" ? (
             <button onClick={toggleCollapse} className="text-left transition-opacity hover:opacity-80">
               {titleContent}
             </button>
