@@ -18,7 +18,6 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 import { describe, test, vi, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -207,7 +206,7 @@ describe("Round Robin handleNewBooking", () => {
       expect(selectedUserEmails).toContain(secondAttendeeEmail);
     });
 
-    test("Throws error when one round robin group has no available hosts", async () => {
+    test("Succeeds with available hosts when one round robin group has no available hosts", async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
       const booker = getBooker({
         email: "booker@example.com",
@@ -360,12 +359,15 @@ describe("Round Robin handleNewBooking", () => {
         },
       });
 
-      // Expect handleNewBooking to throw an error because group-2 has no available hosts
-      await expect(
-        handleNewBooking({
-          bookingData: mockBookingData,
-        })
-      ).rejects.toThrow(ErrorCode.RoundRobinHostsUnavailableForBooking);
+      // Expect handleNewBooking to succeed with available hosts from group-2
+      const result = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      // Verify that the booking was created successfully
+      expect(result).toBeDefined();
+      expect(result.userId).toBe(104); // Should be assigned to Team Member 3 from group-2
+      expect(result.luckyUsers).toContain(104); // Should be in lucky users
     });
 
     test("Creates successful booking even when one group has no hosts", async () => {
