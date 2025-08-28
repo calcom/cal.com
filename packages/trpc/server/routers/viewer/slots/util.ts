@@ -785,7 +785,8 @@ export class AvailableSlotsService {
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
         endDate: endTimeDate,
-        eventTypeId: eventType.id,
+        // booking of an event type reserving a slot X should make the same slot X unavailable to other event types
+        // eventTypeId: eventType.id,
         seatedEvent: Boolean(eventType.seatsPerTimeSlot),
         userIdAndEmailMap,
       }),
