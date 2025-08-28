@@ -6,6 +6,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
+import { setupTeamAndBookingSeats } from "./lib/test-helpers/teamHelpers";
 import {
   confirmReschedule,
   createNewSeatedEventType,
@@ -456,6 +457,129 @@ test.describe("Reschedule for booking with seats", () => {
 
     // expect button reschedule
     await expect(page.locator('[data-testid="confirm-reschedule-button"]')).toHaveCount(1);
+  });
+
+  test("Team Owner should see all attendees when seatsShowAttendees is false", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    const teamOwner = await users.create({
+      name: "Team Owner",
+      email: "teamowner@example.com",
+    });
+
+    await setupTeamAndBookingSeats(user, booking, teamOwner, "OWNER");
+
+    await teamOwner.apiLogin();
+    await page.goto(`/booking/${booking.uid}`);
+
+    const foundFirstAttendeeAsOwner = page.locator('p[data-testid="attendee-email-first+seats@cal.com"]');
+    await expect(foundFirstAttendeeAsOwner).toHaveCount(1);
+
+    const foundSecondAttendeeAsOwner = page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
+    await expect(foundSecondAttendeeAsOwner).toHaveCount(1);
+  });
+
+  test("Team Admin should see all attendees when seatsShowAttendees is false", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    const teamAdmin = await users.create({
+      name: "Team Admin",
+      email: "teamadmin@example.com",
+    });
+
+    await setupTeamAndBookingSeats(user, booking, teamAdmin, "ADMIN");
+
+    await teamAdmin.apiLogin();
+    await page.goto(`/booking/${booking.uid}`);
+
+    const foundFirstAttendeeAsAdmin = page.locator('p[data-testid="attendee-email-first+seats@cal.com"]');
+    await expect(foundFirstAttendeeAsAdmin).toHaveCount(1);
+
+    const foundSecondAttendeeAsAdmin = page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
+    await expect(foundSecondAttendeeAsAdmin).toHaveCount(1);
+  });
+
+  test("Event Host should see all attendees when seatsShowAttendees is false", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    await setupTeamAndBookingSeats(user, booking, user, "MEMBER");
+
+    await user.apiLogin();
+    await page.goto(`/booking/${booking.uid}`);
+
+    const foundFirstAttendeeAsHost = page.locator('p[data-testid="attendee-email-first+seats@cal.com"]');
+    await expect(foundFirstAttendeeAsHost).toHaveCount(1);
+
+    const foundSecondAttendeeAsHost = page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
+    await expect(foundSecondAttendeeAsHost).toHaveCount(1);
+  });
+
+  test("Regular Team Member should NOT see attendees when seatsShowAttendees is false", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    const teamMember = await users.create({
+      name: "Team Member",
+      email: "teammember@example.com",
+    });
+
+    await setupTeamAndBookingSeats(user, booking, teamMember, "MEMBER");
+
+    await teamMember.apiLogin();
+    await page.goto(`/booking/${booking.uid}`);
+
+    // Regular team member should not see any attendees when seatsShowAttendees is false
+    const foundFirstAttendeeAsMember = page.locator('p[data-testid="attendee-email-first+seats@cal.com"]');
+    await expect(foundFirstAttendeeAsMember).toHaveCount(0);
+
+    const foundSecondAttendeeAsMember = page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
+    await expect(foundSecondAttendeeAsMember).toHaveCount(0);
+  });
+
+  test("Attendee can only see themselves when using seatReferenceUid", async ({ page, users, bookings }) => {
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    const { bookingSeats } = await setupTeamAndBookingSeats(user, booking, user, "MEMBER");
+
+    await page.goto(`/booking/${booking.uid}?seatReferenceUid=${bookingSeats[0].referenceUid}`);
+
+    // Should only see the first attendee (themselves)
+    const foundFirstAttendee = page.locator('p[data-testid="attendee-email-first+seats@cal.com"]');
+    await expect(foundFirstAttendee).toHaveCount(1);
+
+    // Should not see the second attendee
+    const notFoundSecondAttendee = page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
+    await expect(notFoundSecondAttendee).toHaveCount(0);
   });
 
   // @TODO: force 404 when rescheduleUid is not found

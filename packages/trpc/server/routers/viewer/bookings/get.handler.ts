@@ -9,7 +9,7 @@ import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
-import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
+import { isTeamOrOrgAdmin } from "@calcom/lib/event-types/utils/isTeamOrOrgAdmin";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -714,7 +714,7 @@ export async function getBookings({
       const isUserHostOrOwner = isUserHost || isUserOwner;
 
       const hasTeamOrOrgPermissions = booking.eventType?.teamId
-        ? await checkTeamOrOrgPermissions(user.id, booking.eventType.teamId, booking.eventType.team?.parentId)
+        ? await isTeamOrOrgAdmin(user.id, booking.eventType.teamId, booking.eventType.team?.parentId)
         : false;
 
       const isHostOrTeamAdmin = isUserHostOrOwner || hasTeamOrOrgPermissions;

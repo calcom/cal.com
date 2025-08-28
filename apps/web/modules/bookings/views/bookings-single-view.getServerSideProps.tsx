@@ -7,7 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
-import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
+import { isTeamOrOrgAdmin } from "@calcom/lib/event-types/utils/isTeamOrOrgAdmin";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -172,7 +172,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
 
     if (eventType.teamId) {
-      const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+      const hasTeamOrOrgPermissions = await isTeamOrOrgAdmin(
         userId,
         eventType.teamId,
         eventType.team?.parent?.id
@@ -185,14 +185,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return false;
   };
 
-  const isLoggedInUserHostOwnerOrTeamAdmin = await checkIfUserIsHostOrTeamAdmin(userId);
+  const isLoggedInUserHostTeamAdminOrOwner = await checkIfUserIsHostOrTeamAdmin(userId);
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(
       eventType,
       bookingInfo,
       seatReferenceUid,
-      isLoggedInUserHostOwnerOrTeamAdmin
+      isLoggedInUserHostTeamAdminOrOwner
     );
   }
 
@@ -209,7 +209,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!isLoggedInUserHostOwnerOrTeamAdmin) {
+  if (!isLoggedInUserHostTeamAdminOrOwner) {
     // Removing hidden fields from responses
     for (const key in bookingInfo.responses) {
       const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
@@ -222,7 +222,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   async function getInternalNotePresets(teamId: number | null) {
-    if (!teamId || !isLoggedInUserHostOwnerOrTeamAdmin) return [];
+    if (!teamId || !isLoggedInUserHostTeamAdminOrOwner) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -270,7 +270,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userTimeFormat,
       requiresLoginToUpdate,
       rescheduledToUid,
-      isLoggedInUserHost: isLoggedInUserHostOwnerOrTeamAdmin,
+      isLoggedInUserHost: isLoggedInUserHostTeamAdminOrOwner,
       internalNotePresets: internalNotes,
     },
   };

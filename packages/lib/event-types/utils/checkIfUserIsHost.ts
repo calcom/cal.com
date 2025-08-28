@@ -20,7 +20,7 @@ export function checkIfUserIsHost(
 
   if (bookingInfo.user?.id === userId) return true;
 
-  if (!bookingInfo.attendees || !eventType) return false;
+  if (!bookingInfo.attendees?.length || !eventType) return false;
 
   const attendeeEmails = new Set(bookingInfo.attendees.map((attendee) => attendee.email));
 
