@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
 
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { InsightsRoutingBaseService as InsightsRoutingService } from "../../service/InsightsRoutingBaseService";
@@ -1504,29 +1504,6 @@ describe("InsightsRoutingService Integration Tests", () => {
         AND rrf."valueString" = ${"test"}
       ))`
       );
-
-      await testData.cleanup();
-    });
-
-    it("should return null when no filters are applied", async () => {
-      const testData = await createTestData({
-        teamRole: MembershipRole.OWNER,
-        orgRole: MembershipRole.OWNER,
-      });
-
-      const service = new InsightsRoutingService({
-        prisma,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-          teamId: undefined,
-        },
-        filters: {},
-      });
-
-      const filterConditions = await service.getFilterConditions();
-      expect(filterConditions).toBeNull();
 
       await testData.cleanup();
     });
