@@ -222,6 +222,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let userTeams = user.teams;
   const hasTeams = Boolean(userTeams.length);
 
+  let initialStep = parsedStepParam;
+  if (!hasTeams && parsedStepParam === "accounts") {
+    initialStep = AppOnboardingSteps.EVENT_TYPES_STEP; // Skip Accounts step if no teams
+  } else if (!parsedStepParam) {
+    initialStep = AppOnboardingSteps.ACCOUNTS_STEP; // Default to Accounts step if teams exist
+  }
+
   if (parsedTeamIdParam) {
     const currentTeam = userTeams.find((team) => team.id === parsedTeamIdParam);
     if (!currentTeam?.id) {
@@ -234,7 +241,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
+  if (initialStep === AppOnboardingSteps.EVENT_TYPES_STEP) {
     if (!showEventTypesStep) {
       return {
         redirect: {
@@ -297,8 +304,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   } else {
     credentialId = appInstalls.find((item) => !!item.userId && item.userId == user.id)?.id ?? null;
   }
-  // dont allow app installation without cretendialId
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
+
+  if (!hasTeams && !credentialId) {
+    credentialId = await prisma.credential
+      .create({
+        data: {
+          appId: parsedAppSlug,
+          userId: user.id,
+          type: appMetadata.type,
+          key: {},
+          invalid: false,
+        },
+      })
+      .then((cred) => cred.id)
+      .catch(() => null);
+  }
+
+  // dont allow app installation without credentialId
+  if (initialStep === AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
     return { redirect: { permanent: false, destination: "/apps" } };
   }
 
@@ -307,7 +330,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       app,
       appMetadata,
       showEventTypesStep,
-      step: parsedStepParam,
+      step: initialStep,
       teams: teamsWithIsAppInstalled,
       personalAccount,
       eventTypeGroups,

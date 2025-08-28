@@ -102,7 +102,7 @@ type TUpdateObject = {
 
 const OnboardingPage = ({
   step,
-  teams,
+  teams = [],
   personalAccount,
   appMetadata,
   eventTypeGroups,
@@ -116,6 +116,9 @@ const OnboardingPage = ({
   const pathname = usePathname();
   const router = useRouter();
 
+  const [isLoading, setIsLoading] = useState(false); // Only used for mutation loading
+  const [configureStep, setConfigureStep] = useState(false);
+
   const STEPS_MAP: StepObj = {
     [AppOnboardingSteps.ACCOUNTS_STEP]: {
       getTitle: () => `${t("select_account_header")}`,
@@ -127,19 +130,18 @@ const OnboardingPage = ({
       getTitle: () => `${t("select_event_types_header")}`,
       getDescription: (appName) =>
         `${t("select_event_types_description", { appName, interpolation: { escapeValue: false } })}`,
-      stepNumber: installableOnTeams ? 2 : 1,
+      stepNumber: teams.length > 0 && installableOnTeams ? 2 : 1,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
       getTitle: (appName) =>
         `${t("configure_app_header", { appName, interpolation: { escapeValue: false } })}`,
       getDescription: () => `${t("configure_app_description")}`,
-      stepNumber: installableOnTeams ? 3 : 2,
+      stepNumber: teams.length > 0 && installableOnTeams ? 3 : 2,
     },
   } as const;
-  const [configureStep, setConfigureStep] = useState(false);
 
   const currentStep: AppOnboardingSteps = useMemo(() => {
-    if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
+    if (step === AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
       return AppOnboardingSteps.CONFIGURE_STEP;
     }
     return step;
@@ -150,8 +152,8 @@ const OnboardingPage = ({
     if (!showEventTypesStep) {
       return 1;
     }
-    return installableOnTeams ? STEPS.length : STEPS.length - 1;
-  }, [showEventTypesStep, installableOnTeams]);
+    return teams.length > 0 && installableOnTeams ? STEPS.length : STEPS.length - 1;
+  }, [showEventTypesStep, teams, installableOnTeams]);
 
   const utils = trpc.useContext();
 
@@ -208,27 +210,37 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
-    mutation.mutate({
-      type: appMetadata.type,
-      variant: appMetadata.variant,
-      slug: appMetadata.slug,
-      ...(teamId && { teamId }),
-      // for oAuth apps
-      ...(showEventTypesStep && {
-        returnTo:
-          WEBAPP_URL +
-          getAppOnboardingUrl({
-            slug: appMetadata.slug,
-            teamId,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
-      }),
-    });
+    setIsLoading(true);
+    mutation.mutate(
+      {
+        type: appMetadata.type,
+        variant: appMetadata.variant,
+        slug: appMetadata.slug,
+        ...(teamId && { teamId }),
+        // for oAuth apps
+        ...(showEventTypesStep && {
+          returnTo:
+            WEBAPP_URL +
+            getAppOnboardingUrl({
+              slug: appMetadata.slug,
+              teamId,
+              step: AppOnboardingSteps.EVENT_TYPES_STEP,
+            }),
+        }),
+      },
+      {
+        onSettled: () => setIsLoading(false),
+      }
+    );
   };
 
   const handleSetUpLater = () => {
     router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <div
