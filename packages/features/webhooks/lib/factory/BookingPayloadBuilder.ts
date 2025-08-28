@@ -15,6 +15,64 @@ import type {
 } from "../dto/types";
 import type { WebhookPayload } from "./types";
 
+function createBookingWebhookPayload(
+  booking: {
+    id: number;
+    eventTypeId: number | null;
+    userId: number | null;
+    smsReminderNumber?: string | null;
+  },
+  eventType: EventTypeInfo,
+  evt: CalendarEvent,
+  status: string,
+  triggerEvent: string,
+  createdAt: string,
+  extra: Record<string, unknown> = {}
+): WebhookPayload {
+  const utcOffsetOrganizer = getUTCOffsetByTimezone(evt.organizer?.timeZone, evt.startTime);
+  const organizer = { ...evt.organizer, utcOffset: utcOffsetOrganizer };
+
+  return {
+    triggerEvent,
+    createdAt,
+    payload: {
+      // Core CalendarEvent fields
+      ...evt,
+      // Override with normalized data
+      bookingId: booking.id,
+      startTime: evt.startTime,
+      endTime: evt.endTime,
+      title: evt.title,
+      type: evt.type,
+      organizer,
+      attendees:
+        evt.attendees?.map((a) => ({
+          ...a,
+          utcOffset: getUTCOffsetByTimezone(a.timeZone, evt.startTime),
+        })) ?? [],
+      location: evt.location,
+      uid: evt.uid,
+      customInputs: evt.customInputs,
+      responses: evt.responses,
+      userFieldsResponses: evt.userFieldsResponses,
+      status,
+      // EventTypeInfo fields (legacy compatibility)
+      eventTitle: eventType?.eventTitle,
+      eventDescription: eventType?.eventDescription,
+      requiresConfirmation: eventType?.requiresConfirmation,
+      price: eventType?.price,
+      currency: eventType?.currency,
+      length: eventType?.length,
+      // Booking-specific fields
+      smsReminderNumber: booking.smsReminderNumber || undefined,
+      // Handle description fallback like legacy
+      description: evt.description || evt.additionalNotes,
+      // Add any extra fields (cancelledBy, rescheduleId, etc.)
+      ...extra,
+    },
+  };
+}
+
 const BOOKING_WEBHOOK_EVENTS: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.BOOKING_CREATED,
   WebhookTriggerEvents.BOOKING_CANCELLED,
@@ -47,7 +105,7 @@ export class BookingPayloadBuilder {
     switch (triggerEvent) {
       case WebhookTriggerEvents.BOOKING_CREATED: {
         const typedDto = dto as BookingCreatedDTO;
-        return this.createBookingWebhookPayload(
+        return createBookingWebhookPayload(
           typedDto.booking,
           typedDto.eventType,
           typedDto.evt,
@@ -59,7 +117,7 @@ export class BookingPayloadBuilder {
 
       case WebhookTriggerEvents.BOOKING_CANCELLED: {
         const typedDto = dto as BookingCancelledDTO;
-        return this.createBookingWebhookPayload(
+        return createBookingWebhookPayload(
           typedDto.booking,
           typedDto.eventType,
           typedDto.evt,
@@ -75,7 +133,7 @@ export class BookingPayloadBuilder {
 
       case WebhookTriggerEvents.BOOKING_REQUESTED: {
         const typedDto = dto as BookingRequestedDTO;
-        return this.createBookingWebhookPayload(
+        return createBookingWebhookPayload(
           typedDto.booking,
           typedDto.eventType,
           typedDto.evt,
@@ -87,7 +145,7 @@ export class BookingPayloadBuilder {
 
       case WebhookTriggerEvents.BOOKING_REJECTED: {
         const typedDto = dto as BookingRejectedDTO;
-        return this.createBookingWebhookPayload(
+        return createBookingWebhookPayload(
           typedDto.booking,
           typedDto.eventType,
           typedDto.evt,
@@ -99,7 +157,7 @@ export class BookingPayloadBuilder {
 
       case WebhookTriggerEvents.BOOKING_RESCHEDULED: {
         const typedDto = dto as BookingRescheduledDTO;
-        return this.createBookingWebhookPayload(
+        return createBookingWebhookPayload(
           typedDto.booking,
           typedDto.eventType,
           typedDto.evt,
@@ -119,7 +177,7 @@ export class BookingPayloadBuilder {
       case WebhookTriggerEvents.BOOKING_PAID:
       case WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED: {
         const typedDto = dto as BookingPaidDTO | BookingPaymentInitiatedDTO;
-        return this.createBookingWebhookPayload(
+        return createBookingWebhookPayload(
           typedDto.booking,
           typedDto.eventType,
           typedDto.evt,
@@ -150,63 +208,5 @@ export class BookingPayloadBuilder {
       default:
         throw new Error(`Unsupported booking trigger: ${triggerEvent}`);
     }
-  }
-
-  private createBookingWebhookPayload(
-    booking: {
-      id: number;
-      eventTypeId: number | null;
-      userId: number | null;
-      smsReminderNumber?: string | null;
-    },
-    eventType: EventTypeInfo,
-    evt: CalendarEvent,
-    status: string,
-    triggerEvent: string,
-    createdAt: string,
-    extra: Record<string, unknown> = {}
-  ): WebhookPayload {
-    const utcOffsetOrganizer = getUTCOffsetByTimezone(evt.organizer?.timeZone, evt.startTime);
-    const organizer = { ...evt.organizer, utcOffset: utcOffsetOrganizer };
-
-    return {
-      triggerEvent,
-      createdAt,
-      payload: {
-        // Core CalendarEvent fields
-        ...evt,
-        // Override with normalized data
-        bookingId: booking.id,
-        startTime: evt.startTime,
-        endTime: evt.endTime,
-        title: evt.title,
-        type: evt.type,
-        organizer,
-        attendees:
-          evt.attendees?.map((a) => ({
-            ...a,
-            utcOffset: getUTCOffsetByTimezone(a.timeZone, evt.startTime),
-          })) ?? [],
-        location: evt.location,
-        uid: evt.uid,
-        customInputs: evt.customInputs,
-        responses: evt.responses,
-        userFieldsResponses: evt.userFieldsResponses,
-        status,
-        // EventTypeInfo fields (legacy compatibility)
-        eventTitle: eventType?.eventTitle,
-        eventDescription: eventType?.eventDescription,
-        requiresConfirmation: eventType?.requiresConfirmation,
-        price: eventType?.price,
-        currency: eventType?.currency,
-        length: eventType?.length,
-        // Booking-specific fields
-        smsReminderNumber: booking.smsReminderNumber || undefined,
-        // Handle description fallback like legacy
-        description: evt.description || evt.additionalNotes,
-        // Add any extra fields (cancelledBy, rescheduleId, etc.)
-        ...extra,
-      },
-    };
   }
 }
