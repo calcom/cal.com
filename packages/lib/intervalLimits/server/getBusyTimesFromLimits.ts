@@ -148,19 +148,16 @@ const _getBusyTimesFromBookingLimits = async (params: {
           // For seated events, only mark slot as busy if there are no remaining seats
           if (eventType?.seatsPerTimeSlot) {
             // Get bookings for each specific time slot to check remaining seats
-            const slotBookings = bookings.filter(
-              (b) =>
-                dayjs(b.start).isSame(dayjs(booking.start)) &&
-                isBookingWithinPeriod(b, periodStart, periodEnd, timeZone || "UTC")
-            );
+            const slotBookings = bookings.filter((b) => {
+              if (!dayjs(b.start).isSame(dayjs(booking.start))) return false;
+              if (!isBookingWithinPeriod(b, periodStart, periodEnd, timeZone || "UTC")) return false;
+              // When eventTypeId is present (team-limits path), filter by same eventTypeId
+              if (eventTypeId && b.eventTypeId && b.eventTypeId !== eventTypeId) return false;
+              return true;
+            });
 
-            // Count attendees across all bookings for this time slot
-            const totalAttendees = slotBookings.reduce((sum, _b) => {
-              // Each booking represents one booking, but we need to account for actual attendees
-              // For the purpose of booking limits, each accepted booking counts as 1 booking
-              // regardless of how many attendees it has
-              return sum + 1;
-            }, 0);
+            // Each booking counts as one (simple count instead of manual attendee reduce)
+            const totalAttendees = slotBookings.length;
 
             // Only mark as busy if no seats remain AND booking limit is reached
             const remainingSeats = eventType.seatsPerTimeSlot - totalAttendees;
@@ -277,6 +274,7 @@ const _getBusyTimesFromTeamLimits = async (
     title,
     source: `eventType-${eventTypeId}-booking-${id}`,
     userId,
+    eventTypeId,
   }));
 
   const limitManager = new LimitManager();
