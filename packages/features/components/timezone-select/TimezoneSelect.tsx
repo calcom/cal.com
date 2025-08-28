@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
-import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
-import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
+
+import { cityTimezonesHandler } from "../../cityTimezones/cityTimezonesHandler";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
@@ -40,14 +40,17 @@ export type TimezoneSelectProps = SelectProps & {
   grow?: boolean;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
-  const { data = [], isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
-    {
-      CalComVersion: CALCOM_VERSION,
-    },
-    {
-      trpc: { context: { skipBatch: true } },
-    }
-  );
+  const [data, setData] = useState<CityRow[]>([]);
+  const [isPending, setIsPending] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const data = await cityTimezonesHandler();
+      setData(data);
+      setIsPending(false);
+    })();
+  }, []);
+
   const cityTimezonesFormatted = data.map(({ city, timezone }) => ({ label: city, timezone }));
 
   return (
