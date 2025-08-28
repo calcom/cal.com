@@ -29,8 +29,8 @@ export function PanelCard({
       )}>
       <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
         {typeof title === "string" ? (
-          <div className="flex items-center gap-2">
-            <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
+          <div className="mr-4 flex shrink-0 items-center gap-2">
+            <h2 className="text-emphasis shrink-0 text-sm font-semibold">{title}</h2>
             {titleTooltip && <InfoBadge content={titleTooltip} />}
           </div>
         ) : (
