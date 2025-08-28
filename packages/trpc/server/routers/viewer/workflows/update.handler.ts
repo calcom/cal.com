@@ -106,6 +106,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   let oldActiveOnIds: number[] = [];
 
   if (isFormTrigger(trigger)) {
+    const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
+
+    if (hasEmailHostStep) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Email to host action is not allowed for form triggers",
+      });
+    }
+
     // activeOn are routing form ids
     activeOnWithChildren = activeOn;
 
