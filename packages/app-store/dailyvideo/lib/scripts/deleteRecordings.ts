@@ -17,7 +17,7 @@ interface RecordingsResponse {
   total_count: number;
 }
 
-async function getAllRecordingsBefore2025(): Promise<Recording[]> {
+async function getAllRecordingsOlderThan6Months(): Promise<Recording[]> {
   const apiKey = process.env.DAILY_API_KEY;
 
   if (!apiKey) {
@@ -29,11 +29,17 @@ async function getAllRecordingsBefore2025(): Promise<Recording[]> {
   const allRecordings: Recording[] = [];
   const limit = 100;
 
-  const cutoffDate = new Date("2025-01-01T00:00:00.000Z");
+  // Calculate date 6 months ago
+  const cutoffDate = new Date();
+  cutoffDate.setMonth(cutoffDate.getMonth() - 6);
+  cutoffDate.setDate(1); // Set to beginning of the month
+  cutoffDate.setHours(0, 0, 0, 0);
   const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
 
   console.log(
-    `Fetching all recordings created before January 1st, 2025 (cutoff timestamp: ${cutoffTimestamp})...`
+    `Fetching all recordings older than 6 months (before ${
+      cutoffDate.toISOString().split("T")[0]
+    }, timestamp: ${cutoffTimestamp})...`
   );
 
   let hasMoreRecordings = true;
@@ -131,7 +137,7 @@ async function getAllRecordingsBefore2025(): Promise<Recording[]> {
 
     allRecordings.push(...filteredRecordings);
     console.log(
-      `Fetched ${data.data.length} recordings, ${filteredRecordings.length} before 2025 (total: ${allRecordings.length})`
+      `Fetched ${data.data.length} recordings, ${filteredRecordings.length} older than 6 months (total: ${allRecordings.length})`
     );
 
     endingBefore = data.data[0].id;
@@ -146,7 +152,7 @@ async function getAllRecordingsBefore2025(): Promise<Recording[]> {
     }
 
     if (filteredRecordings.length === 0 && data.data.every((r) => r.start_ts >= cutoffTimestamp)) {
-      console.log("Reached recordings from 2025 and beyond, stopping");
+      console.log("Reached recordings newer than 6 months, stopping");
       hasMoreRecordings = false;
       break;
     }
@@ -173,7 +179,7 @@ async function saveRecordingsToJson(recordings: Recording[]): Promise<void> {
     isVttEnabled: recording.isVttEnabled,
   }));
 
-  const outputPath = path.join(process.cwd(), "recordings_before_2025.json");
+  const outputPath = path.join(process.cwd(), "recordings_older_than_6_months.json");
 
   try {
     await fs.writeFile(outputPath, JSON.stringify(simplifiedRecordings, null, 2), "utf-8");
@@ -184,9 +190,9 @@ async function saveRecordingsToJson(recordings: Recording[]): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log("Fetching all recordings created before January 1st, 2025...");
+  console.log("Fetching all recordings older than 6 months...");
 
-  const recordings = await getAllRecordingsBefore2025();
+  const recordings = await getAllRecordingsOlderThan6Months();
 
   const totalDurationSeconds = recordings.reduce(
     (total: number, recording: Recording) => total + recording.duration,
@@ -197,7 +203,7 @@ async function main(): Promise<void> {
   const remainingMinutes = Math.floor((totalDurationSeconds % 3600) / 60);
   const remainingSeconds = totalDurationSeconds % 60;
 
-  console.log(`\nFinal result: ${recordings.length} recordings found before 2025`);
+  console.log(`\nFinal result: ${recordings.length} recordings found older than 6 months`);
   console.log(
     `Total duration: ${totalDurationSeconds} seconds (${totalHours}h ${remainingMinutes}m ${remainingSeconds}s)`
   );
@@ -305,7 +311,7 @@ async function deleteRecordingsFromJson(dryRun = false): Promise<void> {
   const fs = await import("fs/promises");
   const path = await import("path");
 
-  const filePath = path.join(process.cwd(), "recordings_before_2025.json");
+  const filePath = path.join(process.cwd(), "recordings_older_than_6_months.json");
 
   try {
     const fileContent = await fs.readFile(filePath, "utf-8");
@@ -408,7 +414,7 @@ async function mainDelete(): Promise<void> {
 
   console.log("🗑️  Daily Video Recording Deletion Tool");
   console.log("=====================================");
-  console.log("This tool will delete all recordings listed in recordings_before_2025.json");
+  console.log("This tool will delete all recordings listed in recordings_older_than_6_months.json");
   console.log("\n⚠️  WARNING: This action cannot be undone!");
   console.log("Note: Recordings in custom S3 buckets will NOT be deleted from S3.\n");
 
