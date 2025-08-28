@@ -90,7 +90,21 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     })),
   });
 
-  return matchingHosts.map(({ user }) => user);
+  // Get the full user objects from eventType.users and add isFixed property
+  const userMap = new Map<number, (typeof eventType.users)[0]>(
+    eventType.users.map((user) => [user.id, user] as const)
+  );
+
+  return matchingHosts.map((host) => {
+    const fullUser = userMap.get(host.user.id);
+    if (!fullUser) {
+      throw new Error(`User with id ${host.user.id} not found in eventType.users`);
+    }
+    return {
+      ...fullUser,
+      isFixed: host.isFixed,
+    };
+  });
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {
