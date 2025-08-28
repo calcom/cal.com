@@ -2,14 +2,18 @@ import { ascendingLimitKeys } from "./intervalLimit";
 import type { IntervalLimit } from "./intervalLimitSchema";
 
 export const validateIntervalLimitOrder = (input: IntervalLimit) => {
-  // Sort limits by validationOrder
-  const sorted = Object.entries(input)
-    .sort(([, value], [, valuetwo]) => {
-      return value - valuetwo;
-    })
-    .map(([key]) => key);
+  const inputKeys = Object.keys(input);
 
-  const validationOrderWithoutMissing = ascendingLimitKeys.filter((key) => sorted.includes(key));
+  const relevantKeys = ascendingLimitKeys.filter((key) => inputKeys.includes(key));
 
-  return sorted.every((key, index) => validationOrderWithoutMissing[index] === key);
+  for (let i = 0; i < relevantKeys.length - 1; i++) {
+    const currentKey = relevantKeys[i];
+    const nextKey = relevantKeys[i + 1];
+
+    if (input[currentKey] > input[nextKey]) {
+      return false;
+    }
+  }
+
+  return true;
 };
