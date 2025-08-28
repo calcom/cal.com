@@ -122,7 +122,7 @@ export const paymentsRouter = router({
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
-        const paymentData = await paymentInstance.chargeCard(payment, booking.id);
+        const paymentData = await paymentInstance.chargeCard(payment);
 
         if (!paymentData) {
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
