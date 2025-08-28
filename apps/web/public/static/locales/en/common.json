@@ -3491,5 +3491,8 @@
   "meeting_link": "Meeting link",
   "my_bookings": "My Bookings",
   "phone": "Phone",
+  "free": "Free",
+  "user_email": "User Email",
+  "user_name": "User Name",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

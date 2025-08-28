@@ -80,8 +80,8 @@ import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
@@ -1929,7 +1929,21 @@ async function handler(
             members: newBookedMembers,
             eventTypeMetadata: eventType.metadata,
           });
-          sendRoundRobinCancelledEmailsAndSMS(cancelledRRHostEvt, cancelledMembers, eventType.metadata);
+          const reassignedTo = users.find(
+            (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+          );
+          sendRoundRobinCancelledEmailsAndSMS(
+            cancelledRRHostEvt,
+            cancelledMembers,
+            eventType.metadata,
+            !!reassignedTo
+              ? {
+                  name: reassignedTo.name,
+                  email: reassignedTo.email,
+                  ...(reqBody.rescheduledBy === bookerEmail && { reason: "Booker Rescheduled" }),
+                }
+              : undefined
+          );
         }
       } else {
         if (!isDryRun) {
