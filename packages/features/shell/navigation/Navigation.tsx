@@ -122,6 +122,11 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
         href: "/insights/router-position",
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
       },
+      {
+        name: "out_of_office_insights",
+        href: "/insights/out-of-office",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/out-of-office") ?? false,
+      },
     ],
   },
 ];
