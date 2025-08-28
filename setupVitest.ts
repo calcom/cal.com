@@ -127,48 +127,36 @@ class MockPaymentService {
 }
 
 vi.mock("@calcom/app-store/stripepayment/index", () => ({
-  lib: {
-    PaymentService: MockPaymentService,
-  },
+  PaymentService: MockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/paypal/index", () => ({
-  lib: {
-    PaymentService: MockPaymentService,
-  },
+  PaymentService: MockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/alby/index", () => ({
-  lib: {
-    PaymentService: MockPaymentService,
-  },
+  PaymentService: MockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/hitpay/index", () => ({
-  lib: {
-    PaymentService: MockPaymentService,
-  },
+  PaymentService: MockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/btcpayserver/index", () => ({
-  lib: {
-    PaymentService: MockPaymentService,
-  },
+  PaymentService: MockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/mock-payment-app/index", () => ({
-  lib: {
-    PaymentService: MockPaymentService,
-  },
+  PaymentService: MockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
-    stripepayment: Promise.resolve({ lib: { PaymentService: MockPaymentService } }),
-    paypal: Promise.resolve({ lib: { PaymentService: MockPaymentService } }),
-    alby: Promise.resolve({ lib: { PaymentService: MockPaymentService } }),
-    hitpay: Promise.resolve({ lib: { PaymentService: MockPaymentService } }),
-    btcpayserver: Promise.resolve({ lib: { PaymentService: MockPaymentService } }),
-    "mock-payment-app": Promise.resolve({ lib: { PaymentService: MockPaymentService } }),
+    stripepayment: Promise.resolve({ PaymentService: MockPaymentService }),
+    paypal: Promise.resolve({ PaymentService: MockPaymentService }),
+    alby: Promise.resolve({ PaymentService: MockPaymentService }),
+    hitpay: Promise.resolve({ PaymentService: MockPaymentService }),
+    btcpayserver: Promise.resolve({ PaymentService: MockPaymentService }),
+    "mock-payment-app": Promise.resolve({ PaymentService: MockPaymentService }),
   },
 }));

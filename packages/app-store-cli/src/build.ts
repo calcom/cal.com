@@ -420,8 +420,8 @@ function generateFiles() {
     "PaymentServiceMap",
     {
       importConfig: {
-        fileToBeImported: "index.ts",
-        importName: "default",
+        fileToBeImported: "lib/PaymentService.ts",
+        importName: "PaymentService",
       },
       lazyImport: true,
     },

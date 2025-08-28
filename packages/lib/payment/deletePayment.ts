@@ -22,13 +22,12 @@ const deletePayment = async (
     return false;
   }
 
-  const paymentApp = await paymentAppImportFn;
-  if (!paymentApp?.lib?.PaymentService) {
-    console.warn(`payment App service of type ${paymentApp} is not implemented`);
+  const paymentAppModule = await paymentAppImportFn;
+  if (!paymentAppModule?.PaymentService) {
+    console.warn(`payment App service not found for key: ${key}`);
     return false;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const PaymentService = paymentApp.lib.PaymentService as any;
+  const PaymentService = paymentAppModule.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
   const deleted = await paymentInstance.deletePayment(paymentId);
   return deleted;

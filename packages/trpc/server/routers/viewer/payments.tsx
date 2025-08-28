@@ -114,11 +114,11 @@ export const paymentsRouter = router({
       }
 
       const paymentApp = await paymentAppImportFn;
-      if (!(paymentApp && paymentApp.lib && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+      if (!(paymentApp && "PaymentService" in paymentApp && paymentApp?.PaymentService)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
       }
 
-      const PaymentService = paymentApp.lib.PaymentService;
+      const PaymentService = paymentApp.PaymentService;
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
