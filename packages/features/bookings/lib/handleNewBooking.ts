@@ -987,7 +987,7 @@ async function handler(
                     timeZone: reqBody.timeZone,
                     originalRescheduledBooking,
                   },
-                  loggerWithEventDetails,
+                  traceContext,
                   shouldServeCache
                 );
               }
@@ -1718,7 +1718,7 @@ async function handler(
         { ...originalRescheduledBooking.user, credentials: refreshedOriginalHostCredentials },
         apps
       );
-      log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+      tracingLogger.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
       // Create deletion event with original host's organizer info and original booking properties
       const deletionEvent = {
         ...evt,
