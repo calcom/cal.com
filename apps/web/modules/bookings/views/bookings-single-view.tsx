@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@calid/features/ui";
+import BrandingComponent from "@calid/features/branding/BrandingComponent";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
@@ -224,8 +225,6 @@ export default function Success(props: PageProps) {
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment });
   };
-
-  const BrandingComponent = dynamic(() => import("@calid/features/branding/BrandingComponent"));
 
   function setIsCancellationMode(value: boolean) {
     const _searchParams = new URLSearchParams(searchParams?.toString() ?? undefined);

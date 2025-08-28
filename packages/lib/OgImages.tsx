@@ -82,6 +82,7 @@ export const constructMeetingImage = ({
   });
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
+  // return `/api/social/og/image?${params.toString()}`;
 };
 
 /**
