@@ -6,6 +6,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { ONEHASH_API_KEY, ONEHASH_CHAT_ORIGIN } from "@calcom/lib/constants";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -32,6 +33,21 @@ const isVideoOrConferencingApp = (app: App) =>
 const getRemovedIntegrationNameFromAppSlug = (slug: string) =>
   slug === "msteams" ? "office365_video" : slug.split("-")[0];
 
+const handleOhChatCredentialDelete = async (credential: { key: Prisma.JsonValue }) => {
+  const account_user_id = isPrismaObjOrUndefined(credential.key)?.account_user_id ?? undefined;
+  if (account_user_id) {
+    const res = await fetch(`${ONEHASH_CHAT_ORIGIN}/onehash/cal/action/${account_user_id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${ONEHASH_API_KEY}`,
+      },
+    });
+    if (!res.ok) {
+      throw new Error("Couldn't unsync app from OneHash Chat");
+    }
+  }
+};
 const locationsSchema = z.array(z.object({ type: z.string() }));
 type TlocationsSchema = z.infer<typeof locationsSchema>;
 
@@ -65,6 +81,10 @@ const handleDeleteCredential = async ({
 
   if (!credential) {
     throw new Error("Credential not found");
+  }
+
+  if (credential.appId === "onehash-chat") {
+    await handleOhChatCredentialDelete(credential);
   }
 
   const eventTypes = await prisma.eventType.findMany({

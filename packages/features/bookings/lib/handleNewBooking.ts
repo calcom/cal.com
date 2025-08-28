@@ -1,4 +1,6 @@
 import type { Workflow } from "@calid/features/modules/workflows/config/types";
+import { isPrismaObj, isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -115,6 +117,7 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import { IS_DEV, ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL } from "@calcom/lib/constants";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -2223,6 +2226,27 @@ async function handler(
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
+  if (
+    booking.status === BookingStatus.ACCEPTED &&
+    isPrismaObjOrUndefined(organizerUser.metadata)?.connectedChatAccounts
+  ) {
+    await handleOHChatSync({
+      userId: organizerUser.id,
+      booking: {
+        hostName: organizerUser.name ?? "Cal User",
+        bookingLocation,
+        // bookingLocation:evt.location,
+        bookingEventType: eventType.title,
+        bookingStartTime: evt.startTime,
+        bookingEndTime: evt.endTime,
+        bookerEmail,
+        bookerPhone: bookerPhoneNumber,
+        bookingUid: booking.uid,
+        ...(originalRescheduledBooking?.uid && { originalBookingUid: originalRescheduledBooking?.uid }),
+      },
+    });
+  }
+
   if (!isDryRun) {
     await handleAnalyticsEvents({
       credentials: allCredentials,
@@ -2258,4 +2282,53 @@ async function handler(
   };
 }
 
+
+async function handleOHChatSync({
+  userId,
+  booking,
+}: {
+  userId: number;
+  booking: {
+    hostName: string;
+    bookingLocation: string;
+    bookingEventType: string;
+    bookingStartTime: string;
+    bookingEndTime: string;
+    bookingUid: string;
+    bookerEmail?: string;
+    bookerPhone?: string;
+    originalBookingUid?: string;
+  };
+}) {
+  if (IS_DEV) return Promise.resolve();
+  const credentials = await prisma.credential.findMany({
+    where: {
+      appId: "onehash-chat",
+      userId,
+    },
+  });
+
+  if (credentials.length == 0) return Promise.resolve();
+
+  const account_user_ids: number[] = credentials.reduce<number[]>((acc, cred) => {
+    const accountUserId = isPrismaObjOrUndefined(cred.key)?.account_user_id as number | undefined;
+    if (accountUserId !== undefined) {
+      acc.push(accountUserId);
+    }
+    return acc;
+  }, []);
+  const data = {
+    account_user_ids,
+    booking,
+  };
+
+  await fetch(`${ONEHASH_CHAT_SYNC_BASE_URL}/cal_booking`, {
+    method: booking.originalBookingUid ? "PATCH" : "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ONEHASH_API_KEY}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
 export default handler;

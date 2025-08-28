@@ -303,6 +303,7 @@ export const bookingCancelSchema = z.object({
     })
     .optional()
     .nullable(),
+  autoRefund: z.boolean(),
 });
 
 export const bookingCancelAttendeeSeatSchema = z.object({

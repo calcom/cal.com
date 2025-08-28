@@ -282,7 +282,6 @@ const AdminAppsListContainer = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
-
   const { data: apps, isPending } = trpc.viewer.apps.listLocal.useQuery(
     { category },
     { enabled: searchParams !== null }

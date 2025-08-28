@@ -10,6 +10,7 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL, IS_DEV } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -36,7 +37,10 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
+    user: Pick<
+      NonNullable<TrpcSessionUser>,
+      "id" | "email" | "username" | "role" | "destinationCalendar" | "metadata" | "name"
+    >;
   };
   input: TConfirmInputSchema;
 };
@@ -159,6 +163,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         status: BookingStatus.ACCEPTED,
       },
     });
+
+    if (isPrismaObjOrUndefined(user.metadata)?.connectedChatAccounts) {
+      await handleOHChatSync({
+        userId: user.id,
+        booking: {
+          hostName: user.name ?? "Cal User",
+          bookingLocation: booking.location ?? "N/A",
+          bookingEventType: booking.eventType?.title ?? "N/A",
+          bookingStartTime: booking.startTime.toISOString(),
+          bookingEndTime: booking.endTime.toISOString(),
+          bookerEmail: booking.attendees[0].email,
+          bookerPhone: booking.attendees[0]?.phoneNumber ?? undefined,
+          bookingUid: booking.uid,
+        },
+      });
+    }
 
     return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
   }
@@ -306,6 +326,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       emailsEnabled,
       platformClientParams,
     });
+    if (isPrismaObjOrUndefined(user.metadata)?.connectedChatAccounts) {
+      await handleOHChatSync({
+        userId: user.id,
+        booking: {
+          hostName: user.name ?? "Cal User",
+          // bookingLocation: booking.location,
+          bookingLocation: evt.location ?? "N/A",
+          bookingEventType: booking.eventType?.title ?? "N/A",
+          bookingStartTime: evt.startTime,
+          bookingEndTime: evt.endTime,
+          bookerEmail: booking.attendees[0].email,
+          bookerPhone: booking.attendees[0]?.phoneNumber ?? undefined,
+          bookingUid: booking.uid,
+        },
+      });
+    }
   } else {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {
@@ -447,3 +483,52 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
 
   throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };
+
+async function handleOHChatSync({
+  userId,
+  booking,
+}: {
+  userId: number;
+  booking: {
+    hostName: string;
+    bookingLocation: string;
+    bookingEventType: string;
+    bookingStartTime: string;
+    bookingEndTime: string;
+    bookingUid: string;
+    bookerEmail: string;
+    bookerPhone?: string;
+  };
+}) {
+  if (IS_DEV) return Promise.resolve();
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      appId: "onehash-chat",
+      userId,
+    },
+  });
+
+  if (credentials.length == 0) return Promise.resolve();
+
+  const account_user_ids: number[] = credentials.reduce<number[]>((acc, cred) => {
+    const accountUserId = isPrismaObjOrUndefined(cred.key)?.account_user_id as number | undefined;
+    if (accountUserId !== undefined) {
+      acc.push(accountUserId);
+    }
+    return acc;
+  }, []);
+  const data = {
+    account_user_ids,
+    booking,
+  };
+
+  await fetch(`${ONEHASH_CHAT_SYNC_BASE_URL}/cal_booking`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ONEHASH_API_KEY}`,
+    },
+    body: JSON.stringify(data),
+  });
+}

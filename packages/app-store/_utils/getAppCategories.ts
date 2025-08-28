@@ -69,6 +69,12 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       "data-testid": "payment",
     },
     {
+      name: "onehash",
+      href: getHref(baseURL, "onehash", useQueryParam),
+      icon: "layout-dashboard",
+      "data-testid": "onehash",
+    },
+    {
       name: "other",
       href: getHref(baseURL, "other", useQueryParam),
       icon: "grid-3x3",
