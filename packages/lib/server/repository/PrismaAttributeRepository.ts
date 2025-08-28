@@ -55,4 +55,45 @@ export class PrismaAttributeRepository {
       },
     });
   }
+
+  async findUniqueWithWeights({
+    teamId,
+    attributeId,
+    isWeightsEnabled = true,
+  }: {
+    teamId: number;
+    attributeId: string;
+    isWeightsEnabled?: boolean;
+  }) {
+    return await this.prismaClient.attribute.findUnique({
+      where: {
+        id: attributeId,
+        teamId,
+        isWeightsEnabled,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        type: true,
+        options: {
+          select: {
+            id: true,
+            value: true,
+            slug: true,
+            assignedUsers: {
+              select: {
+                member: {
+                  select: {
+                    userId: true,
+                  },
+                },
+                weight: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
