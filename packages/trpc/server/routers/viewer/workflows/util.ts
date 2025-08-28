@@ -905,6 +905,69 @@ export async function getAllWorkflowsFromEventType(
   return allWorkflows;
 }
 
+// todo: review this function
+export async function getAllWorkflowsFromRoutingForm(
+  routingForm: {
+    id: string;
+    userId: number | null;
+    teamId: number | null;
+    team?: {
+      id: number | null;
+    } | null;
+  } | null,
+  userId?: number | null
+) {
+  if (!routingForm) return [];
+
+  // Get routing form workflows from WorkflowsOnRoutingForms relation
+  const routingFormWorkflows = await prisma.workflow.findMany({
+    where: {
+      activeOnRoutingForms: {
+        some: {
+          routingFormId: routingForm.id,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      userId: true,
+      teamId: true,
+      steps: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  const teamId = routingForm.teamId;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  // Convert to the WorkflowType format expected by getAllWorkflows
+  const workflowsForGetAll = routingFormWorkflows.map((workflow) => ({
+    ...workflow,
+    activeOn: [], // routing forms don't use activeOn pattern
+    activeOnTeams: [],
+  }));
+
+  const allWorkflows = await getAllWorkflows(
+    workflowsForGetAll,
+    userId,
+    teamId,
+    orgId,
+    false // workflowsLockedForUser - routing forms are not managed
+  );
+
+  return allWorkflows;
+}
+
 export const getEventTypeWorkflows = async (
   userId: number,
   eventTypeId: number
