@@ -1,6 +1,7 @@
 import type { SchedulingType } from "@prisma/client";
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
+import type { BookingCreateResult } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
@@ -93,9 +94,7 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   schedulingType?: SchedulingType;
 };
 
-export type BookingResponse = Awaited<
-  ReturnType<typeof import("@calcom/features/bookings/lib/handleNewBooking").default>
->;
+export type BookingResponse = BookingCreateResult;
 
 export type InstantBookingResponse = Awaited<
   ReturnType<typeof import("@calcom/features/instant-meeting/handleInstantMeeting").default>

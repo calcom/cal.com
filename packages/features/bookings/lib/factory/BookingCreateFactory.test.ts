@@ -50,7 +50,7 @@ describe("BookingCreateFactory", () => {
         bookingData: mockBookingData,
       });
 
-      expect(handleInstantMeeting).toHaveBeenCalledWith({ body: mockBookingData });
+      expect(handleInstantMeeting).toHaveBeenCalledWith(mockBookingData);
     });
   });
 
