@@ -279,7 +279,7 @@ export const findUserToBeOrgOwner = async (email: string) => {
     return null;
   }
 
-  return await UserRepository.enrichUserWithItsProfile({
+  return await new UserRepository(prisma).enrichUserWithItsProfile({
     user,
   });
 };

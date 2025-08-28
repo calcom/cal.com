@@ -34,6 +34,11 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
+vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
+  default: vi.fn().mockResolvedValue(null),
+  getPublishedOrgIdFromMemberOrTeamId: vi.fn().mockResolvedValue(null),
+}));
+
 describe("Twilio Webhook Handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -116,10 +121,6 @@ describe("Twilio Webhook Handler", () => {
     test("should create expense log with null credits if userId is not part of a team", async () => {
       mockFindFirst.mockResolvedValue(null);
       const webhookHandler = (await import("../../../../../../apps/web/pages/api/twilio/webhook")).default;
-
-      vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
-        default: vi.fn().mockResolvedValue(null),
-      }));
 
       const mockRequest = {
         method: "POST",

@@ -95,7 +95,7 @@ We recommend setting the `timeZone` for ease of use.
 
 ## 4. Backend: setting up a refresh token endpoint
 
-You have to setup an endpoint on your server to which atoms can send an expired access token and receive new one in return. This exchange will be automatically handled by atoms when you provide this endpoint URL when setting up frontend in the next step.
+You have to set up an endpoint on your server to which atoms can send an expired access token and receive new one in return. This exchange will be automatically handled by atoms when you provide this endpoint URL when setting up frontend in the next step.
 
 > Q: Why do we need a separate endpoint just for this?
 A: Your OAuth client secret and users refresh tokens should never be exposed on the frontend. The OAuth client secret will reside as an environment variable in your backend and the users' refresh tokens are stored in your database, which are used by our API to refresh the access token.
@@ -105,7 +105,7 @@ You can check an example refresh token endpoint in our atoms examples app: [http
 
 Shortly:
 
-1. Setup environment variables or pass values directly. Here are ones from the examples app above:
+1. Set up environment variables or pass values directly. Here are ones from the examples app above:
     1. NEXT_PUBLIC_CALCOM_API_URL: [https://api.cal.com/v2](https://api.cal.com/v2)
     2. NEXT_PUBLIC_X_CAL_ID: your OAuth client ID
     3. X_CAL_SECRET_KEY - your OAuth client secret
@@ -156,7 +156,7 @@ pnpm:
 pnpm add @calcom/atoms
 ```
 
-### 6.2 Setup environment variables
+### 6.2 Set up environment variables
 
 CAL_OAUTH_CLIENT_ID: OAuth client ID
 
@@ -164,7 +164,7 @@ CAL_API_URL: [https://api.cal.com/v2](https://api.cal.com/v2)
 
 REFRESH_URL:  URL of the endpoint you implemented in step 3, for example, your.api.com/api/refresh
 
-### 5.3 Setup root of your app
+### 5.3 Set up root of your app
 
 Next.js: open _app.js or or _app.tsx.
 

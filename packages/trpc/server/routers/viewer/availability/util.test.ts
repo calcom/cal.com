@@ -1,13 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { HostRepository } from "@calcom/lib/server/repository/host";
 import { PrismaClient } from "@calcom/prisma";
 
-import {
-  getDefaultScheduleId,
-  hasDefaultSchedule,
-  setupDefaultSchedule,
-  updateHostsWithNewDefaultSchedule,
-} from "./util";
+import { getDefaultScheduleId, hasDefaultSchedule, setupDefaultSchedule } from "./util";
 
 vi.mock("@calcom/prisma", () => {
   const mockPrisma = {
@@ -31,9 +27,11 @@ vi.mock("@calcom/prisma", () => {
 
 describe("Availability Utils", () => {
   let prisma: PrismaClient;
+  let hostRepo: HostRepository;
 
   beforeEach(() => {
     prisma = new PrismaClient();
+    hostRepo = new HostRepository(prisma);
     vi.clearAllMocks();
   });
 
@@ -158,7 +156,7 @@ describe("Availability Utils", () => {
 
       (prisma.host.updateMany as any).mockResolvedValue(updateResult);
 
-      const result = await updateHostsWithNewDefaultSchedule(userId, oldScheduleId, newScheduleId, prisma);
+      const result = await hostRepo.updateHostsSchedule(userId, oldScheduleId, newScheduleId);
 
       expect(prisma.host.updateMany).toHaveBeenCalledWith({
         where: {
@@ -180,7 +178,7 @@ describe("Availability Utils", () => {
 
       (prisma.host.updateMany as any).mockResolvedValue(updateResult);
 
-      const result = await updateHostsWithNewDefaultSchedule(userId, oldScheduleId, newScheduleId, prisma);
+      const result = await hostRepo.updateHostsSchedule(userId, oldScheduleId, newScheduleId);
 
       expect(prisma.host.updateMany).toHaveBeenCalledWith({
         where: {

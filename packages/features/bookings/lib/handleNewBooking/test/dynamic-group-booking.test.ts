@@ -209,7 +209,7 @@ describe("handleNewBooking", () => {
               await handleNewBooking({
                 bookingData: mockBookingData,
               })
-          ).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
+          ).rejects.toThrowError(ErrorCode.FixedHostsUnavailableForBooking);
         },
         timeout
       );
@@ -298,7 +298,7 @@ describe("handleNewBooking", () => {
               await handleNewBooking({
                 bookingData: mockBookingData,
               })
-          ).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
+          ).rejects.toThrowError(ErrorCode.FixedHostsUnavailableForBooking);
         },
         timeout
       );

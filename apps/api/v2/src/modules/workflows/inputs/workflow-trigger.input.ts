@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { TimeUnit, WorkflowTriggerEvents } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsNumber, ValidateNested } from "class-validator";
+import { IsIn, IsNumber, IsString, ValidateNested } from "class-validator";
 
 export const BEFORE_EVENT = "beforeEvent";
 export const EVENT_CANCELLED = "eventCancelled";
@@ -68,6 +68,8 @@ export class WorkflowTriggerOffsetDto {
   value!: number;
 
   @ApiProperty({ description: "Unit for the offset time", example: HOUR })
+  @IsString()
+  @IsIn(TIME_UNITS)
   unit!: TimeUnitType;
 }
 
@@ -75,6 +77,8 @@ export class BaseWorkflowTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([WORKFLOW_TRIGGER_TYPES])
   type!: WorkflowTriggerType;
 }
 
@@ -82,6 +86,8 @@ export class OnCreationTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([NEW_EVENT])
   type: typeof NEW_EVENT = NEW_EVENT;
 }
 
@@ -89,12 +95,16 @@ export class OnRescheduleTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([RESCHEDULE_EVENT])
   type: typeof RESCHEDULE_EVENT = RESCHEDULE_EVENT;
 }
 export class OnCancelTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([EVENT_CANCELLED])
   type: typeof EVENT_CANCELLED = EVENT_CANCELLED;
 }
 
@@ -113,6 +123,8 @@ export class OnBeforeEventTriggerDto extends TriggerOffsetDTO {
     description: "Trigger type for the workflow",
     example: BEFORE_EVENT,
   })
+  @IsString()
+  @IsIn([BEFORE_EVENT])
   type: typeof BEFORE_EVENT = BEFORE_EVENT;
 }
 
@@ -121,6 +133,8 @@ export class OnAfterEventTriggerDto extends TriggerOffsetDTO {
     description: "Trigger type for the workflow",
     example: AFTER_EVENT,
   })
+  @IsString()
+  @IsIn([AFTER_EVENT])
   type: typeof AFTER_EVENT = AFTER_EVENT;
 }
 
@@ -129,6 +143,8 @@ export class OnAfterCalVideoGuestsNoShowTriggerDto extends TriggerOffsetDTO {
     description: "Trigger type for the workflow",
     example: AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   })
+  @IsString()
+  @IsIn([AFTER_GUESTS_CAL_VIDEO_NO_SHOW])
   type: typeof AFTER_GUESTS_CAL_VIDEO_NO_SHOW = AFTER_GUESTS_CAL_VIDEO_NO_SHOW;
 }
 
@@ -137,5 +153,7 @@ export class OnAfterCalVideoHostsNoShowTriggerDto extends TriggerOffsetDTO {
     description: "Trigger type for the workflow",
     example: AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   })
+  @IsString()
+  @IsIn([AFTER_HOSTS_CAL_VIDEO_NO_SHOW])
   type: typeof AFTER_HOSTS_CAL_VIDEO_NO_SHOW = AFTER_HOSTS_CAL_VIDEO_NO_SHOW;
 }

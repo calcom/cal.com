@@ -13,6 +13,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -34,7 +35,7 @@ export const sendEmailVerification = async ({
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
@@ -54,7 +55,7 @@ export const sendEmailVerification = async ({
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: email,
+    identifier: hashEmail(email),
   });
 
   await prisma.verificationToken.create({
@@ -127,7 +128,7 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
@@ -142,7 +143,7 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: user.emailFrom,
+    identifier: hashEmail(user.emailFrom),
   });
 
   await prisma.verificationToken.create({

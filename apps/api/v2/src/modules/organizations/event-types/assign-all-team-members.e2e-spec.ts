@@ -63,6 +63,7 @@ describe("Assign all team members", () => {
   let firstManagedUser: CreateManagedUserData;
   let secondManagedUser: CreateManagedUserData;
 
+  let collectiveEventType: TeamEventTypeOutput_2024_06_14;
   let roundRobinEventType: TeamEventTypeOutput_2024_06_14;
 
   beforeAll(async () => {
@@ -304,8 +305,10 @@ describe("Assign all team members", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("collective");
-          evaluateHost({ userId: firstManagedUser.user.id }, data.hosts[0]);
-          evaluateHost({ userId: secondManagedUser.user.id }, data.hosts[1]);
+          const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
+          const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
+          evaluateHost({ userId: firstManagedUser.user.id }, dataFirstHost);
+          evaluateHost({ userId: secondManagedUser.user.id }, dataSecondHost);
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
@@ -313,6 +316,7 @@ describe("Assign all team members", () => {
           const secondHost = eventTypeHosts.find((host) => host.userId === secondManagedUser.user.id);
           expect(firstHost).toBeDefined();
           expect(secondHost).toBeDefined();
+          collectiveEventType = data;
         });
     });
 
@@ -341,13 +345,15 @@ describe("Assign all team members", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("roundRobin");
+          const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
+          const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
           evaluateHost(
             { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[0]
+            dataFirstHost
           );
           evaluateHost(
             { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[1]
+            dataSecondHost
           );
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
@@ -361,6 +367,28 @@ describe("Assign all team members", () => {
     });
 
     it("should update round robin event type", async () => {
+      if (!roundRobinEventType) {
+        const setupBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: "Coding consultation round robin",
+          slug: `assign-all-team-members-round-robin-${randomString()}`,
+          lengthInMinutes: 60,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          schedulingType: "roundRobin",
+          assignAllTeamMembers: true,
+        };
+
+        const setupResponse = await request(app.getHttpServer())
+          .post(`/v2/organizations/${organization.id}/teams/${managedTeam.id}/event-types`)
+          .send(setupBody)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .expect(201);
+
+        const setupResponseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = setupResponse.body;
+        roundRobinEventType = setupResponseBody.data;
+      }
+
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation round robin updated",
       };
@@ -381,13 +409,15 @@ describe("Assign all team members", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("roundRobin");
+          const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
+          const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
           evaluateHost(
             { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[0]
+            dataFirstHost
           );
           evaluateHost(
             { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[1]
+            dataSecondHost
           );
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
@@ -461,10 +491,17 @@ describe("Assign all team members", () => {
     });
   });
 
-  function evaluateHost(expected: Host, received: Host | undefined) {
-    expect(expected.userId).toEqual(received?.userId);
-    expect(expected.mandatory).toEqual(received?.mandatory);
-    expect(expected.priority).toEqual(received?.priority);
+  function evaluateHost(expected: Partial<Host>, received: Host | undefined) {
+    if (!received) {
+      throw new Error(`Host is undefined. Expected userId: ${expected.userId}`);
+    }
+    expect(expected.userId).toEqual(received.userId);
+    if (expected.mandatory !== undefined) {
+      expect(expected.mandatory).toEqual(received.mandatory);
+    }
+    if (expected.priority !== undefined) {
+      expect(expected.priority).toEqual(received.priority);
+    }
   }
 
   afterAll(async () => {

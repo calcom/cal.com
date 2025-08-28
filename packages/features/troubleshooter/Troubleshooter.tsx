@@ -1,3 +1,4 @@
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
 
@@ -63,5 +64,9 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
 };
 
 export const Troubleshooter = ({ month }: TroubleshooterProps) => {
-  return <TroubleshooterComponent month={month} />;
+  return (
+    <BookerStoreProvider>
+      <TroubleshooterComponent month={month} />
+    </BookerStoreProvider>
+  );
 };

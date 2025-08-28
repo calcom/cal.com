@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { Locales } from "@/lib/enums/locales";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import {
   CreateManagedUserData,
   CreateManagedUserOutput,
@@ -15,11 +16,11 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -36,6 +37,7 @@ import {
   CreateBookingInput_2024_08_13,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
 } from "@calcom/platform-types";
 
@@ -50,9 +52,9 @@ describe("Managed user bookings 2024-08-13", () => {
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-  let schedulesRepositoryFixture: SchedulesRepositoryFixture;
   let profilesRepositoryFixture: ProfileRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
+  let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
   const platformAdminEmail = `managed-users-bookings-2024-08-13-admin-${randomString()}@api.com`;
   let platformAdmin: User;
@@ -67,6 +69,10 @@ describe("Managed user bookings 2024-08-13", () => {
   let thirdManagedUser: CreateManagedUserData;
 
   let firstManagedUserEventTypeId: number;
+  let eventTypeRequiresConfirmationId: number;
+
+  const orgAdminManagedUserEmail = `managed-user-bookings-2024-08-13-org-admin-${randomString()}@api.com`;
+  let orgAdminManagedUser: CreateManagedUserData;
 
   let firstManagedUserBookingsCount = 0;
   let secondManagedUserBookingsCount = 0;
@@ -75,7 +81,7 @@ describe("Managed user bookings 2024-08-13", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaExceptionFilter, HttpExceptionFilter],
-      imports: [AppModule, UsersModule],
+      imports: [AppModule, UsersModule, MembershipsModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -85,9 +91,9 @@ describe("Managed user bookings 2024-08-13", () => {
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-    schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
     profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+    bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
 
     platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
@@ -95,6 +101,13 @@ describe("Managed user bookings 2024-08-13", () => {
       name: `oauth-client-users-organization-${randomString()}`,
       isPlatform: true,
       isOrganization: true,
+      platformBilling: {
+        create: {
+          customerId: "cus_999",
+          plan: "SCALE",
+          subscriptionId: "sub_999",
+        },
+      },
     });
     oAuthClient = await createOAuthClient(organization.id);
 
@@ -241,6 +254,59 @@ describe("Managed user bookings 2024-08-13", () => {
     expect(responseBody.data.refreshToken).toBeDefined();
 
     thirdManagedUser = responseBody.data;
+  });
+
+  it(`should create org admin managed user`, async () => {
+    const requestBody: CreateManagedUserInput = {
+      email: orgAdminManagedUserEmail,
+      timeZone: managedUsersTimeZone,
+      weekStart: "Monday",
+      timeFormat: 24,
+      locale: Locales.FR,
+      name: "Org Admin Smith",
+      avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+    };
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .send(requestBody)
+      .expect(201);
+
+    const responseBody: CreateManagedUserOutput = response.body;
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+    expect(responseBody.data).toBeDefined();
+    expect(responseBody.data.user.email).toEqual(
+      OAuthClientUsersService.getOAuthUserEmail(oAuthClient.id, requestBody.email)
+    );
+    expect(responseBody.data.accessToken).toBeDefined();
+    expect(responseBody.data.refreshToken).toBeDefined();
+
+    orgAdminManagedUser = responseBody.data;
+
+    await request(app.getHttpServer())
+      .post(`/v2/organizations/${organization.id}/memberships`)
+      .set("x-cal-client-id", oAuthClient.id)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .send({
+        userId: orgAdminManagedUser.user.id,
+        role: "ADMIN",
+        accepted: true,
+      })
+      .expect(201);
+  });
+
+  it("should create an event type requiring confirmation for first managed user", async () => {
+    const eventTypeRequiresConfirmation = await eventTypesRepositoryFixture.create(
+      {
+        title: `managed-user-bookings-event-type-requires-confirmation-${randomString()}`,
+        slug: `managed-user-bookings-event-type-requires-confirmation-${randomString()}`,
+        length: 60,
+        requiresConfirmation: true,
+      },
+      firstManagedUser.user.id
+    );
+    eventTypeRequiresConfirmationId = eventTypeRequiresConfirmation.id;
   });
 
   describe("bookings using original emails", () => {
@@ -543,10 +609,246 @@ describe("Managed user bookings 2024-08-13", () => {
     });
   });
 
+  describe("booking confirmation by org admin", () => {
+    it("should allow org admin managed user to confirm booking using access token", async () => {
+      const bookingRequiringConfirmation = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: firstManagedUser.user.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2030, 0, 9, 13, 0, 0)),
+        endTime: new Date(Date.UTC(2030, 0, 9, 14, 0, 0)),
+        title: "Booking requiring confirmation",
+        uid: `booking-requiring-confirmation-${randomString()}`,
+        eventType: {
+          connect: {
+            id: eventTypeRequiresConfirmationId,
+          },
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        customInputs: {},
+        metadata: {},
+        status: "PENDING",
+        responses: {
+          name: secondManagedUser.user.name,
+          email: secondManagedUserEmail,
+        },
+        attendees: {
+          create: {
+            email: secondManagedUserEmail,
+            name: secondManagedUser.user.name!,
+            locale: secondManagedUser.user.locale,
+            timeZone: secondManagedUser.user.timeZone,
+          },
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingRequiringConfirmation.uid}/confirm`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .expect(200);
+
+      const responseBody: GetBookingOutput_2024_08_13 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const bookingData = responseBody.data as BookingOutput_2024_08_13;
+      expect(bookingData.status).toEqual("accepted");
+      expect(bookingData.uid).toEqual(bookingRequiringConfirmation.uid);
+
+      const confirmedBooking = await bookingsRepositoryFixture.getByUid(bookingRequiringConfirmation.uid);
+      expect(confirmedBooking?.status).toEqual("ACCEPTED");
+    });
+
+    it("should allow org admin managed user to reject booking using access token", async () => {
+      const bookingRequiringConfirmation = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: firstManagedUser.user.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2030, 0, 9, 15, 0, 0)),
+        endTime: new Date(Date.UTC(2030, 0, 9, 16, 0, 0)),
+        title: "Booking requiring rejection",
+        uid: `booking-requiring-rejection-${randomString()}`,
+        eventType: {
+          connect: {
+            id: eventTypeRequiresConfirmationId,
+          },
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        customInputs: {},
+        metadata: {},
+        status: "PENDING",
+        responses: {
+          name: secondManagedUser.user.name,
+          email: secondManagedUserEmail,
+        },
+        attendees: {
+          create: {
+            email: secondManagedUserEmail,
+            name: secondManagedUser.user.name!,
+            locale: secondManagedUser.user.locale,
+            timeZone: secondManagedUser.user.timeZone,
+          },
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingRequiringConfirmation.uid}/decline`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .expect(200);
+
+      const responseBody: GetBookingOutput_2024_08_13 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const bookingData = responseBody.data as BookingOutput_2024_08_13;
+      expect(bookingData.status).toEqual("rejected");
+      expect(bookingData.uid).toEqual(bookingRequiringConfirmation.uid);
+
+      const rejectedBooking = await bookingsRepositoryFixture.getByUid(bookingRequiringConfirmation.uid);
+      expect(rejectedBooking?.status).toEqual("REJECTED");
+    });
+
+    it("should return unauthorized when org admin tries to confirm regular user's booking", async () => {
+      const regularUser = await userRepositoryFixture.create({
+        email: `managed-user-bookings-2024-08-13-regular-user-${randomString()}@api.com`,
+        name: "Regular User",
+      });
+
+      const regularUserEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: `regular-user-event-type-requires-confirmation-${randomString()}`,
+          slug: `regular-user-event-type-requires-confirmation-${randomString()}`,
+          length: 60,
+          requiresConfirmation: true,
+        },
+        regularUser.id
+      );
+
+      const regularUserBooking = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: regularUser.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2030, 0, 9, 17, 0, 0)),
+        endTime: new Date(Date.UTC(2030, 0, 9, 18, 0, 0)),
+        title: "Regular user booking requiring confirmation",
+        uid: `regular-user-booking-${randomString()}`,
+        eventType: {
+          connect: {
+            id: regularUserEventType.id,
+          },
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        customInputs: {},
+        metadata: {},
+        status: "PENDING",
+        responses: {
+          name: "External Attendee",
+          email: "external@example.com",
+        },
+        attendees: {
+          create: {
+            email: "external@example.com",
+            name: "External Attendee",
+            locale: "en",
+            timeZone: "Europe/Rome",
+          },
+        },
+      });
+
+      await request(app.getHttpServer())
+        .post(`/v2/bookings/${regularUserBooking.uid}/confirm`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .expect(401);
+
+      await userRepositoryFixture.delete(regularUser.id);
+    });
+  });
+
+  describe("event type booking requires authentication", () => {
+    let eventTypeRequiringAuthenticationId: number;
+
+    let body: CreateBookingInput_2024_08_13;
+
+    beforeAll(async () => {
+      const eventTypeRequiringAuthentication = await eventTypesRepositoryFixture.create(
+        {
+          title: `event-type-requiring-authentication-${randomString()}`,
+          slug: `event-type-requiring-authentication-${randomString()}`,
+          length: 60,
+          requiresConfirmation: true,
+          bookingRequiresAuthentication: true,
+        },
+        secondManagedUser.user.id
+      );
+      eventTypeRequiringAuthenticationId = eventTypeRequiringAuthentication.id;
+
+      body = {
+        start: new Date(Date.UTC(2030, 0, 9, 15, 0, 0)).toISOString(),
+        eventTypeId: eventTypeRequiringAuthenticationId,
+        attendee: {
+          email: "external@example.com",
+          name: "External Attendee",
+          timeZone: "Europe/Rome",
+        },
+      };
+    });
+
+    it("can't be booked without credentials", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(401);
+    });
+
+    it("can't be booked with managed user credentials who is not admin and not event type owner", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+        .expect(403);
+    });
+
+    it("can be booked with managed user credentials who is event type owner", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${secondManagedUser.accessToken}`)
+        .expect(201);
+
+      const bookingId = response.body.data.id;
+      await bookingsRepositoryFixture.deleteById(bookingId);
+    });
+
+    it("can be booked with managed user credentials who is admin", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .expect(201);
+
+      const bookingId = response.body.data.id;
+      await bookingsRepositoryFixture.deleteById(bookingId);
+    });
+  });
+
   afterAll(async () => {
     await userRepositoryFixture.delete(firstManagedUser.user.id);
     await userRepositoryFixture.delete(secondManagedUser.user.id);
     await userRepositoryFixture.delete(thirdManagedUser.user.id);
+    await userRepositoryFixture.delete(orgAdminManagedUser.user.id);
     await userRepositoryFixture.delete(platformAdmin.id);
     await oauthClientRepositoryFixture.delete(oAuthClient.id);
     await teamRepositoryFixture.delete(organization.id);

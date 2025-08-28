@@ -193,7 +193,7 @@ export function Segment({
   const { t } = useLocale();
   if (isPending) return <span>Loading...</span>;
   if (!attributes) {
-    console.log("Error fetching attributes");
+    console.error("Error fetching attributes");
     return <span>{t("something_went_wrong")}</span>;
   }
 

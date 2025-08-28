@@ -3,6 +3,7 @@ import {
   PREMIUM_PLAN_PRODUCT_ID,
   STRIPE_TEAM_MONTHLY_PRICE_ID,
   PREMIUM_MONTHLY_PLAN_PRICE,
+  STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID
 } from "./constants";
 
 export const getPremiumMonthlyPlanPriceId = (): string => {
@@ -19,4 +20,9 @@ export function getPerSeatPlanPrice(): string {
 
 export function getPremiumPlanPriceValue() {
   return "$29/month";
+}
+
+
+export function getPhoneNumberMonthlyPriceId(){
+  return STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID;
 }

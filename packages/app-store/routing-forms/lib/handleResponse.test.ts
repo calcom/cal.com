@@ -17,12 +17,12 @@ vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   findTeamMembersMatchingAttributeLogic: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/server/repository/formResponse", () => ({
-  RoutingFormResponseRepository: {
-    recordQueuedFormResponse: vi.fn(),
-    recordFormResponse: vi.fn(),
-  },
-}));
+vi.mock("@calcom/lib/server/repository/formResponse");
+
+const mockRoutingFormResponseRepository = {
+  recordQueuedFormResponse: vi.fn(),
+  recordFormResponse: vi.fn(),
+};
 
 vi.mock("./crmRouting/routerGetCrmContactOwnerEmail", () => ({
   default: vi.fn(),
@@ -107,6 +107,9 @@ const mockResponse: z.infer<typeof ZResponseInputSchema>["response"] = {
 describe("handleResponse", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(RoutingFormResponseRepository).mockImplementation(
+      () => mockRoutingFormResponseRepository as any
+    );
   });
 
   it("should throw a TRPCError for missing required fields", async () => {
@@ -114,6 +117,7 @@ describe("handleResponse", () => {
       handleResponse({
         response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: false,
@@ -129,6 +133,7 @@ describe("handleResponse", () => {
           email: { value: "invalid-email", label: "Email" },
         },
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: false,
@@ -148,17 +153,18 @@ describe("handleResponse", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    vi.mocked(RoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
+    vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
 
     const result = await handleResponse({
       response: mockResponse,
       form: mockForm,
+      identifierKeyedResponse: null,
       formFillerId: "user1",
       chosenRouteId: null,
       isPreview: false,
     });
 
-    expect(RoutingFormResponseRepository.recordFormResponse).toHaveBeenCalledWith({
+    expect(mockRoutingFormResponseRepository.recordFormResponse).toHaveBeenCalledWith({
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
@@ -182,23 +188,24 @@ describe("handleResponse", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    vi.mocked(RoutingFormResponseRepository.recordQueuedFormResponse).mockResolvedValue(queuedResponse);
+    vi.mocked(mockRoutingFormResponseRepository.recordQueuedFormResponse).mockResolvedValue(queuedResponse);
 
     const result = await handleResponse({
       response: mockResponse,
       form: mockForm,
+      identifierKeyedResponse: null,
       formFillerId: "user1",
       chosenRouteId: null,
       isPreview: false,
       queueFormResponse: true,
     });
 
-    expect(RoutingFormResponseRepository.recordQueuedFormResponse).toHaveBeenCalledWith({
+    expect(mockRoutingFormResponseRepository.recordQueuedFormResponse).toHaveBeenCalledWith({
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
     });
-    expect(RoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
+    expect(mockRoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
     expect(onSubmissionOfFormResponse).not.toHaveBeenCalled();
     expect(result.queuedFormResponse).toEqual(queuedResponse);
     expect(result.formResponse).toBeNull();
@@ -209,12 +216,13 @@ describe("handleResponse", () => {
       const result = await handleResponse({
         response: mockResponse,
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: true,
       });
 
-      expect(RoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
+      expect(mockRoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
       expect(onSubmissionOfFormResponse).not.toHaveBeenCalled();
       expect(result.isPreview).toBe(true);
       expect(result.formResponse).toBeDefined();
@@ -225,13 +233,14 @@ describe("handleResponse", () => {
       const result = await handleResponse({
         response: mockResponse,
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: true,
         queueFormResponse: true,
       });
 
-      expect(RoutingFormResponseRepository.recordQueuedFormResponse).not.toHaveBeenCalled();
+      expect(mockRoutingFormResponseRepository.recordQueuedFormResponse).not.toHaveBeenCalled();
       expect(result.isPreview).toBe(true);
       expect(result.queuedFormResponse).toBeDefined();
       expect(result.queuedFormResponse?.id).toBe("00000000-0000-0000-0000-000000000000");
@@ -258,6 +267,7 @@ describe("handleResponse", () => {
       email: "owner@example.com",
       recordType: "contact",
       crmAppSlug: "hubspot",
+      recordId: "123",
     });
     vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
       teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],
@@ -275,6 +285,11 @@ describe("handleResponse", () => {
       formFillerId: "user1",
       chosenRouteId: "route1",
       isPreview: false,
+      identifierKeyedResponse: {
+        name: "John Doe",
+        email: "john.doe@example.com",
+      },
+      fetchCrm: true,
     });
 
     expect(routerGetCrmContactOwnerEmail).toHaveBeenCalled();
@@ -301,6 +316,7 @@ describe("handleResponse", () => {
       handleResponse({
         response: mockResponse,
         form: formWithRoute,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: "route1",
         isPreview: false,

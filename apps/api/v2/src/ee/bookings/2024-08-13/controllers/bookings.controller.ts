@@ -13,10 +13,14 @@ import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.ser
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import {
+  AuthOptionalUser,
+  GetOptionalUser,
+} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -96,6 +100,7 @@ export class BookingsController_2024_08_13 {
   ) {}
 
   @Post("/")
+  @UseGuards(OptionalApiAuthGuard)
   @ApiOperation({
     summary: "Create a booking",
     description: `
@@ -138,9 +143,10 @@ export class BookingsController_2024_08_13 {
   async createBooking(
     @Body(new CreateBookingInputPipe())
     body: CreateBookingInput,
-    @Req() request: Request
+    @Req() request: Request,
+    @GetOptionalUser() user: AuthOptionalUser
   ): Promise<CreateBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.createBooking(request, body);
+    const booking = await this.bookingsService.createBooking(request, body, user);
 
     if (Array.isArray(booking)) {
       await this.bookingsService.billBookings(booking);
@@ -443,7 +449,7 @@ export class BookingsController_2024_08_13 {
   @Permissions([BOOKING_READ])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Get 'Booking References' for a booking",
+    summary: "Get booking references",
   })
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(

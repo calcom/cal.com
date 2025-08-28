@@ -1,12 +1,33 @@
 import type { Account, IdentityProvider, Prisma, User, VerificationToken } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import type { Awaitable } from "next-auth";
 
 import type { PrismaClient } from "@calcom/prisma";
 
 import { identityProviderNameMap } from "./identityProviderNameMap";
 
+type CalComAdapter = {
+  createUser: (data: Prisma.UserCreateInput) => Awaitable<User>;
+  getUser: (id: string | number) => Awaitable<User | null>;
+  getUserByEmail: (email: User["email"]) => Awaitable<User | null>;
+  getUserByAccount: (provider_providerAccountId: {
+    providerAccountId: Account["providerAccountId"];
+    provider: User["identityProvider"];
+  }) => Awaitable<User | null>;
+  updateUser: (data: Prisma.UserUncheckedCreateInput) => Awaitable<User>;
+  deleteUser: (id: User["id"]) => Awaitable<User>;
+  createVerificationToken: (data: VerificationToken) => Awaitable<Omit<VerificationToken, "id">>;
+  useVerificationToken: (
+    identifier_token: Prisma.VerificationTokenIdentifierTokenCompoundUniqueInput
+  ) => Awaitable<Omit<VerificationToken, "id"> | null>;
+  linkAccount: (data: Prisma.AccountCreateInput) => Awaitable<Account>;
+  unlinkAccount: (
+    provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput
+  ) => Awaitable<Account>;
+};
+
 /** @return { import("next-auth/adapters").Adapter } */
-export default function CalComAdapter(prismaClient: PrismaClient) {
+export default function CalComAdapter(prismaClient: PrismaClient): CalComAdapter {
   return {
     createUser: (data: Prisma.UserCreateInput) => prismaClient.user.create({ data }),
     getUser: (id: string | number) =>

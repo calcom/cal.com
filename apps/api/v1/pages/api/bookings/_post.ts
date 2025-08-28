@@ -222,6 +222,13 @@ async function handler(req: NextApiRequest) {
   };
   if (isSystemWideAdmin) userId = req.body.userId || userId;
 
+  if (req.body.eventTypeId !== undefined && typeof req.body.eventTypeId !== "number") {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Bad request, eventTypeId must be a number",
+    });
+  }
+
   if (isOrganizationOwnerOrAdmin) {
     const accessibleUsersIds = await getAccessibleUsers({
       adminUserId: userId,
@@ -244,6 +251,14 @@ async function handler(req: NextApiRequest) {
   } catch (error: unknown) {
     const knownError = error as Error;
     if (knownError?.message === ErrorCode.NoAvailableUsersFound) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    if (knownError?.message === ErrorCode.RequestBodyInvalid) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    if (knownError?.message === ErrorCode.EventTypeNotFound) {
       throw new HttpError({ statusCode: 400, message: knownError.message });
     }
 

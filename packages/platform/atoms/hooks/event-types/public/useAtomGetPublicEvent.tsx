@@ -33,13 +33,19 @@ export const useAtomGetPublicEvent = ({ username, eventSlug, isTeamEvent, teamId
   const event = useQuery({
     queryKey: [QUERY_KEY, username, eventSlug, isTeamEvent, teamId, organizationId],
     queryFn: () => {
+      const params: Record<string, any> = {
+        isTeamEvent,
+        teamId,
+        username: getUsernameList(username ?? "").join("+")
+      };
+      
+      // Only include orgId if it's not 0
+      if (organizationId !== 0) {
+        params.orgId = organizationId;
+      }
+      
       return http?.get<ApiResponse<PublicEventType>>(pathname, {
-        params: {
-          isTeamEvent,
-          teamId,
-          orgId: organizationId,
-          username: getUsernameList(username?? "").join(",")
-        },
+        params,
       })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {

@@ -11,6 +11,7 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
+import { GetManagedOrganizationsInput_2024_08_13 } from "@/modules/organizations/organizations/inputs/get-managed-organizations.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { CreateManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/create-managed-organization.output";
 import { GetManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/get-managed-organization.output";
@@ -102,10 +103,10 @@ export class OrganizationsOrganizationsController {
   })
   async getOrganizations(
     @Param("orgId", ParseIntPipe) managerOrganizationId: number,
-    @Query() queryPagination: SkipTakePagination
+    @Query() query: GetManagedOrganizationsInput_2024_08_13
   ): Promise<GetManagedOrganizationsOutput> {
     const { organizations, pagination: responsePagination } =
-      await this.managedOrganizationsService.getManagedOrganizations(managerOrganizationId, queryPagination);
+      await this.managedOrganizationsService.getManagedOrganizations(managerOrganizationId, query);
     return {
       status: SUCCESS_STATUS,
       data: organizations,

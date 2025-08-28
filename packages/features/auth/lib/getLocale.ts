@@ -2,10 +2,11 @@ import { parse } from "accept-language-parser";
 import { lookup } from "bcp-47-match";
 import type { GetTokenParams } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
-import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
-import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 import { i18n } from "@calcom/config/next-i18next.config";
+
+type ReadonlyHeaders = Awaited<ReturnType<typeof import("next/headers").headers>>;
+type ReadonlyRequestCookies = Awaited<ReturnType<typeof import("next/headers").cookies>>;
 
 /**
  * This is a slimmed down version of the `getServerSession` function from

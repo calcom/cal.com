@@ -8,6 +8,7 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import prisma from "@calcom/prisma";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
@@ -23,10 +24,10 @@ export const queuedResponseHandler = async ({
   queuedFormResponseId: string;
   params: Record<string, string | string[]>;
 }) => {
+  const formResponseRepo = new RoutingFormResponseRepository(prisma);
+
   // Get the queued response
-  const queuedFormResponse = await RoutingFormResponseRepository.getQueuedFormResponseFromId(
-    queuedFormResponseId
-  );
+  const queuedFormResponse = await formResponseRepo.getQueuedFormResponseFromId(queuedFormResponseId);
 
   if (!queuedFormResponse) {
     return {
@@ -48,7 +49,7 @@ export const queuedResponseHandler = async ({
     fieldsResponses: params,
   });
 
-  const formResponse = await RoutingFormResponseRepository.recordFormResponse({
+  const formResponse = await formResponseRepo.recordFormResponse({
     formId: queuedFormResponse.formId,
     queuedFormResponseId: queuedFormResponse.id,
     // We record new response here as that might be different from the queued response depending on if the user changed something in b/w before clicking CTA and that something wasn't prerendered

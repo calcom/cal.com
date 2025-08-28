@@ -6,6 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
@@ -93,7 +94,8 @@ export class OrganizationRepository {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
-    const ownerInDb = await UserRepository.create({
+    const userRepo = new UserRepository(prisma);
+    const ownerInDb = await userRepo.create({
       email: owner.email,
       username: ownerUsernameInOrg,
       organizationId: organization.id,
@@ -447,7 +449,7 @@ export class OrganizationRepository {
     id: number;
     stripeSubscriptionId: string;
     stripeSubscriptionItemId: string;
-    existingMetadata: z.infer<typeof teamMetadataSchema>;
+    existingMetadata: z.infer<typeof teamMetadataStrictSchema>;
   }) {
     return await prisma.team.update({
       where: { id, isOrganization: true },

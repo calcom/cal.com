@@ -39,7 +39,7 @@ const ApiKeyListItem = ({
       showToast(t("api_key_deleted"), "success");
     },
     onError(err) {
-      console.log(err);
+      console.error(err);
       showToast(t("something_went_wrong"), "error");
     },
   });

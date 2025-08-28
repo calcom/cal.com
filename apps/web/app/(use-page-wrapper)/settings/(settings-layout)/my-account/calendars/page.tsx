@@ -1,8 +1,8 @@
+import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { Button } from "@calcom/ui/components/button";
+import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
+import { calendarsRouter } from "@calcom/trpc/server/routers/viewer/calendars/_router";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 
@@ -16,25 +16,20 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
+  const [calendarsCaller, appsCaller] = await Promise.all([
+    createRouterCaller(calendarsRouter),
+    createRouterCaller(appsRouter),
+  ]);
 
-  const AddCalendarButton = () => {
-    return (
-      <>
-        <Button color="secondary" StartIcon="plus" href="/apps/categories/calendar">
-          {t("add_calendar")}
-        </Button>
-      </>
-    );
-  };
-
+  const [connectedCalendars, installedCalendars] = await Promise.all([
+    calendarsCaller.connectedCalendars(),
+    appsCaller.integrations({
+      variant: "calendar",
+      onlyInstalled: true,
+    }),
+  ]);
   return (
-    <SettingsHeader
-      title={t("calendars")}
-      description={t("calendars_description")}
-      CTA={<AddCalendarButton />}>
-      <CalendarListContainer />
-    </SettingsHeader>
+    <CalendarListContainer connectedCalendars={connectedCalendars} installedCalendars={installedCalendars} />
   );
 };
 

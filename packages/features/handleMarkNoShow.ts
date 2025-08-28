@@ -223,7 +223,8 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
 const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
-  const booking = await BookingRepository.findBookingByUidAndUserId({ bookingUid, userId });
+  const bookingRepo = new BookingRepository(prisma);
+  const booking = await bookingRepo.findBookingByUidAndUserId({ bookingUid, userId });
 
   if (!booking)
     throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });

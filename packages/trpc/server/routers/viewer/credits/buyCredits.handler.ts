@@ -34,9 +34,9 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   } else {
     // if user id is part of a team, user can't buy credits for themselves
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+    const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(ctx.user.id);
 
-    if (memberships.length > 0) {
+    if (memberships && memberships.length > 0) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });

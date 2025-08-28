@@ -60,7 +60,7 @@ export function BaseCalProvider({
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
 
-  const { data: me } = useMe();
+  const { data: me } = useMe(isEmbed);
 
   const { mutateAsync } = useUpdateUserTimezone();
 

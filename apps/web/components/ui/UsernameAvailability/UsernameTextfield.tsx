@@ -120,12 +120,14 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <TextField
             ref={usernameRef}
             name="username"
+            placeholder="john"
             value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
+            containerClassName="[&>div]:gap-0"
             className={classNames(
-              "mb-0 mt-0 rounded-md rounded-l-none",
+              "mb-0 mt-0 rounded-md rounded-l-none pl-0",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""

@@ -22,6 +22,12 @@ type ShouldHighlight =
       slug?: never;
     };
 
+export type AppCardClassNames = {
+  container: string;
+  title?: string;
+  description?: string;
+};
+
 export type AppListCardProps = {
   logo?: string;
   title: string;
@@ -33,6 +39,7 @@ export type AppListCardProps = {
   children?: ReactNode;
   credentialOwner?: CredentialOwner;
   className?: string;
+  classNameObject?: AppCardClassNames;
 } & ShouldHighlight;
 
 export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) => {
@@ -48,39 +55,51 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
     children,
     credentialOwner,
     className,
+    classNameObject,
     highlight,
   } = props;
 
   return (
-    <div className={classNames(highlight && "dark:bg-muted bg-yellow-100", className)}>
-      <div className="flex items-center gap-x-3 px-4 py-4 sm:px-6">
+    <div
+      className={classNames(
+        highlight && "dark:bg-muted bg-yellow-100",
+        className || classNameObject?.container
+      )}>
+      <div className="flex items-start gap-x-3 px-4 py-4 sm:px-6">
         {logo ? (
           <img
-            className={classNames(logo.includes("-dark") && "dark:invert", "h-10 w-10")}
+            className={classNames(logo.includes("-dark") && "dark:invert", "h-10 w-10 flex-shrink-0")}
             src={logo}
             alt={`${title} logo`}
           />
         ) : null}
-        <div className="flex grow flex-col gap-y-1 truncate">
+        <div className="flex min-w-0 grow flex-col gap-y-1">
           <div className="flex items-center gap-x-2">
-            <h3 className="text-emphasis truncate text-sm font-semibold">{title}</h3>
-            <div className="flex items-center gap-x-2">
+            <h3
+              className={classNames("text-emphasis truncate text-sm font-semibold", classNameObject?.title)}>
+              {title}
+            </h3>
+            <div className="flex flex-shrink-0 items-center gap-x-2">
               {isDefault && <Badge variant="green">{t("default")}</Badge>}
               {isTemplate && <Badge variant="red">Template</Badge>}
             </div>
           </div>
-          <ListItemText component="p">{description}</ListItemText>
+          <ListItemText
+            component="p"
+            className={classNames("whitespace-normal break-words", classNameObject?.description)}>
+            {description}
+          </ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
-              <Icon name="circle-alert" className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
-              <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
-                {t("invalid_credential")}
+              <Icon name="circle-alert" className="h-8 w-8 flex-shrink-0 text-red-500 sm:h-4 sm:w-4" />
+              <ListItemText component="p" className="whitespace-pre-wrap break-words text-red-500">
+                {t("invalid_credential", { appName: title })}
               </ListItemText>
             </div>
           )}
         </div>
         {credentialOwner && (
-          <div>
+          <div className="flex-shrink-0">
             <Badge variant="gray">
               <div className="flex items-center">
                 <Avatar
@@ -94,7 +113,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
             </Badge>
           </div>
         )}
-        {actions}
+        {actions && <div className="flex-shrink-0">{actions}</div>}
       </div>
       <div className="w-full">{children}</div>
     </div>

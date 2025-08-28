@@ -1,3 +1,4 @@
+import { isParamValuePresentInUrlSearchParams } from "../../lib/utils";
 import type {
   EmbedThemeConfig,
   UiConfig,
@@ -6,7 +7,6 @@ import type {
   SetStyles,
   setNonStylesConfig,
 } from "../../types";
-import { isParamValuePresentInUrlSearchParams } from "../../utils";
 import { runAsap } from "./utils";
 
 export const enum EMBED_IFRAME_STATE {

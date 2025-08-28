@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 
-export const hashAPIKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
+export const sha256Hash = (token: string): string => createHash("sha256").update(token).digest("hex");
 
 export const isApiKey = (authString: string, prefix: string): boolean =>
   authString?.startsWith(prefix ?? "cal_");

@@ -8,8 +8,8 @@ import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
 
 import { describe, expect, vi, test } from "vitest";
 
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
 import { PeriodType } from "@calcom/prisma/enums";
-import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
@@ -70,6 +70,7 @@ vi.mock("@calcom/lib/constants", () => ({
 }));
 
 describe("getSchedule", () => {
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
   describe("Future Limits", () => {
     describe("PeriodType=ROLLING", () => {
@@ -112,7 +113,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -200,7 +201,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -284,7 +285,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -379,7 +380,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -483,7 +484,7 @@ describe("getSchedule", () => {
 
           await createBookingScenario(scenarioData);
 
-          const scheduleForEvent = await getSchedule({
+          const scheduleForEvent = await availableSlotsService.getAvailableSlots({
             input: {
               eventTypeId: 1,
               eventTypeSlug: "",
@@ -573,7 +574,7 @@ describe("getSchedule", () => {
 
           await createBookingScenario(scenarioData);
 
-          const scheduleForEvent = await getSchedule({
+          const scheduleForEvent = await availableSlotsService.getAvailableSlots({
             input: {
               eventTypeId: 1,
               eventTypeSlug: "",
@@ -657,7 +658,7 @@ describe("getSchedule", () => {
 
           await createBookingScenario(scenarioData);
 
-          const scheduleForEvent = await getSchedule({
+          const scheduleForEvent = await availableSlotsService.getAvailableSlots({
             input: {
               eventTypeId: 1,
               eventTypeSlug: "",
@@ -780,7 +781,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -878,7 +879,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -979,7 +980,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -1087,7 +1088,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -1207,7 +1208,7 @@ describe("getSchedule", () => {
 
           await createBookingScenario(scenarioData);
 
-          const scheduleForEvent = await getSchedule({
+          const scheduleForEvent = await availableSlotsService.getAvailableSlots({
             input: {
               eventTypeId: 1,
               eventTypeSlug: "",
@@ -1304,7 +1305,7 @@ describe("getSchedule", () => {
 
           await createBookingScenario(scenarioData);
 
-          const scheduleForEvent = await getSchedule({
+          const scheduleForEvent = await availableSlotsService.getAvailableSlots({
             input: {
               eventTypeId: 1,
               eventTypeSlug: "",
@@ -1413,7 +1414,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -1515,7 +1516,7 @@ describe("getSchedule", () => {
 
         await createBookingScenario(scenarioData);
 
-        const scheduleForEvent = await getSchedule({
+        const scheduleForEvent = await availableSlotsService.getAvailableSlots({
           input: {
             eventTypeId: 1,
             eventTypeSlug: "",
@@ -1601,7 +1602,7 @@ describe("getSchedule", () => {
 
           await createBookingScenario(scenarioData);
 
-          const scheduleForEventForPagoTz = await getSchedule({
+          const scheduleForEventForPagoTz = await availableSlotsService.getAvailableSlots({
             input: {
               eventTypeId: 1,
               eventTypeSlug: "",

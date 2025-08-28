@@ -16,7 +16,6 @@ function FormStep({ currentStep, steps }: Props) {
       </p>
       <div className="flex flex-nowrap space-x-1">
         {[...Array(steps)].map((_, j) => {
-          console.log({ j, currentStep });
           return (
             <div
               className={classNames(

@@ -3,12 +3,10 @@ import { z } from "zod";
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
@@ -22,7 +20,9 @@ export const ZGetInputSchema = z.object({
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
-const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
+const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
+
+const { include: includedFields } = {
   include: {
     activeOn: {
       select: {
@@ -62,7 +62,7 @@ const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>
       },
     },
   },
-});
+} satisfies Prisma.WorkflowDefaultArgs;
 
 export class WorkflowRepository {
   private static log = logger.getSubLogger({ prefix: ["workflow"] });
@@ -243,7 +243,7 @@ export class WorkflowRepository {
     if (!filtered) {
       const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+          (member) => member.userId === userId && member.role === "MEMBER"
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
@@ -295,7 +295,7 @@ export class WorkflowRepository {
 
       const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+          (member) => member.userId === userId && member.role === "MEMBER"
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };

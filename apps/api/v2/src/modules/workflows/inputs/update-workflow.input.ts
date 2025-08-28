@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
@@ -113,6 +113,23 @@ export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWha
   id?: number;
 }
 
+@ApiExtraModels(
+  OnBeforeEventTriggerDto,
+  OnAfterEventTriggerDto,
+  OnCancelTriggerDto,
+  OnCreationTriggerDto,
+  OnRescheduleTriggerDto,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterCalVideoHostsNoShowTriggerDto,
+  UpdateEmailAddressWorkflowStepDto,
+  UpdateEmailAttendeeWorkflowStepDto,
+  UpdateEmailHostWorkflowStepDto,
+  UpdatePhoneAttendeeWorkflowStepDto,
+  UpdatePhoneWhatsAppNumberWorkflowStepDto,
+  UpdateWhatsAppAttendeePhoneWorkflowStepDto,
+  UpdatePhoneNumberWorkflowStepDto,
+  BaseWorkflowTriggerDto
+)
 export class UpdateWorkflowDto {
   @ApiPropertyOptional({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
@@ -128,6 +145,20 @@ export class UpdateWorkflowDto {
   @IsOptional()
   activation?: WorkflowActivationDto;
 
+  @ApiPropertyOptional({
+    description: "Trigger configuration for the workflow",
+    oneOf: [
+      { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
+      { $ref: getSchemaPath(OnAfterEventTriggerDto) },
+      { $ref: getSchemaPath(OnCancelTriggerDto) },
+      { $ref: getSchemaPath(OnCreationTriggerDto) },
+      { $ref: getSchemaPath(OnRescheduleTriggerDto) },
+      { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+    ],
+  })
+  @IsOptional()
+  @ValidateNested()
   @Type(() => BaseWorkflowTriggerDto, {
     discriminator: {
       property: "type",
@@ -142,7 +173,7 @@ export class UpdateWorkflowDto {
       ],
     },
   })
-  trigger!:
+  trigger?:
     | OnAfterEventTriggerDto
     | OnBeforeEventTriggerDto
     | OnCreationTriggerDto
@@ -150,19 +181,19 @@ export class UpdateWorkflowDto {
     | OnCancelTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
     | OnAfterCalVideoHostsNoShowTriggerDto;
+
   @ApiPropertyOptional({
     description: "Steps to execute as part of the workflow",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateEmailHostWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
-      ],
-    },
+    oneOf: [
+      { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdateEmailHostWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
+    ],
+    type: "array",
   })
   @ValidateNested({ each: true })
   @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })

@@ -11,8 +11,11 @@ import { UserCreationService } from "./userCreationService";
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
-    getTranslation: (key: string) => {
-      return () => key;
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
     },
   };
 });
@@ -21,11 +24,11 @@ vi.mock("@calcom/features/auth/lib/hashPassword", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed-password"),
 }));
 
-vi.mock("../repository/user", async () => {
+vi.mock("../repository/user", () => {
   return {
-    UserRepository: {
+    UserRepository: vi.fn().mockImplementation(() => ({
       create: vi.fn(),
-    },
+    })),
   };
 });
 
@@ -48,15 +51,25 @@ describe("UserCreationService", () => {
   });
 
   test("should create user", async () => {
-    vi.spyOn(UserRepository, "create").mockResolvedValue({
+    const mockCreate = vi.fn().mockResolvedValue({
       username: "test",
       locked: false,
       organizationId: null,
     } as any);
 
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            create: mockCreate,
+          } as any)
+      );
+    }
+
     const user = await UserCreationService.createUser({ data: mockUserData });
 
-    expect(UserRepository.create).toHaveBeenCalledWith(
+    expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         username: "test",
         locked: false,
@@ -70,9 +83,25 @@ describe("UserCreationService", () => {
   test("should lock user when email is in watchlist", async () => {
     vi.mocked(checkIfEmailIsBlockedInWatchlistController).mockResolvedValue(true);
 
+    const mockCreate = vi.fn().mockResolvedValue({
+      username: "test",
+      locked: true,
+      organizationId: null,
+    } as any);
+
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            create: mockCreate,
+          } as any)
+      );
+    }
+
     const user = await UserCreationService.createUser({ data: mockUserData });
 
-    expect(UserRepository.create).toHaveBeenCalledWith(
+    expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         locked: true,
       })
@@ -85,12 +114,28 @@ describe("UserCreationService", () => {
     const mockPassword = "password";
     vi.mocked(hashPassword).mockResolvedValue("hashed_password");
 
+    const mockCreate = vi.fn().mockResolvedValue({
+      username: "test",
+      locked: false,
+      organizationId: null,
+    } as any);
+
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            create: mockCreate,
+          } as any)
+      );
+    }
+
     const user = await UserCreationService.createUser({
       data: { ...mockUserData, password: mockPassword },
     });
 
     expect(hashPassword).toHaveBeenCalledWith(mockPassword);
-    expect(UserRepository.create).toHaveBeenCalledWith(
+    expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         hashedPassword: "hashed_password",
       })

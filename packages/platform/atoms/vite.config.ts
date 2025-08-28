@@ -3,7 +3,6 @@ import path from "path";
 import { resolve } from "path";
 import { defineConfig, loadEnv } from "vite";
 import dts from "vite-plugin-dts";
-import Inspect from "vite-plugin-inspect";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
@@ -20,7 +19,7 @@ export default defineConfig(({ mode }) => {
         "@calcom/platform-utils",
       ],
     },
-    plugins: [Inspect(), react(), dts({ insertTypesEntry: true })],
+    plugins: [react(), dts({ insertTypesEntry: true })],
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
     },
@@ -28,17 +27,16 @@ export default defineConfig(({ mode }) => {
       noExternal: ["turndown"], // Example if you want to disable SSR for your library
     },
     build: {
-      commonjsOptions: {
-        include: [/@calcom\/lib/, /@calcom\/features/, /node_modules/],
-      },
       lib: {
         entry: [resolve(__dirname, "index.ts")],
         name: "CalAtoms",
         fileName: "cal-atoms",
+        formats: ["es"],
       },
       rollupOptions: {
-        external: ["react", "fs", "path", "os", "react-dom", "react-awesome-query-builder"],
+        external: ["react", "fs", "path", "os", "react/jsx-runtime", "react-dom", "react-dom/client"],
         output: {
+          format: "esm",
           globals: {
             react: "React",
             "react-dom": "ReactDOM",
@@ -58,6 +56,7 @@ export default defineConfig(({ mode }) => {
         "@radix-ui/react-dialog": path.resolve(__dirname, "./src/components/ui/dialog.tsx"),
         ".prisma/client": path.resolve(__dirname, "../../prisma-client"),
         "@prisma/client": path.resolve(__dirname, "../../prisma-client"),
+        "@calcom/prisma/client": path.resolve(__dirname, "../../prisma-client"),
         "@calcom/prisma": path.resolve(__dirname, "../../prisma"),
         "@calcom/dayjs": path.resolve(__dirname, "../../dayjs"),
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),

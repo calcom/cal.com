@@ -74,6 +74,8 @@ type Input = Pick<
   | "hideOrganizerEmail"
   | "team"
   | "calVideoSettings"
+  | "hidden"
+  | "bookingRequiresAuthentication"
 >;
 
 @Injectable()

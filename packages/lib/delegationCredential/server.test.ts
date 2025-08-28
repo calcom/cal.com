@@ -213,21 +213,6 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
       buildDelegationCredentialGoogleMeetCredential(),
     ]);
   });
-
-  it("should return empty array for non-Google platforms(as they are not supported yet)", async () => {
-    vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
-    ).mockResolvedValue(
-      buildMockDelegationCredential({
-        workspacePlatform: {
-          name: "Microsoft",
-          slug: "microsoft",
-        },
-      })
-    );
-    const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
-    expect(result).toEqual([]);
-  });
 });
 
 describe("buildAllCredentials", () => {

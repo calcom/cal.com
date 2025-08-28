@@ -418,9 +418,12 @@ export const fieldTypesSchemaMap: Partial<
       }
 
       // 2. If it failed, try prepending https://
-      const valueWithHttps = `https://${value}`;
-      if (urlSchema.safeParse(valueWithHttps).success) {
-        return;
+      const domainLike = /^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i;
+      if (domainLike.test(value)) {
+        const valueWithHttps = `https://${value}`;
+        if (urlSchema.safeParse(valueWithHttps).success) {
+          return;
+        }
       }
 
       // 3. If all attempts fail, throw err

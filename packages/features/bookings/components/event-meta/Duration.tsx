@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useShouldShowArrows } from "@calcom/features/apps/components/AllApps";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -45,7 +45,7 @@ export const EventDuration = ({
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const isPlatform = useIsPlatform();
-  const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
+  const [selectedDuration, setSelectedDuration, state] = useBookerStoreContext((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
     state.state,

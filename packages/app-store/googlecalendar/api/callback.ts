@@ -4,7 +4,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { GOOGLE_CALENDAR_SCOPES, WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import {
+  GOOGLE_CALENDAR_SCOPES,
+  SCOPE_USERINFO_PROFILE,
+  WEBAPP_URL,
+  WEBAPP_URL_FOR_OAUTH,
+} from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -14,6 +19,7 @@ import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import { updateProfilePhotoGoogle } from "../../_utils/oauth/updateProfilePhotoGoogle";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -95,10 +101,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
-    // TODO: Use the avatarUrl when setting the profile picture
-    // if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
-    //   await updateProfilePhotoGoogle(oAuth2Client, req.session.user.id);
-    // }
+    if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
+      await updateProfilePhotoGoogle(oAuth2Client, req.session.user.id);
+    }
 
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,

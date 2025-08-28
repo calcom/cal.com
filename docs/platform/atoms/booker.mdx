@@ -90,6 +90,7 @@ Below is a list of props that can be passed to the booker atom.
 | customClassNames           | No       | To pass in custom classnames from outside for styling the atom                                        |
 | month                      | No       | The exact month for displaying a user's availability; defaults to the current month                   |
 | selectedDate               | No       | Default selected date for which the slot picker opens                                                 |
+| startTime                  | No       | Custom start time for the Booker that allows users to decide the first available date. Accepts JavaScript Date object or date string in format `YYYY-MM-DD` (e.g., `"2025-08-20"` or `new Date("2025-08-20")`) |
 | hideBranding               | No       | For hiding any branding on the booker                                                                 |
 | isAway                     | No       | Sets the booker component to the away state                                                           |
 | allowsDynamicBooking       | No       | Boolean indicating if the booking is a dynamic booking                                                |
@@ -125,6 +126,10 @@ Below is a list of props that can be passed to the booker atom.
 | confirmButtonDisabled     | No       | Boolean indicating if the submit button should be disabled, defaults to false.                             |
 | timeZones     | No       | Array of valid IANA timezones to be used in the booker. Eg. ["Asia/Kolkata", "Europe/London"]                             |
 | onTimeslotsLoaded          | No       | Callback function triggered once the available timeslots have been fetched. |
+| roundRobinHideOrgAndTeam     | No       | Boolean indicating if the organization and team should be hidden in the booker atom sidebar for round robin scheduling type, defaults to false.                             |
+| showNoAvailabilityDialog     | No       | Boolean indicating if the no availability dialog should be shown, defaults to true.                             |
+| silentlyHandleCalendarFailures     | No       | Boolean when true the booker still displays slots when the third party calendars credentials are invalid or expired, Booker may show stale availability when enabled                             |
+| hideEventMetadata     | No       | Boolean that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information. Defaults to `false`.                             |
 
 ## Styling
 

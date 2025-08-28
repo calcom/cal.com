@@ -18,6 +18,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -71,6 +72,14 @@ const ProfileView = ({ team }: ProfileViewProps) => {
       }
 
       showToast(t("your_team_updated_successfully"), "success");
+      if (res?.slug) {
+        // Appearance changes (theme, colours, branding toggles) are read on the team booking page through
+        // `getCachedTeamData` in `queries.ts`.
+        await revalidateTeamDataCache({
+          teamSlug: res?.slug,
+          orgSlug: team?.parent?.slug ?? null,
+        });
+      }
     },
   });
 

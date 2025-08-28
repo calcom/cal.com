@@ -85,7 +85,7 @@ export class WebhooksController {
 
   @Get("/")
   @ApiOperation({
-    summary: "Get all webooks",
+    summary: "Get all webhooks",
     description: "Gets a paginated list of webhooks for the authenticated user.",
   })
   async getWebhooks(

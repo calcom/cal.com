@@ -11,7 +11,12 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
-import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import {
+  BookerStoreProvider,
+  useInitializeBookerStoreContext,
+  useBookerStoreContext,
+} from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -207,9 +212,13 @@ const ChooseEmbedTypesDialogContent = ({
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              gotoState({
-                embedType: embed.type as EmbedType,
-              });
+              if (embed.type === "headless") {
+                window.open("https://cal.com/help/routing/headless-routing", "_blank");
+              } else {
+                gotoState({
+                  embedType: embed.type as EmbedType,
+                });
+              }
             }}>
             <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
@@ -256,13 +265,21 @@ const EmailEmbed = ({
     org: orgSlug,
     isTeamEvent,
   });
+  useInitializeBookerStoreContext({
+    username,
+    eventSlug: eventType?.slug ?? "",
+    eventId: eventType?.id,
+    layout: BookerLayouts.MONTH_VIEW,
+    org: orgSlug,
+    isTeamEvent,
+  });
 
-  const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
+  const [month, selectedDate, selectedDatesAndTimes] = useBookerStoreContext(
     (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
     shallow
   );
   const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimezone] =
-    useBookerStore(
+    useBookerStoreContext(
       (state) => [
         state.setSelectedDate,
         state.setMonth,
@@ -359,11 +376,11 @@ const EmailEmbed = ({
             <DatePicker
               isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
-                setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+                setSelectedDate({ date: date === null ? date : date.format("YYYY-MM-DD") });
               }}
               onMonthChange={(date: Dayjs) => {
                 setMonth(date.format("YYYY-MM"));
-                setSelectedDate(date.format("YYYY-MM-DD"));
+                setSelectedDate({ date: date.format("YYYY-MM-DD") });
               }}
               includedDates={nonEmptyScheduleDays}
               locale={i18n.language}
@@ -682,7 +699,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
 
-  const [month, selectedDatesAndTimes] = useBookerStore(
+  const [month, selectedDatesAndTimes] = useBookerStoreContext(
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
@@ -1365,32 +1382,34 @@ export const EmbedDialog = ({
   };
 
   return (
-    <Dialog
-      {...(noQueryParamMode
-        ? {
-            open: embedState !== null,
-            onOpenChange: (open) => !open && handleDialogClose(),
-          }
-        : {
-            // Must not set name when noQueryParam mode as required by Dialog component
-            name: "embed",
-            clearQueryParamsOnClose: queryParamsForDialog,
-          })}>
-      {!embedParams.embedType ? (
-        <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
-      ) : (
-        <EmbedTypeCodeAndPreviewDialogContent
-          embedType={embedParams.embedType as EmbedType}
-          embedUrl={embedParams.embedUrl}
-          namespace={embedParams.namespace}
-          tabs={tabs}
-          types={types}
-          eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
-          defaultBrandColor={defaultBrandColor}
-          noQueryParamMode={noQueryParamMode}
-        />
-      )}
-    </Dialog>
+    <BookerStoreProvider>
+      <Dialog
+        {...(noQueryParamMode
+          ? {
+              open: embedState !== null,
+              onOpenChange: (open) => !open && handleDialogClose(),
+            }
+          : {
+              // Must not set name when noQueryParam mode as required by Dialog component
+              name: "embed",
+              clearQueryParamsOnClose: queryParamsForDialog,
+            })}>
+        {!embedParams.embedType ? (
+          <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
+        ) : (
+          <EmbedTypeCodeAndPreviewDialogContent
+            embedType={embedParams.embedType as EmbedType}
+            embedUrl={embedParams.embedUrl}
+            namespace={embedParams.namespace}
+            tabs={tabs}
+            types={types}
+            eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+            defaultBrandColor={defaultBrandColor}
+            noQueryParamMode={noQueryParamMode}
+          />
+        )}
+      </Dialog>
+    </BookerStoreProvider>
   );
 };
 

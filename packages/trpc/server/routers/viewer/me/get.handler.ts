@@ -27,7 +27,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     sessionUser
   );
 
-  const user = await UserRepository.enrichUserWithTheProfile({
+  const user = await new UserRepository(prisma).enrichUserWithTheProfile({
     user: sessionUser,
     upId: session.upId,
   });

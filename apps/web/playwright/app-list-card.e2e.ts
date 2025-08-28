@@ -1,5 +1,9 @@
 import { test } from "./lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("AppListCard", async () => {
   test("should remove the highlight from the URL", async ({ page, users }) => {
     const user = await users.create({});
