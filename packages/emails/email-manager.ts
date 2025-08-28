@@ -237,25 +237,44 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   members: Person[],
   eventTypeMetadata?: EventTypeMetadata,
-  reassignedTo?: { name: string | null; email: string }
+  reassignedTo?: { name: string | null; email: string; reason?: string }
 ) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
   for (const teamMember of members) {
-    if (!reassignedTo) {
-      emailsAndSMSToSend.push(
-        sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
-      );
-    } else {
-      emailsAndSMSToSend.push(
-        sendEmail(
-          () =>
-            new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
-        )
-      );
+    emailsAndSMSToSend.push(
+      sendEmail(
+        () => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
+      )
+    );
+
+    if (teamMember.phoneNumber) {
+      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(teamMember));
     }
+  }
+
+  await Promise.all(emailsAndSMSToSend);
+};
+
+export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
+  calEvent: CalendarEvent;
+  members: Person[];
+  reassignedTo: { name: string | null; email: string };
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  const { calEvent, members, reassignedTo, eventTypeMetadata } = args;
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
+  const calendarEvent = formatCalEvent(calEvent);
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
+  for (const teamMember of members) {
+    emailsAndSMSToSend.push(
+      sendEmail(
+        () => new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
+      )
+    );
 
     if (teamMember.phoneNumber) {
       emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(teamMember));
