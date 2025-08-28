@@ -114,9 +114,22 @@ export class QualifiedHostsService {
       user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
     }[];
   }> {
+    // Transform hosts to proper BaseHost format if they exist
+    const transformedEventType = eventType.hosts ? {
+      ...eventType,
+      hosts: eventType.hosts.map(h => ({
+        user: h.user, // Already a user object in this context
+        isFixed: h.isFixed ?? false,
+        priority: h.priority ?? null,
+        weight: h.weight ?? null,
+        createdAt: h.createdAt || new Date(),
+        groupId: h.groupId ?? null
+      }))
+    } : eventType;
+
     const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } =
       await getNormalizedHostsWithDelegationCredentials({
-        eventType,
+        eventType: transformedEventType,
       });
     // not a team event type, or some other reason - segment matching isn't necessary.
     if (!normalizedHosts) {
