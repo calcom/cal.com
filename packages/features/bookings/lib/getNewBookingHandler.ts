@@ -11,7 +11,7 @@ async function handler(input: BookingHandlerInput, schemaGetter?: BookingDataSch
   const { legacyHandler } = await import("./service/BookingCreateService");
   const { QuickEnrichmentService } = await import("./utils/phases/quickEnrichment");
   const { QuickValidationService } = await import("./utils/phases/quickValidation");
-
+  const { DeepEnrichmentService } = await import("./utils/phases/deepEnrichment");
   const bookingRepository = new BookingRepository(prisma);
 
   return legacyHandler(input, {
@@ -22,6 +22,9 @@ async function handler(input: BookingHandlerInput, schemaGetter?: BookingDataSch
     quickEnrichmentService: new QuickEnrichmentService(),
     quickValidationService: new QuickValidationService({
       bookingDataSchemaGetter: schemaGetter || getBookingDataSchema,
+    }),
+    deepEnrichmentService: new DeepEnrichmentService({
+      prisma: prisma,
     }),
   });
 }

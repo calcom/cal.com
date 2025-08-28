@@ -52,9 +52,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
-import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
@@ -63,10 +61,8 @@ import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
-import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -108,17 +104,16 @@ import type { Booking } from "../handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
 import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
 import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
-import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
-import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
 import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
 import handleSeats from "../handleSeats/handleSeats";
+import { type IDeepEnrichmentService } from "../utils/phases/deepEnrichment";
 import { type IQuickEnrichmentService } from "../utils/phases/quickEnrichment";
 import { QuickValidationService, type IQuickValidationService } from "../utils/phases/quickValidation";
 
@@ -430,6 +425,7 @@ export async function legacyHandler(
     quickEnrichmentService,
     quickValidationService,
     bookingRepository,
+    deepEnrichmentService,
   } = deps;
 
   const isPlatformBooking = !!platformClientId;
@@ -473,7 +469,7 @@ export async function legacyHandler(
     hasHashedBookingLink,
     language,
     appsStatus: reqAppsStatus,
-    guests: reqGuests,
+
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
@@ -482,6 +478,44 @@ export async function legacyHandler(
     routingFormResponseId,
     _shouldServeCache,
   } = bookingData;
+
+  // Phase 3: Deep enrichment
+  const contactOwnerFromReq = reqBody.contactOwner || null;
+  const dynamicUserList = reqBody.user ? [reqBody.user] : [];
+
+  const deepEnrichmentResult = await deepEnrichmentService.enrich({
+    ...quickValidationResult,
+    hostname: hostname || "",
+    forcedSlug,
+    isPlatformBooking,
+    dynamicUserList,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
+    routingFormResponseId,
+    contactOwnerFromReq,
+  });
+
+  const {
+    routingFormResponse,
+    qualifiedRRUsers,
+    additionalFallbackRRUsers,
+    fixedUsers,
+    contactOwnerEmail,
+
+    paymentAppData,
+    isTeamEventType,
+    isRescheduling: _isRescheduling,
+    isSeatedEvent: _isSeatedEvent,
+  } = deepEnrichmentResult;
+
+  // Make these mutable as they are modified later in the code
+  let users = deepEnrichmentResult.users;
+  let locationBodyString = deepEnrichmentResult.locationBodyString;
+  let organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+    deepEnrichmentResult.organizerOrFirstDynamicGroupMemberDefaultLocationUrl;
+
+  // Get guests and guestsRemoved from deep enrichment
+  const guests = deepEnrichmentResult.guests;
+  const guestsRemoved = deepEnrichmentResult.guestsRemoved;
 
   let troubleshooterData = buildTroubleshooterData({
     eventType,
@@ -492,10 +526,7 @@ export async function legacyHandler(
   }
 
   const fullName = getFullName(bookerName);
-  // Why are we only using "en" locale
-  const tGuests = await getTranslation("en", "common");
 
-  const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
 
   // This is purely eventType validation and should ideally be done when creating the eventType.
@@ -513,17 +544,12 @@ export async function legacyHandler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
-  const paymentAppData = getPaymentAppData({
-    ...eventType,
-    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
-  });
-
   const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
     eventType,
     bookingStartTime: reqBody.start,
     userId,
     originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
-    paymentAppData,
+    paymentAppData: deepEnrichmentResult.paymentAppData,
     bookerEmail,
   });
 
@@ -574,9 +600,6 @@ export async function legacyHandler(
 
   const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
-  const isTeamEventType =
-    !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
-
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
@@ -603,65 +626,9 @@ export async function legacyHandler(
     })
   );
 
-  const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
-
-  const skipContactOwner = shouldIgnoreContactOwner({
-    skipContactOwner: reqBody.skipContactOwner ?? null,
-    rescheduleUid: reqBody.rescheduleUid ?? null,
-    routedTeamMemberIds: routedTeamMemberIds ?? null,
-  });
-
-  const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
   const crmRecordId: string | undefined = reqBody.crmRecordId ?? undefined;
 
-  let routingFormResponse = null;
-
-  if (routedTeamMemberIds) {
-    //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
-    if (routingFormResponseId === undefined) {
-      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
-    }
-    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-      where: {
-        id: routingFormResponseId,
-      },
-      select: {
-        response: true,
-        form: {
-          select: {
-            routes: true,
-            fields: true,
-          },
-        },
-        chosenRouteId: true,
-      },
-    });
-  }
-
-  const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
-    hostname,
-    forcedSlug,
-    isPlatform: isPlatformBooking,
-    eventType,
-    eventTypeId,
-    dynamicUserList,
-    logger: loggerWithEventDetails,
-    routedTeamMemberIds: routedTeamMemberIds ?? null,
-    contactOwnerEmail,
-    rescheduleUid: reqBody.rescheduleUid || null,
-    routingFormResponse,
-  });
-
-  // We filter out users but ensure allHostUsers remain same.
-  let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
-
   const firstUser = users[0];
-
-  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb({
-    dynamicUserList,
-    users,
-    location,
-  });
 
   // PhasesRefactor: This one fetches a lot of bookings to determine the limits being crossed, so it can't be part of validation phase
   await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
@@ -1054,32 +1021,7 @@ export async function legacyHandler(
     },
   ];
 
-  // Guests blacklisted validation moved to quickValidation.ts
-  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
-    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
-    : [];
-  const guestsRemoved: string[] = [];
-  const guests = (reqGuests || []).reduce((guestArray: Invitee, guest: string) => {
-    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
-    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
-      guestsRemoved.push(guest);
-      return guestArray;
-    }
-    // If it's a team event, remove the team member from guests
-    if (isTeamEventType && users.some((user) => user.email === guest)) {
-      return guestArray;
-    }
-    guestArray.push({
-      email: guest,
-      name: "",
-      firstName: "",
-      lastName: "",
-      timeZone: attendeeTimezone,
-      language: { translate: tGuests, locale: "en" },
-    });
-    return guestArray;
-  }, [] as Invitee);
-
+  // Guest processing is now handled in DeepEnrichmentPhase
   if (guestsRemoved.length > 0) {
     log.info("Removed guests from the booking", guestsRemoved);
   }
@@ -2432,7 +2374,7 @@ export interface IBookingCreateServiceDependencies {
   bookingRepository: BookingRepository;
   quickEnrichmentService: IQuickEnrichmentService;
   quickValidationService: IQuickValidationService;
-}
+  deepEnrichmentService: IDeepEnrichmentService;
 
 export class BookingCreateService {
   constructor(private readonly deps: IBookingCreateServiceDependencies) {}
