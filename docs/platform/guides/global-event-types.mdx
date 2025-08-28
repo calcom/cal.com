@@ -7,9 +7,8 @@ If you want all of your managed users or a subset of managed users to have the s
 
 <Warning>
 **Important Limitation:**  
-Global event types (team event types with `assignAllTeamMembers: true`) are designed to create a *shared* event type for all managed users in a team. **They do not allow you to generate unique booking URLs for each managed user with their own individual availability.**  
-If your use case requires booking a specific managed user with their unique availability (e.g., `/username/event-type`), you must create a separate event type for each managed user using your own logic or API integration.  
-Team event types are not intended for this scenario.
+Global/team event types with `assignAllTeamMembers: true` act as a template that automatically creates a per‑user child event type for each managed user. The team/global booking link is shared and cannot be used to force‑select a particular user’s availability.  
+If you need to book a specific managed user with their own availability, use that user’s child event type link (e.g., `/{username}/{eventSlug}`) or programmatically create per‑user event types via the API.
 </Warning>
 
 <Info>
