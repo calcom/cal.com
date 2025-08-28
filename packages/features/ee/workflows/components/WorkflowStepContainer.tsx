@@ -3,7 +3,7 @@ import { type TFunction } from "i18next";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -138,7 +138,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const trigger = form.getValues("trigger");
+  const trigger = useWatch({
+    control: form.control,
+    name: "trigger",
+  });
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
 
   // Get appropriate variables based on trigger type
@@ -147,6 +150,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
+
+  // Filter out EMAIL_HOST action when trigger is a form trigger
+  const filteredActionOptions =
+    actionOptions?.filter((option) => {
+      if (isFormTrigger(trigger) && option.value === WorkflowActions.EMAIL_HOST) {
+        return false;
+      }
+      return true;
+    }) || [];
+
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
     const template = getTemplateBodyForAction({
@@ -511,7 +524,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actionOptions?.map((option) => ({
+                        options={filteredActionOptions.map((option) => ({
                           ...option,
                           creditsTeamId: teamId ?? creditsTeamId,
                         }))}
