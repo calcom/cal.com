@@ -1,3 +1,5 @@
+// This script is used to delete recordings older than 6 months from Daily.co
+
 interface Recording {
   id: string;
   room_name: string;
