@@ -18,6 +18,7 @@ type OAuthClientCardProps = {
   bookingRescheduleRedirectUri: string | null | undefined;
   areEmailsEnabled: boolean | undefined;
   areDefaultEventTypesEnabled: boolean;
+  areCalendarEventsEnabled: boolean;
   permissions: Array<keyof typeof PERMISSION_MAP>;
   lastItem: boolean;
   id: string;
@@ -42,6 +43,7 @@ export const OAuthClientCard = ({
   isLoading,
   areEmailsEnabled,
   areDefaultEventTypesEnabled,
+  areCalendarEventsEnabled,
   organizationId,
 }: OAuthClientCardProps) => {
   const router = useRouter();
@@ -172,6 +174,10 @@ export const OAuthClientCard = ({
         <div className="flex gap-1 text-sm">
           <span className="text-sm font-semibold">Default event types enabled:</span>{" "}
           {areDefaultEventTypesEnabled ? "Yes" : "No"}
+        </div>
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Calendar events enabled:</span>{" "}
+          {areCalendarEventsEnabled ? "Yes" : "No"}
         </div>
       </div>
       <div className="flex items-start gap-4">

@@ -1,7 +1,7 @@
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
+import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
@@ -24,15 +24,17 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     isOrg: input.isOrg,
   });
 
-  const verificationToken = await prisma.verificationToken.findFirst({
-    where: {
-      identifier: input.email,
+  let verificationToken;
+
+  try {
+    verificationToken = await VerificationTokenRepository.updateTeamInviteTokenExpirationDate({
+      email: input.email,
       teamId: input.teamId,
-    },
-    select: {
-      token: true,
-    },
-  });
+      expiresInDays: 7,
+    });
+  } catch (error) {
+    console.error("[resendInvitationHandler] Error updating verification token: ", error);
+  }
 
   const inviteTeamOptions = {
     joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,

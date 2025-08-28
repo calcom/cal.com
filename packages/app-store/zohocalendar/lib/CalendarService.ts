@@ -1,11 +1,12 @@
 import { stringify } from "querystring";
 
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
+  CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -112,7 +113,7 @@ export default class ZohoCalendarService implements Calendar {
     return this.handleData(response, this.log);
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarServiceEvent): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
@@ -158,7 +159,7 @@ export default class ZohoCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
+  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
@@ -457,10 +458,10 @@ export default class ZohoCalendarService implements Calendar {
     return data;
   }
 
-  private translateEvent = (event: CalendarEvent) => {
+  private translateEvent = (event: CalendarServiceEvent) => {
     const zohoEvent = {
       title: event.title,
-      description: getRichDescription(event),
+      description: event.calendarDescription,
       dateandtime: {
         start: dayjs(event.startTime).format("YYYYMMDDTHHmmssZZ"),
         end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),

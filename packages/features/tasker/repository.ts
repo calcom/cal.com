@@ -1,8 +1,9 @@
-import { type Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import db from "@calcom/prisma";
 
 import { type TaskTypes } from "./tasker";
+import { scanWorkflowBodySchema } from "./tasks/scanWorkflowBody";
 
 const whereSucceeded: Prisma.TaskWhereInput = {
   succeededAt: { not: null },
@@ -65,10 +66,6 @@ export class Task {
       },
       take: 1000,
     });
-  }
-
-  static async getAll() {
-    return db.task.findMany();
   }
 
   static async getFailed() {
@@ -154,24 +151,28 @@ export class Task {
     });
   }
 
-  static async cancelWithReference(referenceUid: string, type: TaskTypes) {
-    const task = await db.task.findFirst({
-      where: {
-        referenceUid,
-        type,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!task) return null;
-
-    return await db.task.delete({
-      where: {
-        id: task.id,
-      },
-    });
+  static async cancelWithReference(referenceUid: string, type: TaskTypes): Promise<{ id: string } | null> {
+    // db.task.delete throws an error if the task does not exist, so we catch it and return null
+    try {
+      return await db.task.delete({
+        where: {
+          referenceUid_type: {
+            referenceUid,
+            type,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+        // P2025 is the error code for "Record to delete does not exist"
+        console.warn(`Task with reference ${referenceUid} and type ${type} does not exist. No action taken.`);
+        return null;
+      }
+      throw error;
+    }
   }
 
   static async cleanup() {
@@ -186,5 +187,25 @@ export class Task {
     //     ],
     //   },
     // });
+  }
+
+  static async hasNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
+    const tasks = await db.$queryRaw<{ payload: string }[]>`
+      SELECT "payload"
+      FROM "Task"
+      WHERE "type" = 'scanWorkflowBody'
+        AND "succeededAt" IS NULL
+        AND (payload::jsonb ->> 'workflowStepId')::int = ${workflowStepId}
+        `;
+
+    return tasks.some((task) => {
+      try {
+        const parsed = scanWorkflowBodySchema.parse(JSON.parse(task.payload));
+        if (!parsed.createdAt) return false;
+        return new Date(parsed.createdAt) > new Date(createdAt);
+      } catch {
+        return false;
+      }
+    });
   }
 }

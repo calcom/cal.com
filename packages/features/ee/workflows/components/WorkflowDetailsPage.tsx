@@ -23,6 +23,13 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
+interface WorkflowPermissions {
+  canView: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  readOnly: boolean; // Keep for backward compatibility
+}
+
 interface Props {
   form: UseFormReturn<FormValues>;
   workflowId: number;
@@ -33,12 +40,29 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  permissions?: WorkflowPermissions;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
+  const {
+    form,
+    workflowId,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+    permissions: _permissions,
+  } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const permissions = _permissions || {
+    canView: !teamId ? true : !props.readOnly,
+    canUpdate: !teamId ? true : !props.readOnly,
+    canDelete: !teamId ? true : !props.readOnly,
+    readOnly: !teamId ? false : props.readOnly,
+  };
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
 
@@ -93,6 +117,7 @@ export default function WorkflowDetailsPage(props: Props) {
       numberVerificationPending: false,
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
+      agentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
@@ -160,7 +185,7 @@ export default function WorkflowDetailsPage(props: Props) {
             />
           </div>
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
-          {!props.readOnly && (
+          {permissions.canDelete && (
             <Button
               type="button"
               StartIcon="trash-2"

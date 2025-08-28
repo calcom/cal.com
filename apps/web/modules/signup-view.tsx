@@ -197,6 +197,7 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
@@ -216,7 +217,6 @@ export default function Signup({
       if (err.checkoutSessionId) {
         const stripe = await getStripe();
         if (stripe) {
-          console.log("Redirecting to stripe checkout");
           const { error } = await stripe.redirectToCheckout({
             sessionId: err.checkoutSessionId,
           });
@@ -470,6 +470,7 @@ export default function Signup({
                           showToast("error", t("username_required"));
                           return;
                         }
+                        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                         localStorage.setItem("username", username);
                         const sp = new URLSearchParams();
                         // @NOTE: don't remove username query param as it's required right now for stripe payment page
@@ -539,6 +540,7 @@ export default function Signup({
                         if (prepopulateFormValues?.username) {
                           // If username is present we save it in query params to check for premium
                           searchQueryParams.set("username", prepopulateFormValues.username);
+                          // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                           localStorage.setItem("username", prepopulateFormValues.username);
                         }
                         if (token) {
@@ -691,25 +693,23 @@ export default function Signup({
               />
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
-              {FEATURES.map((feature) => (
-                <>
-                  <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
-                    <div className="text-emphasis items-center">
-                      <Icon name={feature.icon} className="mb-1 h-4 w-4" />
-                      <span className="text-sm font-medium">{t(feature.title)}</span>
-                    </div>
-                    <div className="text-subtle text-sm">
-                      <p>
-                        {t(
-                          feature.description,
-                          feature.i18nOptions && {
-                            ...feature.i18nOptions,
-                          }
-                        )}
-                      </p>
-                    </div>
+              {FEATURES.map((feature, index) => (
+                <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                  <div className="text-emphasis items-center">
+                    <Icon name={feature.icon} className="mb-1 h-4 w-4" />
+                    <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
-                </>
+                  <div className="text-subtle text-sm">
+                    <p>
+                      {t(
+                        feature.description,
+                        feature.i18nOptions && {
+                          ...feature.i18nOptions,
+                        }
+                      )}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

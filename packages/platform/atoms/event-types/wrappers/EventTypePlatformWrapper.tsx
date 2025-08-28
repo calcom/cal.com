@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
@@ -12,7 +12,11 @@ import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/even
 import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
-import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
+import type {
+  EventTypeSetupProps,
+  FormValues,
+  EventTypePlatformWrapperRef,
+} from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -57,29 +61,37 @@ export type EventTypePlatformWrapperProps = {
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
   isDryRun?: boolean;
+  onFormStateChange?: (formState: {
+    isDirty: boolean;
+    dirtyFields: Partial<FormValues>;
+    values: FormValues;
+  }) => void;
 };
 
-const EventType = ({
-  tabs = ["setup", "availability", "team", "limits", "advanced", "recurring", "payments"],
-  onSuccess,
-  onError,
-  onDeleteSuccess,
-  onDeleteError,
-  id,
-  allowDelete = true,
-  customClassNames,
-  disableToasts = false,
-  isDryRun = false,
-  ...props
-}: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
+const EventType = forwardRef<
+  EventTypePlatformWrapperRef,
+  EventTypeSetupProps & EventTypePlatformWrapperProps
+>(function EventType(props, ref) {
+  const {
+    tabs = ["setup", "availability", "team", "limits", "advanced", "recurring", "payments"],
+    onSuccess,
+    onError,
+    onDeleteSuccess,
+    onDeleteError,
+    id,
+    allowDelete = true,
+    customClassNames,
+    disableToasts = false,
+    isDryRun = false,
+    onFormStateChange,
+    ...restProps
+  } = props;
   const { t } = useLocale();
   const { toast } = useToast();
   const { organizationId } = useAtomsContext();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
-  const [pendingRoute, setPendingRoute] = useState("");
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = props;
+  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = restProps;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: user, isLoading: isUserLoading } = useMe();
 
@@ -87,7 +99,6 @@ const EventType = ({
     showToast(t("event_type_deleted_successfully"), "success");
     isTeamEventTypeDeleted.current = true;
     setSlugExistsChildrenDialogOpen([]);
-    setIsOpenAssignmentWarnDialog(false);
     onDeleteSuccess?.();
   };
 
@@ -128,6 +139,7 @@ const EventType = ({
       form.reset(currentValues);
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
       onSuccess?.(currentValues);
+      callbacksRef.current?.onSuccess?.();
     },
     async onSettled() {
       return;
@@ -135,8 +147,12 @@ const EventType = ({
     onError: (err: Error) => {
       const currentValues = form.getValues();
       const message = err?.message;
-      toast({ description: message ? t(message) : t(err.message) });
+      const description = message ? t(message) : t(err.message);
+      toast({ description });
       onError?.(currentValues, err);
+
+      const errorObj = new Error(description);
+      callbacksRef.current?.onError?.(errorObj);
     },
     teamId: team?.id,
   });
@@ -148,12 +164,58 @@ const EventType = ({
         updateMutation.mutate(data);
       } else {
         toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+        callbacksRef.current?.onSuccess?.();
       }
     },
+    onFormStateChange: onFormStateChange,
   });
+
+  // Create a ref for the save button to trigger its click
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+
+  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+
+  const handleFormSubmit = useCallback(
+    (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+      if (customCallbacks) {
+        callbacksRef.current = customCallbacks;
+      }
+
+      if (saveButtonRef.current) {
+        saveButtonRef.current.click();
+      } else {
+        form.handleSubmit((data) => {
+          try {
+            handleSubmit(data);
+            customCallbacks?.onSuccess?.();
+          } catch (error) {
+            customCallbacks?.onError?.(error as Error);
+          }
+        })();
+      }
+    },
+    [handleSubmit, form]
+  );
+
+  const validateForm = useCallback(async () => {
+    const isValid = await form.trigger();
+    return {
+      isValid,
+      errors: form.formState.errors,
+    };
+  }, [form]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      validateForm,
+      handleFormSubmit,
+    }),
+    [validateForm, handleFormSubmit]
+  );
   const slug = form.watch("slug") ?? eventType.slug;
 
-  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+  const showToast = (message: string, _variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
       toast({ description: message });
     }
@@ -239,9 +301,8 @@ const EventType = ({
     hosts: eventType.hosts,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
-    onError: (url) => {
-      setIsOpenAssignmentWarnDialog(true);
-      setPendingRoute(url);
+    onError: () => {
+      return;
     },
     onStart: () => {
       return;
@@ -277,7 +338,7 @@ const EventType = ({
   return (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <EventTypeComponent
-        {...props}
+        {...restProps}
         tabMap={tabMap}
         onDelete={onDelete}
         onConflict={onConflict}
@@ -287,7 +348,8 @@ const EventType = ({
         isPlatform
         tabName={currentTab}
         tabsNavigation={tabsNavigation}
-        allowDelete={allowDelete}>
+        allowDelete={allowDelete}
+        saveButtonRef={saveButtonRef}>
         <>
           {slugExistsChildrenDialogOpen.length ? (
             <ManagedEventTypeDialog
@@ -308,19 +370,24 @@ const EventType = ({
       </EventTypeComponent>
     </AtomsWrapper>
   );
-};
+});
 
-export const EventTypePlatformWrapper = ({
-  id,
-  tabs,
-  onSuccess,
-  onError,
-  onDeleteSuccess,
-  onDeleteError,
-  allowDelete = true,
-  customClassNames,
-  isDryRun,
-}: EventTypePlatformWrapperProps) => {
+export const EventTypePlatformWrapper = forwardRef<
+  EventTypePlatformWrapperRef,
+  EventTypePlatformWrapperProps
+>(function EventTypePlatformWrapper(props, ref) {
+  const {
+    id,
+    tabs,
+    onSuccess,
+    onError,
+    onDeleteSuccess,
+    onDeleteError,
+    allowDelete = true,
+    customClassNames,
+    isDryRun,
+    onFormStateChange,
+  } = props;
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
 
@@ -336,7 +403,7 @@ export const EventTypePlatformWrapper = ({
         });
       }
     };
-  }, [queryClient, id]);
+  }, [queryClient, id, eventTypeQueryData]);
 
   if (!eventTypeQueryData) return null;
 
@@ -352,6 +419,8 @@ export const EventTypePlatformWrapper = ({
       allowDelete={allowDelete}
       customClassNames={customClassNames}
       isDryRun={isDryRun}
+      onFormStateChange={onFormStateChange}
+      ref={ref}
     />
   );
-};
+});

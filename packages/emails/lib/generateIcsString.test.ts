@@ -1,5 +1,6 @@
 import { describe, expect } from "vitest";
 
+import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildCalendarEvent, buildPerson } from "@calcom/lib/test/builder";
 import { buildVideoCallData } from "@calcom/lib/test/builder";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -26,14 +27,21 @@ const testIcsStringContains = ({
 }) => {
   const DTSTART = `${event.startTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
   const DTEND = `${event.endTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
-
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+    .filter((domain) => domain.trim() !== "")
+    .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
   expect(icsString).toEqual(expect.stringContaining(`UID:${event.iCalUID}`));
   // Sometimes the deeply equal stringMatching error appears. Don't want to add flakey tests
   // expect(icsString).toEqual(expect.stringContaining(`SUMMARY:${event.title}`));
   expect(icsString).toEqual(expect.stringContaining(`DTSTART:${DTSTART}`));
-  expect(icsString).toEqual(
-    expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:${event.organizer.email}`)
-  );
+  if (event.hideOrganizerEmail && !isOrganizerExempt) {
+    expect(icsString).toEqual(expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}`));
+    expect(icsString).not.toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
+  } else {
+    expect(icsString).toEqual(
+      expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:${event.organizer.email}`)
+    );
+  }
   expect(icsString).toEqual(expect.stringContaining(`DTEND:${DTEND}`));
   expect(icsString).toEqual(expect.stringContaining(`STATUS:${status}`));
   //   Getting an error expected icsString to deeply equal stringMatching

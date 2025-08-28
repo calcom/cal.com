@@ -1,3 +1,5 @@
+import type React from "react";
+
 import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
@@ -23,6 +25,11 @@ export interface BookerProps {
     all custom classnames related to booker styling go here
   */
   customClassNames?: CustomClassNames;
+
+  /**
+   * Custom React components to render at the bottom of the EventMeta component
+   */
+  eventMetaChildren?: React.ReactNode;
 
   /**
    * Whether is a team or org, we gather basic info from both
@@ -91,8 +98,10 @@ export interface BookerProps {
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
+  showNoAvailabilityDialog?: boolean;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;
@@ -132,11 +141,13 @@ export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
   timeZones?: Timezone[];
+  roundRobinHideOrgAndTeam?: boolean;
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
   timeZones?: Timezone[];
+  roundRobinHideOrgAndTeam?: boolean;
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
@@ -152,15 +163,9 @@ export type CustomClassNames = {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
+    eventMetaChildren?: string;
   };
-  datePickerCustomClassNames?: {
-    datePickerContainer?: string;
-    datePickerTitle?: string;
-    datePickerDays?: string;
-    datePickerDate?: string;
-    datePickerDatesActive?: string;
-    datePickerToggle?: string;
-  };
+  datePickerCustomClassNames?: DatePickerClassNames;
   availableTimeSlotsCustomClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsHeaderContainer?: string;
@@ -173,4 +178,13 @@ export type CustomClassNames = {
     confirmButton?: string;
     backButton?: string;
   };
+};
+
+export type DatePickerClassNames = {
+  datePickerContainer?: string;
+  datePickerTitle?: string;
+  datePickerDays?: string;
+  datePickerDate?: string;
+  datePickerDatesActive?: string;
+  datePickerToggle?: string;
 };

@@ -15,6 +15,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import {
   Switch,
   CheckboxField,
@@ -23,7 +24,6 @@ import {
   Input,
   InputField,
   Label,
-  BooleanToggleGroupField,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -42,9 +42,29 @@ type RhfFormFields = RhfForm["fields"];
 
 type RhfFormField = RhfFormFields[number];
 
+type DataStore = {
+  options: Record<
+    string,
+    {
+      source: { label: string };
+      value: { label: string; value: string; inputPlaceholder?: string }[];
+    }
+  >;
+};
+
 function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
   return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
 }
+
+const getLocationFieldType = (field: RhfFormField) => {
+  const baseFieldType = fieldTypesConfigMap[field.type];
+
+  if (field.name === "location") {
+    return { ...baseFieldType, label: "Location" };
+  }
+
+  return baseFieldType;
+};
 
 /**
  * It works with a react-hook-form only.
@@ -59,6 +79,7 @@ export const FormBuilder = function FormBuilder({
   LockedIcon,
   dataStore,
   shouldConsiderRequired,
+  showPhoneAndEmailToggle = false,
 }: {
   formProp: string;
   title: string;
@@ -66,18 +87,11 @@ export const FormBuilder = function FormBuilder({
   addFieldLabel: string;
   disabled: boolean;
   LockedIcon: false | JSX.Element;
+  showPhoneAndEmailToggle?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
-  dataStore: {
-    options: Record<
-      string,
-      {
-        source: { label: string };
-        value: { label: string; value: string; inputPlaceholder?: string }[];
-      }
-    >;
-  };
+  dataStore: DataStore;
   /**
    * This is kind of a hack to allow certain fields to be just shown as required when they might not be required in a strict sense
    * e.g. Location field has a default value at backend so API can send no location but formBuilder in UI doesn't allow it.
@@ -129,7 +143,68 @@ export const FormBuilder = function FormBuilder({
           {title}
           {LockedIcon}
         </div>
-        <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+        <div className="flex items-start justify-between">
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+          {showPhoneAndEmailToggle && (
+            <ToggleGroup
+              value={(() => {
+                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
+                const emailField = fields.find((field) => field.name === "email");
+
+                if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
+                  return "phone";
+                }
+
+                return "email";
+              })()}
+              options={[
+                {
+                  value: "email",
+                  label: "Email",
+                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                },
+                {
+                  value: "phone",
+                  label: "Phone",
+                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                },
+              ]}
+              onValueChange={(value) => {
+                const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
+                const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+                if (value === "email") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                } else if (value === "phone") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                }
+              }}
+            />
+          )}
+        </div>
+        <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+          {t("questions")}
+        </p>
+        <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+          {t("all_info_your_booker_provide")}
+        </p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             let options = field.options ?? null;
@@ -163,7 +238,7 @@ export const FormBuilder = function FormBuilder({
               return null;
             }
 
-            const fieldType = fieldTypesConfigMap[field.type];
+            const fieldType = getLocationFieldType(field);
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -208,9 +283,8 @@ export const FormBuilder = function FormBuilder({
                     )}
                   </>
                 )}
-
                 <div>
-                  <div className="flex flex-col lg:flex-row lg:items-center">
+                  <div className="mr-4 flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
                       <FieldLabel field={field} />
                     </div>
@@ -480,6 +554,7 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
+  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -502,7 +577,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[formFieldType]}
+              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -609,26 +684,33 @@ function FieldEditDialog({
                       />
                     )}
 
-                    <Controller
-                      name="required"
-                      control={fieldForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        const isRequired = shouldConsiderRequired
-                          ? shouldConsiderRequired(fieldForm.getValues())
-                          : value;
-                        return (
-                          <BooleanToggleGroupField
-                            data-testid="field-required"
-                            disabled={fieldForm.getValues("editable") === "system"}
-                            value={isRequired}
-                            onValueChange={(val) => {
-                              onChange(val);
-                            }}
-                            label={t("required")}
-                          />
-                        );
-                      }}
-                    />
+                    <div className="mt-6">
+                      <Controller
+                        name="required"
+                        control={fieldForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          let isRequired = shouldConsiderRequired
+                            ? shouldConsiderRequired(fieldForm.getValues())
+                            : value;
+                          //by default question should be required
+                          if (isRequired === undefined) {
+                            isRequired = true;
+                            onChange(isRequired);
+                          }
+                          return (
+                            <CheckboxField
+                              data-testid="field-required"
+                              disabled={fieldForm.getValues("editable") === "system"}
+                              checked={isRequired}
+                              onChange={(e) => {
+                                onChange(e.target.checked);
+                              }}
+                              description={t("make_field_required")}
+                            />
+                          );
+                        }}
+                      />
+                    </div>
                   </>
                 );
               }
@@ -816,10 +898,12 @@ function VariantFields({
         label={t("identifier")}
       />
 
-      <CheckboxField
-        description={t("disable_input_if_prefilled")}
-        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-      />
+      <div className="mt-2">
+        <CheckboxField
+          description={t("disable_input_if_prefilled")}
+          {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+        />
+      </div>
 
       <ul
         className={classNames(
@@ -857,23 +941,25 @@ function VariantFields({
                 placeholder={t(appUiFieldConfig?.defaultPlaceholder || "")}
               />
 
-              <Controller
-                name={`${rhfVariantFieldPrefix}.required`}
-                control={fieldForm.control}
-                render={({ field: { onChange } }) => {
-                  return (
-                    <BooleanToggleGroupField
-                      data-testid="field-required"
-                      disabled={!appUiFieldConfig?.canChangeRequirability}
-                      value={f.required}
-                      onValueChange={(val) => {
-                        onChange(val);
-                      }}
-                      label={t("required")}
-                    />
-                  );
-                }}
-              />
+              <div className="mt-6">
+                <Controller
+                  name={`${rhfVariantFieldPrefix}.required`}
+                  control={fieldForm.control}
+                  render={({ field: { onChange } }) => {
+                    return (
+                      <CheckboxField
+                        data-testid="field-required"
+                        disabled={!appUiFieldConfig?.canChangeRequirability}
+                        checked={f.required}
+                        onChange={(e) => {
+                          onChange(e.target.checked);
+                        }}
+                        description={t("make_field_required")}
+                      />
+                    );
+                  }}
+                />
+              </div>
             </li>
           );
         })}

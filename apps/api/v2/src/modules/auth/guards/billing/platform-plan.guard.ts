@@ -1,6 +1,6 @@
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { PlatformPlanType } from "@/modules/billing/types";
+import { PlatformPlanType, orderedPlans } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
@@ -61,7 +61,7 @@ export class PlatformPlanGuard implements CanActivate {
       !hasMinimumPlan({
         currentPlan: organization.platformBilling?.plan as PlatformPlanType,
         minimumPlan: minimumPlan,
-        plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "ENTERPRISE"],
+        plans: orderedPlans,
       })
     ) {
       throw new ForbiddenException(
@@ -79,7 +79,7 @@ export class PlatformPlanGuard implements CanActivate {
 type HasMinimumPlanProp = {
   currentPlan: PlatformPlanType;
   minimumPlan: PlatformPlanType;
-  plans: PlatformPlanType[];
+  plans: readonly PlatformPlanType[];
 };
 
 export function hasMinimumPlan(props: HasMinimumPlanProp): boolean {
@@ -87,7 +87,7 @@ export function hasMinimumPlan(props: HasMinimumPlanProp): boolean {
   const minimumPlanIndex = props.plans.indexOf(props.minimumPlan);
 
   if (currentPlanIndex === -1 || minimumPlanIndex === -1) {
-    throw new Error(
+    throw new ForbiddenException(
       `PlatformPlanGuard - Invalid platform billing plan provided. Current plan: ${props.currentPlan}, Minimum plan: ${props.minimumPlan}`
     );
   }

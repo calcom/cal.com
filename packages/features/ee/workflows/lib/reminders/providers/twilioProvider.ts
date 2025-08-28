@@ -239,7 +239,7 @@ export const getMessageBody = async (referenceId: string) => {
 
 async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
   if (teamId) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
@@ -269,7 +269,7 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
       return true;
     }
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -284,11 +284,14 @@ export async function getCountryCodeForNumber(phoneNumber: string) {
   return countryCode;
 }
 
-export async function getPriceForSMS(smsSid: string) {
+export async function getMessageInfo(smsSid: string) {
   const twilio = createTwilioClient();
   const message = await twilio.messages(smsSid).fetch();
-  if (message.price == null || message.price === "null") return null;
-  return Math.abs(parseFloat(message.price));
+  const price = message.price ? Math.abs(parseFloat(message.price)) : null;
+
+  const numSegments = message.numSegments ? parseInt(message.numSegments) : null;
+
+  return { price, numSegments };
 }
 
 export async function validateWebhookRequest({

@@ -10,7 +10,8 @@ import {
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { apiToInternalintegrationsMapping } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { defaultBookingResponses } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -29,10 +30,7 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import {
-  EventTypeMetaDataSchema,
-  apiToInternalintegrationsMapping,
-} from "@calcom/platform-libraries/event-types";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -61,6 +59,7 @@ type OAuthRequestParams = {
   platformBookingUrl: string;
   platformBookingLocation?: string;
   arePlatformEmailsEnabled: boolean;
+  areCalendarEventsEnabled: boolean;
 };
 
 export enum Frequency {
@@ -187,6 +186,31 @@ export class InputBookingsService_2024_08_13 {
         guests,
         location,
       },
+      ...this.getRoutingFormData(inputBooking.routing),
+    };
+  }
+
+  private getRoutingFormData(
+    routing:
+      | {
+          teamMemberIds?: number[];
+          responseId?: number;
+          teamMemberEmail?: string;
+          skipContactOwner?: boolean;
+          crmAppSlug?: string;
+          crmOwnerRecordType?: string;
+        }
+      | undefined
+  ) {
+    if (!routing) return null;
+
+    return {
+      routedTeamMemberIds: routing.teamMemberIds,
+      routingFormResponseId: routing.responseId,
+      teamMemberEmail: routing.teamMemberEmail,
+      skipContactOwner: routing.skipContactOwner,
+      crmAppSlug: routing.crmAppSlug,
+      crmOwnerRecordType: routing.crmOwnerRecordType,
     };
   }
 
@@ -396,6 +420,9 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
+
     const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
     const repeatsEvery = occurrence.interval;
 
@@ -432,7 +459,7 @@ export class InputBookingsService_2024_08_13 {
     const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
     for (let i = 0; i < repeatsTimes; i++) {
-      const endTime = startTime.plus({ minutes: eventType.length });
+      const endTime = startTime.plus({ minutes: lengthInMinutes });
 
       events.push({
         start: startTime.toISO(),
@@ -454,6 +481,7 @@ export class InputBookingsService_2024_08_13 {
           location,
         },
         schedulingType: eventType.schedulingType,
+        ...this.getRoutingFormData(inputBooking.routing),
       });
 
       switch (timeBetween) {
@@ -587,6 +615,11 @@ export class InputBookingsService_2024_08_13 {
     if (!eventType) {
       throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
     }
+    if (eventType.seatsPerTimeSlot) {
+      throw new BadRequestException(
+        `Booking with uid=${bookingUid} is a seated booking which means you have to provide seatUid in the request body to specify which seat specifically you want to reschedule. First, fetch the booking using https://cal.com/docs/api-reference/v2/bookings/get-a-booking and then within the attendees array you will find the seatUid of the booking you want to reschedule. Second, provide the seatUid in the request body to specify which seat specifically you want to reschedule using the reschedule endpoint https://cal.com/docs/api-reference/v2/bookings/reschedule-a-booking#option-2`
+      );
+    }
 
     const bookingResponses = safeParse(
       bookingResponsesSchema,
@@ -645,7 +678,7 @@ export class InputBookingsService_2024_08_13 {
       if (bearerToken) {
         if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
           const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const apiKeyHash = sha256Hash(strippedApiKey);
           const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
           return keyData?.userId;
         } else {
@@ -672,6 +705,7 @@ export class InputBookingsService_2024_08_13 {
       beforeUpdatedDate: queryParams.beforeUpdatedAt,
       afterCreatedDate: queryParams.afterCreatedAt,
       beforeCreatedDate: queryParams.beforeCreatedAt,
+      bookingUid: queryParams.bookingUid,
     };
   }
 
@@ -705,6 +739,12 @@ export class InputBookingsService_2024_08_13 {
     const booking = await this.bookingsRepository.getByUid(bodyTransformed.uid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
+    }
+
+    if (booking.status === "CANCELLED") {
+      throw new BadRequestException(
+        `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+      );
     }
 
     const oAuthClientParams = booking.eventTypeId

@@ -20,6 +20,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 400, message: "Session user must have an email" });
   }
 
+  const { teamId } = req.query;
   const { client_id, redirect_uris } = await getParsedAppKeysFromSlug("dub", dubAppKeysSchema);
 
   const url = new URL("https://app.dub.co/oauth/authorize");
@@ -27,6 +28,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   url.searchParams.append("redirect_uri", redirect_uris);
   url.searchParams.append("response_type", "code");
   url.searchParams.append("scope", scopeString);
+  if (typeof teamId === "string" && !Number.isNaN(Number(teamId))) {
+    url.searchParams.append("state", JSON.stringify({ teamId: Number(teamId) }));
+  }
   const oauthUrl = url.toString();
 
   return res.status(200).json({ url: oauthUrl });

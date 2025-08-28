@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { AvailableSlotsType } from "@calcom/platform-libraries";
 import type {
   GetAvailableSlotsInput_2024_04_15,
   ApiResponse,
   ApiSuccessResponse,
 } from "@calcom/platform-types";
+import type { GetAvailableSlotsResponse } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import http from "../lib/http";
 
@@ -33,12 +33,12 @@ export const useAvailableSlots = ({
     ],
     queryFn: () => {
       return http
-        .get<ApiResponse<AvailableSlotsType>>("/slots/available", {
+        .get<ApiResponse<GetAvailableSlotsResponse>>("/slots/available", {
           params: rest,
         })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
-            return (res.data as ApiSuccessResponse<AvailableSlotsType>).data;
+            return (res.data as ApiSuccessResponse<GetAvailableSlotsResponse>).data;
           }
           throw new Error(res.data.error.message);
         });

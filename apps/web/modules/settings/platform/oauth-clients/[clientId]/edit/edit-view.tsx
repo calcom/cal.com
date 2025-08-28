@@ -60,6 +60,7 @@ export default function EditOAuthClient() {
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
       areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
+      areCalendarEventsEnabled: data.areCalendarEventsEnabled,
     });
   };
 
@@ -87,6 +88,7 @@ export default function EditOAuthClient() {
                   name: data?.name ?? "",
                   areEmailsEnabled: data.areEmailsEnabled ?? false,
                   areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
+                  areCalendarEventsEnabled: data.areCalendarEventsEnabled,
                   redirectUris: data?.redirectUris?.map((uri) => ({ uri })) ?? [{ uri: "" }],
                   bookingRedirectUri: data?.bookingRedirectUri ?? "",
                   bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",

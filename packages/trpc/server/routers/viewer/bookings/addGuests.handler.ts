@@ -23,7 +23,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
 
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       id: bookingId,
     },
@@ -55,7 +55,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
 
-  const organizer = await prisma.user.findFirstOrThrow({
+  const organizer = await prisma.user.findUniqueOrThrow({
     where: {
       id: booking.userId || 0,
     },
@@ -136,6 +136,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
     location: booking.location,
     destinationCalendar: booking?.destinationCalendar

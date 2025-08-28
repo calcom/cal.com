@@ -1,33 +1,42 @@
+import type { Prisma } from "@prisma/client";
+
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
+import type { THasActiveTeamPlanInputSchema } from "./hasActiveTeamPlan.schema";
+
 type HasActiveTeamPlanOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id">;
   };
+  input: THasActiveTeamPlanInputSchema;
 };
 
-export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions) => {
+export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlanOptions) => {
   if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
 
-  const teams = await prisma.team.findMany({
-    where: {
-      members: {
-        some: {
-          userId: ctx.user.id,
-          accepted: true,
-        },
-      },
-    },
-  });
+  const whereClause: Prisma.MembershipWhereInput = { userId: ctx.user.id, accepted: true };
+
+  if (input?.ownerOnly) {
+    whereClause.role = "OWNER";
+  }
+
+  const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, whereClause);
 
   if (!teams.length) return { isActive: false, isTrial: false };
 
   let isTrial = false;
   // check if user has at least on membership with an active plan
   for (const team of teams) {
+    if (team.isPlatform && team.isOrganization) {
+      const platformBilling = await prisma.platformBilling.findUnique({ where: { id: team.id } });
+      if (platformBilling && platformBilling.plan !== "none" && platformBilling.plan !== "FREE") {
+        return { isActive: true, isTrial: false };
+      }
+    }
     const teamBillingService = new InternalTeamBilling(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 

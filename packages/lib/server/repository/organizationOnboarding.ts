@@ -23,6 +23,7 @@ export type CreateOrganizationOnboardingInput = {
   teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string | null }[];
   error?: string | null;
   isDomainConfigured?: boolean;
+  isComplete?: boolean;
 };
 
 export class OrganizationOnboardingRepository {
@@ -95,13 +96,16 @@ export class OrganizationOnboardingRepository {
 
   static async update(id: OnboardingId, data: Partial<CreateOrganizationOnboardingInput>) {
     logger.debug("Updating organization onboarding", safeStringify({ id, data }));
+    // We don't want to update the createdById field in update
+    const { organizationId, createdById: _, ...rest } = data;
 
     return await prisma.organizationOnboarding.update({
       where: {
         id,
       },
       data: {
-        ...data,
+        ...rest,
+        ...(organizationId ? { organization: { connect: { id: organizationId } } } : {}),
         updatedAt: new Date(),
       },
     });

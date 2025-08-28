@@ -368,10 +368,11 @@ test.describe("Bookings", () => {
       );
     });
 
-    test("Round robin event type with confirmation required handles cancellation and rebooking correctly with the same details and slot", async ({
+    test("Round robin event type with confirmation required handles rejection and rebooking correctly with the same details and slot", async ({
       page,
       users,
       orgs,
+      browser,
     }) => {
       const org = await orgs.create({
         name: "TestOrg",
@@ -421,38 +422,41 @@ test.describe("Bookings", () => {
           const bookingUid = page.url().split("/booking/")[1];
           expect(bookingUid).not.toBeNull();
 
-          // Login as the host to cancel the booking
           await page.goto("/auth/logout");
-          const allUsers = await users.get();
+
+          const allUsers = users.get();
           const hostUser = allUsers.find((mate) => mate.name === firstHost);
           if (!hostUser) throw new Error("Host not found");
 
           await hostUser.apiLogin();
+          const [secondContext, secondPage] = await hostUser.apiLoginOnNewBrowser(browser);
 
-          // Cancel the booking
-          await page.goto(`/booking/${bookingUid}`);
-          await page.getByTestId("cancel").click();
-          await page.getByTestId("confirm_cancel").click();
-          await page.waitForResponse((response) => response.url().includes("/api/cancel"));
+          // Reject the booking
+          await secondPage.goto("/bookings/upcoming");
+          await secondPage.click('[data-testid="reject"]');
+          await submitAndWaitForResponse(secondPage, "/api/trpc/bookings/confirm?batch=1", {
+            action: () => secondPage.click('[data-testid="rejection-confirm"]'),
+          });
 
           // Logout and go back to booking page
-          await page.goto("/auth/logout");
-          await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
+          await secondPage.goto("/auth/logout");
+          await secondPage.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
 
           // Rebook with the same details
-          await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
-          await expect(page.getByTestId("success-page")).toBeVisible();
+          await selectFirstAvailableTimeSlotNextMonth(secondPage);
+          await bookTimeSlot(secondPage);
+          await expect(secondPage.getByTestId("success-page")).toBeVisible();
 
           // Verify a new host is assigned
-          const newHost = await page.getByTestId("booking-host-name").textContent();
+          const newHost = await secondPage.getByTestId("booking-host-name").textContent();
           expect(newHost).not.toBeNull();
           expect(newHost).toBe(firstHost);
 
           // Verify the booking was successful by checking the new booking UID
-          const newBookingUid = page.url().split("/booking/")[1];
+          const newBookingUid = secondPage.url().split("/booking/")[1];
           expect(newBookingUid).not.toBeNull();
           expect(newBookingUid).not.toBe(bookingUid);
+          await secondContext.close();
         }
       );
     });
@@ -776,8 +780,8 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 
   // Make email as not required
   await page.locator('[data-testid="field-email"] [data-testid="edit-field-action"]').click();
-  const emailRequiredFiled = await page.locator('[data-testid="field-required"]');
-  await emailRequiredFiled.locator("> :nth-child(2)").click();
+  const emailRequiredFiled = await page.locator('[data-testid="field-required"]').first();
+  await emailRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
   await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
@@ -786,12 +790,12 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   await page.goto(`/event-types/${eventId}?tabName=advanced`);
-  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); // fix the race condition
+  await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics"); // fix the race condition
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();
-  const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');
-  await phoneRequiredFiled.locator("> :nth-child(1)").click();
+  const phoneRequiredFiled = await page.locator('[data-testid="field-required"]').first();
+  await phoneRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
   await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),

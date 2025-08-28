@@ -8,13 +8,14 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
@@ -60,7 +61,9 @@ async function processReschedule({
     booking === null ||
     !booking.eventTypeId ||
     (booking?.eventTypeId === props.eventData?.id &&
-      (booking.status !== BookingStatus.CANCELLED || allowRescheduleForCancelledBooking))
+      (booking.status !== BookingStatus.CANCELLED ||
+        allowRescheduleForCancelledBooking ||
+        !!(props.eventData as any)?.allowReschedulingCancelledBookings))
   ) {
     props.booking = booking;
     props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
@@ -119,20 +122,21 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const org = isValidOrgDomain ? currentOrgDomain : null;
-  if (!org) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
 
-    if (redirect) {
-      return redirect;
-    }
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: org,
+  });
+
+  if (redirect) {
+    return redirect;
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const userRepo = new UserRepository(prisma);
+  const usersInOrgContext = await userRepo.findUsersByUsername({
     usernameList: usernames,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
@@ -216,18 +220,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+  });
 
-    if (redirect) {
-      return redirect;
-    }
+  if (redirect) {
+    return redirect;
   }
 
   const [user] = await getUsersInOrgContext([username], isValidOrgDomain ? currentOrgDomain : null);
@@ -268,7 +270,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventData: eventData,
     user: username,
     slug,
-    isBrandingHidden: user?.hideBranding,
+    isBrandingHidden: shouldHideBrandingForUserEvent({
+      eventTypeId: eventData.id,
+      owner: user,
+    }),
     isSEOIndexable: allowSEOIndexing,
     themeBasis: username,
     bookingUid: bookingUid ? `${bookingUid}` : null,
