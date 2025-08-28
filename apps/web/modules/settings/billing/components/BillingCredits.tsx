@@ -84,15 +84,14 @@ export default function BillingCredits() {
   const isOrgScopedPath =
     settingsIndex >= 0 && ["organizations", "teams"].includes(tokens[settingsIndex + 1]);
 
-  if (!IS_SMS_CREDITS_ENABLED) {
-    return null;
-  }
+  const shouldRender = IS_SMS_CREDITS_ENABLED && !(orgId && !isOrgScopedPath && !orgBranding?.slug);
 
-  if (orgId && !isOrgScopedPath && !orgBranding?.slug) {
-    return null;
-  }
+  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
+    { teamId },
+    { enabled: shouldRender }
+  );
 
-  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
+  if (!shouldRender) return null;
 
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
     onSuccess: (data) => {
