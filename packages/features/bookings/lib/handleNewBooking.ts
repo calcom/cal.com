@@ -54,6 +54,7 @@ import {
 } from "@calcom/lib/delegationCredential/server";
 import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
 import { getCacheService } from "@calcom/lib/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -67,7 +68,6 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -82,8 +82,8 @@ import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
@@ -941,7 +941,8 @@ async function handler(
             memberId: eventTypeWithUsers.users[0].id ?? null,
             teamId: eventType.teamId,
           });
-          const newLuckyUser = await getLuckyUser({
+          const luckyUserService = getLuckyUserService();
+          const newLuckyUser = await luckyUserService.getLuckyUser({
             // find a lucky user that is not already in the luckyUsers array
             availableUsers: freeUsers,
             // only hosts from the same group
@@ -1966,7 +1967,21 @@ async function handler(
             members: newBookedMembers,
             eventTypeMetadata: eventType.metadata,
           });
-          sendRoundRobinCancelledEmailsAndSMS(cancelledRRHostEvt, cancelledMembers, eventType.metadata);
+          const reassignedTo = users.find(
+            (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+          );
+          sendRoundRobinCancelledEmailsAndSMS(
+            cancelledRRHostEvt,
+            cancelledMembers,
+            eventType.metadata,
+            !!reassignedTo
+              ? {
+                  name: reassignedTo.name,
+                  email: reassignedTo.email,
+                  ...(reqBody.rescheduledBy === bookerEmail && { reason: "Booker Rescheduled" }),
+                }
+              : undefined
+          );
         }
       } else {
         if (!isDryRun) {

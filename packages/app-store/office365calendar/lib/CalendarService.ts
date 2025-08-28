@@ -1,7 +1,7 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
-import { MSTeamsLocationType } from "@calcom/app-store/locations";
+import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {

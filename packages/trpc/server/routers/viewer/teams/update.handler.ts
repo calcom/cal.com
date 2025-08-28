@@ -8,7 +8,7 @@ import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -95,7 +95,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.slug = input.slug;
 
     // If we save slug, we don't need the requestedSlug anymore
-    const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+    const metadataParse = teamMetadataStrictSchema.safeParse(prevTeam.metadata);
     if (metadataParse.success) {
       const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
       data.metadata = {
