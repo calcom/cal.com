@@ -236,8 +236,8 @@ export function AddMembersWithSwitch({
                 value: host.userId?.toString() ?? host.email ?? "",
                 label: host.email ?? host.userId?.toString() ?? "",
                 avatar: "",
-                priority: host.priority ?? null,
-                weight: host.weight ?? null,
+                priority: host.priority ?? undefined,
+                weight: host.weight ?? undefined,
                 isFixed: host.isFixed ?? false,
                 groupId: host.groupId ?? null,
               }))}

@@ -14,7 +14,7 @@ import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 // Import and re-export CheckedSelectOption
-import type { CheckedSelectOption } from "./components/CheckedTeamSelect";
+import type { CheckedSelectOption } from "../components/CheckedTeamSelect";
 
 // Re-export for convenience
 export type { AttributesQueryValue };

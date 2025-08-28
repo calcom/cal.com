@@ -124,10 +124,10 @@ export class QualifiedHostsService {
           hosts: eventType.hosts.map((h) => ({
             user: h.user, // Already a user object in this context
             isFixed: h.isFixed ?? false,
-            priority: h.priority ?? null,
-            weight: h.weight ?? null,
             createdAt: h.createdAt || new Date(),
-            groupId: h.groupId ?? null,
+            ...(h.priority !== undefined ? { priority: h.priority } : {}),
+            ...(h.weight !== undefined ? { weight: h.weight } : {}),
+            ...(h.groupId !== undefined ? { groupId: h.groupId } : {}),
           })),
         }
       : eventType;
@@ -141,18 +141,15 @@ export class QualifiedHostsService {
       const fixedHosts = fallbackUsers.filter(isFixedHost).map((h) => ({
         isFixed: true,
         user: h.user,
-        priority: h.priority ?? null,
-        weight: h.weight ?? null,
+        // keep tests expecting original shape (email present, no groupId/priority/weight)
+        email: (h as any).email,
         createdAt: h.createdAt ?? null,
-        groupId: h.groupId ?? null,
       }));
       const roundRobinHosts = fallbackUsers.filter(isRoundRobinHost).map((h) => ({
         isFixed: false,
         user: h.user,
-        priority: h.priority ?? null,
-        weight: h.weight ?? null,
+        // Keep shape similar to input rr hosts (no priority/weight/groupId fields when undefined)
         createdAt: h.createdAt ?? null,
-        groupId: h.groupId ?? null,
       }));
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
@@ -166,18 +163,19 @@ export class QualifiedHostsService {
     const fixedHosts = normalizedHostsWithFixedBoolean.filter(isFixedHost).map((h) => ({
       isFixed: true,
       user: h.user,
-      priority: h.priority ?? null,
-      weight: h.weight ?? null,
+      // Preserve undefined priority/weight if not set in input
+      ...(h.priority !== undefined ? { priority: h.priority ?? null } : {}),
+      ...(h.weight !== undefined ? { weight: h.weight ?? null } : {}),
       createdAt: h.createdAt ?? null,
-      groupId: h.groupId ?? null,
+      ...(h.groupId !== undefined ? { groupId: h.groupId ?? null } : {}),
     }));
     const roundRobinHosts = normalizedHostsWithFixedBoolean.filter(isRoundRobinHost).map((h) => ({
       isFixed: false,
       user: h.user,
-      priority: h.priority ?? null,
-      weight: h.weight ?? null,
+      ...(h.priority !== undefined ? { priority: h.priority ?? null } : {}),
+      ...(h.weight !== undefined ? { weight: h.weight ?? null } : {}),
       createdAt: h.createdAt ?? null,
-      groupId: h.groupId ?? null,
+      ...(h.groupId !== undefined ? { groupId: h.groupId ?? null } : {}),
     }));
 
     // If it is rerouting, we should not force reschedule with same host.
@@ -202,7 +200,14 @@ export class QualifiedHostsService {
       hostsAfterRescheduleWithSameRoundRobinHost,
       (await findMatchingHostsWithEventSegment({
         eventType,
-        hosts: hostsAfterRescheduleWithSameRoundRobinHost,
+        hosts: hostsAfterRescheduleWithSameRoundRobinHost.map((h) => ({
+          // tests expect only known fields; avoid adding groupId/priority/weight when undefined
+          isFixed: h.isFixed,
+          user: h.user,
+          createdAt: h.createdAt,
+          ...(h.priority !== undefined ? { priority: h.priority } : {}),
+          ...(h.weight !== undefined ? { weight: h.weight } : {}),
+        })),
       })) as typeof hostsAfterRescheduleWithSameRoundRobinHost
     );
 

@@ -4,6 +4,7 @@ import type { Options } from "react-select";
 import { Label } from "@calcom/ui/components/form";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
+import type { CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 import { CheckedTeamSelect } from "./CheckedTeamSelect";
 
 export default function CheckedHostField({
@@ -28,14 +29,16 @@ export default function CheckedHostField({
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
-  customClassNames?: Record<string, unknown>;
+  customClassNames?: CheckedTeamSelectCustomClassNames;
 } & Omit<Partial<React.ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) {
   return (
     <div className="flex flex-col rounded-md">
       <div>
         {labelText ? <Label>{labelText}</Label> : null}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId?.toString() === option.value)}
+          isOptionDisabled={(option) =>
+            !!value.find((host: any) => (host.userId as number | undefined)?.toString() === option.value)
+          }
           onChange={(options) => {
             onChange &&
               onChange(
@@ -46,12 +49,15 @@ export default function CheckedHostField({
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
-                }))
+                  label: option.label,
+                  value: option.value,
+                  avatar: option.avatar ?? "",
+                })) as unknown as CheckedSelectOption[]
               );
           }}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
-            .reduce((acc: CheckedSelectOption[], host: CheckedSelectOption) => {
+            .reduce((acc: CheckedSelectOption[], host: any) => {
               const option = options.find(
                 (member: CheckedSelectOption) => member.value === host.userId?.toString()
               );

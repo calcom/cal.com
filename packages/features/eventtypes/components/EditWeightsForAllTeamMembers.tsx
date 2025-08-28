@@ -144,7 +144,7 @@ export const EditWeightsForAllTeamMembers = ({
   const handleSave = () => {
     // Create a map of existing hosts for easy lookup
     const existingHostsMap = new Map(
-      value.filter((host) => !host.isFixed).map((host) => [host.userId.toString(), host])
+      value.filter((host) => !host.isFixed).map((host) => [(host.userId as number).toString(), host])
     );
 
     // Create the updated value by processing all team members

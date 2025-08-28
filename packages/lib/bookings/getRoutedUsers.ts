@@ -147,6 +147,8 @@ export async function getNormalizedHostsWithDelegationCredentials<
       priority: host.priority,
       weight: host.weight,
       createdAt: host.createdAt ?? new Date(),
+      // do not add groupId if undefined to preserve original shape
+      ...(host.groupId !== undefined ? { groupId: host.groupId } : {}),
     }));
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
