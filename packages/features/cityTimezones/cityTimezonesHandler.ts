@@ -18,7 +18,7 @@ export async function cityTimezonesHandler(): Promise<CityRow[]> {
   for (const raw of allCities) {
     let { city, timezone } = raw;
 
-    if (city === "London") timezone = "Europe/London";
+    // Replace Londonberry with London
     if (city === "Londonderry") {
       city = "London";
       timezone = "Europe/London";
@@ -27,6 +27,7 @@ export async function cityTimezonesHandler(): Promise<CityRow[]> {
     const candidate: CityRow = { city, timezone, pop: raw.pop };
     const prev = topByName[city];
 
+    // Dedupe and pick city with highest population
     if (!prev || candidate.pop > prev.pop) {
       topByName[city] = candidate;
     }
