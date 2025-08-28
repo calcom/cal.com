@@ -3,9 +3,15 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
-import { isSingleSelectFilterValue, isMultiSelectFilterValue } from "@calcom/features/data-table/lib/utils";
+import {
+  isSingleSelectFilterValue,
+  isMultiSelectFilterValue,
+  isTextFilterValue,
+  isNumberFilterValue,
+} from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -317,6 +323,32 @@ export class InsightsBookingBaseService {
     if (id === "status" && isMultiSelectFilterValue(value)) {
       const statusValues = value.data.map((status) => Prisma.sql`${status}::"BookingStatus"`);
       return Prisma.sql`"status" IN (${Prisma.join(statusValues)})`;
+    }
+
+    if (id === "paid" && isSingleSelectFilterValue(value)) {
+      const paidValue = value.data === "true";
+      return Prisma.sql`"paid" = ${paidValue}`;
+    }
+
+    if (id === "userEmail" && isTextFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userEmail" ${condition}`;
+      }
+    }
+
+    if (id === "userName" && isTextFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userName" ${condition}`;
+      }
+    }
+
+    if (id === "rating" && isNumberFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"rating" ${condition}`;
+      }
     }
 
     return null;
