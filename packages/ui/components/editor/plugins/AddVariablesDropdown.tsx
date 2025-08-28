@@ -38,16 +38,9 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
     }
   }, [selectedIndex]);
 
-  const handleOnOpen = () => {
-    if (!isOpen) {
-      setisOpen(true);
-      if (props.variables.length > 0) {
-        setSelectedIndex(0);
-      }
-    } else {
-      setisOpen(false);
-      setSelectedIndex(-1);
-    }
+  const handleOnOpen = (open: boolean) => {
+    setisOpen(open);
+    setSelectedIndex(open && props.variables.length > 0 ? 0 : -1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
