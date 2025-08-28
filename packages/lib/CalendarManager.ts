@@ -2,6 +2,7 @@
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
@@ -34,7 +35,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = getCalendar(credential);
+        const calendar = () => getCalendar(credential);
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -70,7 +71,18 @@ export const getConnectedCalendars = async (
             delegationCredentialId,
           };
         }
-        const cals = await calendar.listCalendars();
+        const calendarInstance = await calendar();
+        if (!calendarInstance) {
+          return {
+            integration: safeToSendIntegration,
+            credentialId,
+            delegationCredentialId,
+            error: {
+              message: "Could not get calendar instance",
+            },
+          };
+        }
+        const cals = await calendarInstance.listCalendars();
         const calendars = sortBy(
           cals.map((cal: IntegrationCalendar) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
@@ -245,21 +257,11 @@ export const getBusyCalendarTimes = async (
   }
 
   // const months = getMonths(dateFrom, dateTo);
+  // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+  const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+  // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+  const endDate = dayjs(dateTo).add(14, "hours").format();
   try {
-    // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
-    const startDate = dayjs(dateFrom).subtract(11, "hours").format();
-    // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-    const endDate = dayjs(dateTo).add(14, "hours").format();
-
-    log.debug(
-      "getBusyCalendarTimes manipulated dates",
-      safeStringify({
-        newStartDate: startDate,
-        newEndDate: endDate,
-        oldStartDate: dateFrom,
-        oldEndDate: dateTo,
-      })
-    );
     if (includeTimeZone) {
       results = await getCalendarsEventsWithTimezones(
         deduplicatedCredentials,
@@ -277,9 +279,13 @@ export const getBusyCalendarTimes = async (
       );
     }
   } catch (e) {
-    log.warn(safeStringify(e));
+    log.warn(`Error getting calendar availability`, {
+      selectedCalendarIds: selectedCalendars.map((calendar) => calendar.externalId),
+      error: safeStringify(e),
+    });
+    return { success: false, data: [{ start: startDate, end: endDate, source: "error-placeholder" }] };
   }
-  return results.reduce((acc, availability) => acc.concat(availability), []);
+  return { success: true, data: results.reduce((acc, availability) => acc.concat(availability), []) };
 };
 
 export const createEvent = async (
@@ -500,12 +506,14 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calendarDescription: getRichDescription(calEvent),
   };
 
+  const isMeetLocationType = calEvent.location === MeetLocationType;
+
   // Determine if the calendar event should include attendees
   const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
     .filter((domain) => domain.trim() !== "")
     .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
-  if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
+  if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType) {
     calendarEvent.attendees = [];
   }
 

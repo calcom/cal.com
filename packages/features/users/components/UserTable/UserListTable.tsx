@@ -30,7 +30,6 @@ import {
 } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -78,6 +77,7 @@ const initalColumnVisibility = {
   teams: true,
   createdAt: false,
   updatedAt: false,
+  twoFactorEnabled: false,
   actions: true,
 };
 
@@ -112,7 +112,7 @@ export type UserListTableProps = {
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
   facetedTeamValues?: {
-    roles: MembershipRole[];
+    roles: { id: string; name: string }[];
     teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
     attributes: {
       id: string;
@@ -314,7 +314,8 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
         cell: ({ row, table }) => {
-          const { role, username } = row.original;
+          const { role, username, customRole } = row.original;
+          const roleName = customRole?.name || role;
           return (
             <Badge
               data-testid={`member-${username}-role`}
@@ -322,7 +323,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
               }}>
-              {role}
+              {roleName}
             </Badge>
           );
         },
@@ -417,6 +418,26 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
+        id: "twoFactorEnabled",
+        accessorKey: "twoFactorEnabled",
+        header: t("2fa"),
+        enableHiding: adminOrOwner,
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 80,
+        cell: ({ row }) => {
+          const { twoFactorEnabled } = row.original;
+          if (!adminOrOwner || twoFactorEnabled === undefined) {
+            return null;
+          }
+          return (
+            <Badge variant={twoFactorEnabled ? "green" : "gray"}>
+              {twoFactorEnabled ? t("enabled") : t("disabled")}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         enableHiding: false,
         enableSorting: false,
@@ -479,8 +500,8 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           case "role":
             return convertFacetedValuesToMap(
               facetedTeamValues.roles.map((role) => ({
-                label: role,
-                value: role,
+                label: role.name,
+                value: role.id,
               }))
             );
           case "teams":

@@ -31,6 +31,8 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
+    const appStore = await import("@calcom/app-store").then((m) => m.default);
+    const appImportFn = appStore[appName as keyof typeof appStore];
 
     const normalizedAppName = appName as keyof typeof VideoAdapterMap;
     const appPromise = VideoAdapterMap[normalizedAppName];

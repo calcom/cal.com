@@ -13,6 +13,8 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
+import type { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -57,7 +59,7 @@ const workflowSelect = {
   steps: true,
   activeOn: true,
   activeOnTeams: true,
-};
+} satisfies Prisma.WorkflowSelect;
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2024-05-20T11:59:59Z"));
@@ -149,21 +151,25 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
           sender: true,
           numberVerificationPending: true,
           includeCalendarEvent: true,
+          verifiedAt: true,
         },
       },
     },
   });
 
-  const workflowRemindersData = [
+  const workflowRemindersData: Prisma.WorkflowReminderCreateInput[] = [
     {
       booking: {
         connect: {
-          bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
+          uid: "jK7Rf8iYsOpmQUw9hB1vZxP",
         },
       },
-      uuid: "uuid-1",
-      bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:00:00.000Z`,
       scheduled: false,
@@ -172,12 +178,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
+          uid: "mL4Dx9jTkQbnWEu3pR7yNcF",
         },
       },
-      uuid: "uuid-2",
-      bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -186,13 +195,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
+          uid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
         },
       },
-      uuid: "uuid-3",
-
-      bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -201,13 +212,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
+          uid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
         },
       },
-      uuid: "uuid-4",
-
-      bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -679,7 +692,8 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId,
+      true
     );
 
     // number is not verified, so sms should not send
@@ -703,7 +717,8 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId
+      true
     );
 
     // two sms should be scheduled
@@ -997,8 +1012,10 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 
     await prismock.membership.delete({
       where: {
-        userId: 101,
-        teamId: 2,
+        userId_teamId: {
+          teamId: 2, // removing from team 2
+          userId: 101, // organizer's userId
+        },
       },
     });
 
@@ -1086,7 +1103,6 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SMTP when team has workflow-smtp-emails feature", async () => {
-    const featuresRepository = new FeaturesRepository();
     vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(true);
 
     await scheduleEmailReminder({
@@ -1098,7 +1114,6 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SMTP when user has workflow-smtp-emails feature", async () => {
-    const featuresRepository = new FeaturesRepository();
     vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(true);
 
     await scheduleEmailReminder({
@@ -1110,7 +1125,6 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SendGrid when workflow-smtp-emails feature is not enabled for team", async () => {
-    const featuresRepository = new FeaturesRepository();
     vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
 
     await scheduleEmailReminder({
@@ -1123,7 +1137,6 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SendGrid when workflow-smtp-emails feature is not enabled for user", async () => {
-    const featuresRepository = new FeaturesRepository();
     vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
 
     await scheduleEmailReminder({
@@ -1136,9 +1149,9 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SMTP when SendGrid is not configured", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(featuresRepository, "checkIfTeamHasFeature").mockResolvedValue(false);
-    vi.spyOn(featuresRepository, "checkIfUserHasFeature").mockResolvedValue(false);
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
+
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
 
     delete process.env.SENDGRID_API_KEY;
     delete process.env.SENDGRID_EMAIL;

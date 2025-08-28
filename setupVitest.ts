@@ -13,3 +13,46 @@ const fetchMocker = createFetchMock(vi);
 fetchMocker.enableMocks();
 
 expect.extend(matchers);
+
+class MockExchangeCalendarService implements CalendarService {
+  constructor() {}
+  async createEvent() {
+    return {
+      uid: "mock",
+      id: "mock",
+      password: "",
+      type: "",
+      url: "",
+      additionalInfo: {},
+    };
+  }
+  async updateEvent() {
+    return {
+      uid: "mock",
+      id: "mock",
+      password: "",
+      type: "",
+      url: "",
+      additionalInfo: {},
+    };
+  }
+  async deleteEvent() {}
+  async getAvailability() {
+    return [];
+  }
+  async listCalendars() {
+    return [];
+  }
+}
+
+vi.mock("@calcom/exchangecalendar/lib/CalendarService", () => ({
+  default: MockExchangeCalendarService,
+}));
+
+vi.mock("@calcom/exchange2013calendar/lib/CalendarService", () => ({
+  default: MockExchangeCalendarService,
+}));
+
+vi.mock("@calcom/exchange2016calendar/lib/CalendarService", () => ({
+  default: MockExchangeCalendarService,
+}));

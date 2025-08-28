@@ -16,7 +16,6 @@ import {
 } from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
-import { deleteScheduledSMSReminder } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -267,8 +266,4 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       }
     }
   }
-};
-
-export const deleteScheduledWhatsappReminder = async (reminderId: number, referenceId: string | null) => {
-  return await deleteScheduledSMSReminder(reminderId, referenceId);
 };

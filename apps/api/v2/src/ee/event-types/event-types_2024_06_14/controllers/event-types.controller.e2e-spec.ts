@@ -498,6 +498,7 @@ describe("Event types Endpoints", () => {
           lightThemeHex: "#fafafa",
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
+        bookingRequiresAuthentication: true,
       };
 
       return request(app.getHttpServer())
@@ -570,6 +571,7 @@ describe("Event types Endpoints", () => {
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
+          expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
           eventType = responseBody.data;
         });
     });
@@ -967,6 +969,7 @@ describe("Event types Endpoints", () => {
         calVideoSettings: {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          enableAutomaticRecordingForOrganizer: true,
         },
         bookingFields: [
           nameBookingField,
@@ -1025,6 +1028,7 @@ describe("Event types Endpoints", () => {
           lightThemeHex: "#fafafa",
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
+        bookingRequiresAuthentication: false,
       };
 
       return request(app.getHttpServer())
@@ -1095,6 +1099,9 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(
             body.calVideoSettings?.disableRecordingForOrganizer
           );
+          expect(updatedEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(
+            body.calVideoSettings?.enableAutomaticRecordingForOrganizer
+          );
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -1115,6 +1122,9 @@ describe("Event types Endpoints", () => {
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
+          eventType.calVideoSettings = updatedEventType.calVideoSettings;
+
+          expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
         });
     });
 
@@ -1721,7 +1731,7 @@ describe("Event types Endpoints", () => {
         description: "undefined booking fields",
         length: 40,
         hidden: false,
-        slug: "undefined-booking-fields",
+        slug: `undefined-booking-fields-${randomString()}`,
         locations: [],
         schedulingType: SchedulingType.ROUND_ROBIN,
       };
@@ -1750,6 +1760,14 @@ describe("Event types Endpoints", () => {
               required: true,
               disableOnPrefill: false,
               hidden: false,
+            },
+            {
+              disableOnPrefill: false,
+              hidden: true,
+              isDefault: true,
+              required: false,
+              slug: "attendeePhoneNumber",
+              type: "phone",
             },
             {
               isDefault: true,
@@ -1863,6 +1881,7 @@ describe("Event types Endpoints", () => {
           calVideoSettings: {
             disableRecordingForGuests: true,
             disableRecordingForOrganizer: true,
+            enableAutomaticRecordingForOrganizer: true,
           },
           locations: [
             {
@@ -1885,6 +1904,7 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.locations).toEqual(body.locations);
             expect(createdEventType.calVideoSettings?.disableRecordingForGuests).toEqual(true);
             expect(createdEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(true);
+            expect(createdEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(true);
             firstCreatedEventType = responseBody.data;
           });
       });
@@ -2013,7 +2033,6 @@ describe("Event types Endpoints", () => {
     const username = name;
     let user: User;
     let legacyEventTypeId1: number;
-    let legacyEventTypeId2: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -2130,6 +2149,51 @@ describe("Event types Endpoints", () => {
             { type: "unknown", location: JSON.stringify(eventTypeInput.locations[0]) },
           ]);
         });
+    });
+
+    describe("EventType Hidden Property", () => {
+      let createdEventTypeId: number;
+
+      it("should create an event type with hidden=true", async () => {
+        const createPayload = {
+          title: "Hidden Event",
+          slug: "hidden-event",
+          lengthInMinutes: 30,
+          hidden: true,
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(createPayload)
+          .expect(201);
+
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const createdEventType = responseBody.data;
+        expect(createdEventType).toHaveProperty("id");
+        expect(createdEventType.title).toEqual(createPayload.title);
+        expect(createdEventType.slug).toEqual(createPayload.slug);
+        expect(createdEventType.lengthInMinutes).toEqual(createPayload.lengthInMinutes);
+        expect(createdEventType.hidden).toBe(true);
+
+        createdEventTypeId = createdEventType.id;
+      });
+
+      it("should update the hidden property to false", async () => {
+        const updatePayload = {
+          hidden: false,
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/api/v2/event-types/${createdEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(updatePayload)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const updatedEventType = responseBody.data;
+        +expect(updatedEventType.hidden).toBe(false);
+      });
     });
 
     afterAll(async () => {

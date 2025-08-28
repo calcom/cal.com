@@ -176,6 +176,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       }
 
       if (smsMessage.length > 0) {
+        const smsMessageWithoutOptOut = smsMessage;
+
         if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
           smsMessage = await WorkflowOptOutService.addOptOutMessage(
             smsMessage,
@@ -196,6 +198,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
                 phoneNumber: reminderPhone,
                 body: smsMessage,
                 sender: senderID,
+                bodyWithoutOptOut: smsMessageWithoutOptOut,
                 bookingUid: evt.uid,
                 userId,
                 teamId,
