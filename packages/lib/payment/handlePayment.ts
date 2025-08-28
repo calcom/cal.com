@@ -52,12 +52,14 @@ const handlePayment = async ({
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
 
+  // Lazy import the specific app instead of loading entire app store
   const appStore = await import("@calcom/app-store").then((m) => m.default);
+
   if (!isKeyOf(appStore, key)) {
     console.warn(`key: ${key} is not a valid key in appStore`);
     return null;
   }
-  const paymentApp = await appStore[key]?.();
+  const paymentApp = await appStore.default[key]?.();
   if (!isPaymentApp(paymentApp)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;

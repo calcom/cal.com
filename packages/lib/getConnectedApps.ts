@@ -184,7 +184,9 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
+        // Lazy import the specific app instead of loading the entire app store
+        const appImportFn = appStore[app.dirName as keyof typeof appStore];
+        const paymentApp = appImportFn ? (await appImportFn()) as PaymentApp | null : null;
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
           const PaymentService = paymentApp.lib.PaymentService;
           const paymentInstance = new PaymentService(credential);
