@@ -14,7 +14,11 @@ export const createFeatureFixture = (page: Page) => {
   return {
     init: async () => {
       const features = await prisma.feature.findMany({
-        where: {},
+        where: {
+          slug: {
+            not: null,
+          },
+        },
       });
       store.features = features;
       initalFeatures = features;

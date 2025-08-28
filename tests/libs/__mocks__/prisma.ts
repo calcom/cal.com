@@ -18,7 +18,7 @@ const handlePrismockBugs = () => {
   prismock.webhook.findMany = (...rest: any[]) => {
     // There is some bug in prismock where it can't handle complex where clauses
     if (rest[0].where?.OR && rest[0].where.AND) {
-      rest[0].where = {};
+      rest[0].where = undefined;
       logger.silly("Fixed Prismock bug-2");
     }
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
