@@ -1,6 +1,4 @@
 import type { Workflow } from "@calid/features/modules/workflows/config/types";
-import { isPrismaObj, isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -49,6 +47,12 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import {
+  IS_DEV,
+  ONEHASH_API_KEY,
+  ONEHASH_CHAT_SYNC_BASE_URL,
+  MOBILE_NOTIFICATIONS_ENABLED,
+} from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
@@ -59,12 +63,13 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
+import firebaseService from "@calcom/lib/firebaseAdmin";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
-import isPrismaObj from "@calcom/lib/isPrismaObj";
+import { isPrismaObj, isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -117,7 +122,6 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
-import { IS_DEV, ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL } from "@calcom/lib/constants";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -2226,6 +2230,27 @@ async function handler(
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
+  if (MOBILE_NOTIFICATIONS_ENABLED) {
+    try {
+      await firebaseService.sendNotification(
+        `host_${organizerUser.id}`,
+        {
+          title: isConfirmedByDefault
+            ? rescheduleUid
+              ? tOrganizer("booking_rescheduled")
+              : tOrganizer("booking_created")
+            : tOrganizer("booking_requested"),
+          body: evt.title,
+        },
+        {
+          bookingId: booking.id,
+          status: isConfirmedByDefault ? "UPCOMING" : "UNCONFIRMED",
+        }
+      );
+    } catch (error) {
+      loggerWithEventDetails.error("Error while send mobile notification", JSON.stringify({ error }));
+    }
+  }
   if (
     booking.status === BookingStatus.ACCEPTED &&
     isPrismaObjOrUndefined(organizerUser.metadata)?.connectedChatAccounts
@@ -2281,7 +2306,6 @@ async function handler(
     videoCallUrl: metadata?.videoCallUrl,
   };
 }
-
 
 async function handleOHChatSync({
   userId,

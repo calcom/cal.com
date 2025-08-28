@@ -14,7 +14,13 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
-import { IS_DEV, ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL } from "@calcom/lib/constants";
+import {
+  IS_DEV,
+  ONEHASH_API_KEY,
+  ONEHASH_CHAT_SYNC_BASE_URL,
+  MOBILE_NOTIFICATIONS_ENABLED,
+} from "@calcom/lib/constants";
+import firebaseService from "@calcom/lib/firebaseAdmin";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -581,6 +587,23 @@ async function handler(input: CancelBookingInput) {
       );
   } catch (error) {
     log.error("Error deleting event", error);
+  }
+  if (MOBILE_NOTIFICATIONS_ENABLED) {
+    try {
+      await firebaseService.sendNotification(
+        `host_${organizer.id}`,
+        {
+          title: tOrganizer("booking_cancelled"),
+          body: evt.title,
+        },
+        {
+          bookingId: evt.bookingId,
+          status: "CANCELLED",
+        }
+      );
+    } catch (error) {
+      log.error("Error while send mobile notification", JSON.stringify({ error }));
+    }
   }
   if (organizerHasIntegratedOHChat) {
     await handleOHChatSync(cancelledBookingsUids);
