@@ -54,9 +54,7 @@ const Page = async () => {
 
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
-  const attributes = await getCachedAttributes(org.id);
-
-  const roles = await getCachedRoles(org.id);
+  const [attributes, roles] = await Promise.all([getCachedAttributes(org.id), getCachedRoles(org.id)]);
 
   // Get specific PBAC permissions for organization member actions
   const permissions = await getSpecificPermissions({
