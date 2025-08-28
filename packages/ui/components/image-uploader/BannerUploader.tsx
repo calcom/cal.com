@@ -50,7 +50,7 @@ function CropContainer({
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={3}
+          aspect={4}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}

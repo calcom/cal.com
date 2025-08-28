@@ -426,12 +426,13 @@ const BookerComponent = ({
                   {!hideEventTypeDetails && orgBannerUrl && (
                     <div
                       loading="eager"
-                      className="-mb-4 flex h-16 object-cover p-2 ltr:rounded-tl-md rtl:rounded-tr-md"
+                      className="-mb-4 flex h-10 p-2 ltr:rounded-tl-md rtl:rounded-tr-md"
                       alt="org banner"
                       style={{
                         backgroundImage: `url(${orgBannerUrl})`,
-                        backgroundSize: "cover",
+                        backgroundSize: "contain",
                         backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat", // prevents tiling
                       }}></div>
                   )}
                   <EventMeta

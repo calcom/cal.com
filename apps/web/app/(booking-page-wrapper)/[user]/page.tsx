@@ -23,6 +23,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
 
   const user = users[0];
+  console.log("User is: ", user);
 
   const meeting = {
     title: markdownStrippedBio,
@@ -30,11 +31,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     users: [{ username: `${profile.username}`, name: `${profile.name}` }],
   };
   const metadata = await generateMeetingMetadata(
-    meeting,
+    {
+      ...meeting,
+      bannerUrl: user.bannerUrl,
+    },
     () => profile.name,
     () => markdownStrippedBio,
     false,
-    user.bannerUrl,
     getOrgFullOrigin(entity.orgSlug ?? null),
     `/${decodeParams(await params).user}`
   );

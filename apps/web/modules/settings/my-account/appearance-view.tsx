@@ -551,9 +551,9 @@ const AppearanceView = ({
                           <div className="w-[105px]">
                             <BannerUploader
                               height={100}
-                              width={300}
+                              width={400}
                               target="avatar"
-                              uploadInstruction={t("org_banner_instructions", { height: 100, width: 300 })}
+                              uploadInstruction={t("org_banner_instructions", { height: 100, width: 400 })}
                               id="avatar-upload"
                               buttonMsg={t("upload_logo")}
                               handleAvatarChange={(newAvatar) => {
