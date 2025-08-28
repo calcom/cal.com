@@ -256,23 +256,22 @@ export class BookingRepository {
       select: bookingsSelect,
     });
 
-    const currentBookingsAllUsersQueryThree = eventTypeId
-      ? this.prismaClient.booking.findMany({
-          where: {
-            startTime: { lte: endDate },
-            endTime: { gte: startDate },
-            eventType: {
-              id: eventTypeId,
-              requiresConfirmation: true,
-              requiresConfirmationWillBlockSlot: true,
-            },
-            status: {
-              in: [BookingStatus.PENDING],
-            },
-          },
-          select: bookingsSelect,
-        })
-      : [];
+    const currentBookingsAllUsersQueryThree = this.prismaClient.booking.findMany({
+      where: {
+        startTime: { lte: endDate },
+        endTime: { gte: startDate },
+        eventType: {
+          // booking of an event type reserving a slot X should make the same slot X unavailable to other event types
+          // id: eventTypeId,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+        status: {
+          in: [BookingStatus.PENDING],
+        },
+      },
+      select: bookingsSelect,
+    });
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([
       currentBookingsAllUsersQueryOne,
