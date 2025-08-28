@@ -10,7 +10,14 @@ export const validateIntervalLimitOrder = (input: IntervalLimit) => {
     const currentKey = relevantKeys[i];
     const nextKey = relevantKeys[i + 1];
 
-    if (input[currentKey] > input[nextKey]) {
+    const currentValue = input[currentKey];
+    const nextValue = input[nextKey];
+
+    if (currentValue === undefined || nextValue === undefined) {
+      continue;
+    }
+
+    if (currentValue > nextValue) {
       return false;
     }
   }
