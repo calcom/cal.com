@@ -254,7 +254,9 @@
     "NEXT_PUBLIC_API_V2_URL",
     "NEXT_PUBLIC_WEBAPP_URL",
     "NEXT_PUBLIC_WEBSITE_URL",
-    "BUILD_STANDALONE"
+    "BUILD_STANDALONE",
+    "APPLE_ID",
+    "APPLE_CONNECT_APP_SPECIFIC_PASSCODE"
   ],
   "tasks": {
     "@calcom/prisma#build": {
