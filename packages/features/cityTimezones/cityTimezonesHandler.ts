@@ -1,4 +1,4 @@
-type CityRow = {
+export type CityRow = {
   city: string;
   timezone: string;
   pop: number;

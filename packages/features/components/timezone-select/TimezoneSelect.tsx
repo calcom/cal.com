@@ -9,7 +9,7 @@ import type { Timezones } from "@calcom/lib/timezone";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 
-import { cityTimezonesHandler } from "../../cityTimezones/cityTimezonesHandler";
+import { type CityRow, cityTimezonesHandler } from "../../cityTimezones/cityTimezonesHandler";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
