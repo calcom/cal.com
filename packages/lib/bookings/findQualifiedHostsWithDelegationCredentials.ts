@@ -133,8 +133,22 @@ export class QualifiedHostsService {
       });
     // not a team event type, or some other reason - segment matching isn't necessary.
     if (!normalizedHosts) {
-      const fixedHosts = fallbackUsers.filter(isFixedHost);
-      const roundRobinHosts = fallbackUsers.filter(isRoundRobinHost);
+      const fixedHosts = fallbackUsers.filter(isFixedHost).map((h) => ({
+        isFixed: true,
+        user: h.user,
+        priority: h.priority ?? null,
+        weight: h.weight ?? null,
+        createdAt: h.createdAt ?? null,
+        groupId: h.groupId ?? null,
+      }));
+      const roundRobinHosts = fallbackUsers.filter(isRoundRobinHost).map((h) => ({
+        isFixed: false,
+        user: h.user,
+        priority: h.priority ?? null,
+        weight: h.weight ?? null,
+        createdAt: h.createdAt ?? null,
+        groupId: h.groupId ?? null,
+      }));
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
@@ -144,8 +158,22 @@ export class QualifiedHostsService {
       isFixed: host.isFixed ?? false,
     }));
 
-    const fixedHosts = normalizedHostsWithFixedBoolean.filter(isFixedHost);
-    const roundRobinHosts = normalizedHostsWithFixedBoolean.filter(isRoundRobinHost);
+    const fixedHosts = normalizedHostsWithFixedBoolean.filter(isFixedHost).map((h) => ({
+      isFixed: true,
+      user: h.user,
+      priority: h.priority ?? null,
+      weight: h.weight ?? null,
+      createdAt: h.createdAt ?? null,
+      groupId: h.groupId ?? null,
+    }));
+    const roundRobinHosts = normalizedHostsWithFixedBoolean.filter(isRoundRobinHost).map((h) => ({
+      isFixed: false,
+      user: h.user,
+      priority: h.priority ?? null,
+      weight: h.weight ?? null,
+      createdAt: h.createdAt ?? null,
+      groupId: h.groupId ?? null,
+    }));
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
