@@ -3,7 +3,9 @@ import { createModule } from "@evyweb/ioctopus";
 import type { IWebhookRepository } from "../../interface/repository";
 import type { IWebhookNotifier } from "../../interface/webhook";
 import { BookingWebhookService } from "../../service/BookingWebhookService";
+import { FormWebhookService } from "../../service/FormWebhookService";
 import { OOOWebhookService } from "../../service/OOOWebhookService";
+import { RecordingWebhookService } from "../../service/RecordingWebhookService";
 import { WebhookService } from "../../service/WebhookService";
 import { WEBHOOK_DI_TOKENS } from "../tokens";
 
@@ -20,6 +22,14 @@ webhookServicesModule
     WEBHOOK_DI_TOKENS.WEBHOOK_SERVICE,
     WEBHOOK_DI_TOKENS.TASKER,
   ]);
+
+webhookServicesModule
+  .bind(WEBHOOK_DI_TOKENS.FORM_WEBHOOK_SERVICE)
+  .toClass(FormWebhookService, [WEBHOOK_DI_TOKENS.WEBHOOK_NOTIFIER, WEBHOOK_DI_TOKENS.WEBHOOK_SERVICE]);
+
+webhookServicesModule
+  .bind(WEBHOOK_DI_TOKENS.RECORDING_WEBHOOK_SERVICE)
+  .toClass(RecordingWebhookService, [WEBHOOK_DI_TOKENS.WEBHOOK_NOTIFIER]);
 
 webhookServicesModule
   .bind(WEBHOOK_DI_TOKENS.OOO_WEBHOOK_SERVICE)

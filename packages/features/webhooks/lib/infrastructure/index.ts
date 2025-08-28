@@ -1,1 +1,0 @@
-export { WebhookNotifierAdapter } from "./WebhookNotifierAdapter";

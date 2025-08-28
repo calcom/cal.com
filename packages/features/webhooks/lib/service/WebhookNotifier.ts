@@ -1,31 +1,14 @@
 import logger from "@calcom/lib/logger";
 
 import type { WebhookEventDTO } from "../dto/types";
-
-type WebhookHandlerLike = {
-  handleNotification(dto: WebhookEventDTO, isDryRun?: boolean): Promise<void>;
-};
+import type { IWebhookNotifier, IWebhookNotificationHandler } from "../interface/webhook";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookNotifier]"] });
 
-export class WebhookNotifier {
-  private static handler: WebhookHandlerLike;
+export class WebhookNotifier implements IWebhookNotifier {
+  constructor(private readonly handler: IWebhookNotificationHandler) {}
 
-  /**
-   * Allows external injection of the handler (e.g., from Ioctopus container).
-   */
-  static setHandler(handler: WebhookHandlerLike): void {
-    this.handler = handler;
-  }
-
-  static getHandler(): WebhookHandlerLike {
-    if (!this.handler) {
-      throw new Error("WebhookNotifier handler not initialized. Call WebhookNotifier.setHandler(...) first.");
-    }
-    return WebhookNotifier.handler;
-  }
-
-  static async emitWebhook(dto: WebhookEventDTO, isDryRun = false): Promise<void> {
+  async emitWebhook(dto: WebhookEventDTO, isDryRun = false): Promise<void> {
     const trigger = dto.triggerEvent;
 
     try {
@@ -35,7 +18,7 @@ export class WebhookNotifier {
         isDryRun,
       });
 
-      await this.getHandler().handleNotification(dto, isDryRun);
+      await this.handler.handleNotification(dto, isDryRun);
 
       log.debug(`Successfully emitted webhook event: ${trigger}`, {
         bookingId: dto.bookingId,
@@ -46,6 +29,7 @@ export class WebhookNotifier {
         bookingId: dto.bookingId,
         eventTypeId: dto.eventTypeId,
       });
+      throw error;
     }
   }
 }

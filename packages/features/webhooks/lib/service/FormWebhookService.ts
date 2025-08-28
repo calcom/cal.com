@@ -3,10 +3,10 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../dto/types";
 import type { FormSubmittedPayload } from "../factory/types";
-import type { IWebhookService } from "../interface/services";
+import type { IWebhookService, IFormWebhookService } from "../interface/services";
 import type { IWebhookNotifier } from "../interface/webhook";
 
-export class FormWebhookService {
+export class FormWebhookService implements IFormWebhookService {
   constructor(
     private readonly webhookNotifier: IWebhookNotifier,
     private readonly webhookService: IWebhookService

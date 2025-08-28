@@ -82,3 +82,76 @@ export interface IBookingWebhookService {
   cancelScheduledMeetingWebhooks(params: CancelScheduledMeetingWebhooksParams): Promise<void>;
   scheduleNoShowWebhooks(params: ScheduleNoShowWebhooksParams): Promise<void>;
 }
+
+export interface IFormWebhookService {
+  emitFormSubmitted(params: {
+    form: { id: string; name: string };
+    response: { id: number; data: Record<string, unknown> };
+    eventTypeId?: number | null;
+    userId?: number | null;
+    teamId?: number | null;
+    orgId?: number | null;
+    platformClientId?: string;
+    isDryRun?: boolean;
+  }): Promise<void>;
+
+  emitFormSubmittedNoEvent(params: {
+    form: { id: string; name: string };
+    response: { id: number; data: Record<string, unknown> };
+    userId?: number | null;
+    teamId?: number | null;
+    orgId?: number | null;
+    platformClientId?: string;
+    isDryRun?: boolean;
+  }): Promise<void>;
+
+  scheduleDelayedFormWebhooks(params: {
+    responseId: number;
+    form: {
+      id: string;
+      name: string;
+      teamId?: number | null;
+    };
+    responses: Record<string, unknown>;
+    redirect?: Record<string, unknown>;
+    teamId?: number | null;
+    orgId?: number | null;
+    delayMinutes?: number;
+  }): Promise<void>;
+}
+
+export interface IRecordingWebhookService {
+  emitRecordingReady(params: {
+    evt: import("@calcom/types/Calendar").CalendarEvent;
+    downloadLink: string;
+    booking?: {
+      id: number;
+      eventTypeId?: number | null;
+      userId?: number | null;
+    };
+    teamId?: number | null;
+    orgId?: number | null;
+    platformClientId?: string;
+    isDryRun?: boolean;
+  }): Promise<void>;
+
+  emitTranscriptionGenerated(params: {
+    evt: import("@calcom/types/Calendar").CalendarEvent;
+    downloadLinks?: {
+      transcription?: Array<{
+        format: string;
+        link: string;
+      }>;
+      recording?: string;
+    };
+    booking?: {
+      id: number;
+      eventTypeId?: number | null;
+      userId?: number | null;
+    };
+    teamId?: number | null;
+    orgId?: number | null;
+    platformClientId?: string;
+    isDryRun?: boolean;
+  }): Promise<void>;
+}

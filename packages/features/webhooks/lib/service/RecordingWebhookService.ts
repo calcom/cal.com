@@ -2,59 +2,13 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { RecordingReadyDTO, TranscriptionGeneratedDTO } from "../dto/types";
-import { WebhookNotifier } from "../notifier/WebhookNotifier";
-import { WebhookService } from "./WebhookService";
+import type { IRecordingWebhookService } from "../interface/services";
+import type { IWebhookNotifier } from "../interface/webhook";
 
-/**
- * Specialized service for recording and transcription webhook events.
- *
- * @description This service provides high-level methods for emitting recording-related
- * webhook events with proper DTO construction and validation. It handles the complexity
- * of mapping recording data to standardized webhook DTOs and coordinates with the
- * webhook notification system.
- *
- * @responsibilities
- * - Creates properly structured DTOs for recording-ready and transcription-generated events
- * - Handles optional parameter mapping and validation for recording webhooks
- * - Coordinates with WebhookNotifier for reliable event emission
- * - Supports dry-run testing for recording webhook flows
- *
- * @features
- * - Static methods for easy integration without instantiation
- * - Automatic timestamp generation for webhook events
- * - Support for both individual recordings and batch transcriptions
- * - Flexible parameter handling for various recording scenarios
- * - Built-in dry-run support for testing webhook flows
- *
- * @example Emitting a recording ready webhook
- * ```typescript
- * await RecordingWebhookService.emitRecordingReady({
- *   evt: calendarEvent,
- *   downloadLink: "https://example.com/recording.mp4",
- *   booking: { id: 123, userId: 456 },
- *   teamId: 789
- * });
- * ```
- *
- * @example Emitting a transcription generated webhook
- * ```typescript
- * await RecordingWebhookService.emitTranscriptionGenerated({
- *   evt: calendarEvent,
- *   downloadLinks: {
- *     transcription: [{ format: "vtt", link: "https://example.com/transcript.vtt" }],
- *     recording: "https://example.com/recording.mp4"
- *   },
- *   booking: { id: 123, userId: 456 },
- *   isDryRun: false
- * });
- * ```
- *
- * @see WebhookNotifier For the underlying webhook emission mechanism
- * @see RecordingReadyDTO For the recording ready event structure
- * @see TranscriptionGeneratedDTO For the transcription event structure
- */
-export class RecordingWebhookService extends WebhookService {
-  static async emitRecordingReady(params: {
+export class RecordingWebhookService implements IRecordingWebhookService {
+  constructor(private readonly webhookNotifier: IWebhookNotifier) {}
+
+  async emitRecordingReady(params: {
     evt: CalendarEvent;
     downloadLink: string;
     booking?: {
@@ -79,10 +33,10 @@ export class RecordingWebhookService extends WebhookService {
       evt: params.evt,
       downloadLink: params.downloadLink,
     };
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 
-  static async emitTranscriptionGenerated(params: {
+  async emitTranscriptionGenerated(params: {
     evt: CalendarEvent;
     downloadLinks?: {
       transcription?: Array<{
@@ -114,6 +68,6 @@ export class RecordingWebhookService extends WebhookService {
       downloadLinks: params.downloadLinks,
     };
 
-    await WebhookNotifier.emitWebhook(dto, params.isDryRun);
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
 }

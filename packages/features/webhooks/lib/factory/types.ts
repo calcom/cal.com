@@ -44,7 +44,13 @@ export interface MeetingPayload {
     price: number;
     currency: string;
     length: number;
-    team: any | null;
+    team: {
+      logoUrl: string | null;
+      parent: {
+        logoUrl: string | null;
+        name: string;
+      } | null;
+    } | null;
   } | null;
   attendees: {
     name: string;
