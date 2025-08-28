@@ -9,14 +9,20 @@ async function handler(input: BookingHandlerInput, schemaGetter?: BookingDataSch
   const { getCacheService } = await import("@calcom/lib/di/containers/Cache");
   const { BookingRepository } = await import("@calcom/lib/server/repository/booking");
   const { legacyHandler } = await import("./service/BookingCreateService");
+  const { QuickEnrichmentService } = await import("./utils/phases/quickEnrichment");
+  const { QuickValidationService } = await import("./utils/phases/quickValidation");
 
   const bookingRepository = new BookingRepository(prisma);
 
-  return legacyHandler(input, schemaGetter, {
+  return legacyHandler(input, {
     cacheService: getCacheService(),
     checkBookingAndDurationLimitsService: getCheckBookingAndDurationLimitsService(),
     prisma: prisma,
     bookingRepository,
+    quickEnrichmentService: new QuickEnrichmentService(),
+    quickValidationService: new QuickValidationService({
+      bookingDataSchemaGetter: schemaGetter || getBookingDataSchema,
+    }),
   });
 }
 

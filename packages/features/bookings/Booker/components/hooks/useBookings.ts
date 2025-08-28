@@ -215,6 +215,7 @@ export const useBookings = ({
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
+        booking.paymentRequired;
         const validDuration = event.data?.isDynamic
           ? duration || event.data?.length
           : duration && event.data?.metadata?.multipleDuration?.includes(duration)
