@@ -1,4 +1,11 @@
 // This script is used to delete recordings older than 6 months from Daily.co
+//
+// Commands to run:
+// 1. Fetch recordings older than 6 months and save to JSON:
+//    ts-node packages/app-store/dailyvideo/lib/scripts/deleteRecordings.ts
+//
+// 2. Delete recordings from the JSON file (shows preview first, then prompts for confirmation):
+//    ts-node packages/app-store/dailyvideo/lib/scripts/deleteRecordings.ts delete
 
 interface Recording {
   id: string;
