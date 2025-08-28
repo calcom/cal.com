@@ -321,7 +321,13 @@ const RoundRobinHosts = ({
     const allHosts = getValues("hosts");
     const fixedHosts = allHosts.filter((host) => host.isFixed);
     const rrHosts = allHosts.filter((host) => !host.isFixed);
-    const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
+    const sortedRRHosts = rrHosts.sort((a, b) =>
+      sortHosts(
+        { priority: a.priority ?? null, weight: a.weight ?? null },
+        { priority: b.priority ?? null, weight: b.weight ?? null },
+        active
+      )
+    );
     // Preserve fixed hosts when updating
     setValue("hosts", [...fixedHosts, ...sortedRRHosts]);
   };
@@ -329,7 +335,13 @@ const RoundRobinHosts = ({
   const handleWeightsChange = (hosts: Host[]) => {
     const allHosts = getValues("hosts");
     const fixedHosts = allHosts.filter((host) => host.isFixed);
-    const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
+    const sortedRRHosts = hosts.sort((a, b) =>
+      sortHosts(
+        { priority: a.priority ?? null, weight: a.weight ?? null },
+        { priority: b.priority ?? null, weight: b.weight ?? null },
+        true
+      )
+    );
     // Preserve fixed hosts when updating
     setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
   };
@@ -754,9 +766,11 @@ export const EventTeamAssignmentTab = ({
   ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
     !!eventType.team?.parentId || !!member.username;
-  const teamMembersOptions = teamMembers
-    .filter(pendingMembers)
-    .map((member) => mapUserToValue(member, t("pending")));
+  const teamMembersOptions = teamMembers.filter(pendingMembers).map((member) => ({
+    ...mapUserToValue(member),
+    email: member.email,
+    defaultScheduleId: member.defaultScheduleId,
+  }));
   const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
     return mapMemberToChildrenOption(
       {
@@ -849,7 +863,9 @@ export const EventTeamAssignmentTab = ({
                       "w-full",
                       customClassNames?.assignmentType?.schedulingTypeSelect?.select
                     )}
-                    innerClassNames={customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames}
+                    classNames={
+                      customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames as any
+                    }
                     onChange={(val) => handleSchedulingTypeChange(val?.value, onChange)}
                   />
                 )}

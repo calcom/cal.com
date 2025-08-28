@@ -263,9 +263,9 @@ export const EventSetupTab = (
                     "h-auto !min-h-[36px] text-sm",
                     customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
                   )}
-                  innerClassNames={
+                  classNames={
                     customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect
-                      ?.innerClassNames
+                      ?.innerClassNames as any
                   }
                   options={multipleDurationOptions}
                   value={selectedMultipleDuration}
@@ -314,9 +314,9 @@ export const EventSetupTab = (
                     "text-sm",
                     customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.select
                   )}
-                  innerClassNames={
+                  classNames={
                     customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect
-                      ?.innerClassNames
+                      ?.innerClassNames as any
                   }
                   isDisabled={lengthLockedProps.disabled}
                   noOptionsMessage={() => t("default_duration_no_options")}

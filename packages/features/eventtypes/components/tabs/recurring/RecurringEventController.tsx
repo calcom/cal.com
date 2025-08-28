@@ -151,7 +151,7 @@ export default function RecurringEventController({
                           "w-18 ml-2 block min-w-0 rounded-md text-sm",
                           customClassNames?.frequencyUnitSelect?.select
                         )}
-                        innerClassNames={customClassNames?.frequencyUnitSelect?.innerClassNames}
+                        classNames={customClassNames?.frequencyUnitSelect?.innerClassNames as any}
                         isDisabled={recurringLocked.disabled}
                         onChange={(event) => {
                           const newVal = {
