@@ -1053,7 +1053,7 @@ export const insightsRouter = router({
     }),
 });
 
-async function getEventTypeList({
+export async function getEventTypeList({
   prisma,
   teamId,
   userId,
@@ -1070,15 +1070,37 @@ async function getEventTypeList({
     isOwnerAdminOfParentTeam: boolean;
   };
 }) {
-  if (!teamId && !userId) {
+  if (!teamId && !userId && !isAll) {
     return [];
   }
 
   const membershipWhereConditional: Prisma.MembershipWhereInput = {};
-
   let childrenTeamIds: number[] = [];
 
-  if (isAll && teamId && user.organizationId && user.isOwnerAdminOfParentTeam) {
+  if (userId && !teamId && !isAll) {
+    const eventTypeResult = await prisma.eventType.findMany({
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        teamId: true,
+        userId: true,
+        team: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      where: {
+        userId: user.id,
+        teamId: null,
+      },
+    });
+
+    return eventTypeResult;
+  }
+
+  if (isAll && user.organizationId && user.isOwnerAdminOfParentTeam) {
     const childTeams = await prisma.team.findMany({
       where: {
         parentId: user.organizationId,
@@ -1087,20 +1109,45 @@ async function getEventTypeList({
         id: true,
       },
     });
+
     if (childTeams.length > 0) {
       childrenTeamIds = childTeams.map((team) => team.id);
     }
-    membershipWhereConditional["teamId"] = {
-      in: [user.organizationId, ...childrenTeamIds],
-    };
+
+    const eventTypeResult = await prisma.eventType.findMany({
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        teamId: true,
+        userId: true,
+        team: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      where: {
+        OR: [
+          {
+            teamId: {
+              in: [user.organizationId, ...childrenTeamIds],
+            },
+          },
+          {
+            userId: user.id,
+            teamId: null,
+          },
+        ],
+      },
+    });
+
+    return eventTypeResult;
   }
 
   if (teamId && !isAll) {
     membershipWhereConditional["teamId"] = teamId;
     membershipWhereConditional["userId"] = user.id;
-  }
-  if (userId) {
-    membershipWhereConditional["userId"] = userId;
   }
 
   // I'm not using unique here since when userId comes from input we should look for every
@@ -1114,49 +1161,29 @@ async function getEventTypeList({
   }
 
   const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
-  if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {
-    eventTypeWhereConditional["teamId"] = {
-      in: [user.organizationId, ...childrenTeamIds],
-    };
-  }
+
   if (teamId && !isAll) {
     eventTypeWhereConditional["teamId"] = teamId;
   }
-  if (userId) {
-    eventTypeWhereConditional["userId"] = userId;
-  }
-  let eventTypeResult: Prisma.EventTypeGetPayload<{
-    select: {
-      id: true;
-      slug: true;
-      teamId: true;
-      title: true;
-      team: {
-        select: {
-          name: true;
-        };
-      };
-    };
-  }>[] = [];
 
   let isMember = membership?.role === "MEMBER";
   if (user.isOwnerAdminOfParentTeam) {
     isMember = false;
   }
+
   if (isMember) {
-    eventTypeWhereConditional["OR"] = [
-      { userId: user.id },
-      { users: { some: { id: user.id } } },
-      // @TODO this is not working as expected
-      // hosts: { some: { id: user.id } },
-    ];
+    eventTypeWhereConditional["OR"] = [{ userId: user.id }, { users: { some: { id: user.id } } }];
+    // @TODO this is not working as expected
+    // hosts: { some: { id: user.id } },
   }
-  eventTypeResult = await prisma.eventType.findMany({
+
+  const eventTypeResult = await prisma.eventType.findMany({
     select: {
       id: true,
       slug: true,
       title: true,
       teamId: true,
+      userId: true,
       team: {
         select: {
           name: true,
