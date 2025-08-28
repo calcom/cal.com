@@ -69,6 +69,7 @@ function PageWrapper(props: AppProps) {
         }
         {...seoConfig.defaultNextSeo}
       />
+
       <Script
         id="page-status"
         // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.

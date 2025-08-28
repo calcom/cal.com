@@ -353,7 +353,7 @@ const BookerComponent = ({
             }}
             variant="fab"
             color="secondary"
-            className="h-[16px] mb-2"
+            className="mb-2 h-[16px]"
             StartIcon="arrow-left"></Button>
           <div
             ref={animationScope}
@@ -421,11 +421,14 @@ const BookerComponent = ({
                   {!hideEventTypeDetails && orgBannerUrl && (
                     <div
                       loading="eager"
-                      className="-mb-4 flex h-16 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
+                      className="-mb-4 flex h-16 p-2 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
                       alt="org banner"
-                      style={{ backgroundImage: `url(${orgBannerUrl})` }}></div>
+                      style={{
+                        backgroundImage: `url(${orgBannerUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}></div>
                   )}
-
                   <EventMeta
                     classNames={{
                       eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,

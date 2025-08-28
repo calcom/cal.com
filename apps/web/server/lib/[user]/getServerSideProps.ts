@@ -36,7 +36,10 @@ type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: (Pick<User, "name" | "username" | "bio" | "verified" | "avatarUrl" | "headerUrl"> & {
+  users: (Pick<
+    User,
+    "name" | "username" | "bio" | "verified" | "avatarUrl" | "headerUrl" | "bannerUrl" | "faviconUrl"
+  > & {
     profile: UserProfile;
   })[];
   themeBasis: string | null;

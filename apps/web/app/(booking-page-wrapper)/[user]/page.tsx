@@ -17,10 +17,12 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
 
-  const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
+  const { users, profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
   const isOrg = !!profile?.organization;
   const allowSEOIndexing =
     (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
+
+  const user = users[0];
 
   const meeting = {
     title: markdownStrippedBio,
@@ -32,6 +34,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     () => profile.name,
     () => markdownStrippedBio,
     false,
+    user.bannerUrl,
     getOrgFullOrigin(entity.orgSlug ?? null),
     `/${decodeParams(await params).user}`
   );
