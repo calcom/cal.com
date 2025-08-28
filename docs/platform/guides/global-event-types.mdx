@@ -5,6 +5,20 @@ description: Event types that every managed user or a subset of managed users wi
 
 If you want all of your managed users or a subset of managed users to have the same event type set up automatically, then follow along.
 
+<Warning>
+**Important Limitation:**  
+Global event types (team event types with `assignAllTeamMembers: true`) are designed to create a *shared* event type for all managed users in a team. **They do not allow you to generate unique booking URLs for each managed user with their own individual availability.**  
+If your use case requires booking a specific managed user with their unique availability (e.g., `/username/event-type`), you must create a separate event type for each managed user using your own logic or API integration.  
+Team event types are not intended for this scenario.
+</Warning>
+
+<Info>
+**Platform vs Teams:**  
+- **Platform**: Refers to your application integrating with Cal.com via the API and managed users.
+- **Teams**: Are Cal.com entities that group users and allow for shared/team event types.
+Team event types are for collective/round robin/managed scheduling within a team, not for creating unique per-user booking links.
+</Info>
+
 ## Prerequisites
 
 1. You need to have an OAuth client set up, since we'll need the client id and client secret from the OAuth client to be included in the API requests. Here is the link for the [OAuth client setup guide](https://cal.com/docs/platform/quickstart)
