@@ -10,9 +10,8 @@ import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permi
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
