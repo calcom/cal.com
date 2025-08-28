@@ -44,14 +44,14 @@ export const RecentNoShowGuestsChart = () => {
         {data.map((item) => (
           <ChartCardItem key={item.bookingId}>
             <div className="flex w-full items-center justify-between">
-              <div className="flex flex-col space-y-1">
-                <div className="flex items-center space-x-2">
-                  <div className="bg-subtle mr-1.5 h-5 w-[2px] shrink-0 rounded-sm" />
-                  <p className="font-medium">{item.guestName}</p>
-                </div>
-                <div className="text-subtle ml-3.5 text-sm">
-                  <p>{item.eventTypeName}</p>
-                  <p>{new Date(item.startTime).toLocaleString()}</p>
+              <div className="flex gap-2">
+                <div className="bg-subtle h-16 w-[2px] shrink-0 rounded-sm" />
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">{item.guestName}</p>
+                  <div className="text-subtle text-sm">
+                    <p>{item.eventTypeName}</p>
+                    <p>{new Date(item.startTime).toLocaleString()}</p>
+                  </div>
                 </div>
               </div>
               <Button
