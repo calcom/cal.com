@@ -10,6 +10,7 @@
   "edit_event_subtitle":"Create events to share for people to book on your calendar.",
   "custom_reply_to_email_no_verified_emails":"No verified emails configured on profile",
   "event_icon_updated":"Event icon updated successfully",
+  "whatsapp_chat":"Chat on WhatsApp",
   "identity_provider": "Identity provider",
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
   "day_one": "{{count}} day",
