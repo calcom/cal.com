@@ -1,3 +1,6 @@
+// Import the video adapters mock to ensure it's loaded
+import "./tests/libs/__mocks__/video-adapters";
+
 import matchers from "@testing-library/jest-dom/matchers";
 import ResizeObserver from "resize-observer-polyfill";
 import { vi, expect } from "vitest";

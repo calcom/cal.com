@@ -1929,67 +1929,73 @@ export function mockVideoApp({
   const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteMeetingCalls: any[] = [];
+  const mockVideoAdapter = (credential: any) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createMeeting: (...rest: any[]) => {
+      if (creationCrash) {
+        throw new Error("MockVideoApiAdapter.createMeeting fake error");
+      }
+      createMeetingCalls.push({
+        credential,
+        args: rest,
+      });
+
+      return Promise.resolve({
+        type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+        ...videoMeetingData,
+      });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updateMeeting: async (...rest: any[]) => {
+      if (updationCrash) {
+        throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+      }
+      const [bookingRef, calEvent] = rest;
+      updateMeetingCalls.push({
+        credential,
+        args: rest,
+      });
+      if (!bookingRef.type) {
+        throw new Error("bookingRef.type is not defined");
+      }
+      if (!calEvent.organizer) {
+        throw new Error("calEvent.organizer is not defined");
+      }
+      log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
+      return Promise.resolve({
+        type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+        ...videoMeetingData,
+      });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    deleteMeeting: async (...rest: any[]) => {
+      log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
+      deleteMeetingCalls.push({
+        credential,
+        args: rest,
+      });
+    },
+  });
+
+  const mockVideoAdapterResponse = () => ({
+    lib: {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      VideoApiAdapter: mockVideoAdapter,
+    },
+  });
+
+  // Mock the old appStore pattern for legacy support
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
     return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: (credential) => {
-            return {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              createMeeting: (...rest: any[]) => {
-                if (creationCrash) {
-                  throw new Error("MockVideoApiAdapter.createMeeting fake error");
-                }
-                createMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              updateMeeting: async (...rest: any[]) => {
-                if (updationCrash) {
-                  throw new Error("MockVideoApiAdapter.updateMeeting fake error");
-                }
-                const [bookingRef, calEvent] = rest;
-                updateMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-                if (!bookingRef.type) {
-                  throw new Error("bookingRef.type is not defined");
-                }
-                if (!calEvent.organizer) {
-                  throw new Error("calEvent.organizer is not defined");
-                }
-                log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              deleteMeeting: async (...rest: any[]) => {
-                log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
-                deleteMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-              },
-            };
-          },
-        },
-      });
+      resolve(mockVideoAdapterResponse());
     });
   });
+
+  // Note: VideoAdapterMap is now mocked globally in tests/libs/__mocks__/video-adapters.ts
+  // No need to mock it here as well
   return {
     createMeetingCalls,
     updateMeetingCalls,
