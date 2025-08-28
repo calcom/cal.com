@@ -90,13 +90,13 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     })),
   });
 
-  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt, groupId = null }) => ({
+  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
     ...user,
     isFixed,
     priority,
     weight,
     createdAt,
-    groupId,
+    groupId: null, // Default value since findMatchingHostsWithEventSegment doesn't return groupId
   }));
 };
 
