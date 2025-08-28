@@ -1,7 +1,7 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { timeUnitLowerCase } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -31,6 +31,22 @@ export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
     value: FormResponse[keyof FormResponse]["value"];
   }
 >;
+
+// Type for form submission events used in workflows
+export type FormSubmissionEvent = {
+  formId: string;
+  formName: string;
+  submitterName?: string;
+  submitterEmail?: string;
+  submittedAt: Date;
+  responses: Record<string, any>;
+  teamName?: string;
+  organizerName: string;
+  hasBooking: boolean;
+  timeZone: string;
+  userId: number;
+  teamId?: number | null;
+};
 
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
@@ -90,6 +106,7 @@ async function executeFormWorkflows({
   form,
   response,
   chosenAction,
+  responseId,
 }: {
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
@@ -100,6 +117,7 @@ async function executeFormWorkflows({
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
   };
+  responseId: number;
 }) {
   // Get all workflows associated with this routing form
   //todo: check if this is doing the right thing
@@ -132,6 +150,8 @@ async function executeFormWorkflows({
     organizerName: form.user.email,
     hasBooking: chosenAction?.type === "eventTypeRedirectUrl",
     timeZone: "UTC", // TODO: Extract timezone if available from form responses
+    userId: form.user.id,
+    teamId: form.teamId,
   };
 
   // Filter workflows for FORM_SUBMITTED (immediate execution)
@@ -144,14 +164,8 @@ async function executeFormWorkflows({
 
   // Execute immediate workflows
   if (immediateWorkflows.length > 0) {
-    // todo: is this the right funciton to call?
     try {
-      await scheduleWorkflowReminders({
-        workflows: immediateWorkflows,
-        formSubmissionEvent,
-        hideBranding: false, // TODO: Add branding config if available
-        isDryRun: false,
-      });
+      //todo: schedule wokrkflows here
     } catch (error) {
       moduleLogger.error("Error scheduling form submitted workflows", error);
     }
@@ -161,13 +175,20 @@ async function executeFormWorkflows({
     const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
 
     const promisesFormSubmittedNoEvent = noEventWorkflows.map((workflow) => {
-      const scheduledAt = dayjs().add(timeSpan.time, timeUnit); //todo: don't use dayjs here
+      const timeUnit: timeUnitLowerCase =
+        (workflow.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase) ?? "minute";
+
+      const scheduledAt = dayjs()
+        .add(workflow.time ?? 15, timeUnit)
+        .toDate();
 
       return tasker.create(
         "triggerFormSubmittedNoEventWorkflow",
         {
-          formSubmissionEvent,
-          hideBranding: false,
+          responseId,
+          responses: response,
+          formId: form.id,
+          workflow: workflow,
         },
         { scheduledAt }
       );
@@ -288,6 +309,7 @@ export async function _onFormSubmission(
         form,
         response: fieldResponsesByIdentifier,
         chosenAction,
+        responseId,
       });
       const orderedResponses = form.fields.reduce((acc, field) => {
         acc.push(response[field.id]);

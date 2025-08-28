@@ -67,7 +67,9 @@ const processWorkflowStep = async (
   }
 
   if (isSMSAction(step.action)) {
-    const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
+    const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo; // this works I just need to make sure I pass smsReminderNumber
+
+    //todo: schedule SMS reminder needs the actual fix with evt and responses
     await scheduleSMSReminder({
       evt,
       reminderPhone: sendTo,
@@ -99,6 +101,7 @@ const processWorkflowStep = async (
         sendTo = [step.sendTo || ""];
         break;
       case WorkflowActions.EMAIL_HOST:
+        // todo: we need to remove email to host from form triggers
         sendTo = [evt.organizer?.email || ""];
 
         const schedulingType = evt.eventType.schedulingType;
@@ -109,6 +112,7 @@ const processWorkflowStep = async (
         }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
+        //todo: this needs to be the email coming form the response
         const attendees = !!emailAttendeeSendToOverride
           ? [emailAttendeeSendToOverride]
           : evt.attendees?.map((attendee) => attendee.email);
@@ -136,6 +140,7 @@ const processWorkflowStep = async (
         break;
     }
 
+    //todo: this needs to be able to handle responses instead of evt
     await scheduleEmailReminder({
       evt,
       triggerEvent: workflow.trigger,
@@ -159,6 +164,7 @@ const processWorkflowStep = async (
     });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+    //todo: this needs to be able to handle responses instead of evt
     await scheduleWhatsappReminder({
       evt,
       reminderPhone: sendTo,

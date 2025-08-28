@@ -54,10 +54,10 @@ import {
   isSMSOrWhatsappAction,
   isFormTrigger,
 } from "../lib/actionHelperFunctions";
+import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import { getVariablesForTrigger } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -142,7 +142,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
 
   // Get appropriate variables based on trigger type
-  const variables = getVariablesForTrigger(trigger);
+  const variables = DYNAMIC_TEXT_VARIABLES;
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
