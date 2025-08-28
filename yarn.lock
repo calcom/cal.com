@@ -3658,6 +3658,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/razorpayapp@workspace:packages/app-store/razorpay":
+  version: 0.0.0-use.local
+  resolution: "@calcom/razorpayapp@workspace:packages/app-store/razorpay"
+  dependencies:
+    "@calcom/app-store": "*"
+    "@calcom/dayjs": "*"
+    "@calcom/emails": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+    uuid: ^8.3.2
+    zod: ^3.22.4
+  languageName: unknown
+  linkType: soft
+
 "@calcom/retell-ai@workspace:packages/app-store/retell-ai":
   version: 0.0.0-use.local
   resolution: "@calcom/retell-ai@workspace:packages/app-store/retell-ai"

@@ -4,7 +4,12 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
-
+import {
+  RAZORPAY_CLIENT_ID,
+  RAZORPAY_CLIENT_SECRET,
+  RAZORPAY_STATE_KEY,
+  RAZORPAY_WEBHOOK_SECRET,
+} from "@calcom/lib/constants";
 import type { TrpcSessionUser } from "../../../types";
 import type { TListLocalInputSchema } from "./listLocal.schema";
 
@@ -38,6 +43,14 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
   return localApps.flatMap((app) => {
     // Filter applications that does not belong to the current requested category.
     if (!(app.category === category || app.categories?.some((appCategory) => appCategory === category))) {
+      return [];
+    }
+
+    // If the app is razorpay and the required keys are not set then return empty array
+    if (
+      app.slug === "razorpay" &&
+      (!RAZORPAY_CLIENT_ID || !RAZORPAY_CLIENT_SECRET || !RAZORPAY_STATE_KEY || !RAZORPAY_WEBHOOK_SECRET)
+    ) {
       return [];
     }
 

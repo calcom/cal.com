@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@calid/features/lib/cn";
 import type * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";

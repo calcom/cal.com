@@ -254,3 +254,12 @@ export const MOBILE_NOTIFICATIONS_ENABLED = process.env.MOBILE_NOTIFICATIONS_ENA
 export const RECAPTCHA_SECRET_LOW = process.env.RECAPTCHA_SECRET_LOW;
 export const RECAPTCHA_SECRET_MEDIUM = process.env.RECAPTCHA_SECRET_MEDIUM;
 export const RECAPTCHA_SECRET_HIGH = process.env.RECAPTCHA_SECRET_HIGH;
+
+
+export const RAZORPAY_CLIENT_ID = process.env.NEXT_PUBLIC_RAZORPAY_CLIENT_ID;
+export const RAZORPAY_CLIENT_SECRET = process.env.RAZORPAY_CLIENT_SECRET;
+export const RAZORPAY_STATE_KEY = process.env.RAZORPAY_SECRET;
+
+export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_SECRET;
+export const RAZORPAY_REDIRECT_URL = `${WEBAPP_URL}/apps/razorpay/callback`;
+export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";

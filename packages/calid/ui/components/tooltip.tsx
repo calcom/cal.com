@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@calid/features/lib/cn";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as React from "react";

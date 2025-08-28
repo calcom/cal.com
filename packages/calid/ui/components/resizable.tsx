@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@calid/features/lib/cn";
 import { Icon } from "@calid/features/ui";
 import * as ResizablePrimitive from "react-resizable-panels";

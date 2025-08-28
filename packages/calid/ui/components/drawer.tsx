@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@calid/features/lib/cn";
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";

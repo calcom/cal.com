@@ -70,6 +70,7 @@ export const apiHandlers = {
   posthog: import("./posthog/api"),
   qr_code: import("./qr_code/api"),
   raycast: import("./raycast/api"),
+  razorpay: import("./razorpay/api"),
   "retell-ai": import("./retell-ai/api"),
   riverside: import("./riverside/api"),
   roam: import("./roam/api"),

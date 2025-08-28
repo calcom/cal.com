@@ -55,18 +55,17 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
 
-  const handleAppInstall = () => {
+  const handleAppInstall = async () => {
     if (isConferencing(app.categories)) {
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: app.slug,
+        step: AppOnboardingSteps.EVENT_TYPES_STEP,
+      });
       mutation.mutate({
         type: app.type,
         variant: app.variant,
         slug: app.slug,
-        returnTo:
-          WEBAPP_URL +
-          getAppOnboardingUrl({
-            slug: app.slug,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
+        returnTo: WEBAPP_URL + onBoardingUrl,
       });
     } else if (
       !doesAppSupportTeamInstall({
@@ -77,7 +76,12 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     ) {
       mutation.mutate({ type: app.type });
     } else {
-      router.push(getAppOnboardingUrl({ slug: app.slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: app.slug,
+        step: AppOnboardingSteps.ACCOUNTS_STEP,
+      });
+
+      router.push(onBoardingUrl);
     }
   };
 
@@ -142,9 +146,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                   if (useDefaultComponent) {
                     props = {
                       ...props,
-                      onClick: () => {
-                        handleAppInstall();
-                      },
+                      onClick: async () => {
+                            await handleAppInstall();
+                          },
                       loading: mutation.isPending,
                     };
                   }
@@ -164,9 +168,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                     props = {
                       ...props,
                       disabled: !!props.disabled,
-                      onClick: () => {
-                        handleAppInstall();
-                      },
+                       onClick: async () => {
+                            await handleAppInstall();
+                          },
                       loading: mutation.isPending,
                     };
                   }
