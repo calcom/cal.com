@@ -35,6 +35,9 @@ function applyFilterWithFallback<T>(currentValue: T[], newValue: T[]): T[] {
   return newValue.length > 0 ? newValue : currentValue;
 }
 
+const withGroupId = <T extends { groupId?: string | null }>(arr: T[]) =>
+  arr.map((h) => ({ ...h, groupId: h.groupId ?? null }));
+
 function getFallBackWithContactOwner<T extends { user: { id: number } }>(
   fallbackHosts: T[],
   contactOwner: T
@@ -115,17 +118,19 @@ export class QualifiedHostsService {
     }[];
   }> {
     // Transform hosts to proper BaseHost format if they exist
-    const transformedEventType = eventType.hosts ? {
-      ...eventType,
-      hosts: eventType.hosts.map(h => ({
-        user: h.user, // Already a user object in this context
-        isFixed: h.isFixed ?? false,
-        priority: h.priority ?? null,
-        weight: h.weight ?? null,
-        createdAt: h.createdAt || new Date(),
-        groupId: h.groupId ?? null
-      }))
-    } : eventType;
+    const transformedEventType = eventType.hosts
+      ? {
+          ...eventType,
+          hosts: eventType.hosts.map((h) => ({
+            user: h.user, // Already a user object in this context
+            isFixed: h.isFixed ?? false,
+            priority: h.priority ?? null,
+            weight: h.weight ?? null,
+            createdAt: h.createdAt || new Date(),
+            groupId: h.groupId ?? null,
+          })),
+        }
+      : eventType;
 
     const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } =
       await getNormalizedHostsWithDelegationCredentials({
