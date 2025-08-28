@@ -202,7 +202,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let isOrg = false;
   const stepsEnum = z.enum(STEPS);
   const parsedAppSlug = z.coerce.string().parse(query?.slug);
-  const parsedStepParam = z.coerce.string().parse(params?.step);
+  const stepSegments = Array.isArray(params?.step) ? params?.step : params?.step ? [params?.step] : [];
+  const parsedStepParam = z.string().optional().parse(stepSegments[0]);
   const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
   const _ = stepsEnum.parse(parsedStepParam);
   const session = await getServerSession({ req });
@@ -222,11 +223,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let userTeams = user.teams;
   const hasTeams = Boolean(userTeams.length);
 
-  let initialStep = parsedStepParam;
-  if (!hasTeams && parsedStepParam === "accounts") {
-    initialStep = AppOnboardingSteps.EVENT_TYPES_STEP; // Skip Accounts step if no teams
+  let initialStep = parsedStepParam as string | undefined;
+  if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP) {
+    initialStep = AppOnboardingSteps.EVENT_TYPES_STEP;
   } else if (!parsedStepParam) {
-    initialStep = AppOnboardingSteps.ACCOUNTS_STEP; // Default to Accounts step if teams exist
+    initialStep = hasTeams ? AppOnboardingSteps.ACCOUNTS_STEP : AppOnboardingSteps.EVENT_TYPES_STEP;
   }
 
   if (parsedTeamIdParam) {

@@ -116,7 +116,6 @@ const OnboardingPage = ({
   const pathname = usePathname();
   const router = useRouter();
 
-  const [isLoading, setIsLoading] = useState(false); // Only used for mutation loading
   const [configureStep, setConfigureStep] = useState(false);
 
   const STEPS_MAP: StepObj = {
@@ -210,37 +209,27 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
-    setIsLoading(true);
-    mutation.mutate(
-      {
-        type: appMetadata.type,
-        variant: appMetadata.variant,
-        slug: appMetadata.slug,
-        ...(teamId && { teamId }),
-        // for oAuth apps
-        ...(showEventTypesStep && {
-          returnTo:
-            WEBAPP_URL +
-            getAppOnboardingUrl({
-              slug: appMetadata.slug,
-              teamId,
-              step: AppOnboardingSteps.EVENT_TYPES_STEP,
-            }),
-        }),
-      },
-      {
-        onSettled: () => setIsLoading(false),
-      }
-    );
+    mutation.mutate({
+      type: appMetadata.type,
+      variant: appMetadata.variant,
+      slug: appMetadata.slug,
+      ...(teamId && { teamId }),
+      // for oAuth apps
+      ...(showEventTypesStep && {
+        returnTo:
+          WEBAPP_URL +
+          getAppOnboardingUrl({
+            slug: appMetadata.slug,
+            teamId,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+          }),
+      }),
+    });
   };
 
   const handleSetUpLater = () => {
     router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
   };
-
-  if (isLoading) {
-    return null;
-  }
 
   return (
     <div
