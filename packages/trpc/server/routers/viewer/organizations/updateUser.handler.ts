@@ -4,6 +4,7 @@ import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensur
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { RoleManagementError } from "@calcom/features/pbac/domain/errors/role-management.error";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -172,6 +173,12 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   if (input.bookingLimits !== undefined) {
+    if (input.bookingLimits) {
+      const isValid = validateIntervalLimitOrder(input.bookingLimits);
+      if (!isValid)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+    }
+
     await prisma.membership.update({
       where: {
         userId_teamId: {
