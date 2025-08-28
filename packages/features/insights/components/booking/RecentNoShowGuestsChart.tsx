@@ -14,6 +14,7 @@ export const RecentNoShowGuestsChart = () => {
   const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
   const insightsBookingParams = useInsightsBookingParameters();
+  const timeZone = insightsBookingParams.timeZone;
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.recentNoShowGuests.useQuery(
     insightsBookingParams,
@@ -48,9 +49,15 @@ export const RecentNoShowGuestsChart = () => {
                 <div className="bg-subtle h-16 w-[2px] shrink-0 rounded-sm" />
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">{item.guestName}</p>
-                  <div className="text-subtle text-sm">
+                  <div className="text-subtle text-sm leading-tight">
                     <p>{item.eventTypeName}</p>
-                    <p>{new Date(item.startTime).toLocaleString()}</p>
+                    <p>
+                      {Intl.DateTimeFormat(undefined, {
+                        timeZone,
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(item.startTime))}
+                    </p>
                   </div>
                 </div>
               </div>

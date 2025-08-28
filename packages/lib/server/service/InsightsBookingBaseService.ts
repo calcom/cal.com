@@ -1143,7 +1143,7 @@ export class InsightsBookingBaseService {
           COUNT(CASE WHEN a."noShow" = true THEN 1 END) as no_show_attendees
         FROM "BookingTimeStatusDenormalized" b
         INNER JOIN "Attendee" a ON a."bookingId" = b.id
-        WHERE ${baseConditions}
+        WHERE ${baseConditions} and b.status = 'accepted'
         GROUP BY b.id, b."startTime", b.title
         HAVING COUNT(a.id) > 0 AND COUNT(a.id) = COUNT(CASE WHEN a."noShow" = true THEN 1 END)
       ),
