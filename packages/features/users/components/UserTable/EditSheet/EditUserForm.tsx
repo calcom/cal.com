@@ -6,9 +6,11 @@ import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { intervalLimitsType, type IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -62,6 +64,7 @@ const editSchema = z.object({
   role: z.union([z.nativeEnum(MembershipRole), z.string()]),
   timeZone: timeZoneSchema,
   attributes: z.array(attributeSchema).optional(),
+  bookingLimits: intervalLimitsType.optional(),
 });
 
 type EditSchema = z.infer<typeof editSchema>;
@@ -93,6 +96,7 @@ export function EditForm({
       bio: selectedUser?.bio ?? "",
       role: selectedUser?.role ?? "",
       timeZone: selectedUser?.timeZone ?? "",
+      bookingLimits: selectedUser?.bookingLimits as IntervalLimit | undefined,
     },
   });
 
@@ -184,6 +188,7 @@ export function EditForm({
             attributeOptions: values.attributes
               ? { userId: selectedUser?.id ?? "", attributes: values.attributes }
               : undefined,
+            bookingLimits: values.bookingLimits,
           });
           setEditMode(false);
         }}>
@@ -251,6 +256,17 @@ export function EditForm({
           </div>
           <Divider />
           <AttributesList selectedUserId={selectedUser?.id} />
+
+          <div className="mt-8">
+            <Label className="text-emphasis font-medium">{t("booking_limits")}</Label>
+            <p className="text-default mb-2 text-sm">{t("booking_limits_member_description")}</p>
+            <IntervalLimitsManager
+              propertyName="bookingLimits"
+              defaultLimit={1}
+              step={1}
+              textFieldSuffix={t("bookings")}
+            />
+          </div>
         </SheetBody>
         <SheetFooter>
           <Button

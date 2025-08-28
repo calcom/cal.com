@@ -209,6 +209,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       createdAt: true,
       updatedAt: true,
       customRole: true,
+      bookingLimits: true,
       user: {
         select: {
           id: true,
@@ -313,6 +314,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           : null,
         avatarUrl: user.avatarUrl,
         ...(ctx.user.organization.isOrgAdmin && { twoFactorEnabled: user.twoFactorEnabled }),
+        bookingLimits: membership.bookingLimits,
         teams: user.teams
           .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
           .map((team) => {

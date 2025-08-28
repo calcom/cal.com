@@ -70,6 +70,7 @@ describe("generate Csv for Org Users Table", () => {
     lastActiveAt: new Date().toISOString(),
     createdAt: null,
     updatedAt: null,
+    bookingLimits: null,
     customRole: {
       type: "SYSTEM",
       id: "member_role",

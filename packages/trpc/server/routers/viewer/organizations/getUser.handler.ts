@@ -56,6 +56,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
       },
       select: {
         role: true,
+        bookingLimits: true,
       },
     }),
     prisma.membership.findMany({
@@ -89,6 +90,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
       accepted: team.accepted,
     })),
     role: membership.role,
+    bookingLimits: membership.bookingLimits,
   };
 
   return foundUser;

@@ -171,6 +171,20 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     });
   }
 
+  if (input.bookingLimits !== undefined) {
+    await prisma.membership.update({
+      where: {
+        userId_teamId: {
+          userId: input.userId,
+          teamId: organizationId,
+        },
+      },
+      data: {
+        bookingLimits: input.bookingLimits ? JSON.parse(JSON.stringify(input.bookingLimits)) : null,
+      },
+    });
+  }
+
   // We cast to membership role as we know pbac insnt enabled on this instance.
   if (checkAdminOrOwner(input.role as MembershipRole) && roleManager.isPBACEnabled) {
     const teamIds = requestedMember.team.children

@@ -52,7 +52,10 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
+import {
+  getCheckBookingAndDurationLimitsService,
+  getCheckBookingLimitsService,
+} from "@calcom/lib/di/containers/BookingLimits";
 import { getCacheService } from "@calcom/lib/di/containers/Cache";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -64,6 +67,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -1031,6 +1035,30 @@ async function handler(
   const organizerUser = reqBody.teamMemberEmail
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
     : users[0];
+
+  if (eventType.team?.id) {
+    const organizerMembership = await prisma.membership.findFirst({
+      where: {
+        userId: organizerUser.id,
+        teamId: eventType.team.id,
+        accepted: true,
+      },
+      select: {
+        bookingLimits: true,
+      },
+    });
+
+    if (organizerMembership?.bookingLimits) {
+      const checkBookingLimitsService = getCheckBookingLimitsService();
+      await checkBookingLimitsService.checkBookingLimits(
+        organizerMembership.bookingLimits as IntervalLimit,
+        dayjs(reqBody.start).toDate(),
+        eventType.id,
+        reqBody.rescheduleUid,
+        organizerUser.timeZone
+      );
+    }
+  }
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(organizerUser, eventType);

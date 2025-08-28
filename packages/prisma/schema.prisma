@@ -656,6 +656,7 @@ model Membership {
   team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
+  bookingLimits        Json?
   AttributeToUser      AttributeToUser[]
   createdAt            DateTime?         @default(now())
   updatedAt            DateTime?         @updatedAt
