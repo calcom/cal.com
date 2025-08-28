@@ -187,6 +187,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
         ],
         organizer: fixedHost,
         usersApartFromOrganizer: [roundRobinHost],
+        apps: [TestData.apps["daily-video"]],
         bookings: [
           {
             userId: 102, // Make round robin host busy with an existing booking

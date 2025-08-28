@@ -986,9 +986,10 @@ async function handler(
         Object.entries(hostGroups).filter(([groupId, hosts]) => hosts.length > 0)
       );
       // If there are RR hosts, we need to find a lucky user
+      const expectedLuckyUsersCount = Object.keys(nonEmptyHostGroups).length || 1;
       if (
         [...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 &&
-        luckyUsers.length !== (Object.keys(nonEmptyHostGroups).length || 1)
+        luckyUsers.length !== expectedLuckyUsersCount
       ) {
         throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
       }

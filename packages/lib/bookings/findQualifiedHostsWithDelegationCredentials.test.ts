@@ -34,8 +34,9 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
-        priority: undefined,
-        weight: undefined,
+        priority: null,
+        weight: null,
+        groupId: null,
       },
       {
         isFixed: false,
@@ -46,8 +47,9 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
-        priority: undefined,
-        weight: undefined,
+        priority: null,
+        weight: null,
+        groupId: null,
       },
       {
         isFixed: false,
@@ -58,8 +60,9 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
-        priority: undefined,
-        weight: undefined,
+        priority: null,
+        weight: null,
+        groupId: null,
       },
     ];
 

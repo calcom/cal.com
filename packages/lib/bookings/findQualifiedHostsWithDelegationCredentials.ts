@@ -207,6 +207,7 @@ export class QualifiedHostsService {
           createdAt: h.createdAt,
           ...(h.priority !== undefined ? { priority: h.priority } : {}),
           ...(h.weight !== undefined ? { weight: h.weight } : {}),
+          ...(h.groupId !== undefined ? { groupId: h.groupId } : {}),
         })),
       })) as typeof hostsAfterRescheduleWithSameRoundRobinHost
     );
