@@ -429,4 +429,36 @@ export class PaymentService implements IAbstractPaymentService {
   isSetupAlready(): boolean {
     return !!this.credentials;
   }
+
+  private generateMetadata({
+    bookingId,
+    userId,
+    username,
+    bookerName,
+    bookerEmail,
+    bookerPhoneNumber,
+    eventTitle,
+    bookingTitle,
+  }: {
+    bookingId: number;
+    userId: number | null | undefined;
+    username: string | null | undefined;
+    bookerName: string;
+    bookerEmail: string;
+    bookerPhoneNumber: string | null;
+    eventTitle: string | null;
+    bookingTitle: string;
+  }) {
+    return {
+      identifier: "cal.com",
+      bookingId,
+      calAccountId: userId ?? null,
+      calUsername: username ?? null,
+      bookerName,
+      bookerEmail: bookerEmail,
+      bookerPhoneNumber: bookerPhoneNumber ?? null,
+      eventTitle: eventTitle || "",
+      bookingTitle: bookingTitle || "",
+    };
+  }
 }
