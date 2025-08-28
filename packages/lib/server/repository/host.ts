@@ -14,4 +14,27 @@ export class HostRepository {
       },
     });
   }
+
+  async findHostsCreatedInInterval({
+    eventTypeId,
+    userIds,
+    startDate,
+  }: {
+    eventTypeId: number;
+    userIds: number[];
+    startDate: Date;
+  }) {
+    return await this.prismaClient.host.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+        eventTypeId,
+        isFixed: false,
+        createdAt: {
+          gte: startDate,
+        },
+      },
+    });
+  }
 }

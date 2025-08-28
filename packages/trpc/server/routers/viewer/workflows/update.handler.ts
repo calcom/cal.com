@@ -87,7 +87,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let teamsPlan = { isActive: false, isTrial: false };
   if (!isCurrentUsernamePremium) {
-    teamsPlan = await hasActiveTeamPlanHandler({ ctx });
+    teamsPlan = await hasActiveTeamPlanHandler({ ctx, input: { ownerOnly: false } });
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || teamsPlan.isActive;
   let newActiveOn: number[] = [];
