@@ -1,4 +1,4 @@
-import { isFormTrigger } from "@calcom/ee/workflows/lib/variableTranslations";
+import { isFormTrigger } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import type { PrismaClient } from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
 import type { WorkflowTriggerEvents, TimeUnit } from "@calcom/prisma/enums";

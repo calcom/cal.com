@@ -52,11 +52,12 @@ import {
   getTemplateBodyForAction,
   shouldScheduleEmailReminder,
   isSMSOrWhatsappAction,
+  isFormTrigger,
 } from "../lib/actionHelperFunctions";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import { isFormTrigger, getVariablesForTrigger } from "../lib/variableTranslations";
+import { getVariablesForTrigger } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 

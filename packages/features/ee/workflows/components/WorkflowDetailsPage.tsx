@@ -15,8 +15,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction } from "../lib/actionHelperFunctions";
-import { isFormTrigger } from "../lib/variableTranslations";
+import { isFormTrigger, isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";

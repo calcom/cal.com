@@ -26,9 +26,9 @@ import { showToast } from "@calcom/ui/components/toast";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
+import { isFormTrigger, isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
-import { getTranslatedText, translateVariablesToEnglish, isFormTrigger } from "../lib/variableTranslations";
+import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;

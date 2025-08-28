@@ -1,5 +1,4 @@
-import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { isFormTrigger } from "@calcom/features/ee/workflows/lib/variableTranslations";
+import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
