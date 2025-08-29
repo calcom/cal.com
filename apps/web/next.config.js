@@ -315,14 +315,14 @@ const nextConfig = (phase) => {
           cacheGroups: {
             ...config.optimization.splitChunks?.cacheGroups,
             repositories: {
-              test: /[\\/]packages[\\/].*repository\.(ts|js)$/,
+              test: /[\\/](?:packages|node_modules[\\/]@calcom)[\\/].*Repository\.(t|j)sx?$/i,
               name: "repositories",
               chunks: "all",
               priority: 30,
               enforce: true,
             },
             features: {
-              test: /[\\/]packages[\\/]features[\\/]/,
+              test: /[\\/](?:packages|node_modules[\\/]@calcom)[\\/]features[\\/]/,
               name: "features",
               chunks: "all",
               priority: 25,
