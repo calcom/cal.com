@@ -1,7 +1,11 @@
 "use client";
 
 import { Icon } from "@calid/features/ui";
-import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@calid/features/ui";
+import { Profile } from "@calid/features/ui/Profile";
+import { HorizontalTabs } from "@calid/features/ui/components/navigation";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 

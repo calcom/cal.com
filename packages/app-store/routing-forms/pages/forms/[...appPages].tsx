@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Button, Icon } from "@calid/features/ui";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -18,6 +18,7 @@ import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { Badge } from "@calcom/ui/components/badge";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { List } from "@calcom/ui/components/list";
+import { ListItemAdvanced } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { NewFormDialogState } from "../../components/FormActions";
@@ -34,10 +35,10 @@ import type { RoutingFormWithResponseCount } from "../../types/types";
 function NewFormButton({ setSelectTeamDialogState }: { setSelectTeamDialogState: SetSelectTeamDialogState }) {
   const { t } = useLocale();
   return (
-    <ButtonCal onClick={() => setSelectTeamDialogState({ target: null })}>
+    <Button onClick={() => setSelectTeamDialogState({ target: null })}>
       <Icon name="plus" className="h-4 w-4" />
       <span>{t("new")}</span>
-    </ButtonCal>
+    </Button>
 
     // <CreateButtonWithTeamsList
     //   subtitle={t("create_routing_form_on").toUpperCase()}
@@ -183,7 +184,14 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 Icon="git-merge"
                 headline={t("create_your_first_form")}
                 description={t("create_your_first_form_description")}
-                buttonRaw={<NewFormButton setSelectTeamDialogState={setSelectTeamDialogState} />}
+                buttonRaw={
+                  <NewFormButton
+                    setSelectTeamDialogState={(team) => {
+                      console.log("Toggling dialog: ", selectTeamDialogState);
+                      setSelectTeamDialogState(team);
+                    }}
+                  />
+                }
               />
             }
             noResultsScreen={

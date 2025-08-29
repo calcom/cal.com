@@ -1,9 +1,9 @@
 "use client";
 
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui";
-import { HorizontalTabs } from "@calid/features/ui";
 // import { Button } from "@calcom/ui/components/button";
 import { Button, TextField } from "@calid/features/ui";
+import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
@@ -222,7 +222,7 @@ const ChooseEmbedTypesDialogContent = ({
         {types.map((embed, index) => (
           <Button
             type="button"
-            className="flex w-full justify-center text-xs py-2"
+            className="flex w-full justify-center py-2 text-xs"
             variant="button"
             color={currentType === embed.type ? "primary_dim" : "secondary"}
             key={index}
