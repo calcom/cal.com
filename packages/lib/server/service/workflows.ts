@@ -1,8 +1,11 @@
+import dayjs from "@calcom/dayjs";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import { tasker } from "@calcom/features/tasker";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import { WorkflowRepository } from "../repository/workflow";
 
@@ -70,6 +73,60 @@ export class WorkflowService {
         await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
       }
     }
+  }
+
+  static async scheduleFormWorkflows({
+    workflows,
+    responses,
+    responseId,
+    formId,
+  }: {
+    workflows: Workflow[];
+    responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+    responseId: number;
+    formId: string;
+  }) {
+    if (workflows.length <= 0) return;
+
+    const workflowsToTrigger: Workflow[] = [];
+
+    workflowsToTrigger.push(
+      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED)
+    );
+
+    // todo: fix
+    await scheduleWorkflowReminders({
+      ...args,
+      workflows: workflowsToTrigger,
+    });
+
+    const workflowsToSchedule: Workflow[] = [];
+
+    workflowsToSchedule.push(
+      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT)
+    );
+
+    //create tasker here
+    const promisesFormSubmittedNoEvent = noEventWorkflows.map((workflow) => {
+      const timeUnit: timeUnitLowerCase =
+        (workflow.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase) ?? "minute";
+
+      const scheduledAt = dayjs() //todo: remove dayjs
+        .add(workflow.time ?? 15, timeUnit)
+        .toDate();
+
+      return tasker.create(
+        "triggerFormSubmittedNoEventWorkflow",
+        {
+          responseId,
+          responses,
+          formId,
+          workflow,
+        },
+        { scheduledAt }
+      );
+    });
+    await Promise.all(promisesFormSubmittedNoEvent);
   }
 
   static async scheduleWorkflowsForNewBooking({
