@@ -4,7 +4,9 @@ type TimezoneCityRow = {
   pop: number;
 };
 
-const TIMEZONE_LIST_CDN_URL = "https://cdn.jsdelivr.net/npm/city-timezones@1.2.1/data/cityMap.json";
+export const TIMEZONE_LIST_CDN_URL =
+  process.env.NEXT_PUBLIC_CITY_TIMEZONES_URL ??
+  "https://cdn.jsdelivr.net/npm/city-timezones@1.2.1/data/cityMap.json";
 
 export async function cityTimezonesHandler(): Promise<TimezoneCityRow[]> {
   const res = await fetch(TIMEZONE_LIST_CDN_URL);
