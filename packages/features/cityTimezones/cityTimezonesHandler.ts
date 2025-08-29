@@ -38,5 +38,3 @@ export async function cityTimezonesHandler(): Promise<TimezoneCityRow[]> {
 }
 
 export type CityTimezones = Awaited<ReturnType<typeof cityTimezonesHandler>>;
-
-export default cityTimezonesHandler;
