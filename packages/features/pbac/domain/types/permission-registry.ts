@@ -59,6 +59,35 @@ export type PermissionRegistry = {
 export type PermissionString = `${Resource}.${CrudAction | CustomAction}`;
 
 /**
+ * Validates a permission string format
+ * @param val The permission string to validate
+ * @returns True if valid, false otherwise
+ */
+export const isValidPermissionString = (val: unknown): val is PermissionString => {
+  if (typeof val !== "string") return false;
+
+  // Handle special case for _resource
+  if (val.endsWith("._resource")) {
+    const resourcePart = val.slice(0, -10); // Remove "._resource"
+    return Object.values(Resource).includes(resourcePart as Resource);
+  }
+
+  // Split by the last dot to handle nested resources like "organization.attributes.create"
+  const lastDotIndex = val.lastIndexOf(".");
+  if (lastDotIndex === -1) return false;
+
+  const resourcePart = val.substring(0, lastDotIndex);
+  const actionPart = val.substring(lastDotIndex + 1);
+
+  const isValidResource = Object.values(Resource).includes(resourcePart as Resource);
+  const isValidAction =
+    Object.values(CrudAction).includes(actionPart as CrudAction) ||
+    Object.values(CustomAction).includes(actionPart as CustomAction);
+
+  return isValidResource && isValidAction;
+};
+
+/**
  * Helper function to filter out the _resource property from a ResourceConfig
  * @param config The ResourceConfig to filter
  * @returns A new object without the _resource property

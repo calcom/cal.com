@@ -54,7 +54,10 @@ export class RoleRepository {
 
       if (data.permissions.length > 0) {
         const permissionData = data.permissions.map((permission) => {
-          const [resource, action] = permission.split(".");
+          // Split from the right side to handle nested resources like "organization.attributes.create"
+          const lastDotIndex = permission.lastIndexOf(".");
+          const resource = permission.substring(0, lastDotIndex);
+          const action = permission.substring(lastDotIndex + 1);
           return {
             id: uuidv4(),
             roleId: role.id,

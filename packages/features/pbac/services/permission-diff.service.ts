@@ -5,7 +5,10 @@ export type ParsedPermission = { resource: string; action: string };
 
 export class PermissionDiffService {
   private parsePermission(permission: PermissionString): ParsedPermission {
-    const [resource, action] = permission.split(".");
+    // Split from the right side to handle nested resources like "organization.attributes.create"
+    const lastDotIndex = permission.lastIndexOf(".");
+    const resource = permission.substring(0, lastDotIndex);
+    const action = permission.substring(lastDotIndex + 1);
     return { resource, action };
   }
 

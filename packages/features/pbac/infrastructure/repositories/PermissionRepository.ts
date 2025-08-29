@@ -91,7 +91,10 @@ export class PermissionRepository implements IPermissionRepository {
   }
 
   async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
-    const [resource, action] = permission.split(".");
+    // Split from the right side to handle nested resources like "organization.attributes.create"
+    const lastDotIndex = permission.lastIndexOf(".");
+    const resource = permission.substring(0, lastDotIndex);
+    const action = permission.substring(lastDotIndex + 1);
     const hasPermission = await this.client.rolePermission.findFirst({
       where: {
         roleId,
@@ -113,7 +116,10 @@ export class PermissionRepository implements IPermissionRepository {
     }
 
     const permissionPairs = permissions.map((p) => {
-      const [resource, action] = p.split(".");
+      // Split from the right side to handle nested resources like "organization.attributes.create"
+      const lastDotIndex = p.lastIndexOf(".");
+      const resource = p.substring(0, lastDotIndex);
+      const action = p.substring(lastDotIndex + 1);
       return { resource, action };
     });
     const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
@@ -207,7 +213,10 @@ export class PermissionRepository implements IPermissionRepository {
     }
 
     const permissionPairs = permissions.map((p) => {
-      const [resource, action] = p.split(".");
+      // Split from the right side to handle nested resources like "organization.attributes.create"
+      const lastDotIndex = p.lastIndexOf(".");
+      const resource = p.substring(0, lastDotIndex);
+      const action = p.substring(lastDotIndex + 1);
       return { resource, action };
     });
 

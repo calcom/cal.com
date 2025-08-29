@@ -18,12 +18,26 @@ export class PermissionService {
   validatePermission(permission: PermissionString): PermissionValidationResult {
     try {
       const permissionObj = PermissionMapper.fromPermissionString(permission);
-      const isValid = !!PERMISSION_REGISTRY[permissionObj.resource]?.[permissionObj.action];
+      const registryEntry = PERMISSION_REGISTRY[permissionObj.resource];
+      const actionEntry = registryEntry?.[permissionObj.action];
+      const isValid = !!actionEntry;
+
+      // Debug logging for organization.attributes permissions
+      if (permission.includes("organization.attributes")) {
+        console.log(`[DEBUG] Validating permission: ${permission}`);
+        console.log(`[DEBUG] Parsed resource: ${permissionObj.resource}`);
+        console.log(`[DEBUG] Parsed action: ${permissionObj.action}`);
+        console.log(`[DEBUG] Registry entry exists:`, !!registryEntry);
+        console.log(`[DEBUG] Action entry exists:`, !!actionEntry);
+        console.log(`[DEBUG] Is valid:`, isValid);
+      }
+
       return {
         isValid,
         error: isValid ? null : `Invalid permission: ${permission}`,
       };
     } catch (error) {
+      console.error(`[DEBUG] Error validating permission ${permission}:`, error);
       if (error instanceof Error) {
         return {
           isValid: false,
