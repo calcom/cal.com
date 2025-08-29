@@ -753,16 +753,17 @@ model BookingReference {
 }
 
 model Attendee {
-  id          Int          @id @default(autoincrement())
-  email       String
-  name        String
-  timeZone    String
-  phoneNumber String?
-  locale      String?      @default("en")
-  booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId   Int?
-  bookingSeat BookingSeat?
-  noShow      Boolean?     @default(false)
+  id               Int                @id @default(autoincrement())
+  email            String
+  name             String
+  timeZone         String
+  phoneNumber      String?
+  locale           String?            @default("en")
+  booking          Booking?           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId        Int?
+  bookingSeat      BookingSeat?
+  noShow           Boolean?           @default(false)
+  workflowReminder WorkflowReminder[]
 
   @@index([email])
   @@index([bookingId])
@@ -1489,6 +1490,8 @@ model WorkflowReminder {
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
   retryCount          Int             @default(0)
+  attendeeId          Int?
+  attendee            Attendee?       @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
 
   @@index([bookingUid])
   @@index([workflowStepId])
