@@ -60,8 +60,16 @@ packages/features/webhooks/lib/
 │   │   └── factories.ts      # Factory bindings
 │   └── containers/           # Service resolution
 │       └── webhooks.ts       # Main container
-└── 🧪 test/                  # Testing (NEW DI)
-    └── webhooks.test.ts      # Unit tests
+├── 🧪 test/                  # Testing (NEW DI)
+│   └── webhooks.test.ts      # Unit tests
+└── ❌ LEGACY FILES (to be removed post migration):
+    ├── handleWebhookScheduledTriggers.ts
+    ├── schedulePayload.ts
+    ├── scheduleTrigger.ts
+    ├── sendOrSchedulePayload.ts
+    ├── sendPayload.ts
+    ├── WebhookService.ts
+    └── WebhookService.test.ts
 ```
 
 ### Files by Category
