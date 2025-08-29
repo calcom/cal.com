@@ -1253,6 +1253,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withOptionalGuestTeamMembers(eventType.optionalGuestTeamMembers || [])
     .build();
 
   if (!builtEvt) {

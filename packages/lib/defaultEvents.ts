@@ -148,6 +148,7 @@ const commons = {
   eventTypeColor: null,
   hostGroups: [],
   bookingRequiresAuthentication: false,
+  optionalGuestTeamMembers: [],
 };
 
 export const dynamicEvent = {
