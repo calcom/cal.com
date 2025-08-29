@@ -1000,6 +1000,12 @@ async function handler(
         }
       }
 
+      // Fallback: if no lucky users were found across groups, pick the first available non-fixed user
+      if (luckyUsers.length === 0 && nonFixedUsers.length > 0) {
+        const fallbackUser = nonFixedUsers[0];
+        luckyUsers.push(fallbackUser);
+      }
+
       // ALL fixed users must be available
       // This validation is not needed since fixedUserPool is constructed from availableUsers filtered by isFixed
 
