@@ -718,6 +718,69 @@ type inviteMemberHandlerInput = {
   language: string;
 };
 
+export async function handleExistingMemberUpdates({
+  existingMembersToUpdate,
+  team,
+  teamId,
+  language,
+}: {
+  existingMembersToUpdate: Array<{
+    id: number;
+    email: string;
+    username: string | null;
+    newRole: MembershipRole;
+  }>;
+  team: TeamWithParent;
+  teamId: number;
+  language: string;
+}) {
+  const myLog = log.getSubLogger({ prefix: ["handleExistingMemberUpdates"] });
+  
+  myLog.debug(
+    "Updating existing members",
+    safeStringify({
+      existingMembersToUpdate,
+      teamId,
+    })
+  );
+
+  if (existingMembersToUpdate.length === 0) {
+    return 0;
+  }
+
+  await prisma.$transaction(async (tx) => {
+    for (const member of existingMembersToUpdate) {
+      await tx.membership.updateMany({
+        where: {
+          userId: member.id,
+          teamId: teamId,
+        },
+        data: {
+          role: member.newRole,
+        },
+      });
+
+      if (team.parentId) {
+        await tx.membership.updateMany({
+          where: {
+            userId: member.id,
+            teamId: team.parentId,
+          },
+          data: {
+            role: member.newRole,
+          },
+        });
+      }
+    }
+  });
+
+  myLog.debug(
+    `Successfully updated ${existingMembersToUpdate.length} existing members`
+  );
+
+  return existingMembersToUpdate.length;
+}
+
 export async function handleExistingUsersInvites({
   invitableExistingUsers,
   team,

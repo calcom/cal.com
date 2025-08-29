@@ -3044,5 +3044,6 @@
   "optional_columns": "Optional columns",
   "csv_file_must_have_members_column": "CSV file must have a 'Members' column",
   "no_valid_email_addresses_found": "No valid email addresses found",
+  "email_invite_team_bulk_with_updates": "{{userCount}} users invited and {{updatedCount}} existing users updated",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

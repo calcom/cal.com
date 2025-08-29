@@ -50,7 +50,19 @@ export function ImportMembersModal(props: Props) {
     onSuccess: (data) => {
       props.dispatch({ type: "CLOSE_MODAL" });
       utils.viewer.organizations.listMembers.invalidate();
-      showToast(t("email_invite_team_bulk", { userCount: data.numUsersInvited }), "success");
+      
+     
+      if (data.numExistingUsersUpdated && data.numExistingUsersUpdated > 0) {
+        showToast(
+          t("email_invite_team_bulk_with_updates", { 
+            userCount: data.numUsersInvited,
+            updatedCount: data.numExistingUsersUpdated 
+          }), 
+          "success"
+        );
+      } else {
+        showToast(t("email_invite_team_bulk", { userCount: data.numUsersInvited }), "success");
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");

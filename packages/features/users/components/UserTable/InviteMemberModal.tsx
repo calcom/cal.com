@@ -28,12 +28,23 @@ export function InviteMemberModal(props: Props) {
       await utils.viewer.organizations.listMembers.invalidate();
 
       if (Array.isArray(data.usernameOrEmail)) {
-        showToast(
-          t("email_invite_team_bulk", {
-            userCount: data.numUsersInvited,
-          }),
-          "success"
-        );
+        // Show appropriate success message based on whether existing users were updated
+        if (data.numExistingUsersUpdated && data.numExistingUsersUpdated > 0) {
+          showToast(
+            t("email_invite_team_bulk_with_updates", { 
+              userCount: data.numUsersInvited,
+              updatedCount: data.numExistingUsersUpdated 
+            }), 
+            "success"
+          );
+        } else {
+          showToast(
+            t("email_invite_team_bulk", {
+              userCount: data.numUsersInvited,
+            }),
+            "success"
+          );
+        }
       } else {
         showToast(
           t("email_invite_team", {
