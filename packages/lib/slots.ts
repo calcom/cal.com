@@ -20,14 +20,19 @@ export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 
-function getCorrectedSlotStartTime(
-  showOptimizedSlots: boolean | null | undefined,
-  interval: number,
-  slotStartTime: dayjs.Dayjs,
-  range: DateRange
-) {
-  let correctedSlotStartTime = slotStartTime;
+function getCorrectedSlotStartTime({
+  slotStartTime,
+  range,
+  showOptimizedSlots,
+  interval,
+}: {
+  showOptimizedSlots: boolean | null | undefined;
+  interval: number;
+  slotStartTime: Dayjs;
+  range: DateRange;
+}) {
   if (showOptimizedSlots) {
+    let correctedSlotStartTime = slotStartTime;
     // if showOptimizedSlots option is selected, the slotStartTime should not be modified,
     // so that maximum possible slots are shown.
     // The below logic in this entire `if branch` only tries to add an increment if sufficient minutes are available (after max possible slots are consumed),
@@ -53,12 +58,10 @@ function getCorrectedSlotStartTime(
       // so slotStartTime is pushed to next 5Min, instead of showing slots like 11:22,11:37 now slots will be 11:25,11:40
       correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo5MinSlot, "minute");
     }
-  } else {
-    correctedSlotStartTime = slotStartTime
-      .startOf("hour")
-      .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
+    return correctedSlotStartTime;
   }
-  return correctedSlotStartTime;
+
+  return slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
 }
 
 function buildSlotsWithDateRanges({
@@ -126,7 +129,12 @@ function buildSlotsWithDateRanges({
     slotStartTime = slotStartTime.set("second", 0).set("millisecond", 0);
 
     if (slotStartTime.minute() % interval !== 0) {
-      slotStartTime = getCorrectedSlotStartTime(showOptimizedSlots, interval, slotStartTime, range);
+      slotStartTime = getCorrectedSlotStartTime({
+        showOptimizedSlots,
+        interval,
+        slotStartTime,
+        range,
+      });
     }
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
