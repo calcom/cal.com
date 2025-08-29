@@ -310,7 +310,6 @@ const nextConfig = (phase) => {
       config.optimization = {
         ...config.optimization,
         usedExports: true,
-        sideEffects: false,
         splitChunks: {
           ...config.optimization.splitChunks,
           cacheGroups: {
@@ -329,33 +328,11 @@ const nextConfig = (phase) => {
               priority: 25,
               enforce: true,
             },
-            lib: {
-              test: /[\\/]packages[\\/]lib[\\/]/,
-              name: "lib",
-              chunks: "all",
-              priority: 22,
-              enforce: true,
-            },
-            appStore: {
-              test: /[\\/]packages[\\/]app-store[\\/]/,
-              name: "app-store",
-              chunks: "all",
-              priority: 28,
-              enforce: true,
-            },
             prisma: {
               test: /[\\/]packages[\\/]prisma[\\/]|[\\/]node_modules[\\/]@prisma[\\/]/,
               name: "prisma",
               chunks: "all",
               priority: 20,
-              enforce: true,
-            },
-            shared: {
-              test: /[\\/]packages[\\/]lib[\\/]/,
-              name: "shared-lib",
-              chunks: "all",
-              priority: 15,
-              minChunks: 2,
               enforce: true,
             },
           },
