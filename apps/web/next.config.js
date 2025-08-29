@@ -226,6 +226,36 @@ const nextConfig = (phase) => {
         skipDefaultConversion: true,
         preventFullImport: true,
       },
+      "@calcom/features/flags": {
+        transform: "@calcom/features/flags/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/users": {
+        transform: "@calcom/features/users/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/watchlist": {
+        transform: "@calcom/features/watchlist/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/calendar-cache": {
+        transform: "@calcom/features/calendar-cache/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/platform-oauth-client": {
+        transform: "@calcom/features/platform-oauth-client/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib/server/repository": {
+        transform: "@calcom/lib/server/repository/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
       lodash: {
         transform: "lodash/{{member}}",
       },
@@ -241,6 +271,47 @@ const nextConfig = (phase) => {
           });
         }
       }
+
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            ...config.optimization.splitChunks?.cacheGroups,
+            repositories: {
+              test: /[\\/]packages[\\/].*repository\.(ts|js)$/,
+              name: "repositories",
+              chunks: "all",
+              priority: 30,
+              enforce: true,
+            },
+            features: {
+              test: /[\\/]packages[\\/]features[\\/]flags[\\/]/,
+              name: "features",
+              chunks: "all",
+              priority: 25,
+              enforce: true,
+            },
+            prisma: {
+              test: /[\\/]packages[\\/]prisma[\\/]|[\\/]node_modules[\\/]@prisma[\\/]/,
+              name: "prisma",
+              chunks: "all",
+              priority: 20,
+              enforce: true,
+            },
+            shared: {
+              test: /[\\/]packages[\\/]lib[\\/]/,
+              name: "shared-lib",
+              chunks: "all",
+              priority: 15,
+              minChunks: 2,
+              enforce: true,
+            },
+          },
+        },
+      };
 
       if (isServer) {
         // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
