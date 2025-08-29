@@ -4,6 +4,7 @@ import { cloneDeep } from "lodash";
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/lib/EventManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -16,7 +17,8 @@ const attendeeRescheduleSeatedBooking = async (
   seatAttendee: SeatAttendee,
   newTimeSlotBooking: NewTimeSlotBooking | null,
   originalBookingEvt: CalendarEvent,
-  eventManager: EventManager
+  eventManager: EventManager,
+  traceContext: TraceContext
 ) => {
   const { tAttendees, bookingSeat, bookerEmail, evt, eventType } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;

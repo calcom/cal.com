@@ -3,6 +3,8 @@ import { cloneDeep } from "lodash";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/lib/EventManager";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
@@ -10,18 +12,24 @@ import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallD
 import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
 const moveSeatedBookingToNewTimeSlot = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatedBooking: SeatedBooking,
   eventManager: EventManager,
-  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
+  traceContext: TraceContext
 ) => {
+  const { rescheduleUid } = rescheduleSeatedBookingObject;
+
+  const spanContext = distributedTracing.createSpan(traceContext, "move_seated_booking_to_new_time_slot", {
+    bookingId: seatedBooking.id.toString(),
+    rescheduleUid: rescheduleUid || "null",
+    eventTypeId: rescheduleSeatedBookingObject.eventType.id.toString(),
+  });
+  const loggerWithEventDetails = distributedTracing.getTracingLogger(spanContext);
   const {
     rescheduleReason,
-    rescheduleUid,
     eventType,
     organizerUser,
     reqAppsStatus,

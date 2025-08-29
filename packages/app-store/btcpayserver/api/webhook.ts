@@ -8,6 +8,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { PrismaBookingPaymentRepository as BookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 
 import appConfig from "../config.json";
 import { btcpayCredentialKeysSchema } from "../lib/btcpayCredentialKeysSchema";
@@ -41,6 +42,18 @@ const btcpayWebhookSchema = z.object({
 const SUPPORTED_INVOICE_EVENTS = ["InvoiceSettled", "InvoiceProcessing"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const webhookMeta = {
+    method: req.method || "unknown",
+    userAgent: req.headers["user-agent"] || "unknown",
+    contentType: req.headers["content-type"] || "unknown",
+  };
+
+  const traceContext = distributedTracing.createTrace("btcpay_webhook_handler", {
+    meta: webhookMeta,
+  });
+
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
+
   try {
     if (req.method !== "POST") throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     const rawBody = await getRawBody(req);
@@ -87,11 +100,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
     if (!isValid) throw new HttpCode({ statusCode: 400, message: "signature mismatch" });
 
-    await handlePaymentSuccess(payment.id, payment.bookingId);
+    const spanContext = distributedTracing.createSpan(traceContext, "btcpay_payment_success", {
+      paymentId: payment.id.toString(),
+      bookingId: payment.bookingId.toString(),
+      invoiceId: data.invoiceId,
+    });
+
+    await handlePaymentSuccess(payment.id, payment.bookingId, spanContext);
     return res.status(200).json({ success: true });
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     const statusCode = err instanceof HttpCode ? err.statusCode : 500;
+    tracingLogger.error("BTCPay Webhook Error", {
+      message: err.message,
+      statusCode,
+      stack: IS_PRODUCTION ? undefined : err.stack,
+    });
     return res.status(statusCode).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,

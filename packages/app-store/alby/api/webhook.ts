@@ -8,6 +8,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 
 export const config = {
@@ -17,6 +18,18 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const webhookMeta = {
+    method: req.method || "unknown",
+    userAgent: req.headers["user-agent"] || "unknown",
+    contentType: req.headers["content-type"] || "unknown",
+  };
+
+  const traceContext = distributedTracing.createTrace("alby_webhook_handler", {
+    meta: webhookMeta,
+  });
+
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
+
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
@@ -88,10 +101,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 400, message: "invoice amount does not match payment amount" });
     }
 
-    return await handlePaymentSuccess(payment.id, payment.bookingId);
+    const spanContext = distributedTracing.createSpan(traceContext, "alby_payment_success", {
+      paymentId: payment.id.toString(),
+      bookingId: payment.bookingId.toString(),
+      referenceId: parsedPayload.metadata?.payer_data?.referenceId || "unknown",
+    });
+
+    return await handlePaymentSuccess(payment.id, payment.bookingId, spanContext);
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    tracingLogger.error("Alby Webhook Error", {
+      message: err.message,
+      statusCode: err.statusCode,
+      stack: IS_PRODUCTION ? undefined : err.stack,
+    });
     return res.status(err.statusCode || 500).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,

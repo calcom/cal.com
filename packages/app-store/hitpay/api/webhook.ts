@@ -6,6 +6,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 
 import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";
@@ -43,6 +44,18 @@ function generateSignatureArray<T>(secret: string, vals: T) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const webhookMeta = {
+    method: req.method || "unknown",
+    userAgent: req.headers["user-agent"] || "unknown",
+    contentType: req.headers["content-type"] || "unknown",
+  };
+
+  const traceContext = distributedTracing.createTrace("hitpay_webhook_handler", {
+    meta: webhookMeta,
+  });
+
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
+
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
@@ -102,10 +115,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (excluded.status !== "completed") {
       throw new HttpCode({ statusCode: 204, message: `Payment is ${excluded.status}` });
     }
-    return await handlePaymentSuccess(payment.id, payment.bookingId);
+    const spanContext = distributedTracing.createSpan(traceContext, "hitpay_payment_success", {
+      paymentId: payment.id.toString(),
+      bookingId: payment.bookingId.toString(),
+      paymentRequestId: obj.payment_request_id,
+    });
+
+    return await handlePaymentSuccess(payment.id, payment.bookingId, spanContext);
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    tracingLogger.error("HitPay Webhook Error", {
+      message: err.message,
+      statusCode: err.statusCode,
+      stack: IS_PRODUCTION ? undefined : err.stack,
+    });
     return res.status(200).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,

@@ -1,5 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { createWebhookSignature, jsonParse } from "./sendPayload";
@@ -73,7 +75,21 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
       id: number; // booking id
       endTime: string;
       triggerEvent: string;
+      _traceContext?: TraceContext;
     };
+
+    const spanContext = parsedJobPayload._traceContext
+      ? distributedTracing.createSpan(parsedJobPayload._traceContext, "webhook_execution")
+      : undefined;
+    const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : logger;
+
+    tracingLogger.info("Executing scheduled webhook", {
+      bookingId: parsedJobPayload.id,
+      triggerEvent: parsedJobPayload.triggerEvent,
+      subscriberUrl: job.subscriberUrl,
+      originalTraceId: parsedJobPayload._traceContext?.traceId,
+      timeSinceScheduled: Date.now() - new Date(parsedJobPayload.endTime).getTime(),
+    });
 
     // clean finished job
     await prisma.webhookScheduledTriggers.delete({
