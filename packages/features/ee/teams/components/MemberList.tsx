@@ -427,14 +427,14 @@ function MemberListContent(props: Props) {
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
-          // Use PBAC permissions for edit mode, with role-based fallback
+          // TODO(SEAN) In a follow up can we rename canChangeMemberRole to canEditMembers - role is a bit specific.
           const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
           const canRemove = props.permissions?.canRemove ?? false;
           const canImpersonate = props.permissions?.canImpersonate ?? false;
           const canResendInvitation = props.permissions?.canInvite ?? false;
-          const editMode = (canChangeRole || canRemove || canImpersonate || canResendInvitation) && !isSelf;
-          // For now impersonation just lives on the canChangeRole OR canRemove permission (since without pbac these check admin or owner)
-          // In my next PR on this stack i will implement a custom impersonation permission that lives on orgs + teams.
+          const editMode =
+            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+
           const impersonationMode =
             canImpersonate &&
             !user.disableImpersonation &&
