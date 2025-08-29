@@ -135,14 +135,13 @@ async function handler(input: CancelBookingInput) {
   }
 
   function getCancellationReasonRequirement(booking: typeof bookingToDelete, isHost: boolean): boolean {
-    const team = booking.eventType?.team;
+    const team = booking.eventType?.team || booking.eventType?.parent?.team;
 
     if (team) {
-      // Use team settings if available
       return isHost ? team.mandatoryCancellationReasonForHost : team.mandatoryCancellationReasonForAttendee;
     }
 
-    // Fallback to old behavior for non-team events (hosts require reason)
+    // for non-team events: hosts require reason
     return isHost;
   }
 
