@@ -22,6 +22,7 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
+  userNotFound: boolean;
   profile: {
     name: string;
     image: string;
@@ -129,7 +130,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {
-      notFound: true,
+      props: {
+        userNotFound: true,
+      },
     } as const;
   }
 

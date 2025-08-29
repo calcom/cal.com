@@ -20,7 +20,7 @@ import {
   Badge,
 } from "@calid/features/ui";
 import { Icon } from "@calid/features/ui";
-import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/";
+import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";

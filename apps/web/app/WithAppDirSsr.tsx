@@ -14,6 +14,7 @@ export const withAppDirSsr =
     }
 
     const props = await Promise.resolve(ssrResponse.props);
+    console.log("Recieved props: ", props);
 
     return {
       ...props,

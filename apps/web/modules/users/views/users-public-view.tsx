@@ -1,5 +1,6 @@
 "use client";
 
+import BrandingComponent from "@calid/features/branding/BrandingComponent";
 import { Button, Icon } from "@calid/features/ui";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
@@ -14,6 +15,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
+import { SIGNUP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -24,7 +26,51 @@ import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
+
+function UserNotFound(props: UserNotFoundProps) {
+  const { slug } = props;
+  const { t } = useLocale();
+
+  return (
+    <>
+      <div className="flex min-h-screen flex-col items-center justify-center px-10 md:p-0">
+        <div className="bg-default w-full max-w-xl rounded-lg p-10 text-center shadow-lg">
+          <div className="flex flex-col items-center">
+            <h2 className="mt-4 text-3xl font-semibold text-gray-800">No man’s land - Conquer it today!</h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Claim username <span className="font-semibold">{`'${slug}'`}</span> on{" "}
+              <span className="font-semibold">Cal ID</span> now before someone else does! 🗓️🔥
+            </p>
+          </div>
+
+          <div className="mt-6">
+            <Link href="/auth/signup">
+              <Button color="primary" target="_blank">
+                {t("register_now")}
+              </Button>
+            </Link>
+          </div>
+
+          <div className="mt-6 text-base text-gray-500">
+            Or Lost your way? &nbsp;
+            <Link href="/auth/login" className="text-blue-600 hover:underline">
+              Log in to your personal space
+            </Link>
+          </div>
+        </div>
+        <div key="logo" className={classNames("mt-6 flex w-full justify-center [&_img]:h-[32px]")}>
+          <BrandingComponent logoOnly />
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function UserPage(props: PageProps) {
+  if (props.userNotFound) {
+    return <UserNotFound slug={props.userNotFound?.slug || "User"} />;
+  }
+
   const { users, profile, eventTypes, entity } = props;
 
   const { t, i18n } = useLocale();
@@ -64,8 +110,6 @@ export function UserPage(props: PageProps) {
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
-
-  const BrandingComponent = dynamic(() => import("@calid/features/branding/BrandingComponent"));
 
   return (
     <div
@@ -127,6 +171,7 @@ export function UserPage(props: PageProps) {
           data-testid="event-types">
           {eventTypes.map((type) => (
             <div
+              key={type.title}
               className="bg-muted border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative rounded-md border transition"
               data-testid="event-type-link">
               {/* <Icon
