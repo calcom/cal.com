@@ -1043,6 +1043,12 @@ async function handler(
     throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
   }
 
+  // Rehydrate final users with full user objects (ensures credentials are present)
+  users = users.map((user) => {
+    const full = eventTypeWithUsers.users.find((u) => u.id === user.id);
+    return { ...(full ?? user), isFixed: !!user.isFixed } as IsFixedAwareUser;
+  });
+
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
