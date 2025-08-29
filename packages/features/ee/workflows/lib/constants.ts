@@ -8,6 +8,13 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.RESCHEDULE_EVENT,
   WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  WorkflowTriggerEvents.FORM_SUBMITTED,
+  WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  WorkflowTriggerEvents.BOOKING_REJECTED,
+  WorkflowTriggerEvents.BOOKING_REQUESTED,
+  WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
+  WorkflowTriggerEvents.BOOKING_PAID,
+  WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
 ] as const;
 
 export const WORKFLOW_ACTIONS = [
@@ -72,10 +79,33 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "event_end_time_in_attendee_timezone",
 ];
 
+export const FORM_DYNAMIC_TEXT_VARIABLES = [
+  "form_name",
+  "form_submitter_name",
+  "form_submitter_email",
+  "form_submitted_date",
+  "form_submitted_time",
+  "form_responses",
+  "organizer_name",
+  "team_name",
+];
+
 export const FORMATTED_DYNAMIC_TEXT_VARIABLES = [
   "event_date_",
   "event_time_",
   "event_end_time_",
   "event_start_time_in_attendee_timezone_",
   "event_end_time_in_attendee_timezone_",
+];
+
+export const FORM_FORMATTED_DYNAMIC_TEXT_VARIABLES = ["form_submitted_date_", "form_submitted_time_"];
+export const IMMEDIATE_WORKFLOW_TRIGGER_EVENTS: WorkflowTriggerEvents[] = [
+  WorkflowTriggerEvents.NEW_EVENT,
+  WorkflowTriggerEvents.EVENT_CANCELLED,
+  WorkflowTriggerEvents.RESCHEDULE_EVENT,
+  WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+  WorkflowTriggerEvents.BOOKING_PAID,
+  WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
+  WorkflowTriggerEvents.BOOKING_REJECTED,
+  WorkflowTriggerEvents.BOOKING_REQUESTED,
 ];

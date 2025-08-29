@@ -1,13 +1,15 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { Ensure } from "@calcom/types/utils";
 
 import type { SerializableField, OrderedResponses } from "../types/types";
@@ -79,6 +81,100 @@ export function getFieldResponse({
     // response is new prop that is sending the label along with id(which doesn't change)
     response: chosenOptions,
   };
+}
+
+/**
+ * Execute form workflows for FORM_SUBMITTED and FORM_SUBMITTED_NO_EVENT triggers
+ */
+async function executeFormWorkflows({
+  form,
+  response,
+  chosenAction,
+}: {
+  form: Ensure<
+    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
+    "fields"
+  >;
+  response: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  chosenAction?: {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+  };
+}) {
+  // Get all workflows associated with this routing form
+  //todo: check if this is doing the right thing
+  const workflows = await getAllWorkflowsFromRoutingForm(
+    {
+      id: form.id,
+      userId: form.user.id,
+      teamId: form.teamId,
+      team: form.teamId ? { id: form.teamId } : null,
+    },
+    form.user.id
+  );
+
+  if (workflows.length === 0) {
+    return;
+  }
+
+  // Create form submission event for workflow processing
+  const formSubmissionEvent: FormSubmissionEvent = {
+    formId: form.id,
+    formName: form.name,
+    submitterName: response.submitter_name?.response?.toString() || response.name?.response?.toString(),
+    submitterEmail: response.submitter_email?.response?.toString() || response.email?.response?.toString(),
+    submittedAt: new Date(),
+    responses: Object.entries(response).reduce((acc, [key, value]) => {
+      acc[key] = value.response;
+      return acc;
+    }, {} as Record<string, any>),
+    teamName: undefined, // TODO: Add team name if available
+    organizerName: form.user.email,
+    hasBooking: chosenAction?.type === "eventTypeRedirectUrl",
+    timeZone: "UTC", // TODO: Extract timezone if available from form responses
+  };
+
+  // Filter workflows for FORM_SUBMITTED (immediate execution)
+  const immediateWorkflows = workflows.filter((w) => w.trigger === WorkflowTriggerEvents.FORM_SUBMITTED);
+
+  // Filter workflows for FORM_SUBMITTED_NO_EVENT (conditional execution)
+  const noEventWorkflows = workflows.filter(
+    (w) => w.trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT
+  );
+
+  // Execute immediate workflows
+  if (immediateWorkflows.length > 0) {
+    // todo: is this the right funciton to call?
+    try {
+      await scheduleWorkflowReminders({
+        workflows: immediateWorkflows,
+        formSubmissionEvent,
+        hideBranding: false, // TODO: Add branding config if available
+        isDryRun: false,
+      });
+    } catch (error) {
+      moduleLogger.error("Error scheduling form submitted workflows", error);
+    }
+  }
+
+  if (noEventWorkflows.length > 0) {
+    const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
+
+    const promisesFormSubmittedNoEvent = noEventWorkflows.map((workflow) => {
+      const scheduledAt = dayjs().add(timeSpan.time, timeUnit); //todo: don't use dayjs here
+
+      return tasker.create(
+        "triggerFormSubmittedNoEventWorkflow",
+        {
+          formSubmissionEvent,
+          hideBranding: false,
+        },
+        { scheduledAt }
+      );
+    });
+
+    await Promise.all(promisesFormSubmittedNoEvent);
+  }
 }
 
 /**
@@ -186,6 +282,13 @@ export async function _onFormSubmission(
       const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
       await Promise.all(promises);
+
+      // Execute form workflows
+      await executeFormWorkflows({
+        form,
+        response: fieldResponsesByIdentifier,
+        chosenAction,
+      });
       const orderedResponses = form.fields.reduce((acc, field) => {
         acc.push(response[field.id]);
         return acc;

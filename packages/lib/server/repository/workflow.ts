@@ -99,6 +99,16 @@ export class WorkflowRepository {
             team: true,
           },
         },
+        activeOnRoutingForms: {
+          select: {
+            routingForm: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
         trigger: true,
         steps: {
           orderBy: {

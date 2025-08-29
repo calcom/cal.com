@@ -52,11 +52,12 @@ import {
   getTemplateBodyForAction,
   shouldScheduleEmailReminder,
   isSMSOrWhatsappAction,
+  isFormTrigger,
 } from "../lib/actionHelperFunctions";
-import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
+import { getVariablesForTrigger } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -78,6 +79,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.BEFORE_EVENT]: "how_long_before",
     [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "how_long_after_hosts_no_show",
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
+    [WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "how_long_after_form_submitted_no_event",
   };
   if (!triggerMap[trigger]) return null;
   return t(triggerMap[trigger]!);
@@ -136,11 +138,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
+  const trigger = form.getValues("trigger");
+  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
+
+  // Get appropriate variables based on trigger type
+  const variables = getVariablesForTrigger(trigger);
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
+  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
     const template = getTemplateBodyForAction({
@@ -282,7 +288,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   //trigger
   if (!step) {
-    const trigger = form.getValues("trigger");
     const triggerString = t(`${trigger.toLowerCase()}_trigger`);
 
     const selectedTrigger = {
@@ -348,7 +353,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="mt-5">
                 <Label>{timeSectionText}</Label>
                 <TimeTimeUnitInput disabled={props.readOnly} />
-                {!props.readOnly && (
+                {!props.readOnly && trigger !== WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT && (
                   <div className="mt-1 flex text-gray-500">
                     <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
                     <p className="text-sm">{t("testing_workflow_info_message")}</p>
@@ -840,10 +845,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </Label>
                       {!props.readOnly && (
                         <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableEmailSubject}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
+                          <AddVariablesDropdown addVariable={addVariableEmailSubject} variables={variables} />
                         </div>
                       )}
                     </div>
@@ -879,7 +881,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                     props.form.clearErrors();
                   }}
-                  variables={DYNAMIC_TEXT_VARIABLES}
+                  variables={variables}
                   addVariableButtonTop={isSMSAction(step.action)}
                   height="200px"
                   updateTemplate={updateTemplate}
@@ -926,7 +928,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 )}
                 {!props.readOnly && (
-                  <div className="mt-3 ">
+                  <div className="mt-3">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="text-default mt-2 flex text-sm">
                         <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
@@ -940,7 +942,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="w-full mt-7"
+                  className="mt-7 w-full"
                   onClick={() => {
                     let isEmpty = false;
 
@@ -1039,7 +1041,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
-              <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold">
+                {isFormTrigger(trigger) ? t("how_form_variables") : t("how_booking_questions_as_variables")}
+              </h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">

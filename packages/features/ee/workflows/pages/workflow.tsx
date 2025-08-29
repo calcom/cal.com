@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
@@ -26,7 +26,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
+import { isFormTrigger, isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
@@ -55,6 +55,11 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
   const form = useForm<FormValues>({
     mode: "onBlur",
     resolver: zodResolver(formSchema),
+  });
+
+  const watchedTrigger = useWatch({
+    control: form.control,
+    name: "trigger",
   });
 
   const utils = trpc.useUtils();
@@ -86,12 +91,13 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
+  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getActiveOnOptions.useQuery(
     { teamId, isOrg },
     { enabled: !isPendingWorkflow }
   );
 
   const teamOptions = data?.teamOptions ?? [];
+  const routingFormOptions = data?.routingFormOptions ?? [];
 
   let allEventTypeOptions = data?.eventTypeOptions ?? [];
   const distinctEventTypes = new Set();
@@ -132,13 +138,25 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
       let activeOn;
 
       if (workflowData.isActiveOnAll) {
-        activeOn = isOrg ? teamOptions : allEventTypeOptions;
+        activeOn = isOrg
+          ? teamOptions
+          : isFormTrigger(workflowData.trigger)
+          ? routingFormOptions
+          : allEventTypeOptions;
       } else {
         if (isOrg) {
           activeOn = workflowData.activeOnTeams.flatMap((active) => {
             return {
               value: String(active.team.id) || "",
               label: active.team.slug || "",
+            };
+          });
+          setSelectedOptions(activeOn || []);
+        } else if (isFormTrigger(workflowData.trigger)) {
+          activeOn = workflowData.activeOnRoutingForms?.flatMap((active) => {
+            return {
+              value: String(active.routingForm.id) || "",
+              label: active.routingForm.name || "",
             };
           });
           setSelectedOptions(activeOn || []);
@@ -343,7 +361,13 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
                       teamId={workflow ? workflow.teamId || undefined : undefined}
                       readOnly={readOnly}
                       isOrg={isOrg}
-                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
+                      allOptions={
+                        isOrg
+                          ? teamOptions
+                          : isFormTrigger(watchedTrigger)
+                          ? routingFormOptions
+                          : allEventTypeOptions
+                      }
                     />
                   </>
                 ) : (

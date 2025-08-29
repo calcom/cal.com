@@ -7,10 +7,10 @@ import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
+import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
-import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
@@ -19,7 +19,7 @@ type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
   getUserEventGroups?: typeof import("./getUserEventGroups.handler").getUserEventGroups;
   getEventTypesFromGroup?: typeof import("./getEventTypesFromGroup.handler").getEventTypesFromGroup;
-  getTeamAndEventTypeOptions?: typeof import("./getTeamAndEventTypeOptions.handler").getTeamAndEventTypeOptions;
+  getActiveOnOptions?: typeof import("./getActiveOnOptions.handler").getActiveOnOptions;
   list?: typeof import("./list.handler").listHandler;
   listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
   create?: typeof import("./create.handler").createHandler;
@@ -82,22 +82,20 @@ export const eventTypesRouter = router({
       return result;
     }),
 
-  getTeamAndEventTypeOptions: authedProcedure
-    .input(ZGetTeamAndEventTypeOptionsSchema)
-    .query(async ({ ctx, input }) => {
-      const { getTeamAndEventTypeOptions } = await import("./getTeamAndEventTypeOptions.handler");
+  getActiveOnOptions: authedProcedure.input(ZGetActiveOnOptionsSchema).query(async ({ ctx, input }) => {
+    const { getActiveOnOptions } = await import("./getActiveOnOptions.handler");
 
-      const timer = logP(`getTeamAndEventTypeOptions(${ctx.user.id})`);
+    const timer = logP(`getActiveOnOptions(${ctx.user.id})`);
 
-      const result = await getTeamAndEventTypeOptions({
-        ctx,
-        input,
-      });
+    const result = await getActiveOnOptions({
+      ctx,
+      input,
+    });
 
-      timer();
+    timer();
 
-      return result;
-    }),
+    return result;
+  }),
 
   list: authedProcedure.query(async ({ ctx }) => {
     const { listHandler } = await import("./list.handler");

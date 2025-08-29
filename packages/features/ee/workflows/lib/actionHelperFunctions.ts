@@ -1,8 +1,7 @@
-import type { WorkflowTriggerEvents } from "@prisma/client";
 import type { TFunction } from "i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import {
   whatsappEventCancelledTemplate,
@@ -136,4 +135,11 @@ export function getTemplateBodyForAction({
   // If not a whatsapp action then it's an email action
   const templateFunction = getEmailTemplateFunction(template);
   return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailBody;
+}
+
+export function isFormTrigger(trigger: WorkflowTriggerEvents) {
+  return (
+    trigger === WorkflowTriggerEvents.FORM_SUBMITTED ||
+    trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT
+  );
 }

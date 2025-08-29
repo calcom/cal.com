@@ -379,7 +379,8 @@ export async function isAuthorizedToAddActiveOnIds(
   newActiveIds: number[],
   isOrg: boolean,
   teamId?: number | null,
-  userId?: number | null
+  userId?: number | null,
+  isRoutingForms?: boolean
 ) {
   for (const id of newActiveIds) {
     if (isOrg) {
@@ -392,6 +393,50 @@ export async function isAuthorizedToAddActiveOnIds(
         },
       });
       if (newTeam?.parent?.id !== teamId) {
+        return false;
+      }
+    } else if (isRoutingForms) {
+      // For routing forms, check if user has access to the form
+      const routingForm = await prisma.app_RoutingForms_Form.findUnique({
+        where: {
+          id: String(id),
+        },
+        select: {
+          userId: true,
+          teamId: true,
+          team: {
+            select: {
+              members: {
+                select: {
+                  userId: true,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (routingForm) {
+        // User owns the form directly
+        if (routingForm.userId === userId) {
+          continue;
+        }
+
+        // Form belongs to a team that the user is a member of
+        if (routingForm.teamId && routingForm.team) {
+          const isTeamMember = routingForm.team.members.some(
+            (member) => member.userId === userId && member.accepted
+          );
+          if (isTeamMember) {
+            continue;
+          }
+        }
+
+        // If we reach here, user doesn't have access to this routing form
+        return false;
+      } else {
+        // Routing form not found
         return false;
       }
     } else {
@@ -499,6 +544,8 @@ export async function scheduleWorkflowNotifications({
   teamId: number | null;
   alreadyScheduledActiveOnIds?: number[];
 }) {
+  if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
+
   const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
@@ -853,6 +900,69 @@ export async function getAllWorkflowsFromEventType(
     teamId,
     orgId,
     workflowsLockedForUser
+  );
+
+  return allWorkflows;
+}
+
+// todo: review this function
+export async function getAllWorkflowsFromRoutingForm(
+  routingForm: {
+    id: string;
+    userId: number | null;
+    teamId: number | null;
+    team?: {
+      id: number | null;
+    } | null;
+  } | null,
+  userId?: number | null
+) {
+  if (!routingForm) return [];
+
+  // Get routing form workflows from WorkflowsOnRoutingForms relation
+  const routingFormWorkflows = await prisma.workflow.findMany({
+    where: {
+      activeOnRoutingForms: {
+        some: {
+          routingFormId: routingForm.id,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      trigger: true,
+      time: true,
+      timeUnit: true,
+      userId: true,
+      teamId: true,
+      steps: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  const teamId = routingForm.teamId;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  // Convert to the WorkflowType format expected by getAllWorkflows
+  const workflowsForGetAll = routingFormWorkflows.map((workflow) => ({
+    ...workflow,
+    activeOn: [], // routing forms don't use activeOn pattern
+    activeOnTeams: [],
+  }));
+
+  const allWorkflows = await getAllWorkflows(
+    workflowsForGetAll,
+    userId,
+    teamId,
+    orgId,
+    false // workflowsLockedForUser - routing forms are not managed
   );
 
   return allWorkflows;
