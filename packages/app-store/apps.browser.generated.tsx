@@ -21,6 +21,7 @@ export const AppSettingsComponentsMap = {
 };
 export const EventTypeAddonMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppCardInterface")),
+  attio: dynamic(() => import("./attio/components/EventTypeAppCardInterface")),
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppCardInterface")),
   btcpayserver: dynamic(() => import("./btcpayserver/components/EventTypeAppCardInterface")),
   closecom: dynamic(() => import("./closecom/components/EventTypeAppCardInterface")),

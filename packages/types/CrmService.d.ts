@@ -53,4 +53,9 @@ export interface CRM {
     bookingUid: string,
     attendees: { email: string; noShow: boolean }[]
   ) => Promise<void>;
+  createCustomEventObject?: (
+    singularNoun: string,
+    pluralNoun: string,
+    identifierSlug?: string
+  ) => Promise<void>;
 }

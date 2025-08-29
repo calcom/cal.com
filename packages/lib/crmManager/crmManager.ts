@@ -89,4 +89,11 @@ export default class CrmManager {
       await crmService.handleAttendeeNoShow(bookingUid, attendees);
     }
   }
+
+  public async createCustomEventObject(singularNoun: string, pluralNoun: string, identifierSlug?: string) {
+    const crmService = await this.getCrmService(this.credential);
+    if (crmService?.createCustomEventObject) {
+      await crmService.createCustomEventObject(singularNoun, pluralNoun, identifierSlug);
+    }
+  }
 }
