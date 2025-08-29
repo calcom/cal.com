@@ -2,7 +2,7 @@ import prisma from "@calcom/prisma";
 
 export class PrismaApiKeyRepository {
   static async findApiKeysFromUserId({ userId }: { userId: number }) {
-    return await prisma.apiKey.findMany({
+    const apiKeys = await prisma.apiKey.findMany({
       where: {
         userId,
         OR: [
@@ -17,6 +17,12 @@ export class PrismaApiKeyRepository {
         ],
       },
       orderBy: { createdAt: "desc" },
+    });
+    return apiKeys.filter((apiKey) => {
+      if (apiKey.note?.startsWith("Cal AI Phone API Key")) {
+        return false;
+      }
+      return true;
     });
   }
 }

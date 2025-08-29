@@ -1017,6 +1017,17 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+  recentNoShowGuests: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+
+      try {
+        return await insightsBookingService.getRecentNoShowGuests();
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
 });
 
 export async function getEventTypeList({
