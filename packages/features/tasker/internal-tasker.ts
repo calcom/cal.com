@@ -36,7 +36,8 @@ export class InternalTasker implements Tasker {
           await Task.retry({
             taskId: task.id,
             lastError: error instanceof Error ? error.message : "Unknown error",
-            minRetryIntervalMins: taskConfig?.minRetryIntervalMins ?? null,
+            minRetryIntervalMins:
+              taskConfig && "minRetryIntervalMins" in taskConfig ? taskConfig.minRetryIntervalMins : null,
           });
         });
     });
