@@ -15,7 +15,10 @@ export const traversePermissions = (
   const queue: string[] = [startPermission];
 
   while (queue.length > 0) {
-    const currentPermission = queue.shift()!;
+    const currentPermission = queue.shift();
+    if (!currentPermission) {
+      break;
+    }
 
     if (visited.has(currentPermission)) {
       continue;
