@@ -1,0 +1,69 @@
+diff --git a/dist/schema/index.js b/dist/schema/index.js
+index bf82d3960f4d59ebdbb740d7eff07bd24ba5a7c9..c45f3d4881840c8f29b996a192b6735855bde885 100644
+--- a/dist/schema/index.js
++++ b/dist/schema/index.js
+@@ -37,11 +37,13 @@ var contactSchema = yup.object().shape({
+   rsvp: yup["boolean"](),
+   dir: yup.string().matches(urlRegex),
+   partstat: yup.string(),
+-  role: yup.string()
++  role: yup.string(),
++  scheduleAgent: yup.string().oneOf(['SERVER', 'CLIENT', 'NONE'])
+ }).noUnknown();
+ var organizerSchema = yup.object().shape({
+   name: yup.string(),
+-  email: yup.string().email()
++  email: yup.string().email(),
++  scheduleAgent: yup.string().oneOf(['SERVER', 'CLIENT', 'NONE'])
+ }).noUnknown();
+ var alarmSchema = yup.object().shape({
+   action: yup.string().matches(/audio|display|email/).required(),
+diff --git a/dist/utils/set-contact.js b/dist/utils/set-contact.js
+index 6aae6e07c0105c280eb46d984723a40b78e544ca..29353cb98462968cd143253d69ce28390fe4b191 100644
+--- a/dist/utils/set-contact.js
++++ b/dist/utils/set-contact.js
+@@ -11,12 +11,14 @@ function setContact(_ref) {
+       rsvp = _ref.rsvp,
+       dir = _ref.dir,
+       partstat = _ref.partstat,
+-      role = _ref.role;
++      role = _ref.role,
++      scheduleAgent = _ref.scheduleAgent;
+   var formattedAttendee = '';
+   formattedAttendee += rsvp ? 'RSVP=TRUE;' : 'RSVP=FALSE;';
+   formattedAttendee += role ? "ROLE=".concat(role, ";") : '';
+   formattedAttendee += partstat ? "PARTSTAT=".concat(partstat, ";") : '';
+   formattedAttendee += dir ? "DIR=".concat(dir, ";") : '';
++  formattedAttendee += scheduleAgent && ['SERVER', 'CLIENT', 'NONE'].includes(scheduleAgent) ? "SCHEDULE-AGENT=".concat(scheduleAgent, ";") : '';
+   formattedAttendee += 'CN=';
+   formattedAttendee += name || 'Unnamed attendee';
+   formattedAttendee += email ? ":mailto:".concat(email) : '';
+diff --git a/dist/utils/set-organizer.js b/dist/utils/set-organizer.js
+index 5ef42b6893cd3ddf551feb4266ebc76e2f8f042a..e5da5542b3abaa4671f07533459598d158f97c0a 100644
+--- a/dist/utils/set-organizer.js
++++ b/dist/utils/set-organizer.js
+@@ -8,9 +8,11 @@ exports["default"] = setOrganizer;
+ function setOrganizer(_ref) {
+   var name = _ref.name,
+       email = _ref.email,
+-      dir = _ref.dir;
++      dir = _ref.dir,
++      scheduleAgent = _ref.scheduleAgent;
+   var formattedOrganizer = '';
+   formattedOrganizer += dir ? "DIR=\"".concat(dir, "\";") : '';
++  formattedOrganizer += scheduleAgent && ['SERVER', 'CLIENT', 'NONE'].includes(scheduleAgent) ? "SCHEDULE-AGENT=".concat(scheduleAgent, ";") : '';
+   formattedOrganizer += 'CN=';
+   formattedOrganizer += name || 'Organizer';
+   formattedOrganizer += email ? ":mailto:".concat(email) : '';
+diff --git a/index.d.ts b/index.d.ts
+index 665820196bb056815ddff9ca748cea55c4d77a7c..90a7941720d51d0f8470e70cef88f6ce8301c28a 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -38,6 +38,7 @@ export type Person = {
+   name?: string;
+   email?: string;
+   dir?: string;
++  scheduleAgent?: 'SERVER' | 'CLIENT' | 'NONE';
+ };
+ 
+ export type Attendee = Person & {
