@@ -1054,7 +1054,7 @@ async function handler(
   }
 
   // Rehydrate final users with full user objects (ensures credentials are present)
-  users = rehydrateUsersWithFullData(users, eventTypeWithUsers) as IsFixedAwareUser[];
+  users = rehydrateUsersWithFullData(users, { users: eventType.users as any }) as IsFixedAwareUser[];
 
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
