@@ -945,7 +945,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="text-default mt-2 flex text-sm">
                         <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p className="text-left">{t("using_booking_questions_as_variables")}</p>
+                        <p className="text-left">
+                          {isFormTrigger(trigger)
+                            ? t("using_form_responses_as_variables")
+                            : t("using_booking_questions_as_variables")}
+                        </p>
                       </div>
                     </button>
                   </div>
@@ -1055,7 +1059,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
               <h1 className="w-full text-xl font-semibold">
-                {isFormTrigger(trigger) ? t("how_form_variables") : t("how_booking_questions_as_variables")}
+                {isFormTrigger(trigger)
+                  ? t("how_form_responses_as_variables")
+                  : t("how_booking_questions_as_variables")}
               </h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
@@ -1068,7 +1074,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("booking_question_identifier")}
+                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
@@ -1087,7 +1093,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("booking_question_identifier")}
+                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
