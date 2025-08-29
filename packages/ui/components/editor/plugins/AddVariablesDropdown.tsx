@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Icon } from "../../icon";
@@ -30,7 +29,10 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   }, [props.variables, query, t]);
 
   return (
-    <Dropdown>
+    <Dropdown
+      onOpenChange={(open) => {
+        if (!open) setQuery("");
+      }}>
       <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-muted pt-[6px]">
         <div className="items-center">
           {props.isTextEditor ? (
@@ -63,7 +65,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           <div className="text-subtle mb-3 text-left text-xs font-medium uppercase tracking-wide">
             {t("add_dynamic_variables")}
           </div>
-          <div className="mb-2 px-4">
+          <div className="mb-2 px-2">
             <input
               type="text"
               value={query}
@@ -83,7 +85,10 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                     key={variable}
                     type="button"
                     className="hover:bg-muted w-full rounded-md px-3 py-2 text-left transition-colors"
-                    onClick={() => props.addVariable(t(`${variable}_variable`))}>
+                    onClick={() => {
+                      props.addVariable(t(`${variable}_variable`));
+                      setQuery("");
+                    }}>
                     <div className="flex flex-col space-y-1">
                       <div className="text-default font-mono text-sm">
                         {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
