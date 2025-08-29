@@ -1,6 +1,24 @@
 import { CrudAction, type CustomAction, PERMISSION_REGISTRY } from "../domain/types/permission-registry";
 
 /**
+ * Helper function to split permission string into resource and action
+ * Handles dotted resource names like "organization.attributes.read"
+ * @param permission Permission string (e.g., "organization.attributes.read")
+ * @returns Object with resource and action parts
+ */
+const splitPermission = (permission: string): { resource: string; action: string } => {
+  const lastDotIndex = permission.lastIndexOf(".");
+  if (lastDotIndex === -1) {
+    throw new Error(`Invalid permission format: ${permission}`);
+  }
+
+  const resource = permission.substring(0, lastDotIndex);
+  const action = permission.substring(lastDotIndex + 1);
+
+  return { resource, action };
+};
+
+/**
  * Generic permission graph traversal function using BFS
  * @param startPermission The permission to start traversal from
  * @param direction Whether to find dependencies or dependents
@@ -27,7 +45,7 @@ export const traversePermissions = (
 
     if (direction === "dependencies") {
       // Find what the current permission depends on
-      const [resource, action] = currentPermission.split(".");
+      const { resource, action } = splitPermission(currentPermission);
       const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
 
       if (resourceConfig && resourceConfig[action as CrudAction | CustomAction]) {
@@ -68,7 +86,7 @@ export const traversePermissions = (
           }
 
           // Backward compatibility: check CRUD dependencies on read
-          const [currentResource, currentAction] = currentPermission.split(".");
+          const { resource: currentResource, action: currentAction } = splitPermission(currentPermission);
           if (
             currentAction === CrudAction.Read &&
             resource === currentResource &&
