@@ -817,7 +817,7 @@
   "delete_phone_number_confirmation": "Are you sure you want to delete this phone number? This action cannot be undone.",
   "yes_delete_phone_number": "Yes, delete phone number",
   "phone_number_info_tooltip": "The number you are trying to import must be in E.164 format (+country code followed by the number, with no spaces or special characters), e.g. +1234567890",
-  "termination_uri_info_tooltip": "The termination uri to uniquely identify your elastic SIP trunk. This is used for outbound calls. For Twilio elastic SIP trunks it always ends with .pstn.twilio.com.",
+  "termination_uri_info_tooltip": "The termination URI to uniquely identify your elastic SIP trunk. This is used for outbound calls. For Twilio elastic SIP trunks it always ends with .pstn.twilio.com.",
   "sip_trunk_username_info_tooltip": "The username used to authenticate the SIP trunk.",
   "sip_trunk_password_info_tooltip": "The password used to authenticate the SIP trunk.",
   "nickname_info_tooltip": "Nickname of the number. This is for your reference only.",
