@@ -100,10 +100,7 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     if (!fullUser) {
       throw new Error(`User with id ${host.user.id} not found in eventType.users`);
     }
-    return {
-      ...fullUser,
-      isFixed: host.isFixed,
-    };
+    return fullUser; // return plain user object
   });
 };
 

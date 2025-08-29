@@ -243,9 +243,11 @@ export class QualifiedHostsService {
       if (hostsAfterContactOwnerMatching.length === 1) {
         return {
           qualifiedRRHosts: hostsAfterContactOwnerMatching,
-          allFallbackRRHosts: getFallBackWithContactOwner(
-            hostsAfterRoutedTeamMemberIdsMatching,
-            hostsAfterContactOwnerMatching[0]
+          allFallbackRRHosts: ensureHostProperties(
+            getFallBackWithContactOwner(
+              hostsAfterRoutedTeamMemberIdsMatching,
+              hostsAfterContactOwnerMatching[0]
+            )
           ),
           fixedHosts,
         };
@@ -271,9 +273,8 @@ export class QualifiedHostsService {
     if (hostsAfterContactOwnerMatching.length === 1) {
       return {
         qualifiedRRHosts: hostsAfterContactOwnerMatching,
-        allFallbackRRHosts: getFallBackWithContactOwner(
-          hostsAfterFairnessMatching,
-          hostsAfterContactOwnerMatching[0]
+        allFallbackRRHosts: ensureHostProperties(
+          getFallBackWithContactOwner(hostsAfterFairnessMatching, hostsAfterContactOwnerMatching[0])
         ),
         fixedHosts,
       };
