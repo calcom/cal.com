@@ -605,11 +605,11 @@ enum CreditUsageType {
 }
 
 model CreditExpenseLog {
-  id              String        @id @default(uuid())
+  id              String           @id @default(uuid())
   creditBalanceId String
-  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  creditBalance   CreditBalance    @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
   bookingUid      String?
-  booking         Booking?      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  booking         Booking?         @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   credits         Int?
   creditType      CreditType
   date            DateTime
@@ -617,7 +617,7 @@ model CreditExpenseLog {
   smsSegments     Int?
   callDuration    Int?
   creditFor       CreditUsageType?
-  externalRef     String?       @unique
+  externalRef     String?          @unique
 }
 
 enum CreditType {
