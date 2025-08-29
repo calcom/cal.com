@@ -73,22 +73,24 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               className="border-subtle bg-default focus:ring-brand-800 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1"
             />
           </div>
-          <div className="h-64 overflow-scroll md:h-80">
+          <div className="max-h-64 overflow-y-auto md:max-h-80">
             {filteredVariables.length === 0 ? (
-              <div className="text-subtle px-4 py-2 text-sm">{t("no_variables_found")}</div>
+              <div className="text-subtle px-4 py-2 text-center text-sm">{t("no_variables_found")}</div>
             ) : (
               filteredVariables.map((variable) => (
                 <DropdownMenuItem key={variable} className="hover:ring-0">
                   <button
                     key={variable}
                     type="button"
-                    className="w-full px-4 py-2"
+                    className="hover:bg-muted w-full rounded-md px-3 py-2 text-left transition-colors"
                     onClick={() => props.addVariable(t(`${variable}_variable`))}>
-                    <div className="flex flex-col">
-                      <div className="mr-text-left">
+                    <div className="flex flex-col space-y-1">
+                      <div className="text-default font-mono text-sm">
                         {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                       </div>
-                      <div className="text-default hidden text-left sm:flex">{t(`${variable}_info`)}</div>
+                      <div className="text-muted-foreground hidden text-xs sm:block">
+                        {t(`${variable}_info`)}
+                      </div>
                     </div>
                   </button>
                 </DropdownMenuItem>
