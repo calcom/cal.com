@@ -256,6 +256,61 @@ const nextConfig = (phase) => {
         skipDefaultConversion: true,
         preventFullImport: true,
       },
+      "@calcom/features/bookings": {
+        transform: "@calcom/features/bookings/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/eventtypes": {
+        transform: "@calcom/features/eventtypes/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/insights": {
+        transform: "@calcom/features/insights/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/webhooks": {
+        transform: "@calcom/features/webhooks/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/auth": {
+        transform: "@calcom/features/auth/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/shell": {
+        transform: "@calcom/features/shell/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/ee": {
+        transform: "@calcom/features/ee/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib/server": {
+        transform: "@calcom/lib/server/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib/hooks": {
+        transform: "@calcom/lib/hooks/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib": {
+        transform: "@calcom/lib/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/app-store": {
+        transform: "@calcom/app-store/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
       lodash: {
         transform: "lodash/{{member}}",
       },
@@ -288,10 +343,24 @@ const nextConfig = (phase) => {
               enforce: true,
             },
             features: {
-              test: /[\\/]packages[\\/]features[\\/]flags[\\/]/,
+              test: /[\\/]packages[\\/]features[\\/]/,
               name: "features",
               chunks: "all",
               priority: 25,
+              enforce: true,
+            },
+            lib: {
+              test: /[\\/]packages[\\/]lib[\\/]/,
+              name: "lib",
+              chunks: "all",
+              priority: 22,
+              enforce: true,
+            },
+            appStore: {
+              test: /[\\/]packages[\\/]app-store[\\/]/,
+              name: "app-store",
+              chunks: "all",
+              priority: 28,
               enforce: true,
             },
             prisma: {
