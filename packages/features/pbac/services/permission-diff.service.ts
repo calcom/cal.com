@@ -1,20 +1,19 @@
 import type { RolePermission } from "../domain/models/Role";
-
-export type PermissionString = string;
-export type ParsedPermission = { resource: string; action: string };
+import {
+  parsePermissionString,
+  isValidPermissionString,
+  type PermissionString,
+  type ParsedPermission,
+} from "../domain/types/permission-registry";
 
 export class PermissionDiffService {
-  private parsePermission(permission: PermissionString): ParsedPermission {
-    // Split from the right side to handle nested resources like "organization.attributes.create"
-    const lastDotIndex = permission.lastIndexOf(".");
-    const resource = permission.substring(0, lastDotIndex);
-    const action = permission.substring(lastDotIndex + 1);
-    return { resource, action };
-  }
-
   private filterInternalPermissions(permissions: PermissionString[]): PermissionString[] {
     return permissions.filter((permission) => {
-      const { action } = this.parsePermission(permission);
+      // Skip invalid permissions entirely
+      if (!isValidPermissionString(permission)) {
+        return false;
+      }
+      const { action } = parsePermissionString(permission);
       return action !== "_resource";
     });
   }
@@ -31,14 +30,14 @@ export class PermissionDiffService {
 
     const newSet = new Set(
       filteredPermissions.map((p) => {
-        const parsed = this.parsePermission(p);
+        const parsed = parsePermissionString(p);
         return this.createPermissionKey(parsed);
       })
     );
 
     // Calculate permissions to add and remove
     const toAdd = filteredPermissions
-      .map((p) => this.parsePermission(p))
+      .map((p) => parsePermissionString(p))
       .filter((p) => !existingSet.has(this.createPermissionKey(p)));
 
     const toRemove = existingPermissions.filter((p) => !newSet.has(this.createPermissionKey(p)));
