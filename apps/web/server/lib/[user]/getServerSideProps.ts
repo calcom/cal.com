@@ -191,6 +191,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       themeBasis: user.username,
       markdownStrippedBio,
       isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
+      disableAutoFillOnBookingPage: org?.organizationSettings?.disableAutoFillOnBookingPage ?? false,
     },
   };
 };

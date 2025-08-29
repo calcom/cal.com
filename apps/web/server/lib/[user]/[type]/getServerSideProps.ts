@@ -30,6 +30,7 @@ type Props = {
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
   orgBannerUrl: null;
+  disableAutoFillOnBookingPage: boolean;
 };
 
 async function processReschedule({
@@ -184,6 +185,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: null,
+    disableAutoFillOnBookingPage: false,
   };
 
   if (rescheduleUid) {
@@ -279,6 +281,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
+    disableAutoFillOnBookingPage:
+      user?.profile?.organization?.organizationSettings?.disableAutoFillOnBookingPage ?? false,
   };
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({
