@@ -5,7 +5,11 @@ import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
 import type { CrudAction, CustomAction } from "../../domain/types/permission-registry";
-import { Resource, type PermissionString } from "../../domain/types/permission-registry";
+import {
+  Resource,
+  type PermissionString,
+  parsePermissionString,
+} from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
   private client: PrismaClientWithExtensions;
@@ -91,10 +95,7 @@ export class PermissionRepository implements IPermissionRepository {
   }
 
   async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
-    // Split from the right side to handle nested resources like "organization.attributes.create"
-    const lastDotIndex = permission.lastIndexOf(".");
-    const resource = permission.substring(0, lastDotIndex);
-    const action = permission.substring(lastDotIndex + 1);
+    const { resource, action } = parsePermissionString(permission);
     const hasPermission = await this.client.rolePermission.findFirst({
       where: {
         roleId,
@@ -116,10 +117,7 @@ export class PermissionRepository implements IPermissionRepository {
     }
 
     const permissionPairs = permissions.map((p) => {
-      // Split from the right side to handle nested resources like "organization.attributes.create"
-      const lastDotIndex = p.lastIndexOf(".");
-      const resource = p.substring(0, lastDotIndex);
-      const action = p.substring(lastDotIndex + 1);
+      const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
     const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
@@ -213,10 +211,7 @@ export class PermissionRepository implements IPermissionRepository {
     }
 
     const permissionPairs = permissions.map((p) => {
-      // Split from the right side to handle nested resources like "organization.attributes.create"
-      const lastDotIndex = p.lastIndexOf(".");
-      const resource = p.substring(0, lastDotIndex);
-      const action = p.substring(lastDotIndex + 1);
+      const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
 

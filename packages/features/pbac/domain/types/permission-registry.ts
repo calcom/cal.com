@@ -59,6 +59,26 @@ export type PermissionRegistry = {
 export type PermissionString = `${Resource}.${CrudAction | CustomAction}`;
 
 /**
+ * Parsed permission object containing resource and action parts
+ */
+export interface ParsedPermission {
+  resource: string;
+  action: string;
+}
+
+/**
+ * Parses a permission string into its resource and action components
+ * @param permission The permission string to parse
+ * @returns Parsed permission object with resource and action
+ */
+export const parsePermissionString = (permission: string): ParsedPermission => {
+  const lastDotIndex = permission.lastIndexOf(".");
+  const resource = permission.substring(0, lastDotIndex);
+  const action = permission.substring(lastDotIndex + 1);
+  return { resource, action };
+};
+
+/**
  * Validates a permission string format
  * @param val The permission string to validate
  * @returns True if valid, false otherwise
@@ -76,13 +96,12 @@ export const isValidPermissionString = (val: unknown): val is PermissionString =
   const lastDotIndex = val.lastIndexOf(".");
   if (lastDotIndex === -1) return false;
 
-  const resourcePart = val.substring(0, lastDotIndex);
-  const actionPart = val.substring(lastDotIndex + 1);
+  const { resource, action } = parsePermissionString(val);
 
-  const isValidResource = Object.values(Resource).includes(resourcePart as Resource);
+  const isValidResource = Object.values(Resource).includes(resource as Resource);
   const isValidAction =
-    Object.values(CrudAction).includes(actionPart as CrudAction) ||
-    Object.values(CustomAction).includes(actionPart as CustomAction);
+    Object.values(CrudAction).includes(action as CrudAction) ||
+    Object.values(CustomAction).includes(action as CustomAction);
 
   return isValidResource && isValidAction;
 };
