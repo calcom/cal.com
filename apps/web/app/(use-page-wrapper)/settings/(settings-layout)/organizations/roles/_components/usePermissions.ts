@@ -150,7 +150,10 @@ export function usePermissions(): UsePermissionsReturn {
         }
       }
     } else {
-      // When disabling a permission, check if we need to disable related permissions
+      // When disabling a permission, first remove the permission itself
+      newPermissions = newPermissions.filter((p) => p !== permission);
+
+      // Then check if we need to disable related permissions
       if (action === CrudAction.Read) {
         // If disabling read, also disable create, update, and delete since they depend on read
         const dependentActions = [CrudAction.Create, CrudAction.Update, CrudAction.Delete];
@@ -158,17 +161,6 @@ export function usePermissions(): UsePermissionsReturn {
           const dependentPermission = `${resource}.${dependentAction}`;
           newPermissions = newPermissions.filter((p) => p !== dependentPermission);
         });
-      } else if (
-        action === CrudAction.Create ||
-        action === CrudAction.Update ||
-        action === CrudAction.Delete
-      ) {
-        // If disabling create, update, or delete, just remove that specific permission
-        // Read permission remains enabled
-        newPermissions = newPermissions.filter((p) => p !== permission);
-      } else {
-        // For custom actions, remove the specific permission
-        newPermissions = newPermissions.filter((p) => p !== permission);
       }
 
       // Also remove any permissions that depend on this one
