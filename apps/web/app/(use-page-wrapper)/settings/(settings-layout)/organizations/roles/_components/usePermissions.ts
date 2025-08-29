@@ -1,5 +1,9 @@
 import { CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  getTransitiveDependencies,
+  getTransitiveDependents,
+} from "@calcom/features/pbac/utils/permissionTraversal";
 
 export type PermissionLevel = "none" | "read" | "all";
 
@@ -129,50 +133,21 @@ export function usePermissions(): UsePermissionsReturn {
       // Add the requested permission
       newPermissions.push(permission);
 
-      // Handle dependencies from PERMISSION_REGISTRY
-      const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
-      if (resourceConfig && resourceConfig[action as CrudAction]) {
-        const permissionDetails = resourceConfig[action as CrudAction];
-        if (permissionDetails?.dependsOn) {
-          permissionDetails.dependsOn.forEach((dependency) => {
-            if (!newPermissions.includes(dependency)) {
-              newPermissions.push(dependency);
-            }
-          });
+      // Add all transitive dependencies
+      const dependencies = getTransitiveDependencies(permission);
+      dependencies.forEach((dependency) => {
+        if (!newPermissions.includes(dependency)) {
+          newPermissions.push(dependency);
         }
-      }
-
-      // If enabling create, update, or delete, automatically enable read permission (backward compatibility)
-      if (action === CrudAction.Create || action === CrudAction.Update || action === CrudAction.Delete) {
-        const readPermission = `${resource}.${CrudAction.Read}`;
-        if (!newPermissions.includes(readPermission)) {
-          newPermissions.push(readPermission);
-        }
-      }
+      });
     } else {
       // When disabling a permission, first remove the permission itself
       newPermissions = newPermissions.filter((p) => p !== permission);
 
-      // Then check if we need to disable related permissions
-      if (action === CrudAction.Read) {
-        // If disabling read, also disable create, update, and delete since they depend on read
-        const dependentActions = [CrudAction.Create, CrudAction.Update, CrudAction.Delete];
-        dependentActions.forEach((dependentAction) => {
-          const dependentPermission = `${resource}.${dependentAction}`;
-          newPermissions = newPermissions.filter((p) => p !== dependentPermission);
-        });
-      }
-
-      // Also remove any permissions that depend on this one
-      Object.entries(PERMISSION_REGISTRY).forEach(([res, config]) => {
-        Object.entries(config).forEach(([act, details]) => {
-          if (act.startsWith("_")) return; // Skip internal keys
-          const permissionDetails = details as any;
-          if (permissionDetails?.dependsOn?.includes(permission)) {
-            const dependentPermission = `${res}.${act}`;
-            newPermissions = newPermissions.filter((p) => p !== dependentPermission);
-          }
-        });
+      // Remove all transitive dependents
+      const dependents = getTransitiveDependents(permission);
+      dependents.forEach((dependent) => {
+        newPermissions = newPermissions.filter((p) => p !== dependent);
       });
     }
 
