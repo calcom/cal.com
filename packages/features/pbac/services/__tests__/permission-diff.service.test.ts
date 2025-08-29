@@ -53,11 +53,11 @@ describe("PermissionDiffService", () => {
         { id: "1", roleId: "role1", resource: "booking", action: "create" },
       ] as RolePermission[];
 
-      const newPermissions = ["booking.create", "booking._resource", "event.create"];
+      const newPermissions = ["booking.create", "booking._resource", "eventType.create"];
 
       const result = service.calculateDiff(newPermissions, existingPermissions);
 
-      expect(result.toAdd).toEqual([{ resource: "event", action: "create" }]);
+      expect(result.toAdd).toEqual([{ resource: "eventType", action: "create" }]);
       expect(result.toRemove).toEqual([]);
     });
 
