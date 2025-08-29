@@ -256,6 +256,7 @@ export class BookingRepository {
       select: bookingsSelect,
     });
 
+    // host-owned PENDING bookings
     const currentBookingsAllUsersQueryThree = this.prismaClient.booking.findMany({
       where: {
         startTime: { lte: endDate },
@@ -276,10 +277,34 @@ export class BookingRepository {
       select: bookingsSelect,
     });
 
+    // when organizer is an attendee on a PENDING booking.
+    const currentBookingsAllUsersQueryFour = this.prismaClient.booking.findMany({
+      where: {
+        startTime: { lte: endDate },
+        endTime: { gte: startDate },
+        attendees: {
+          some: {
+            email: {
+              in: Array.from(userIdAndEmailMap.values()),
+            },
+          },
+        },
+        eventType: {
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+        status: {
+          in: [BookingStatus.PENDING],
+        },
+      },
+      select: bookingsSelect,
+    });
+
     const [resultOne, resultTwo, resultThree] = await Promise.all([
       currentBookingsAllUsersQueryOne,
       currentBookingsAllUsersQueryTwo,
       currentBookingsAllUsersQueryThree,
+      currentBookingsAllUsersQueryFour,
     ]);
     // Prevent duplicate booking records when the organizer books his own event type.
     //
