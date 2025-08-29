@@ -3512,7 +3512,7 @@
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "show_optimized_slots": "Optimized slots",
-  "show_optimized_slots_description": "Find the optimal slot positioning to maximize the number of available slots.",
+  "show_optimized_slots_description": "Arrange time slots to optimize availability.",
   "failed_bookings_by_field": "Failed Bookings By Field",
   "failed_bookings": "Failed bookings",
   "event_type_no_hosts": "No hosts are assigned to event type",
