@@ -434,7 +434,7 @@ function generateFiles() {
   paymentOutput.push(...paymentServices);
 
   const videoOutput = [];
-  const videoServices = getExportedObject(
+  const videoAdapters = getExportedObject(
     "VideoApiAdapterMap",
     {
       importConfig: {
@@ -444,17 +444,16 @@ function generateFiles() {
       lazyImport: true,
     },
     (app: App) => {
-      const hasVideoApiAdapter = fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts"));
-      return hasVideoApiAdapter;
+      return fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts"));
     }
   );
 
-  const videoExportLineIndex = videoServices.findIndex((line) =>
+  const videoExportLineIndex = videoAdapters.findIndex((line) =>
     line.startsWith("export const VideoApiAdapterMap")
   );
   if (videoExportLineIndex !== -1) {
-    const exportLine = videoServices[videoExportLineIndex];
-    const objectContent = videoServices.slice(videoExportLineIndex + 1, -1);
+    const exportLine = videoAdapters[videoExportLineIndex];
+    const objectContent = videoAdapters.slice(videoExportLineIndex + 1, -1);
 
     videoOutput.push(
       exportLine.replace(
@@ -465,7 +464,7 @@ function generateFiles() {
       "};"
     );
   } else {
-    videoOutput.push(...videoServices);
+    videoOutput.push(...videoAdapters);
   }
 
   const banner = `/**
