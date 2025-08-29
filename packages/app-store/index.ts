@@ -42,6 +42,7 @@ const appStore = {
   telegramvideo: createCachedImport(() => import("./telegram")),
   shimmervideo: createCachedImport(() => import("./shimmervideo")),
   hitpay: createCachedImport(() => import("./hitpay")),
+  bigbluebuttonvideo: createCachedImport(() => import("./bigbluebutton")),
   btcpayserver: createCachedImport(() => import("./btcpayserver")),
 };
 
