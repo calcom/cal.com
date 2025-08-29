@@ -1,5 +1,6 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 import { convertToSmallestCurrencyUnit } from "@calcom/app-store/_utils/payments/currencyConversions";
+import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { Fields } from "@calcom/features/bookings/lib/getBookingFields";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
