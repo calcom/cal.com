@@ -116,7 +116,7 @@ async function updateBookingLocationInDb({
         ...bookingMetadataUpdate,
       },
       referencesToCreate,
-      ...(!isSeatedEvent && { responses }),
+      ...(!isSeatedEvent ? { responses } : {}),
       iCalSequence: (evt.iCalSequence || 0) + 1,
     },
   });
