@@ -5,7 +5,7 @@ This directory contains comprehensive documentation for AI agents working on the
 ## Quick Navigation
 
 - **[Commands](commands.md)** - Build, test, and development commands
-- **[Knowledge Base](.agents/knowledge-base.md)** - Knowledge base & best practices
+- **[Knowledge Base](knowledge-base.md)** - Knowledge base & best practices
 - **[Architecture Overview](#architecture-overview)** - System structure and patterns
 
 ## Getting Started
