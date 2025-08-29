@@ -447,7 +447,7 @@ function BookingsContent({ status }: BookingsProps) {
                 ToolbarLeft={
                   <>
                     {showFilters && (
-                      <div className="bg-muted flex flex-row gap-2 rounded-md p-4">
+                      <div className="bg-default flex flex-row gap-2 rounded-md">
                         <DataTableFilters.FilterBar table={table} />
                         <DataTableFilters.ClearFiltersButton />
                       </div>

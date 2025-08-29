@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Tooltip, Button, Icon } from "@calid/features/ui";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
@@ -65,19 +65,27 @@ function AddFilterButtonComponent<TData>(
           </PopoverTrigger>
         )}
         {variant === "sm" && (
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
-                    <span className="sr-only">{t("filter")}</span>
-                    <Icon name="plus" />
-                  </Button>
-                </PopoverTrigger>
-              </TooltipTrigger>
-              <TooltipContent>{t("add_filter")}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          // <TooltipProvider>
+          //   <Tooltip delayDuration={0}>
+          //     <TooltipTrigger asChild>
+          //       <PopoverTrigger asChild>
+          //         <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
+          //           <span className="sr-only">{t("filter")}</span>
+          //           <Icon name="plus" />
+          //         </Button>
+          //       </PopoverTrigger>
+          //     </TooltipTrigger>
+          //     <TooltipContent>{t("add_filter")}</TooltipContent>
+          //   </Tooltip>
+          // </TooltipProvider>
+          <Tooltip content={t("add_filter")}>
+            <PopoverTrigger asChild>
+              <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
+                <span className="sr-only">{t("filter")}</span>
+                <Icon name="plus" />
+              </Button>
+            </PopoverTrigger>
+          </Tooltip>
         )}
         <PopoverContent className="w-[200px] p-0" align="start">
           <Command>

@@ -2,8 +2,8 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Form } from "@calid/features/ui/components/form";
-import { TextField } from "@calid/features/ui/components/input";
-import { toast } from "@calid/features/ui/components/toast/";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { triggerToast as toast } from "@calid/features/ui/components/toast";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";

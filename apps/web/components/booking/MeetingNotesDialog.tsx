@@ -51,9 +51,7 @@ export const MeetingNotesDialog = (props: IMeetingNotesDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogTrigger>
-        <Button color="secondary" variant="fab">
-          {t("your_notes")}
-        </Button>
+        <Button color="secondary">{t("your_notes")}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogTitle>{t("your_notes")}</DialogTitle>

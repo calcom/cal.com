@@ -1,10 +1,16 @@
-import { /* Switch, */ Button, Input, Textarea } from "@calid/features/ui";
+import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
+
+import {
+  Button,
+  Input,
+  Textarea,
+} from "@calid/features/ui";
+
 import type { ButtonProps } from "@calid/features/ui";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
-  // DialogClose, // ConfirmationDialogContent,
 } from "@calid/features/ui";
 import { configDotenv } from "dotenv";
 import Link from "next/link";
@@ -41,7 +47,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
-import { TeamSelectionDialog } from "./TeamsSelectionDialog.tsx";
 
 type FormField = {
   identifier?: string;

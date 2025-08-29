@@ -1,7 +1,5 @@
 import { Button } from "@calid/features/ui";
 import { Textarea as TextArea, Input } from "@calid/features/ui";
-// import { Button } from "@calcom/ui/components/button";
-// import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { DialogTitle, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";

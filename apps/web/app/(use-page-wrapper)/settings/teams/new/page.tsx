@@ -1,5 +1,5 @@
-import CreateNewTeamPage from "@calid/features/teams/CreateNewTeam";
-import CreateTeamWrapper from "@calid/features/teams/CreateTeamWrapper";
+import CreateNewTeamPage from "@calid/features/modules/teams/pages/CreateNewTeam";
+import CreateTeamWrapper from "@calid/features/modules/teams/components/CreateTeamWrapper";
 import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async () =>
