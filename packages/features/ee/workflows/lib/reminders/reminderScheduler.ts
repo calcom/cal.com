@@ -3,6 +3,7 @@ import {
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
+  isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
@@ -16,6 +17,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
@@ -177,6 +179,20 @@ const processWorkflowStep = async (
       userId: workflow.userId,
       teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
+      seatReferenceUid,
+      verifiedAt: step.verifiedAt,
+    });
+  } else if (isCalAIAction(step.action)) {
+    await scheduleAIPhoneCall({
+      evt,
+      triggerEvent: workflow.trigger,
+      timeSpan: {
+        time: workflow.time,
+        timeUnit: workflow.timeUnit,
+      },
+      workflowStepId: step.id,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
       seatReferenceUid,
       verifiedAt: step.verifiedAt,
     });

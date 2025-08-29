@@ -196,6 +196,8 @@ const nextConfig = (phase) => {
     experimental: {
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
+      webpackMemoryOptimizations: true,
+      webpackBuildWorker: true,
     },
     productionBrowserSourceMaps: true,
     /* We already do type check on GH actions */
@@ -231,7 +233,15 @@ const nextConfig = (phase) => {
     images: {
       unoptimized: true,
     },
-    webpack: (config, { webpack, buildId, isServer }) => {
+    webpack: (config, { webpack, buildId, isServer, dev }) => {
+      if (!dev) {
+        if (config.cache) {
+          config.cache = Object.freeze({
+            type: "memory",
+          });
+        }
+      }
+
       if (isServer) {
         // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
         config.plugins.push(
@@ -284,6 +294,10 @@ const nextConfig = (phase) => {
         {
           source: "/routing/:path*",
           destination: "/apps/routing-forms/:path*",
+        },
+        {
+          source: "/routing-forms",
+          destination: "/apps/routing-forms/forms",
         },
         {
           source: "/success/:path*",
@@ -538,12 +552,17 @@ const nextConfig = (phase) => {
         },
         {
           source: "/apps/routing-forms",
-          destination: "/routing/forms",
+          destination: "/apps/routing-forms/forms",
           permanent: false,
         },
         {
           source: "/api/app-store/:path*",
           destination: "/app-store/:path*",
+          permanent: true,
+        },
+        {
+          source: "/auth/new",
+          destination: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
           permanent: true,
         },
         {
@@ -641,6 +660,11 @@ const nextConfig = (phase) => {
         {
           source: "/settings/organizations/platform/:path*",
           destination: "/settings/platform",
+          permanent: true,
+        },
+        {
+          source: "/settings/admin/apps",
+          destination: "/settings/admin/apps/calendar",
           permanent: true,
         },
         // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
