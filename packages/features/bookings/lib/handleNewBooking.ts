@@ -125,6 +125,16 @@ import handleSeats from "./handleSeats/handleSeats";
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
+function rehydrateUsersWithFullData<T extends { id: number; isFixed?: boolean }>(
+  users: T[],
+  eventTypeWithUsers: { users: (T & { credentials?: CredentialForCalendarService[] })[] }
+) {
+  return users.map((user) => {
+    const full = eventTypeWithUsers.users.find((u) => u.id === user.id);
+    return { ...(full ?? user), isFixed: !!user.isFixed } as typeof user;
+  });
+}
+
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
@@ -1010,7 +1020,7 @@ async function handler(
       }
 
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-      users = [...fixedUserPool, ...luckyUsers];
+      users = rehydrateUsersWithFullData([...fixedUserPool, ...luckyUsers], eventTypeWithUsers);
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
       troubleshooterData = {
         ...troubleshooterData,
@@ -1044,10 +1054,7 @@ async function handler(
   }
 
   // Rehydrate final users with full user objects (ensures credentials are present)
-  users = users.map((user) => {
-    const full = eventTypeWithUsers.users.find((u) => u.id === user.id);
-    return { ...(full ?? user), isFixed: !!user.isFixed } as IsFixedAwareUser;
-  });
+  users = rehydrateUsersWithFullData(users, eventTypeWithUsers) as IsFixedAwareUser[];
 
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
