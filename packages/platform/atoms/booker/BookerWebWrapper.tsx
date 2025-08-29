@@ -35,6 +35,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+  disableAutoFillOnBookingPage?: boolean;
 };
 
 const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
@@ -127,7 +128,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
-    disableAutoFillOnBookingPage: event.data?.disableAutoFillOnBookingPage ?? false,
+    disableAutoFillOnBookingPage: props.disableAutoFillOnBookingPage ?? false,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
