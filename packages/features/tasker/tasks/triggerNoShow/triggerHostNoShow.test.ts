@@ -11,7 +11,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, vi, test } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { dailyvideo, googlecalendar } from "@calcom/app-store/apps.metadata.generated";
 import dayjs from "@calcom/dayjs";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -95,7 +95,7 @@ describe("Trigger Host No Show:", () => {
               },
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideo.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -103,7 +103,7 @@ describe("Trigger Host No Show:", () => {
                   credentialId: null,
                 },
                 {
-                  type: appStoreMetadata.googlecalendar.type,
+                  type: googlecalendar.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASSWORD",
@@ -233,7 +233,7 @@ describe("Trigger Host No Show:", () => {
               },
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideo.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -241,7 +241,7 @@ describe("Trigger Host No Show:", () => {
                   credentialId: null,
                 },
                 {
-                  type: appStoreMetadata.googlecalendar.type,
+                  type: googlecalendar.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASSWORD",
@@ -403,7 +403,7 @@ describe("Trigger Host No Show:", () => {
               },
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideo.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -411,7 +411,7 @@ describe("Trigger Host No Show:", () => {
                   credentialId: null,
                 },
                 {
-                  type: appStoreMetadata.googlecalendar.type,
+                  type: googlecalendar.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASSWORD",
@@ -436,7 +436,7 @@ describe("Trigger Host No Show:", () => {
               },
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideo.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -444,7 +444,7 @@ describe("Trigger Host No Show:", () => {
                   credentialId: null,
                 },
                 {
-                  type: appStoreMetadata.googlecalendar.type,
+                  type: googlecalendar.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASSWORD",

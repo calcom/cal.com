@@ -1,3 +1,2 @@
-export * as lib from "./lib";
-export * as api from "./api";
+export { default as VideoApiAdapter } from "./lib/VideoApiAdapter";
 export { metadata } from "./_metadata";

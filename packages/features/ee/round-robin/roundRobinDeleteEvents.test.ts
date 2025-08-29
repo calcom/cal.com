@@ -21,7 +21,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, expect } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { googlecalendar } from "@calcom/app-store/apps.metadata.generated";
 import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -90,7 +90,7 @@ describe("roundRobinReassignment test", () => {
             references: [
               {
                 id: 1,
-                type: appStoreMetadata.googlecalendar.type,
+                type: googlecalendar.type,
                 uid: "ORIGINAL_EVENT_ID",
                 meetingId: "ORIGINAL_EVENT_ID",
                 meetingPassword: null,

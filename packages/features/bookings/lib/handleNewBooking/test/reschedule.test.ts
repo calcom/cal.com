@@ -38,7 +38,11 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, expect, beforeEach } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import {
+  dailyvideo as dailyvideoMetadata,
+  googlecalendar as googlecalendarMetadata,
+  googlevideo as googlevideoMetadata,
+} from "@calcom/app-store/apps.metadata.generated";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { resetTestSMS } from "@calcom/lib/testSMS";
@@ -128,7 +132,7 @@ describe("handleNewBooking", () => {
                   },
                   references: [
                     {
-                      type: appStoreMetadata.dailyvideo.type,
+                      type: dailyvideoMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASS",
@@ -136,7 +140,7 @@ describe("handleNewBooking", () => {
                       credentialId: null,
                     },
                     {
-                      type: appStoreMetadata.googlecalendar.type,
+                      type: googlecalendarMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASSWORD",
@@ -229,14 +233,14 @@ describe("handleNewBooking", () => {
               }),
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideoMetadata.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
                   meetingUrl: "http://mock-dailyvideo.example.com",
                 },
                 {
-                  type: appStoreMetadata.googlecalendar.type,
+                  type: googlecalendarMetadata.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASSWORD",
@@ -277,8 +281,8 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID,
             appsStatus: [
-              getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug }),
-              getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
+              getMockPassingAppStatus({ slug: dailyvideoMetadata.slug }),
+              getMockPassingAppStatus({ slug: googlecalendarMetadata.slug }),
             ],
           });
 
@@ -368,14 +372,14 @@ describe("handleNewBooking", () => {
                   endTime: `${plus1DateString}T05:15:00.000Z`,
                   references: [
                     {
-                      type: appStoreMetadata.dailyvideo.type,
+                      type: dailyvideoMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASS",
                       meetingUrl: "http://mock-dailyvideo.example.com",
                     },
                     {
-                      type: appStoreMetadata.googlecalendar.type,
+                      type: googlecalendarMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASSWORD",
@@ -447,14 +451,14 @@ describe("handleNewBooking", () => {
               }),
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideoMetadata.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
                   meetingUrl: "http://mock-dailyvideo.example.com",
                 },
                 {
-                  type: appStoreMetadata.googlecalendar.type,
+                  type: googlecalendarMetadata.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASSWORD",
@@ -576,14 +580,14 @@ describe("handleNewBooking", () => {
                   },
                   references: [
                     {
-                      type: appStoreMetadata.dailyvideo.type,
+                      type: dailyvideoMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASS",
                       meetingUrl: "http://mock-dailyvideo.example.com",
                     },
                     {
-                      type: appStoreMetadata.googlecalendar.type,
+                      type: googlecalendarMetadata.type,
                       uid: "ORIGINAL_BOOKING_UID",
                       meetingId: "ORIGINAL_MEETING_ID",
                       meetingPassword: "ORIGINAL_MEETING_PASSWORD",
@@ -641,14 +645,14 @@ describe("handleNewBooking", () => {
               // Booking References still use the original booking's references - Not sure how intentional it is.
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideoMetadata.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
                   meetingUrl: "http://mock-dailyvideo.example.com",
                 },
                 {
-                  type: appStoreMetadata.googlecalendar.type,
+                  type: googlecalendarMetadata.type,
                   // A reference is still created in case of event creation failure, with nullish values. Not sure what's the purpose for this.
                   uid: "ORIGINAL_BOOKING_UID",
                   meetingId: "ORIGINAL_MEETING_ID",
@@ -675,10 +679,8 @@ describe("handleNewBooking", () => {
             payload: {
               uid: createdBooking.uid,
               appsStatus: [
-                expect.objectContaining(getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug })),
-                expect.objectContaining(
-                  getMockFailingAppStatus({ slug: appStoreMetadata.googlecalendar.slug })
-                ),
+                expect.objectContaining(getMockPassingAppStatus({ slug: dailyvideoMetadata.slug })),
+                expect.objectContaining(getMockFailingAppStatus({ slug: googlecalendarMetadata.slug })),
               ],
             },
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking?.uid}`,
@@ -757,7 +759,7 @@ describe("handleNewBooking", () => {
                   endTime: `${plus1DateString}T05:15:00.000Z`,
                   references: [
                     getMockBookingReference({
-                      type: appStoreMetadata.dailyvideo.type,
+                      type: dailyvideoMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASS",
@@ -765,7 +767,7 @@ describe("handleNewBooking", () => {
                       credentialId: 0,
                     }),
                     getMockBookingReference({
-                      type: appStoreMetadata.googlecalendar.type,
+                      type: googlecalendarMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASSWORD",
@@ -837,14 +839,14 @@ describe("handleNewBooking", () => {
                 }),
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideoMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
                     meetingUrl: "http://mock-dailyvideo.example.com",
                   },
                   {
-                    type: appStoreMetadata.googlecalendar.type,
+                    type: googlecalendarMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
@@ -873,7 +875,7 @@ describe("handleNewBooking", () => {
 
             expectSuccessfulVideoMeetingDeletionInCalendar(videoMock, {
               bookingRef: {
-                type: appStoreMetadata.dailyvideo.type,
+                type: dailyvideoMetadata.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
@@ -968,14 +970,14 @@ describe("handleNewBooking", () => {
                     endTime: `${plus1DateString}T05:15:00.000Z`,
                     references: [
                       {
-                        type: appStoreMetadata.dailyvideo.type,
+                        type: dailyvideoMetadata.type,
                         uid: "MOCK_ID",
                         meetingId: "MOCK_ID",
                         meetingPassword: "MOCK_PASS",
                         meetingUrl: "http://mock-dailyvideo.example.com",
                       },
                       {
-                        type: appStoreMetadata.googlecalendar.type,
+                        type: googlecalendarMetadata.type,
                         uid: "MOCK_ID",
                         meetingId: "MOCK_ID",
                         meetingPassword: "MOCK_PASSWORD",
@@ -1067,14 +1069,14 @@ describe("handleNewBooking", () => {
                 }),
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideoMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
                     meetingUrl: "http://mock-dailyvideo.example.com",
                   },
                   {
-                    type: appStoreMetadata.googlecalendar.type,
+                    type: googlecalendarMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
@@ -1092,7 +1094,7 @@ describe("handleNewBooking", () => {
                 location: "http://mock-dailyvideo.example.com",
               },
               bookingRef: {
-                type: appStoreMetadata.dailyvideo.type,
+                type: dailyvideoMetadata.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
@@ -1218,7 +1220,7 @@ describe("handleNewBooking", () => {
                     endTime: `${plus1DateString}T05:15:00.000Z`,
                     references: [
                       getMockBookingReference({
-                        type: appStoreMetadata.googlecalendar.type,
+                        type: googlecalendarMetadata.type,
                         uid: "MOCK_ID",
                         meetingId: "MOCK_ID",
                         meetingPassword: "MOCK_PASSWORD",
@@ -1227,7 +1229,7 @@ describe("handleNewBooking", () => {
                         credentialId: 1,
                       }),
                       getMockBookingReference({
-                        type: appStoreMetadata.googlevideo.type,
+                        type: googlevideoMetadata.type,
                         uid: "MOCK_ID",
                         meetingId: "MOCK_ID",
                         meetingPassword: "MOCK_PASSWORD",
@@ -1316,7 +1318,7 @@ describe("handleNewBooking", () => {
                 }),
                 references: [
                   {
-                    type: appStoreMetadata.googlecalendar.type,
+                    type: googlecalendarMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
@@ -1361,9 +1363,9 @@ describe("handleNewBooking", () => {
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
               appsStatus: [
-                getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
+                getMockPassingAppStatus({ slug: googlecalendarMetadata.slug }),
                 getMockPassingAppStatus({
-                  slug: appStoreMetadata.googlevideo.slug,
+                  slug: googlevideoMetadata.slug,
                   overrideName: "Google Meet",
                 }),
               ],
@@ -1449,7 +1451,7 @@ describe("handleNewBooking", () => {
                   endTime: `${plus1DateString}T05:15:00.000Z`,
                   references: [
                     getMockBookingReference({
-                      type: appStoreMetadata.dailyvideo.type,
+                      type: dailyvideoMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASS",
@@ -1457,7 +1459,7 @@ describe("handleNewBooking", () => {
                       credentialId: 0,
                     }),
                     getMockBookingReference({
-                      type: appStoreMetadata.googlecalendar.type,
+                      type: googlecalendarMetadata.type,
                       uid: "MOCK_ID",
                       meetingId: "MOCK_ID",
                       meetingPassword: "MOCK_PASSWORD",
@@ -1532,14 +1534,14 @@ describe("handleNewBooking", () => {
                 }),
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideoMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
                     meetingUrl: "http://mock-dailyvideo.example.com",
                   },
                   {
-                    type: appStoreMetadata.googlecalendar.type,
+                    type: googlecalendarMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
@@ -1568,7 +1570,7 @@ describe("handleNewBooking", () => {
 
             expectSuccessfulVideoMeetingDeletionInCalendar(videoMock, {
               bookingRef: {
-                type: appStoreMetadata.dailyvideo.type,
+                type: dailyvideoMetadata.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
@@ -1665,14 +1667,14 @@ describe("handleNewBooking", () => {
                     endTime: `${plus1DateString}T05:15:00.000Z`,
                     references: [
                       {
-                        type: appStoreMetadata.dailyvideo.type,
+                        type: dailyvideoMetadata.type,
                         uid: "MOCK_ID",
                         meetingId: "MOCK_ID",
                         meetingPassword: "MOCK_PASS",
                         meetingUrl: "http://mock-dailyvideo.example.com",
                       },
                       {
-                        type: appStoreMetadata.googlecalendar.type,
+                        type: googlecalendarMetadata.type,
                         uid: "MOCK_ID",
                         meetingId: "MOCK_ID",
                         meetingPassword: "MOCK_PASSWORD",
@@ -1775,14 +1777,14 @@ describe("handleNewBooking", () => {
                 }),
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideoMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
                     meetingUrl: "http://mock-dailyvideo.example.com",
                   },
                   {
-                    type: appStoreMetadata.googlecalendar.type,
+                    type: googlecalendarMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
@@ -1800,7 +1802,7 @@ describe("handleNewBooking", () => {
                 location: "http://mock-dailyvideo.example.com",
               },
               bookingRef: {
-                type: appStoreMetadata.dailyvideo.type,
+                type: dailyvideoMetadata.type,
                 uid: "MOCK_ID",
                 meetingId: "MOCK_ID",
                 meetingPassword: "MOCK_PASS",
@@ -1923,7 +1925,7 @@ describe("handleNewBooking", () => {
                   },
                   references: [
                     {
-                      type: appStoreMetadata.googlevideo.type,
+                      type: googlevideoMetadata.type,
                       uid: "GOOGLE_MEET_ID",
                       meetingId: "GOOGLE_MEET_ID",
                       meetingPassword: "",
@@ -1991,7 +1993,7 @@ describe("handleNewBooking", () => {
               }),
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideoMetadata.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -2880,7 +2882,7 @@ describe("handleNewBooking", () => {
                 endTime: `${plus1DateString}T05:15:00.000Z`,
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideoMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -2888,7 +2890,7 @@ describe("handleNewBooking", () => {
                     credentialId: null,
                   },
                   {
-                    type: appStoreMetadata.googlecalendar.type,
+                    type: googlecalendarMetadata.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASSWORD",
