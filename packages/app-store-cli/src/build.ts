@@ -247,6 +247,7 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
+      lazyImport: false,
     })
   );
 
@@ -265,6 +266,7 @@ function generateFiles() {
             importName: "metadata",
           },
         ],
+        lazyImport: false,
       },
       isBookerApp
     )

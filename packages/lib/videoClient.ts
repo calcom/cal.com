@@ -38,12 +38,12 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
       continue;
     }
 
-    if ("lib" in app && "VideoApiAdapter" in app.lib) {
-      const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
+    if ("VideoApiAdapter" in app) {
+      const makeVideoApiAdapter = app.VideoApiAdapter as VideoApiAdapterFactory;
       const videoAdapter = makeVideoApiAdapter(cred);
       videoAdapters.push(videoAdapter);
     } else {
-      log.error(`App ${appName} doesn't have 'lib.VideoApiAdapter' defined`);
+      log.error(`App ${appName} doesn't have 'VideoApiAdapter' defined`);
     }
   }
 

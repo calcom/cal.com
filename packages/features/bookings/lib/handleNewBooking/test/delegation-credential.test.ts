@@ -40,7 +40,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 import { vi } from "vitest";
 import { describe, expect } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -661,7 +661,7 @@ describe("handleNewBooking", () => {
               meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
             },
             {
-              type: appStoreMetadata.office365calendar.type,
+              type: office365calendar.type,
               uid: "OFFICE_365_CALENDAR_EVENT_ID",
               meetingId: "OFFICE_365_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",

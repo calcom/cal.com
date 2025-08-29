@@ -11,7 +11,7 @@ import { vi } from "vitest";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
@@ -2169,35 +2169,33 @@ export function mockCrmApp(
   appMock &&
     `mockResolvedValue` in appMock &&
     appMock.mockResolvedValue({
-      lib: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        CrmService: class {
-          constructor() {
-            log.debug("Create CrmSerive");
-          }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      CrmService: class {
+        constructor() {
+          log.debug("Create CrmSerive");
+        }
 
-          createContact() {
-            if (crmData?.createContacts) {
-              contactsCreated = crmData.createContacts;
-              return Promise.resolve(crmData?.createContacts);
-            }
+        createContact() {
+          if (crmData?.createContacts) {
+            contactsCreated = crmData.createContacts;
+            return Promise.resolve(crmData?.createContacts);
           }
+        }
 
-          getContacts(email: string) {
-            if (crmData?.getContacts) {
-              contactsQueried = crmData?.getContacts;
-              const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+        getContacts(email: string) {
+          if (crmData?.getContacts) {
+            contactsQueried = crmData?.getContacts;
+            const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
 
-              return Promise.resolve(contactsOfEmail);
-            }
+            return Promise.resolve(contactsOfEmail);
           }
+        }
 
-          createEvent() {
-            eventsCreated.push(true);
-            return Promise.resolve({});
-          }
-        },
+        createEvent() {
+          eventsCreated.push(true);
+          return Promise.resolve({});
+        }
       },
     });
 

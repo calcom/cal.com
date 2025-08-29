@@ -19,5 +19,5 @@ export const metadata = {
   dirName: "caldavcalendar",
 } as App;
 
-export * as api from "./api";
-export * as lib from "./lib";
+export { default as add } from "./api/add";
+export { default as CalDavCalendarService } from "./lib/CalendarService";

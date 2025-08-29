@@ -20,7 +20,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, test, vi, expect } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { dailyvideo } from "@calcom/app-store/apps.metadata.generated";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -145,7 +145,7 @@ describe("handleSeats", () => {
               },
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideo.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -290,7 +290,7 @@ describe("handleSeats", () => {
               },
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: dailyvideo.type,
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -432,7 +432,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -559,7 +559,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -684,7 +684,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -794,7 +794,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -949,7 +949,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -1114,7 +1114,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -1150,7 +1150,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -1315,7 +1315,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -1475,7 +1475,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -1599,7 +1599,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -1749,7 +1749,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -1896,7 +1896,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -2057,7 +2057,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -2102,7 +2102,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -2264,7 +2264,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -2309,7 +2309,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -2440,7 +2440,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
@@ -2582,7 +2582,7 @@ describe("handleSeats", () => {
                 },
                 references: [
                   {
-                    type: appStoreMetadata.dailyvideo.type,
+                    type: dailyvideo.type,
                     uid: "MOCK_ID",
                     meetingId: "MOCK_ID",
                     meetingPassword: "MOCK_PASS",
