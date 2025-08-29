@@ -129,7 +129,20 @@ export function usePermissions(): UsePermissionsReturn {
       // Add the requested permission
       newPermissions.push(permission);
 
-      // If enabling create, update, or delete, automatically enable read permission
+      // Handle dependencies from PERMISSION_REGISTRY
+      const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
+      if (resourceConfig && resourceConfig[action as CrudAction]) {
+        const permissionDetails = resourceConfig[action as CrudAction];
+        if (permissionDetails?.dependsOn) {
+          permissionDetails.dependsOn.forEach((dependency) => {
+            if (!newPermissions.includes(dependency)) {
+              newPermissions.push(dependency);
+            }
+          });
+        }
+      }
+
+      // If enabling create, update, or delete, automatically enable read permission (backward compatibility)
       if (action === CrudAction.Create || action === CrudAction.Update || action === CrudAction.Delete) {
         const readPermission = `${resource}.${CrudAction.Read}`;
         if (!newPermissions.includes(readPermission)) {
@@ -154,9 +167,21 @@ export function usePermissions(): UsePermissionsReturn {
         // Read permission remains enabled
         newPermissions = newPermissions.filter((p) => p !== permission);
       } else {
-        // For other actions (custom actions), just remove the specific permission
+        // For custom actions, remove the specific permission
         newPermissions = newPermissions.filter((p) => p !== permission);
       }
+
+      // Also remove any permissions that depend on this one
+      Object.entries(PERMISSION_REGISTRY).forEach(([res, config]) => {
+        Object.entries(config).forEach(([act, details]) => {
+          if (act.startsWith("_")) return; // Skip internal keys
+          const permissionDetails = details as any;
+          if (permissionDetails?.dependsOn?.includes(permission)) {
+            const dependentPermission = `${res}.${act}`;
+            newPermissions = newPermissions.filter((p) => p !== dependentPermission);
+          }
+        });
+      });
     }
 
     // Only add *.* back if all permissions are now selected
