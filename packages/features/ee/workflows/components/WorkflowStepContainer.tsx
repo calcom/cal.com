@@ -144,9 +144,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
 
-  // Get appropriate variables based on trigger type
-  const variables = DYNAMIC_TEXT_VARIABLES;
-
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
@@ -853,12 +850,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {isEmailSubjectNeeded && (
                   <div className="mb-6">
                     <div className="flex items-center">
-                      <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
+                      <Label
+                        className={classNames(
+                          "flex-none",
+                          props.readOnly || isFormTrigger(trigger) ? "mb-2" : "mb-0"
+                        )}>
                         {t("email_subject")}
                       </Label>
-                      {!props.readOnly && (
+                      {!props.readOnly && !isFormTrigger(trigger) && (
                         <div className="flex-grow text-right">
-                          <AddVariablesDropdown addVariable={addVariableEmailSubject} variables={variables} />
+                          <AddVariablesDropdown
+                            addVariable={addVariableEmailSubject}
+                            variables={DYNAMIC_TEXT_VARIABLES}
+                          />
                         </div>
                       )}
                     </div>
@@ -894,7 +898,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                     props.form.clearErrors();
                   }}
-                  variables={variables}
+                  variables={isFormTrigger(trigger) ? null : DYNAMIC_TEXT_VARIABLES}
                   addVariableButtonTop={isSMSAction(step.action)}
                   height="200px"
                   updateTemplate={updateTemplate}
