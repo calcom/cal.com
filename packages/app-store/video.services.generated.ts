@@ -17,10 +17,3 @@ export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E
       webex: import("./webex/lib/VideoApiAdapter"),
       zoomvideo: import("./zoomvideo/lib/VideoApiAdapter"),
     };
-
-export {
-  FAKE_DAILY_CREDENTIAL,
-  generateGuestMeetingTokenFromOwnerMeetingToken,
-  setEnableRecordingUIAndUserIdForOrganizer,
-  updateMeetingTokenIfExpired,
-} from "./dailyvideo/lib/VideoApiAdapter";
