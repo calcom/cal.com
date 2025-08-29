@@ -3,9 +3,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";
 import { getSubscriptionFromId } from "../lib/subscriptions";
 
@@ -27,9 +28,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     teamId,
     userId,
   });
+  let return_url = `${WEBAPP_URL}/settings/billing`;
+
+  if (typeof req.query.returnTo === "string") {
+    const safeRedirectUrl = getSafeRedirectUrl(req.query.returnTo);
+    if (safeRedirectUrl) return_url = safeRedirectUrl;
+  }
 
   if (!team) {
-    return res.status(404).json({ message: "Team not found" });
+    const customerId = await getStripeCustomerIdFromUserId(userId);
+    if (!customerId) return res.status(404).json({ message: "CustomerId not found" });
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url,
+    });
+
+    return res.status(200).json({ url: portalSession.url });
   }
 
   const teamMetadataParsed = teamMetadataSchema.safeParse(team.metadata);
@@ -55,13 +70,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const customerId = subscription.customer as string;
 
   if (!customerId) return res.status(400).json({ message: "CustomerId not found in stripe" });
-
-  let return_url = `${WEBAPP_URL}/settings/billing`;
-
-  if (typeof req.query.returnTo === "string") {
-    const safeRedirectUrl = getSafeRedirectUrl(req.query.returnTo);
-    if (safeRedirectUrl) return_url = safeRedirectUrl;
-  }
 
   const stripeSession = await stripe.billingPortal.sessions.create({
     customer: customerId,
