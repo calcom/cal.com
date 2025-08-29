@@ -132,6 +132,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     return {
       props: {
         userNotFound: true,
+        slug: context.query.user
       },
     } as const;
   }

@@ -28,6 +28,7 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 function UserNotFound(props: UserNotFoundProps) {
+  console.log("User not found props: ", props);
   const { slug } = props;
   const { t } = useLocale();
 
@@ -68,7 +69,7 @@ function UserNotFound(props: UserNotFoundProps) {
 
 export function UserPage(props: PageProps) {
   if (props.userNotFound) {
-    return <UserNotFound slug={props.userNotFound?.slug || "User"} />;
+    return <UserNotFound slug={props.slug || "User"} />;
   }
 
   const { users, profile, eventTypes, entity } = props;
