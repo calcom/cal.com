@@ -14,6 +14,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
@@ -76,7 +77,7 @@ export type ScheduleTextReminderAction = Extract<
   WorkflowActions,
   "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
 >;
-export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
+export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   reminderPhone: string | null;
   message: string;
   action: ScheduleTextReminderAction;
@@ -85,9 +86,9 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
-}
+};
 
-export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
+const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
@@ -275,6 +276,21 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       });
     }
   }
+};
+
+export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
+  if (args.evt) {
+    await scheduleSMSReminderForEvt(args);
+  } else {
+    scheduleSMSReminderForForm(args);
+    throw new Error("Form SMS reminders not yet implemented");
+  }
+};
+
+const scheduleSMSReminderForForm = async (
+  args: ScheduleTextReminderArgs & { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
+) => {
+  // TODO: Create scheduleSMSReminderForForm function
 };
 
 export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {

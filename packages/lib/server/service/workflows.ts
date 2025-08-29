@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { tasker } from "@calcom/features/tasker";
 import { prisma } from "@calcom/prisma";
@@ -107,7 +108,7 @@ export class WorkflowService {
     );
 
     //create tasker here
-    const promisesFormSubmittedNoEvent = noEventWorkflows.map((workflow) => {
+    const promisesFormSubmittedNoEvent = workflowsToSchedule.map((workflow) => {
       const timeUnit: timeUnitLowerCase =
         (workflow.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase) ?? "minute";
 

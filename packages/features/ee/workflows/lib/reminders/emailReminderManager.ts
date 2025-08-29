@@ -18,6 +18,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
@@ -36,8 +37,7 @@ type ScheduleEmailReminderAction = Extract<
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-export interface ScheduleReminderArgs {
-  evt: BookingInfo;
+export type ScheduleReminderArgs = {
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
@@ -47,10 +47,9 @@ export interface ScheduleReminderArgs {
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
-}
+} & ({ evt: BookingInfo; responses?: never } | { evt?: never; responses: FORM_SUBMITTED_WEBHOOK_RESPONSES });
 
-interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
-  evt: BookingInfo;
+type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   sendTo: string[];
   action: ScheduleEmailReminderAction;
   userId?: number | null;
@@ -61,7 +60,7 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   includeCalendarEvent?: boolean;
   isMandatoryReminder?: boolean;
   verifiedAt: Date | null;
-}
+};
 
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
   const {
