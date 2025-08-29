@@ -495,22 +495,24 @@ function MemberListContent(props: Props) {
                         </DropdownMenuTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuContent>
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() =>
-                                  dispatch({
-                                    type: "EDIT_USER_SHEET",
-                                    payload: {
-                                      user,
-                                      showModal: true,
-                                    },
-                                  })
-                                }
-                                StartIcon="pencil">
-                                {t("edit")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
+                            {canChangeRole ? (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "EDIT_USER_SHEET",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="pencil">
+                                  {t("edit")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            ) : null}
                             {impersonationMode && (
                               <>
                                 <DropdownMenuItem>
