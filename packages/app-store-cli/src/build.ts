@@ -484,7 +484,7 @@ function generateFiles() {
     ["crm.apps.generated.ts", crmOutput],
     ["calendar.services.generated.ts", calendarOutput],
     ["payment.services.generated.ts", paymentOutput],
-    ["video.services.generated.ts", videoOutput],
+    ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
     fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));

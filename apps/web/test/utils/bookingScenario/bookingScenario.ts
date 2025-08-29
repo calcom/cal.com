@@ -53,7 +53,7 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => ({
 
 const mockVideoAdapterRegistry: Record<string, any> = {};
 
-vi.mock("@calcom/app-store/video.services.generated", () => ({
+vi.mock("@calcom/app-store/video.adapters.generated", () => ({
   VideoApiAdapterMap: new Proxy(
     {},
     {
@@ -65,10 +65,6 @@ vi.mock("@calcom/app-store/video.services.generated", () => ({
       },
     }
   ),
-  FAKE_DAILY_CREDENTIAL: {},
-  generateGuestMeetingTokenFromOwnerMeetingToken: vi.fn(),
-  setEnableRecordingUIAndUserIdForOrganizer: vi.fn(),
-  updateMeetingTokenIfExpired: vi.fn(),
 }));
 
 // We don't need to test it. Also, it causes Formbricks error when imported
