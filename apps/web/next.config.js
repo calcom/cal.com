@@ -19,14 +19,9 @@ const isOrganizationsEnabled =
 process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
 if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
-  const reservedSubdomains = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`);
-  if (reservedSubdomains.includes(process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG)) {
-    throw new Error(
-      `SINGLE_ORG_SLUG "${
-        process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG
-      }" conflicts with RESERVED_SUBDOMAINS. Please choose a different organization slug that is not in the reserved list: ${reservedSubdomains.join(
-        ", "
-      )}`
+  if (process.env.RESERVED_SUBDOMAINS) {
+    console.warn(
+      `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't use reserved subdomain validation.`
     );
   }
 
