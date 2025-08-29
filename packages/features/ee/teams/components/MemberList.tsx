@@ -430,8 +430,9 @@ function MemberListContent(props: Props) {
           // Use PBAC permissions for edit mode, with role-based fallback
           const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
           const canRemove = props.permissions?.canRemove ?? false;
-          const editMode = (canChangeRole || canRemove || canImpersonate) && !isSelf;
           const canImpersonate = props.permissions?.canImpersonate ?? false;
+          const canResendInvitation = props.permissions?.canInvite ?? false;
+          const editMode = (canChangeRole || canRemove || canImpersonate || canResendInvitation) && !isSelf;
           // For now impersonation just lives on the canChangeRole OR canRemove permission (since without pbac these check admin or owner)
           // In my next PR on this stack i will implement a custom impersonation permission that lives on orgs + teams.
           const impersonationMode =
@@ -439,7 +440,6 @@ function MemberListContent(props: Props) {
             !user.disableImpersonation &&
             user.accepted &&
             process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
-          const resendInvitation = editMode && !user.accepted;
           return (
             <>
               {props.team.membership?.accepted && (
@@ -532,7 +532,7 @@ function MemberListContent(props: Props) {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            {resendInvitation && (
+                            {canResendInvitation && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -548,23 +548,25 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() =>
-                                  dispatch({
-                                    type: "SET_DELETE_ID",
-                                    payload: {
-                                      user,
-                                      showModal: true,
-                                    },
-                                  })
-                                }
-                                color="destructive"
-                                StartIcon="user-x">
-                                {t("remove")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
+                            {canRemove ? (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "SET_DELETE_ID",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  color="destructive"
+                                  StartIcon="user-x">
+                                  {t("remove")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            ) : null}
                           </DropdownMenuContent>
                         </DropdownMenuPortal>
                       </Dropdown>
