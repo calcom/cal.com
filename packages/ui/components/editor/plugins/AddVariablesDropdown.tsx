@@ -1,4 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Icon } from "../../icon";
@@ -8,6 +9,7 @@ interface IAddVariablesDropdown {
   isTextEditor?: boolean;
   variables: string[];
   addVariableButtonTop?: boolean;
+  addVariableButtonClassName?: string;
 }
 
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {

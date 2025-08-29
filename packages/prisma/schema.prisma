@@ -599,6 +599,11 @@ model CreditPurchaseLog {
   createdAt       DateTime      @default(now())
 }
 
+enum CreditUsageType {
+  SMS
+  CAL_AI_PHONE_CALL
+}
+
 model CreditExpenseLog {
   id              String        @id @default(uuid())
   creditBalanceId String
@@ -610,6 +615,9 @@ model CreditExpenseLog {
   date            DateTime
   smsSid          String?
   smsSegments     Int?
+  callDuration    Int?
+  creditFor       CreditUsageType?
+  externalRef     String?       @unique
 }
 
 enum CreditType {
