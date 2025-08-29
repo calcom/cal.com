@@ -1,19 +1,19 @@
+type TimezoneCityRow = {
+  city: string;
+  timezone: string;
+  pop: number;
+};
+
 const TIMEZONE_LIST_CDN_URL = "https://cdn.jsdelivr.net/npm/city-timezones@1.2.1/data/cityMap.json";
 
-export async function cityTimezonesHandler(): Promise<
-  {
-    city: string;
-    timezone: string;
-    pop: number;
-  }[]
-> {
+export async function cityTimezonesHandler(): Promise<TimezoneCityRow[]> {
   const res = await fetch(TIMEZONE_LIST_CDN_URL);
   if (!res.ok) {
     throw new Error(`Failed to fetch city map: ${res.status} ${res.statusText}`);
   }
 
-  const allCities: CityRow[] = await res.json();
-  const topByName: Record<string, CityRow> = {};
+  const allCities: TimezoneCityRow[] = await res.json();
+  const topByName: Record<string, TimezoneCityRow> = {};
 
   for (const raw of allCities) {
     let { city, timezone } = raw;
@@ -24,7 +24,7 @@ export async function cityTimezonesHandler(): Promise<
       timezone = "Europe/London";
     }
 
-    const candidate: CityRow = { city, timezone, pop: raw.pop };
+    const candidate: TimezoneCityRow = { city, timezone, pop: raw.pop };
     const prev = topByName[city];
 
     // Dedupe and pick city with highest population

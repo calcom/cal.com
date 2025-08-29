@@ -40,7 +40,7 @@ export type TimezoneSelectProps = SelectProps & {
   grow?: boolean;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
-  const [data, setData] = useState<CityTimezones[]>([]);
+  const [data, setData] = useState<CityTimezones>([]);
   const [isPending, setIsPending] = useState(true);
 
   useEffect(() => {
