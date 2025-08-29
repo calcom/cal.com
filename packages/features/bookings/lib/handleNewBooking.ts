@@ -864,7 +864,8 @@ async function handler(
 
       availableUsers.forEach((user) => {
         const host = eventTypeWithUsers.hosts.find((h) => h.user.id === user.id);
-        host?.isFixed ? fixedUserPool.push(user) : nonFixedUsers.push(user);
+        const userWithFixedFlag = { ...user, isFixed: !!host?.isFixed } as IsFixedAwareUser;
+        host?.isFixed ? fixedUserPool.push(userWithFixedFlag) : nonFixedUsers.push(userWithFixedFlag);
       });
 
       // Group ALL hosts by their group IDs, then filter to only include available users
@@ -941,6 +942,11 @@ async function handler(
           if (!newLuckyUser) {
             break; // prevent infinite loop
           }
+          // Rehydrate lucky user with full data (including credentials) and enforce isFixed boolean
+          const hydratedLuckyUser = (() => {
+            const full = eventTypeWithUsers.users.find((u) => u.id === newLuckyUser.id);
+            return { ...(full ?? newLuckyUser), isFixed: false } as IsFixedAwareUser;
+          })();
           if (
             input.bookingData.isFirstRecurringSlot &&
             eventType.schedulingType === SchedulingType.ROUND_ROBIN
@@ -957,7 +963,7 @@ async function handler(
                 const end = input.bookingData.allRecurringDates[i].end;
 
                 await ensureAvailableUsers(
-                  { ...eventTypeWithUsers, users: [newLuckyUser] },
+                  { ...eventTypeWithUsers, users: [hydratedLuckyUser] },
                   {
                     dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                     dateTo: dayjs(end).tz(reqBody.timeZone).format(),
@@ -969,16 +975,16 @@ async function handler(
                 );
               }
               // if no error, then lucky user is available for the next slots
-              luckyUsers.push(newLuckyUser);
+              luckyUsers.push(hydratedLuckyUser);
               luckUserFound = true;
             } catch {
-              notAvailableLuckyUsers.push(newLuckyUser);
+              notAvailableLuckyUsers.push(hydratedLuckyUser);
               loggerWithEventDetails.info(
-                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+                `Round robin host ${hydratedLuckyUser.name} not available for first two slots. Trying to find another host.`
               );
             }
           } else {
-            luckyUsers.push(newLuckyUser);
+            luckyUsers.push(hydratedLuckyUser);
             luckUserFound = true;
           }
         }
