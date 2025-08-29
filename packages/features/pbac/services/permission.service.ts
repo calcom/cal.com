@@ -27,7 +27,7 @@ export class PermissionService {
         error: isValid ? null : `Invalid permission: ${permission}`,
       };
     } catch (error) {
-      console.error(`[DEBUG] Error validating permission ${permission}:`, error);
+      console.debug(`[DEBUG] Error validating permission ${permission}:`, error);
       if (error instanceof Error) {
         return {
           isValid: false,
