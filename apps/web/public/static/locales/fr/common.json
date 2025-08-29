@@ -1528,6 +1528,8 @@
   "start_of_week": "Début de la semaine",
   "recordings_title": "Enregistrements",
   "recording": "Enregistrement",
+  "finish_and_start": "Terminez la configuration et commencez",
+  "complete_profile": "Complétez votre profil",
   "happy_scheduling": "Bonne planification",
   "select_calendars": "Sélectionnez les calendriers dont vous souhaitez vérifier les conflits afin d'éviter les doubles réservations.",
   "check_for_conflicts": "Vérifier les conflits",
