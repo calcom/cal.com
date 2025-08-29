@@ -9,13 +9,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  message: string;
-  attachments?: FileData[];
-}
-
 const PlainContactForm = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
