@@ -24,7 +24,16 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl }: PageProps) {
+function Type({
+  slug,
+  user,
+  isEmbed,
+  booking,
+  isBrandingHidden,
+  eventData,
+  orgBannerUrl,
+  disableAutoFillOnBookingPage,
+}: PageProps) {
   const searchParams = useSearchParams();
 
   return (
@@ -39,6 +48,7 @@ function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBa
           entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
           durationConfig={eventData.metadata?.multipleDuration}
           orgBannerUrl={orgBannerUrl}
+          disableAutoFillOnBookingPage={disableAutoFillOnBookingPage}
           /* TODO: Currently unused, evaluate it is needed-
            *       Possible alternative approach is to have onDurationChange.
            */
