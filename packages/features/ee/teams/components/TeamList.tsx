@@ -1,6 +1,9 @@
 import { useState } from "react";
 
-import { ORG_SELF_SERVE_ENABLED, ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE } from "@calcom/lib/constants";
+import {
+  ORG_SELF_SERVE_ENABLED,
+  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
+} from "@calcom/lib/constants";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -72,9 +75,7 @@ export default function TeamList(props: Props) {
                     description={
                       props.teams.length === 1
                         ? t("consider_consolidating_one_team_org")
-                        : t(
-                            "Consider consolidating your teams in an organisation, unify billing, admin tools and analytics."
-                          )
+                        : t("consider_consolidating_multi_team_org")
                     }
                     actionButton={{
                       href: `/settings/organizations/new`,

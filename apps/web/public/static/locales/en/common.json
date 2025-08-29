@@ -1,6 +1,4 @@
 {
-  "you_have_one_team": "You have one team",
-  "consider_consolidating_one_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your team.",
   "identity_provider": "Identity provider",
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
   "day_one": "{{count}} day",
@@ -863,7 +861,7 @@
   "only_us_phone_numbers_can_be_purchased_here": "You can only buy US phone numbers. For other countries, you can import your own Twilio phone number.",
   "buy_number_for_x_per_month": "Buy a US Number for ${{priceInDollars}} per month",
   "supported_call_destinations": "Supported Call Destinations",
-  "no_phone_number_connected":"No phone number connected",
+  "no_phone_number_connected": "No phone number connected",
   "failed_to_get_workflow_step_id": "Failed to get workflow step ID",
   "cal_ai_agent": "Cal.ai Agent",
   "test_cal_ai_agent": "Test Cal.ai Agent",
@@ -3580,5 +3578,8 @@
   "free": "Free",
   "user_email": "User Email",
   "user_name": "User Name",
+  "you_have_one_team": "You have one team",
+  "consider_consolidating_one_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your team.",
+  "consider_consolidating_multi_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your teams.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
