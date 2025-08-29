@@ -44,7 +44,11 @@ const BillingView = () => {
   const pathname = usePathname();
   const { t } = useLocale();
   const returnTo = pathname;
-  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
+
+  const teamId = pathname?.includes("/team/") ? pathname.split("/team/")[1]?.split("/")[0] : null;
+  const billingHref = teamId
+    ? `/api/integrations/stripepayment/portal?teamId=${teamId}&returnTo=${WEBAPP_URL}${returnTo}`
+    : `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = async () => {
     if (window.Plain) {

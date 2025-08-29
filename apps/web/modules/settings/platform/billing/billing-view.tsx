@@ -32,7 +32,6 @@ export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
   const returnTo = pathname;
-  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = async () => {
     if (window.Plain) {
@@ -41,6 +40,8 @@ export default function PlatformBillingUpgrade() {
   };
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
     useGetUserAttributes();
+
+  const billingHref = `/api/integrations/stripepayment/portal?teamId=${userOrgId}&returnTo=${WEBAPP_URL}${returnTo}`;
 
   const { mutateAsync: removeTeamSubscription, isPending: isRemoveTeamSubscriptionLoading } =
     useUnsubscribeTeamToStripe({
