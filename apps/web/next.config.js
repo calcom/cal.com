@@ -256,38 +256,18 @@ const nextConfig = (phase) => {
         skipDefaultConversion: true,
         preventFullImport: true,
       },
-      "@calcom/features/bookings": {
-        transform: "@calcom/features/bookings/{{member}}",
+      "@calcom/features/eventtypes/components": {
+        transform: "@calcom/features/eventtypes/components/{{member}}",
         skipDefaultConversion: true,
         preventFullImport: true,
       },
-      "@calcom/features/eventtypes": {
-        transform: "@calcom/features/eventtypes/{{member}}",
+      "@calcom/features/insights/components": {
+        transform: "@calcom/features/insights/components/{{member}}",
         skipDefaultConversion: true,
         preventFullImport: true,
       },
-      "@calcom/features/insights": {
-        transform: "@calcom/features/insights/{{member}}",
-        skipDefaultConversion: true,
-        preventFullImport: true,
-      },
-      "@calcom/features/webhooks": {
-        transform: "@calcom/features/webhooks/{{member}}",
-        skipDefaultConversion: true,
-        preventFullImport: true,
-      },
-      "@calcom/features/auth": {
-        transform: "@calcom/features/auth/{{member}}",
-        skipDefaultConversion: true,
-        preventFullImport: true,
-      },
-      "@calcom/features/shell": {
-        transform: "@calcom/features/shell/{{member}}",
-        skipDefaultConversion: true,
-        preventFullImport: true,
-      },
-      "@calcom/features/ee": {
-        transform: "@calcom/features/ee/{{member}}",
+      "@calcom/features/webhooks/components": {
+        transform: "@calcom/features/webhooks/components/{{member}}",
         skipDefaultConversion: true,
         preventFullImport: true,
       },
