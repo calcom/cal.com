@@ -803,7 +803,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     if (externalToolErrors.length > 0) {
       log.error(`Agent tool update errors for workflow ${id}:`, externalToolErrors);
-      throw new Error(`${externalToolErrors.join("; ")}`);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: externalToolErrors.join("; "),
+      });
     }
   }
 

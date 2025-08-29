@@ -1,10 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { generateUniqueAPIKey as generateHashedApiKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -27,24 +26,12 @@ export class AgentService {
   ) {}
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
-    const [hashedApiKey, apiKey] = generateHashedApiKey();
-    await prisma.apiKey.create({
-      data: {
-        id: uuidv4(),
-        userId,
-        teamId,
-        // And here we pass a null to expiresAt if never expires is true
-        expiresAt: null,
-        hashedKey: hashedApiKey,
-        note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
-      },
+    return await PrismaApiKeyRepository.createApiKey({
+      userId,
+      teamId,
+      expiresAt: null,
+      note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
     });
-
-    const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
-
-    const prefixedApiKey = `${apiKeyPrefix}${apiKey}`;
-
-    return prefixedApiKey;
   }
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
