@@ -57,7 +57,7 @@ export const EventTypeDescription = ({
             )}
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
-              __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
+              __html: eventType.descriptionAsSafeHTML || markdownToSafeHTML(eventType.description || ""),
             }}
           />
         )}
