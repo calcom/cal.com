@@ -1,6 +1,7 @@
 import type { RolePermission } from "@prisma/client";
 import { describe, it, expect } from "vitest";
 
+import type { PermissionString } from "../../domain/types/permission-registry";
 import { PermissionDiffService } from "../permission-diff.service";
 
 describe("PermissionDiffService", () => {
@@ -13,7 +14,7 @@ describe("PermissionDiffService", () => {
         { id: "2", roleId: "role1", resource: "booking", action: "read" },
       ] as RolePermission[];
 
-      const newPermissions = ["booking.read", "booking.update", "eventType.create"];
+      const newPermissions = ["booking.read", "booking.update", "eventType.create"] as PermissionString[];
 
       const result = service.calculateDiff(newPermissions, existingPermissions);
 
@@ -37,7 +38,7 @@ describe("PermissionDiffService", () => {
     });
 
     it("should handle empty existing permissions", () => {
-      const newPermissions = ["booking.create", "booking.read"];
+      const newPermissions = ["booking.create", "booking.read"] as PermissionString[];
 
       const result = service.calculateDiff(newPermissions, []);
 
@@ -53,7 +54,11 @@ describe("PermissionDiffService", () => {
         { id: "1", roleId: "role1", resource: "booking", action: "create" },
       ] as RolePermission[];
 
-      const newPermissions = ["booking.create", "booking._resource", "eventType.create"];
+      const newPermissions = [
+        "booking.create",
+        "booking._resource",
+        "eventType.create",
+      ] as PermissionString[];
 
       const result = service.calculateDiff(newPermissions, existingPermissions);
 
@@ -67,7 +72,7 @@ describe("PermissionDiffService", () => {
         { id: "2", roleId: "role1", resource: "booking", action: "read" },
       ] as RolePermission[];
 
-      const newPermissions = ["booking.create", "booking.read"];
+      const newPermissions = ["booking.create", "booking.read"] as PermissionString[];
 
       const result = service.calculateDiff(newPermissions, existingPermissions);
 
