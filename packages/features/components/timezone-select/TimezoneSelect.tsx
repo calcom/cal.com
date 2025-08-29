@@ -9,7 +9,7 @@ import type { Timezones } from "@calcom/lib/timezone";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 
-import { type CityRow, cityTimezonesHandler } from "../../cityTimezones/cityTimezonesHandler";
+import { type CityTimezones, cityTimezonesHandler } from "../../cityTimezones/cityTimezonesHandler";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
@@ -40,7 +40,7 @@ export type TimezoneSelectProps = SelectProps & {
   grow?: boolean;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
-  const [data, setData] = useState<CityRow[]>([]);
+  const [data, setData] = useState<CityTimezones[]>([]);
   const [isPending, setIsPending] = useState(true);
 
   useEffect(() => {

@@ -1,12 +1,12 @@
-export type CityRow = {
-  city: string;
-  timezone: string;
-  pop: number;
-};
-
 const TIMEZONE_LIST_CDN_URL = "https://cdn.jsdelivr.net/npm/city-timezones@1.2.1/data/cityMap.json";
 
-export async function cityTimezonesHandler(): Promise<CityRow[]> {
+export async function cityTimezonesHandler(): Promise<
+  {
+    city: string;
+    timezone: string;
+    pop: number;
+  }[]
+> {
   const res = await fetch(TIMEZONE_LIST_CDN_URL);
   if (!res.ok) {
     throw new Error(`Failed to fetch city map: ${res.status} ${res.statusText}`);
