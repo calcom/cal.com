@@ -18,6 +18,24 @@ const isOrganizationsEnabled =
 // To be able to use the version in the app without having to import package.json
 process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
+if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+  const reservedSubdomains = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`);
+  if (reservedSubdomains.includes(process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG)) {
+    throw new Error(
+      `SINGLE_ORG_SLUG "${
+        process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG
+      }" conflicts with RESERVED_SUBDOMAINS. Please choose a different organization slug that is not in the reserved list: ${reservedSubdomains.join(
+        ", "
+      )}`
+    );
+  }
+
+  if (!process.env.ORGANIZATIONS_ENABLED) {
+    console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
+    process.env.ORGANIZATIONS_ENABLED = "1";
+  }
+}
+
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
