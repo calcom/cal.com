@@ -1,4 +1,4 @@
-import appStore from "@calcom/app-store";
+import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -10,7 +10,7 @@ import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -125,19 +125,21 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
   }
 
-  const paymentApp = (await appStore[
-    paymentCredential?.app?.dirName as keyof typeof appStore
-  ]?.()) as PaymentApp;
+  const key = paymentCredential?.app?.dirName;
+  const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
+  if (!paymentAppImportFn) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Payment app not implemented" });
+  }
 
-  if (!paymentApp?.lib?.PaymentService) {
+  const paymentApp = await paymentAppImportFn;
+  if (!paymentApp?.PaymentService) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const PaymentService = paymentApp.lib.PaymentService as any;
+  const PaymentService = paymentApp.PaymentService;
   const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
-    const paymentData = await paymentInstance.chargeCard(booking.payment[0]);
+    const paymentData = await paymentInstance.chargeCard(booking.payment[0], booking.id);
 
     if (!paymentData) {
       throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });

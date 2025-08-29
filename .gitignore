@@ -97,3 +97,5 @@ apps/auth
 !.yarn/sdks
 !.yarn/versions
 i18n.cache
+
+.claude
