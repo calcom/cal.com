@@ -121,6 +121,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateDescriptionEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -144,12 +145,15 @@ describe("handleChildrenEventTypes", () => {
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          requiresConfirmationForReschedule: true,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
           customReplyToEmail: null,
+          instantMeetingScheduleId: undefined,
           userId: 4,
+          workflows: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useBookerTimezone: false,
@@ -182,6 +186,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -210,6 +215,7 @@ describe("handleChildrenEventTypes", () => {
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          requiresConfirmationForReschedule: true,
           useBookerTimezone: false,
           restrictionScheduleId: null,
           hashedLink: {
@@ -292,6 +298,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -322,6 +329,7 @@ describe("handleChildrenEventTypes", () => {
           instantMeetingScheduleId: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          requiresConfirmationForReschedule: true,
           userId: 4,
           workflows: undefined,
           rrSegmentQueryValue: undefined,
@@ -356,6 +364,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -386,6 +395,7 @@ describe("handleChildrenEventTypes", () => {
           useBookerTimezone: false,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          requiresConfirmationForReschedule: true,
           allowReschedulingCancelledBookings: false,
         },
         where: {
@@ -421,6 +431,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        requiresConfirmationForReschedule,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -477,9 +488,11 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           customReplyToEmail: null,
+          instantMeetingScheduleId: undefined,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          requiresConfirmationForReschedule: true,
           useBookerTimezone: false,
           restrictionScheduleId: null,
           parentId: 1,
@@ -506,6 +519,7 @@ describe("handleChildrenEventTypes", () => {
           customReplyToEmail: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          requiresConfirmationForReschedule: true,
           useBookerTimezone: false,
           restrictionScheduleId: null,
           hashedLink: {

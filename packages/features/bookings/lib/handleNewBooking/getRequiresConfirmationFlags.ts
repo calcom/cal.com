@@ -6,7 +6,10 @@ import type { getEventTypeResponse } from "./getEventTypesFromDB";
 
 type EventType = Pick<
   getEventTypeResponse,
-  "metadata" | "requiresConfirmation" | "requiresConfirmationForFreeEmail"
+  | "metadata"
+  | "requiresConfirmation"
+  | "requiresConfirmationForFreeEmail"
+  | "requiresConfirmationForReschedule"
 >;
 type PaymentAppData = { price: number };
 
@@ -30,7 +33,9 @@ export async function getRequiresConfirmationFlags({
   const isConfirmedByDefault = determineIsConfirmedByDefault(
     requiresConfirmation,
     paymentAppData.price,
-    userReschedulingIsOwner
+    userReschedulingIsOwner,
+    eventType.requiresConfirmationForReschedule,
+    !!originalRescheduledBookingOrganizerId
   );
 
   return {
@@ -87,7 +92,12 @@ function isUserReschedulingOwner(
 function determineIsConfirmedByDefault(
   requiresConfirmation: boolean,
   price: number,
-  userReschedulingIsOwner: boolean
+  userReschedulingIsOwner: boolean,
+  requiresConfirmationForReschedule: boolean,
+  isReschedule: boolean
 ): boolean {
+  if (isReschedule && !requiresConfirmationForReschedule) {
+    return true;
+  }
   return (!requiresConfirmation && price === 0) || userReschedulingIsOwner;
 }

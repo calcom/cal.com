@@ -115,6 +115,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     lockedTimeZone: null,
     requiresConfirmation: false,
     requiresConfirmationForFreeEmail: false,
+    requiresConfirmationForReschedule: true,
     requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,

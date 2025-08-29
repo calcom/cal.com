@@ -153,6 +153,7 @@ model EventType {
   requiresConfirmation               Boolean                @default(false)
   requiresConfirmationWillBlockSlot  Boolean                @default(false)
   requiresConfirmationForFreeEmail   Boolean                @default(false)
+  requiresConfirmationForReschedule  Boolean                @default(true)
   requiresBookerEmailVerification    Boolean                @default(false)
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 

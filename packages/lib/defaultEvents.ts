@@ -104,6 +104,7 @@ const commons = {
   lockedTimeZone: null,
   requiresConfirmation: false,
   requiresConfirmationForFreeEmail: false,
+  requiresConfirmationForReschedule: true,
   requiresBookerEmailVerification: false,
   bookingLimits: null,
   maxActiveBookingsPerBooker: null,
