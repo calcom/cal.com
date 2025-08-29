@@ -309,7 +309,7 @@ export const bookingCancelInput = bookingCancelSchema.refine(
   "At least one of the following required: 'id', 'uid'."
 );
 
-export const bookingCancelWithCsrfSchema = bookingCancelSchema.extend({
+export const bookingCancelWithCsrfSchema = bookingCancelInput.extend({
   csrfToken: z.string().min(1, "CSRF token is required"),
 });
 
