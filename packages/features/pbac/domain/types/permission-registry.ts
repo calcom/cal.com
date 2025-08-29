@@ -245,13 +245,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_impersonate",
       descriptionI18nKey: "pbac_desc_impersonate_team_members",
     },
-    [CrudAction.Manage]: {
-      description: "Manage team members",
-      category: "team",
-      i18nKey: "pbac_action_manage",
-      descriptionI18nKey: "pbac_desc_manage_team_members",
-      scope: [Scope.Organization], // Only organizations should have "Manage" permissions
-    },
   },
   [Resource.Organization]: {
     _resource: {
