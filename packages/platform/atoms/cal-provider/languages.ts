@@ -25,8 +25,9 @@ export const PT_BR = "pt-BR";
 export const DE = "de";
 export const ES = "es";
 export const NL = "nl";
-export const CAL_PROVIDER_LANGUAUES = [FR, EN, PT_BR, DE, ES, NL] as const;
-export type CalProviderLanguagesType = (typeof CAL_PROVIDER_LANGUAUES)[number];
+
+const CAL_PROVIDER_LANGUAGES = [FR, EN, PT_BR, DE, ES, NL] as const;
+export type CalProviderLanguagesType = (typeof CAL_PROVIDER_LANGUAGES)[number];
 
 type i18nFrProps = {
   labels?: Partial<Record<frTranslationKeys, string>>;
