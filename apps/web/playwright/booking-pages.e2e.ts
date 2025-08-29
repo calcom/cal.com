@@ -655,8 +655,8 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
   });
 
   test("Should prevent cancellation and show an error message", async ({ page }) => {
-    const reponse = await page.request.get("/api/csrf");
-    const { csrfToken } = await response.json();
+    const csrfTokenResponse = await page.request.get("/api/csrf");
+    const { csrfToken } = await csrfTokenResponse.json();
     const response = await page.request.post("/api/cancel", {
       data: {
         uid: bookingId,
