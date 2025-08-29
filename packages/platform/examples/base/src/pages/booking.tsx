@@ -42,6 +42,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
                 return (
                   <div
+                    data-testid="event-type-card"
                     onClick={() => {
                       setEventTypeSlug(event.slug);
                       setEventTypeDuration(event.lengthInMinutes);
