@@ -1408,4 +1408,16 @@ export class EventTypeRepository {
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     };
   }
+
+  async getFirstEventTypeByUserId({ userId }: { userId: number }) {
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        userId,
+        teamId: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
 }

@@ -20,18 +20,28 @@ export function ChartCard({
   legend,
   legendSize,
   children,
+  className,
+  titleTooltip,
 }: {
   title: string | ReactNode;
   subtitle?: string;
   cta?: { label: string; onClick: () => void };
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
+  className?: string;
+  titleTooltip?: string;
   children: ReactNode;
 }) {
   const legendComponent = legend && legend.length > 0 ? <Legend items={legend} size={legendSize} /> : null;
 
   return (
-    <PanelCard title={title} subtitle={subtitle} cta={cta} headerContent={legendComponent}>
+    <PanelCard
+      title={title}
+      subtitle={subtitle}
+      cta={cta}
+      headerContent={legendComponent}
+      className={className}
+      titleTooltip={titleTooltip}>
       {children}
     </PanelCard>
   );
@@ -52,7 +62,7 @@ export function ChartCardItem({
         "text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0",
         className
       )}>
-      <div className="text-sm font-medium">{children}</div>
+      <div className="grow text-sm font-medium">{children}</div>
       {count !== undefined && <div className="text-sm font-medium">{count}</div>}
     </div>
   );
