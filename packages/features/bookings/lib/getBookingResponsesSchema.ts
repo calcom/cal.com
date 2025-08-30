@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
