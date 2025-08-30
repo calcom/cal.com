@@ -74,8 +74,7 @@ export function WebPushProvider({ children }: ProviderProps) {
           if (
             error instanceof DOMException &&
             error.name === "InvalidAccessError" &&
-            error.message.includes("applicationServerKey") &&
-            error.message.includes("not valid")
+            error.message.includes("applicationServerKey")
           ) {
             showToast("Please enable Google services for push messaging and try again", "error");
           } else {
