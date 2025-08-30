@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import type { PrismaClient } from "@calcom/prisma";
+import { type PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -43,6 +43,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     locations: inputLocations,
     scheduleId,
     calVideoSettings,
+    oneOffAvailabilities,
     ...rest
   } = input;
 
@@ -126,6 +127,14 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       );
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+  }
+
+  if (oneOffAvailabilities !== undefined) {
+    data.availability = {
+      createMany: {
+        data: oneOffAvailabilities,
+      },
+    };
   }
 
   const profile = ctx.user.profile;
