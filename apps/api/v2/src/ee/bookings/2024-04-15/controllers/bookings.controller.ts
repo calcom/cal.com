@@ -5,7 +5,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -232,6 +232,15 @@ export class BookingsController_2024_04_15 {
     }
 
     if (bookingUid) {
+      const { bookingInfo } = await getBookingInfo(bookingUid);
+      if (!bookingInfo) {
+        throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
+      }
+      if (bookingInfo.status === "CANCELLED") {
+        throw new BadRequestException(
+          `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+        );
+      }
       try {
         req.body.uid = bookingUid;
         const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
@@ -377,7 +386,7 @@ export class BookingsController_2024_04_15 {
       if (bearerToken) {
         if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
           const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const apiKeyHash = sha256Hash(strippedApiKey);
           const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
           return keyData?.userId;
         } else {

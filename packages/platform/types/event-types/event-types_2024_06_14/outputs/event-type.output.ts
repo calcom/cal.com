@@ -439,6 +439,19 @@ class BaseEventTypeOutput_2024_06_14 {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {

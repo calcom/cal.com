@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
+import { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -64,7 +64,8 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   }
 
   // Check for existing reservations for the same slot
-  const reservedBySomeoneElse = await SelectedSlotsRepository.findReservedByOthers({
+  const slotsRepo = new PrismaSelectedSlotRepository(prisma);
+  const reservedBySomeoneElse = await slotsRepo.findReservedByOthers({
     slot: {
       utcStartIso: slotUtcStartDate,
       utcEndIso: slotUtcEndDate,

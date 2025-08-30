@@ -1,14 +1,15 @@
 import type { Prisma } from "@prisma/client";
 
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -109,12 +110,33 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
   const currentOrgId = ctx.user?.organization?.id || input.orgId;
 
-  const isUserOrganizationAdmin = currentOrgId && (await isOrganisationAdmin(ctx.user?.id, currentOrgId));
-  const isUserRoleAdmin = ctx.user.role === UserPermissionRole.ADMIN;
+  if (!currentOrgId) throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
 
-  const isUserAuthorizedToUpdate = !!(isUserOrganizationAdmin || isUserRoleAdmin);
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: currentOrgId,
+    },
+    select: {
+      role: true,
+    },
+  });
 
-  if (!currentOrgId || !isUserAuthorizedToUpdate) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!membership) throw new TRPCError({ code: "UNAUTHORIZED", message: "User role is required." });
+
+  const { canEdit } = await getResourcePermissions({
+    userId: ctx.user.id,
+    teamId: currentOrgId,
+    resource: Resource.Organization,
+    userRole: membership.role,
+    fallbackRoles: {
+      update: {
+        roles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      },
+    },
+  });
+
+  if (!canEdit) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
     const userConflict = await prisma.team.findMany({
@@ -143,7 +165,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata ?? {});
+  const { mergeMetadata } = getMetadataHelpers(
+    teamMetadataStrictSchema.unwrap(),
+    prevOrganisation.metadata ?? {}
+  );
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     logoUrl: input.logoUrl,
