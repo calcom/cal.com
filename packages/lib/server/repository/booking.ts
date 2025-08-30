@@ -300,7 +300,7 @@ export class BookingRepository {
       select: bookingsSelect,
     });
 
-    const [resultOne, resultTwo, resultThree] = await Promise.all([
+    const [resultOne, resultTwo, resultThree, resultFour] = await Promise.all([
       currentBookingsAllUsersQueryOne,
       currentBookingsAllUsersQueryTwo,
       currentBookingsAllUsersQueryThree,
@@ -317,7 +317,7 @@ export class BookingRepository {
       return !booking.attendees.some((attendee) => attendee.email === organizerEmail);
     });
 
-    return [...resultOne, ...resultTwoWithOrganizersRemoved, ...resultThree];
+    return [...resultOne, ...resultTwoWithOrganizersRemoved, ...resultThree, ...resultFour];
   }
 
   findAllExistingBookingsForEventTypeBetween = withReporting(
