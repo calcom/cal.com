@@ -226,6 +226,71 @@ const nextConfig = (phase) => {
         skipDefaultConversion: true,
         preventFullImport: true,
       },
+      "@calcom/features/flags": {
+        transform: "@calcom/features/flags/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/users": {
+        transform: "@calcom/features/users/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/watchlist": {
+        transform: "@calcom/features/watchlist/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/calendar-cache": {
+        transform: "@calcom/features/calendar-cache/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/platform-oauth-client": {
+        transform: "@calcom/features/platform-oauth-client/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib/server/repository": {
+        transform: "@calcom/lib/server/repository/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/eventtypes/components": {
+        transform: "@calcom/features/eventtypes/components/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/insights/components": {
+        transform: "@calcom/features/insights/components/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/features/webhooks/components": {
+        transform: "@calcom/features/webhooks/components/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib/server": {
+        transform: "@calcom/lib/server/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib/hooks": {
+        transform: "@calcom/lib/hooks/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/lib": {
+        transform: "@calcom/lib/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
+      "@calcom/app-store": {
+        transform: "@calcom/app-store/{{member}}",
+        skipDefaultConversion: true,
+        preventFullImport: true,
+      },
       lodash: {
         transform: "lodash/{{member}}",
       },
@@ -241,6 +306,38 @@ const nextConfig = (phase) => {
           });
         }
       }
+
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            ...config.optimization.splitChunks?.cacheGroups,
+            repositories: {
+              test: /[\\/](?:packages|node_modules[\\/]@calcom)[\\/].*Repository\.(t|j)sx?$/i,
+              name: "repositories",
+              chunks: "all",
+              priority: 30,
+              enforce: true,
+            },
+            features: {
+              test: /[\\/](?:packages|node_modules[\\/]@calcom)[\\/]features[\\/]/,
+              name: "features",
+              chunks: "all",
+              priority: 25,
+              enforce: true,
+            },
+            prisma: {
+              test: /[\\/]packages[\\/]prisma[\\/]|[\\/]node_modules[\\/]@prisma[\\/]/,
+              name: "prisma",
+              chunks: "all",
+              priority: 20,
+              enforce: true,
+            },
+          },
+        },
+      };
 
       if (isServer) {
         // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
