@@ -28,10 +28,10 @@ const formatOffset = (offset: string) =>
   offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
 
 export const handleOptionLabel = (option: ITimezoneOption, timezones: Timezones) => {
-  const cityName = option.label.split(") ")[1];
+  const baseCity = (option.value.split("/").pop() ?? option.value).replace(/_/g, " ");
   const gmtOffset = formatOffset(dayjs.tz(undefined, option.value).format("Z"));
 
   return timezones.length > 0
-    ? `${cityName} (GMT${gmtOffset})`
-    : `${option.value.replace(/_/g, " ")} (GMT${gmtOffset}) ${cityName}`;
+    ? `${baseCity} (GMT${gmtOffset})`
+    : `${option.value.replace(/_/g, " ")} (GMT${gmtOffset}) ${baseCity} ${gmtOffset}`;
 };
