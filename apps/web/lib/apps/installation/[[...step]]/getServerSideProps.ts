@@ -205,7 +205,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const stepSegments = Array.isArray(params?.step) ? params?.step : params?.step ? [params?.step] : [];
   const parsedStepParam = z.string().optional().parse(stepSegments[0]);
   const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
-  const _ = stepsEnum.parse(parsedStepParam);
   const session = await getServerSession({ req });
   if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
   const locale = await getLocale(context.req);
@@ -223,12 +222,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let userTeams = user.teams;
   const hasTeams = Boolean(userTeams.length);
 
-  let initialStep = parsedStepParam as string | undefined;
-  if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP) {
+  let initialStep = parsedStepParam;
+  if (!hasTeams && initialStep === AppOnboardingSteps.ACCOUNTS_STEP) {
     initialStep = AppOnboardingSteps.EVENT_TYPES_STEP;
-  } else if (!parsedStepParam) {
+  } else if (!initialStep) {
     initialStep = hasTeams ? AppOnboardingSteps.ACCOUNTS_STEP : AppOnboardingSteps.EVENT_TYPES_STEP;
   }
+  stepsEnum.parse(initialStep);
 
   if (parsedTeamIdParam) {
     const currentTeam = userTeams.find((team) => team.id === parsedTeamIdParam);
@@ -324,6 +324,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       console.log(`Auto-installed ${parsedAppSlug} for user ${user.id} (personal account - no teams)`);
     } catch (error) {
       console.error(`Failed to auto-install app ${parsedAppSlug} for user ${user.id}:`, error);
+
+      if ((error as any)?.code === "P2002") {
+        const existing = await prisma.credential.findFirst({
+          where: { appId: parsedAppSlug, userId: user.id, teamId: null },
+          select: { id: true },
+        });
+        if (existing?.id) credentialId = existing.id;
+      }
     }
   }
 
