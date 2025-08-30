@@ -107,11 +107,15 @@ function buildSlotsWithDateRanges({
   let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
   const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
 
-  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-      interval = intervalsWithDefinedStartTimes[i];
-      break;
+  if (frequency < eventLength) {
+    for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+      if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+        interval = intervalsWithDefinedStartTimes[i];
+        break;
+      }
     }
+  } else {
+    interval = frequency;
   }
 
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
@@ -119,7 +123,7 @@ function buildSlotsWithDateRanges({
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
-    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
+    const dateYYYYMMDD = range.start.tz(timeZone).format("YYYY-MM-DD");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
@@ -128,7 +132,11 @@ function buildSlotsWithDateRanges({
     // For current day bookings, normalizing the seconds to zero to avoid issues with time calculations
     slotStartTime = slotStartTime.set("second", 0).set("millisecond", 0);
 
-    if (slotStartTime.minute() % interval !== 0) {
+    if (frequency < eventLength && slotStartTime.minute() % interval !== 0) {
+      slotStartTime = slotStartTime
+        .startOf("hour")
+        .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
+    } else if (slotStartTime.minute() % interval !== 0) {
       slotStartTime = getCorrectedSlotStartTime({
         showOptimizedSlots,
         interval,
