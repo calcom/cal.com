@@ -13,6 +13,8 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -106,7 +108,25 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  // Check if user is a host or owner of the event type
+  const userIsHost = checkIfUserIsHost(
+    userId,
+    {
+      user: bookingToDelete.user,
+      attendees: bookingToDelete.attendees,
+    },
+    bookingToDelete.eventType || undefined
+  );
+  const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
+
+  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+    userId,
+    bookingToDelete.eventType?.team?.id,
+    bookingToDelete.eventType?.team?.parentId
+  );
+
+  if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
@@ -128,7 +148,7 @@ async function handler(input: CancelBookingInput) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
+    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions) {
       throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
     }
   }
