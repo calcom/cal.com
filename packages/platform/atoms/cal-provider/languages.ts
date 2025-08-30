@@ -2,6 +2,7 @@ import type deTranslations from "@calcom/web/public/static/locales/de/common.jso
 import type enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import type esTranslations from "@calcom/web/public/static/locales/es/common.json";
 import type frTranslations from "@calcom/web/public/static/locales/fr/common.json";
+import type itTranslations from "@calcom/web/public/static/locales/it/common.json";
 import type nlTranslations from "@calcom/web/public/static/locales/nl/common.json";
 import type ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
@@ -9,6 +10,7 @@ export type enTranslationKeys = keyof typeof enTranslations;
 export type frTranslationKeys = keyof typeof frTranslations;
 export type deTranslationKeys = keyof typeof deTranslations;
 export type esTranslationKeys = keyof typeof esTranslations;
+export type itTranslationKeys = keyof typeof itTranslations;
 export type ptBrTranslationKeys = keyof typeof ptBrTranslations;
 export type nlTranslationKeys = keyof typeof nlTranslations;
 export type translationKeys =
@@ -16,6 +18,7 @@ export type translationKeys =
   | frTranslationKeys
   | deTranslationKeys
   | esTranslationKeys
+  | itTranslationKeys
   | ptBrTranslationKeys
   | nlTranslationKeys;
 
@@ -24,9 +27,11 @@ export const EN = "en";
 export const PT_BR = "pt-BR";
 export const DE = "de";
 export const ES = "es";
+export const IT = "it";
 export const NL = "nl";
-export const CAL_PROVIDER_LANGUAUES = [FR, EN, PT_BR, DE, ES, NL] as const;
-export type CalProviderLanguagesType = (typeof CAL_PROVIDER_LANGUAUES)[number];
+
+const CAL_PROVIDER_LANGUAGES = [FR, EN, PT_BR, DE, ES, IT, NL] as const;
+export type CalProviderLanguagesType = (typeof CAL_PROVIDER_LANGUAGES)[number];
 
 type i18nFrProps = {
   labels?: Partial<Record<frTranslationKeys, string>>;
@@ -53,9 +58,21 @@ type i18nEsProps = {
   language?: "es";
 };
 
+type i18nItProps = {
+  labels?: Partial<Record<itTranslationKeys, string>>;
+  language?: "it";
+};
+
 type i18nNlProps = {
   labels?: Partial<Record<nlTranslationKeys, string>>;
   language?: "nl";
 };
 
-export type i18nProps = i18nFrProps | i18nEnProps | i18nPtBrProps | i18nDeProps | i18nEsProps | i18nNlProps;
+export type i18nProps =
+  | i18nFrProps
+  | i18nEnProps
+  | i18nPtBrProps
+  | i18nDeProps
+  | i18nEsProps
+  | i18nItProps
+  | i18nNlProps;
