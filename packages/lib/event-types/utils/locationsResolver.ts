@@ -4,7 +4,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { z } from "zod";
 
-import { getEventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeSync } from "@calcom/app-store/locations";
 
 export const locationsResolver = (t: TFunction) => {
   return z
@@ -30,7 +30,7 @@ export const locationsResolver = (t: TFunction) => {
         .superRefine((val, ctx) => {
           if (val?.link) {
             const link = val.link;
-            const eventLocationType = getEventLocationType(val.type);
+            const eventLocationType = getEventLocationTypeSync(val.type);
             if (
               eventLocationType &&
               !eventLocationType.default &&

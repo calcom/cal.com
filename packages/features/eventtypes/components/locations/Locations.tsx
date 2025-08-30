@@ -6,7 +6,7 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeSync, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type {
   LocationFormValues,
@@ -135,7 +135,7 @@ const Locations: React.FC<LocationsProps> = ({
 
   const validLocations =
     getValues("locations")?.filter((location) => {
-      const eventLocation = getEventLocationType(location.type);
+      const eventLocation = getEventLocationTypeSync(location.type);
       if (!eventLocation) {
         // It's possible that the location app in use got uninstalled.
         return false;
@@ -181,7 +181,7 @@ const Locations: React.FC<LocationsProps> = ({
     <div className={classNames("w-full", customClassNames?.container)}>
       <ul ref={animationRef} className={classNames("space-y-2")}>
         {locationFields.map((field, index) => {
-          const eventLocationType = getEventLocationType(field.type);
+          const eventLocationType = getEventLocationTypeSync(field.type);
           const defaultLocation = field;
 
           const isCalVideo = field.type === "integrations:daily";
@@ -207,7 +207,7 @@ const Locations: React.FC<LocationsProps> = ({
                     setShowEmptyLocationSelect(false);
                     if (e?.value) {
                       const newLocationType = e.value;
-                      const eventLocationType = getEventLocationType(newLocationType);
+                      const eventLocationType = getEventLocationTypeSync(newLocationType);
                       if (!eventLocationType) {
                         return;
                       }
@@ -352,7 +352,7 @@ const Locations: React.FC<LocationsProps> = ({
                 setShowEmptyLocationSelect(false);
                 if (e?.value) {
                   const newLocationType = e.value;
-                  const eventLocationType = getEventLocationType(newLocationType);
+                  const eventLocationType = getEventLocationTypeSync(newLocationType);
                   if (!eventLocationType) {
                     return;
                   }

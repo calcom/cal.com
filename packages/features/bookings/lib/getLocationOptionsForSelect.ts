@@ -1,7 +1,7 @@
 import type { LocationObject } from "@calcom/app-store/locations";
 import { locationKeyToString } from "@calcom/app-store/locations";
-import { getEventLocationType } from "@calcom/app-store/locations";
-import { getTranslatedLocation } from "@calcom/app-store/locations";
+import { getEventLocationTypeSync } from "@calcom/app-store/locations";
+import { getTranslatedLocationSync } from "@calcom/app-store/locations";
 import type { useLocale } from "@calcom/lib/hooks/useLocale";
 import notEmpty from "@calcom/lib/notEmpty";
 
@@ -11,7 +11,7 @@ export default function getLocationsOptionsForSelect(
 ) {
   return locations
     .map((location) => {
-      const eventLocation = getEventLocationType(location.type);
+      const eventLocation = getEventLocationTypeSync(location.type);
       const locationString = locationKeyToString(location);
 
       if (typeof locationString !== "string" || !eventLocation) {
@@ -19,7 +19,8 @@ export default function getLocationsOptionsForSelect(
         return null;
       }
       const type = eventLocation.type;
-      const translatedLocation = location.customLabel || getTranslatedLocation(location, eventLocation, t);
+      const translatedLocation =
+        location.customLabel || getTranslatedLocationSync(location, eventLocation, t);
 
       return {
         // XYZ: is considered a namespace in i18next https://www.i18next.com/principles/namespaces and thus it gets cleaned up.

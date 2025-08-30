@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeSync } from "@calcom/app-store/locations";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -37,7 +37,7 @@ export function AppSetDefaultLinkDialog({
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
 }) {
   const { t } = useLocale();
-  const eventLocationTypeOptions = getEventLocationType(locationType.type);
+  const eventLocationTypeOptions = getEventLocationTypeSync(locationType.type);
 
   const form = useForm<LocationTypeSetLinkDialogFormProps>({
     resolver: zodResolver(

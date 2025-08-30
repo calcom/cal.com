@@ -4,10 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import {
-  DEFAULT_PROMPT_VALUE,
-  DEFAULT_BEGIN_MESSAGE,
-} from "@calcom/features/calAIPhone/promptTemplates";
+import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
@@ -145,7 +142,6 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
-      showOptimizedSlots: eventType.showOptimizedSlots ?? false,
     };
   }, [eventType, periodDates]);
 

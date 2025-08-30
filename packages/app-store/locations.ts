@@ -514,6 +514,22 @@ export const getTranslatedLocation = async (
   return translatedLocation;
 };
 
+export const getTranslatedLocationSync = (
+  location: PrivacyFilteredLocationObject,
+  eventLocationType: ReturnType<typeof getEventLocationTypeSync>,
+  t: TFunction
+) => {
+  if (!eventLocationType) return null;
+  const locationKey = z.string().default("").parse(locationKeyToString(location));
+  const translatedLocation = location.type.startsWith("integrations:")
+    ? eventLocationType.label
+    : translateAbleKeys.includes(locationKey)
+    ? t(locationKey)
+    : locationKey;
+
+  return translatedLocation;
+};
+
 export const getOrganizerInputLocationTypes = async () => {
   const result: DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"][] = [];
 
