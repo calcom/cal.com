@@ -6,6 +6,8 @@ import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+type PanelCardProps = React.ComponentProps<typeof PanelCard>;
+
 type LegendItem = {
   label: string;
   color: string; // hex format
@@ -14,35 +16,18 @@ type LegendItem = {
 export type LegendSize = "sm" | "default";
 
 export function ChartCard({
-  title,
-  subtitle,
-  cta,
   legend,
   legendSize,
-  children,
-  className,
-  titleTooltip,
-}: {
-  title: string | ReactNode;
-  subtitle?: string;
-  cta?: { label: string; onClick: () => void };
+  ...panelCardProps
+}: PanelCardProps & {
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
-  className?: string;
-  titleTooltip?: string;
-  children: ReactNode;
 }) {
   const legendComponent = legend && legend.length > 0 ? <Legend items={legend} size={legendSize} /> : null;
 
   return (
-    <PanelCard
-      title={title}
-      subtitle={subtitle}
-      cta={cta}
-      headerContent={legendComponent}
-      className={className}
-      titleTooltip={titleTooltip}>
-      {children}
+    <PanelCard {...panelCardProps} headerContent={legendComponent}>
+      {panelCardProps.children}
     </PanelCard>
   );
 }
