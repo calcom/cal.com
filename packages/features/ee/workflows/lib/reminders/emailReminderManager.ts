@@ -181,16 +181,19 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         : evt.organizer.language.locale;
 
     const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
-    emailContent.emailSubject = emailSubjectTemplate.text;
-    emailContent.emailBody = customTemplate(
+    const emailSubjectResult = await emailSubjectTemplate;
+    emailContent.emailSubject = emailSubjectResult.text;
+    const emailBodyTemplate = customTemplate(
       emailBody,
       variables,
       locale,
       evt.organizer.timeFormat,
       hideBranding
-    ).html;
+    );
+    const emailBodyResult = await emailBodyTemplate;
+    emailContent.emailBody = emailBodyResult.html;
   } else if (template === WorkflowTemplates.REMINDER) {
-    emailContent = emailReminderTemplate({
+    emailContent = await emailReminderTemplate({
       isEditingMode: false,
       locale: evt.organizer.language.locale,
       t: await getTranslation(evt.organizer.language.locale || "en", "common"),

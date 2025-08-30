@@ -161,7 +161,7 @@ export const roundRobinManualReassignment = async ({
     const isManagedEventType = !!eventType.parentId;
     const isTeamEventType = !!eventType.teamId;
 
-    const locationResult = BookingLocationService.getLocationForHost({
+    const locationResult = await BookingLocationService.getLocationForHost({
       hostMetadata: newUser.metadata,
       eventTypeLocations: eventType.locations,
       isManagedEventType,
@@ -189,7 +189,7 @@ export const roundRobinManualReassignment = async ({
       where: { id: bookingId },
       data: {
         userId: newUserId,
-        title: newBookingTitle,
+        title: await newBookingTitle,
         userPrimaryEmail: newUser.email,
         reassignReason,
         reassignById: reassignedById,

@@ -242,7 +242,8 @@ export const roundRobinReassignment = async ({
       t: organizerT,
     };
 
-    newBookingTitle = getEventName(eventNameObject);
+    const eventNameResult = await getEventName(eventNameObject);
+    newBookingTitle = eventNameResult || "";
 
     booking = await prisma.booking.update({
       where: {

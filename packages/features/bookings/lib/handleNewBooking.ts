@@ -1195,12 +1195,12 @@ async function handler(
       optionValue: "",
     };
 
-  const eventName = getEventName(eventNameObject);
+  const eventName = await getEventName(eventNameObject);
 
   const builtEvt = new CalendarEventBuilder()
     .withBasicDetails({
       bookerUrl,
-      title: eventName,
+      title: eventName || "",
       startTime: dayjs(reqBody.start).utc().format(),
       endTime: dayjs(reqBody.end).utc().format(),
       additionalNotes,
@@ -1610,7 +1610,7 @@ async function handler(
       const { booking: dryRunBooking, troubleshooterData: _troubleshooterData } = buildDryRunBooking({
         eventTypeId,
         organizerUser,
-        eventName,
+        eventName: eventName || "",
         startTime: reqBody.start,
         endTime: reqBody.end,
         contactOwnerFromReq,

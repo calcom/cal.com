@@ -90,7 +90,8 @@ export const getSMSMessageWithVariables = async (
       : evt.organizer.language.locale;
 
   const customMessage = customTemplate(smsMessage, variables, locale, evt.organizer.timeFormat);
-  smsMessage = customMessage.text;
+  const customMessageResult = await customMessage;
+  smsMessage = customMessageResult.text;
 
   return smsMessage;
 };

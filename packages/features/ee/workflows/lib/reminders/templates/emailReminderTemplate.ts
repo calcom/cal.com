@@ -6,7 +6,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
-const emailReminderTemplate = ({
+const emailReminderTemplate = async ({
   isEditingMode,
   locale,
   t,
@@ -41,7 +41,8 @@ const emailReminderTemplate = ({
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
 
   let eventDate = "";
-  let locationString = `${guessEventLocationType(location)?.label || location} ${meetingUrl}`;
+  const locationType = await guessEventLocationType(location);
+  let locationString = `${locationType?.label || location} ${meetingUrl}`;
 
   if (isEditingMode) {
     endTime = "{EVENT_END_TIME}";
