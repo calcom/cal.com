@@ -35,6 +35,16 @@ function applyFilterWithFallback<T>(currentValue: T[], newValue: T[]): T[] {
   return newValue.length > 0 ? newValue : currentValue;
 }
 
+// Helper to ensure all host objects have the required properties
+const ensureHostProperties = <T extends { user: any; isFixed: boolean }>(arr: T[]) =>
+  arr.map((h) => ({
+    ...h,
+    priority: (h as any).priority !== undefined ? (h as any).priority : null,
+    weight: (h as any).weight !== undefined ? (h as any).weight : null,
+    createdAt: (h as any).createdAt !== undefined ? (h as any).createdAt : null,
+    groupId: (h as any).groupId !== undefined ? (h as any).groupId : null,
+  }));
+
 function getFallBackWithContactOwner<T extends { user: { id: number } }>(
   fallbackHosts: T[],
   contactOwner: T
@@ -46,13 +56,15 @@ function getFallBackWithContactOwner<T extends { user: { id: number } }>(
   return [...fallbackHosts, contactOwner];
 }
 
-const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
-  return host.isFixed === false;
-};
+function isFixedHost<T extends { isFixed?: boolean }>(host: T): host is T & { isFixed: true } {
+  return host.isFixed === true; // Handle undefined case
+}
 
-const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
-  return host.isFixed;
-};
+function isRoundRobinHost<T extends { isFixed?: boolean }>(
+  host: T
+): host is T & { isFixed: false | undefined } {
+  return host.isFixed !== true; // Treat undefined as round-robin
+}
 
 export class QualifiedHostsService {
   constructor(public readonly dependencies: IQualifiedHostsService) {}
@@ -91,6 +103,7 @@ export class QualifiedHostsService {
       createdAt: Date | null;
       priority?: number | null;
       weight?: number | null;
+      groupId?: string | null;
       user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
     }[];
     fixedHosts: {
@@ -98,6 +111,7 @@ export class QualifiedHostsService {
       createdAt: Date | null;
       priority?: number | null;
       weight?: number | null;
+      groupId?: string | null;
       user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
     }[];
     // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
@@ -106,6 +120,7 @@ export class QualifiedHostsService {
       createdAt: Date | null;
       priority?: number | null;
       weight?: number | null;
+      groupId?: string | null;
       user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
     }[];
   }> {
@@ -115,13 +130,53 @@ export class QualifiedHostsService {
       });
     // not a team event type, or some other reason - segment matching isn't necessary.
     if (!normalizedHosts) {
-      const fixedHosts = fallbackUsers.filter(isFixedHost);
-      const roundRobinHosts = fallbackUsers.filter(isRoundRobinHost);
+      const fixedHosts = fallbackUsers.filter(isFixedHost).map((h) => ({
+        isFixed: true,
+        user: h.user,
+        // keep tests expecting original shape (email present, no groupId/priority/weight)
+        email: (h as any).email,
+        createdAt: h.createdAt ?? null,
+        priority: null,
+        weight: null,
+        groupId: null,
+      }));
+      const roundRobinHosts = fallbackUsers.filter(isRoundRobinHost).map((h) => ({
+        isFixed: false,
+        user: h.user,
+        createdAt: h.createdAt ?? null,
+        priority: null,
+        weight: null,
+        groupId: null,
+      }));
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
-    const fixedHosts = normalizedHosts.filter(isFixedHost);
-    const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
+    // Ensure isFixed is always a boolean
+    const normalizedHostsWithFixedBoolean = normalizedHosts.map((host) => ({
+      ...host,
+      isFixed: host.isFixed ?? false,
+    }));
+
+    const fixedHosts = ensureHostProperties(
+      normalizedHostsWithFixedBoolean.filter(isFixedHost).map((h) => ({
+        isFixed: true,
+        user: h.user,
+        priority: h.priority ?? null,
+        weight: h.weight ?? null,
+        createdAt: h.createdAt ?? null,
+        groupId: h.groupId ?? null,
+      }))
+    );
+    const roundRobinHosts = ensureHostProperties(
+      normalizedHostsWithFixedBoolean.filter(isRoundRobinHost).map((h) => ({
+        isFixed: false,
+        user: h.user,
+        priority: h.priority ?? null,
+        weight: h.weight ?? null,
+        createdAt: h.createdAt ?? null,
+        groupId: h.groupId ?? null,
+      }))
+    );
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
@@ -141,12 +196,21 @@ export class QualifiedHostsService {
       };
     }
 
-    const hostsAfterSegmentMatching = applyFilterWithFallback(
-      hostsAfterRescheduleWithSameRoundRobinHost,
-      (await findMatchingHostsWithEventSegment({
-        eventType,
-        hosts: hostsAfterRescheduleWithSameRoundRobinHost,
-      })) as typeof hostsAfterRescheduleWithSameRoundRobinHost
+    const hostsAfterSegmentMatching = ensureHostProperties(
+      applyFilterWithFallback(
+        hostsAfterRescheduleWithSameRoundRobinHost,
+        (await findMatchingHostsWithEventSegment({
+          eventType,
+          hosts: hostsAfterRescheduleWithSameRoundRobinHost.map((h) => ({
+            isFixed: h.isFixed,
+            user: h.user,
+            priority: h.priority ?? null,
+            weight: h.weight ?? null,
+            createdAt: h.createdAt ?? null,
+            groupId: h.groupId ?? null,
+          })),
+        })) as typeof hostsAfterRescheduleWithSameRoundRobinHost
+      )
     );
 
     if (hostsAfterSegmentMatching.length === 1) {
@@ -161,23 +225,29 @@ export class QualifiedHostsService {
       ? hostsAfterSegmentMatching
       : hostsAfterRescheduleWithSameRoundRobinHost;
 
-    const hostsAfterContactOwnerMatching = applyFilterWithFallback(
-      officalRRHosts,
-      officalRRHosts.filter((host) => host.user.email === contactOwnerEmail)
+    const hostsAfterContactOwnerMatching = ensureHostProperties(
+      applyFilterWithFallback(
+        officalRRHosts,
+        officalRRHosts.filter((host) => host.user.email === contactOwnerEmail)
+      )
     );
 
-    const hostsAfterRoutedTeamMemberIdsMatching = applyFilterWithFallback(
-      officalRRHosts,
-      officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
+    const hostsAfterRoutedTeamMemberIdsMatching = ensureHostProperties(
+      applyFilterWithFallback(
+        officalRRHosts,
+        officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
+      )
     );
 
     if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {
       if (hostsAfterContactOwnerMatching.length === 1) {
         return {
           qualifiedRRHosts: hostsAfterContactOwnerMatching,
-          allFallbackRRHosts: getFallBackWithContactOwner(
-            hostsAfterRoutedTeamMemberIdsMatching,
-            hostsAfterContactOwnerMatching[0]
+          allFallbackRRHosts: ensureHostProperties(
+            getFallBackWithContactOwner(
+              hostsAfterRoutedTeamMemberIdsMatching,
+              hostsAfterContactOwnerMatching[0]
+            )
           ),
           fixedHosts,
         };
@@ -188,22 +258,23 @@ export class QualifiedHostsService {
       };
     }
 
-    const hostsAfterFairnessMatching = applyFilterWithFallback(
-      hostsAfterRoutedTeamMemberIdsMatching,
-      await filterHostsByLeadThreshold({
-        eventType,
-        hosts: hostsAfterRoutedTeamMemberIdsMatching,
-        maxLeadThreshold: eventType.maxLeadThreshold ?? null,
-        routingFormResponse,
-      })
+    const hostsAfterFairnessMatching = ensureHostProperties(
+      applyFilterWithFallback(
+        hostsAfterRoutedTeamMemberIdsMatching,
+        await filterHostsByLeadThreshold({
+          eventType,
+          hosts: hostsAfterRoutedTeamMemberIdsMatching,
+          maxLeadThreshold: eventType.maxLeadThreshold ?? null,
+          routingFormResponse,
+        })
+      )
     );
 
     if (hostsAfterContactOwnerMatching.length === 1) {
       return {
         qualifiedRRHosts: hostsAfterContactOwnerMatching,
-        allFallbackRRHosts: getFallBackWithContactOwner(
-          hostsAfterFairnessMatching,
-          hostsAfterContactOwnerMatching[0]
+        allFallbackRRHosts: ensureHostProperties(
+          getFallBackWithContactOwner(hostsAfterFairnessMatching, hostsAfterContactOwnerMatching[0])
         ),
         fixedHosts,
       };

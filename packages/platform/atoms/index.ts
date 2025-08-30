@@ -41,3 +41,8 @@ export { useCreateTeamEventType } from "./hooks/event-types/private/useCreateTea
 
 export { useOrganizationBookings } from "./hooks/organizations/bookings/useOrganizationBookings";
 export { useOrganizationUserBookings } from "./hooks/organizations/bookings/useOrganizationUserBookings";
+
+export { SettingsToggle } from "./add-members-switch/SettingsToggle";
+export { AssignAllTeamMembers } from "./add-members-switch";
+export { AddMembersWithSwitchPlatformWrapper } from "./add-members-switch/AddMembersWithSwitchPlatformWrapper";
+export { AddMembersWithSwitchWebWrapper } from "./add-members-switch/AddMembersWithSwitchWebWrapper";

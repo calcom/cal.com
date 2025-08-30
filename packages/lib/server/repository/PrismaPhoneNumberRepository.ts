@@ -174,7 +174,7 @@ export class PrismaPhoneNumberRepository {
         providerPhoneNumberId: true,
       },
       data: {
-        provider,
+        provider: provider ?? "default",
         userId,
         teamId,
         phoneNumber,
@@ -515,6 +515,7 @@ export class PrismaPhoneNumberRepository {
       data: updateData,
     });
   }
+
 
   static async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
     return await prisma.calAiPhoneNumber.findFirst({

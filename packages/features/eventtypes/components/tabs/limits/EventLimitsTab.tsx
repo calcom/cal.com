@@ -243,7 +243,7 @@ function RollingLimitRadioItem({
               "!mt-0 ml-2 w-28 shrink sm:w-36",
               customClassNames?.periodTypeSelect?.select
             )}
-            innerClassNames={customClassNames?.periodTypeSelect?.innerClassNames}
+            classNames={customClassNames?.periodTypeSelect?.innerClassNames as any}
           />
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
@@ -354,7 +354,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           "mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
           customClassNames?.select
         )}
-        innerClassNames={customClassNames?.innerClassNames}
+        classNames={customClassNames?.innerClassNames as any}
         defaultValue={durationTypeOptions.find(
           (option) => option.value === minimumBookingNoticeDisplayValues.type
         )}
@@ -448,8 +448,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                     className={classNames(
                       customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.select
                     )}
-                    innerClassNames={
-                      customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.innerClassNames
+                    classNames={
+                      customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.innerClassNames as any
                     }
                   />
                 );
@@ -494,8 +494,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                     className={classNames(
                       customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.select
                     )}
-                    innerClassNames={
-                      customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.innerClassNames
+                    classNames={
+                      customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.innerClassNames as any
                     }
                   />
                 );
@@ -561,8 +561,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                     }
                     options={slotIntervalOptions}
                     className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
-                    innerClassNames={
-                      customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
+                    classNames={
+                      customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames as any
                     }
                   />
                 );
@@ -882,7 +882,7 @@ const IntervalLimitItem = ({
         defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === limitKey)}
         onChange={onIntervalSelect}
         className={classNames("w-36", customClassNames?.limitSelect?.select)}
-        innerClassNames={customClassNames?.limitSelect?.innerClassNames}
+        classNames={customClassNames?.limitSelect?.innerClassNames as any}
       />
       {hasDeleteButton && !disabled && (
         <Button

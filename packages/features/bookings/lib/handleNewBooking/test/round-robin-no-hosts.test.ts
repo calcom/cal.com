@@ -8,6 +8,7 @@ import {
   Timezones,
   getDate,
   getGoogleCalendarCredential,
+  mockSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -137,7 +138,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   );
 
   test(
-    "should throw RoundRobinHostsUnavailableForBooking when Round Robin event has fixed hosts but no round robin host is available",
+    "should succeed with fixed host when Round Robin event has fixed hosts available but no round robin host available",
     async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
@@ -187,6 +188,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
         ],
         organizer: fixedHost,
         usersApartFromOrganizer: [roundRobinHost],
+        apps: [TestData.apps["daily-video"]],
         bookings: [
           {
             userId: 102, // Make round robin host busy with an existing booking
@@ -214,6 +216,15 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
         busySlots: [],
       });
 
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_DAILY_VIDEO_ID",
+          password: "MOCK_DAILY_VIDEO_PASSWORD",
+          url: "https://mock-daily-video-url.com",
+        },
+      });
+
       const mockBookingData = getMockRequestDataForBooking({
         data: {
           eventTypeId: 1,
@@ -227,11 +238,13 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
         },
       });
 
-      await expect(
-        handleNewBooking({
-          bookingData: mockBookingData,
-        })
-      ).rejects.toThrow(ErrorCode.RoundRobinHostsUnavailableForBooking);
+      const result = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      // Since there's a fixed host available, the booking should succeed
+      expect(result).toBeDefined();
+      expect(result.userId).toBe(101); // Should be assigned to the fixed host
     },
     timeout
   );

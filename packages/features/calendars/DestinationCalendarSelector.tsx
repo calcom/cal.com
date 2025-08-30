@@ -165,7 +165,7 @@ const DestinationCalendarSelector = ({
           "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm",
           customClassNames?.select
         )}
-        innerClassNames={customClassNames?.innerClassNames}
+        classNames={customClassNames?.innerClassNames as any}
         onChange={(newValue) => {
           setSelectedOption(newValue);
           if (!newValue) {

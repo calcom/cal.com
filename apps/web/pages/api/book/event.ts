@@ -4,10 +4,10 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);

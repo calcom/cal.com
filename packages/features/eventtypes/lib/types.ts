@@ -13,6 +13,14 @@ import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
+// Import and re-export CheckedSelectOption
+import type { CheckedSelectOption } from "../components/CheckedTeamSelect";
+
+// Re-export for convenience
+export type { AttributesQueryValue };
+
+export type { CheckedSelectOption };
+
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {
@@ -25,12 +33,15 @@ export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
-  isFixed: boolean;
-  userId: number;
-  priority: number;
-  weight: number;
+  userId?: number;
+  email?: string;
+  isPending?: boolean;
+  profileId?: number;
+  isFixed?: boolean;
+  priority?: number;
+  weight?: number;
   scheduleId?: number | null;
-  groupId: string | null;
+  groupId?: string | null;
 };
 export type TeamMember = {
   value: string;
@@ -213,16 +224,11 @@ export type CheckboxClassNames = {
   container?: string;
 };
 export type SelectClassNames = {
-  innerClassNames?: {
-    input?: string;
-    option?: string;
-    control?: string;
-    singleValue?: string;
-    valueContainer?: string;
-    multiValue?: string;
-    menu?: string;
-    menuList?: string;
-  };
+  innerClassNames?: import("react-select").ClassNamesConfig<
+    CheckedSelectOption,
+    true,
+    import("react-select").GroupBase<CheckedSelectOption>
+  >;
   select?: string;
   label?: string;
   container?: string;

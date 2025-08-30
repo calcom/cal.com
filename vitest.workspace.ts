@@ -179,6 +179,15 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
+          name: "@calcom/features/eventtypes",
+          include: ["packages/features/eventtypes/**/*.{test,spec}.[jt]sx"],
+          environment: "jsdom",
+          setupFiles: ["packages/ui/components/test-setup.tsx"],
+        },
+      },
+      {
+        test: {
+          globals: true,
           name: "@calcom/web/components",
           include: ["apps/web/components/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",

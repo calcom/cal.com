@@ -11,7 +11,7 @@ export class FilterHostsService {
 
   async filterHostsBySameRoundRobinHost<
     T extends {
-      isFixed: false; // ensure no fixed hosts are passed.
+      isFixed: boolean; // accept boolean; callers should pass RR hosts
       user: { id: number; email: string };
     }
   >({

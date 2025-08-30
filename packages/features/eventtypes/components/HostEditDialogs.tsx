@@ -32,6 +32,8 @@ interface IDialog {
 }
 
 export type PriorityDialogCustomClassNames = SelectClassNames & {
+  container?: string;
+  label?: string;
   confirmButton?: string;
 };
 
@@ -64,38 +66,43 @@ export const PriorityDialog = (
 
       let sortedHostGroup: CheckedSelectOption[] = [];
 
-      const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
+      const hostGroupToSort = groupedHosts[(option.groupId ?? DEFAULT_GROUP_ID) as string];
 
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
           .map((host) => {
             return {
               ...option,
-              value: host.userId.toString(),
-              priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
+              value: (host.userId as number).toString(),
+              priority:
+                host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority ?? undefined,
               isFixed: false,
-              weight: host.weight,
-              groupId: host.groupId,
-              userId: host.userId,
-            };
+              weight: host.weight ?? undefined,
+              groupId: host.groupId ?? undefined,
+            } as CheckedSelectOption;
           })
-          .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+          .sort((a, b) =>
+            sortHosts(
+              { priority: a.priority ?? null, weight: a.weight ?? null },
+              { priority: b.priority ?? null, weight: b.weight ?? null },
+              isRRWeightsEnabled
+            )
+          );
       }
 
-      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, (option.groupId ?? null) as string | null);
 
-      const otherGroupsOptions = otherGroupsHosts.map((host) => {
+      const otherGroupsOptions: CheckedSelectOption[] = otherGroupsHosts.map((host) => {
         return {
           ...option,
-          value: host.userId.toString(),
-          priority: host.priority,
-          weight: host.weight,
+          value: (host.userId as number).toString(),
+          priority: host.priority ?? undefined,
+          weight: host.weight ?? undefined,
           isFixed: host.isFixed,
-          groupId: host.groupId,
-          userId: host.userId,
-        };
+          groupId: host.groupId ?? undefined,
+        } as CheckedSelectOption;
       });
-      const updatedHosts = [...otherGroupsOptions, ...sortedHostGroup];
+      const updatedHosts: CheckedSelectOption[] = [...otherGroupsOptions, ...sortedHostGroup];
       onChange(updatedHosts);
     }
     setIsOpenDialog(false);
@@ -110,7 +117,7 @@ export const PriorityDialog = (
           <Select
             defaultValue={priorityOptions[option.priority ?? 2]}
             className={customClassNames?.select}
-            innerClassNames={customClassNames?.innerClassNames}
+            classNames={customClassNames?.innerClassNames as any}
             value={newPriority}
             onChange={(value) => setNewPriority(value ?? priorityOptions[2])}
             options={priorityOptions}
@@ -129,8 +136,8 @@ export const PriorityDialog = (
 };
 
 export function sortHosts(
-  hostA: { priority: number | null; weight: number | null },
-  hostB: { priority: number | null; weight: number | null },
+  hostA: { priority: number | null | undefined; weight: number | null | undefined },
+  hostB: { priority: number | null | undefined; weight: number | null | undefined },
   isRRWeightsEnabled: boolean
 ) {
   const weightA = hostA.weight ?? 100;
@@ -183,48 +190,54 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
         label: string;
       })[] = [];
 
-      const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
+      const hostGroupToSort = groupedHosts[(option.groupId ?? DEFAULT_GROUP_ID) as string];
 
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
           .map((host) => {
-            const userOption = options.find((opt) => opt.value === host.userId.toString());
+            const userOption = options.find((opt) => opt.value === (host.userId as number).toString());
             const updatedHost = updateHostWeight(host);
             return {
               ...updatedHost,
               avatar: userOption?.avatar ?? "",
-              label: userOption?.label ?? host.userId.toString(),
+              label: userOption?.label ?? (host.userId as number).toString(),
             };
           })
-          .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+          .sort((a, b) =>
+            sortHosts(
+              { priority: a.priority ?? null, weight: a.weight ?? null },
+              { priority: b.priority ?? null, weight: b.weight ?? null },
+              isRRWeightsEnabled
+            )
+          );
       }
 
-      const updatedOptions = sortedHostGroup.map((host) => ({
+      const updatedOptions: CheckedSelectOption[] = sortedHostGroup.map((host) => ({
         avatar: host.avatar,
         label: host.label,
-        value: host.userId.toString(),
-        priority: host.priority,
-        weight: host.weight,
+        value: (host.userId as number).toString(),
+        priority: host.priority ?? undefined,
+        weight: host.weight ?? undefined,
         isFixed: host.isFixed,
-        groupId: host.groupId,
+        groupId: host.groupId ?? undefined,
       }));
 
       // Preserve hosts from other groups
-      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, (option.groupId ?? null) as string | null);
 
-      const otherGroupsOptions = otherGroupsHosts.map((host) => {
-        const userOption = options.find((opt) => opt.value === host.userId.toString());
+      const otherGroupsOptions: CheckedSelectOption[] = otherGroupsHosts.map((host) => {
+        const userOption = options.find((opt) => opt.value === (host.userId as number).toString());
         return {
           avatar: userOption?.avatar ?? "",
-          label: userOption?.label ?? host.userId.toString(),
-          value: host.userId.toString(),
-          priority: host.priority,
-          weight: host.weight,
+          label: userOption?.label ?? (host.userId as number).toString(),
+          value: (host.userId as number).toString(),
+          priority: host.priority ?? undefined,
+          weight: host.weight ?? undefined,
           isFixed: host.isFixed,
-          groupId: host.groupId,
+          groupId: host.groupId ?? undefined,
         };
       });
-      const newFullValue = [...otherGroupsOptions, ...updatedOptions];
+      const newFullValue: CheckedSelectOption[] = [...otherGroupsOptions, ...updatedOptions];
       onChange(newFullValue);
     }
     setIsOpenDialog(false);

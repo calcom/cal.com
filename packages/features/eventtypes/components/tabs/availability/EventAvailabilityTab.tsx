@@ -582,7 +582,7 @@ const EventTypeSchedule = ({
                 value={optionValue}
                 components={{ Option, SingleValue }}
                 isMulti={false}
-                innerClassNames={customClassNames?.availabilitySelect?.innerClassNames}
+                classNames={customClassNames?.availabilitySelect?.innerClassNames as any}
               />
             );
           }}
@@ -636,7 +636,7 @@ const TeamMemberSchedule = ({
   const { getValues } = formMethods;
 
   const { data, isPending } = hostScheduleQuery({
-    userId: host.userId,
+    userId: host.userId as number,
   });
 
   const schedules = data?.schedules;
@@ -685,7 +685,7 @@ const TeamMemberSchedule = ({
                     "block w-full min-w-0 flex-1 rounded-sm text-sm",
                     customClassNames?.select
                   )}
-                  innerClassNames={customClassNames?.innerClassNames}
+                  classNames={customClassNames?.innerClassNames as any}
                   value={value as AvailabilityOption}
                   components={{ Option, SingleValue }}
                   isMulti={false}

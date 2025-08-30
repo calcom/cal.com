@@ -91,6 +91,7 @@ describe("AddMembersWithSwitch", () => {
     onActive: vi.fn(),
     isFixed: false,
     teamId: 1,
+    groupId: null,
   };
 
   it("should render in TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE state", () => {
@@ -115,6 +116,9 @@ describe("AddMembersWithSwitch", () => {
         automaticAddAllEnabled: true,
       },
     });
+
+    // Debug: log the HTML to see what's being rendered
+    console.log("HTML:", document.body.innerHTML);
 
     expect(screen.getByTestId("assign-all-team-members-toggle")).toBeInTheDocument();
     expect(screen.getByTestId("assign-all-team-members-toggle").getAttribute("aria-checked")).toBe("false");

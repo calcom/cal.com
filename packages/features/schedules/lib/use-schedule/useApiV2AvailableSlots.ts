@@ -1,3 +1,4 @@
+import type { UseQueryResult } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
@@ -10,11 +11,16 @@ import type { GetAvailableSlotsResponse } from "@calcom/trpc/server/routers/view
 
 export const QUERY_KEY = "get-available-slots";
 
-export const useApiV2AvailableSlots = ({
+export function useApiV2AvailableSlots({
   enabled,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
-  const availableSlots = useQuery({
+}: GetAvailableSlotsInput_2024_04_15 & {
+  enabled: boolean;
+  isTeamEvent?: boolean;
+  teamId?: number;
+  embedConnectVersion?: string;
+}): UseQueryResult<GetAvailableSlotsResponse, Error> {
+  return useQuery<GetAvailableSlotsResponse, Error>({
     queryKey: [
       QUERY_KEY,
       rest.startTime,
@@ -26,23 +32,19 @@ export const useApiV2AvailableSlots = ({
       rest.usernameList,
       rest.routedTeamMemberIds,
       rest.skipContactOwner,
-      rest._shouldServeCache,
+      rest.shouldServeCache,
       rest.teamMemberEmail,
       rest.embedConnectVersion ?? false,
     ],
-    queryFn: () => {
-      return axios
-        .get<ApiResponse<GetAvailableSlotsResponse>>("/api/v2/slots/available", {
-          params: rest,
-        })
-        .then((res) => {
-          if (res.data.status === "success") {
-            return (res.data as ApiSuccessResponse<GetAvailableSlotsResponse>).data;
-          }
-          throw new Error(res.data.error.message);
-        });
+    queryFn: async (): Promise<GetAvailableSlotsResponse> => {
+      const res = await axios.get<ApiResponse<GetAvailableSlotsResponse>>("/api/v2/slots/available", {
+        params: rest,
+      });
+      if (res.data.status === "success") {
+        return (res.data as ApiSuccessResponse<GetAvailableSlotsResponse>).data;
+      }
+      throw new Error(res.data.error.message);
     },
-    enabled: enabled,
+    enabled,
   });
-  return availableSlots;
-};
+}
