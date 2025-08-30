@@ -19,6 +19,12 @@ export type LocationOption = {
   disabled?: boolean;
 };
 
+export type CredentialDataWithTeamName = CredentialForCalendarService & {
+  team?: {
+    name: string;
+  } | null;
+};
+
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
 
@@ -32,12 +38,6 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   delete store[key]["__createdUsingCli"];
   return store;
 }, {} as Record<string, AppMeta>);
-
-export type CredentialDataWithTeamName = CredentialForCalendarService & {
-  team?: {
-    name: string;
-  } | null;
-};
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
@@ -115,11 +115,22 @@ export function hasIntegrationInstalled(type: App["type"]): boolean {
   return ALL_APPS.some((app) => app.type === type && !!app.installed);
 }
 
-export function getAppName(name: string): string | null {
+export {
+  getAppFromSlugSync as getAppFromSlug,
+  getAppNameSync as getAppName,
+  getAppTypeSync as getAppType,
+  getAppFromLocationValueSync as getAppFromLocationValue,
+  getAppFromSlug as getAppFromSlugAsync,
+  getAppName as getAppNameAsync,
+  getAppType as getAppTypeAsync,
+  getAppFromLocationValue as getAppFromLocationValueAsync,
+} from "./app.metadata.utils.generated";
+
+export function getAppNameLegacy(name: string): string | null {
   return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name ?? null;
 }
 
-export function getAppType(name: string): string {
+export function getAppTypeLegacy(name: string): string {
   const type = ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP].type;
 
   if (type.endsWith("_calendar")) {
@@ -131,11 +142,11 @@ export function getAppType(name: string): string {
   return "Unknown";
 }
 
-export function getAppFromSlug(slug: string | undefined): AppMeta | undefined {
+export function getAppFromSlugLegacy(slug: string | undefined): AppMeta | undefined {
   return ALL_APPS.find((app) => app.slug === slug);
 }
 
-export function getAppFromLocationValue(type: string): AppMeta | undefined {
+export function getAppFromLocationValueLegacy(type: string): AppMeta | undefined {
   return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }
 
