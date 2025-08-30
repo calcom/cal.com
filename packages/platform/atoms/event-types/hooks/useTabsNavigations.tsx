@@ -24,6 +24,7 @@ type Props = {
   team: EventTypeSetupProps["team"];
   eventTypeApps?: EventTypeApps;
   allActiveWorkflows?: Workflow[];
+  canReadWorkflows?: boolean;
 };
 export const useTabsNavigations = ({
   formMethods,
@@ -31,6 +32,7 @@ export const useTabsNavigations = ({
   team,
   eventTypeApps,
   allActiveWorkflows,
+  canReadWorkflows = false,
 }: Props) => {
   const { t } = useLocale();
 
@@ -79,6 +81,7 @@ export const useTabsNavigations = ({
       installedAppsNumber,
       enabledWorkflowsNumber,
       availability,
+      canReadWorkflows,
     });
 
     if (!requirePayment) {
@@ -166,6 +169,7 @@ export const useTabsNavigations = ({
     watchSchedulingType,
     watchChildrenCount,
     activeWebhooksNumber,
+    canReadWorkflows,
   ]);
 
   return { tabsNavigation: EventTypeTabs };
@@ -180,6 +184,7 @@ type getNavigationProps = {
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
+  canReadWorkflows: boolean;
 };
 
 function getNavigation({
@@ -190,10 +195,11 @@ function getNavigation({
   enabledAppsNumber,
   installedAppsNumber,
   enabledWorkflowsNumber,
+  canReadWorkflows,
 }: getNavigationProps) {
   const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
 
-  return [
+  const baseNavigation: VerticalTabItemProps[] = [
     {
       name: t("basics"),
       href: `/event-types/${id}?tabName=setup`,
@@ -223,12 +229,18 @@ function getNavigation({
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
       "data-testid": "apps",
     },
-    {
+  ];
+
+  // Only add workflows tab if user has permission to read workflows
+  if (canReadWorkflows) {
+    baseNavigation.push({
       name: t("workflows"),
       href: `/event-types/${id}?tabName=workflows`,
       icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,
       "data-testid": "workflows",
-    },
-  ] satisfies VerticalTabItemProps[];
+    });
+  }
+
+  return baseNavigation;
 }

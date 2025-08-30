@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { Resource, PermissionRegistry } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -17,6 +17,7 @@ interface AdvancedPermissionGroupProps {
   selectedPermissions: string[];
   onChange: (permissions: string[]) => void;
   disabled?: boolean;
+  scopedRegistry?: PermissionRegistry;
 }
 
 const INTERNAL_DATAACCESS_KEY = "_resource";
@@ -26,10 +27,11 @@ export function AdvancedPermissionGroup({
   selectedPermissions,
   onChange,
   disabled,
+  scopedRegistry,
 }: AdvancedPermissionGroupProps) {
   const { t } = useLocale();
   const { toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions();
-  const resourceConfig = PERMISSION_REGISTRY[resource];
+  const resourceConfig = scopedRegistry ? scopedRegistry[resource] : PERMISSION_REGISTRY[resource];
   const [isExpanded, setIsExpanded] = useState(false);
 
   const isAllResources = resource === "*";
