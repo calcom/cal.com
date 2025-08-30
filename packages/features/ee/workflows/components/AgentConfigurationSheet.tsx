@@ -934,12 +934,13 @@ export function AgentConfigurationSheet({
                       {t("learn_how_to_get_your_terminator")}
                     </p>
                   </div>
-                  {/*TODO: Create a doc and link to it */}
                   <Button
                     type="button"
                     color="secondary"
                     size="base"
                     EndIcon="external-link"
+                    href="https://cal.com/help/importing/import-numbers"
+                    target="_blank"
                     className="text-emphasis my-auto">
                     {t("learn")}
                   </Button>

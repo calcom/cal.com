@@ -817,7 +817,7 @@
   "delete_phone_number_confirmation": "Are you sure you want to delete this phone number? This action cannot be undone.",
   "yes_delete_phone_number": "Yes, delete phone number",
   "phone_number_info_tooltip": "The number you are trying to import must be in E.164 format (+country code followed by the number, with no spaces or special characters), e.g. +1234567890",
-  "termination_uri_info_tooltip": "The termination uri to uniquely identify your elastic SIP trunk. This is used for outbound calls. For Twilio elastic SIP trunks it always ends with .pstn.twilio.com.",
+  "termination_uri_info_tooltip": "The termination URI to uniquely identify your elastic SIP trunk. This is used for outbound calls. For Twilio elastic SIP trunks it always ends with .pstn.twilio.com.",
   "sip_trunk_username_info_tooltip": "The username used to authenticate the SIP trunk.",
   "sip_trunk_password_info_tooltip": "The password used to authenticate the SIP trunk.",
   "nickname_info_tooltip": "Nickname of the number. This is for your reference only.",
@@ -861,7 +861,7 @@
   "only_us_phone_numbers_can_be_purchased_here": "You can only buy US phone numbers. For other countries, you can import your own Twilio phone number.",
   "buy_number_for_x_per_month": "Buy a US Number for ${{priceInDollars}} per month",
   "supported_call_destinations": "Supported Call Destinations",
-  "no_phone_number_connected":"No phone number connected",
+  "no_phone_number_connected": "No phone number connected",
   "failed_to_get_workflow_step_id": "Failed to get workflow step ID",
   "cal_ai_agent": "Cal.ai Agent",
   "test_cal_ai_agent": "Test Cal.ai Agent",
@@ -3578,5 +3578,8 @@
   "free": "Free",
   "user_email": "User Email",
   "user_name": "User Name",
+  "you_have_one_team": "You have one team",
+  "consider_consolidating_one_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your team.",
+  "consider_consolidating_multi_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your teams.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
