@@ -12,6 +12,7 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getMembershipIdsWhereUserIsAdminOwner } from "@calcom/lib/server/queries/teams";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -92,31 +93,7 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-        ...(user.orgId && {
-          OR: [
-            {
-              teamId: user.orgId,
-            },
-            {
-              team: {
-                parentId: user.orgId,
-              },
-            },
-          ],
-        }),
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((membership) => membership.id);
+  const membershipIdsWhereUserIsAdminOwner = await getMembershipIdsWhereUserIsAdminOwner(user.id, user.orgId);
 
   const membershipConditionWhereUserIsAdminOwner = {
     some: {
@@ -591,6 +568,20 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingReport")
+              .select([
+                "BookingReport.id",
+                "BookingReport.reason",
+                "BookingReport.description",
+                "BookingReport.cancelled",
+                "BookingReport.createdAt",
+                "BookingReport.reportedById",
+              ])
+              .whereRef("BookingReport.bookingId", "=", "Booking.id")
+              .orderBy("BookingReport.createdAt", "desc")
+          ).as("reports"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
