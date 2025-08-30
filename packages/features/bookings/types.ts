@@ -6,6 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type { DatePickerProps } from "../calendars/DatePicker";
+import type { BookingCreateResult, InstantBookingCreateResult } from "./lib/dto/types";
 
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 
@@ -93,13 +94,9 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   schedulingType?: SchedulingType;
 };
 
-export type BookingResponse = Awaited<
-  ReturnType<typeof import("@calcom/features/bookings/lib/handleNewBooking").default>
->;
+export type BookingResponse = BookingCreateResult;
 
-export type InstantBookingResponse = Awaited<
-  ReturnType<typeof import("@calcom/features/instant-meeting/handleInstantMeeting").default>
->;
+export type InstantBookingResponse = InstantBookingCreateResult;
 
 export type MarkNoShowResponse = Awaited<
   ReturnType<typeof import("@calcom/features/handleMarkNoShow").default>

@@ -25,6 +25,7 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
+import { getNewBookingHandler } from "@calcom/features/bookings/lib/getNewBookingHandler";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -41,7 +42,7 @@ describe("handleNewBooking", () => {
     test(
       `should allow a booking if there is no conflicting booking in any of the users' selectedCalendars`,
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const groupUserId1 = 101;
         const groupUserId2 = 102;
         const booker = getBooker({
@@ -137,7 +138,7 @@ describe("handleNewBooking", () => {
       test(
         `should fail a booking if there is already a conflicting booking in the first user's selectedCalendars`,
         async () => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const groupUserId1 = 101;
           const groupUserId2 = 102;
           const booker = getBooker({
@@ -217,7 +218,7 @@ describe("handleNewBooking", () => {
       test(
         `should fail a booking if there is already a conflicting booking in the second user's selectedCalendars`,
         async () => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const groupUserId1 = 101;
           const groupUserId2 = 102;
           const booker = getBooker({

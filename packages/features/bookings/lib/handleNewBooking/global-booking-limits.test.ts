@@ -13,6 +13,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, expect, vi, beforeAll } from "vitest";
 
+import { getNewBookingHandler } from "@calcom/features/bookings/lib/getNewBookingHandler";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -22,7 +23,7 @@ const timeout = process.env.CI ? 5000 : 20000;
 
 const eventLength = 30;
 
-const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+const handleNewBooking = getNewBookingHandler();
 
 const booker = getBooker({
   email: "booker@example.com",

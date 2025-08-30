@@ -25,6 +25,12 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
+import type {
+  BookingHandlerInput,
+  CreateBookingData,
+  CreateBookingMeta,
+} from "@calcom/features/bookings/lib/dto/types";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -52,8 +58,6 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/lib/di/containers/Cache";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -69,14 +73,13 @@ import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
@@ -93,34 +96,36 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
-import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
-import getBookingDataSchema from "./getBookingDataSchema";
-import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
-import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
-import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
-import { createBooking } from "./handleNewBooking/createBooking";
-import type { Booking } from "./handleNewBooking/createBooking";
-import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
-import { getBookingData } from "./handleNewBooking/getBookingData";
-import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventType } from "./handleNewBooking/getEventType";
-import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
-import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
-import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
-import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
-import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
-import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
-import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
-import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
-import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
-import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
-import { validateEventLength } from "./handleNewBooking/validateEventLength";
-import handleSeats from "./handleSeats/handleSeats";
+import type { CacheService } from "../../../calendar-cache/lib/getShouldServeCache";
+import type { EventPayloadType, EventTypeInfo } from "../../../webhooks/lib/sendPayload";
+import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
+import getBookingDataSchema from "../getBookingDataSchema";
+import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
+import type { CheckBookingAndDurationLimitsService } from "../handleNewBooking/checkBookingAndDurationLimits";
+import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
+import { createBooking } from "../handleNewBooking/createBooking";
+import type { Booking } from "../handleNewBooking/createBooking";
+import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
+import { getBookingData } from "../handleNewBooking/getBookingData";
+import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
+import { getEventType } from "../handleNewBooking/getEventType";
+import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
+import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
+import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
+import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
+import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
+import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
+import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
+import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
+import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
+import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
+import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
+import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
+import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
+import { validateEventLength } from "../handleNewBooking/validateEventLength";
+import handleSeats from "../handleSeats/handleSeats";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -149,10 +154,6 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If rescheduling then increment sequence by 1
   return originalRescheduledBooking.iCalSequence + 1;
 }
-
-type BookingDataSchemaGetter =
-  | typeof getBookingDataSchema
-  | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
@@ -393,24 +394,6 @@ function buildTroubleshooterData({
   return troubleshooterData;
 }
 
-export type PlatformParams = {
-  platformClientId?: string;
-  platformCancelUrl?: string;
-  platformBookingUrl?: string;
-  platformRescheduleUrl?: string;
-  platformBookingLocation?: string;
-  areCalendarEventsEnabled?: boolean;
-};
-
-export type BookingHandlerInput = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bookingData: Record<string, any>;
-  userId?: number;
-  // These used to come from headers but now we're passing them as params
-  hostname?: string;
-  forcedSlug?: string;
-} & PlatformParams;
-
 function formatAvailabilitySnapshot(data: {
   dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
   oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
@@ -428,9 +411,10 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
-async function handler(
+export async function legacyHandler(
   input: BookingHandlerInput,
-  bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
+  bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema,
+  deps: IBookingCreateServiceDependencies
 ) {
   const {
     bookingData: rawBookingData,
@@ -444,6 +428,8 @@ async function handler(
     forcedSlug,
     areCalendarEventsEnabled = true,
   } = input;
+
+  const { prisma, bookingRepository, cacheService, checkBookingAndDurationLimitsService } = deps;
 
   const isPlatformBooking = !!platformClientId;
 
@@ -549,11 +535,9 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const bookingRepo = new BookingRepository(prisma);
-
     const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
 
-    const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+    const existingBooking = await bookingRepository.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
@@ -590,7 +574,6 @@ async function handler(
     }
   }
 
-  const cacheService = getCacheService();
   const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
@@ -702,7 +685,6 @@ async function handler(
     location,
   });
 
-  const checkBookingAndDurationLimitsService = getCheckBookingAndDurationLimitsService();
   await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
     eventType,
     reqBodyStart: reqBody.start,
@@ -761,7 +743,11 @@ async function handler(
         },
       }),
     };
-    if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
+    if (
+      bookingData.allRecurringDates &&
+      bookingData.isFirstRecurringSlot &&
+      bookingData.numSlotsToCheckForAvailability
+    ) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
         eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -772,12 +758,11 @@ async function handler(
 
       for (
         let i = 0;
-        i < input.bookingData.allRecurringDates.length &&
-        i < input.bookingData.numSlotsToCheckForAvailability;
+        i < bookingData.allRecurringDates.length && i < bookingData.numSlotsToCheckForAvailability;
         i++
       ) {
-        const start = input.bookingData.allRecurringDates[i].start;
-        const end = input.bookingData.allRecurringDates[i].end;
+        const start = bookingData.allRecurringDates[i].start;
+        const end = bookingData.allRecurringDates[i].end;
         if (isTeamEvent) {
           // each fixed user must be available
           for (const key in fixedUsers) {
@@ -810,7 +795,7 @@ async function handler(
       }
     }
 
-    if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
+    if (!bookingData.allRecurringDates || bookingData.isFirstRecurringSlot) {
       try {
         availableUsers = await ensureAvailableUsers(
           { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
@@ -927,19 +912,20 @@ async function handler(
             break; // prevent infinite loop
           }
           if (
-            input.bookingData.isFirstRecurringSlot &&
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN
+            bookingData.isFirstRecurringSlot &&
+            eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+            bookingData.numSlotsToCheckForAvailability &&
+            bookingData.allRecurringDates
           ) {
             // for recurring round robin events check if lucky user is available for next slots
             try {
               for (
                 let i = 0;
-                i < input.bookingData.allRecurringDates.length &&
-                i < input.bookingData.numSlotsToCheckForAvailability;
+                i < bookingData.allRecurringDates.length && i < bookingData.numSlotsToCheckForAvailability;
                 i++
               ) {
-                const start = input.bookingData.allRecurringDates[i].start;
-                const end = input.bookingData.allRecurringDates[i].end;
+                const start = bookingData.allRecurringDates[i].start;
+                const end = bookingData.allRecurringDates[i].end;
 
                 await ensureAvailableUsers(
                   { ...eventTypeWithUsers, users: [newLuckyUser] },
@@ -983,7 +969,7 @@ async function handler(
 
       // Filter out host groups that have no hosts in them
       const nonEmptyHostGroups = Object.fromEntries(
-        Object.entries(hostGroups).filter(([groupId, hosts]) => hosts.length > 0)
+        Object.entries(hostGroups).filter(([_groupId, hosts]) => hosts.length > 0)
       );
       // If there are RR hosts, we need to find a lucky user
       if (
@@ -1004,10 +990,7 @@ async function handler(
           .flat()
           .map((u) => u.id),
       };
-    } else if (
-      input.bookingData.allRecurringDates &&
-      eventType.schedulingType === SchedulingType.ROUND_ROBIN
-    ) {
+    } else if (bookingData.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
         ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
@@ -1264,9 +1247,9 @@ async function handler(
 
   let evt: CalendarEvent = builtEvt;
 
-  if (input.bookingData.thirdPartyRecurringEventId) {
+  if (bookingData.thirdPartyRecurringEventId) {
     const updatedEvt = CalendarEventBuilder.fromEvent(evt)
-      ?.withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+      ?.withRecurringEventId(bookingData.thirdPartyRecurringEventId)
       .build();
 
     if (!updatedEvt) {
@@ -1507,7 +1490,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
-        creationSource: input.bookingData.creationSource,
+        creationSource: bookingData.creationSource,
         tracking: reqBody.tracking,
       });
 
@@ -1577,9 +1560,9 @@ async function handler(
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
           (attendee) =>
-            attendee.email === input.bookingData.responses.email ||
-            (input.bookingData.responses.attendeePhoneNumber &&
-              attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
+            attendee.email === bookingData.responses.email ||
+            (bookingData.responses.attendeePhoneNumber &&
+              attendee.phoneNumber === bookingData.responses.attendeePhoneNumber)
         );
 
         // Save description to bookingSeat
@@ -1844,10 +1827,10 @@ async function handler(
       loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
 
       /*
-        handle emails for round robin
-          - if booked rr host is the same, then rescheduling email
-          - if new rr host is booked, then cancellation email to old host and confirmation email to new host
-      */
+      handle emails for round robin
+        - if booked rr host is the same, then rescheduling email
+        - if new rr host is booked, then cancellation email to old host and confirmation email to new host
+    */
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         const originalBookingMemberEmails: Person[] = [];
 
@@ -2392,9 +2375,7 @@ async function handler(
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: input.bookingData.allRecurringDates
-        ? input.bookingData.isFirstRecurringSlot
-        : undefined,
+      isFirstRecurringEvent: bookingData.allRecurringDates ? bookingData.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
@@ -2454,4 +2435,28 @@ async function handler(
   };
 }
 
-export default handler;
+export interface IBookingCreateServiceDependencies {
+  cacheService: CacheService;
+  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
+  prisma: PrismaClient;
+  bookingRepository: BookingRepository;
+}
+
+export class BookingCreateService {
+  constructor(private readonly deps: IBookingCreateServiceDependencies) {}
+  async create(input: {
+    bookingData: CreateBookingData;
+    bookingMeta?: CreateBookingMeta;
+    schemaGetter?: BookingDataSchemaGetter;
+  }) {
+    const bookingMeta = input.bookingMeta ?? {};
+    return legacyHandler(
+      {
+        bookingData: input.bookingData,
+        ...bookingMeta,
+      },
+      input.schemaGetter,
+      this.deps
+    );
+  }
+}

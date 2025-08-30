@@ -1,27 +1,19 @@
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
-import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-export type PlatformParams = {
-  platformClientId?: string;
-  platformCancelUrl?: string;
-  platformBookingUrl?: string;
-  platformRescheduleUrl?: string;
-  platformBookingLocation?: string;
-  areCalendarEventsEnabled?: boolean;
-};
+import type { BookingResponse } from "../../types";
+import type { CreateBookingMeta, CreateRecurringBookingData } from "../dto/types";
+import type { BookingCreateService } from "./BookingCreateService";
 
 export type BookingHandlerInput = {
-  bookingData: Record<string, any>[];
-  userId?: number;
-  // These used to come from headers but now we're passing them as params
-  hostname?: string;
-  forcedSlug?: string;
-  noEmail?: boolean;
-} & PlatformParams;
+  bookingData: CreateRecurringBookingData;
+} & CreateBookingMeta;
 
-export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
+export const handleNewRecurringBooking = async (
+  input: BookingHandlerInput,
+  deps: IRecurringBookingCreateServiceDependencies
+): Promise<BookingResponse[]> => {
+  const { bookingCreateService } = deps;
   const data = input.bookingData;
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
@@ -61,11 +53,13 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
       noEmail: input.noEmail !== undefined ? input.noEmail : false,
     };
 
-    const firstBookingResult = await handleNewBooking({
+    const firstBookingResult = await bookingCreateService.create({
       bookingData: recurringEventData,
-      hostname: input.hostname || "",
-      forcedSlug: input.forcedSlug as string | undefined,
-      ...handleBookingMeta,
+      bookingMeta: {
+        hostname: input.hostname || "",
+        forcedSlug: input.forcedSlug as string | undefined,
+        ...handleBookingMeta,
+      },
     });
     luckyUsers = firstBookingResult.luckyUsers;
   }
@@ -102,11 +96,13 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
       luckyUsers,
     };
 
-    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking({
-      hostname: input.hostname || "",
-      forcedSlug: input.forcedSlug as string | undefined,
+    const promiseEachRecurringBooking = bookingCreateService.create({
       bookingData: recurringEventData,
-      ...handleBookingMeta,
+      bookingMeta: {
+        hostname: input.hostname || "",
+        forcedSlug: input.forcedSlug as string | undefined,
+        ...handleBookingMeta,
+      },
     });
 
     const eachRecurringBooking = await promiseEachRecurringBooking;
@@ -126,3 +122,15 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
   }
   return createdBookings;
 };
+
+interface IRecurringBookingCreateServiceDependencies {
+  bookingCreateService: BookingCreateService;
+}
+
+export class RecurringBookingCreateService {
+  constructor(private readonly dependencies: IRecurringBookingCreateServiceDependencies) {}
+
+  async create(input: BookingHandlerInput): Promise<BookingResponse[]> {
+    return handleNewRecurringBooking(input, this.dependencies);
+  }
+}

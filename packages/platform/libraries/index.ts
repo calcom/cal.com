@@ -2,7 +2,7 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import handleNewBooking from "@calcom/features/bookings/lib/service/BookingCreateService";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import {
   verifyPhoneNumber,
@@ -10,7 +10,6 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
-import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
@@ -31,15 +30,12 @@ export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
-const handleNewBooking = newBookingMethods.default;
-export { handleNewBooking };
-const handleInstantMeeting = instantMeetingMethods.default;
-export { handleInstantMeeting };
-
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
 
-export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
+export { getBookingCreateFactory } from "@calcom/lib/di/containers/BookingCreateFactory";
+export type { BookingCreateFactory } from "@calcom/features/bookings/lib/factory/BookingCreateFactory";
+export type { CreateInstantBookingResponse } from "@calcom/features/bookings/lib/dto/types";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 
@@ -59,6 +55,7 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
+export { handleNewBooking };
 
 export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
