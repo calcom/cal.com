@@ -1,4 +1,3 @@
-import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
@@ -2066,20 +2065,6 @@ export function mockVideoApp({
     default: mockVideoAdapter,
   });
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: mockVideoAdapter,
-        },
-      });
-    });
-  });
-
   return {
     createMeetingCalls,
     updateMeetingCalls,
@@ -2155,20 +2140,6 @@ export function mockErrorOnVideoMeetingCreation({
   mockVideoAdapterRegistry[appStoreLookupKey] = Promise.resolve({
     default: mockErrorAdapter,
   });
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default[appStoreLookupKey].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: mockErrorAdapter,
-        },
-      });
-    });
-  });
 }
 
 export function mockCrmApp(
@@ -2195,42 +2166,49 @@ export function mockCrmApp(
     ownerEmail: string;
   }[] = [];
   const eventsCreated: boolean[] = [];
-  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
-  const appMock = appStoreMock.default[metadataLookupKey as keyof typeof appStoreMock.default];
-  appMock &&
-    `mockResolvedValue` in appMock &&
-    appMock.mockResolvedValue({
-      lib: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        CrmService: class {
-          constructor() {
-            log.debug("Create CrmSerive");
-          }
 
-          createContact() {
-            if (crmData?.createContacts) {
-              contactsCreated = crmData.createContacts;
-              return Promise.resolve(crmData?.createContacts);
-            }
-          }
+  // Mock the CrmServiceMap directly instead of using the old app-store index approach
+  vi.doMock("@calcom/app-store/crm.apps.generated", async (importOriginal) => {
+    const original = await importOriginal<typeof import("@calcom/app-store/crm.apps.generated")>();
 
-          getContacts(email: string) {
-            if (crmData?.getContacts) {
-              contactsQueried = crmData?.getContacts;
-              const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+    class MockCrmService {
+      constructor() {
+        log.debug("Create CrmService");
+      }
 
-              return Promise.resolve(contactsOfEmail);
-            }
-          }
+      createContact() {
+        if (crmData?.createContacts) {
+          contactsCreated = crmData.createContacts;
+          return Promise.resolve(crmData?.createContacts);
+        }
+        return Promise.resolve([]);
+      }
 
-          createEvent() {
-            eventsCreated.push(true);
-            return Promise.resolve({});
-          }
-        },
+      getContacts(email: string) {
+        if (crmData?.getContacts) {
+          contactsQueried = crmData?.getContacts;
+          const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+          return Promise.resolve(contactsOfEmail);
+        }
+        return Promise.resolve([]);
+      }
+
+      createEvent() {
+        eventsCreated.push(true);
+        return Promise.resolve({});
+      }
+    }
+
+    return {
+      ...original,
+      CrmServiceMap: {
+        ...original.CrmServiceMap,
+        [metadataLookupKey]: Promise.resolve({
+          default: MockCrmService,
+        }),
       },
-    });
+    };
+  });
 
   return {
     contactsCreated,
