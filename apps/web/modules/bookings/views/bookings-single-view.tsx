@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationTypeSync } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -158,11 +158,19 @@ export default function Success(props: PageProps) {
   const utmParams = bookingInfo.tracking;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
-  const calendarLinks = getCalendarLinks({
-    booking: bookingWithParsedMetadata,
-    eventType: eventType,
-    t,
-  });
+  const [calendarLinks, setCalendarLinks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadCalendarLinks = async () => {
+      const links = await getCalendarLinks({
+        booking: bookingWithParsedMetadata,
+        eventType: eventType,
+        t,
+      });
+      setCalendarLinks(links);
+    };
+    loadCalendarLinks();
+  }, [bookingWithParsedMetadata, eventType, t]);
 
   // TODO: We could transform the JSX to just iterate over calendarLinks and render a link for each type
   const icsLink = calendarLinks.find((link) => link.id === CalendarLinkType.ICS)?.link;
@@ -353,8 +361,8 @@ export default function Success(props: PageProps) {
     bookingInfo.status
   );
 
-  const providerName = guessEventLocationType(location)?.label;
-  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
+  const providerName = guessEventLocationTypeSync(location)?.label;
+  const rescheduleProviderName = guessEventLocationTypeSync(rescheduleLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
   const isReschedulable = !isCancelled;
 
@@ -415,7 +423,7 @@ export default function Success(props: PageProps) {
       {!isEmbed && !isFeedbackMode && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
-          eventName={eventName}
+          eventName={typeof eventName === "string" ? eventName : ""}
           startTime={bookingInfo.startTime}
           endTime={bookingInfo.endTime}
           organizer={bookingInfo.user}
@@ -579,7 +587,7 @@ export default function Success(props: PageProps) {
                         )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? bookingInfo.title : eventName}
+                          {isRoundRobin ? bookingInfo.title : typeof eventName === "string" ? eventName : ""}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">

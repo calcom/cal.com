@@ -136,7 +136,7 @@ const buildMicrosoftOutlookLink = ({
   return microsoftOutlookLink;
 };
 
-export const getCalendarLinks = ({
+export const getCalendarLinks = async ({
   booking,
   eventType,
   t,
@@ -183,7 +183,7 @@ export const getCalendarLinks = ({
   };
 
   // Create event name and description
-  const eventName = getEventName(eventNameObject, true);
+  const eventName = (await getEventName(eventNameObject, true)) || eventType.title;
   const eventDescription = eventType.description || "";
 
   // Calculate start and end times

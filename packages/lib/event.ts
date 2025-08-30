@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import z from "zod";
 
-import { guessEventLocationType } from "@calcom/app-store/locations";
+import { guessEventLocationType, guessEventLocationTypeSync } from "@calcom/app-store/locations";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
@@ -88,18 +88,117 @@ export async function getEventName(eventNameObj: EventNameObjectType, forAttende
     if (bookingFieldValue) {
       let fieldValue;
 
-      if (typeof bookingFieldValue === "object") {
+      if (typeof bookingFieldValue === "object" && bookingFieldValue !== null) {
         if ("value" in bookingFieldValue) {
           const valueAsString = bookingFieldValue.value?.toString();
           fieldValue =
             variable === "location"
-              ? (await guessEventLocationType(valueAsString))?.label || valueAsString
+              ? guessEventLocationTypeSync(valueAsString)?.label || valueAsString
               : valueAsString;
         } else if (variable === "name" && "firstName" in bookingFieldValue) {
           const lastName = "lastName" in bookingFieldValue ? bookingFieldValue.lastName : "";
           fieldValue = `${bookingFieldValue.firstName} ${lastName}`.trim();
         }
       } else {
+        fieldValue = bookingFieldValue?.toString() || "";
+      }
+
+      dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
+    } else {
+      dynamicEventName = dynamicEventName.replace(`{${variable}}`, "");
+    }
+  }
+
+  return dynamicEventName;
+}
+
+export function getEventNameSync(eventNameObj: EventNameObjectType, forAttendeeView = false) {
+  const attendeeName = parseName(eventNameObj.attendeeName);
+
+  if (!eventNameObj.eventName)
+    return eventNameObj.t("event_between_users", {
+      eventName: eventNameObj.eventType,
+      host: eventNameObj.teamName || eventNameObj.host,
+      attendeeName,
+      interpolation: {
+        escapeValue: false,
+      },
+    });
+
+  let eventName = eventNameObj.eventName;
+  let locationString = eventNameObj.location || "";
+
+  if (eventNameObj.eventName.includes("{Location}") || eventNameObj.eventName.includes("{LOCATION}")) {
+    const eventLocationType = guessEventLocationTypeSync(eventNameObj.location);
+    if (eventLocationType) {
+      locationString = eventLocationType.label;
+    }
+    eventName = eventName.replace("{Location}", locationString);
+    eventName = eventName.replace("{LOCATION}", locationString);
+  }
+
+  let dynamicEventName = eventName
+    // Need this for compatibility with older event names
+    .replaceAll("{Event type title}", eventNameObj.eventType)
+    .replaceAll("{Scheduler}", attendeeName)
+    .replaceAll("{Organiser}", eventNameObj.host)
+    .replaceAll("{Organiser first name}", eventNameObj.host.split(" ")[0])
+    .replaceAll("{USER}", attendeeName)
+    .replaceAll("{ATTENDEE}", attendeeName)
+    .replaceAll("{HOST}", eventNameObj.host)
+    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
+    .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`)
+    .replaceAll(
+      "{Scheduler first name}",
+      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeName.split(" ")[0]
+    );
+
+  const { bookingFields } = eventNameObj || {};
+  const { name } = bookingFields || {};
+
+  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.lastName === "string") {
+    dynamicEventName = dynamicEventName.replaceAll("{Scheduler last name}", name.lastName.toString());
+  }
+
+  const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
+    return variable.replace("{", "").replace("}", "");
+  });
+
+  for (const variable of customInputvariables || []) {
+    if (!eventNameObj.bookingFields) return dynamicEventName;
+
+    const bookingFieldValue = eventNameObj.bookingFields[variable as keyof typeof eventNameObj.bookingFields];
+
+    if (bookingFieldValue) {
+      let fieldValue;
+
+      if (
+        typeof bookingFieldValue === "object" &&
+        bookingFieldValue !== null &&
+        !Array.isArray(bookingFieldValue)
+      ) {
+        if ("value" in bookingFieldValue && typeof bookingFieldValue.value === "string") {
+          const valueAsString = bookingFieldValue.value;
+          fieldValue =
+            variable === "location"
+              ? guessEventLocationTypeSync(valueAsString)?.label || valueAsString
+              : valueAsString;
+        } else if (
+          variable === "name" &&
+          "firstName" in bookingFieldValue &&
+          typeof bookingFieldValue.firstName === "string"
+        ) {
+          const lastName =
+            "lastName" in bookingFieldValue && typeof bookingFieldValue.lastName === "string"
+              ? bookingFieldValue.lastName
+              : "";
+          fieldValue = `${bookingFieldValue.firstName} ${lastName}`.trim();
+        }
+      } else if (
+        typeof bookingFieldValue === "string" ||
+        typeof bookingFieldValue === "number" ||
+        typeof bookingFieldValue === "boolean"
+      ) {
         fieldValue = bookingFieldValue.toString();
       }
 

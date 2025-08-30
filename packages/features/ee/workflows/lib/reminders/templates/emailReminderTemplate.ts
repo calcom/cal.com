@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-import { guessEventLocationType } from "@calcom/app-store/locations";
+import { guessEventLocationType, guessEventLocationTypeSync } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -86,6 +86,57 @@ const emailReminderTemplate = async ({
   const endingHtml = `${t("email_reminder_triggered_by_workflow")}${branding}</body>`;
 
   const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + locationHtml + endingHtml;
+
+  return { emailSubject, emailBody };
+};
+
+export type EmailReminderTemplateProps = {
+  isEditingMode: boolean;
+  action?: WorkflowActions;
+  evt: {
+    title?: string;
+    eventType?: { title?: string };
+    startTime: Date;
+    location?: string;
+  };
+  locale: string;
+  t: TFunction;
+  timeFormat?: TimeFormat;
+};
+
+const formatTime = (date: Date, timeFormat?: TimeFormat, locale?: string) => {
+  return dayjs(date)
+    .locale(locale || "en")
+    .format(timeFormat === TimeFormat.TWELVE_HOUR ? "h:mm A" : "HH:mm");
+};
+
+export const emailReminderTemplateSync = ({
+  isEditingMode,
+  action,
+  evt,
+  locale,
+  t,
+  timeFormat,
+}: EmailReminderTemplateProps) => {
+  const eventLocationType = guessEventLocationTypeSync(evt.location);
+  const locationLabel = eventLocationType?.label || evt.location || "";
+
+  const emailSubject = t("reminder_email_subject", {
+    eventName: evt.title || evt.eventType?.title,
+    date: formatTime(evt.startTime, timeFormat, locale),
+  });
+
+  const emailBody = isEditingMode
+    ? t("reminder_email_body_editing", {
+        eventName: evt.title || evt.eventType?.title,
+        date: formatTime(evt.startTime, timeFormat, locale),
+        location: locationLabel,
+      })
+    : t("reminder_email_body", {
+        eventName: evt.title || evt.eventType?.title,
+        date: formatTime(evt.startTime, timeFormat, locale),
+        location: locationLabel,
+      });
 
   return { emailSubject, emailBody };
 };

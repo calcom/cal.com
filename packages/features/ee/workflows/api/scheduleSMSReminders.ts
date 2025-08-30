@@ -149,7 +149,7 @@ export async function handler(req: NextRequest) {
             reminder.booking.attendees[0].timeZone
           ),
         };
-        const customMessage = customTemplate(
+        const customMessage = await customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
           locale || "en",
