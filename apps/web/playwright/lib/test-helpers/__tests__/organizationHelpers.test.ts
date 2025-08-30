@@ -142,8 +142,19 @@ describe("createAttributes", () => {
     });
 
     // Check that attribute assignments were created
-    const attributeAssignments = await prismock.attributeToUser.findMany();
+    const attributeAssignments = await prismock.attributeToUser.findMany({
+      where: {
+        id: {
+          not: undefined,
+        },
+      },
+    });
     const attributeOptions = await prismock.attributeOption.findMany({
+      where: {
+        id: {
+          not: undefined,
+        },
+      },
       include: { assignedUsers: true },
     });
 
@@ -223,7 +234,13 @@ describe("createAttributes", () => {
     expect(result).toHaveLength(5);
 
     // But no attribute assignments should be created
-    const attributeAssignments = await prismock.attributeToUser.findMany();
+    const attributeAssignments = await prismock.attributeToUser.findMany({
+      where: {
+        id: {
+          not: undefined,
+        },
+      },
+    });
     expect(attributeAssignments).toHaveLength(0);
   });
 

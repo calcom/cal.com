@@ -35,6 +35,11 @@ export class FeaturesRepository implements IFeaturesRepository {
     }
 
     const features = await this.prismaClient.feature.findMany({
+      where: {
+        slug: {
+          not: undefined,
+        },
+      },
       orderBy: { slug: "asc" },
       cacheStrategy: { swr: 300, ttl: 300 },
     });
