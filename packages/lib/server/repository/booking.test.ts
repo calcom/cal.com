@@ -261,73 +261,112 @@ describe("_findAllExistingBookingsForEventTypeBetween", () => {
     vi.resetAllMocks();
   });
 
-  describe("PENDING bookings with requiresConfirmationWillBlockSlot", () => {
-    it("should include PENDING bookings where user is the host/organizer", async () => {
+  describe("Cross-event-type PENDING bookings with requiresConfirmationWillBlockSlot", () => {
+    it("PENDING booking from Event Type A should block slots for Event Type B", async () => {
+      await prismaMock.eventType.create({
+        data: {
+          id: 1,
+          title: "Event Type A",
+          slug: "event-type-a",
+          description: "Event Type A with slot blocking",
+          userId: 1,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+      });
+
+      // Create Event Type B
+      await prismaMock.eventType.create({
+        data: {
+          id: 2,
+          title: "Event Type B",
+          slug: "event-type-b",
+          description: "Event Type B",
+          userId: 1,
+          length: 60,
+          requiresConfirmation: false,
+          requiresConfirmationWillBlockSlot: false,
+        },
+      });
+
       await prismaMock.booking.create({
         data: {
           userId: 1,
-          uid: "pending-host-booking",
+          uid: "pending-booking-type-a",
           eventTypeId: 1,
           status: BookingStatus.PENDING,
-          startTime: new Date("2025-05-01T14:00:00.000Z"),
-          endTime: new Date("2025-05-01T15:00:00.000Z"),
-          title: "Pending Host Booking",
           attendees: {
             create: {
-              email: "attendee@example.com",
-              name: "Attendee",
+              email: "test1@example.com",
+              noShow: false,
+              name: "Test 1",
               timeZone: "America/Toronto",
             },
           },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Event Type A Booking",
         },
       });
 
       const bookingRepo = new BookingRepository(prismaMock);
-      const userIdAndEmailMap = new Map([[1, "organizer1@example.com"]]);
+      const userIdAndEmailMap = new Map([[1, "test1@example.com"]]);
 
+      // Check availability for Event Type B (any event type) - should find the PENDING booking from Event Type A
       const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        eventTypeId: 1,
         startDate: new Date("2025-05-01T13:00:00.000Z"),
         endDate: new Date("2025-05-01T16:00:00.000Z"),
         userIdAndEmailMap,
       });
 
       expect(bookings).toHaveLength(1);
-      expect(bookings[0].uid).toBe("pending-host-booking");
     });
 
-    it("should include PENDING bookings where user is an attendee", async () => {
+    it("should NOT include PENDING bookings that don't block slots", async () => {
+      await prismaMock.eventType.create({
+        data: {
+          id: 3,
+          title: "Non-blocking Event Type",
+          slug: "non-blocking-event-type",
+          description: "This event type doesn't block slots",
+          userId: 1,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: false,
+        },
+      });
+
       await prismaMock.booking.create({
         data: {
-          userId: 2,
-          uid: "pending-attendee-booking",
-          eventTypeId: 1,
+          userId: 1,
+          uid: "pending-non-blocking",
+          eventTypeId: 3,
           status: BookingStatus.PENDING,
-          startTime: new Date("2025-05-01T14:00:00.000Z"),
-          endTime: new Date("2025-05-01T15:00:00.000Z"),
-          title: "Pending Attendee Booking",
           attendees: {
             create: {
-              email: "organizer1@example.com", // User 1 is attendee
-              name: "Organizer As Attendee",
+              email: "test1@example.com",
+              noShow: false,
+              name: "Test 1",
               timeZone: "America/Toronto",
             },
           },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Non-blocking Event",
         },
       });
 
       const bookingRepo = new BookingRepository(prismaMock);
-      const userIdAndEmailMap = new Map([[1, "organizer1@example.com"]]);
+      const userIdAndEmailMap = new Map([[1, "test1@example.com"]]);
 
       const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        eventTypeId: 1,
         startDate: new Date("2025-05-01T13:00:00.000Z"),
         endDate: new Date("2025-05-01T16:00:00.000Z"),
         userIdAndEmailMap,
       });
 
-      expect(bookings).toHaveLength(1);
-      expect(bookings[0].uid).toBe("pending-attendee-booking");
+      expect(bookings).toHaveLength(0);
     });
   });
 });

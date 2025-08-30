@@ -182,7 +182,7 @@ export class BookingRepository {
   }
 
   private async _findAllExistingBookingsForEventTypeBetween({
-    eventTypeId,
+    // eventTypeId,
     seatedEvent = false,
     startDate,
     endDate,
@@ -317,7 +317,19 @@ export class BookingRepository {
       return !booking.attendees.some((attendee) => attendee.email === organizerEmail);
     });
 
-    return [...resultOne, ...resultTwoWithOrganizersRemoved, ...resultThree, ...resultFour];
+    // Remove duplicates from resultFour (PENDING attendee bookings) where organizer is also an attendee
+    const resultFourWithOrganizersRemoved = resultFour.filter((booking) => {
+      if (!booking.userId) return true;
+      const organizerEmail = userIdAndEmailMap.get(booking.userId);
+      return !booking.attendees.some((attendee) => attendee.email === organizerEmail);
+    });
+
+    return [
+      ...resultOne,
+      ...resultTwoWithOrganizersRemoved,
+      ...resultThree,
+      ...resultFourWithOrganizersRemoved,
+    ];
   }
 
   findAllExistingBookingsForEventTypeBetween = withReporting(
