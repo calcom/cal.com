@@ -1,0 +1,50 @@
+[33mf1cf581f8e[m[33m ([m[1;31morigin/CAL-3076-invite-from-assignment[m[33m)[m Update packages/lib/bookings/findQualifiedHostsWithDelegationCredentials.ts
+[33m62accf6bc9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mCAL-3076-invite-from-assignment[m[33m, [m[1;31morigin/CAL-3076-backup[m[33m, [m[1;32mCAL-3076-backup[m[33m)[m Merge branch 'main' into CAL-3076-invite-from-assignment
+[33m0a2f65d55d[m Fix booking tests by normalizing host data (#3)
+[33mbfa23ddb80[m refactor: Remove app store index (#23449)
+[33m28f473da14[m fix: unable to cancel seated event due to booking responses (#23447)
+[33m347efd227e[m Merge branch 'main' into CAL-3076-invite-from-assignment
+[33mdab415a508[m fix(bookings): enforce FixedHostsUnavailableForBooking for collective events when any required fixed host unavailable
+[33m74fd143854[m fix(bookings): remove incorrect eventTypeWithUsers reference in buildEventForTeamEventType
+[33m310f12c368[m fix(bookings): add validation for collective events to throw FixedHostsUnavailableForBooking when required fixed hosts unavailable
+[33m1fd1202373[m fix: Allow install on teams for concurrent meeting apps (#23429)
+[33m481136c9ad[m fix(bookings): collective events include all hosts' destination calendars; enforce FixedHostsUnavailableForBooking when any fixed host unavailable
+[33m8845e736e5[m fix: hydration mismatch error in UserAvatarGroup component (#23425)
+[33m00866a3403[m fix(bookings): loadUsers returns plain users; normalize allFallbackRRHosts with ensureHostProperties
+[33mdd16c2b99d[m refactor: small improvements for cal ai (#23444)
+[33m799a225092[m fix(bookings): fallback to first available non-fixed user when no lucky user found in RR groups
+[33mfcf975da4c[m fix(bookings): reference eventType for final user rehydration to avoid scope error
+[33m221a316043[m fix(bookings): centralize user rehydration with full data; apply before availability and organizer ops
+[33m44992f6907[m fix(bookings): rehydrate final users with full data (credentials) before organizer selection and calendar ops
+[33m19f64f21fc[m Fix round robin booking with proper user hydration and fixed host handling
+[33me7779bba0a[m feat(teams): show org upgrade tip for one team and add singular copy on /teams (#23367)
+[33m701c834115[m chore: upgrade Mintlify from v4.0.436 to v4.2.87 (#23418)
+[33m18423e5805[m feat: (PBAC) Introduce depends on permission registery (#23440)
+[33mb332d9897d[m refactor: add logging (#23420)
+[33m191db5104a[m perf: optimize video adapter imports to avoid loading entire app store (#23435)
+[33mbfacd8a780[m chore: release v5.6.9
+[33md4bff9d6b1[m feat: Cal.ai Self Serve #2  (#22995)
+[33m6defa1cd7d[m refactor: replace @prisma/client/runtime imports with public API (#23087)
+[33m5b2b5fd967[m chore: remove unused code including `/api/nope` (#23323)
+[33m47c5d26fd7[m Normalize host properties and ensure consistent object shape in booking logic
+[33m6932498d48[m fix: event type empty title validation (#23220)
+[33m3061a09782[m[33m ([m[1;31morigin/cursor/fix-failing-tests-and-push-changes-86c9[m[33m)[m Normalize host properties and improve host selection logic in booking routing
+[33m55b35dcc89[m fix: resolve-test-&-type-errors
+[33me07f800417[m fix: incorrect placeholder for start of week (#23402)
+[33m6a603d3ae1[m Fix round-robin host selection to prioritize fixed hosts and available users
+[33mfe6e442445[m Fix round-robin host selection and add missing properties in delegation
+[33m464e5f1496[m Revert "chore: Add zoom waiting room setting (#22888)" (#23427)
+[33m724e3f2755[m fix: type error in the `EventAvailabilityTabPlatformWrapper` component (#21983)
+[33m53099a9140[m fix-type-errors-in-host-qualification
+[33mef2f7824f0[m Fix type issues and improve host handling in event type assignment
+[33m59c76141ce[m feat: add Recent No-Show Guests chart to insights page (#23381)
+[33ma494428334[m refactor: FailedBookingsByField to use Insights Routing Service (#23259)
+[33m7145a2d640[m refactor: Routed to Per Period to use Insights Routing Service (#23031)
+[33mbaaa04151d[m perf: optimize payment app imports to avoid loading entire app store (#23408)
+[33m2ef4c86424[m Merge branch 'main' into CAL-3076-invite-from-assignment
+[33m381125becd[m chore: CODEOWNER change for /apps/web/lib files (#23423)
+[33m992510f5e5[m type-errors-fix
+[33m091327afee[m chore: release v5.6.8
+[33mf1d7d7f02a[m fix: Missing personal event types in All filter (#23343)
+[33m84bd4d3d38[m Remove payment fee from `chargeCard` (#23411)
+[33m48190292da[m fix-types
