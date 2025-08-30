@@ -1,3 +1,4 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
 import { describe, expect, it, beforeAll, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -281,8 +282,32 @@ describe("Tests the slot logic", () => {
       ],
     });
 
-    expect(slots).toHaveLength(1);
-    expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
+    expect(slots).toHaveLength(2);
+    expect(slots.map((s) => s.time.format("HH:mm"))).toEqual(["07:30", "08:30"]);
+  });
+
+  it("respects availability block start times when using 'Use event length'", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      {
+        start: nextDay.hour(10).minute(30),
+        end: nextDay.hour(18).minute(30),
+      },
+    ];
+
+    const result = getSlots({
+      inviteeDate: nextDay,
+      frequency: 120, // "Use event length"
+      minimumBookingNotice: 0,
+      dateRanges,
+      eventLength: 120,
+      offsetStart: 0,
+    });
+
+    const formattedSlots = result.map((s) => s.time.format("HH:mm"));
+    // Previously these might have been [12:00, 14:00, 16:00]
+    // Now they must match the block start times exactly
+    expect(formattedSlots).toEqual(["10:30", "12:30", "14:30", "16:30"]);
   });
 
   it("tests slots for 5 minute events", async () => {

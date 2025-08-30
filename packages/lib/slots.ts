@@ -1,3 +1,6 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
+
+/* eslint-disable prettier/prettier */
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAvailability";
@@ -57,18 +60,22 @@ function buildSlotsWithDateRanges({
     }
   >();
 
-  let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
-  const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
+  let interval: number;
+  if (frequency === eventLength) {
+    interval = eventLength;
+  } else {
+    interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
+    const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
 
-  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-      interval = intervalsWithDefinedStartTimes[i];
-      break;
+    for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+      if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+        interval = intervalsWithDefinedStartTimes[i];
+        break;
+      }
     }
   }
 
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
-
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
@@ -78,10 +85,14 @@ function buildSlotsWithDateRanges({
       ? range.start
       : startTimeWithMinNotice;
 
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
+    if (frequency !== eventLength) {
+      slotStartTime =
+        slotStartTime.minute() % interval !== 0
+          ? slotStartTime
+              .startOf("hour")
+              .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+          : slotStartTime;
+    }
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
