@@ -631,7 +631,20 @@ export const downloadLinkSchema = z.object({
 });
 
 // All properties within event type that can and will be updated if needed
-export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
+export const allManagedEventTypeProps: {
+  [k in keyof Omit<
+    Prisma.EventTypeSelect,
+    | "id"
+    | "userId"
+    | "parentId"
+    | "teamId"
+    | "profileId"
+    | "scheduleId"
+    | "instantMeetingScheduleId"
+    | "secondaryEmailId"
+    | "restrictionScheduleId"
+  >]: true;
+} = {
   title: true,
   description: true,
   interfaceLanguage: true,
@@ -682,7 +695,6 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   bookingLimits: true,
   onlyShowFirstAvailableSlot: true,
   slotInterval: true,
-  scheduleId: true,
   workflows: true,
   bookingFields: true,
   durationLimits: true,
@@ -692,6 +704,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockedTimeZone: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  assignRRMembersUsingSegment: true,
+  rrSegmentQueryValue: true,
   isRRWeightsEnabled: true,
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
@@ -706,8 +720,9 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
   locations: allManagedEventTypeProps.locations,
-  scheduleId: allManagedEventTypeProps.scheduleId,
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
+  assignRRMembersUsingSegment: allManagedEventTypeProps.assignRRMembersUsingSegment,
+  rrSegmentQueryValue: allManagedEventTypeProps.rrSegmentQueryValue,
 };
 
 export const emailSchema = emailRegexSchema;
