@@ -498,3 +498,15 @@ export type EventPayloadType = CalendarEvent &
     cancelledBy?: string;
     paymentData?: Record<string, unknown>;
   };
+
+// dto/types.ts
+
+export type BookingWebhookEventDTO =
+  | BookingCreatedDTO
+  | BookingCancelledDTO
+  | BookingRequestedDTO
+  | BookingRescheduledDTO
+  | BookingPaidDTO
+  | BookingPaymentInitiatedDTO
+  | BookingRejectedDTO
+  | BookingNoShowDTO;

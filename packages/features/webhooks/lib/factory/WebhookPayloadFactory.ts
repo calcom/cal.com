@@ -1,26 +1,6 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type {
-  WebhookEventDTO,
-  BookingCreatedDTO,
-  BookingCancelledDTO,
-  BookingRequestedDTO,
-  BookingRescheduledDTO,
-  BookingPaidDTO,
-  BookingPaymentInitiatedDTO,
-  BookingRejectedDTO,
-  BookingNoShowDTO,
-  FormSubmittedDTO,
-  FormSubmittedNoEventDTO,
-  OOOCreatedDTO,
-  RecordingReadyDTO,
-  TranscriptionGeneratedDTO,
-  MeetingStartedDTO,
-  MeetingEndedDTO,
-  InstantMeetingDTO,
-  AfterHostsNoShowDTO,
-  AfterGuestsNoShowDTO,
-} from "../dto/types";
+import type { WebhookEventDTO } from "../dto/types";
 import type { IWebhookPayloadFactory } from "../interface/factory";
 import type { BookingPayloadBuilder } from "./BookingPayloadBuilder";
 import type { FormPayloadBuilder } from "./FormPayloadBuilder";
@@ -41,62 +21,60 @@ export class WebhookPayloadFactory implements IWebhookPayloadFactory {
   ) {}
 
   createPayload(dto: WebhookEventDTO): WebhookPayload {
-    // Use switch statement with proper type narrowing instead of any casts
     switch (dto.triggerEvent) {
       // Booking events
       case WebhookTriggerEvents.BOOKING_CREATED:
-        return this.bookingPayloadBuilder.build(dto as BookingCreatedDTO);
+        return this.bookingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.BOOKING_CANCELLED:
-        return this.bookingPayloadBuilder.build(dto as BookingCancelledDTO);
+        return this.bookingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.BOOKING_REQUESTED:
-        return this.bookingPayloadBuilder.build(dto as BookingRequestedDTO);
+        return this.bookingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.BOOKING_RESCHEDULED:
-        return this.bookingPayloadBuilder.build(dto as BookingRescheduledDTO);
+        return this.bookingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.BOOKING_REJECTED:
-        return this.bookingPayloadBuilder.build(dto as BookingRejectedDTO);
+        return this.bookingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.BOOKING_PAID:
-        return this.bookingPayloadBuilder.build(dto as BookingPaidDTO);
+        return this.bookingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED:
-        return this.bookingPayloadBuilder.build(dto as BookingPaymentInitiatedDTO);
+        return this.bookingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED:
-        return this.bookingPayloadBuilder.build(dto as BookingNoShowDTO);
+        return this.bookingPayloadBuilder.build(dto);
 
       // Form events
       case WebhookTriggerEvents.FORM_SUBMITTED:
-        return this.formPayloadBuilder.build(dto as FormSubmittedDTO);
+        return this.formPayloadBuilder.build(dto);
       case WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT:
-        return this.formPayloadBuilder.build(dto as FormSubmittedNoEventDTO);
+        return this.formPayloadBuilder.build(dto);
 
       // OOO events
       case WebhookTriggerEvents.OOO_CREATED:
-        return this.oooPayloadBuilder.build(dto as OOOCreatedDTO);
+        return this.oooPayloadBuilder.build(dto);
 
       // Recording events
       case WebhookTriggerEvents.RECORDING_READY:
-        return this.recordingPayloadBuilder.build(dto as RecordingReadyDTO);
+        return this.recordingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED:
-        return this.recordingPayloadBuilder.build(dto as TranscriptionGeneratedDTO);
+        return this.recordingPayloadBuilder.build(dto);
 
       // Meeting events
       case WebhookTriggerEvents.MEETING_STARTED:
-        return this.meetingPayloadBuilder.build(dto as MeetingStartedDTO);
+        return this.meetingPayloadBuilder.build(dto);
       case WebhookTriggerEvents.MEETING_ENDED:
-        return this.meetingPayloadBuilder.build(dto as MeetingEndedDTO);
+        return this.meetingPayloadBuilder.build(dto);
 
       // Instant meeting events
       case WebhookTriggerEvents.INSTANT_MEETING:
-        return this.instantMeetingBuilder.build(dto as InstantMeetingDTO);
+        return this.instantMeetingBuilder.build(dto);
 
       // No-show events (special handling)
       case WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW:
       case WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW: {
-        const noShowDto = dto as AfterHostsNoShowDTO | AfterGuestsNoShowDTO;
         return {
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
           payload: {
-            bookingId: noShowDto.bookingId,
-            webhook: noShowDto.webhook,
+            bookingId: dto.bookingId,
+            webhook: dto.webhook,
           },
         };
       }
@@ -104,7 +82,7 @@ export class WebhookPayloadFactory implements IWebhookPayloadFactory {
       default: {
         // TypeScript exhaustiveness check - this should never happen if all cases are covered
         const _exhaustiveCheck: never = dto;
-        throw new Error(`Unsupported triggerEvent: ${(dto as WebhookEventDTO).triggerEvent}`);
+        throw new Error(`Unsupported triggerEvent: ${JSON.stringify(_exhaustiveCheck)}`);
       }
     }
   }
