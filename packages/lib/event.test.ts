@@ -9,7 +9,7 @@ describe("event tests", () => {
     it("should return event_between_users message if no name", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -36,7 +36,7 @@ describe("event tests", () => {
     it("should return event_between_users message if no name with team set", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -64,7 +64,7 @@ describe("event tests", () => {
     it("should return event name if no vars used", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -79,7 +79,7 @@ describe("event tests", () => {
     it("should support templating of event type", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -94,7 +94,7 @@ describe("event tests", () => {
     it("should support templating of scheduler", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -109,7 +109,7 @@ describe("event tests", () => {
     it("should support templating of organiser", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -124,7 +124,7 @@ describe("event tests", () => {
     it("should support templating of user", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -139,7 +139,7 @@ describe("event tests", () => {
     it("should support templating of attendee", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -154,7 +154,7 @@ describe("event tests", () => {
     it("should support templating of host", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -169,7 +169,7 @@ describe("event tests", () => {
     it("should support templating of attendee with host/attendee", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -184,7 +184,7 @@ describe("event tests", () => {
     it("should support templating of host with host/attendee", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName(
+      const result = event.getEventNameSync(
         {
           attendeeName: "example attendee",
           eventType: "example event type",
@@ -202,7 +202,7 @@ describe("event tests", () => {
     it("should support templating of custom booking fields", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -219,7 +219,7 @@ describe("event tests", () => {
     it("should support templating of custom booking fields with values", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -239,7 +239,7 @@ describe("event tests", () => {
     it("should support templating of custom booking fields with non-string values", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -259,7 +259,7 @@ describe("event tests", () => {
     it("should support templating of custom booking fields with no value", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -279,7 +279,7 @@ describe("event tests", () => {
     it("should support templating of location via {Location}", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -295,7 +295,7 @@ describe("event tests", () => {
     it("should support templating of location via {LOCATION}", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -311,7 +311,7 @@ describe("event tests", () => {
     it("should strip location template if none set", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -326,7 +326,7 @@ describe("event tests", () => {
     it("should strip location template if empty", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -342,7 +342,7 @@ describe("event tests", () => {
     it("should template {Location} as passed location if unknown type", () => {
       const tFunc = vi.fn(() => "foo");
 
-      const result = event.getEventName({
+      const result = event.getEventNameSync({
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
@@ -359,7 +359,7 @@ describe("event tests", () => {
   it("should support templating of event duration", () => {
     const tFunc = vi.fn(() => "foo");
 
-    const result = event.getEventName({
+    const result = event.getEventNameSync({
       attendeeName: "example attendee",
       eventType: "example event type",
       host: "example host",
@@ -373,7 +373,7 @@ describe("event tests", () => {
   it("should support templating of Scheduler first name", () => {
     const tFunc = vi.fn(() => "foo");
 
-    const result = event.getEventName({
+    const result = event.getEventNameSync({
       attendeeName: "example attendee",
       eventType: "example event type",
       host: "example host",

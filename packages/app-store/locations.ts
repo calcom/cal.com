@@ -325,6 +325,11 @@ export const guessEventLocationType = async (locationTypeOrValue: string | undef
   return eventLocationType || getStaticLinkLocationByValue(locationTypeOrValue);
 };
 
+export const guessEventLocationTypeSync = (locationTypeOrValue: string | undefined | null) => {
+  const eventLocationType = getEventLocationTypeSync(locationTypeOrValue);
+  return eventLocationType || getStaticLinkLocationByValue(locationTypeOrValue);
+};
+
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
 type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link" | "customLabel">;
@@ -542,7 +547,7 @@ export const getOrganizerInputLocationTypes = async () => {
 };
 
 export const getOrganizerInputLocationTypesSync = () => {
-  const result: DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"][] = [];
+  const result: (DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"])[] = [];
 
   const organizerInputTypeLocations = locations.filter((location) => !!location.organizerInputType);
   organizerInputTypeLocations?.forEach((l) => result.push(l.type));

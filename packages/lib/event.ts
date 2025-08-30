@@ -177,8 +177,8 @@ export function getEventNameSync(eventNameObj: EventNameObjectType, forAttendeeV
         bookingFieldValue !== null &&
         !Array.isArray(bookingFieldValue)
       ) {
-        if ("value" in bookingFieldValue && typeof bookingFieldValue.value === "string") {
-          const valueAsString = bookingFieldValue.value;
+        if ("value" in bookingFieldValue) {
+          const valueAsString = bookingFieldValue.value?.toString();
           fieldValue =
             variable === "location"
               ? guessEventLocationTypeSync(valueAsString)?.label || valueAsString
