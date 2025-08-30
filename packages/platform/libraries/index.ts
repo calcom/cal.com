@@ -126,6 +126,8 @@ export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/route
 
 export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
 
+export * from "./availability";
+
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
 export { TeamService } from "@calcom/lib/server/service/teamService";
