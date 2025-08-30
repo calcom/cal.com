@@ -1,5 +1,7 @@
 import type { Prisma as PrismaType } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 
 /**
@@ -47,4 +49,92 @@ export async function createRoundRobinTeamEventType({
   }
 
   return createdEventType;
+}
+
+/**
+ * Sets up a team and booking seats for testing team role visibility
+ * @param user - The original user who created the event
+ * @param booking - The booking to associate with the team
+ * @param teamUser - The user to assign the specified team role
+ * @param role - The team role to assign (ADMIN, MEMBER, or OWNER)
+ * @returns Object containing the created team and booking seats
+ */
+export async function setupTeamAndBookingSeats(
+  user: { id: number },
+  booking: { uid: string; id: number },
+  teamUser: { id: number },
+  role: "ADMIN" | "MEMBER" | "OWNER"
+) {
+  const bookingWithEventType = await prisma.booking.findFirst({
+    where: { uid: booking.uid },
+    select: {
+      id: true,
+      eventTypeId: true,
+    },
+  });
+
+  // Create a team and assign the event type to it
+  const team = await prisma.team.create({
+    data: {
+      name: "Test Team",
+      slug: `test-team-${randomString(10)}`,
+    },
+  });
+
+  await prisma.eventType.update({
+    where: { id: bookingWithEventType?.eventTypeId || -1 },
+    data: {
+      seatsShowAttendees: false,
+      teamId: team.id,
+    },
+  });
+
+  // Add team user with specified role
+  await prisma.membership.create({
+    data: {
+      userId: teamUser.id,
+      teamId: team.id,
+      role: role,
+      accepted: true,
+    },
+  });
+
+  // Add original user as MEMBER only if they're different from teamUser
+  if (user.id !== teamUser.id) {
+    await prisma.membership.create({
+      data: {
+        userId: user.id,
+        teamId: team.id,
+        role: "MEMBER",
+        accepted: true,
+      },
+    });
+  }
+
+  const bookingAttendees = await prisma.attendee.findMany({
+    where: { bookingId: booking.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+
+  const bookingSeats = bookingAttendees.map((attendee) => ({
+    bookingId: booking.id,
+    attendeeId: attendee.id,
+    referenceUid: uuidv4(),
+    data: {
+      responses: {
+        name: attendee.name,
+        email: attendee.email,
+      },
+    },
+  }));
+
+  await prisma.bookingSeat.createMany({
+    data: bookingSeats,
+  });
+
+  return { team, bookingSeats };
 }
