@@ -59,8 +59,6 @@ function buildSlotsWithDateRanges({
   let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
   const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
 
-  // Only apply interval alignment if frequency is less than eventLength
-  // When frequency equals eventLength (e.g., for "Use event length"), use frequency directly
   if (frequency < eventLength) {
     for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
       if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
@@ -69,7 +67,7 @@ function buildSlotsWithDateRanges({
       }
     }
   } else {
-    interval = frequency; // Use frequency as interval when it equals or exceeds eventLength
+    interval = frequency;
   }
 
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
