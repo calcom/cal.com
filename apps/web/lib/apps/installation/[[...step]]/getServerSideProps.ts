@@ -202,9 +202,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let isOrg = false;
   const stepsEnum = z.enum(STEPS);
   const parsedAppSlug = z.coerce.string().parse(query?.slug);
-  const parsedStepParam = z.coerce.string().parse(params?.step);
+  const stepSegments = Array.isArray(params?.step) ? params?.step : params?.step ? [params?.step] : [];
+  const parsedStepParam = z.string().optional().parse(stepSegments[0]);
   const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
-  const _ = stepsEnum.parse(parsedStepParam);
   const session = await getServerSession({ req });
   if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
   const locale = await getLocale(context.req);
@@ -222,6 +222,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let userTeams = user.teams;
   const hasTeams = Boolean(userTeams.length);
 
+  let initialStep = parsedStepParam;
+  if (!hasTeams && initialStep === AppOnboardingSteps.ACCOUNTS_STEP) {
+    initialStep = AppOnboardingSteps.EVENT_TYPES_STEP;
+  } else if (!initialStep) {
+    initialStep = hasTeams ? AppOnboardingSteps.ACCOUNTS_STEP : AppOnboardingSteps.EVENT_TYPES_STEP;
+  }
+  stepsEnum.parse(initialStep);
+
   if (parsedTeamIdParam) {
     const currentTeam = userTeams.find((team) => team.id === parsedTeamIdParam);
     if (!currentTeam?.id) {
@@ -234,7 +242,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
+  if (initialStep === AppOnboardingSteps.EVENT_TYPES_STEP) {
     if (!showEventTypesStep) {
       return {
         redirect: {
@@ -297,8 +305,38 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   } else {
     credentialId = appInstalls.find((item) => !!item.userId && item.userId == user.id)?.id ?? null;
   }
-  // dont allow app installation without cretendialId
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
+
+  if (!hasTeams && !credentialId) {
+    try {
+      const { createDefaultInstallation } = await import("@calcom/app-store/_utils/installation");
+
+      const newCredential = await createDefaultInstallation({
+        appType: appMetadata.type,
+        user: {
+          id: user.id,
+        },
+        slug: parsedAppSlug,
+        key: {},
+        teamId: undefined,
+      });
+
+      credentialId = newCredential.id;
+      console.log(`Auto-installed ${parsedAppSlug} for user ${user.id} (personal account - no teams)`);
+    } catch (error) {
+      console.error(`Failed to auto-install app ${parsedAppSlug} for user ${user.id}:`, error);
+
+      if ((error as any)?.code === "P2002") {
+        const existing = await prisma.credential.findFirst({
+          where: { appId: parsedAppSlug, userId: user.id, teamId: null },
+          select: { id: true },
+        });
+        if (existing?.id) credentialId = existing.id;
+      }
+    }
+  }
+
+  // dont allow app installation without credentialId
+  if (initialStep === AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
     return { redirect: { permanent: false, destination: "/apps" } };
   }
 
@@ -307,7 +345,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       app,
       appMetadata,
       showEventTypesStep,
-      step: parsedStepParam,
+      step: initialStep,
       teams: teamsWithIsAppInstalled,
       personalAccount,
       eventTypeGroups,
