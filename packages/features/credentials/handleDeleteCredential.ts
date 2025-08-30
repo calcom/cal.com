@@ -472,7 +472,7 @@ const removeAppFromEventTypeMetadata = (
 ) => {
   const appMetadata = eventTypeMetadata?.apps
     ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {
-        if (appName !== appSlugToDelete) {
+        if (appName !== appSlugToDelete && filteredApps) {
           filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
         }
         return filteredApps;

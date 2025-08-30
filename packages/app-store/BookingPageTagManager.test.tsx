@@ -104,7 +104,6 @@ describe("BookingPageTagManager", () => {
         eventType={{
           metadata: {
             apps: {
-              //@ts-expect-error Testing for non-existent app
               nonexistentapp: {
                 enabled: true,
               },
