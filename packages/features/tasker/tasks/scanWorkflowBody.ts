@@ -78,7 +78,7 @@ export async function scanWorkflowBody(payload: string) {
       const timeFormat = getTimeFormatStringFromUserTimeFormat(workflowStep.workflow.user?.timeFormat);
 
       // Determine if body is a template
-      const defaultTemplate = getTemplateBodyForAction({
+      const defaultTemplate = await getTemplateBodyForAction({
         action: workflowStep.action,
         locale: workflowStep.workflow.user?.locale ?? "en",
         t: await getTranslation(workflowStep.workflow.user?.locale ?? "en", "common"),

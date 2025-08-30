@@ -4,67 +4,120 @@
 **/
 import type { AppMeta } from "@calcom/types/App";
 
-import { AppMetadataMap } from "./app.metadata.generated";
+import { AnalyticsMetadataMap } from "./analytics.metadata.generated";
+import { CalendarMetadataMap } from "./calendar.metadata.generated";
+import { CrmMetadataMap } from "./crm.metadata.generated";
+import { LocationMetadataMap } from "./location.metadata.generated";
+import { PaymentMetadataMap } from "./payment.metadata.generated";
+import { VideoMetadataMap } from "./video.metadata.generated";
 
 export async function getAppFromSlug(slug: string | undefined): Promise<AppMeta | undefined> {
   if (!slug) return undefined;
 
-  for (const [appKey, appImport] of Object.entries(AppMetadataMap)) {
-    try {
-      const appMeta = await appImport;
-      const app = appMeta.default || appMeta;
-      if (app.slug === slug) {
-        return app as AppMeta;
+  const allMetadataMaps = [
+    CalendarMetadataMap,
+    PaymentMetadataMap,
+    VideoMetadataMap,
+    AnalyticsMetadataMap,
+    CrmMetadataMap,
+    LocationMetadataMap,
+  ];
+
+  for (const metadataMap of allMetadataMaps) {
+    for (const [appKey, appImport] of Object.entries(metadataMap)) {
+      try {
+        const appMeta = await appImport;
+        const app = (appMeta as any).metadata;
+        if (app.slug === slug) {
+          return app as AppMeta;
+        }
+      } catch (error) {
+        console.warn(`Failed to load app metadata for ${appKey}:`, error);
       }
-    } catch (error) {
-      console.warn(`Failed to load app metadata for ${appKey}:`, error);
     }
   }
   return undefined;
 }
 
 export async function getAppName(name: string): Promise<string | null> {
-  const appImport = AppMetadataMap[name as keyof typeof AppMetadataMap];
-  if (!appImport) return null;
+  const allMetadataMaps = [
+    CalendarMetadataMap,
+    PaymentMetadataMap,
+    VideoMetadataMap,
+    AnalyticsMetadataMap,
+    CrmMetadataMap,
+    LocationMetadataMap,
+  ];
 
-  try {
-    const appMeta = await appImport;
-    const app = appMeta.default || appMeta;
-    return app?.name ?? null;
-  } catch (error) {
-    console.warn(`Failed to load app metadata for ${name}:`, error);
-    return null;
+  for (const metadataMap of allMetadataMaps) {
+    const appImport = metadataMap[name as keyof typeof metadataMap];
+    if (appImport) {
+      try {
+        const appMeta = await appImport;
+        const app = (appMeta as any).metadata;
+        return app?.name ?? null;
+      } catch (error) {
+        console.warn(`Failed to load app metadata for ${name}:`, error);
+      }
+    }
   }
+  return null;
 }
 
 export async function getAppType(name: string): Promise<string> {
-  const appImport = AppMetadataMap[name as keyof typeof AppMetadataMap];
-  if (!appImport) return "Unknown";
+  const allMetadataMaps = [
+    CalendarMetadataMap,
+    PaymentMetadataMap,
+    VideoMetadataMap,
+    AnalyticsMetadataMap,
+    CrmMetadataMap,
+    LocationMetadataMap,
+  ];
 
-  try {
-    const appMeta = await appImport;
-    const app = appMeta.default || appMeta;
-    const type = app?.type;
+  for (const metadataMap of allMetadataMaps) {
+    const appImport = metadataMap[name as keyof typeof metadataMap];
+    if (appImport) {
+      try {
+        const appMeta = await appImport;
+        const app = (appMeta as any).metadata;
+        const type = app?.type;
 
-    if (type?.endsWith("_calendar")) {
-      return "Calendar";
+        if (type?.endsWith("_calendar")) {
+          return "Calendar";
+        }
+        if (type?.endsWith("_payment")) {
+          return "Payment";
+        }
+        if (type?.endsWith("_video")) {
+          return "Video";
+        }
+        if (type?.endsWith("_analytics")) {
+          return "Analytics";
+        }
+        if (type?.endsWith("_crm")) {
+          return "CRM";
+        }
+        return "Unknown";
+      } catch (error) {
+        console.warn(`Failed to load app metadata for ${name}:`, error);
+      }
     }
-    if (type?.endsWith("_payment")) {
-      return "Payment";
-    }
-    return "Unknown";
-  } catch (error) {
-    console.warn(`Failed to load app metadata for ${name}:`, error);
-    return "Unknown";
   }
+  return "Unknown";
 }
 
 export async function getAppFromLocationValue(type: string): Promise<AppMeta | undefined> {
-  for (const [appKey, appImport] of Object.entries(AppMetadataMap)) {
+  for (const [appKey, appImport] of Object.entries(LocationMetadataMap)) {
     try {
       const appMeta = await appImport;
-      const app = appMeta.default || appMeta;
-      if (app?.appData?.location?.type === type) {
+      const app = appMeta.metadata;
+      if (
+        app &&
+        "appData" in app &&
+        app.appData &&
+        "location" in app.appData &&
+        app.appData.location?.type === type
+      ) {
         return app as AppMeta;
       }
     } catch (error) {

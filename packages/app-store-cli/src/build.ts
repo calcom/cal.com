@@ -467,36 +467,125 @@ function generateFiles() {
     videoOutput.push(...videoAdapters);
   }
 
-  const appMetadataOutput = [];
-  const appMetadataServices = getExportedObject("AppMetadataMap", {
-    importConfig: [
-      {
-        fileToBeImported: "config.json",
-        importName: "default",
-      },
-      {
-        fileToBeImported: "_metadata.ts",
+  forEachAppDir((app) => {
+    const minimalMetadataPath = path.join(APP_STORE_PATH, app.path, "minimal-metadata.ts");
+
+    const minimalMetadata = {
+      slug: app.slug,
+      name: app.name,
+      type: app.type,
+      ...(app.appData?.location && {
+        appData: {
+          location: {
+            type: app.appData.location.type,
+            ...(app.appData.location.linkType && { linkType: app.appData.location.linkType }),
+            ...(app.appData.location.messageForOrganizer && {
+              messageForOrganizer: app.appData.location.messageForOrganizer,
+            }),
+            ...(app.appData.location.variable && { variable: app.appData.location.variable }),
+            ...(app.appData.location.defaultValueVariable && {
+              defaultValueVariable: app.appData.location.defaultValueVariable,
+            }),
+            ...(app.appData.location.organizerInputType && {
+              organizerInputType: app.appData.location.organizerInputType,
+            }),
+          },
+        },
+      }),
+    };
+
+    const minimalMetadataContent = `export const metadata = ${JSON.stringify(minimalMetadata, null, 2)};`;
+    fs.writeFileSync(minimalMetadataPath, minimalMetadataContent);
+  });
+
+  const calendarMetadataOutput = [];
+  const calendarMetadataServices = getExportedObject(
+    "CalendarMetadataMap",
+    {
+      importConfig: {
+        fileToBeImported: "minimal-metadata.ts",
         importName: "metadata",
       },
-    ],
-    lazyImport: true,
-  });
-  appMetadataOutput.push(...appMetadataServices);
+      lazyImport: true,
+    },
+    (app: App) => {
+      return app.type && app.type.endsWith("_calendar");
+    }
+  );
+  calendarMetadataOutput.push(...calendarMetadataServices);
+
+  const paymentMetadataOutput = [];
+  const paymentMetadataServices = getExportedObject(
+    "PaymentMetadataMap",
+    {
+      importConfig: {
+        fileToBeImported: "minimal-metadata.ts",
+        importName: "metadata",
+      },
+      lazyImport: true,
+    },
+    (app: App) => {
+      return app.type && app.type.endsWith("_payment");
+    }
+  );
+  paymentMetadataOutput.push(...paymentMetadataServices);
+
+  const videoMetadataOutput = [];
+  const videoMetadataServices = getExportedObject(
+    "VideoMetadataMap",
+    {
+      importConfig: {
+        fileToBeImported: "minimal-metadata.ts",
+        importName: "metadata",
+      },
+      lazyImport: true,
+    },
+    (app: App) => {
+      return app.type && app.type.endsWith("_video");
+    }
+  );
+  videoMetadataOutput.push(...videoMetadataServices);
+
+  const analyticsMetadataOutput = [];
+  const analyticsMetadataServices = getExportedObject(
+    "AnalyticsMetadataMap",
+    {
+      importConfig: {
+        fileToBeImported: "minimal-metadata.ts",
+        importName: "metadata",
+      },
+      lazyImport: true,
+    },
+    (app: App) => {
+      return app.type && app.type.endsWith("_analytics");
+    }
+  );
+  analyticsMetadataOutput.push(...analyticsMetadataServices);
+
+  const crmMetadataOutput = [];
+  const crmMetadataServices = getExportedObject(
+    "CrmMetadataMap",
+    {
+      importConfig: {
+        fileToBeImported: "minimal-metadata.ts",
+        importName: "metadata",
+      },
+      lazyImport: true,
+    },
+    (app: App) => {
+      return app.type && app.type.endsWith("_crm");
+    }
+  );
+  crmMetadataOutput.push(...crmMetadataServices);
 
   const locationMetadataOutput = [];
   const locationMetadataServices = getExportedObject(
-    "LocationAppMetadataMap",
+    "LocationMetadataMap",
     {
-      importConfig: [
-        {
-          fileToBeImported: "config.json",
-          importName: "default",
-        },
-        {
-          fileToBeImported: "_metadata.ts",
-          importName: "metadata",
-        },
-      ],
+      importConfig: {
+        fileToBeImported: "minimal-metadata.ts",
+        importName: "metadata",
+      },
       lazyImport: true,
     },
     (app: App) => {
@@ -522,7 +611,11 @@ function generateFiles() {
     ["calendar.services.generated.ts", calendarOutput],
     ["payment.services.generated.ts", paymentOutput],
     ["video.adapters.generated.ts", videoOutput],
-    ["app.metadata.generated.ts", appMetadataOutput],
+    ["calendar.metadata.generated.ts", calendarMetadataOutput],
+    ["payment.metadata.generated.ts", paymentMetadataOutput],
+    ["video.metadata.generated.ts", videoMetadataOutput],
+    ["analytics.metadata.generated.ts", analyticsMetadataOutput],
+    ["crm.metadata.generated.ts", crmMetadataOutput],
     ["location.metadata.generated.ts", locationMetadataOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {

@@ -4,7 +4,7 @@
 import type { TFunction } from "i18next";
 import { z } from "zod";
 
-import { LocationAppMetadataMap } from "@calcom/app-store/location.metadata.generated";
+import { LocationMetadataMap } from "@calcom/app-store/location.metadata.generated";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
@@ -235,10 +235,10 @@ async function getLocationApps(): Promise<EventLocationTypeFromApp[]> {
   if (cachedLocationApps) return cachedLocationApps;
 
   const locationsFromApps: EventLocationTypeFromApp[] = [];
-  for (const [appName, appImport] of Object.entries(LocationAppMetadataMap)) {
+  for (const [appName, appImport] of Object.entries(LocationMetadataMap)) {
     try {
       const appMeta = await appImport;
-      const meta = appMeta.default || appMeta;
+      const meta = (appMeta as any).metadata;
       if (meta?.appData?.location) {
         const location = meta.appData.location;
         // TODO: This template variable replacement should happen once during app-store:build.
@@ -250,18 +250,20 @@ async function getLocationApps(): Promise<EventLocationTypeFromApp[]> {
           }
         }
         const newLocation: EventLocationTypeFromApp = {
-          ...location,
-          messageForOrganizer: location.messageForOrganizer || `Set ${location.label} link`,
+          type: location.type,
+          label: location.label,
+          linkType: (location.linkType as "static" | "dynamic") || "static",
+          messageForOrganizer: (location as any).messageForOrganizer || `Set ${location.label} link`,
           iconUrl: meta.logo,
           // For All event location apps, locationLink is where we store the input
           // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
-          variable: location.variable || "locationLink",
-          defaultValueVariable: location.defaultValueVariable || "link",
+          variable: (location as any).variable || "locationLink",
+          defaultValueVariable: (location as any).defaultValueVariable || "link",
         };
 
         // Static links always require organizer to input
         if (newLocation.linkType === "static") {
-          (newLocation as any).organizerInputType = location.organizerInputType || "text";
+          (newLocation as any).organizerInputType = (location as any).organizerInputType || "text";
           if ((newLocation as any).organizerInputPlaceholder?.match(/https?:\/\//)) {
             // HACK: Translation ends up removing https? if it's in the beginning :(
             (newLocation as any).organizerInputPlaceholder = ` ${
@@ -496,9 +498,9 @@ export function getSuccessPageLocationMessage(
   return locationToDisplay;
 }
 
-export const getTranslatedLocation = (
+export const getTranslatedLocation = async (
   location: PrivacyFilteredLocationObject,
-  eventLocationType: ReturnType<typeof getEventLocationType>,
+  eventLocationType: Awaited<ReturnType<typeof getEventLocationType>>,
   t: TFunction
 ) => {
   if (!eventLocationType) return null;
