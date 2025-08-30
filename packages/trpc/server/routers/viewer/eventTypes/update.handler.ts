@@ -195,8 +195,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? eventType.seatsPerTimeSlot;
-  const finalRecurringEvent = recurringEvent ?? eventType.recurringEvent;
+  const finalSeatsPerTimeSlot =
+    seatsPerTimeSlot === undefined ? eventType.seatsPerTimeSlot : seatsPerTimeSlot;
+  const finalRecurringEvent = recurringEvent === undefined ? eventType.recurringEvent : recurringEvent;
 
   if (finalSeatsPerTimeSlot && finalRecurringEvent) {
     throw new TRPCError({
