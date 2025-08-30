@@ -16,6 +16,7 @@ export type GetSlots = {
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
 };
+export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 
@@ -128,6 +129,7 @@ function buildSlotsWithDateRanges({
       ? range.start
       : startTimeWithMinNotice;
 
+    // For current day bookings, normalizing the seconds to zero to avoid issues with time calculations
     slotStartTime = slotStartTime.set("second", 0).set("millisecond", 0);
 
     if (frequency < eventLength && slotStartTime.minute() % interval !== 0) {
