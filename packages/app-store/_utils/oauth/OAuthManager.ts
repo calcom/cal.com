@@ -313,7 +313,8 @@ export class OAuthManager {
           }>
         >)
   ) {
-    let response;
+    let response: Response | null = null;
+    let error: unknown;
     const myLog = log.getSubLogger({ prefix: ["request"] });
     if (this.autoCheckTokenExpiryOnRequest) {
       await this.getTokenObjectOrFetch();
@@ -327,7 +328,7 @@ export class OAuthManager {
       } catch (e) {
         // Get response from error so that code further down can categorize it into tokenUnusable or access token unusable
         // Those methods accept response only
-        response = handleFetchError(e);
+        error = e;
       }
     } else {
       this.assertCurrentTokenObjectIsSet();
@@ -346,17 +347,20 @@ export class OAuthManager {
       });
     }
 
-    myLog.debug(
-      "Response from request",
-      safeStringify({
-        text: await response.clone().text(),
-        status: response.status,
-        statusText: response.statusText,
-      })
-    );
+    if (response) {
+      myLog.debug(
+        "Response from request",
+        safeStringify({
+          text: await response.clone().text(),
+          status: response.status,
+          statusText: response.statusText,
+        })
+      );
+    }
 
     const { tokenStatus, json } = await this.getAndValidateOAuth2Response({
       response,
+      error,
     });
 
     if (tokenStatus === TokenStatus.UNUSABLE_TOKEN_OBJECT) {
@@ -370,8 +374,8 @@ export class OAuthManager {
     }
 
     // We are done categorizing the token status. Now, we can throw back
-    if ("myFetchError" in (json || {})) {
-      throw new Error(json.myFetchError);
+    if (error) {
+      throw error;
     }
 
     return { tokenStatus: tokenStatus, json };
@@ -471,7 +475,8 @@ export class OAuthManager {
   // TODO: On regenerating access_token successfully, we should call makeTokenObjectValid(to counter invalidateTokenObject). This should fix stale banner in UI to reconnect when the connection is working
   private async refreshOAuthToken({ refreshToken }: { refreshToken: string | null }) {
     const myLog = log.getSubLogger({ prefix: ["refreshOAuthToken"] });
-    let response;
+    let response: Response | null = null;
+    let error: unknown;
     if (this.resourceOwner.id && this.useCredentialSync) {
       if (
         !this.credentialSyncVariables.CREDENTIAL_SYNC_SECRET ||
@@ -518,25 +523,25 @@ export class OAuthManager {
       try {
         response = await this.fetchNewTokenObject({ refreshToken });
       } catch (e) {
-        response = handleFetchError(e);
-      }
-      if (!response) {
-        throw new Error("`fetchNewTokenObject` could not refresh the token");
+        error = e;
       }
     }
 
-    const clonedResponse = response.clone();
-    myLog.info(
-      "Response status from refreshOAuthToken",
-      safeStringify({
-        ok: clonedResponse.ok,
-        status: clonedResponse.status,
-        statusText: clonedResponse.statusText,
-      })
-    );
+    if (response) {
+      const clonedResponse = response.clone();
+      myLog.info(
+        "Response status from refreshOAuthToken",
+        safeStringify({
+          ok: clonedResponse.ok,
+          status: clonedResponse.status,
+          statusText: clonedResponse.statusText,
+        })
+      );
+    }
 
     const { json, tokenStatus } = await this.getAndValidateOAuth2Response({
       response,
+      error,
     });
     if (tokenStatus === TokenStatus.UNUSABLE_TOKEN_OBJECT) {
       await this.invalidateTokenObject();
@@ -544,9 +549,8 @@ export class OAuthManager {
       await this.expireAccessToken();
     }
 
-    if (json && json.myFetchError) {
-      // Throw error back as it isn't a valid token response and we can't process it further
-      throw new Error(json.myFetchError);
+    if (error) {
+      throw error;
     }
     const parsedToken = OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(json);
     if (!parsedToken.success) {
@@ -559,8 +563,27 @@ export class OAuthManager {
     return parsedToken.data;
   }
 
-  private async getAndValidateOAuth2Response({ response }: { response: Response }) {
+  private async getAndValidateOAuth2Response({
+    response,
+    error,
+  }: {
+    response: Response | null;
+    error: unknown;
+  }) {
     const myLog = log.getSubLogger({ prefix: ["getAndValidateOAuth2Response"] });
+    if (!response) {
+      if (error) {
+        response = new Response(
+          JSON.stringify({ __error: error instanceof Error ? error.message : "UNKNOWN_ERROR" }),
+          { status: 500 }
+        );
+      }
+    }
+
+    if (!response) {
+      throw new Error("Could not get the token response");
+    }
+
     const clonedResponse = response.clone();
 
     // handle empty response (causes crash otherwise on doing json() as "" is invalid JSON) which is valid in some cases like PATCH calls(with 204 response)
@@ -616,16 +639,4 @@ function ensureValidResourceOwner(
       throw new Error("resourceOwner should have id set");
     }
   }
-}
-
-/**
- * It converts error into a Response
- */
-function handleFetchError(e: unknown) {
-  const myLog = log.getSubLogger({ prefix: ["handleFetchError"] });
-  myLog.debug("Error", safeStringify(e));
-  if (e instanceof Error) {
-    return new Response(JSON.stringify({ myFetchError: e.message }), { status: 500 });
-  }
-  return new Response(JSON.stringify({ myFetchError: "UNKNOWN_ERROR" }), { status: 500 });
 }
