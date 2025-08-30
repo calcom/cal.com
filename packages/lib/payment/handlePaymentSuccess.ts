@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { z } from "zod";
 
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
@@ -13,9 +14,10 @@ import { getBooking } from "@calcom/lib/payment/getBooking";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import logger from "../logger";
+
+const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
 export async function handlePaymentSuccess(paymentId: number, bookingId: number) {

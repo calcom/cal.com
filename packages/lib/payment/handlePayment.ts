@@ -1,11 +1,13 @@
 import type { AppCategories, Prisma } from "@prisma/client";
+import { z } from "zod";
 
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+
+const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
 
 const isPaymentService = (x: unknown): x is { PaymentService: any } =>
   !!x && typeof x === "object" && "PaymentService" in x && typeof x.PaymentService === "function";
