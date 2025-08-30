@@ -15,7 +15,6 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
 };
-export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 
@@ -57,69 +56,23 @@ function buildSlotsWithDateRanges({
     }
   >();
 
-  let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
-  const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
-
-  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-      interval = intervalsWithDefinedStartTimes[i];
-      break;
-    }
-  }
-
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-  const slotBoundaries = new Map<number, true>();
-
-  orderedDateRanges.forEach((range) => {
+  for (const range of orderedDateRanges) {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
 
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
-
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
-
-    // Find the nearest appropriate slot boundary if this time falls within an existing slot
-    const slotBoundariesValueArray = Array.from(slotBoundaries.keys());
-    if (slotBoundariesValueArray.length > 0) {
-      slotBoundariesValueArray.sort((a, b) => a - b);
-
-      let prevBoundary = null;
-      for (let i = slotBoundariesValueArray.length - 1; i >= 0; i--) {
-        if (slotBoundariesValueArray[i] < slotStartTime.valueOf()) {
-          prevBoundary = slotBoundariesValueArray[i];
-          break;
-        }
-      }
-
-      if (prevBoundary) {
-        const prevBoundaryEnd = dayjs(prevBoundary).add(frequency + (offsetStart ?? 0), "minutes");
-        if (prevBoundaryEnd.isAfter(slotStartTime)) {
-          const dayjsPrevBoundary = dayjs(prevBoundary);
-          if (!dayjsPrevBoundary.isBefore(range.start)) {
-            slotStartTime = dayjsPrevBoundary;
-          } else {
-            slotStartTime = prevBoundaryEnd;
-          }
-          slotStartTime = slotStartTime.tz(timeZone);
-        }
-      }
-    }
+    slotStartTime = slotStartTime.add(offsetStart, "minutes").tz(timeZone);
 
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
       const slotKey = slotStartTime.toISOString();
       if (slots.has(slotKey)) {
-        slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+        slotStartTime = slotStartTime.add(frequency, "minutes");
         continue;
       }
-
-      slotBoundaries.set(slotStartTime.valueOf(), true);
 
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
@@ -148,9 +101,9 @@ function buildSlotsWithDateRanges({
       }
 
       slots.set(slotKey, slotData);
-      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+      slotStartTime = slotStartTime.add(frequency, "minutes");
     }
-  });
+  }
 
   return Array.from(slots.values());
 }
