@@ -145,14 +145,14 @@ describe("createAttributes", () => {
     const attributeAssignments = await prismock.attributeToUser.findMany({
       where: {
         id: {
-          not: null,
+          not: undefined,
         },
       },
     });
     const attributeOptions = await prismock.attributeOption.findMany({
       where: {
         id: {
-          not: null,
+          not: undefined,
         },
       },
       include: { assignedUsers: true },
@@ -237,7 +237,7 @@ describe("createAttributes", () => {
     const attributeAssignments = await prismock.attributeToUser.findMany({
       where: {
         id: {
-          not: null,
+          not: undefined,
         },
       },
     });

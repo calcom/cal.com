@@ -16,7 +16,7 @@ export const createFeatureFixture = (page: Page) => {
       const features = await prisma.feature.findMany({
         where: {
           slug: {
-            not: null,
+            not: undefined,
           },
         },
       });
