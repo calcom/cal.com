@@ -23,12 +23,14 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
 import {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
   ReserveSlotInput_2024_09_04,
 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
+import { Host } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({
@@ -147,13 +149,19 @@ export class SlotsService_2024_09_04 {
     }
 
     const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
-    if (nonSeatedEventAlreadyBooked) {
+    const isRoundRobinEvent = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
+    if (nonSeatedEventAlreadyBooked && !isRoundRobinEvent) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
-    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+    if (isRoundRobinEvent) {
+      await this.validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
+    } else {
+      await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    }
 
-    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
 
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
@@ -212,6 +220,59 @@ export class SlotsService_2024_09_04 {
           ", "
         )}`
       );
+    }
+  }
+
+  async validateRoundRobinSlotAvailability(
+    eventTypeId: number,
+    startDate: DateTime,
+    endDate: DateTime,
+    hosts: Host[]
+  ) {
+    const fixedHosts = hosts.filter((host) => host.isFixed === true);
+    const nonFixedHosts = hosts.filter((host) => host.isFixed === false);
+
+    if (fixedHosts.length > 0) {
+      await this.validateFixedHostsAvailability(eventTypeId, startDate, endDate, fixedHosts);
+    } else {
+      await this.validateNonFixedHostsAvailability(eventTypeId, startDate, endDate, nonFixedHosts);
+    }
+  }
+
+  async validateFixedHostsAvailability(
+    eventTypeId: number,
+    startDate: DateTime,
+    endDate: DateTime,
+    hosts: Host[]
+  ) {
+    const existingBooking = await this.slotsRepository.getExistingBooking(
+      eventTypeId,
+      startDate.toJSDate(),
+      endDate.toJSDate()
+    );
+    const hasHostAsAttendee = hosts.some((host) =>
+      existingBooking?.attendees.some((attendee) => attendee.id === host.userId)
+    );
+
+    if (hasHostAsAttendee) {
+      throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
+    }
+  }
+
+  async validateNonFixedHostsAvailability(
+    eventTypeId: number,
+    startDate: DateTime,
+    endDate: DateTime,
+    hosts: Host[]
+  ) {
+    const existingSlotReservations = await this.slotsRepository.getExistingSlotsReservationCount(
+      eventTypeId,
+      startDate.toISO() ?? "",
+      endDate.toISO() ?? ""
+    );
+
+    if (existingSlotReservations === hosts.length) {
+      throw new UnprocessableEntityException(`Can't reserve a slot since the team has no available hosts.`);
     }
   }
 
