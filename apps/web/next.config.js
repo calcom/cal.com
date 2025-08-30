@@ -23,6 +23,7 @@ if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
     console.warn(
       `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't use reserved subdomain validation.`
     );
+    process.env.RESERVED_SUBDOMAINS='';
   }
 
   if (!process.env.ORGANIZATIONS_ENABLED) {
