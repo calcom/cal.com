@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions
+    url: https://github.com/calcom/cal.com/discussions
+    about: Need help selfhosting or ask a general question about the project? Open a discussion

@@ -1,0 +1,16 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "experimentalDecorators": true
+  },
+  "include": [
+    "../types/window.d.ts",
+    "../types/next.d.ts",
+    "../types/tanstack-table.d.ts",
+    "../types/business-days-plugin.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": ["dist", "build", "**/node_modules/**"]
+}

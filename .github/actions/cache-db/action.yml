@@ -1,0 +1,44 @@
+name: Cache database between jobs
+description: "Cache or restore if necessary"
+inputs:
+  DATABASE_URL:
+    required: false
+    default: "postgresql://postgres:postgres@localhost:5432/calendso"
+  path:
+    required: false
+    default: "backups/backup.sql"
+runs:
+  using: "composite"
+  steps:
+    - name: Cache database
+      id: cache-db
+      uses: buildjet/cache@v4
+      env:
+        cache-name: cache-db
+        key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
+        key-2: ${{ github.event.pull_request.number || github.ref }}
+        key-3: ${{ github.event.pull_request.head.sha }}
+        DATABASE_URL: ${{ inputs.DATABASE_URL }}
+        DATABASE_DIRECT_URL: ${{ inputs.DATABASE_URL }}
+        E2E_TEST_CALCOM_QA_EMAIL: ${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}
+        E2E_TEST_CALCOM_QA_PASSWORD: ${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}
+        E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
+    - run: echo ${{ env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }} && yarn db-seed
+      if: steps.cache-db.outputs.cache-hit != 'true'
+      shell: bash
+    - name: Postgres Dump Backup
+      if: steps.cache-db.outputs.cache-hit != 'true'
+      uses: tj-actions/pg-dump@v2.3
+      with:
+        database_url: ${{ inputs.DATABASE_URL }}
+        path: ${{ inputs.path }}
+        options: "-O"
+    - name: Postgres Backup Restore
+      if: steps.cache-db.outputs.cache-hit == 'true'
+      uses: tj-actions/pg-restore@v4.5
+      with:
+        database_url: ${{ inputs.DATABASE_URL }}
+        backup_file: ${{ inputs.path }}

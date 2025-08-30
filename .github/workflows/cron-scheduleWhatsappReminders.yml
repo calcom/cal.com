@@ -1,0 +1,23 @@
+name: Cron - scheduleWhatsappReminders
+
+on:
+  # "Scheduled workflows run on the latest commit on the default or base branch."
+  # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
+  schedule:
+    # Runs "At every 15th minute." (see https://crontab.guru)
+    - cron: "*/15 * * * *"
+jobs:
+  cron-scheduleWhatsappReminders:
+    env:
+      APP_URL: ${{ secrets.APP_URL }}
+      CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: cURL request
+        if: ${{ env.APP_URL && env.CRON_API_KEY }}
+        run: |
+          curl ${{ secrets.APP_URL }}/api/cron/workflows/scheduleWhatsappReminders \
+            -X POST \
+            -H 'content-type: application/json' \
+            -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
+            -sSf

@@ -1,0 +1,236 @@
+<html>
+
+<head>
+  <title>Embed Playground - Routing Form</title>
+  <script type="text/javascript" src="./playground/lib/playground-init.ts"></script>
+  <script>
+    if (!location.search.includes("nonResponsive")) {
+      document.write('<meta name="viewport" content="width=device-width"/>');
+    }
+
+    (function addParamsAutomatically() {
+      const newSearchParams = new URLSearchParams(location.search);
+      let paramsChanged = false;
+      if (!newSearchParams.has("only")) {
+        newSearchParams.set("only", "ns:routingFormFullPrerender");
+        paramsChanged = true;
+      }
+
+      if (!newSearchParams.has("calOrigin")) {
+        newSearchParams.set("calOrigin", "http://acme.cal.local:3000");
+        paramsChanged = true;
+      }
+
+      if (!newSearchParams.has("cal.embed.logging")) {
+        newSearchParams.set("cal.embed.logging", "1");
+        paramsChanged = true;
+      }
+
+      if (paramsChanged) {
+        location.href = "?" + newSearchParams.toString();
+      }
+  })();
+
+  </script>
+  <script>
+    function embedSnippet() {
+      (function (C, A, L) {
+        let p = function (a, ar) {
+          a.q.push(ar);
+        };
+        let d = C.document;
+        C.Cal =
+          C.Cal ||
+          function () {
+            let cal = C.Cal;
+            let ar = arguments;
+            if (!cal.loaded) {
+              cal.ns = {};
+              cal.q = cal.q || [];
+              d.head.appendChild(d.createElement("script")).src = A;
+              cal.loaded = true;
+            }
+            if (ar[0] === L) {
+              const api = function () {
+                p(api, arguments);
+              };
+              const namespace = ar[1];
+              api.q = api.q || [];
+              if (typeof namespace === "string") {
+                // Make sure that even after re-execution of the snippet, the namespace is not overridden
+                cal.ns[namespace] = cal.ns[namespace] || api;
+                p(cal.ns[namespace], ar);
+                p(cal, ['initNamespace', namespace])
+              } else p(cal, ar);
+              return;
+            }
+            p(cal, ar);
+          };
+      })(window, window.calOrigin + "/embed/embed.js", "init");
+    }
+    embedSnippet();
+  </script>
+
+  <style>
+    body {
+      background: linear-gradient(90deg,
+          rgba(120, 116, 186, 1) 0%,
+          rgba(221, 221, 255, 1) 41%,
+          rgba(148, 232, 249, 1) 100%);
+    }
+
+    .inline-embed-container {
+      /* border: 1px solid black; */
+      margin-bottom: 5px;
+      border-bottom: 1px solid;
+    }
+
+    .loader {
+      color: green;
+    }
+
+    * {
+      --cal-brand-color: gray;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div id="cal-booking-place-routingFormWithoutPrerender">
+    <a href="?only=ns:routingFormWithoutPrerender">Routing Form Without Prerender Demo</a>
+    <form id="cal-booking-place-routingFormWithoutPrerender-form">
+      <input type="text" name="name" placeholder="John Doe" />
+      <input type="email" name="email" placeholder="john@example.com" />
+      <select name="skills" placeholder="JavaScript, Node.js">
+        <option value="JavaScript">JavaScript</option>
+        <option value="Sales">Sales</option>
+      </select>
+    </form>
+    <button id="cal-booking-place-routingFormWithoutPrerender-submit" data-cal-namespace="routingFormWithoutPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}'>Submit</button>
+    <script>
+      requestAnimationFrame(function updateSubmitButtonLink() {
+        const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
+        const form = document.getElementById("cal-booking-place-routingFormWithoutPrerender-form");
+        const name = form.querySelector("input[name='name']").value;
+        const email = form.querySelector("input[name='email']").value;
+        const skills = form.querySelector("select[name='skills']").value;
+        if (name && email) {
+          document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Rating=5&skills=${skills}&Email=${email}`);
+        }
+        requestAnimationFrame(updateSubmitButtonLink);
+      });
+    </script>
+    </div>
+    <div id="cal-booking-routingFormFullPrerender">
+      <hr/>
+      <a href="?only=ns:routingFormFullPrerender&debug=1&param.email=test@example.com">Routing Form - Prerender Headless Router itself queuing the form response</a>
+      <p>1. As page is loading, we prerender the headless router for the email passed as param.email</p>
+      <p>2. Whenever email changes and onblur happens, the prerender is triggered for the new email and previous prerendered modal is removed</p>
+      <p>3. The prerender of the headless router queues the form response and doesn't really record it. When the actual booking is made, the form response is recorded from the queue</p>
+      <p>4. If the CTA click happens before the slots are considered stale(configurable via options.slotsStaleTimeMs), then it will open the prerendered modal without fetching the slots, otherwise it will fetch the slots(for the routedTeamMembers/contactOwner only) and till then skeleton will be shown</p>
+      <p>5. If the CTA click happens after iframeForceReloadThresholdMs has passed, then fresh headless router request is sent which could be really slow. It is important to do force reload after a certain time because the Routing Form itself could have changed in the meantime or Salesforce ownership might be available or some other change might have occured in Cal.com's side</p>
+      <p>6. slotsStaleTimeMs is set to 10 seconds(default is 1 minute) and iframeForceReloadThresholdMs is set to 30 seconds(default is 15 minutes) and they are considered from the time when the prerender/modal call was made</p>
+      <p>7. To avoid reaching the iframeForceReloadThresholdMs, user could prerender the router again and again judiciously</p>
+      </p>
+      <div class="inline-embed-container">
+        <script>
+          (()=>{
+          if (window.only !== "ns:routingFormFullPrerender") {
+            return;
+          }
+          Cal("init", "routingFormFullPrerender", {
+            debug: true,
+            calOrigin: window.calOrigin,
+          });
+          window.routingFormFullPrerender = {
+            buildRouterUrl: ({skills, location, name, email, formId}) => {
+              return `router?form=${formId}&skills=${skills}&Location=${location}&name=${name}&Email=${email}&Rating=5`;
+            },
+            onFormSubmit: (e) => {
+              e.preventDefault();
+              const skills = document.getElementById('cal-booking-place-routingFormFullPrerender-select-skills').value;
+              const location = document.getElementById('cal-booking-place-routingFormFullPrerender-select-location').value;
+              const name = document.getElementById('cal-booking-place-routingFormFullPrerender-input-name').value;
+              const email = document.getElementById('cal-booking-place-routingFormFullPrerender-input-email').value;
+              const routerUrl = window.routingFormFullPrerender.buildRouterUrl({skills, location, name, email, formId: window.params.formId});
+              Cal.ns.routingFormFullPrerender("modal", {
+                calLink: routerUrl,
+                calOrigin: window.calOrigin,
+              });
+            }
+          }
+        })();
+        </script>
+        <div id="cal-booking-place-routingFormFullPrerender">
+          <div class="place"></div>
+          <form id="cal-booking-place-routingFormFullPrerender-form" onsubmit="window.routingFormFullPrerender.onFormSubmit(event)">
+          <label for="cal-booking-place-routingFormFullPrerender-input-name">Name</label>
+          <input required style="width: 400px" type="text" id="cal-booking-place-routingFormFullPrerender-input-name" placeholder="John Doe" />
+          <label for="cal-booking-place-routingFormFullPrerender-input-email">Email</label>
+          <input required style="width: 400px" type="email" id="cal-booking-place-routingFormFullPrerender-input-email" placeholder="john@example.com" />
+          <label for="cal-booking-place-routingFormFullPrerender-select-skills">Skills</label>
+          <select required style="width: 400px" id="cal-booking-place-routingFormFullPrerender-select-skills">
+            <option value="">Select a skill</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="React">React</option>
+            <option value="Node.js">Node.js</option>
+            <option value="Python">Python</option>
+            <option value="Sales">Sales</option>
+          </select>
+          
+          <label for="cal-booking-place-routingFormFullPrerender-select-location">Location</label>
+          <select required style="width: 400px" id="cal-booking-place-routingFormFullPrerender-select-location">
+            <option value="">Select a location</option>
+            <option value="New York">New York</option>
+            <option value="London">London</option>
+            <option value="Tokyo">Tokyo</option>
+            <option value="Berlin">Berlin</option>
+            <option value="Remote">Remote</option>
+          </select>
+          <button type="submit" id="cta-routingFormFullPrerender">Submit</button>
+        </form>
+      </div>
+
+      </div>
+      
+      <script>
+        (()=>{
+        const prerender = ({skills, location, email, formId}) => {
+          Cal.ns.routingFormFullPrerender("prerender", {
+            // Email will be automatically passed as query param
+            calLink: window.routingFormFullPrerender.buildRouterUrl({skills, location, email, formId}),
+            type: "modal",
+            pageType: "team.event.booking.slots",
+            options: {
+              slotsStaleTimeMs: 10 * 1000,
+              iframeForceReloadThresholdMs: 30 * 1000,
+            },
+          });
+        }
+
+        function onSelectChange(e) {
+          const skills = document.getElementById('cal-booking-place-routingFormFullPrerender-select-skills').value;
+          const location = document.getElementById('cal-booking-place-routingFormFullPrerender-select-location').value;
+          const email = document.getElementById('cal-booking-place-routingFormFullPrerender-input-email').value;
+          function areFieldRequiredbyRoutingFormAvailable() {
+            return skills && location;
+          }
+
+          if (!areFieldRequiredbyRoutingFormAvailable()) {
+            return;
+          }
+
+          prerender({skills, location, email, formId: window.params.formId});
+        }
+        document.getElementById('cal-booking-place-routingFormFullPrerender-select-skills').onchange = onSelectChange;
+        document.getElementById('cal-booking-place-routingFormFullPrerender-select-location').onchange = onSelectChange;
+      })();
+      </script>
+    </div>
+  </div>
+  <script type="module" src="./playground/lib/playground.ts"></script>
+  </script>
+</body>
+
+</html>

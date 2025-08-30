@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "commonjs",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "noEmitOnError": false,
+    "target": "ES2020",
+    "baseUrl": ".",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "../../packages/types/*.d.ts",
+    "../../packages/types/next-auth.d.ts",
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    "../lib/**/*.ts"
+  ]
+}

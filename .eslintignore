@@ -1,0 +1,9 @@
+node_modules
+apps/api/v2/dist
+packages/platform/**/dist/*
+**/**/node_modules
+**/**/.next
+**/**/public
+packages/prisma/zod
+apps/web/public/embed
+packages/ui/components/icon/dynamicIconImports.tsx

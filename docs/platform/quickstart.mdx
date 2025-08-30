@@ -1,0 +1,340 @@
+---
+title: Quickstart
+description: Find out how to use Cal "atoms" to integrate scheduling into your product.
+"icon": "rocket"
+---
+
+## 1. Unlocking access to atoms
+1. Sign up for a Platform account [here](https://app.cal.com/signup?redirect=https://app.cal.com/settings/platform/new)
+
+## 2. Setting up an OAuth client
+
+Once your account is created, the next step is to create an OAuth client. This allows you to connect your users to Cal and handle their scheduling with atoms.
+
+1. After logging in using provided credentials, open OAuth clients settings page [https://app.cal.com/settings/platform/oauth-clients/create](https://app.cal.com/settings/platform/oauth-clients/create)
+2. Add an OAuth client.
+    1. Name: anything is fine. You can use your company name or your website.
+    2. Redirect URIs: Used to validate origin of requests - your website's URLs from which atoms are allowed to make requests to our API. Supports wildcard syntax where "*" would support any origin, and "*app.com" would support "example.app.com", and "https//example.com*" where it would support any origin from that domain.
+    3. Booking, reschedule and cancel URLs: URLs of pages where users land after a successful booking or if they want to reschedule or cancel a booking. We will pass information in the URL when redirecting to your pages and you will use our hooks and components to implement the pages. See [this guide](/platform/guides/booking-redirects).
+    4. Permissions - most likely you need all enabled:
+        1. Event type: event type is a user event that others can book. For example, Alice is a language teacher and she has an event type “30 minutes Italian lesson” that others can then book.
+        2. Booking: When Bob books the Italian lesson, a booking is created and shows up on the calendar that Alice connected using atoms.
+        3. Schedule: used to represent when a user is available. From what to what time and when can an event type be booked. For example, Alice only can be booked for the Italian lessons on Mondays and Tuesdays from 9AM to 4PM.
+        4. Profile: When you proceed to the chapter 2, you will create your users on our end, so that we can manage their scheduling. Profile permissions allow to either read or update users you create on our end.
+        5. Apps: used to connect Google Calendar, Zoom, Microsoft Teams, etc. to atoms.
+
+## 3. Creating managed users connected to the OAuth client
+
+In order for atoms to handle scheduling on behalf of your users, you have to create what we call a “managed user” for each of your users.
+
+#### What is a “Managed user”?
+It is a representation of your user within our database containing basic information like email and is used to manage the setup of Google Calendar.
+After creating a “managed user” you will receive the user ID, an access and a refresh token that are used by atoms to handle scheduling and can be used to modify the “managed user” information, so make sure to store the tokens and the [cal.com](https://cal.com) user ID in your database. Also, you will have to connect each user on your end with the access and refresh tokens by adding new properties on your User model in database that store the tokens, for example.
+
+#### What is it not?
+It's important to clarify that a "managed user" is completely independent of a regular user account on cal.com, meaning you don't need your users to register on cal.com web application.
+
+❗Managed users do not get a public cal.com page like normal cal.com users do aka if you create a managed user the managed user won't have cal.com/managed-user page, because the point of platform solution is to integrate scheduling into your platform,
+so instead the managed user public page will be at your-platform.com/managed-user and there you fetch event types of the managed user using our api or react hooks and display them.
+
+### Create managed users via our API
+
+We now need the OAuth client’s “client ID” and “client secret” that you can find in [https://app.cal.com/settings/organizations/platform/oauth-clients](https://app.cal.com/settings/organizations/platform/oauth-clients).
+
+You have to make a POST request to [https://api.cal.com/v2/oauth-clients/YOUR_CLIENT_ID/users](https://api.cal.com/v2/oauth-clients/:clientId/users):
+
+1. Replace “YOUR_CLIENT_ID” in the URL with your “client ID”.
+2. Add "x-cal-secret-key” header with the value of your “client secret”.
+3. Add the request body containing an object to create the “managed user” with the following properties:
+    1. email: required, your user's email.
+    2. name: optional, full name of your user.
+    3. timeFormat: optional, value can be either 12 or 24 with 12 representing 12 hour time using AM and PM and 24 representing 24 hour time without AM and PM.
+    4. weekStart: optional, value can be “Monday”, “Tuesday”, “Wednesday”, “Thursday”, “Friday”, “Saturday”, “Sunday”. If none passed, "Sunday” is used as the default. Countries in North and South America start their week on Sunday while countries in Europe and Oceania on Monday.
+    5. timeZone: optional, in the format of “IANA timezone” e.g. “Europe/Rome”. If none passed, "Europe/London” is used as the default.
+
+#### Example request
+
+URL: https://api.cal.com/v2/oauth-clients/7Dcxu2fclb10001kha9x1dreyl4/users
+
+Headers: ```{ "x-cal-secret-key”: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX}```
+
+Body:
+
+```js
+{
+    "email": "bob@example.com",
+    "timeZone": "America/New_York"
+}
+```
+
+
+#### Example response
+
+```js
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": 179,
+      "email": "bob@example.com",
+      "username": "bob"
+    },
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiY2xpZW50SWQiOiJjbHUxZmNtYjEwMDAxa2hyN3g3ZHJleWw0Iiwib3duZXJJZCI6MTc5LCJpYXQiOjE3MTE0NDI3OTR9.EsC3JRPHQnigcp_HSijKCIp8EgcWs2kj4AFxYXYc9sM",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoicmVmcmVzaF90b2tlbiIsImNsaWVudElkIjoiY2x1MWZjbWIxMDAwMWtocjd4N2RyZXlsNCIsIm93bmVySWQiOjE3OSwiaWF0IjoxNzExNDQyNzk0fQ.GjklEucgey8yWMoGz7ABntbxYdiqqQFPooQjqGd3B5I"
+  }
+}
+```
+
+First, make sure to store the user ID, access and refresh tokens in your database and connect them to each user. For example, you can add “calAtomsAccessToken” and “calAtomsRefreshToken” properties to your user database model.
+
+You will be able to provide an access token to our atoms so that they can handle scheduling on behalf of the user associated with the token. Access tokens expires, so you will have to refresh them using the refresh token.
+
+Second, if `timeZone` is passed in the request, the user's default schedule from 9AM to 5PM will be created in the specified timezone. Then, using the `AvailabilitySettings` atom, user can customize their availability. However,
+if the `timeZone` is not passed,  then user has no default schedule and user can't be booked and user can't set availability using the `AvailabilitySettings` atom. You will have to set it up manually via the `/schedules` endpoints.
+We recommend setting the `timeZone` for ease of use.
+
+## 4. Backend: setting up a refresh token endpoint
+
+You have to set up an endpoint on your server to which atoms can send an expired access token and receive new one in return. This exchange will be automatically handled by atoms when you provide this endpoint URL when setting up frontend in the next step.
+
+> Q: Why do we need a separate endpoint just for this?
+A: Your OAuth client secret and users refresh tokens should never be exposed on the frontend. The OAuth client secret will reside as an environment variable in your backend and the users' refresh tokens are stored in your database, which are used by our API to refresh the access token.
+>
+
+You can check an example refresh token endpoint in our atoms examples app: [https://github.com/calcom/atoms-examples/blob/main/cal-sync/src/pages/api/refresh.ts](https://github.com/calcom/atoms-examples/blob/main/cal-sync/src/pages/api/refresh.ts)
+
+Shortly:
+
+1. Set up environment variables or pass values directly. Here are ones from the examples app above:
+    1. NEXT_PUBLIC_CALCOM_API_URL: [https://api.cal.com/v2](https://api.cal.com/v2)
+    2. NEXT_PUBLIC_X_CAL_ID: your OAuth client ID
+    3. X_CAL_SECRET_KEY - your OAuth client secret
+2. Your endpoint will receive a request from atoms.
+3. Make it a GET endpoint to which “Authorization: Bearer accessToken” header can be sent to.
+4. Assuming you have stored the access and refresh tokens in your database and connected them to a specific user, fetch the user based on the received access token.
+5. Provide the OAuth client ID, client secret and managed user refresh token to the [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) endpoint.
+6. Store in your database access and refresh tokens returned by the [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) endpoint.
+7. Return access token to the request. It should be in the format of:
+  ```js
+  { accessToken: "fresh access token" }
+  ```
+
+The atoms will now use the new access token to handle scheduling on behalf of your user. Access token expires after 60 minutes and atoms
+then will make a request to your refresh token endpoint to get a new access token while also refreshing the refresh token.
+
+## 5. Managing refresh token expiry
+
+Each refresh token is valid for 1 year. When a managed user's access token is refreshed, the refresh token is refreshed too.
+However, to make sure that refresh tokens do not expire for less active users you have 2 options:
+1. If you decode the refresh token there is `expiresAt` date (it is a jwt token so you can decode it using some library from npm). You could have a cron job that checks all of your users refresh tokens and sees if the refresh token
+is about to expire, then refresh tokens using the [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) endpoint.
+2. In the refresh endpoint you built in the [previous step](https://cal.com/docs/platform/quickstart#4-backend%3A-setting-up-a-refresh-token-endpoint) you could have a check that if the call to [`/refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens) fails meaning that the
+refresh token has expired, call the [`/force-refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens) endpoint - it allows you to refresh managed user tokens
+using only the OAuth client ID and client secret and is intended to be used in cases when one of the tokens is lost or the refresh token is expired.
+
+## 6. Frontend: setting up atoms
+
+Atoms are customizable UI components handling scheduling on behalf of your users.
+
+### 6.1 Install the atoms package
+
+npm:
+
+```jsx
+npm install @calcom/atoms
+```
+
+yarn:
+
+```jsx
+yarn add @calcom/atoms
+```
+
+pnpm:
+
+```jsx
+pnpm add @calcom/atoms
+```
+
+### 6.2 Set up environment variables
+
+CAL_OAUTH_CLIENT_ID: OAuth client ID
+
+CAL_API_URL: [https://api.cal.com/v2](https://api.cal.com/v2)
+
+REFRESH_URL:  URL of the endpoint you implemented in step 3, for example, your.api.com/api/refresh
+
+### 5.3 Set up root of your app
+
+Next.js: open _app.js or or _app.tsx.
+
+React: open App.js or App.ts.
+
+First, import global css styles used by atoms.
+
+```js
+import "@calcom/atoms/globals.min.css";
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <Component {...pageProps} />
+  );
+}
+
+export default MyApp;
+```
+
+Second, import CalProvider that provides necessary information to atoms and wrap your components with it.
+
+```js
+import "@calcom/atoms/globals.min.css";
+import { CalProvider } from '@calcom/atoms';
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <CalProvider
+      clientId={process.env.CAL_OAUTH_CLIENT_ID ?? ""}
+      options={{
+        apiUrl: process.env.CAL_API_URL ?? "",
+        refreshUrl: process.env.REFRESH_URL
+      }}
+    >
+      <Component {...pageProps} />
+    </CalProvider>
+  );
+}
+
+export default MyApp;
+```
+
+Third, CalProvider needs to get access token of the user for which atoms will handle scheduling, so you need to fetch user and provide its access token to the CalProvider.
+
+```js
+import "@calcom/atoms/globals.min.css";
+import { CalProvider } from '@calcom/atoms';
+
+function MyApp({ Component, pageProps }) {
+  const [accessToken, setAccessToken] = useState("");
+
+  useEffect(() => {
+    fetch(`/api/users/${pageProps.userId}`, {
+    }).then(async (res) => {
+      const data = await res.json();
+      setAccessToken(data.accessToken);
+    });
+  }, []);
+
+  return (
+    <CalProvider
+      accessToken={accessToken}
+      clientId={process.env.CAL_OAUTH_CLIENT_ID ?? ""}
+      options={{
+        apiUrl: process.env.CAL_API_URL ?? "",
+        refreshUrl: "/api/refresh"
+      }}
+    >
+      <Component {...pageProps} />
+    </CalProvider>
+  );
+}
+
+export default MyApp;
+```
+
+## 7. Frontend: using atoms
+
+It’s very easy, just import the atom and drop it in code! For example, for users to connect their Google Calendar drop in "Connect.GoogleCalendar" component - it will handle everything.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+...
+export default function Connect() {
+  return (
+    <main>
+	    <Connect.GoogleCalendar />
+    </main>
+  );
+}
+```
+
+If you need to customize the appearance of any atom, you can pass in custom css styles via a className prop that every atom has:
+
+```js
+<Connect.GoogleCalendar className="text-white hover:bg-orange-700" />
+```
+
+other more complex atoms will expose multiple classNames and props to react to events happening in the atoms
+
+```js
+<AvailabilitySettings
+  customClassNames={{
+    subtitlesClassName: "text-red-500",
+    ctaClassName: "border p-4 rounded-md",
+    editableHeadingClassName: "underline font-semibold",
+  }}
+  onUpdateSuccess={() => {
+    console.log("Updated successfully");
+  }}
+  onUpdateError={() => {
+    console.log("update error");
+  }}
+  onDeleteError={() => {
+    console.log("delete error");
+  }}
+  onDeleteSuccess={() => {
+    console.log("Deleted successfully");
+  }}
+/>;
+```
+
+## 8. Front-end: passing additional props to CalProvider
+
+The CalProvider component offers several additional props to customize its behavior and appearance:
+1. autoUpdateTimezone: By default, the atoms automatically update the user's timezone. You can disable this feature by setting autoUpdateTimezone to false.
+2. onTimezoneChange: If you want to perform specific actions whenever the user's timezone changes, you can provide a callback function to the onTimezoneChange prop.
+3. children: You can pass in custom child components to be rendered within the CalProvider.
+4. version: Specify the API version that the atoms should use by setting the version prop.
+5. language: Set the language for the atoms by providing a supported locale (es, fr, de, en, pt-BR) to the language prop.
+6. labels: Override specific labels in the atoms by passing an object of custom labels to the labels prop.
+
+```js
+import "@calcom/atoms/globals.min.css";
+import { CalProvider } from '@calcom/atoms';
+
+function MyApp({ Component, pageProps }) {
+  const [accessToken, setAccessToken] = useState("");
+
+  useEffect(() => {
+    fetch(`/api/users/${pageProps.userId}`, {
+    }).then(async (res) => {
+      const data = await res.json();
+      setAccessToken(data.accessToken);
+    });
+  }, []);
+
+  return (
+    <CalProvider
+      accessToken={accessToken}
+      clientId={process.env.CAL_OAUTH_CLIENT_ID ?? ""}
+      options={{
+        apiUrl: process.env.CAL_API_URL ?? "",
+        refreshUrl: "/api/refresh"
+      }}
+      language="fr"
+      labels={{
+        date_overrides: "Omlette du Fromage!"
+      }}
+      autoUpdateTimezone={false}
+      onTimezoneChange={() => {
+        console.log("Timezone changed successfully")
+      }}
+      children={<>This is the child component</>}
+    >
+      <Component {...pageProps} />
+    </CalProvider>
+  );
+}
+
+export default MyApp;
+```

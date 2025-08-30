@@ -1,0 +1,50 @@
+{
+  "version": 1.2,
+  "locale": {
+    "source": "en",
+    "targets": [
+      "ar",
+      "az",
+      "bg",
+      "bn",
+      "ca",
+      "cs",
+      "da",
+      "de",
+      "el",
+      "es",
+      "es-419",
+      "eu",
+      "et",
+      "fi",
+      "fr",
+      "he",
+      "hu",
+      "it",
+      "ja",
+      "km",
+      "ko",
+      "nl",
+      "no",
+      "pl",
+      "pt-BR",
+      "pt",
+      "ro",
+      "ru",
+      "sk-SK",
+      "sr",
+      "sv",
+      "tr",
+      "uk",
+      "vi",
+      "zh-CN",
+      "zh-TW"
+    ]
+  },
+  "buckets": {
+    "json": {
+      "include": ["apps/web/public/static/locales/[locale]/common.json"]
+    }
+  },
+  "$schema": "https://lingo.dev/schema/i18n.json"
+}

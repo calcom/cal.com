@@ -1,0 +1,20 @@
+{
+  "name": "@calcom/platform-types",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.js",
+  "private": true,
+  "scripts": {
+    "build": "yarn clean && tsc --build --force tsconfig.json",
+    "clean": "rm -rf ./dist",
+    "build:watch": "tsc --build --force ./tsconfig.json --watch",
+    "post-install": "yarn build"
+  },
+  "dependencies": {
+    "@calcom/platform-constants": "*",
+    "@calcom/platform-enums": "*",
+    "@types/express": "^4.17.21",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0"
+  }
+}

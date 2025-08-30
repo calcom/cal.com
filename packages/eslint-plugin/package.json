@@ -1,0 +1,16 @@
+{
+  "name": "@calcom/eslint-plugin-eslint",
+  "sideEffects": false,
+  "private": true,
+  "version": "0.1.0",
+  "main": "./src/index.js",
+  "dependencies": {
+    "@typescript-eslint/parser": "^5.52.0",
+    "@typescript-eslint/utils": "^5.52.0",
+    "ts-node-maintained": "^10.9.5",
+    "typescript": "^5.9.0-beta"
+  },
+  "devDependencies": {
+    "@types/eslint": "^8.4.5"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@calcom/api-proxy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "node ./index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "connect": "^3.7.0",
+    "http": "^0.0.1-security",
+    "http-proxy-middleware": "^2.0.6"
+  }
+}

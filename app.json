@@ -1,0 +1,95 @@
+{
+  "name": "Cal.com",
+  "description": "Open Source Scheduling",
+  "repository": "https://github.com/calcom/cal.com",
+  "logo": "https://cal.com/android-chrome-512x512.png",
+  "keywords": ["react", "typescript", "node", "nextjs", "prisma", "postgres", "trpc"],
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini"
+    }
+  ],
+  "env": {
+    "PGSSLMODE": {
+      "description": "If you use Heroku to deploy Postgres (or use self-signed certs for Postgres) then put 'no-verify' here.",
+      "value": "no-verify"
+    },
+    "NEXT_PUBLIC_WEBAPP_URL": {
+      "description": "Replace HEROKU_APP_NAME with the name given to your app",
+      "value": "https://HEROKU_APP_NAME.herokuapp.com",
+      "required": "true"
+    },
+    "CALENDSO_ENCRYPTION_KEY": {
+      "description": "Application Key for symmetric encryption and decryption. Must be 32 bytes for AES256 encryption algorithm.",
+      "value": "secret",
+      "required": "true"
+    },
+    "NEXTAUTH_URL": {
+      "description": "Replace HEROKU_APP_NAME with the name given to your app",
+      "value": "https://HEROKU_APP_NAME.herokuapp.com"
+    },
+    "NEXTAUTH_SECRET": {
+      "description": "Cookie encryption key",
+      "generator": "secret",
+      "required": "true"
+    },
+    "CRON_API_KEY": {
+      "description": "ApiKey for cronjobs",
+      "value": ""
+    },
+    "CRON_ENABLE_APP_SYNC": {
+      "description": "Whether to automatically keep app metadata in the database in sync with the metadata/config files. When disabled, the sync runs in a reporting-only dry-run mode.",
+      "value": "false"
+    },
+    "SEND_FEEDBACK_EMAIL": {
+      "description": "Send feedback email",
+      "value": ""
+    },
+    "SENDGRID_API_KEY": {
+      "description": "Sendgrid api key. Used for email reminders in workflows",
+      "value": "",
+      "required": false
+    },
+    "SENDGRID_SYNC_API_KEY": {
+      "description": "Sendgrid internal sync service",
+      "value": "",
+      "required": false
+    },
+    "SENDGRID_EMAIL": {
+      "description": "Sendgrid email. Used for email reminders in workflows",
+      "value": "",
+      "required": false
+    },
+    "EMAIL_FROM": {
+      "description": "Configures the global From: header whilst sending emails",
+      "value": ""
+    },
+    "EMAIL_SERVER_HOST": {
+      "description": "Configures the global SMTP server host",
+      "value": "smtp.gmail.com"
+    },
+    "EMAIL_SERVER_PORT": {
+      "description": "Configures the global SMTP server port",
+      "value": "465"
+    },
+    "EMAIL_SERVER_USER": {
+      "description": "Configures the global SMTP server user",
+      "value": "<gmail_emailAddress>"
+    },
+    "EMAIL_SERVER_PASSWORD": {
+      "description": "Configures the global SMTP server password",
+      "value": "<gmail_app_password>"
+    },
+    "NEXT_PUBLIC_TEAM_IMPERSONATION": {
+      "description": "Set the following value to true if you wish to enable Team Impersonation",
+      "value": "false"
+    },
+    "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL": {
+      "description": "Control time intervals on a user's Schedule availability",
+      "value": "15"
+    }
+  },
+  "scripts": {
+    "postdeploy": "cd packages/prisma && npx prisma migrate deploy"
+  }
+}

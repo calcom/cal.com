@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Chatbase",
+  "slug": "chatbase",
+  "type": "chatbase_other",
+  "logo": "icon-dark.svg",
+  "url": "https://www.chatbase.co/guide/cal",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Chatbase",
+  "email": "sandra@chatbase.co",
+  "description": "Add [Cal.com](https://cal.com/) to your Chatbase AI Chatbot and accept bookings right inside chat.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

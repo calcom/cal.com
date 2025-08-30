@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "@calcom/zoomvideo",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Zoom is a secure and reliable video platform that supports all of your online communication needs. It can provide everything from one on one meetings, chat, phone, webinars, and large-scale online events. Available with both desktop, web, and mobile versions.",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

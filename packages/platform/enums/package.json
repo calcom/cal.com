@@ -1,0 +1,27 @@
+{
+  "name": "@calcom/platform-enums",
+  "version": "0.0.0",
+  "main": "./dist/index.ts",
+  "types": "./dist/index.ts",
+  "private": true,
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts.map"
+    },
+    "./monorepo": {
+      "import": "./monorepo.ts",
+      "require": "./monorepo.ts"
+    }
+  },
+  "scripts": {
+    "test": "jest ./tests",
+    "build": "rm -rf ./dist && tsc --build --force tsconfig.json",
+    "build:watch": "tsc --build --force ./tsconfig.json --watch",
+    "post-install": "yarn build"
+  },
+  "dependencies": {
+    "@calcom/platform-constants": "*"
+  }
+}

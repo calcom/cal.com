@@ -1,0 +1,22 @@
+{
+  "extends": "@calcom/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"]
+    },
+    "experimentalDecorators": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "./next.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../../packages/types/*.d.ts",
+    "../../../packages/types/next-auth.d.ts"
+  ],
+  "exclude": ["**/node_modules/**", "templates", "auth"]
+}

@@ -1,0 +1,1 @@
+export { ResponseEmail } from "./ResponseEmail";

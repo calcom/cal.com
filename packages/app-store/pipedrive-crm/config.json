@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Pipedrive CRM",
+  "slug": "pipedrive-crm",
+  "type": "pipedrive-crm_crm",
+  "logo": "icon.svg",
+  "url": "https://revert.dev",
+  "variant": "crm",
+  "categories": ["crm"],
+  "extendsFeature": "EventType",
+  "publisher": "Revert.dev ",
+  "email": "jatin@revert.dev",
+  "description": "Founded in 2010, Pipedrive is an easy and effective sales CRM that drives small business growth.\r\rToday, Pipedrive is used by revenue teams at more than 100,000 companies worldwide. Pipedrive is headquartered in New York and has offices across Europe and the US.\r\rThe company is backed by majority holder Vista Equity Partners, Bessemer Venture Partners, Insight Partners, Atomico, and DTCP.\r\rLearn more at www.pipedrive.com.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "dirName": "pipedrive-crm"
+}

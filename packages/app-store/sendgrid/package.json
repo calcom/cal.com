@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/sendgrid",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "SendGrid delivers your transactional and marketing emails through the world's largest cloud-based email delivery platform.",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@sendgrid/client": "^7.7.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

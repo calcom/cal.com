@@ -1,0 +1,24 @@
+name: Unit
+on:
+  workflow_call:
+env:
+  LINGO_DOT_DEV_API_KEY: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
+permissions:
+  contents: read
+jobs:
+  test:
+    name: Unit
+    timeout-minutes: 20
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - run: yarn test -- --no-isolate
+      # We could add different timezones here that we need to run our tests in
+      - run: TZ=America/Los_Angeles yarn test -- --timeZoneDependentTestsOnly --no-isolate
+      - name: Run API v2 tests
+        working-directory: apps/api/v2
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn test

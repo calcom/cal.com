@@ -1,0 +1,69 @@
+---
+title: "SSO setup"
+icon: "user-shield"
+---
+
+Cal.com supports both Security Assertion Markup Language (SAML) and OpenID Connect (OIDC), two of the industry's leading authentication protocols. We prioritize your ease of access and security by providing robust Single Sign-On (SSO) capabilities. Whether you're looking for the XML-based standard of SAML or the lightweight OIDC, our platform is equipped to integrate smoothly with your preferred identity provider, ensuring both convenience and security for your users.
+
+<Warning>
+You need an Enterprise License to avail this when self-hosting
+</Warning>
+
+### Setting up SAML login
+
+1. Set SAML_DATABASE_URL to a Postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`. If you are using a self-signed certificate for Postgres then use the `sslmode=no-verify` query param in the database URL. For example `postgresql://postgres:@localhost:5450/cal-saml?sslmode=no-verify`.
+
+2. Set SAML_ADMINS to a comma separated list of admin emails from where the SAML metadata can be uploaded and configured.
+
+3. Create a SAML application with your Identity Provider (IdP) using the instructions here - [SAML Setup](/self-hosting/sso-setup#saml-registration-with-identity-providers)
+
+4. Remember to configure access to the IdP SAML app for all your users (who need access to Cal).
+
+5. You will need the XML metadata from your IdP later, so keep it accessible.
+
+6. Log in to one of the admin accounts configured in SAML_ADMINS and then navigate to Settings -> Security.
+
+7. You should see a SAML configuration section, copy and paste the XML metadata from step 5 and click on Save.
+
+8. Your provisioned users can now log into Cal using SAML.
+
+### SAML Registration with Identity Providers
+
+This guide explains the settings you need to use to configure SAML with your Identity Provider. Once this is set up you should get an XML metadata file that should then be uploaded on your Cal.com self-hosted instance.
+
+> **Note:** Please do not add a trailing slash at the end of the URLs. Create them exactly as shown below.
+
+**Assertion consumer service URL / Single Sign-On URL / Destination URL:** https://\<url for your self-hosted instance\>/api/auth/saml/callback [Replace the placeholder with the URL for your self-hosted Cal instance]
+
+**Entity ID / Identifier / Audience URI / Audience Restriction:** [https://saml.cal.com](https://saml.cal.com)
+
+**Response:** Signed
+
+**Assertion Signature:** Signed
+
+**Signature Algorithm:** RSA-SHA256
+
+**Assertion Encryption:** Unencrypted
+
+**Name ID Format:** EmailAddress
+
+**Application username:** email
+
+**Mapping Attributes / Attribute Statements:**
+
+| Name      | Name Format | Value          |
+|:----------|:------------|:---------------|
+| firstName | Basic       | user.firstName |
+| lastName  | Basic       | user.lastName  |
+
+### Setting up OIDC login
+
+1. Set SAML_DATABASE_URL to a Postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`. If you are using a self-signed certificate for Postgres then use the `sslmode=no-verify` query param in the database URL. For example `postgresql://postgres:@localhost:5450/cal-saml?sslmode=no-verify`.
+2. Set SAML_ADMINS to a comma separated list of admin emails who can configure the OIDC.
+3. Keep handy the Client Secret, Client ID and Well Known URL with you for the next step.
+4. Spin up cal.com on your server and login with the Admin user (the email ID of which was provided in step 2 for SAML_ADMINS environment variable).
+5. Visit `{BASE_URL}/settings/security/sso` and you should see something like this:
+    <img src="/images/i1600x900-8ufcUyCOVwV6_hdudno.png" />
+6. Click on Configure SSO with OIDC, and then enter the Client Secret, Client ID and Well known URL from the Step 3, and click save.
+    <img src="/images/i1600x900-GN1NLgrcf5r4_tmhni3.png" />
+7. That's it. Now when you try to login with SSO, your OIDC provider will handle the auth.

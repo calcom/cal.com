@@ -1,0 +1,21 @@
+name: Install playwright binaries
+description: "Install playwright, cache and restore if necessary"
+runs:
+  using: "composite"
+  steps:
+    - name: Get installed Playwright version
+      shell: bash
+      id: playwright-version
+      run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")" >> $GITHUB_ENV
+    - name: Cache playwright binaries
+      id: playwright-cache
+      uses: buildjet/cache@v4
+      with:
+        path: |
+          ~/Library/Caches/ms-playwright
+          ~/.cache/ms-playwright
+          ${{ github.workspace }}/node_modules/playwright
+        key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+    - name: Yarn playwright install
+      shell: bash
+      run: yarn playwright install --with-deps

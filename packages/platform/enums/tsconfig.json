@@ -1,0 +1,12 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "ES5",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "baseUrl": "./",
+    "outDir": "./dist"
+  },
+  "include": ["."],
+  "exclude": ["dist", "**/node_modules/**"]
+}

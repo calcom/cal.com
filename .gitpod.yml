@@ -1,0 +1,45 @@
+tasks:
+  - init: |
+      yarn &&
+      cp .env.example .env &&
+      next_auth_secret=$(openssl rand -base64 32) &&
+      calendso_encryption_key=$(openssl rand -base64 24) &&
+      sed -i -e "s|^NEXTAUTH_SECRET=.*|NEXTAUTH_SECRET=$next_auth_secret|" \
+             -e "s|^CALENDSO_ENCRYPTION_KEY=.*|CALENDSO_ENCRYPTION_KEY=$calendso_encryption_key|" \
+             -e "s|http://localhost:3000|https://localhost:3000|" \
+             -e "s|localhost:3000|3000-$GITPOD_WORKSPACE_ID.$GITPOD_WORKSPACE_CLUSTER_HOST|" .env
+    command: yarn dx
+
+ports:
+  - port: 3000
+    visibility: public
+    onOpen: open-preview
+  - port: 5420
+    visibility: private
+    onOpen: ignore
+  - port: 1025
+    visibility: private
+    onOpen: ignore
+  - port: 8025
+    visibility: private
+    onOpen: ignore
+
+github:
+  prebuilds:
+    master: true
+    pullRequests: true
+    pullRequestsFromForks: true
+    addCheck: true
+    addComment: true
+    addBadge: true
+
+vscode:
+  extensions:
+    - DavidAnson.vscode-markdownlint
+    - yzhang.markdown-all-in-one
+    - esbenp.prettier-vscode
+    - dbaeumer.vscode-eslint
+    - bradlc.vscode-tailwindcss
+    - ban.spellright
+    - stripe.vscode-stripe
+    - Prisma.prisma

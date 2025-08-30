@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Close.com",
+  "title": "Close.com",
+  "slug": "closecom",
+  "type": "closecom_crm",
+  "logo": "icon.svg",
+  "url": "https://cal.com/",
+  "variant": "crm",
+  "categories": ["crm"],
+  "publisher": "Cal.com, Inc.",
+  "extendsFeature": "EventType",
+  "email": "help@cal.com",
+  "description": "Close is the inside sales CRM of choice for startups and SMBs. Make more calls, send more emails and close more deals starting today.",
+  "__createdUsingCli": true,
+  "isOAuth": true,
+  "dirName": "closecom"
+}

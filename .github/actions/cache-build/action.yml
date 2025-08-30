@@ -1,0 +1,35 @@
+name: Cache production build binaries
+description: "Cache or restore if necessary"
+inputs:
+  node_version:
+    required: false
+    default: v18.x
+runs:
+  using: "composite"
+  steps:
+    - name: Cache production build
+      uses: buildjet/cache@v4
+      id: cache-build
+      env:
+        # WARN: Don't touch this cache key. Currently github.sha refers to the latest commit in main
+        # and not the branch that's attempting to merge to main, which causes CI errors when merged
+        # to main.
+        # TODO: Fix this problem if intending to modify this cache key.
+        cache-name: prod-build
+        key-1: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
+        key-2: ${{ hashFiles('apps/**/**.[jt]s', 'apps/**/**.[jt]sx', 'packages/**/**.[jt]s', 'packages/**/**.[jt]sx', '!**/node_modules') }}
+        key-3: ${{ github.event.pull_request.number || github.ref }}
+        key-4: ${{ github.sha }}
+        key-5: ${{ github.event.pull_request.head.sha }}
+      with:
+        path: |
+          ${{ github.workspace }}/apps/web/.next
+          ${{ github.workspace }}/apps/web/public/embed
+          **/.turbo/**
+          **/dist/**
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}-${{ env.key-5 }}
+    - run: |
+        export NODE_OPTIONS="--max_old_space_size=8192"
+        yarn build
+      if: steps.cache-build.outputs.cache-hit != 'true'
+      shell: bash

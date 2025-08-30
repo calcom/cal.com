@@ -1,0 +1,17 @@
+name: Lint
+on:
+  workflow_call:
+permissions:
+  actions: write
+  contents: read
+jobs:
+  lint:
+    runs-on: buildjet-4vcpu-ubuntu-2204
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - name: Run Lint
+        run: yarn lint
+        continue-on-error: true

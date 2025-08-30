@@ -1,0 +1,26 @@
+# this file is a helper to run Cal.com locally
+# starts a postgres instance on port 5450 to use as a local db
+services:
+  postgres:
+    image: postgres:13
+    ports:
+      - "5450:5432" # expose pg on port 5450 to not collide with pg from elsewhere
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "cal-saml"
+      POSTGRES_PASSWORD: ""
+      POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  postgres_is_ready:
+    image: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  db_data:

@@ -1,0 +1,53 @@
+---
+title: "Upgrading"
+icon: "cloud-check"
+---
+
+Pull the current version:
+
+```
+git pull
+```
+
+Check if dependencies got added/updated/removed
+
+```
+yarn
+```
+
+Apply database migrations by running **one of** the following commands:
+
+In a development environment, run:
+
+```
+yarn workspace @calcom/prisma db-migrate
+```
+
+(this can clear your development database in some cases)
+
+In a production environment, run:
+
+```
+yarn workspace @calcom/prisma db-deploy
+```
+
+Check for `.env` variables changes
+
+```
+yarn predev
+```
+
+Start the server. In a development environment, just do:
+
+```
+yarn dev
+```
+
+For a production build, run for example:
+
+```
+yarn build
+yarn start
+```
+
+Enjoy the new version.

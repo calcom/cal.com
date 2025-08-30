@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "presentation": {
+    "echo": false,
+    "reveal": "always",
+    "focus": false,
+    "panel": "dedicated",
+    "showReuseMessage": true
+  },
+  "tasks": [
+    {
+      "label": "Launch Cal.com Development terminals",
+      "dependsOn": [
+        "Web App(3000)",
+        "Website(3001)",
+        "Embed Core(3100)",
+        "Embed React(3101)",
+        "Prisma Studio(5555)",
+        "Maildev(587)"
+      ],
+      // Mark as the default build task so cmd/ctrl+shift+b will create them
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      // The name that shows up in terminal tab
+      "label": "Web App(3000)",
+      // The task will launch a shell
+      "type": "shell",
+      "command": "yarn dev",
+      // Set the shell type
+      // Mark as a background task to avoid the spinner animation on the terminal tab
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Website(3001)",
+      "type": "shell",
+      "command": "cd apps/website && yarn dev",
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Embed Core(3100)",
+      "type": "shell",
+      "command": "cd packages/embeds/embed-core && yarn dev",
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Embed React(3101)",
+      "type": "shell",
+      "command": "cd packages/embeds/embed-react && yarn dev",
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Prisma Studio(5555)",
+      "type": "shell",
+      "command": "yarn db-studio",
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Maildev(587)",
+      "type": "shell",
+      "command": "maildev -s 587",
+      "isBackground": false,
+      "problemMatcher": []
+    }
+  ]
+}

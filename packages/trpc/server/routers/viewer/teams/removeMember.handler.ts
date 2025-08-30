@@ -1,0 +1,65 @@
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { TeamService } from "@calcom/lib/server/service/teamService";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
+
+import type { TRemoveMemberInputSchema } from "./removeMember.schema";
+
+type RemoveMemberOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+    sourceIp?: string;
+  };
+  input: TRemoveMemberInputSchema;
+};
+
+export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) => {
+  await checkRateLimitAndThrowError({
+    identifier: `removeMember.${ctx.user.id}`,
+  });
+
+  const { memberIds, teamIds, isOrg } = input;
+
+  const isAdmin = await Promise.all(
+    teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
+  ).then((results) => results.every((result) => result));
+
+  const isOrgAdmin = ctx.user.profile?.organizationId
+    ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
+    : false;
+
+  if (!(isAdmin || isOrgAdmin) && memberIds.every((memberId) => ctx.user.id !== memberId))
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  // Only a team owner can remove another team owner.
+  const isAnyMemberOwnerAndCurrentUserNotOwner = await Promise.all(
+    memberIds.map(async (memberId) => {
+      const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
+        teamIds.map(async (teamId) => {
+          return (await isTeamOwner(memberId, teamId)) && !(await isTeamOwner(ctx.user.id, teamId));
+        })
+      ).then((results) => results.some((result) => result));
+
+      return isAnyTeamOwnerAndCurrentUserNotOwner;
+    })
+  ).then((results) => results.some((result) => result));
+
+  if (isAnyMemberOwnerAndCurrentUserNotOwner) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Only a team owner can remove another team owner.",
+    });
+  }
+
+  if (memberIds.some((memberId) => ctx.user.id === memberId) && isAdmin && !isOrgAdmin)
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You can not remove yourself from a team you own.",
+    });
+
+  await TeamService.removeMembers({ teamIds, userIds: memberIds, isOrg });
+};
+
+export default removeMemberHandler;

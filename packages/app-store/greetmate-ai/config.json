@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Greetmate.ai",
+  "slug": "greetmate-ai",
+  "type": "greetmate-ai_automation",
+  "logo": "icon-dark.svg",
+  "url": "https://www.greetmate.ai",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Greetmate Inc.",
+  "email": "support@greetmate.ai",
+  "description": "Connect [Cal.com](https://cal.com/) to [Greetmate.ai](https://www.greetmate.ai/) and enable appointment scheduling for your AI agents.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

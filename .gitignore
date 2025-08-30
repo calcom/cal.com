@@ -1,0 +1,99 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# .env file
+.env
+!packages/prisma/.env
+
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+/test-results/
+**/playwright/videos
+**/playwright/screenshots
+**/playwright/artifacts
+**/playwright/results
+**/playwright/reports/*
+
+# next.js
+.next/
+out/
+build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+!.env.example
+!.env.appStore.example
+
+# vercel
+.vercel
+
+# Webstorm
+.idea
+
+### VisualStudioCode template
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+# Typescript
+tsconfig.tsbuildinfo
+
+# turbo
+.turbo
+
+# Prisma generated files
+packages/prisma/zod/*.ts
+packages/prisma/enums
+
+# Builds
+dist
+
+# Linting
+lint-results
+
+#Storybook
+apps/storybook/build-storybook.log
+
+# Snaplet
+.snaplet/snapshots
+.snaplet/structure.d.ts
+
+# Submodules
+.gitmodules
+apps/website
+apps/console
+apps/auth
+
+# Yarn Modern
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+i18n.cache

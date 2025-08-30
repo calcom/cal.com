@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" width="100%" height="100%">
+  <defs>
+    <radialGradient id="c" r="1"/>
+    <filter id="d" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="2" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"/>
+      <feComponentTransfer x="0%" y="0%" width="100%" height="100%" in="colormatrix" result="componentTransfer">
+        <feFuncR type="linear" slope="3"/>
+        <feFuncG type="linear" slope="3"/>
+        <feFuncB type="linear" slope="3"/>
+      </feComponentTransfer>
+      <feColorMatrix x="0%" y="0%" width="100%" height="100%" in="componentTransfer" result="colormatrix2" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 15 -7"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#c)"/>
+  <rect width="100%" height="100%" fill="transparent" filter="url(#d)" opacity=".3" style="mix-blend-mode:normal"/>
+</svg>

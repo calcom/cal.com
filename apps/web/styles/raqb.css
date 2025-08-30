@@ -1,0 +1,145 @@
+.cal-query-builder .query-builder,
+.cal-query-builder .qb-draggable,
+.cal-query-builder .qb-drag-handler {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.cal-query-builder .group-container {
+  padding: 8px !important;
+  border-radius: 16px;
+  border: 1px solid var(--cal-border-muted);
+  background-color: var(--cal-bg);
+}
+
+.cal-query-builder .group--children:not(:empty) {
+  background-color: var(--cal-bg);
+  border: 1px solid var(--cal-border-muted);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.cal-query-builder .cal-query-builder-container .group-container {
+  border: none;
+  padding: 0px;
+}
+
+.cal-query-builder .group .group--header {
+  margin-left: 8px;
+}
+
+.cal-query-builder .group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
+  background-color: var(--cal-bg-muted);
+  padding: 2px;
+  border-radius: 12px;
+}
+
+
+/* hide connectors */
+.cal-query-builder .group-or-rule::before,
+.cal-query-builder .group-or-rule::after {
+  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
+  content: unset !important;
+}
+
+/* Hide "and" for between numbers */
+.cal-query-builder .widget--sep {
+  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
+  display: none !important;
+}
+
+/* Layout of all fields-  Distance b/w them, positioning, width */
+.cal-query-builder .rule--body--wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cal-query-builder .rule--body {
+  display: grid;
+  grid-template-columns: 40% 20% 40%;
+  width: 100%;
+}
+
+.cal-query-builder .rule--widget {
+  display: "inline-block";
+  width: 100%;
+}
+
+.cal-query-builder .widget--widget,
+.cal-query-builder .widget--widget,
+.cal-query-builder .widget--widget>* {
+  width: 100%;
+}
+
+.cal-query-builder .rule--drag-handler,
+.cal-query-builder .rule--header {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
+  opacity: 1 !important;
+}
+
+/* Disable Reordering of rules - It is not required with the current functionality plus it's not working correctly even if someone wants to re-order */
+.cal-query-builder .rule--drag-handler {
+  display: none;
+}
+
+.cal-query-builder .rule--func--wrapper,
+.cal-query-builder .rule--func,
+.cal-query-builder .rule--func--args,
+.cal-query-builder .rule--func--arg,
+.cal-query-builder .rule--func--arg-value,
+.cal-query-builder .rule--func--bracket-before,
+.cal-query-builder .rule--func--bracket-after,
+.cal-query-builder .rule--func--arg-sep,
+.cal-query-builder .rule--func--arg-label,
+.cal-query-builder .rule--func--arg-label-sep {
+  display: inline-block;
+}
+
+.cal-query-builder .rule--field,
+.cal-query-builder .group--field,
+.cal-query-builder .rule--operator,
+.cal-query-builder .rule--value,
+.cal-query-builder .rule--operator-options,
+.cal-query-builder .widget--widget,
+.cal-query-builder .widget--valuesrc,
+.cal-query-builder .operator--options--sep,
+.cal-query-builder .rule--before-widget,
+.cal-query-builder .rule--after-widget {
+  display: inline-block;
+}
+
+.cal-query-builder .rule--operator,
+.cal-query-builder .widget--widget,
+.cal-query-builder .widget--valuesrc,
+.cal-query-builder .widget--sep {
+  padding-left: 10px;
+}
+
+.cal-query-builder .widget--valuesrc {
+  margin-right: -8px;
+}
+
+.cal-query-builder .rule {
+  flex: 1;
+  display: flex;
+}
+
+@media (max-width: 1024px) {
+  .rule--body {
+    flex-direction: column;
+  }
+
+
+  .cal-query-builder .rule--field,
+  .cal-query-builder .rule--operator,
+  .cal-query-builder .rule--value {
+    width: 100%;
+  }
+}

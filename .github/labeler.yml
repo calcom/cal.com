@@ -1,0 +1,10 @@
+"❗️ migrations":
+- changed-files:
+  - any-glob-to-any-file:
+    - packages/prisma/migrations/**/migration.sql
+
+"❗️ .env changes":
+- changed-files:
+  - any-glob-to-any-file:
+    - .env.example
+    - .env.appStore.example

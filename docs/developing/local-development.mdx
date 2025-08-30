@@ -1,0 +1,179 @@
+---
+title: "Local Development"
+icon: "terminal"
+---
+
+Cal.com runs with pretty minimal hardware requirements by itself. The most intensive part for the software is when you actually build the software, but once it's running it's relatively lightweight.
+
+Cal.com works with a very large range of operating systems, as it only requires JavaScript execution to run. **Cal.com is known to work well with Windows, Mac, Linux and BSD.** Although they do work well on all of them, for production deployments we would suggest Linux as the ideal platform. Any operating system that runs Node.js should be able to work too, but these are some of the common operating systems that we know work well.
+
+To run Cal.com, you need to install a few things. **Node.js, yarn, Git and PostgreSQL**. We use **Prisma** for database maintenance, and is one of the dependencies. We won’t publish installation guides for these as they have their own resources available on the internet. If you're on Linux/BSD, all of these things should be readily available on your package manager. Your best bet is searching for something like **Debian 12 PostgreSQL**, which will give you a guide to installing and configuring PostgreSQL on Debian Linux 12.
+
+<Info>
+To ensure optimal performance and compatibility, we highly recommend using Node.js version 18 for your development environment. This version provides the best balance of stability, features, and security for this project. Please make sure to update your Node.js installation if necessary.
+</Info>
+
+## Development Setup & Production Build
+
+1. **First, you git clone the repository** with the following command, so you have a copy of the code.
+    ```git
+    git clone https://github.com/calcom/cal.com.git
+    ```
+
+<Warning>
+If you are on windows, you would need to use the following command when cloning, with **admin privileges**:
+```git
+git clone -c core.symlinks=true https://github.com/calcom/cal.com.git
+```
+</Warning>
+
+2. Then, go into the directory you just cloned with
+    ```bash
+    cd cal.com
+    ```
+    and run
+    ```bash
+    yarn
+    ```
+    to install all of the dependencies. Essentially, dependencies are just things that Cal.com needs to install to be able to work.
+
+3. Then, you just need to set up a couple of things. For that, we use a `.env` file. We just need to copy and paste the `.env.example` file and rename the copy to `.env`. Here you'll have a template with comments showing you the settings you need/might want to set.
+
+4. Next, use the command
+    ```bash
+    openssl rand -base64 32
+    ```
+    (or another secret generator tool if you prefer) to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+
+5. You'll also want to fill out the `.env.appStore` file similar to the `.env` file as this includes keys to enable apps.
+
+**Development tips**
+
+> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **trpc**.
+
+```bash
+echo 'NEXT_PUBLIC_DEBUG=1' >> .env
+```
+
+> For email testing, set it to "1" if you need to email checks in E2E tests locally. Make sure to run mailhog container manually or with `yarn dx`.
+
+```bash
+echo 'E2E_TEST_MAILHOG_ENABLED=1' >> .env
+```
+
+### E2E Testing
+
+Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
+
+
+In a terminal just run:
+```bash
+yarn test-e2e
+```
+To open last HTML report run:
+```bash
+yarn playwright show-report test-results/reports/playwright-html-report
+```
+
+### Manual setup
+
+1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+
+    ```bash
+    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
+    ```
+
+2. Set a 24 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like
+    ```bash
+    openssl rand -base64 24
+    ```
+    to generate one).
+
+3. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
+
+    ```bash
+    yarn workspace @calcom/prisma db-deploy
+    ```
+
+4. Run (in development mode)
+
+    ```bash
+    yarn dev
+    ```
+
+<Info>
+When you're testing out the enterprise features locally, you should see a warning shown in the image below, clarifying the need to purchase a license for such features in production.
+<img src="/images/i1600x900-E4RcIPb1_bYp_hcpsya.png" />
+</Info>
+
+
+## **Development quick start with** **`yarn dx`**
+
+> * **Requires Docker and Docker Compose to be installed**
+>
+>
+> * Will start a local Postgres instance with a few test users - the credentials will be logged in the console
+>
+
+```bash
+yarn dx
+```
+
+## **Cron Jobs**
+
+There are a few features which require cron job setup. At cal.com, the cron jobs are found in the following directory:
+```bash
+/apps/web/app/api/cron
+```
+
+
+## App store seeder
+
+<Info>
+We recommend using the admin UI/wizard instead of the seeder to enable app store apps
+</Info>
+
+
+## API
+
+#### Step 1
+
+Copy the .env files from their respective example files depending on the version of the API (v1 or v2):
+
+```bash
+cp apps/api/.env.example apps/api/{version}/.env
+cp .env.example .env
+```
+
+#### Step 2
+
+Install packages with yarn:
+
+```bash
+yarn
+```
+
+### Running API server
+
+Run the API V1 with yarn:
+
+```bash
+yarn workspace @calcom/api dev
+```
+
+Run the API V2 with yarn:
+<Info>Please note API V2 requires the database running in docker</Info>
+
+```bash
+yarn workspace @calcom/api-v2 dev
+```
+
+<Note>
+On windows, you would need to update the script to explicitly set port to 3003 and run yarn dev under `apps/api/package.json` So, it should look something like this after the changes:
+
+`"dev": "set PORT=3003 && next dev"` Now, running `yarn workspace @calcom/api dev` should start the server.
+</Note>
+
+Open [http://localhost:3003](http://localhost:3003/) with your browser to see the result.
+
+If you wish to test how API works locally, please [check out our guide here](/developing/guides/api/how-to-setup-api-in-a-local-instance).

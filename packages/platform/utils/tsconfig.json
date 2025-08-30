@@ -1,0 +1,13 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "ES5",
+    "resolveJsonModule": true,
+    "types": ["jest"],
+    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+  },
+  "include": [".", "./tests", "../../types/business-days-plugin.d.ts", "../../types/window.d.ts"],
+  "exclude": ["dist", "build", "**/node_modules/**", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
+}

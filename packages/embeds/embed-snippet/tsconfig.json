@@ -1,0 +1,17 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react",
+    "target": "ES2015",
+    "baseUrl": ".",
+    "module": "ESNext",
+    "declaration": true,
+    "outDir": "dist",
+    "paths": {
+      "@calcom/embed-core": ["../embed-core/src"],
+      "@calcom/embed-react": ["../embed-react/src"]
+    }
+  },
+  "include": ["."],
+  "exclude": ["dist", "build", "**/node_modules/**"]
+}

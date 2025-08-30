@@ -1,0 +1,14 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "compilerOptions": {
+    "resolveJsonModule": true
+  },
+  "include": [
+    "../../apps/web/next-env.d.ts",
+    "../types/*.d.ts",
+    "../types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": ["dist", "build", "**/node_modules/**"]
+}
