@@ -1,13 +1,17 @@
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
 import { UserDropdown } from "./user-dropdown/UserDropdown";
+
+const KBarTrigger = dynamic(() => import("@calcom/features/kbar/Kbar").then((mod) => mod.KBarTrigger), {
+  ssr: true,
+});
 
 export function TopNavContainer() {
   const { status } = useSession();

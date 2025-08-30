@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -7,12 +8,15 @@ import {
   useOrgBranding,
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
-import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import classNames from "@calcom/ui/classNames";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
+
+const KBarTrigger = dynamic(() => import("@calcom/features/kbar/Kbar").then((mod) => mod.KBarTrigger), {
+  ssr: true,
+});
 
 export const MORE_SEPARATOR_NAME = "more";
 
