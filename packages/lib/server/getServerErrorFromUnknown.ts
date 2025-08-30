@@ -5,11 +5,13 @@ import { ZodError } from "zod";
 import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { isTwilioError } from "@calcom/lib/isTwilioError";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 import { HttpError } from "../http-error";
+import logger from "../logger";
 import { redactError } from "../redactError";
 
 function hasName(cause: unknown): cause is { name: string } {
@@ -36,10 +38,36 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
     .join("; ");
 }
 
+const twilioErrorLogger = logger.getSubLogger({ prefix: ["TwilioError"] });
+
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
     return new HttpError({ statusCode, message: cause.message });
+  }
+  if (isTwilioError(cause)) {
+    twilioErrorLogger.error("Twilio error occurred:", {
+      status: cause.status,
+      message: cause.message,
+      code: cause.code,
+      cause: cause,
+    });
+    if (cause.status !== 400) {
+      // Don't propagate Twilio's error status if it's not 400 - return 202 from our perspective
+      // since our server successfully processed the request, even if Twilio failed
+
+      return new HttpError({
+        statusCode: 202,
+        message: "Twilio request accepted successfully but failed on Twilio's side",
+        cause,
+      });
+    }
+
+    return new HttpError({
+      statusCode: 400,
+      message: cause.message,
+      cause,
+    });
   }
   if (isZodError(cause)) {
     return new HttpError({
