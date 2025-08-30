@@ -179,33 +179,33 @@ describe("getCalendarsEvents", () => {
 
   describe("Regular Credentials", () => {
     it("should return empty array if no calendar credentials", async () => {
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        withCredentials: [
           buildRegularCredential({
             ...credential,
             type: "totally_unrelated",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        []
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: []
+      });
 
       expect(result).toEqual([]);
     });
 
     it("should return unknown calendars as empty", async () => {
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        withCredentials: [
           buildRegularCredential({
             ...credential,
             type: "unknown_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        []
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: []
+      });
 
       expect(result).toEqual([[]]);
     });
@@ -218,17 +218,17 @@ describe("getCalendarsEvents", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        withCredentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        [selectedCalendar]
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [selectedCalendar]
+      });
 
       expect(result).toEqual([[]]);
     });
@@ -256,17 +256,17 @@ describe("getCalendarsEvents", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        withCredentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar]
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar]
+      });
 
       expect(getAvailabilitySpy).toHaveBeenCalledWith(
         "2010-12-01",
@@ -318,8 +318,8 @@ describe("getCalendarsEvents", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        withCredentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
@@ -334,10 +334,10 @@ describe("getCalendarsEvents", () => {
             },
           }),
         ],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedGoogleCalendar, selectedOfficeCalendar]
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedGoogleCalendar, selectedOfficeCalendar]
+      });
 
       expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith(
         "2010-12-01",
@@ -370,12 +370,12 @@ describe("getCalendarsEvents", () => {
         .spyOn(GoogleCalendarService.prototype, "getAvailability")
         .mockReturnValue(Promise.resolve([]));
 
-      const result = await getCalendarsEvents(
-        [buildRegularCredential(credential)],
-        "2010-12-01",
-        "2010-12-02",
-        []
-      );
+      const result = await getCalendarsEvents({
+        withCredentials: [buildRegularCredential(credential)],
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: []
+      });
 
       expect(getAvailabilitySpy).not.toHaveBeenCalled();
       expect(result).toEqual([[]]);
@@ -392,7 +392,12 @@ describe("getCalendarsEvents", () => {
         .spyOn(GoogleCalendarService.prototype, "getAvailability")
         .mockReturnValue(Promise.resolve([]));
 
-      const result = await getCalendarsEvents(credentials, startDate, endDate, []);
+      const result = await getCalendarsEvents({
+        withCredentials: credentials,
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars: []
+      });
 
       expect(getAvailabilitySpy).toHaveBeenCalledWith(startDate, endDate, [], undefined, true);
       expect(result).toEqual([[]]);
