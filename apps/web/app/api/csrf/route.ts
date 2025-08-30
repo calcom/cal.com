@@ -7,7 +7,7 @@ export async function GET() {
   const res = NextResponse.json({ csrfToken: token });
 
   res.cookies.set("calcom.csrf_token", token, {
-    httpOnly: false,
+    httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
