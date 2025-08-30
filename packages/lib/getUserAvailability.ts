@@ -127,6 +127,36 @@ interface GetUserAvailabilityParamsDTO {
   availability: (DateOverride | WorkingHours)[];
 }
 
+export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
+
+export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
+
+type _GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
+
+/** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
+const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
+  query: GetUserAvailabilityQuery,
+  initialData?: GetUserAvailabilityInitialData
+) {
+  const {
+    username,
+    userId,
+    dateFrom,
+    dateTo,
+    eventTypeId,
+    afterEventBuffer,
+    beforeEventBuffer,
+    duration,
+    returnDateOverrides,
+    bypassBusyCalendarTimes = false,
+    shouldServeCache,
+  } = availabilitySchema.parse(query);
+
+  log.debug(
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify({
+      query,
+    })}`
+  );
 export interface IFromUser {
   id: number;
   displayName: string | null;
@@ -223,6 +253,30 @@ export class UserAvailabilityService {
     return null;
   }
 
+  const teamForBookingLimits =
+    initialData?.teamForBookingLimits ??
+    eventType?.team ??
+    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+  const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
+
+  let busyTimesFromTeamLimits: EventBusyDetails[] = [];
+
+  if (initialData?.teamBookingLimits && teamForBookingLimits) {
+    busyTimesFromTeamLimits = initialData.teamBookingLimits.get(user.id) || [];
+  } else if (teamForBookingLimits && teamBookingLimits) {
+    // Fall back to individual query if not available in initialData
+    busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
+      user,
+      teamBookingLimits,
+      dateFrom.tz(timeZone),
+      dateTo.tz(timeZone),
+      teamForBookingLimits.id,
+      teamForBookingLimits.includeManagedEventsInLimits,
+      timeZone,
+      initialData?.rescheduleUid ?? undefined,
+      eventType ?? undefined
+    );
   async _getEventType(id: number) {
     const eventType = await this.dependencies.eventTypeRepo.findByIdForUserAvailability({ id });
     if (!eventType) {

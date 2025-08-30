@@ -65,6 +65,10 @@ import type { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+
+type _GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialPayload[];
+};
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
@@ -622,7 +626,27 @@ export class AvailableSlotsService {
 
           totalBookings++;
           if (totalBookings >= limit) {
-            globalLimitManager.addBusyTime(periodStart, unit, timeZone);
+            // For seated events, only mark slot as busy if there are no remaining seats
+            if (eventType?.seatsPerTimeSlot) {
+              // Get bookings for each specific time slot to check remaining seats
+              const slotBookings = busyTimesFromLimitsBookings.filter(
+                (b) =>
+                  dayjs(b.start).isSame(dayjs(booking.start)) &&
+                  isBookingWithinPeriod(b, periodStart, periodEnd, timeZone)
+              );
+
+              // Count attendees across all bookings for this time slot
+              const totalAttendees = slotBookings.length;
+
+              // Only mark as busy if no seats remain AND booking limit is reached
+              const remainingSeats = eventType.seatsPerTimeSlot - totalAttendees;
+              if (remainingSeats <= 0) {
+                globalLimitManager.addBusyTime(periodStart, unit, timeZone);
+              }
+            } else {
+              // For non-seated events, mark as busy when limit is reached
+              globalLimitManager.addBusyTime(periodStart, unit, timeZone);
+            }
             break;
           }
         }
@@ -685,7 +709,27 @@ export class AvailableSlotsService {
 
             totalBookings++;
             if (totalBookings >= limit) {
-              limitManager.addBusyTime(periodStart, unit, timeZone);
+              // For seated events, only mark slot as busy if there are no remaining seats
+              if (eventType?.seatsPerTimeSlot) {
+                // Get bookings for each specific time slot to check remaining seats
+                const slotBookings = userBookings.filter(
+                  (b) =>
+                    dayjs(b.start).isSame(dayjs(booking.start)) &&
+                    isBookingWithinPeriod(b, periodStart, periodEnd, timeZone)
+                );
+
+                // Count attendees across all bookings for this time slot
+                const totalAttendees = slotBookings.length;
+
+                // Only mark as busy if no seats remain AND booking limit is reached
+                const remainingSeats = eventType.seatsPerTimeSlot - totalAttendees;
+                if (remainingSeats <= 0) {
+                  limitManager.addBusyTime(periodStart, unit, timeZone);
+                }
+              } else {
+                // For non-seated events, mark as busy when limit is reached
+                limitManager.addBusyTime(periodStart, unit, timeZone);
+              }
               break;
             }
           }
@@ -992,6 +1036,9 @@ export class AvailableSlotsService {
       logger.settings.minLevel = 2;
     }
 
+    for (const key of descendingLimitKeys) {
+      const limit = bookingLimits?.[key];
+      if (!limit) continue;
     const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
     const startTimeAsIsoString = input.startTime;
     const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));

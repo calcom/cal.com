@@ -43,6 +43,7 @@ const _getBusyTimesFromLimits = async (
       limitManager,
       rescheduleUid,
       timeZone,
+      eventType,
     });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
@@ -84,6 +85,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
   user?: { id: number; email: string };
   includeManagedEvents?: boolean;
   timeZone?: string | null;
+  eventType?: NonNullable<EventType>;
 }) => {
   const {
     bookings,
@@ -97,6 +99,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     rescheduleUid,
     includeManagedEvents = false,
     timeZone,
+    eventType,
   } = params;
 
   for (const key of descendingLimitKeys) {
@@ -143,7 +146,29 @@ const _getBusyTimesFromBookingLimits = async (params: {
         }
         totalBookings++;
         if (totalBookings >= limit) {
-          limitManager.addBusyTime(periodStart, unit);
+          // For seated events, only mark slot as busy if there are no remaining seats
+          if (eventType?.seatsPerTimeSlot) {
+            // Get bookings for each specific time slot to check remaining seats
+            const slotBookings = bookings.filter((b) => {
+              if (!dayjs(b.start).isSame(dayjs(booking.start))) return false;
+              if (!isBookingWithinPeriod(b, periodStart, periodEnd, timeZone || "UTC")) return false;
+              // When eventTypeId is present (team-limits path), filter by same eventTypeId
+              if (eventTypeId && b.eventTypeId && b.eventTypeId !== eventTypeId) return false;
+              return true;
+            });
+
+            // Each booking counts as one (simple count instead of manual attendee reduce)
+            const totalAttendees = slotBookings.length;
+
+            // Only mark as busy if no seats remain AND booking limit is reached
+            const remainingSeats = eventType.seatsPerTimeSlot - totalAttendees;
+            if (remainingSeats <= 0) {
+              limitManager.addBusyTime(periodStart, unit);
+            }
+          } else {
+            // For non-seated events, mark as busy when limit is reached
+            limitManager.addBusyTime(periodStart, unit);
+          }
           break;
         }
       }
@@ -227,7 +252,8 @@ const _getBusyTimesFromTeamLimits = async (
   teamId: number,
   includeManagedEvents: boolean,
   timeZone: string,
-  rescheduleUid?: string
+  rescheduleUid?: string,
+  eventType?: NonNullable<EventType>
 ) => {
   const busyTimesService = getBusyTimesService();
   const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
@@ -252,6 +278,7 @@ const _getBusyTimesFromTeamLimits = async (
     title,
     source: `eventType-${eventTypeId}-booking-${id}`,
     userId,
+    eventTypeId,
   }));
 
   const limitManager = new LimitManager();
@@ -267,6 +294,7 @@ const _getBusyTimesFromTeamLimits = async (
     user,
     includeManagedEvents,
     timeZone,
+    eventType,
   });
 
   return limitManager.getBusyTimes();
