@@ -10,7 +10,10 @@ import {
   TestData,
   getDate,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
+import {
+  expectBookingCancelledWebhookToHaveBeenFired,
+  expectWorkflowToBeTriggered,
+} from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
@@ -26,7 +29,7 @@ vi.mock("@calcom/lib/payment/processPaymentRefund", () => ({
 describe("Cancel Booking", () => {
   setupAndTeardown();
 
-  test("Should trigger BOOKING_CANCELLED webhook", async () => {
+  test("Should trigger BOOKING_CANCELLED webhook and workflow", async ({ emails }) => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
     const booker = getBooker({
@@ -59,6 +62,15 @@ describe("Cancel Booking", () => {
             appId: null,
           },
         ],
+        workflows: [
+          {
+            userId: organizer.id,
+            trigger: "EVENT_CANCELLED",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
         eventTypes: [
           {
             id: 1,
@@ -75,6 +87,12 @@ describe("Cancel Booking", () => {
           {
             id: idOfBookingToBeCancelled,
             uid: uidOfBookingToBeCancelled,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
             eventTypeId: 1,
             userId: 101,
             responses: {
@@ -133,6 +151,8 @@ describe("Cancel Booking", () => {
         },
       },
     });
+
+    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 
   test("Should call processPaymentRefund", async () => {
