@@ -290,7 +290,7 @@ export const getPublicEvent = async (
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
     if (preferedLocationType?.appSlug) {
-      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+      const foundApp = await getAppFromSlug(preferedLocationType.appSlug);
       const appType = foundApp?.appData?.location?.type;
       if (appType) {
         // Replace the location with the preferred location type
@@ -606,7 +606,7 @@ const getPublicEventRefactored = async (
     const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
 
     if (preferedLocationType?.appSlug) {
-      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+      const foundApp = await getAppFromSlug(preferedLocationType.appSlug);
       const appType = foundApp?.appData?.location?.type;
       if (appType) {
         // Replace the location with the preferred location type

@@ -196,14 +196,16 @@ export async function getConnectedApps({
 
       let dependencyData: TDependencyData = [];
       if (app.dependencies?.length) {
-        dependencyData = app.dependencies.map((dependency) => {
-          const dependencyInstalled = enabledApps.some(
-            (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
-          );
-          // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-          const dependencyName = getAppFromSlug(dependency)?.name;
-          return { name: dependencyName, installed: dependencyInstalled };
-        });
+        dependencyData = await Promise.all(
+          app.dependencies.map(async (dependency) => {
+            const dependencyInstalled = enabledApps.some(
+              (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
+            );
+            // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
+            const dependencyName = (await getAppFromSlug(dependency))?.name;
+            return { name: dependencyName, installed: dependencyInstalled };
+          })
+        );
       }
 
       return {

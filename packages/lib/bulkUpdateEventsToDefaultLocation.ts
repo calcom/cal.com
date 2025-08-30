@@ -24,7 +24,7 @@ export const bulkUpdateEventsToDefaultLocation = async ({
     });
   }
 
-  const foundApp = getAppFromSlug(defaultApp.appSlug);
+  const foundApp = await getAppFromSlug(defaultApp.appSlug);
   const appType = foundApp?.appData?.location?.type;
   if (!appType) {
     throw new TRPCError({
@@ -36,7 +36,7 @@ export const bulkUpdateEventsToDefaultLocation = async ({
   const credential = await prisma.credential.findFirst({
     where: {
       userId: user.id,
-      appId: foundApp.slug,
+      appId: foundApp?.slug,
     },
     select: {
       id: true,

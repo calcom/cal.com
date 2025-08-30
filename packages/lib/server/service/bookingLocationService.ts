@@ -104,9 +104,9 @@ export class BookingLocationService {
    * @returns The location configuration or null if no valid conferencing app is found.
    *          Callers should handle the null case with their own fallback logic.
    */
-  static getOrganizerDefaultConferencingAppLocation({
+  static async getOrganizerDefaultConferencingAppLocation({
     organizerMetadata,
-  }: GetOrganizerDefaultConferencingAppLocationParams): GetOrganizerDefaultConferencingAppLocationResult | null {
+  }: GetOrganizerDefaultConferencingAppLocationParams): Promise<GetOrganizerDefaultConferencingAppLocationResult | null> {
     // Parse the user metadata to extract conferencing app settings
     const metadataParseResult = userMetadataSchema.safeParse(organizerMetadata);
     const parsedMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
@@ -116,7 +116,7 @@ export class BookingLocationService {
     }
 
     // Retrieve the app configuration from the app store
-    const app = getAppFromSlug(parsedMetadata.defaultConferencingApp.appSlug);
+    const app = await getAppFromSlug(parsedMetadata.defaultConferencingApp.appSlug);
     // Extract the location type from the app's metadata (e.g., "integrations:zoom")
     const conferencingAppLocationType = app?.appData?.location?.type || null;
 
@@ -150,12 +150,12 @@ export class BookingLocationService {
    *
    * @returns The location configuration for the new host
    */
-  static getLocationForHost({
+  static async getLocationForHost({
     hostMetadata,
     eventTypeLocations,
     isManagedEventType = false,
     isTeamEventType = false,
-  }: GetLocationForHostParams): GetLocationForHostResult {
+  }: GetLocationForHostParams): Promise<GetLocationForHostResult> {
     // Check if the event type allows using the organizer's default conferencing app
     const eventAllowsOrganizerDefault = eventTypeLocations.some(
       (location) => location.type === OrganizerDefaultConferencingAppType
@@ -164,9 +164,10 @@ export class BookingLocationService {
     const isOrganizerDefaultAllowed = isTeamEventType || isManagedEventType;
 
     if (eventAllowsOrganizerDefault && isOrganizerDefaultAllowed) {
-      const organizerDefaultLocation = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
-        organizerMetadata: hostMetadata,
-      });
+      const organizerDefaultLocation =
+        await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+          organizerMetadata: hostMetadata,
+        });
 
       if (organizerDefaultLocation) {
         if (organizerDefaultLocation.isStaticLinkApp) {

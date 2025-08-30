@@ -1027,7 +1027,7 @@ export async function getEmailTemplateText(
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(params.timeFormat);
 
-  let { emailBody, emailSubject } = emailReminderTemplate({
+  let { emailBody, emailSubject } = await emailReminderTemplate({
     isEditingMode: true,
     locale,
     t: await getTranslation(locale ?? "en", "common"),

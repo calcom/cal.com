@@ -28,7 +28,7 @@ export type EventNameObjectType = {
   t: TFunction;
 };
 
-export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
+export async function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   const attendeeName = parseName(eventNameObj.attendeeName);
 
   if (!eventNameObj.eventName)
@@ -45,7 +45,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let locationString = eventNameObj.location || "";
 
   if (eventNameObj.eventName.includes("{Location}") || eventNameObj.eventName.includes("{LOCATION}")) {
-    const eventLocationType = guessEventLocationType(eventNameObj.location);
+    const eventLocationType = await guessEventLocationType(eventNameObj.location);
     if (eventLocationType) {
       locationString = eventLocationType.label;
     }
@@ -80,7 +80,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     return variable.replace("{", "").replace("}", "");
   });
 
-  customInputvariables?.forEach((variable) => {
+  for (const variable of customInputvariables || []) {
     if (!eventNameObj.bookingFields) return;
 
     const bookingFieldValue = eventNameObj.bookingFields[variable as keyof typeof eventNameObj.bookingFields];
@@ -93,7 +93,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
           const valueAsString = bookingFieldValue.value?.toString();
           fieldValue =
             variable === "location"
-              ? guessEventLocationType(valueAsString)?.label || valueAsString
+              ? (await guessEventLocationType(valueAsString))?.label || valueAsString
               : valueAsString;
         } else if (variable === "name" && "firstName" in bookingFieldValue) {
           const lastName = "lastName" in bookingFieldValue ? bookingFieldValue.lastName : "";
@@ -107,7 +107,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     } else {
       dynamicEventName = dynamicEventName.replace(`{${variable}}`, "");
     }
-  });
+  }
 
   return dynamicEventName;
 }
