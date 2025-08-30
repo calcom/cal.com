@@ -203,12 +203,6 @@ export async function handler(req: NextApiRequest) {
       const { userId: argUserId, userIds, userEmails } = await handleSystemWideAdminArgs(systemWideAdminArgs);
       userEmailsToFilterBy = userEmails;
       args.where = buildWhereClause(argUserId, attendeeEmails, userIds);
-    } else {
-      args.where = {
-        id: {
-          not: -1, // This will match all records since no booking has id -1
-        },
-      };
     }
   } else if (isOrganizationOwnerOrAdmin) {
     let requestedUserIds = [userId];
