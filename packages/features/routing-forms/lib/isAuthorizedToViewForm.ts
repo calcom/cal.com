@@ -22,10 +22,20 @@ export function isAuthorizedToViewFormOnOrgDomain({
   currentOrgDomain,
   team,
 }: {
-  user: FormUser;
+  user: FormUser | null;
   currentOrgDomain: string | null;
   team?: FormTeam;
 }) {
+  if (!user) {
+    const teamOrgSlug = team?.parent?.slug ?? null;
+    if (!currentOrgDomain) {
+      return true;
+    } else if (currentOrgDomain === teamOrgSlug) {
+      return true;
+    }
+    return false;
+  }
+
   const formUser = {
     ...user,
     metadata: userMetadata.parse(user.metadata),
