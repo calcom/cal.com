@@ -68,6 +68,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
     rrResetInterval: input.rrResetInterval,
     rrTimestampBasis: input.rrTimestampBasis,
+    mandatoryCancellationReasonForHost: input.mandatoryCancellationReasonForHost,
+    mandatoryCancellationReasonForAttendee: input.mandatoryCancellationReasonForAttendee,
   };
 
   if (
@@ -171,6 +173,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
+    mandatoryCancellationReasonForHost: updatedTeam.mandatoryCancellationReasonForHost,
+    mandatoryCancellationReasonForAttendee: updatedTeam.mandatoryCancellationReasonForAttendee,
   };
 };
 
