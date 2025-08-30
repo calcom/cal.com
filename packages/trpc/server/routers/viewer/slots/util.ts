@@ -12,6 +12,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
@@ -53,8 +54,7 @@ import type { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import { PeriodType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -140,6 +140,20 @@ function withSlotsCache(
       log.info("[CACHE HIT] Available slots", { cacheKey });
       return cachedResult;
     }
+    function simpleHash(input: string) {
+      let hash = 5381;
+      for (let i = 0; i < input.length; i++) {
+        hash = (hash * 33) ^ input.charCodeAt(i);
+      }
+      return hash >>> 0; // Convert to unsigned 32-bit integer
+    }
+    // The cache is missed, we apply the a rate limit to safeguard against cache stampedes
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "common",
+      identifier: `getSchedule-${simpleHash(cacheKey)}`,
+      // using common rate limits for, 200 reqs per 60s, which is ~3.33 reqs/sec
+    });
+
     const result = await func(args);
     const ttl = parseInt(process.env.SLOTS_CACHE_TTL ?? "", 10) || DEFAULT_SLOTS_CACHE_TTL;
     // we do not wait for the cache to complete setting; we fire and forget, and hope it'll finish.
