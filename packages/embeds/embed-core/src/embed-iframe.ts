@@ -583,6 +583,7 @@ function main() {
     // TODO: Add theme as well here
     colorScheme: url.searchParams.get("ui.color-scheme"),
     layout: url.searchParams.get("layout") as BookerLayouts,
+    disableAutoScroll: url.searchParams.get("ui.disable-auto-scroll") === "true",
   };
 
   actOnColorScheme(embedStore.uiConfig.colorScheme);
