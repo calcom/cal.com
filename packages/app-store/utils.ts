@@ -69,7 +69,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         delegatedToId: null,
         delegationCredentialId: null,
         team: {
-          name: "Global",
+          name: "Default",
         },
       };
       logger.debug(

@@ -239,7 +239,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
 
         await page.getByTestId("location-select").click();
-        await page.locator(`text="Cal Video (Global)"`).click();
+        await page.locator(`text="Cal Video (Default)"`).click();
 
         await saveEventType(page);
         await gotoBookingPage(page);
@@ -282,7 +282,7 @@ test.describe("Event Types tests", () => {
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
-        await addAnotherLocation(page, "Cal Video (Global)");
+        await addAnotherLocation(page, "Cal Video (Default)");
 
         await saveEventType(page);
 

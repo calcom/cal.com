@@ -11,6 +11,7 @@ export const TeamsCTA = () => {
       data-testid="new-team-btn"
       variant="fab"
       StartIcon="plus"
+      size="sm"
       type="button"
       href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
       {t("new")}
