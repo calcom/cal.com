@@ -4,7 +4,7 @@
 import * as React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-import ReactDom from "react-dom";
+import { createRoot } from "react-dom/client";
 
 // Because we don't import from @calcom/embed-react, this file isn't able to test if the build is successful or not and thus npm package would work or not correctly.
 // There are tests in test/built which verify that the types from built package are correctly generated and exported correctly.
@@ -18,7 +18,7 @@ function App() {
   const [, setLoaded] = useState(false);
   useEffect(() => {
     // Simulate state change causing config object to change, causing rerender of Cal
-    setTimeout(setLoaded.bind(true), 1000);
+    setTimeout(() => setLoaded(true), 1000);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (event: any) => {
       console.log(event.detail);
@@ -96,4 +96,9 @@ function App() {
     </>
   );
 }
-ReactDom.render(<App />, document.getElementById("root"));
+
+const container = document.getElementById("root");
+if (container) {
+  const root = createRoot(container);
+  root.render(<App />);
+}
