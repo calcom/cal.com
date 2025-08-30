@@ -41,6 +41,7 @@ const log = logger.getSubLogger({ prefix: ["repository/profile"] });
 const organizationSettingsSelect = {
   allowSEOIndexing: true,
   orgProfileRedirectsToVerifiedDomain: true,
+  disableAutoFillOnBookingPage: true,
 } satisfies Prisma.OrganizationSettingsSelect;
 const organizationSelect = {
   id: true,

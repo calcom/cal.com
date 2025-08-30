@@ -106,6 +106,7 @@ export interface BookerProps {
   userLocale?: string | null;
   hasValidLicense?: boolean;
   useApiV2?: boolean;
+  disableAutoFillOnBookingPage?: boolean;
 }
 
 export type WrappedBookerPropsMain = {

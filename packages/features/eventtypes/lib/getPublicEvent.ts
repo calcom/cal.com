@@ -455,6 +455,8 @@ export const getPublicEvent = async (
     hosts: fetchAllUsers ? hosts : undefined,
   };
 
+  const organizationId = eventWithUserProfiles.owner?.profile?.organizationId || null;
+
   let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
     (await getOwnerFromUsersArray(prisma, event.id));
