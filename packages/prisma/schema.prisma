@@ -917,6 +917,8 @@ model SelectedCalendar {
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
 
+  calendarSubscription CalendarSubscription?
+
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
@@ -1601,6 +1603,83 @@ model TeamFeatures {
 
   @@id([teamId, featureId])
   @@index([teamId, featureId])
+}
+
+model CalendarSubscription {
+  id                 String @id @default(uuid())
+  selectedCalendarId String @unique
+
+  // Webhook subscription details (provider-agnostic)
+  channelId          String?
+  channelKind        String?
+  channelResourceId  String?
+  channelResourceUri String?
+  channelResource    String?
+  clientState        String?
+  channelExpiration  DateTime?
+  syncCursor         String?
+
+  // Sync management
+  syncErrors    Int       @default(0)
+  maxSyncErrors Int       @default(5)
+  backoffUntil  DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
+  events           CalendarEvent[]
+
+  @@index([channelExpiration, syncErrors, backoffUntil])
+  @@index([syncCursor])
+  @@index([selectedCalendarId])
+}
+
+model CalendarEvent {
+  id                     String @id @default(uuid())
+  calendarSubscriptionId String
+
+  // External calendar event data (provider-agnostic)
+  externalEventId String
+  iCalUID         String?
+  externalEtag    String
+  iCalSequence    Int     @default(0)
+
+  // Event details
+  summary     String?
+  description String?
+  location    String?
+  start       DateTime
+  end         DateTime
+  isAllDay    Boolean  @default(false)
+  // Event timezone (from event payload or inferred from calendar)
+  timeZone    String?
+
+  // Event metadata
+  status       String @default("confirmed") // confirmed, tentative, cancelled
+  transparency String @default("opaque") // opaque, transparent
+  visibility   String @default("default") // default, public, private
+
+  // Recurring events
+  recurringEventId  String?
+  originalStartTime DateTime?
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  externalCreatedAt DateTime?
+  externalUpdatedAt DateTime?
+
+  // Relations
+  calendarSubscription CalendarSubscription @relation(fields: [calendarSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarSubscriptionId, externalEventId])
+  @@index([calendarSubscriptionId, start, end])
+  @@index([calendarSubscriptionId, iCalUID])
+  @@index([start, end, status]) // For availability queries
+  @@index([externalEventId])
 }
 
 enum FeatureType {

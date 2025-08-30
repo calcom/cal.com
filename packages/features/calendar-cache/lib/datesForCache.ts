@@ -1,4 +1,8 @@
-/** Expand the start date to the beginning of the current month */
+/**
+ * Expand the start date to the beginning of the current month
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 export const getTimeMin = (timeMin?: string) => {
   const date = timeMin ? new Date(timeMin) : new Date();
   // Set to UTC to avoid timezone issues
@@ -17,6 +21,8 @@ export const getTimeMin = (timeMin?: string) => {
  *                   ├────────┼────────┼────────┼────────┤
  * Current Month     █████████|        |        |        |
  * Next Month        |        █████████|        |        |
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
  **/
 export function getTimeMax(timeMax?: string) {
   const now = new Date();

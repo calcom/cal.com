@@ -6,7 +6,7 @@ export interface CalendarEvent {
   description?: string;
   start: Date | string; // You can pass in a string from DB since we use dayjs for the dates.
   end: Date;
-  source?: string;
+  source?: string | null;
   options?: {
     status?: BookingStatus;
     hideTime?: boolean;

@@ -57,6 +57,8 @@ export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
   source?: string | null;
+  title?: string;
+  timeZone?: string;
 };
 
 export type EventBusyDetails = EventBusyDate & {
@@ -251,6 +253,9 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   primaryEmail?: string;
   credentialId?: number | null;
   integrationTitle?: string;
+  // SQL cache enrichment properties
+  sqlCacheUpdatedAt?: Date | null;
+  sqlCacheSubscriptionCount?: number;
 }
 
 /**
