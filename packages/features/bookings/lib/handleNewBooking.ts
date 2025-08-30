@@ -3,6 +3,7 @@ import type { DestinationCalendar, User } from "@prisma/client";
 import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
+import { z } from "zod";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
@@ -78,7 +79,6 @@ import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
-  eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
@@ -121,6 +121,8 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+
+const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });

@@ -81,9 +81,6 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
-export const EventTypeAppMetadataSchema = z.record(z.any()).optional();
-export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema;
-
 const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
   blockchainId: z.number().optional(),
@@ -137,7 +134,7 @@ export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithou
 export const eventTypeMetaDataSchemaWithTypedApps = _eventTypeMetaDataSchemaWithoutApps
   .merge(
     z.object({
-      apps: eventTypeAppMetadataOptionalSchema,
+      apps: z.record(z.any()).optional(),
     })
   )
   .nullable();
