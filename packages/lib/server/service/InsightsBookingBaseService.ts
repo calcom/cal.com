@@ -1122,6 +1122,58 @@ export class InsightsBookingBaseService {
         };
   }
 
+  async getRecentNoShowGuests() {
+    const baseConditions = await this.getBaseConditions();
+
+    const recentNoShowBookings = await this.prisma.$queryRaw<
+      Array<{
+        bookingId: number;
+        startTime: Date;
+        eventTypeName: string;
+        guestName: string;
+        guestEmail: string;
+      }>
+    >`
+      WITH booking_attendee_stats AS (
+        SELECT
+          b.id as booking_id,
+          b."startTime",
+          b.title as event_type_name,
+          COUNT(a.id) as total_attendees,
+          COUNT(CASE WHEN a."noShow" = true THEN 1 END) as no_show_attendees
+        FROM "BookingTimeStatusDenormalized" b
+        INNER JOIN "Attendee" a ON a."bookingId" = b.id
+        WHERE ${baseConditions} and b.status = 'accepted'
+        GROUP BY b.id, b."startTime", b.title
+        HAVING COUNT(a.id) > 0 AND COUNT(a.id) = COUNT(CASE WHEN a."noShow" = true THEN 1 END)
+      ),
+      recent_no_shows AS (
+        SELECT
+          bas.booking_id,
+          bas."startTime",
+          bas.event_type_name,
+          a.name as guest_name,
+          a.email as guest_email,
+          ROW_NUMBER() OVER (PARTITION BY bas.booking_id ORDER BY a.id) as rn
+        FROM booking_attendee_stats bas
+        INNER JOIN "Attendee" a ON a."bookingId" = bas.booking_id
+        WHERE a."noShow" = true
+      )
+      SELECT
+        booking_id as "bookingId",
+        "startTime",
+        event_type_name as "eventTypeName",
+        guest_name as "guestName",
+        guest_email as "guestEmail"
+      FROM recent_no_shows
+      WHERE rn = 1
+      ORDER BY "startTime" DESC
+      LIMIT 10
+    `;
+
+    return recentNoShowBookings;
+  }
+
   calculatePreviousPeriodDates() {
     if (!this.filters?.dateRange) {
       throw new Error("Date range is required for calculating previous period");

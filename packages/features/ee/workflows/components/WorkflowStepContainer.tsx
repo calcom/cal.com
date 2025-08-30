@@ -1,5 +1,6 @@
 import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
+import { useParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -9,12 +10,14 @@ import "react-phone-number-input/style.css";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import {
   MembershipRole,
+  PhoneNumberSubscriptionStatus,
   TimeUnit,
   WorkflowActions,
   WorkflowTemplates,
@@ -43,6 +46,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -52,12 +56,15 @@ import {
   getTemplateBodyForAction,
   shouldScheduleEmailReminder,
   isSMSOrWhatsappAction,
+  isCalAIAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
+import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
+import { TestAgentDialog } from "./TestAgentDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
@@ -70,6 +77,8 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
+  isOrganization?: boolean;
+  onSaveWorkflow?: () => Promise<void>;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -83,9 +92,42 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
   return t(triggerMap[trigger]!);
 };
 
+const CalAIAgentDataSkeleton = () => {
+  return (
+    <div className="bg-muted mt-4 rounded-lg p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <SkeletonText className="h-5 w-28" />
+          <div className="mt-2 flex items-center gap-2">
+            <SkeletonText className="h-4 w-4" />
+            <SkeletonText className="h-4 w-32" />
+            <SkeletonText className="h-5 w-12" />
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <SkeletonText className="h-8 w-24" />
+          <SkeletonText className="h-8 w-8" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const getActivePhoneNumbers = (
+  phoneNumbers?: Array<{ subscriptionStatus?: string; phoneNumber: string }>
+) => {
+  return (
+    phoneNumbers?.filter(
+      (phone) =>
+        phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE || !phone.subscriptionStatus
+    ) || []
+  );
+};
+
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
+  const params = useParams();
 
   const { step, form, reload, setReload, teamId } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
@@ -94,6 +136,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
+  const [agentConfigurationSheet, setAgentConfigurationSheet] = useState<{
+    open: boolean;
+    activeTab?: "prompt" | "phoneNumber";
+  }>({
+    open: false,
+    activeTab: "prompt",
+  });
 
   const creditsTeamId = userTeams?.find(
     (team) => team.accepted && (team.role === MembershipRole.ADMIN || team.role === MembershipRole.OWNER)
@@ -105,9 +154,62 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
+  const createAgentMutation = trpc.viewer.aiVoiceAgent.create.useMutation({
+    onSuccess: async (data) => {
+      showToast(t("agent_created_successfully"), "success");
+
+      // Update the step's agentId in the form state
+      if (step) {
+        const stepIndex = step.stepNumber - 1;
+        form.setValue(`steps.${stepIndex}.agentId`, data.id);
+
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: data.id });
+      }
+      setAgentConfigurationSheet((prev) => ({ ...prev, open: true }));
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
+
+  const { data: agentData, isPending: isAgentLoading } = trpc.viewer.aiVoiceAgent.get.useQuery(
+    { id: stepAgentId || "" },
+    { enabled: !!stepAgentId }
+  );
+
+  const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
+    onSuccess: async () => {
+      showToast(t("agent_updated_successfully"), "success");
+      if (stepAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const unsubscribePhoneNumberMutation = trpc.viewer.phoneNumber.update.useMutation({
+    onSuccess: async () => {
+      showToast(t("phone_number_unsubscribed_successfully"), "success");
+      setIsUnsubscribeDialogOpen(false);
+      if (stepAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
   const verifiedEmails = _verifiedEmails || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
+  const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [isUnsubscribeDialogOpen, setIsUnsubscribeDialogOpen] = useState(false);
+  const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
 
@@ -143,25 +245,33 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    const template = getTemplateBodyForAction({
-      action,
-      locale: i18n.language,
-      t,
-      template: step.template ?? WorkflowTemplates.REMINDER,
-      timeFormat,
-    });
-    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+
+    // Skip setting reminderBody for CAL_AI actions since they don't need email templates
+    if (!isCalAIAction(action)) {
+      const template = getTemplateBodyForAction({
+        action,
+        locale: i18n.language,
+        t,
+        template: step.template ?? WorkflowTemplates.REMINDER,
+        timeFormat,
+      });
+      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+    }
   }
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-    const subjectTemplate = emailReminderTemplate({
-      isEditingMode: true,
-      locale: i18n.language,
-      t,
-      action: form.getValues(`steps.${step.stepNumber - 1}.action`),
-      timeFormat,
-    }).emailSubject;
-    form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+    // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
+    if (!isCalAIAction(action)) {
+      const subjectTemplate = emailReminderTemplate({
+        isEditingMode: true,
+        locale: i18n.language,
+        t,
+        action: action,
+        timeFormat,
+      }).emailSubject;
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+    }
   }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
@@ -370,6 +480,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       value: step.action,
       needsCredits: isSMSOrWhatsappAction(step.action),
       creditsTeamId: teamId ?? creditsTeamId,
+      isOrganization: props.isOrganization,
     };
 
     const selectedTemplate = {
@@ -383,6 +494,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         WorkflowActions.SMS_ATTENDEE === workflowStep || WorkflowActions.WHATSAPP_ATTENDEE === workflowStep
       );
     };
+
+    const arePhoneNumbersActive = getActivePhoneNumbers(
+      agentData?.outboundPhoneNumbers?.map((phone) => ({
+        ...phone,
+        subscriptionStatus: phone.subscriptionStatus ?? undefined,
+      }))
+    );
 
     return (
       <>
@@ -417,19 +535,27 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             StartIcon="trash-2"
                             color="destructive"
                             onClick={() => {
-                              const steps = form.getValues("steps");
-                              const updatedSteps = steps
-                                ?.filter((currStep) => currStep.id !== step.id)
-                                .map((s) => {
-                                  const updatedStep = s;
-                                  if (step.stepNumber < updatedStep.stepNumber) {
-                                    updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                                  }
-                                  return updatedStep;
-                                });
-                              form.setValue("steps", updatedSteps);
-                              if (setReload) {
-                                setReload(!reload);
+                              if (
+                                isCalAIAction(step.action) &&
+                                agentData?.outboundPhoneNumbers &&
+                                agentData.outboundPhoneNumbers.length > 0
+                              ) {
+                                setIsDeleteStepDialogOpen(true);
+                              } else {
+                                const steps = form.getValues("steps");
+                                const updatedSteps = steps
+                                  ?.filter((currStep) => currStep.id !== step.id)
+                                  .map((s) => {
+                                    const updatedStep = s;
+                                    if (step.stepNumber < updatedStep.stepNumber) {
+                                      updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                    }
+                                    return updatedStep;
+                                  });
+                                form.setValue("steps", updatedSteps);
+                                if (setReload) {
+                                  setReload(!reload);
+                                }
                               }
                             }}>
                             {t("delete")}
@@ -484,6 +610,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               }
 
                               setIsEmailSubjectNeeded(false);
+                              form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
                             } else if (isWhatsappAction(val.value)) {
                               setNumberRequiredConfigs(val.value === WorkflowActions.WHATSAPP_NUMBER, false);
 
@@ -492,11 +619,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               }
 
                               setIsEmailSubjectNeeded(false);
+                              form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
+                            } else if (isCalAIAction(val.value)) {
+                              setIsPhoneNumberNeeded(false);
+                              setIsSenderIsNeeded(false);
+                              setIsEmailAddressNeeded(false);
+                              setIsEmailSubjectNeeded(false);
+                              form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, null);
+                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
+                              form.setValue(`steps.${step.stepNumber - 1}.sender`, null);
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIsNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
                               setIsEmailSubjectNeeded(true);
+                              form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
                             }
 
                             form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);
@@ -506,15 +643,148 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actionOptions?.map((option) => ({
-                          ...option,
-                          creditsTeamId: teamId ?? creditsTeamId,
-                        }))}
+                        options={actionOptions
+                          ?.filter((option) => {
+                            if (
+                              (isCalAIAction(option.value) && form.watch("selectAll")) ||
+                              (isCalAIAction(option.value) && props.isOrganization)
+                            ) {
+                              return false;
+                            }
+                            return true;
+                          })
+                          ?.map((option) => ({
+                            ...option,
+                            creditsTeamId: teamId ?? creditsTeamId,
+                            isOrganization: props.isOrganization,
+                          }))}
                       />
                     );
                   }}
                 />
               </div>
+              {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
+                <div className="bg-muted mt-2 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-emphasis text-sm font-medium leading-none">
+                        {t("cal_ai_agent")}
+                        <Badge startIcon="info" className="ms-2 rounded-md" variant="warning">
+                          {t("set_up_required")}
+                        </Badge>
+                      </h2>
+                      <p className="text-muted mt-2 text-sm font-medium leading-none">
+                        {t("no_phone_number_connected")}.
+                      </p>
+                    </div>
+                    <Button
+                      color="secondary"
+                      onClick={async () => {
+                        // save the workflow first to get the step id
+                        if (props.onSaveWorkflow) {
+                          await props.onSaveWorkflow();
+
+                          // After saving, get the updated step ID from the form
+                          const updatedSteps = form.getValues("steps");
+                          const currentStepIndex = step.stepNumber - 1;
+                          const updatedStep = updatedSteps[currentStepIndex];
+
+                          // Ensure the action is still set correctly after save
+                          if (updatedStep.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
+                            form.setValue(
+                              `steps.${currentStepIndex}.action`,
+                              WorkflowActions.CAL_AI_PHONE_CALL
+                            );
+                          }
+
+                          if (updatedStep && updatedStep.id) {
+                            // Create agent with the workflow step ID
+                            createAgentMutation.mutate({
+                              teamId,
+                              workflowStepId: updatedStep.id,
+                            });
+                          } else {
+                            showToast(t("failed_to_get_workflow_step_id"), "error");
+                          }
+                        }
+                      }}
+                      loading={createAgentMutation.isPending}>
+                      {t("set_up")}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {stepAgentId && isAgentLoading && <CalAIAgentDataSkeleton />}
+              {stepAgentId && agentData && (
+                <div className="bg-muted mt-4 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
+                      {arePhoneNumbersActive.length > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <Icon name="phone" className="text-emphasis h-4 w-4" />
+                          <span className="text-emphasis text-sm">
+                            {formatPhoneNumber(arePhoneNumbersActive[0].phoneNumber)}
+                          </span>
+                          <Badge variant="green" size="sm" withDot>
+                            {t("active")}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className="text-subtle text-sm">{t("no_phone_number_connected")}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {arePhoneNumbersActive.length > 0 ? (
+                        <Button
+                          color="secondary"
+                          onClick={() => setIsTestAgentDialogOpen(true)}
+                          disabled={props.readOnly || !arePhoneNumbersActive.length}>
+                          <Icon name="phone" className="mr-2 h-4 w-4" />
+                          {t("test_agent")}
+                        </Button>
+                      ) : (
+                        <Button
+                          color="secondary"
+                          onClick={() => {
+                            setAgentConfigurationSheet((prev) => ({
+                              ...prev,
+                              open: true,
+                              activeTab: "phoneNumber",
+                            }));
+                          }}
+                          disabled={props.readOnly}>
+                          {t("connect_phone_number")}
+                        </Button>
+                      )}
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            color="secondary"
+                            variant="icon"
+                            StartIcon="ellipsis"
+                            className="rounded-[10px]"
+                          />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              StartIcon="pencil"
+                              onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "prompt" })}>
+                              {t("edit")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    </div>
+                  </div>
+                </div>
+              )}
               {isPhoneNumberNeeded && (
                 <div className="bg-muted mt-2 rounded-md p-4 pt-0">
                   <Label className="pt-4">{t("custom_phone_number")}</Label>
@@ -604,338 +874,345 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   )}
                 </div>
               )}
-              {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-                <div className="bg-muted mt-2 rounded-md p-4 pt-0">
-                  {isSenderIsNeeded ? (
-                    <>
-                      <div className="pt-4">
-                        <div className="flex items-center">
-                          <Label>{t("sender_id")}</Label>
-                          <Tooltip content={t("sender_id_info")}>
-                            <span>
-                              <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
-                            </span>
-                          </Tooltip>
-                        </div>
-                        <Input
-                          type="text"
-                          placeholder={SENDER_ID}
-                          disabled={props.readOnly}
-                          maxLength={11}
-                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
-                        />
-                      </div>
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                        )}
-                    </>
-                  ) : (
-                    <>
-                      <div className="pt-4">
-                        <Label>{t("sender_name")}</Label>
-                        <Input
-                          type="text"
-                          disabled={props.readOnly}
-                          placeholder={SENDER_NAME}
-                          {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-              {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-                <div className="mt-2">
-                  <Controller
-                    name={`steps.${step.stepNumber - 1}.numberRequired`}
-                    control={form.control}
-                    render={() => (
-                      <CheckboxField
-                        disabled={props.readOnly}
-                        defaultChecked={
-                          form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
-                        }
-                        description={t("make_phone_number_required")}
-                        onChange={(e) =>
-                          form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
-                        }
-                      />
-                    )}
-                  />
-                </div>
-              )}
-              {isEmailAddressNeeded && (
-                <div className="bg-muted mt-5 rounded-md p-4">
-                  <Label>{t("email_address")}</Label>
-                  <div className="block sm:flex">
-                    <Controller
-                      name={`steps.${step.stepNumber - 1}.sendTo`}
-                      render={({ field: { value, onChange } }) => (
-                        <EmailField
-                          required
-                          containerClassName="w-full"
-                          className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
-                          placeholder={t("email_address")}
-                          value={value}
-                          disabled={props.readOnly}
-                          onChange={(val) => {
-                            const isAlreadyVerified = !!verifiedEmails
-                              ?.concat([])
-                              .find((email) => email === val.target.value);
-                            setEmailVerified(isAlreadyVerified);
-                            onChange(val);
-                          }}
-                        />
-                      )}
-                    />
-                    <Button
-                      color="secondary"
-                      disabled={emailVerified || props.readOnly || false}
-                      className={classNames(
-                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
-                        emailVerified ? "hidden" : "mt-3 sm:mt-0"
-                      )}
-                      onClick={() => {
-                        const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
-                        sendEmailVerificationCodeMutation.mutate({
-                          email,
-                          isVerifyingEmail: true,
-                        });
-                      }}>
-                      {t("send_code")}
-                    </Button>
-                  </div>
-
-                  {form.formState.errors.steps &&
-                    form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                      </p>
-                    )}
-
-                  {emailVerified ? (
-                    <div className="mt-1">
-                      <Badge variant="green">{t("email_verified")}</Badge>
-                    </div>
-                  ) : (
-                    !props.readOnly && (
+              {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+                !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+                  <div className="bg-muted mt-2 rounded-md p-4 pt-0">
+                    {isSenderIsNeeded ? (
                       <>
-                        <div className="mt-3 flex">
-                          <TextField
-                            className="h-[36px] rounded-r-none border-r-transparent"
-                            placeholder="Verification code"
+                        <div className="pt-4">
+                          <div className="flex items-center">
+                            <Label>{t("sender_id")}</Label>
+                            <Tooltip content={t("sender_id_info")}>
+                              <span>
+                                <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                              </span>
+                            </Tooltip>
+                          </div>
+                          <Input
+                            type="text"
+                            placeholder={SENDER_ID}
                             disabled={props.readOnly}
-                            value={verificationCode}
-                            onChange={(e) => {
-                              setVerificationCode(e.target.value);
-                            }}
-                            required
+                            maxLength={11}
+                            {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                           />
-                          <Button
-                            color="secondary"
-                            className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
-                            disabled={verifyEmailCodeMutation.isPending || props.readOnly}
-                            onClick={() => {
-                              verifyEmailCodeMutation.mutate({
-                                code: verificationCode,
-                                email: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
-                                teamId,
-                              });
-                            }}>
-                            {t("verify")}
-                          </Button>
                         </div>
                         {form.formState.errors.steps &&
-                          form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                            <p className="mt-1 text-xs text-red-500">
-                              {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                            </p>
+                          form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                            <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
                           )}
                       </>
-                    )
-                  )}
-                </div>
-              )}
-              <div className="mt-5">
-                <Label>{t("message_template")}</Label>
-                <Controller
-                  name={`steps.${step.stepNumber - 1}.template`}
-                  control={form.control}
-                  render={({ field }) => {
-                    return (
-                      <Select
-                        isSearchable={false}
-                        className="text-sm"
-                        isDisabled={props.readOnly}
-                        onChange={(val) => {
-                          if (val) {
-                            const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-
-                            const template = getTemplateBodyForAction({
-                              action,
-                              locale: i18n.language,
-                              t,
-                              template: val.value ?? WorkflowTemplates.REMINDER,
-                              timeFormat,
-                            });
-
-                            form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
-
-                            if (shouldScheduleEmailReminder(action)) {
-                              if (val.value === WorkflowTemplates.REMINDER) {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.emailSubject`,
-                                  emailReminderTemplate({
-                                    isEditingMode: true,
-                                    locale: i18n.language,
-                                    t,
-                                    action,
-                                    timeFormat,
-                                  }).emailSubject
-                                );
-                              } else if (val.value === WorkflowTemplates.RATING) {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.emailSubject`,
-                                  emailRatingTemplate({
-                                    isEditingMode: true,
-                                    locale: i18n.language,
-                                    action,
-                                    t,
-                                    timeFormat,
-                                  }).emailSubject
-                                );
-                              }
-                            }
-                            field.onChange(val.value);
-                            form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
-                            setUpdateTemplate(!updateTemplate);
-                          }
-                        }}
-                        defaultValue={selectedTemplate}
-                        value={selectedTemplate}
-                        options={templateOptions.map((option) => ({
-                          label: option.label,
-                          value: option.value,
-                          needsTeamsUpgrade:
-                            option.needsTeamsUpgrade &&
-                            !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
-                        }))}
-                        isOptionDisabled={(option: {
-                          label: string;
-                          value: any;
-                          needsTeamsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade}
-                      />
-                    );
-                  }}
-                />
-              </div>
-              <div className="bg-muted mt-2 rounded-md pt-2 md:p-6 md:pt-4">
-                {isEmailSubjectNeeded && (
-                  <div className="mb-6">
-                    <div className="flex items-center">
-                      <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
-                        {t("email_subject")}
-                      </Label>
-                      {!props.readOnly && (
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableEmailSubject}
-                            variables={DYNAMIC_TEXT_VARIABLES}
+                    ) : (
+                      <>
+                        <div className="pt-4">
+                          <Label>{t("sender_name")}</Label>
+                          <Input
+                            type="text"
+                            disabled={props.readOnly}
+                            placeholder={SENDER_NAME}
+                            {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
                           />
                         </div>
-                      )}
-                    </div>
-                    <TextArea
-                      ref={(e) => {
-                        emailSubjectFormRef?.(e);
-                        refEmailSubject.current = e;
-                      }}
-                      rows={2}
-                      disabled={props.readOnly || !hasActiveTeamPlan}
-                      className="my-0 focus:ring-transparent"
-                      required
-                      {...restEmailSubjectForm}
-                    />
-                    {form.formState.errors.steps &&
-                      form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
-                        <p className="mt-1 text-xs text-red-500">
-                          {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
-                        </p>
-                      )}
+                      </>
+                    )}
                   </div>
                 )}
-                <div className="mb-2 flex items-center pb-1">
-                  <Label className="mb-0 flex-none">
-                    {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                  </Label>
-                </div>
-                <Editor
-                  getText={() => {
-                    return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                  }}
-                  setText={(text: string) => {
-                    props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                    props.form.clearErrors();
-                  }}
-                  variables={DYNAMIC_TEXT_VARIABLES}
-                  addVariableButtonTop={isSMSAction(step.action)}
-                  height="200px"
-                  updateTemplate={updateTemplate}
-                  firstRender={firstRender}
-                  setFirstRender={setFirstRender}
-                  editable={
-                    !props.readOnly &&
-                    !isWhatsappAction(step.action) &&
-                    (hasActiveTeamPlan || isSMSAction(step.action))
-                  }
-                  excludedToolbarItems={
-                    !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
-                  }
-                  plainText={isSMSAction(step.action)}
-                />
-
-                {form.formState.errors.steps &&
-                  form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
-                    </p>
-                  )}
-                {isEmailSubjectNeeded && (
+              {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+                !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                   <div className="mt-2">
                     <Controller
-                      name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                      name={`steps.${step.stepNumber - 1}.numberRequired`}
                       control={form.control}
                       render={() => (
                         <CheckboxField
                           disabled={props.readOnly}
                           defaultChecked={
-                            form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
+                            form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
                           }
-                          description={t("include_calendar_event")}
+                          description={t("make_phone_number_required")}
                           onChange={(e) =>
-                            form.setValue(
-                              `steps.${step.stepNumber - 1}.includeCalendarEvent`,
-                              e.target.checked
-                            )
+                            form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
                           }
                         />
                       )}
                     />
                   </div>
                 )}
-                {!props.readOnly && (
-                  <div className="mt-3 ">
-                    <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                      <div className="text-default mt-2 flex text-sm">
-                        <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p className="text-left">{t("using_booking_questions_as_variables")}</p>
+              {isEmailAddressNeeded &&
+                !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+                  <div className="bg-muted mt-5 rounded-md p-4">
+                    <Label>{t("email_address")}</Label>
+                    <div className="block sm:flex">
+                      <Controller
+                        name={`steps.${step.stepNumber - 1}.sendTo`}
+                        render={({ field: { value, onChange } }) => (
+                          <EmailField
+                            required
+                            containerClassName="w-full"
+                            className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                            placeholder={t("email_address")}
+                            value={value}
+                            disabled={props.readOnly}
+                            onChange={(val) => {
+                              const isAlreadyVerified = !!verifiedEmails
+                                ?.concat([])
+                                .find((email) => email === val.target.value);
+                              setEmailVerified(isAlreadyVerified);
+                              onChange(val);
+                            }}
+                          />
+                        )}
+                      />
+                      <Button
+                        color="secondary"
+                        disabled={emailVerified || props.readOnly || false}
+                        className={classNames(
+                          "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                          emailVerified ? "hidden" : "mt-3 sm:mt-0"
+                        )}
+                        onClick={() => {
+                          const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
+                          sendEmailVerificationCodeMutation.mutate({
+                            email,
+                            isVerifyingEmail: true,
+                          });
+                        }}>
+                        {t("send_code")}
+                      </Button>
+                    </div>
+
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                        </p>
+                      )}
+
+                    {emailVerified ? (
+                      <div className="mt-1">
+                        <Badge variant="green">{t("email_verified")}</Badge>
                       </div>
-                    </button>
+                    ) : (
+                      !props.readOnly && (
+                        <>
+                          <div className="mt-3 flex">
+                            <TextField
+                              className="h-[36px] rounded-r-none border-r-transparent"
+                              placeholder="Verification code"
+                              disabled={props.readOnly}
+                              value={verificationCode}
+                              onChange={(e) => {
+                                setVerificationCode(e.target.value);
+                              }}
+                              required
+                            />
+                            <Button
+                              color="secondary"
+                              className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
+                              disabled={verifyEmailCodeMutation.isPending || props.readOnly}
+                              onClick={() => {
+                                verifyEmailCodeMutation.mutate({
+                                  code: verificationCode,
+                                  email: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                                  teamId,
+                                });
+                              }}>
+                              {t("verify")}
+                            </Button>
+                          </div>
+                          {form.formState.errors.steps &&
+                            form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                              <p className="mt-1 text-xs text-red-500">
+                                {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                              </p>
+                            )}
+                        </>
+                      )
+                    )}
                   </div>
                 )}
-              </div>
+              {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+                <div className="mt-5">
+                  <Label>{t("message_template")}</Label>
+                  <Controller
+                    name={`steps.${step.stepNumber - 1}.template`}
+                    control={form.control}
+                    render={({ field }) => {
+                      return (
+                        <Select
+                          isSearchable={false}
+                          className="text-sm"
+                          isDisabled={props.readOnly}
+                          onChange={(val) => {
+                            if (val) {
+                              const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+
+                              const template = getTemplateBodyForAction({
+                                action,
+                                locale: i18n.language,
+                                t,
+                                template: val.value ?? WorkflowTemplates.REMINDER,
+                                timeFormat,
+                              });
+
+                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+
+                              if (shouldScheduleEmailReminder(action)) {
+                                if (val.value === WorkflowTemplates.REMINDER) {
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.emailSubject`,
+                                    emailReminderTemplate({
+                                      isEditingMode: true,
+                                      locale: i18n.language,
+                                      t,
+                                      action,
+                                      timeFormat,
+                                    }).emailSubject
+                                  );
+                                } else if (val.value === WorkflowTemplates.RATING) {
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.emailSubject`,
+                                    emailRatingTemplate({
+                                      isEditingMode: true,
+                                      locale: i18n.language,
+                                      action,
+                                      t,
+                                      timeFormat,
+                                    }).emailSubject
+                                  );
+                                }
+                              }
+                              field.onChange(val.value);
+                              form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
+                              setUpdateTemplate(!updateTemplate);
+                            }
+                          }}
+                          defaultValue={selectedTemplate}
+                          value={selectedTemplate}
+                          options={templateOptions.map((option) => ({
+                            label: option.label,
+                            value: option.value,
+                            needsTeamsUpgrade:
+                              option.needsTeamsUpgrade &&
+                              !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
+                          }))}
+                          isOptionDisabled={(option: {
+                            label: string;
+                            value: any;
+                            needsTeamsUpgrade: boolean;
+                          }) => option.needsTeamsUpgrade}
+                        />
+                      );
+                    }}
+                  />
+                </div>
+              )}
+              {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+                <div className="bg-muted mt-2 rounded-md pt-2 md:p-6 md:pt-4">
+                  {isEmailSubjectNeeded && (
+                    <div className="mb-6">
+                      <div className="flex items-center">
+                        <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
+                          {t("email_subject")}
+                        </Label>
+                        {!props.readOnly && (
+                          <div className="flex-grow text-right">
+                            <AddVariablesDropdown
+                              addVariable={addVariableEmailSubject}
+                              variables={DYNAMIC_TEXT_VARIABLES}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <TextArea
+                        ref={(e) => {
+                          emailSubjectFormRef?.(e);
+                          refEmailSubject.current = e;
+                        }}
+                        rows={2}
+                        disabled={props.readOnly || !hasActiveTeamPlan}
+                        className="my-0 focus:ring-transparent"
+                        required
+                        {...restEmailSubjectForm}
+                      />
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
+                          </p>
+                        )}
+                    </div>
+                  )}
+                  <div className="mb-2 flex items-center pb-1">
+                    <Label className="mb-0 flex-none">
+                      {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                    </Label>
+                  </div>
+                  <Editor
+                    getText={() => {
+                      return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                    }}
+                    setText={(text: string) => {
+                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                      props.form.clearErrors();
+                    }}
+                    variables={DYNAMIC_TEXT_VARIABLES}
+                    addVariableButtonTop={isSMSAction(step.action)}
+                    height="200px"
+                    updateTemplate={updateTemplate}
+                    firstRender={firstRender}
+                    setFirstRender={setFirstRender}
+                    editable={
+                      !props.readOnly &&
+                      !isWhatsappAction(step.action) &&
+                      (hasActiveTeamPlan || isSMSAction(step.action))
+                    }
+                    excludedToolbarItems={
+                      !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
+                    }
+                    plainText={isSMSAction(step.action)}
+                  />
+
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
+                      </p>
+                    )}
+                  {isEmailSubjectNeeded && (
+                    <div className="mt-2">
+                      <Controller
+                        name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                        control={form.control}
+                        render={() => (
+                          <CheckboxField
+                            disabled={props.readOnly}
+                            defaultChecked={
+                              form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
+                            }
+                            description={t("include_calendar_event")}
+                            onChange={(e) =>
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.includeCalendarEvent`,
+                                e.target.checked
+                              )
+                            }
+                          />
+                        )}
+                      />
+                    </div>
+                  )}
+                  {!props.readOnly && (
+                    <div className="mt-3 ">
+                      <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                        <div className="text-default mt-2 flex text-sm">
+                          <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                          <p className="text-left">{t("using_booking_questions_as_variables")}</p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
@@ -1088,6 +1365,177 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
             <DialogFooter showDivider>
               <DialogClose color="primary" />
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        {agentConfigurationSheet.open && (
+          <AgentConfigurationSheet
+            open={agentConfigurationSheet.open}
+            activeTab={agentConfigurationSheet.activeTab}
+            onOpenChange={(val) => setAgentConfigurationSheet((prev) => ({ ...prev, open: val }))}
+            agentId={stepAgentId}
+            agentData={agentData}
+            onUpdate={(data) => {
+              updateAgentMutation.mutate({
+                id: stepAgentId!,
+                teamId: teamId,
+                generalPrompt: data.generalPrompt,
+                beginMessage: data.beginMessage,
+                generalTools: data.generalTools,
+              });
+            }}
+            readOnly={props.readOnly}
+            teamId={teamId}
+            workflowId={params?.workflow as string}
+            workflowStepId={step?.id}
+            form={form}
+          />
+        )}
+
+        {stepAgentId && (
+          <TestAgentDialog
+            open={isTestAgentDialogOpen}
+            onOpenChange={setIsTestAgentDialogOpen}
+            agentId={stepAgentId}
+            teamId={teamId}
+            form={form}
+          />
+        )}
+
+        {/* Unsubscribe Confirmation Dialog */}
+        <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
+          <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
+            <div className="space-y-4">
+              <p className="text-default text-sm">{t("do_you_still_want_to_unsubscribe")}</p>
+              {getActivePhoneNumbers(
+                agentData?.outboundPhoneNumbers?.map((phone) => ({
+                  ...phone,
+                  subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                }))
+              ).length > 0 && (
+                <div className="bg-muted rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Icon name="phone" className="text-emphasis h-4 w-4" />
+                    <span className="text-emphasis text-sm font-medium">
+                      {formatPhoneNumber(
+                        getActivePhoneNumbers(
+                          agentData?.outboundPhoneNumbers?.map((phone) => ({
+                            ...phone,
+                            subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                          }))
+                        )?.[0]?.phoneNumber
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <p className="text-subtle text-sm">{t("the_action_will_disconnect_phone_number")}</p>
+            </div>
+            <DialogFooter showDivider>
+              <Button type="button" color="secondary" onClick={() => setIsUnsubscribeDialogOpen(false)}>
+                {t("cancel")}
+              </Button>
+              <Button
+                type="button"
+                StartIcon="trash"
+                color="destructive"
+                onClick={() => {
+                  const activePhoneNumbers = getActivePhoneNumbers(
+                    agentData?.outboundPhoneNumbers?.map((phone) => ({
+                      ...phone,
+                      subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                    }))
+                  );
+                  if (activePhoneNumbers?.[0]) {
+                    unsubscribePhoneNumberMutation.mutate({
+                      phoneNumber: activePhoneNumbers[0].phoneNumber,
+                      outboundAgentId: null,
+                    });
+                  }
+                }}
+                loading={unsubscribePhoneNumberMutation.isPending}>
+                {t("unsubscribe")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Step Confirmation Dialog */}
+        <Dialog open={isDeleteStepDialogOpen} onOpenChange={setIsDeleteStepDialogOpen}>
+          <DialogContent type="confirmation" title={t("delete_workflow_step")}>
+            <div className="space-y-4">
+              <p className="text-default text-sm">{t("are_you_sure_you_want_to_delete_workflow_step")}</p>
+              {(() => {
+                const relevantPhoneNumbers =
+                  agentData?.outboundPhoneNumbers?.filter(
+                    (phone) => phone.subscriptionStatus !== PhoneNumberSubscriptionStatus.CANCELLED
+                  ) || [];
+
+                return (
+                  relevantPhoneNumbers.length > 0 && (
+                    <>
+                      <div className="bg-attention rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
+                          <div className="space-y-2">
+                            <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
+                            <ul className="text-attention list-inside list-disc space-y-1 text-sm">
+                              {relevantPhoneNumbers.some(
+                                (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+                              ) && <li>{t("cancel_your_phone_number_subscription")}</li>}
+                              <li>{t("delete_associated_phone_number")}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      {relevantPhoneNumbers.map((phone) => (
+                        <div key={phone.phoneNumber} className="bg-muted rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <Icon name="phone" className="text-emphasis h-4 w-4" />
+                            <span className="text-emphasis text-sm font-medium">
+                              {formatPhoneNumber(phone.phoneNumber)}
+                            </span>
+                            {phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE && (
+                              <Badge variant="green" size="sm" withDot>
+                                {t("active_subscription")}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )
+                );
+              })()}
+            </div>
+            <DialogFooter showDivider>
+              <Button type="button" color="secondary" onClick={() => setIsDeleteStepDialogOpen(false)}>
+                {t("cancel")}
+              </Button>
+              <Button
+                type="button"
+                StartIcon="trash"
+                color="destructive"
+                onClick={() => {
+                  // Proceed with deletion
+                  const steps = form.getValues("steps");
+                  const updatedSteps = steps
+                    ?.filter((currStep) => currStep.id !== step.id)
+                    .map((s) => {
+                      const updatedStep = s;
+                      if (step.stepNumber < updatedStep.stepNumber) {
+                        updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                      }
+                      return updatedStep;
+                    });
+                  form.setValue("steps", updatedSteps);
+                  if (setReload) {
+                    setReload(!reload);
+                  }
+                  setIsDeleteStepDialogOpen(false);
+                }}>
+                {t("delete")}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

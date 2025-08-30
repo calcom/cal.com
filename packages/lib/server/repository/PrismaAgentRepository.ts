@@ -61,15 +61,33 @@ export class PrismaAgentRepository {
     return memberships.map((membership) => membership.teamId);
   }
 
-  static async findByIdWithUserAccess({ agentId, userId }: { agentId: string; userId: number }) {
+  static async findByIdWithUserAccess({
+    agentId,
+    userId,
+    teamId,
+  }: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+  }) {
     const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
-    if (accessibleTeamIds.length > 0) {
+    if (teamId) {
+      // If teamId is provided, check that the user has access to that specific team
+      if (accessibleTeamIds.includes(teamId)) {
+        whereCondition = Prisma.sql`id = ${agentId} AND "teamId" = ${teamId}`;
+      } else {
+        // If user doesn't have access to the team, only check for personal agents
+        whereCondition = Prisma.sql`id = ${agentId} AND "userId" = ${userId}`;
+      }
+    } else if (accessibleTeamIds.length > 0) {
+      // No specific teamId provided, check both personal and team agents
       whereCondition = Prisma.sql`id = ${agentId} AND ("userId" = ${userId} OR "teamId" IN (${Prisma.join(
         accessibleTeamIds
       )}))`;
     } else {
+      // User has no team access, only check personal agents
       whereCondition = Prisma.sql`id = ${agentId} AND "userId" = ${userId}`;
     }
 
@@ -280,16 +298,16 @@ export class PrismaAgentRepository {
       user: agent.user_id
         ? {
             id: agent.user_id,
-            name: agent.user_name,
-            email: agent.user_email,
+            name: agent.user_name ?? null,
+            email: agent.user_email ?? null,
           }
         : null,
       team: agent.team_id
         ? {
             id: agent.team_id,
-            name: agent.team_name,
-            slug: agent.team_slug,
-            logoUrl: agent.team_logo_url,
+            name: agent.team_name ?? null,
+            slug: agent.team_slug ?? null,
+            logoUrl: agent.team_logo_url ?? null,
           }
         : null,
       outboundPhoneNumbers: phoneNumbersByAgent[agent.id] || [],
@@ -378,15 +396,15 @@ export class PrismaAgentRepository {
       user: agent.user_id
         ? {
             id: agent.user_id,
-            name: agent.user_name,
-            email: agent.user_email,
+            name: agent.user_name ?? null,
+            email: agent.user_email ?? null,
           }
         : null,
       team: agent.team_id
         ? {
             id: agent.team_id,
-            name: agent.team_name,
-            slug: agent.team_slug,
+            name: agent.team_name ?? null,
+            slug: agent.team_slug ?? null,
           }
         : null,
       outboundPhoneNumbers: phoneNumbers.map((pn) => ({
@@ -419,7 +437,15 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
+  static async findByIdWithAdminAccess({
+    id,
+    userId,
+    teamId,
+  }: {
+    id: string;
+    userId: number;
+    teamId?: number;
+  }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
     let whereCondition: Prisma.Sql;

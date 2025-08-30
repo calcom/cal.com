@@ -26,12 +26,16 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
   sendAnalyticsEvent: () =>
     import("./analytics/sendAnalyticsEvent").then((module) => module.sendAnalyticsEvent),
+  executeAIPhoneCall: () => import("./executeAIPhoneCall").then((module) => module.executeAIPhoneCall),
 };
 
 export const tasksConfig = {
   createCRMEvent: {
     minRetryIntervalMins: IS_PRODUCTION ? 10 : 1,
     maxAttempts: 10,
+  },
+  executeAIPhoneCall: {
+    maxAttempts: 1,
   },
 };
 export default tasks;

@@ -15,7 +15,7 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { CreditType } from "@calcom/prisma/enums";
+import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -59,6 +59,9 @@ export class CreditService {
     bookingUid,
     smsSid,
     smsSegments,
+    callDuration,
+    creditFor,
+    externalRef,
   }: {
     userId?: number;
     teamId?: number;
@@ -66,7 +69,22 @@ export class CreditService {
     bookingUid?: string;
     smsSid?: string;
     smsSegments?: number;
+    callDuration?: number;
+    creditFor?: CreditUsageType;
+    externalRef?: string;
   }) {
+    if (externalRef) {
+      const existingLog = await CreditsRepository.findCreditExpenseLogByExternalRef(externalRef);
+      if (existingLog) {
+        log.warn("Credit expense log already exists", { externalRef, existingLog });
+        return {
+          bookingUid: existingLog.bookingUid,
+          duplicate: true,
+          userId,
+          teamId,
+        };
+      }
+    }
     return await prisma
       .$transaction(async (tx) => {
         let teamIdToCharge = credits === 0 && teamId ? teamId : undefined;
@@ -99,7 +117,10 @@ export class CreditService {
           credits,
           creditType,
           smsSegments,
+          callDuration,
+          creditFor,
           tx,
+          externalRef,
         });
 
         let lowCreditBalanceResult = null;
@@ -163,7 +184,7 @@ export class CreditService {
           );
           return true;
         }
-        // limtReachedAt is set and still no available credits
+        // limitReachedAt is set and still no available credits
         return false;
       }
 
@@ -302,9 +323,12 @@ export class CreditService {
     credits: number | null;
     creditType: CreditType;
     smsSegments?: number;
+    callDuration?: number;
+    creditFor?: CreditUsageType;
     tx: PrismaTransaction;
+    externalRef?: string;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, tx } = props;
+    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, tx } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
@@ -341,10 +365,13 @@ export class CreditService {
           creditBalanceId: creditBalance.id,
           credits,
           creditType,
+          creditFor,
           date: new Date(),
           bookingUid,
           smsSid,
           smsSegments,
+          callDuration,
+          externalRef: props.externalRef,
         },
         tx
       );
@@ -550,9 +577,21 @@ export class CreditService {
 
     const billingService = new StripeBillingService();
 
-    const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
-    const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
-    totalMonthlyCredits = (activeMembers * pricePerSeat) / 2;
+    const priceId = team.isOrganization
+      ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
+      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+
+    if (!priceId) {
+      log.warn("Monthly price ID not configured", { teamId, isOrganization: team.isOrganization });
+      return 0;
+    }
+
+    const monthlyPrice = await billingService.getPrice(priceId || "");
+    const pricePerSeat = monthlyPrice.unit_amount ?? 0;
+
+    // Teams get 50% of the price as credits, organizations get 20%
+    const creditMultiplier = team.isOrganization ? 0.2 : 0.5;
+    totalMonthlyCredits = activeMembers * pricePerSeat * creditMultiplier;
 
     return totalMonthlyCredits;
   }

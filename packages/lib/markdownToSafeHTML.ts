@@ -15,7 +15,7 @@ export function markdownToSafeHTML(markdown: string | null) {
 
   const safeHTML = sanitizeHtml(html);
 
-  const safeHTMLWithListFormatting = safeHTML
+  let safeHTMLWithListFormatting = safeHTML
     .replace(
       /<ul>/g,
       "<ul style='list-style-type: disc; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
@@ -25,6 +25,13 @@ export function markdownToSafeHTML(markdown: string | null) {
       "<ol style='list-style-type: decimal; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
     )
     .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=");
+
+  // Match: <li>Some text </li><li><ul>...</ul></li>
+  // Convert to: <li>Some text <ul>...</ul></li>
+  safeHTMLWithListFormatting = safeHTMLWithListFormatting.replace(
+    /<li>([^<]+|<strong>.*?<\/strong>)<\/li>\s*<li>\s*<ul([^>]*)>([\s\S]*?)<\/ul>\s*<\/li>/g,
+    "<li>$1<ul$2>$3</ul></li>"
+  );
 
   return safeHTMLWithListFormatting;
 }

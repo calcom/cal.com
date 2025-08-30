@@ -1,8 +1,8 @@
 import type { Payment, Prisma } from "@prisma/client";
 
-import appStore from "@calcom/app-store";
+import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 const deletePayment = async (
   paymentId: Payment["id"],
@@ -15,15 +15,19 @@ const deletePayment = async (
     } | null;
   }
 ): Promise<boolean> => {
-  const paymentApp = (await appStore[
-    paymentAppCredentials?.app?.dirName as keyof typeof appStore
-  ]?.()) as PaymentApp;
-  if (!paymentApp?.lib?.PaymentService) {
-    console.warn(`payment App service of type ${paymentApp} is not implemented`);
+  const key = paymentAppCredentials?.app?.dirName;
+  const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
+  if (!paymentAppImportFn) {
+    console.warn(`payment app not implemented for key: ${key}`);
     return false;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const PaymentService = paymentApp.lib.PaymentService as any;
+
+  const paymentAppModule = await paymentAppImportFn;
+  if (!paymentAppModule?.PaymentService) {
+    console.warn(`payment App service not found for key: ${key}`);
+    return false;
+  }
+  const PaymentService = paymentAppModule.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
   const deleted = await paymentInstance.deletePayment(paymentId);
   return deleted;

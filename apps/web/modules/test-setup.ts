@@ -18,7 +18,7 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn().mockReturnValue({
     replace: vi.fn(),
   }),
-  usePathname: vi.fn(),
+  usePathname: vi.fn().mockReturnValue("/settings/billing"),
 }));
 
 vi.mock("@calcom/app-store/BookingPageTagManager", () => ({

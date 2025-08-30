@@ -5,54 +5,66 @@ import logger from "@calcom/lib/logger";
 import type {
   AIPhoneServiceProviderType,
   AIPhoneServiceCall,
-} from "../../interfaces/AIPhoneService.interface";
+} from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { RetellAIRepository, RetellDynamicVariables } from "../types";
 
-const MIN_CREDIT_REQUIRED_FOR_TEST_CALL = 5;
+interface RetellAIServiceInterface {
+  updateToolsFromAgentId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ): Promise<void>;
+}
 
 export class CallService {
   private logger = logger.getSubLogger({ prefix: ["CallService"] });
+  private retellAIService?: RetellAIServiceInterface;
 
   constructor(
     private retellRepository: RetellAIRepository,
     private agentRepository: AgentRepositoryInterface
   ) {}
 
+  setRetellAIService(service: RetellAIServiceInterface): void {
+    this.retellAIService = service;
+  }
+
   async createPhoneCall(data: {
-    from_number: string;
-    to_number: string;
-    retell_llm_dynamic_variables?: RetellDynamicVariables;
+    fromNumber: string;
+    toNumber: string;
+    dynamicVariables?: RetellDynamicVariables;
   }): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
-    if (!data.from_number?.trim()) {
+    if (!data.fromNumber?.trim()) {
       throw new HttpError({
         statusCode: 400,
         message: "From phone number is required and cannot be empty",
       });
     }
 
-    if (!data.to_number?.trim()) {
+    if (!data.toNumber?.trim()) {
       throw new HttpError({
         statusCode: 400,
         message: "To phone number is required and cannot be empty",
       });
     }
 
+    const { fromNumber, toNumber, dynamicVariables } = data;
+
     try {
       return await this.retellRepository.createPhoneCall({
-        from_number: data.from_number,
-        to_number: data.to_number,
-        retell_llm_dynamic_variables: data.retell_llm_dynamic_variables,
+        fromNumber,
+        toNumber,
+        dynamicVariables,
       });
     } catch (error) {
       this.logger.error("Failed to create phone call in external AI service", {
-        fromNumber: data.from_number,
-        toNumber: data.to_number,
+        fromNumber: data.fromNumber,
+        toNumber: data.toNumber,
         error,
       });
       throw new HttpError({
         statusCode: 500,
-        message: `Failed to create phone call from ${data.from_number} to ${data.to_number}`,
+        message: `Failed to create phone call from ${data.fromNumber} to ${data.toNumber}`,
       });
     }
   }
@@ -62,11 +74,15 @@ export class CallService {
     phoneNumber,
     userId,
     teamId,
+    timeZone,
+    eventTypeId,
   }: {
     agentId: string;
     phoneNumber?: string;
     userId: number;
     teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
       throw new HttpError({
@@ -111,9 +127,35 @@ export class CallService {
       });
     }
 
+    if (!this.retellAIService) {
+      this.logger.error("RetellAIService not configured before createTestCall");
+      throw new HttpError({
+        statusCode: 500,
+        message: "Internal configuration error: AI phone service not initialized",
+      });
+    }
+
     const call = await this.createPhoneCall({
-      from_number: agentPhoneNumber,
-      to_number: toNumber,
+      fromNumber: agentPhoneNumber,
+      toNumber: toNumber,
+      dynamicVariables: {
+        EVENT_NAME: "Test Call with Agent",
+        EVENT_DATE: "Monday, January 15, 2025",
+        EVENT_TIME: "2:00 PM",
+        EVENT_END_TIME: "2:30 PM",
+        TIMEZONE: timeZone,
+        LOCATION: "Phone Call",
+        ORGANIZER_NAME: "Cal.com AI Agent",
+        ATTENDEE_NAME: "Test User",
+        ATTENDEE_FIRST_NAME: "Test",
+        ATTENDEE_LAST_NAME: "User",
+        ATTENDEE_EMAIL: "testuser@example.com",
+        ATTENDEE_TIMEZONE: timeZone,
+        ADDITIONAL_NOTES: "This is a test call to verify the AI phone agent",
+        EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
+        EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
+        eventTypeId: eventTypeId.toString(),
+      },
     });
 
     return {
@@ -127,18 +169,15 @@ export class CallService {
     try {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const creditService = new CreditService();
-      const credits = await creditService.getAllCredits({
-        userId,
-        teamId,
+      const hasCredits = await creditService.hasAvailableCredits({
+        userId: userId || undefined,
+        teamId: teamId || undefined,
       });
 
-      const availableCredits =
-        (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
-
-      if (availableCredits < MIN_CREDIT_REQUIRED_FOR_TEST_CALL) {
+      if (!hasCredits) {
         throw new HttpError({
           statusCode: 403,
-          message: `Insufficient credits to make test call. Need ${MIN_CREDIT_REQUIRED_FOR_TEST_CALL} credits, have ${availableCredits}. Please purchase more credits.`,
+          message: `Insufficient credits to make test call. Please purchase more credits.`,
         });
       }
     } catch (error) {

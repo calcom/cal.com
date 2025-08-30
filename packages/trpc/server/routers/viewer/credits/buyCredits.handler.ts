@@ -1,6 +1,8 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -43,17 +45,27 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   }
 
-  const redirect_uri = teamId
-    ? `${WEBAPP_URL}/settings/teams/${teamId}/billing`
-    : `${WEBAPP_URL}/settings/billing`;
+  let redirectUrl = `${WEBAPP_URL}/settings/billing`;
+
+  if (teamId) {
+    // Check if the team is an organization
+    const teamRepository = new TeamRepository(prisma);
+    const team = await teamRepository.findById({ id: teamId });
+
+    if (team?.isOrganization) {
+      redirectUrl = `${WEBAPP_URL}/settings/organizations/billing`;
+    } else {
+      redirectUrl = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
+    }
+  }
 
   const billingService = new StripeBillingService();
 
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,
     quantity,
-    successUrl: redirect_uri,
-    cancelUrl: redirect_uri,
+    successUrl: redirectUrl,
+    cancelUrl: redirectUrl,
     metadata: {
       ...(teamId && { teamId: teamId.toString() }),
       userId: ctx.user.id.toString(),

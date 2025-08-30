@@ -1,5 +1,9 @@
 import { CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  getTransitiveDependencies,
+  getTransitiveDependents,
+} from "@calcom/features/pbac/utils/permissionTraversal";
 
 export type PermissionLevel = "none" | "read" | "all";
 
@@ -129,34 +133,22 @@ export function usePermissions(): UsePermissionsReturn {
       // Add the requested permission
       newPermissions.push(permission);
 
-      // If enabling create, update, or delete, automatically enable read permission
-      if (action === CrudAction.Create || action === CrudAction.Update || action === CrudAction.Delete) {
-        const readPermission = `${resource}.${CrudAction.Read}`;
-        if (!newPermissions.includes(readPermission)) {
-          newPermissions.push(readPermission);
+      // Add all transitive dependencies
+      const dependencies = getTransitiveDependencies(permission);
+      dependencies.forEach((dependency) => {
+        if (!newPermissions.includes(dependency)) {
+          newPermissions.push(dependency);
         }
-      }
+      });
     } else {
-      // When disabling a permission, check if we need to disable related permissions
-      if (action === CrudAction.Read) {
-        // If disabling read, also disable create, update, and delete since they depend on read
-        const dependentActions = [CrudAction.Create, CrudAction.Update, CrudAction.Delete];
-        dependentActions.forEach((dependentAction) => {
-          const dependentPermission = `${resource}.${dependentAction}`;
-          newPermissions = newPermissions.filter((p) => p !== dependentPermission);
-        });
-      } else if (
-        action === CrudAction.Create ||
-        action === CrudAction.Update ||
-        action === CrudAction.Delete
-      ) {
-        // If disabling create, update, or delete, just remove that specific permission
-        // Read permission remains enabled
-        newPermissions = newPermissions.filter((p) => p !== permission);
-      } else {
-        // For other actions (custom actions), just remove the specific permission
-        newPermissions = newPermissions.filter((p) => p !== permission);
-      }
+      // When disabling a permission, first remove the permission itself
+      newPermissions = newPermissions.filter((p) => p !== permission);
+
+      // Remove all transitive dependents
+      const dependents = getTransitiveDependents(permission);
+      dependents.forEach((dependent) => {
+        newPermissions = newPermissions.filter((p) => p !== dependent);
+      });
     }
 
     // Only add *.* back if all permissions are now selected

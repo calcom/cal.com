@@ -35,7 +35,7 @@ jobs:
         working-directory: docs
         run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          npm install -g mintlify@4.0.436
+          npm install -g mintlify@4.2.87
           mintlify dev &
           sleep 5 # Let it run for 5 seconds
           kill $!
