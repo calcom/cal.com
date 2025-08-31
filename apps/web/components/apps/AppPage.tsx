@@ -113,7 +113,7 @@ export const AppPage = ({
 
   const handleAppInstall = () => {
     setIsLoading(true);
-    if (isConferencing(categories)) {
+    if (isConferencing(categories) && !concurrentMeetings) {
       mutation.mutate({
         type,
         variant,
