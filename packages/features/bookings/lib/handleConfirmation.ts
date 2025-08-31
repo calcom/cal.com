@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import {
@@ -32,7 +33,7 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
-const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
+const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 

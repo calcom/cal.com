@@ -1,12 +1,13 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import CrmManager from "@calcom/lib/crmManager/crmManager";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-const eventTypeAppMetadataSchema = z.record(z.any()).optional();
+const eventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
 
 export async function getCRMContactOwnerForRRLeadSkip(
   bookerEmail: string,

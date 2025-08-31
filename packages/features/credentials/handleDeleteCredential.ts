@@ -3,6 +3,7 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -20,8 +21,8 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
-const EventTypeAppMetadataSchema = z.record(z.any());
-const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
+const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
+const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 type App = {
   slug: string;

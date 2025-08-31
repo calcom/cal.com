@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 import type { appDataSchemas } from "../../apps.schemas.generated";
+import { appDataSchemas as appDataSchemasImport } from "../../apps.schemas.generated";
 
-const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
+const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemasImport).partial().optional();
 
 /**
  *

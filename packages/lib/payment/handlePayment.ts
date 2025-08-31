@@ -1,13 +1,14 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
+const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 const isPaymentService = (x: unknown): x is { PaymentService: any } =>
   !!x && typeof x === "object" && "PaymentService" in x && typeof x.PaymentService === "function";
@@ -65,14 +66,15 @@ const handlePayment = async ({
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
-  const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
+  const appData = apps?.[paymentAppCredentials.appId as keyof typeof apps];
+  const paymentOption = appData?.paymentOption || "ON_BOOKING";
 
   let paymentData;
   if (paymentOption === "HOLD") {
     paymentData = await paymentInstance.collectCard(
       {
-        amount: apps?.[paymentAppCredentials.appId].price,
-        currency: apps?.[paymentAppCredentials.appId].currency,
+        amount: appData?.price,
+        currency: appData?.currency,
       },
       booking.id,
       paymentOption,
@@ -82,8 +84,8 @@ const handlePayment = async ({
   } else {
     paymentData = await paymentInstance.create(
       {
-        amount: apps?.[paymentAppCredentials.appId].price,
-        currency: apps?.[paymentAppCredentials.appId].currency,
+        amount: appData?.price,
+        currency: appData?.currency,
       },
       booking.id,
       booking.userId,

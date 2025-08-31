@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 import { z } from "zod";
 
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import {
@@ -20,7 +21,7 @@ import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
 import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
 
-const eventTypeAppMetadataOptionalSchema = z.record(z.any()).optional();
+const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
