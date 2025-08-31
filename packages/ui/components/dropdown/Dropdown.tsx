@@ -142,7 +142,7 @@ type DropdownItemProps = {
 type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
 
 export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
-  const isLink = typeof href !== "undefined";
+  const isLink = typeof href !== "undefined" && !props.disabled;
   const ButtonOrLink = isLink ? "a" : "button";
 
   const content = <ButtonOrLink {...props} />;
