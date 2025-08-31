@@ -28,9 +28,11 @@ const formatOffset = (offset: string) =>
   offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
 
 export const handleOptionLabel = (option: ITimezoneOption, timezones: Timezones) => {
-  const tz = option.value;
-  const offset = formatOffset(dayjs.tz(undefined, tz).format("Z"));
-  const zoneId = tz.replace(/_/g, " ");
-  const citySuffix = option.label.includes(") ") ? option.label.split(") ").slice(1).join(") ") : undefined;
-  return citySuffix ? `${zoneId} (GMT${offset}) ${citySuffix}` : `${zoneId} (GMT${offset})`;
+  const offsetUnit = option.label.split(/[-+]/)[0].substring(1);
+  const cityName = option.label.split(") ")[1];
+
+  const timezoneValue = ` ${offsetUnit} ${formatOffset(dayjs.tz(undefined, option.value).format("Z"))}`;
+  return timezones.length > 0
+    ? `${cityName}${timezoneValue}`
+    : `${option.value.replace(/_/g, " ")}${timezoneValue}`;
 };
