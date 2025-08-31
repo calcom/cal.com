@@ -1,4 +1,5 @@
 import type { Dayjs } from "@calcom/dayjs";
+import { weekStartNum } from "@calcom/lib/weekstart";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import type { IntervalLimitUnit } from "./intervalLimitSchema";
@@ -10,6 +11,11 @@ type BusyMapKey = `${IntervalLimitUnit}-${ReturnType<Dayjs["toISOString"]>}`;
  */
 export default class LimitManager {
   private busyMap: Map<BusyMapKey, EventBusyDate> = new Map();
+  private weekStart: string;
+
+  constructor(weekStart?: string) {
+    this.weekStart = weekStart || "Sunday";
+  }
 
   /**
    * Creates a busy map key
@@ -17,6 +23,31 @@ export default class LimitManager {
   private static createKey(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string): BusyMapKey {
     const tzStart = timeZone ? start.tz(timeZone) : start;
     return `${unit}-${tzStart.startOf(unit).toISOString()}`;
+  }
+
+  /**
+   * Gets the proper end date for a period based on user's week start preference
+   */
+  private getPeriodEnd(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string): Dayjs {
+    const tzStart = timeZone ? start.tz(timeZone) : start;
+
+    if (unit === "week") {
+      return tzStart.add(6, "days").endOf("day");
+    } else {
+      return tzStart.endOf(unit);
+    }
+  }
+
+  /**
+   * Adjusts the start date for weekly periods based on user's week start preference
+   */
+  private adjustWeekStart(start: Dayjs, timeZone?: string): Dayjs {
+    const tzStart = timeZone ? start.tz(timeZone) : start;
+    const weekStartIndex = weekStartNum(this.weekStart);
+    const currentDayIndex = tzStart.day();
+
+    const daysToSubtract = (currentDayIndex - weekStartIndex + 7) % 7;
+    return tzStart.subtract(daysToSubtract, "days").startOf("day");
   }
 
   /**
@@ -51,10 +82,21 @@ export default class LimitManager {
    * Adds a new busy time
    */
   addBusyTime(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string) {
-    const tzStart = timeZone ? start.tz(timeZone) : start;
-    this.busyMap.set(`${unit}-${tzStart.toISOString()}`, {
-      start: tzStart.toISOString(),
-      end: tzStart.endOf(unit).toISOString(),
+    let adjustedStart = start;
+
+    // For weekly periods, adjust the start to the user's preferred week start day
+    if (unit === "week") {
+      adjustedStart = this.adjustWeekStart(start, timeZone);
+    } else {
+      adjustedStart = timeZone ? start.tz(timeZone) : start;
+      adjustedStart = adjustedStart.startOf(unit);
+    }
+
+    const periodEnd = this.getPeriodEnd(adjustedStart, unit, timeZone);
+
+    this.busyMap.set(`${unit}-${adjustedStart.toISOString()}`, {
+      start: adjustedStart.toISOString(),
+      end: periodEnd.toISOString(),
     });
   }
 
