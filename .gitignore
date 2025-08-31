@@ -98,6 +98,10 @@ apps/auth
 !.yarn/versions
 i18n.cache
 
+<<<<<<< HEAD
 
 packages/**/.yarn/ci-cache/
 
+=======
+.claude
+>>>>>>> upstream/main

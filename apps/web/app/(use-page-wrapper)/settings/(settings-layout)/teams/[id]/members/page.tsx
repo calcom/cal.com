@@ -4,7 +4,8 @@ import { unstable_cache } from "next/cache";
 
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import prisma from "@calcom/prisma";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 
 import { TeamMembersView } from "~/teams/team-members-view";
@@ -36,8 +37,10 @@ const getCachedTeamRoles = unstable_cache(
 const getCachedTeamAttributes = unstable_cache(
   async (organizationId?: number) => {
     if (!organizationId) return [];
+    const attributeRepo = new PrismaAttributeRepository(prisma);
+
     try {
-      return await AttributeRepository.findAllByOrgIdWithOptions({ orgId: organizationId });
+      return await attributeRepo.findAllByOrgIdWithOptions({ orgId: organizationId });
     } catch (error) {
       return [];
     }
