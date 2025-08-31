@@ -33,7 +33,19 @@ function _getPeriodStartDatesBetween(
     currentDate = currentDate.startOf(period);
   }
 
-  while (currentDate.isBefore(dateTo) || currentDate.isSame(dateTo, period)) {
+  const tzDateTo = timeZone ? dayjs(dateTo).tz(timeZone) : dayjs(dateTo);
+  const lastStart =
+    period === "week"
+      ? (() => {
+          const weekStartName = weekStart || "Sunday";
+          const weekStartIndex = weekStartNum(weekStartName);
+          const currentDayIndex = tzDateTo.day();
+          const daysToSubtract = (currentDayIndex - weekStartIndex + 7) % 7;
+          return tzDateTo.subtract(daysToSubtract, "day").startOf("day");
+        })()
+      : tzDateTo.startOf(period);
+
+  while (currentDate.isBefore(lastStart) || currentDate.isSame(lastStart)) {
     dates.push(currentDate);
 
     if (period === "week") {
