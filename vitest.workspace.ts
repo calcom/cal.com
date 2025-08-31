@@ -179,10 +179,15 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
-          name: "@calcom/features/eventtypes",
-          include: ["packages/features/eventtypes/**/*.{test,spec}.[jt]sx"],
+          name: "@calcom/features",
+          include: ["packages/features/**/*.{test,spec}.tsx"],
+          exclude: [
+            "packages/features/form-builder/**/*",
+            "packages/features/bookings/**/*",
+            "packages/features/eventtypes/**/*"
+          ],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.tsx"],
+          setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.tsx"],
         },
       },
       {
