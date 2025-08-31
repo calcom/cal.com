@@ -63,16 +63,19 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
 
 export function getCancelEventAction(context: BookingActionContext): ActionType {
   const { booking, isTabRecurring, isRecurring, getSeatReferenceUid, t } = context;
+  const isDisabled = isActionDisabled("cancel", context);
 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-    href: `/booking/${booking.uid}?cancel=true${
-      isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-    }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
+    href: isDisabled
+      ? undefined
+      : `/booking/${booking.uid}?cancel=true${
+          isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+        }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
     icon: "circle-x",
     color: "destructive",
-    disabled: isActionDisabled("cancel", context),
+    disabled: isDisabled,
   };
 }
 
