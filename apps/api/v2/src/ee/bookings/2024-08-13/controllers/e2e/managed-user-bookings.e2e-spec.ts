@@ -127,6 +127,37 @@ describe("Managed user bookings 2024-08-13", () => {
       accepted: true,
     });
 
+    // Create org admin managed user and assign ADMIN membership in org
+    const requestBody: CreateManagedUserInput = {
+      email: orgAdminManagedUserEmail,
+      timeZone: managedUsersTimeZone,
+      weekStart: "Monday",
+      timeFormat: 24,
+      locale: Locales.FR,
+      name: "Org Admin Smith",
+      avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+    };
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .send(requestBody)
+      .expect(201);
+
+    const responseBody: CreateManagedUserOutput = response.body;
+    orgAdminManagedUser = responseBody.data;
+
+    await request(app.getHttpServer())
+      .post(`/v2/organizations/${organization.id}/memberships`)
+      .set("x-cal-client-id", oAuthClient.id)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .send({
+        userId: orgAdminManagedUser.user.id,
+        role: "ADMIN",
+        accepted: true,
+      })
+      .expect(201);
+
     await app.init();
   });
 
