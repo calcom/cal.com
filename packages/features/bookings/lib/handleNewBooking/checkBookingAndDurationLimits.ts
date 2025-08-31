@@ -6,12 +6,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
-type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule"> & {
-  // Add user data to get weekStart preference
-  users?: Array<{ weekStart?: number | null }>;
-  // For team events, might need this structure instead
-  owner?: { weekStart?: number | null };
-};
+type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule">;
 
 type InputProps = {
   eventType: EventType;
@@ -37,39 +32,15 @@ export class CheckBookingAndDurationLimitsService {
       Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
     ) {
       const startAsDate = dayjs(reqBodyStart).toDate();
-
-      console.log("event types ", eventType);
-
       if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
-        // Get weekStart preference - try multiple possible sources
-        let weekStart: number | null = null;
-
-        // For individual user events
-        if (eventType.users && eventType.users.length > 0) {
-          weekStart = eventType.users[0].weekStart ?? null;
-        }
-
-        // For team events or if users array doesn't have weekStart
-        if (weekStart === null && eventType.owner) {
-          weekStart = eventType.owner.weekStart ?? null;
-        }
-
-        // Default to 0 (Sunday) if no preference found
-        if (weekStart === null) {
-          weekStart = 0;
-        }
-
         await this.dependencies.checkBookingLimitsService.checkBookingLimits(
           eventType.bookingLimits as IntervalLimit,
           startAsDate,
           eventType.id,
           reqBodyRescheduleUid,
-          eventType.schedule?.timeZone,
-          false, // includeManagedEvents - you may need to pass this as a parameter
-          weekStart
+          eventType.schedule?.timeZone
         );
       }
-
       if (eventType.durationLimits) {
         await checkDurationLimits(
           eventType.durationLimits as IntervalLimit,
