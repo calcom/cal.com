@@ -24,12 +24,13 @@ const _getBusyTimesFromLimits = async (
   eventType: NonNullable<EventType>,
   bookings: EventBusyDetails[],
   timeZone: string,
-  rescheduleUid?: string
+  rescheduleUid?: string,
+  weekStart?: string
 ) => {
   performance.mark("limitsStart");
 
   // shared amongst limiters to prevent processing known busy periods
-  const limitManager = new LimitManager();
+  const limitManager = new LimitManager(weekStart);
 
   // run this first, as counting bookings should always run faster..
   if (bookingLimits) {
@@ -43,6 +44,7 @@ const _getBusyTimesFromLimits = async (
       limitManager,
       rescheduleUid,
       timeZone,
+      weekStart,
     });
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
@@ -60,7 +62,8 @@ const _getBusyTimesFromLimits = async (
       eventType,
       limitManager,
       timeZone,
-      rescheduleUid
+      rescheduleUid,
+      weekStart
     );
     performance.mark("durationLimitsEnd");
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
@@ -84,6 +87,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
   user?: { id: number; email: string };
   includeManagedEvents?: boolean;
   timeZone?: string | null;
+  weekStart?: string;
 }) => {
   const {
     bookings,
@@ -104,7 +108,13 @@ const _getBusyTimesFromBookingLimits = async (params: {
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+    const periodStartDates = getPeriodStartDatesBetween(
+      dateFrom,
+      dateTo,
+      unit,
+      timeZone || undefined,
+      params.weekStart
+    );
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
@@ -159,14 +169,15 @@ const _getBusyTimesFromDurationLimits = async (
   eventType: NonNullable<EventType>,
   limitManager: LimitManager,
   timeZone: string,
-  rescheduleUid?: string
+  rescheduleUid?: string,
+  weekStart?: string
 ) => {
   for (const key of descendingLimitKeys) {
     const limit = durationLimits?.[key];
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone, weekStart);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
