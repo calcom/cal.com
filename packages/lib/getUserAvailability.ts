@@ -156,10 +156,7 @@ type GetUsersAvailabilityProps = {
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
 };
 
-type BookingLimits = Partial<Record<
-  "PER_WEEK" | "PER_YEAR" | "PER_MONTH" | "PER_DAY",
-  number | undefined
-> | null>;
+type BookingLimits = Partial<Record<"PER_WEEK" | "PER_YEAR" | "PER_MONTH" | "PER_DAY", number>> | null;
 
 export interface IUserAvailabilityService {
   eventTypeRepo: EventTypeRepository;
@@ -170,8 +167,6 @@ export interface IUserAvailabilityService {
 
 export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
-
-  private weekStart: string | undefined;
 
   // Fetch timezones from outlook or google using delegated credentials (formely known as domain wide delegatiion)
   async getTimezoneFromDelegatedCalendars(user: GetAvailabilityUser): Promise<string | null> {
@@ -323,7 +318,7 @@ export class UserAvailabilityService {
     if (userId) where.id = userId;
 
     const user = initialData?.user || (await this.getUser(where));
-    this.weekStart = user?.weekStart;
+    const weekStart = user?.weekStart;
 
     if (!user) {
       throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
@@ -430,7 +425,7 @@ export class UserAvailabilityService {
         initialData?.busyTimesFromLimitsBookings ?? [],
         finalTimezone,
         initialData?.rescheduleUid ?? undefined,
-        user.weekStart
+        weekStart
       );
     }
 
@@ -620,8 +615,8 @@ export class UserAvailabilityService {
   getUserAvailability = withReporting(this._getUserAvailability.bind(this), "getUserAvailability");
 
   getPeriodStartDatesBetween = withReporting(
-    (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string) =>
-      getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone, this.weekStart),
+    (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string, weekStart?: string) =>
+      getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone, weekStart),
     "getPeriodStartDatesBetween"
   );
 

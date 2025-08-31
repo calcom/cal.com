@@ -101,6 +101,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     rescheduleUid,
     includeManagedEvents = false,
     timeZone,
+    weekStart,
   } = params;
 
   for (const key of descendingLimitKeys) {
@@ -113,7 +114,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
       dateTo,
       unit,
       timeZone || undefined,
-      params.weekStart
+      weekStart
     );
 
     for (const periodStart of periodStartDates) {
@@ -143,7 +144,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
         continue;
       }
 
-      const periodEnd = periodStart.endOf(unit);
+      const periodEnd = unit === "week" ? periodStart.add(6, "day").endOf("day") : periodStart.endOf(unit);
       let totalBookings = 0;
 
       for (const booking of bookings) {
@@ -207,7 +208,7 @@ const _getBusyTimesFromDurationLimits = async (
         continue;
       }
 
-      const periodEnd = periodStart.endOf(unit);
+      const periodEnd = unit === "week" ? periodStart.add(6, "day").endOf("day") : periodStart.endOf(unit);
       let totalDuration = selectedDuration;
 
       for (const booking of bookings) {
