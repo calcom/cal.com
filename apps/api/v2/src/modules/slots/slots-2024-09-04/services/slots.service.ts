@@ -1,3 +1,4 @@
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -51,6 +52,7 @@ export class SlotsService_2024_09_04 {
     private readonly membershipsService: MembershipsService,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly teamsRepository: TeamsRepository,
+    private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
@@ -245,13 +247,16 @@ export class SlotsService_2024_09_04 {
     endDate: DateTime,
     hosts: Host[]
   ) {
-    const existingBooking = await this.slotsRepository.getExistingBooking(
+    const existingBooking = await this.bookingsRepository.getByEventTypeIdAndSlot(
       eventTypeId,
       startDate.toJSDate(),
       endDate.toJSDate()
     );
-    const hasHostAsAttendee = hosts.some((host) =>
-      existingBooking?.attendees.some((attendee) => attendee.id === host.userId)
+
+    const hasHostAsAttendee = hosts.some(
+      (host) =>
+        existingBooking?.attendees.some((attendee) => attendee.id === host.userId) ||
+        existingBooking?.userId === host.userId
     );
 
     if (hasHostAsAttendee) {
@@ -272,7 +277,9 @@ export class SlotsService_2024_09_04 {
     );
 
     if (existingSlotReservations === hosts.length) {
-      throw new UnprocessableEntityException(`Can't reserve a slot since the team has no available hosts.`);
+      throw new UnprocessableEntityException(
+        `Can't reserve the slot because the round robin event type has no available hosts left at this time slot.`
+      );
     }
   }
 

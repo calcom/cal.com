@@ -68,17 +68,6 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
-  async getExistingBooking(eventTypeId: number, slotStartTime: Date, slotEndTime: Date) {
-    return this.dbRead.prisma.booking.findFirst({
-      where: {
-        eventTypeId,
-        startTime: slotStartTime,
-        endTime: slotEndTime,
-      },
-      select: { attendees: true, status: true },
-    });
-  }
-
   async createSlot(
     userId: number,
     eventTypeId: number,
