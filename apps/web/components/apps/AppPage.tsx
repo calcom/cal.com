@@ -367,7 +367,7 @@ export const AppPage = ({
               {teamsPlanRequired ? (
                 t("teams_plan_required")
               ) : price === 0 ? (
-                t("free_to_use_apps")
+                t("free")
               ) : (
                 <>
                   {Intl.NumberFormat(i18n.language, {

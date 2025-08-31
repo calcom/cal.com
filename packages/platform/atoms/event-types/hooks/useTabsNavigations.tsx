@@ -209,7 +209,7 @@ function getNavigation({
       "data-testid": "event_limit_tab_title",
     },
     {
-      name: t("event_advanced_tab_title"),
+      name: t("advanced"),
       href: `/event-types/${id}?tabName=advanced`,
       icon: "sliders-vertical",
       info: t(`event_advanced_tab_description`),

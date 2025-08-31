@@ -170,7 +170,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
 
   tabs.includes("advanced") &&
     tabsNavigation.push({
-      name: t("event_advanced_tab_title"),
+      name: t("advanced"),
       onClick: () => onClick("advanced"),
       isActive: currentTab === "advanced",
       href: `${url}?tabName=advanced`,
