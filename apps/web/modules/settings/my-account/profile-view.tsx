@@ -34,7 +34,6 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -745,7 +744,7 @@ const ProfileForm = ({
         color="primary"
         className="mt-4"
         type="submit"
-        size='lg'
+        size="lg"
         data-testid="profile-submit-button">
         {t("update")}
       </Button>
