@@ -3,9 +3,15 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
-import { isSingleSelectFilterValue, isMultiSelectFilterValue } from "@calcom/features/data-table/lib/utils";
+import {
+  isSingleSelectFilterValue,
+  isMultiSelectFilterValue,
+  isTextFilterValue,
+  isNumberFilterValue,
+} from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -317,6 +323,32 @@ export class InsightsBookingBaseService {
     if (id === "status" && isMultiSelectFilterValue(value)) {
       const statusValues = value.data.map((status) => Prisma.sql`${status}::"BookingStatus"`);
       return Prisma.sql`"status" IN (${Prisma.join(statusValues)})`;
+    }
+
+    if (id === "paid" && isSingleSelectFilterValue(value)) {
+      const paidValue = value.data === "true";
+      return Prisma.sql`"paid" = ${paidValue}`;
+    }
+
+    if (id === "userEmail" && isTextFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userEmail" ${condition}`;
+      }
+    }
+
+    if (id === "userName" && isTextFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"userName" ${condition}`;
+      }
+    }
+
+    if (id === "rating" && isNumberFilterValue(value)) {
+      const condition = makeSqlCondition(value);
+      if (condition) {
+        return Prisma.sql`"rating" ${condition}`;
+      }
     }
 
     return null;
@@ -1088,6 +1120,58 @@ export class InsightsBookingBaseService {
           ratings_above_3: 0,
           no_show_guests: 0,
         };
+  }
+
+  async getRecentNoShowGuests() {
+    const baseConditions = await this.getBaseConditions();
+
+    const recentNoShowBookings = await this.prisma.$queryRaw<
+      Array<{
+        bookingId: number;
+        startTime: Date;
+        eventTypeName: string;
+        guestName: string;
+        guestEmail: string;
+      }>
+    >`
+      WITH booking_attendee_stats AS (
+        SELECT
+          b.id as booking_id,
+          b."startTime",
+          b.title as event_type_name,
+          COUNT(a.id) as total_attendees,
+          COUNT(CASE WHEN a."noShow" = true THEN 1 END) as no_show_attendees
+        FROM "BookingTimeStatusDenormalized" b
+        INNER JOIN "Attendee" a ON a."bookingId" = b.id
+        WHERE ${baseConditions} and b.status = 'accepted'
+        GROUP BY b.id, b."startTime", b.title
+        HAVING COUNT(a.id) > 0 AND COUNT(a.id) = COUNT(CASE WHEN a."noShow" = true THEN 1 END)
+      ),
+      recent_no_shows AS (
+        SELECT
+          bas.booking_id,
+          bas."startTime",
+          bas.event_type_name,
+          a.name as guest_name,
+          a.email as guest_email,
+          ROW_NUMBER() OVER (PARTITION BY bas.booking_id ORDER BY a.id) as rn
+        FROM booking_attendee_stats bas
+        INNER JOIN "Attendee" a ON a."bookingId" = bas.booking_id
+        WHERE a."noShow" = true
+      )
+      SELECT
+        booking_id as "bookingId",
+        "startTime",
+        event_type_name as "eventTypeName",
+        guest_name as "guestName",
+        guest_email as "guestEmail"
+      FROM recent_no_shows
+      WHERE rn = 1
+      ORDER BY "startTime" DESC
+      LIMIT 10
+    `;
+
+    return recentNoShowBookings;
   }
 
   calculatePreviousPeriodDates() {
