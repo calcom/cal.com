@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 test("connect calendar using the apple connect atom", async ({ page }) => {
-  const appleId = process.env.APPLE_ID;
-  const appSpecificPassword = process.env.APPLE_CONNECT_APP_SPECIFIC_PASSCODE;
+  const appleId = process.env.ATOMS_E2E_APPLE_ID;
+  const appSpecificPassword = process.env.ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE;
 
   await page.goto("/");
 
