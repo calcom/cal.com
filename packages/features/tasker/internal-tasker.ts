@@ -1,7 +1,7 @@
 import { Task } from "./repository";
 import type { TaskTypes } from "./tasker";
 import { type TaskerCreate, type Tasker } from "./tasker";
-import tasksMap, { tasksConfig } from "./tasks";
+import { loadTaskPlugin, tasksConfig } from "./tasks";
 
 /**
  * This is the default internal Tasker that uses the Task repository to create tasks.
@@ -23,10 +23,9 @@ export class InternalTasker implements Tasker {
         `Processing task ${task.id}, attempt:${task.attempts} maxAttempts:${task.maxAttempts} lastFailedAttempt:${task.lastFailedAttemptAt}`,
         task
       );
-      const taskHandlerGetter = tasksMap[task.type as keyof typeof tasksMap];
-      if (!taskHandlerGetter) throw new Error(`Task handler not found for type ${task.type}`);
-      const taskConfig = tasksConfig[task.type as keyof typeof tasksConfig];
-      const taskHandler = await taskHandlerGetter();
+      const taskPlugin = await loadTaskPlugin(task.type as TaskTypes);
+      const taskHandler = taskPlugin.handler;
+      const taskConfig = taskPlugin.config || tasksConfig[task.type as keyof typeof tasksConfig];
       return taskHandler(task.payload)
         .then(async () => {
           await Task.succeed(task.id);
