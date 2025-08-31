@@ -176,6 +176,8 @@ export const CalVideoPremiumFeatures = ({
   const [transcriptHeight, setTranscriptHeight] = useState(0);
   const transcriptRef = useRef<HTMLDivElement | null>(null);
 
+  const [inWaitingRoom, setInWaitingRoom] = useState(false);
+
   const transcription = useTranscription();
   const recording = useRecording();
 
@@ -197,7 +199,21 @@ export const CalVideoPremiumFeatures = ({
     }, [])
   );
 
-  useDailyEvent("joined-meeting", callbacks.onMeetingJoined);
+  useDailyEvent(
+    "waiting-room",
+    useCallback((ev) => {
+      setInWaitingRoom(ev?.inWaitingRoom ?? true);
+    }, [])
+  );
+
+  useDailyEvent(
+    "joined-meeting",
+    useCallback(() => {
+      setInWaitingRoom(false);
+      callbacks.onMeetingJoined();
+    }, [callbacks])
+  );
+
   useDailyEvent("transcription-started", callbacks.onTranscriptionStarted);
   useDailyEvent("recording-started", callbacks.onRecordingStarted);
   useDailyEvent("transcription-stopped", callbacks.onTranscriptionStopped);
@@ -225,23 +241,59 @@ export const CalVideoPremiumFeatures = ({
     });
   }, [transcriptHeight]);
 
-  return transcript ? (
-    <div
-      id="cal-ai-transcription"
-      style={{
-        textShadow: "0 0 20px black, 0 0 20px black, 0 0 20px black",
-        backgroundColor: "rgba(0,0,0,0.6)",
-      }}
-      ref={transcriptRef}
-      className="flex max-h-full justify-center overflow-x-hidden overflow-y-scroll p-2 text-center text-white">
-      {transcript
-        ? transcript.split("\n").map((line, i) => (
-            <Fragment key={`transcript-${i}`}>
-              {i > 0 && <br />}
-              {line}
-            </Fragment>
-          ))
-        : ""}
-    </div>
-  ) : null;
+  return (
+    <>
+      {inWaitingRoom && (
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 1000,
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.85)",
+            color: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "1.5rem",
+            textAlign: "center",
+          }}>
+          <div>
+            <b>Waiting Room</b>
+          </div>
+          <div style={{ marginTop: 16 }}>
+            The meeting hasn&apos;t started yet.
+            <br />
+            Please wait for the organizer to join.
+            <br />
+            <small style={{ fontSize: "1rem", opacity: 0.8 }}>
+              (You will be admitted automatically when the meeting begins.)
+            </small>
+          </div>
+        </div>
+      )}
+      {transcript ? (
+        <div
+          id="cal-ai-transcription"
+          style={{
+            textShadow: "0 0 20px black, 0 0 20px black, 0 0 20px black",
+            backgroundColor: "rgba(0,0,0,0.6)",
+          }}
+          ref={transcriptRef}
+          className="flex max-h-full justify-center overflow-x-hidden overflow-y-scroll p-2 text-center text-white">
+          {transcript
+            ? transcript.split("\n").map((line, i) => (
+                <Fragment key={`transcript-${i}`}>
+                  {i > 0 && <br />}
+                  {line}
+                </Fragment>
+              ))
+            : ""}
+        </div>
+      ) : null}
+    </>
+  );
 };
