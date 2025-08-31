@@ -241,36 +241,30 @@ export const CalVideoPremiumFeatures = ({
     });
   }, [transcriptHeight]);
 
+  function t(arg0: string, arg1: string): React.ReactNode {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <>
       {inWaitingRoom && (
         <div
-          style={{
-            position: "absolute",
-            zIndex: 1000,
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0,0,0,0.85)",
-            color: "#fff",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "1.5rem",
-            textAlign: "center",
-          }}>
-          <div>
-            <b>Waiting Room</b>
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="waiting-room-title"
+          aria-live="polite"
+          data-testid="waiting-room-overlay"
+          className="bg-black/85 fixed inset-0 z-[1000] flex flex-col items-center justify-center text-center text-white">
+          <div id="waiting-room-title" className="text-2xl font-semibold">
+            {t("waitingRoom.title", "Waiting Room")}
           </div>
-          <div style={{ marginTop: 16 }}>
-            The meeting hasn&apos;t started yet.
+          <div className="mt-4 text-xl">
+            {t("waitingRoom.meetingNotStarted", "The meeting hasn't started yet.")}
             <br />
-            Please wait for the organizer to join.
+            {t("waitingRoom.pleaseWait", "Please wait for the organizer to join.")}
             <br />
-            <small style={{ fontSize: "1rem", opacity: 0.8 }}>
-              (You will be admitted automatically when the meeting begins.)
+            <small className="text-base opacity-80">
+              {t("waitingRoom.autoAdmit", "You will be admitted automatically when the meeting begins.")}
             </small>
           </div>
         </div>
