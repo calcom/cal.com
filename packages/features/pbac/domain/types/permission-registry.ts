@@ -121,7 +121,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Create]: {
       description: "Create roles",
       category: "role",
-      i18nKey: "pbac_action_create",
+      i18nKey: "create",
       descriptionI18nKey: "pbac_desc_create_roles",
       dependsOn: ["role.read"],
     },
@@ -153,7 +153,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Create]: {
       description: "Create event types",
       category: "event",
-      i18nKey: "pbac_action_create",
+      i18nKey: "create",
       descriptionI18nKey: "pbac_desc_create_event_types",
       dependsOn: ["eventType.read"],
     },
@@ -185,7 +185,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Create]: {
       description: "Create teams",
       category: "team",
-      i18nKey: "pbac_action_create",
+      i18nKey: "create",
       descriptionI18nKey: "pbac_desc_create_teams",
       scope: [Scope.Organization],
       dependsOn: ["team.read"],
@@ -234,12 +234,12 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Organization]: {
     _resource: {
-      i18nKey: "pbac_resource_organization",
+      i18nKey: "organization",
     },
     [CrudAction.Create]: {
       description: "Create organization",
       category: "org",
-      i18nKey: "pbac_action_create",
+      i18nKey: "create",
       descriptionI18nKey: "pbac_desc_create_organization",
       scope: [Scope.Organization],
     },
@@ -410,7 +410,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Create]: {
       description: "Create organization attributes",
       category: "attributes",
-      i18nKey: "pbac_action_create",
+      i18nKey: "create",
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
       dependsOn: ["organization.attributes.read"],
     },
@@ -422,7 +422,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Create]: {
       description: "Create routing forms",
       category: "routing",
-      i18nKey: "pbac_action_create",
+      i18nKey: "create",
       descriptionI18nKey: "pbac_desc_create_routing_forms",
       dependsOn: ["routingForm.read"],
     },
