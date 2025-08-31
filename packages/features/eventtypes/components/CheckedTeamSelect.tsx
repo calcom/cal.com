@@ -74,9 +74,10 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
-  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
-  const [currentOption, setCurrentOption] = useState<CheckedSelectOption | null>(null);
+// (Removed the following unused hooks)
+// const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
+// const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+// const [currentOption, setCurrentOption] = useState<CheckedSelectOption | null>(null);
 
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
