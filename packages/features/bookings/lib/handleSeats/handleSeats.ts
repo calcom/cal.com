@@ -108,7 +108,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...reqBodyMetadata,
     };
     try {
-      const currentAttendeeSeatId = seatedBooking?.attendees[0]?.bookingSeat?.referenceUid;
       await scheduleWorkflowReminders({
         workflows,
         smsReminderNumber: smsReminderNumber || null,
@@ -129,7 +128,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
-        seatReferenceUid: currentAttendeeSeatId,
+        seatReferenceUid: resultBooking?.seatReferenceUid,
         isDryRun,
       });
     } catch (error) {
