@@ -162,7 +162,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
         recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
-      }`,
+      }${seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
       cancelReason: evt.cancellationReason,
       rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
         recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
