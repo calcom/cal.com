@@ -59,7 +59,7 @@ async function postHandler(request: NextRequest) {
         });
       }
 
-      await prisma.schedule.updateMany({
+      await prisma.schedule.update({
         where: {
           id: defaultScheduleId,
         },

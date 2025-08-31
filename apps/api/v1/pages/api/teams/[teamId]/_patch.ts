@@ -97,7 +97,7 @@ export async function patchHandler(req: NextApiRequest) {
       });
   }
 
-  if (data.lockDefaultAvailability !== undefined && data.lockDefaultAvailability) {
+  if (data.lockDefaultAvailability) {
     if (!_team.parentId) {
       throw new HttpError({
         statusCode: 400,

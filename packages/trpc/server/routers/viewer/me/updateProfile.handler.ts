@@ -283,7 +283,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         });
       }
 
-      await prisma.schedule.updateMany({
+      await prisma.schedule.update({
         where: {
           id: defaultScheduleId,
         },
