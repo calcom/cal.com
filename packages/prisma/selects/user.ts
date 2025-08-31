@@ -6,6 +6,7 @@ export const availabilityUserSelect = {
   email: true,
   bufferTime: true,
   startTime: true,
+  weekStart: true,
   username: true,
   endTime: true,
   timeFormat: true,
