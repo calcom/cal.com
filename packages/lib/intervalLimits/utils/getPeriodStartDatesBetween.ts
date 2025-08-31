@@ -23,7 +23,7 @@ function _getPeriodStartDatesBetween(
 
   // For weekly periods, align to the user's preferred week start
   if (period === "week") {
-    const weekStartName = weekStart || "Monday";
+    const weekStartName = weekStart || "Sunday";
     const weekStartIndex = weekStartNum(weekStartName);
 
     const currentDayIndex = currentDate.day();
