@@ -1,0 +1,45 @@
+{
+  "sendEmail": {
+    "handlerPath": "./sendEmail.ts"
+  },
+  "sendWebhook": {
+    "handlerPath": "./sendWebook.ts"
+  },
+  "createCRMEvent": {
+    "handlerPath": "./crm/createCRMEvent.ts",
+    "config": {
+      "minRetryIntervalMins": 10,
+      "maxAttempts": 10
+    }
+  },
+  "executeAIPhoneCall": {
+    "handlerPath": "./executeAIPhoneCall.ts",
+    "config": {
+      "maxAttempts": 1
+    }
+  },
+  "triggerHostNoShowWebhook": {
+    "handlerPath": "./triggerNoShow/triggerHostNoShow.ts"
+  },
+  "triggerGuestNoShowWebhook": {
+    "handlerPath": "./triggerNoShow/triggerGuestNoShow.ts"
+  },
+  "triggerFormSubmittedNoEventWebhook": {
+    "handlerPath": "./triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook.ts"
+  },
+  "translateEventTypeData": {
+    "handlerPath": "./translateEventTypeData.ts"
+  },
+  "sendWorkflowEmails": {
+    "handlerPath": "./sendWorkflowEmails.ts"
+  },
+  "scanWorkflowBody": {
+    "handlerPath": "./scanWorkflowBody.ts"
+  },
+  "sendAnalyticsEvent": {
+    "handlerPath": "./analytics/sendAnalyticsEvent.ts"
+  },
+  "sendSms": {
+    "handlerPath": "./sendSms.ts"
+  }
+}
