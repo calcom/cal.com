@@ -128,6 +128,7 @@ describe("Managed user bookings 2024-08-13", () => {
     });
 
     // Create org admin managed user and assign ADMIN membership in org
+    await app.init();
     const requestBody: CreateManagedUserInput = {
       email: orgAdminManagedUserEmail,
       timeZone: managedUsersTimeZone,
@@ -157,8 +158,6 @@ describe("Managed user bookings 2024-08-13", () => {
         accepted: true,
       })
       .expect(201);
-
-    await app.init();
   });
 
   async function createOAuthClient(organizationId: number) {
