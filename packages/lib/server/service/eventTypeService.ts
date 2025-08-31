@@ -30,7 +30,7 @@ export class EventTypeService {
 
     const eventTypeAppMetadata = parseEventTypeAppMetadata.data.apps;
     const apps = EventTypeAppMetadataSchema.parse(eventTypeAppMetadata);
-    const appMetadata = apps?.[appSlug];
+    const appMetadata = apps?.[appSlug as keyof typeof apps];
 
     return appMetadata;
   }
