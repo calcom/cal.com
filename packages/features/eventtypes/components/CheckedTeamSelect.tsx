@@ -84,13 +84,13 @@ export const CheckedTeamSelect = ({
   function getPriorityTextAndColor(priority?: number) {
     switch (priority) {
       case 0:
-        return { text: "Low", color: "text-gray-500" };
+        return { text: t("low"), color: "text-gray-500" };
       case 1:
-        return { text: "Medium", color: "text-blue-500" };
+        return { text: t("medium"), color: "text-blue-500" };
       case 2:
-        return { text: "High", color: "text-red-500" };
+        return { text: t("high"), color: "text-red-500" };
       default:
-        return { text: "Normal", color: "text-black" };
+        return { text: t("normal"), color: "text-black" };
     }
   }
 
