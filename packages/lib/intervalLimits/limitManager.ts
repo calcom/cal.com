@@ -14,7 +14,7 @@ export default class LimitManager {
   private weekStart: string;
 
   constructor(weekStart?: string) {
-    this.weekStart = weekStart || "Sunday";
+    this.weekStart = weekStart || "Monday";
   }
 
   /**
