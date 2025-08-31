@@ -109,7 +109,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.All]: {
       description: "All actions on all resources",
       category: "system",
-      i18nKey: "event_types_page_title",
+      i18nKey: "pbac_resource_all",
       descriptionI18nKey: "pbac_desc_all_actions_all_resources",
       scope: [Scope.Organization], // Only organizations should have "All" permissions
     },
@@ -148,7 +148,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.EventType]: {
     _resource: {
-      i18nKey: "pbac_resource_event_type",
+      i18nKey: "event_types_page_title",
     },
     [CrudAction.Create]: {
       description: "Create event types",

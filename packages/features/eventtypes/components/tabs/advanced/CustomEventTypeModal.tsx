@@ -131,7 +131,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
                   "text-emphasis min-w-0 flex-1",
                   customClassNames?.availableVariables?.variableItem?.variableDescription
                 )}>
-                {t("webhook_title")}
+                {t("event_name_info")}
               </p>
             </div>
             <div

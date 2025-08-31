@@ -91,7 +91,7 @@ function getWebhookVariables(t: (key: string) => string) {
           description: t("webhook_created_at"),
         },
         { name: "type", variable: "{{type}}", type: "String", description: t("webhook_type") },
-        { name: "title", variable: "{{title}}", type: "String", description: t("webhook_title") },
+        { name: "title", variable: "{{title}}", type: "String", description: t("event_name_info") },
         {
           name: "startTime",
           variable: "{{startTime}}",
