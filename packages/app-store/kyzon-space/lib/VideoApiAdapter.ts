@@ -136,7 +136,8 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
                 calendarSource: "Cal.com",
                 eventId: event.uid || "",
               },
-              hasWaitRoom: false,
+              hasWaitRoom: true,
+              meetingFilesInWaitRoom: true,
             } satisfies KyzonCreateOrPutCalendarEventRequestBody,
             {
               headers: {
