@@ -51,14 +51,6 @@ export async function createRoundRobinTeamEventType({
   return createdEventType;
 }
 
-/**
- * Sets up a team and booking seats for testing team role visibility
- * @param user - The original user who created the event
- * @param booking - The booking to associate with the team
- * @param teamUser - The user to assign the specified team role
- * @param role - The team role to assign (ADMIN, MEMBER, or OWNER)
- * @returns Object containing the created team and booking seats
- */
 export async function setupTeamAndBookingSeats(
   user: { id: number },
   booking: { uid: string; id: number },
