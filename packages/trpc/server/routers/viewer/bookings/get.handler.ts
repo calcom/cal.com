@@ -503,7 +503,6 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
-                "EventType.userId",
                 eb
                   .cast<SchedulingType | null>(
                     eb
@@ -533,25 +532,12 @@ export async function getBookings({
                     ])
                     .whereRef("Host.eventTypeId", "=", "EventType.id")
                 ).as("hosts"),
-                jsonArrayFrom(
-                  eb
-                    .selectFrom("_user_eventtype")
-                    .select((eb) => [
-                      jsonObjectFrom(
-                        eb
-                          .selectFrom("users")
-                          .select(["users.id", "users.email"])
-                          .whereRef("_user_eventtype.B", "=", "users.id")
-                      ).as("user"),
-                    ])
-                    .whereRef("_user_eventtype.A", "=", "EventType.id")
-                ).as("users"),
                 "EventType.length",
                 "EventType.teamId",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug", "Team.parentId"])
+                    .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
                 jsonArrayFrom(
