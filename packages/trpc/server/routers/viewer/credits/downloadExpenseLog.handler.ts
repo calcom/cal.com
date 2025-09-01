@@ -21,7 +21,7 @@ const headers = [
   "Call Duration",
   "External Ref",
   "Phone Number", 
-  "Email"
+  "Email",
 ];
 
 export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseLogOptions) => {
