@@ -35,8 +35,18 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
 };
 
 type ProcessWorkflowStepParams = (
-  | { calendarEvent: ExtendedCalendarEvent; responses?: never }
-  | { calendarEvent?: never; responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
+  | { calendarEvent: ExtendedCalendarEvent; formData?: never }
+  | {
+      calendarEvent?: never;
+      formData: {
+        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+        user: {
+          email: string;
+          timeFormat: number | null;
+          locale: string;
+        };
+      };
+    }
 ) & {
   smsReminderNumber: string | null;
   emailAttendeeSendToOverride?: string;
@@ -58,7 +68,7 @@ const processWorkflowStep = async (
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
-    responses,
+    formData,
   }: ProcessWorkflowStepParams
 ) => {
   if (!step?.verifiedAt) return;
@@ -95,7 +105,7 @@ const processWorkflowStep = async (
       message: step.reminderBody || "",
       sender: step.sender,
       isVerificationPending: step.numberVerificationPending,
-      ...(evt ? { evt } : { responses }),
+      ...(evt ? { evt } : { formData }),
     } as const;
 
     await scheduleSMSReminder(smsParams);
@@ -152,8 +162,10 @@ const processWorkflowStep = async (
           }
         }
 
-        if (responses) {
-          const submitterEmail = await getSubmitterEmail(responses);
+        console.log(`form data here ${JSON.stringify(formData)}`);
+
+        if (formData) {
+          const submitterEmail = await getSubmitterEmail(formData.responses);
           if (submitterEmail) {
             sendTo = [submitterEmail];
           }
@@ -169,7 +181,7 @@ const processWorkflowStep = async (
       sender: step.sender || SENDER_NAME,
       hideBranding,
       includeCalendarEvent: step.includeCalendarEvent,
-      ...(evt ? { evt } : { responses }),
+      ...(evt ? { evt } : { formData }),
     } as const;
 
     // todo: scheduleEmailReminder work same as scheduleSMSReminder
@@ -183,7 +195,7 @@ const processWorkflowStep = async (
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
       isVerificationPending: step.numberVerificationPending,
-      ...(evt ? { evt } : { responses }),
+      ...(evt ? { evt } : { formData }),
     } as const;
 
     // todo: scheduleWhatsappReminder work same as scheduleSMSReminder
@@ -200,7 +212,7 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     hideBranding,
     seatReferenceUid,
     isDryRun = false,
-    responses,
+    formData,
   } = args;
   if (isDryRun || !workflows.length) return;
 
@@ -213,7 +225,7 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         seatReferenceUid,
-        ...(evt ? { calendarEvent: evt } : { responses }),
+        ...(evt ? { calendarEvent: evt } : { formData }),
       } as const;
 
       await processWorkflowStep(workflow, step, params);

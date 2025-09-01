@@ -47,7 +47,20 @@ export type ScheduleReminderArgs = {
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
-} & ({ evt: BookingInfo; responses?: never } | { evt?: never; responses: FORM_SUBMITTED_WEBHOOK_RESPONSES });
+} & (
+  | { evt: BookingInfo; formData?: never }
+  | {
+      evt?: never;
+      formData: {
+        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+        user: {
+          email: string;
+          timeFormat: number | null;
+          locale: string;
+        };
+      };
+    }
+);
 
 type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   sendTo: string[];
@@ -411,8 +424,18 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
 };
 
 const scheduleEmailReminderForForm = async (
-  args: scheduleEmailReminderArgs & { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
+  args: scheduleEmailReminderArgs & {
+    formData: {
+      responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+      user: {
+        email: string;
+        timeFormat: number | null;
+        locale: string;
+      };
+    };
+  }
 ) => {
+  console.log("scheduleEmailReminderForForm", JSON.stringify(args.formData));
   // TODO: Create scheduleEmailReminderForForm function
   throw new Error("Form email reminders not yet implemented");
 };

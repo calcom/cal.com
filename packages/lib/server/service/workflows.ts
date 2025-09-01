@@ -81,7 +81,6 @@ export class WorkflowService {
     workflows,
     responses,
     responseId,
-    formId,
     form,
   }: {
     workflows: Workflow[];
@@ -92,6 +91,11 @@ export class WorkflowService {
       userId: number;
       teamId?: number | null;
       fields?: { type: string; identifier?: string }[];
+      user: {
+        email: string;
+        timeFormat: number | null;
+        locale: string;
+      };
     };
   }) {
     if (workflows.length <= 0) return;
@@ -121,7 +125,10 @@ export class WorkflowService {
 
     await scheduleWorkflowReminders({
       smsReminderNumber,
-      responses,
+      formData: {
+        responses,
+        user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale },
+      },
       hideBranding,
       workflows: workflowsToTrigger,
     });
@@ -145,7 +152,7 @@ export class WorkflowService {
         {
           responseId,
           responses,
-          formId,
+          formId: form.id,
           workflow,
         },
         { scheduledAt }
