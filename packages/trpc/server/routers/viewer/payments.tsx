@@ -11,11 +11,10 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
-
-import { getAllWorkflowsFromEventType } from "~/server/routers/viewer/workflows/util";
 
 import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
