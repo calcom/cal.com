@@ -168,6 +168,7 @@ model EventType {
   afterEventBuffer                         Int                       @default(0)
   seatsPerTimeSlot                         Int?
   onlyShowFirstAvailableSlot               Boolean                   @default(false)
+  showOptimizedSlots                       Boolean?                  @default(false)
   disableCancelling                        Boolean?                  @default(false)
   disableRescheduling                      Boolean?                  @default(false)
   seatsShowAttendees                       Boolean?                  @default(false)
@@ -227,6 +228,8 @@ model EventType {
   restrictionScheduleId Int?
   restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
   hostGroups            HostGroup[]
+
+  bookingRequiresAuthentication Boolean @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -597,17 +600,25 @@ model CreditPurchaseLog {
   createdAt       DateTime      @default(now())
 }
 
+enum CreditUsageType {
+  SMS
+  CAL_AI_PHONE_CALL
+}
+
 model CreditExpenseLog {
-  id              String        @id @default(uuid())
+  id              String           @id @default(uuid())
   creditBalanceId String
-  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  creditBalance   CreditBalance    @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
   bookingUid      String?
-  booking         Booking?      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  booking         Booking?         @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   credits         Int?
   creditType      CreditType
   date            DateTime
   smsSid          String?
   smsSegments     Int?
+  callDuration    Int?
+  creditFor       CreditUsageType?
+  externalRef     String?          @unique
 }
 
 enum CreditType {
@@ -2356,15 +2367,15 @@ model FilterSegment {
 }
 
 model UserFilterSegmentPreference {
-  id              Int      @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   userId          Int
   tableIdentifier String
-  segmentId       Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  segment FilterSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  segmentId       Int?
+  systemSegmentId String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment         FilterSegment? @relation(fields: [segmentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tableIdentifier])
   @@index([userId])

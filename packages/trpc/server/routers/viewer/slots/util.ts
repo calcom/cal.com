@@ -61,7 +61,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { TRPCError } from "@trpc/server";
 
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
+import type { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
@@ -108,6 +108,7 @@ export interface IAvailableSlotsService {
   redisClient: IRedisService;
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
+  noSlotsNotificationService: NoSlotsNotificationService;
 }
 
 function withSlotsCache(
@@ -1040,7 +1041,6 @@ export class AvailableSlotsService {
         queuedFormResponseId,
       });
     }
-
     const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
       await this.dependencies.qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
         eventType,
@@ -1155,6 +1155,7 @@ export class AvailableSlotsService {
       minimumBookingNotice: eventType.minimumBookingNotice,
       frequency: eventType.slotInterval || input.duration || eventType.length,
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+      showOptimizedSlots: eventType.showOptimizedSlots,
     });
 
     let availableTimeSlots: typeof timeSlots = [];
@@ -1438,8 +1439,7 @@ export class AvailableSlotsService {
     // We only want to run this on single targeted events and not dynamic
     if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
-        // TODO: DI handleNotificationWhenNoSlots
-        await handleNotificationWhenNoSlots({
+        await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
           eventDetails: {
             username: input.usernameList?.[0],
             startTime: startTime,

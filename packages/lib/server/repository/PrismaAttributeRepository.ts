@@ -1,14 +1,16 @@
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 export class PrismaAttributeRepository {
-  static async findManyByNamesAndOrgIdIncludeOptions({
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findManyByNamesAndOrgIdIncludeOptions({
     attributeNames,
     orgId,
   }: {
     attributeNames: string[];
     orgId: number;
   }) {
-    return prisma.attribute.findMany({
+    return this.prismaClient.attribute.findMany({
       where: {
         name: { in: attributeNames, mode: "insensitive" },
         teamId: orgId,
@@ -25,9 +27,9 @@ export class PrismaAttributeRepository {
     });
   }
 
-  static async findManyByOrgId({ orgId }: { orgId: number }) {
+  async findManyByOrgId({ orgId }: { orgId: number }) {
     // It should be a faster query because of lesser number of attributes record and index on teamId
-    const result = await prisma.attribute.findMany({
+    const result = await this.prismaClient.attribute.findMany({
       where: {
         teamId: orgId,
       },
@@ -43,13 +45,54 @@ export class PrismaAttributeRepository {
     return result;
   }
 
-  static async findAllByOrgIdWithOptions({ orgId }: { orgId: number }) {
-    return await prisma.attribute.findMany({
+  async findAllByOrgIdWithOptions({ orgId }: { orgId: number }) {
+    return await this.prismaClient.attribute.findMany({
       where: {
         teamId: orgId,
       },
       include: {
         options: true,
+      },
+    });
+  }
+
+  async findUniqueWithWeights({
+    teamId,
+    attributeId,
+    isWeightsEnabled = true,
+  }: {
+    teamId: number;
+    attributeId: string;
+    isWeightsEnabled?: boolean;
+  }) {
+    return await this.prismaClient.attribute.findUnique({
+      where: {
+        id: attributeId,
+        teamId,
+        isWeightsEnabled,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        type: true,
+        options: {
+          select: {
+            id: true,
+            value: true,
+            slug: true,
+            assignedUsers: {
+              select: {
+                member: {
+                  select: {
+                    userId: true,
+                  },
+                },
+                weight: true,
+              },
+            },
+          },
+        },
       },
     });
   }

@@ -157,7 +157,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
             },
@@ -396,7 +396,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
             },
@@ -785,7 +785,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1013,7 +1013,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1261,7 +1261,7 @@ describe("handleNewBooking", () => {
               })
             );
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1478,7 +1478,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1720,7 +1720,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -2006,7 +2006,7 @@ describe("handleNewBooking", () => {
     });
     describe("Team event-type", () => {
       test(
-        "should send correct schedule/cancellation emails to hosts when round robin is rescheduled to different host",
+        "should send correct schedule/cancellation/reassigned emails to hosts when round robin is rescheduled to different host",
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
@@ -2158,6 +2158,7 @@ describe("handleNewBooking", () => {
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost2,
             emails,
+            bookerReschedule: true,
           });
         },
         timeout
@@ -2908,7 +2909,7 @@ describe("handleNewBooking", () => {
           metadataLookupKey: "dailyvideo",
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: { uid: "NEW_EVENT_ID" },
           update: { uid: "UPDATED_EVENT_ID" },
         });
