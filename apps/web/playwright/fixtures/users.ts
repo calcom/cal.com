@@ -971,12 +971,15 @@ export async function apiLogin(
   user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
   page: Page
 ) {
+  // Get CSRF token
   const csrfToken = await page
     .context()
     .request.get("/api/auth/csrf")
     .then((response) => response.json())
     .then((json) => json.csrfToken);
-  const data = {
+
+  // Make the login request
+  const loginData = {
     email: user.email ?? `${user.username}@example.com`,
     password: user.password ?? user.username,
     callbackURL: WEBAPP_URL,
@@ -984,10 +987,25 @@ export async function apiLogin(
     json: "true",
     csrfToken,
   };
+
   const response = await page.context().request.post("/api/auth/callback/credentials", {
-    data,
+    data: loginData,
   });
+
   expect(response.status()).toBe(200);
+
+  /**
+   * Critical: Navigate to a protected page to trigger NextAuth session loading
+   * This forces NextAuth to run the jwt and session callbacks that populate
+   * the session with profile, org, and other important data
+   * We picked /settings/my-account/profile due to it being one of
+   * our lighest protected pages and doesnt do anything other than load the user profile
+   */
+  await page.goto("/settings/my-account/profile");
+
+  // Wait for the session to be fully established
+  await page.waitForSelector('[data-testid="profile-submit-button"]');
+
   return response;
 }
 
