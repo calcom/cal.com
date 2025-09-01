@@ -704,7 +704,7 @@ export async function getBookings({
         booking.seatsReferences.length &&
         !booking.eventType?.seatsShowAttendees &&
         !checkIfUserIsHost(user.id, booking) &&
-        !checkIfUserIsTeamAdminOrOwner(user.id, booking)
+        !(await checkIfUserIsTeamAdminOrOwner(user.id, booking))
       ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
