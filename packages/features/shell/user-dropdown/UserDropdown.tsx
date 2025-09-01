@@ -52,6 +52,14 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const handleHelpClick = () => {
     handleChatClick();
     setMenuOpen(false);
+
+    // Defer to next frame to avoid the originating click closing the dialog
+    requestAnimationFrame(() => {
+      // double RAF is extra-safe if your dropdown unmounts with a transition
+      requestAnimationFrame(() => {
+        if (window.Plain) window.Plain.open();
+      });
+    });
   };
 
   // Prevent rendering dropdown if user isn't available.
