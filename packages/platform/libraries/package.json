@@ -1,6 +1,6 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "0.0.0",
+  "version": "9.9.9",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -83,6 +83,11 @@
       "import": "./dist/private-links.js",
       "require": "./dist/private-links.cjs",
       "types": "./dist/private-links.d.ts"
+    },
+    "./taskers": {
+      "import": "./dist/taskers.js",
+      "require": "./dist/taskers.cjs",
+      "types": "./dist/taskers.d.ts"
     }
   },
   "typesVersions": {
@@ -116,6 +121,9 @@
       ],
       "private-links": [
         "dist/private-links.d.ts"
+      ],
+      "taskers": [
+        "dist/taskers.d.ts"
       ]
     }
   }
