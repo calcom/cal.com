@@ -14,6 +14,7 @@ export type GetSlots = {
   eventLength: number;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
+  showOptimizedSlots?: boolean | null;
 };
 
 export type TimeFrame = {
@@ -159,6 +160,7 @@ const getSlots = ({
   eventLength,
   offsetStart = 0,
   datesOutOfOffice,
+  showOptimizedSlots,
 }: GetSlots) => {
   return buildSlotsWithDateRanges({
     dateRanges,

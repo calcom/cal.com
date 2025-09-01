@@ -43,6 +43,8 @@ export class OrganizationsTeamsSchedulesController {
   @DocsTags("Orgs / Teams / Schedules")
   @ApiOperation({ summary: "Get all team member schedules" })
   async getTeamSchedules(
+    // note(Lauirs): putting orgId so swagger is generacted correctly
+    @Param("orgId", ParseIntPipe) _orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: SkipTakePagination
   ): Promise<GetSchedulesOutput_2024_06_11> {
@@ -65,6 +67,9 @@ export class OrganizationsTeamsSchedulesController {
     summary: "Get schedules of a team member",
   })
   async getUserSchedules(
+    // note(Lauirs): putting orgId and teamId so swagger is generacted correctly
+    @Param("orgId", ParseIntPipe) _orgId: number,
+    @Param("teamId", ParseIntPipe) _teamId: number,
     @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetSchedulesOutput_2024_06_11> {
     const schedules = await this.schedulesService.getUserSchedules(userId);
