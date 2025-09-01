@@ -6,6 +6,10 @@ import { z, ZodError } from "zod";
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
+const MEETING_OG_IMAGE_VERSION = process.env.MEETING_OG_IMAGE_VERSION ?? "";
+const GENERIC_OG_IMAGE_VERSION = process.env.GENERIC_OG_IMAGE_VERSION ?? "";
+const APP_OG_IMAGE_VERSION = process.env.APP_OG_IMAGE_VERSION ?? "";
+
 export const runtime = "edge";
 
 const meetingSchema = z.object({
@@ -89,7 +93,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+              "Cache-Control": `public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000`,
+              ETag: `"meeting-${MEETING_OG_IMAGE_VERSION}"`,
             },
           });
         } catch (error) {
@@ -123,7 +128,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+              "Cache-Control": `public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000`,
+              ETag: `"app-${APP_OG_IMAGE_VERSION}"`,
             },
           });
         } catch (error) {
@@ -157,7 +163,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+              "Cache-Control": `public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000`,
+              ETag: `"generic-${GENERIC_OG_IMAGE_VERSION}"`,
             },
           });
         } catch (error) {
