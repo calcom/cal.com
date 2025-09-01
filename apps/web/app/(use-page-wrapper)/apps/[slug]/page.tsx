@@ -17,8 +17,8 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   if (!p.success) {
     return notFound();
   }
-
-  const props = await getStaticProps(p.data.slug);
+  const slug = p.data.slug;
+  const props = await getStaticProps(slug);
 
   if (!props) {
     notFound();
@@ -26,12 +26,12 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   const { name, logo, description } = props.data;
 
   return await generateAppMetadata(
-    { slug: logo, name, description },
+    { slug, logoUrl: logo, name, description },
     () => name,
     () => description,
     undefined,
     undefined,
-    `/apps/${p.data.slug}`
+    `/apps/${slug}`
   );
 };
 

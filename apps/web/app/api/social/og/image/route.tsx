@@ -22,6 +22,7 @@ const appSchema = z.object({
   name: z.string(),
   description: z.string(),
   slug: z.string(),
+  logoUrl: z.string(),
 });
 
 const genericSchema = z.object({
@@ -112,37 +113,22 @@ async function handler(req: NextRequest) {
       }
       case "app": {
         try {
-          const { name, description, slug } = appSchema.parse({
+          const { name, description, slug, logoUrl } = appSchema.parse({
             name: searchParams.get("name"),
             description: searchParams.get("description"),
             slug: searchParams.get("slug"),
+            logoUrl: searchParams.get("logoUrl"),
             imageType,
           });
 
           const svgHashesModule = await import("@calcom/web/public/app-store/svg-hashes.json");
           const SVG_HASHES = svgHashesModule.default ?? {};
-          let svgHash = null;
+          const svgHash = SVG_HASHES[slug] ?? null;
 
-          if (slug && slug.includes(".svg")) {
-            // Extract app name from slug: "/app-store/{appPath}/icon-dark.svg"
-            // Examples:
-            // - "/app-store/dub/icon-dark.svg" → "dub"
-            // - "/app-store/templates/link-as-an-app/icon-primary.svg" → "templates/link-as-an-app"
-            // - "/app-store/zoom/icon.svg" → "zoom"
-            //
-            // Regex breakdown:
-            // - /\/app-store\/(.+?)\/[^\/]+\.svg$/
-            // - \/app-store\/ = matches literal "/app-store/"
-            // - (.+?) = captures everything (non-greedy) up to the last "/"
-            // - \/[^\/]+\.svg$/ = matches filename like "/icon-dark.svg"
-            const appNameMatch = slug.match(/\/app-store\/(.+?)\/[^\/]+\.svg$/);
-            if (appNameMatch) {
-              const appName = appNameMatch[1];
-              svgHash = SVG_HASHES[appName] ?? null;
-            }
-          }
-
-          const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
+          const img = new ImageResponse(
+            <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
+            ogConfig
+          );
 
           const headers: Record<string, string> = {
             "Content-Type": "image/png",

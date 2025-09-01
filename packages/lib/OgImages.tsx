@@ -20,6 +20,7 @@ export interface AppImageProps {
   name: string;
   description: string;
   slug: string;
+  logoUrl: string;
 }
 
 export interface GenericImageProps {
@@ -83,12 +84,13 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
  * Test url:
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
-export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
+export const constructAppImage = ({ name, slug, logoUrl, description }: AppImageProps): string => {
   const params = new URLSearchParams({
     type: "app",
     name,
     slug,
     description,
+    logoUrl,
   });
 
   if (process.env.APP_OG_IMAGE_VERSION) {
@@ -224,15 +226,15 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
   );
 };
 
-export const App = ({ name, description, slug }: AppImageProps) => (
+export const App = ({ name, description, logoUrl }: AppImageProps) => (
   <Wrapper>
     <img src={`${WEBAPP_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[48px]" />
 
-    <VisualBlur visualSlug={slug} />
+    <VisualBlur visualSlug={logoUrl} />
 
     <div tw="flex items-center w-full">
       <div tw="flex">
-        <img src={`${WEBAPP_URL}${slug}`} alt="App icon" width="172" height="172" />
+        <img src={`${WEBAPP_URL}${logoUrl}`} alt="App icon" width="172" height="172" />
       </div>
     </div>
     <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
