@@ -7,8 +7,8 @@ import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/check
 import {
   DEFAULT_PROMPT_VALUE,
   DEFAULT_BEGIN_MESSAGE,
-} from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+} from "@calcom/features/calAIPhone/promptTemplates";
+import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
   FormValues,
@@ -101,6 +101,7 @@ export const useEventTypeForm = ({
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
+      hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
@@ -144,6 +145,7 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
+      showOptimizedSlots: eventType.showOptimizedSlots ?? false,
     };
   }, [eventType, periodDates]);
 

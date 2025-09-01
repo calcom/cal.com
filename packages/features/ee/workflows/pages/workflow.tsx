@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -27,14 +27,14 @@ import { showToast } from "@calcom/ui/components/toast";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isSMSOrWhatsappAction, isCalAIAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: (WorkflowStep & { senderName: string | null })[];
+  steps: (WorkflowStep & { senderName: string | null; agentId?: string | null })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
@@ -126,15 +126,41 @@ function WorkflowPage({
     });
   }
 
-  const readOnly =
-    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
-    MembershipRole.MEMBER;
+  const hasPermissions = (w: typeof workflow): w is RouterOutputs["viewer"]["workflows"]["get"] => {
+    return w !== null && w !== undefined && "permissions" in w;
+  };
+
+  const readOnly = workflow && hasPermissions(workflow) ? !workflow.permissions?.canUpdate : true;
 
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }, [isPending]);
+
+  useEffect(() => {
     if (!isPending) {
-      setFormData(workflow);
+      if (hasPermissions(workflow)) {
+        setFormData(workflow);
+      } else if (workflow) {
+        const workflowWithDefaults = {
+          ...workflow,
+          permissions: {
+            canUpdate: false,
+            canView: false,
+            canDelete: false,
+            canManage: false,
+            readOnly: true,
+          },
+          readOnly: true,
+        } as RouterOutputs["viewer"]["workflows"]["get"];
+        setFormData(workflowWithDefaults);
+      }
     }
   }, [isPending]);
 
@@ -209,16 +235,14 @@ function WorkflowPage({
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
-      if (workflow) {
-        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
-        setFormData(workflow);
-        showToast(
-          t("workflow_updated_successfully", {
-            workflowName: workflow.name,
-          }),
-          "success"
-        );
-      }
+      utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
+      setFormData(workflow);
+      showToast(
+        t("workflow_updated_successfully", {
+          workflowName: workflow.name,
+        }),
+        "success"
+      );
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -228,89 +252,112 @@ function WorkflowPage({
     },
   });
 
+  const validateAndSubmitWorkflow = async (values: FormValues): Promise<void> => {
+    let activeOnIds: number[] = [];
+    let isEmpty = false;
+    let isVerified = true;
+
+    values.steps.forEach((step) => {
+      const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
+
+      const isBodyEmpty =
+        !isSMSOrWhatsappAction(step.action) && !isCalAIAction(step.action) && strippedHtml.length <= 1;
+
+      if (isBodyEmpty) {
+        form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+          type: "custom",
+          message: t("fill_this_field"),
+        });
+      }
+
+      if (step.reminderBody) {
+        step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
+          locale: i18n.language,
+          t,
+        });
+      }
+      if (step.emailSubject) {
+        step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
+          locale: i18n.language,
+          t,
+        });
+      }
+      isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
+
+      //check if phone number is verified
+      if (
+        (step.action === WorkflowActions.SMS_NUMBER || step.action === WorkflowActions.WHATSAPP_NUMBER) &&
+        !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+      ) {
+        isVerified = false;
+
+        form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+          type: "custom",
+          message: t("not_verified"),
+        });
+      }
+
+      if (
+        step.action === WorkflowActions.EMAIL_ADDRESS &&
+        !verifiedEmails?.find((verifiedEmail) => verifiedEmail === step.sendTo)
+      ) {
+        isVerified = false;
+
+        form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+          type: "custom",
+          message: t("not_verified"),
+        });
+      }
+    });
+
+    if (!isEmpty && isVerified) {
+      if (values.activeOn) {
+        activeOnIds = values.activeOn
+          .filter((option) => option.value !== "all")
+          .map((option) => {
+            return parseInt(option.value, 10);
+          });
+      }
+
+      await updateMutation.mutateAsync({
+        id: workflowId,
+        name: values.name,
+        activeOn: activeOnIds,
+        steps: values.steps,
+        trigger: values.trigger,
+        time: values.time || null,
+        timeUnit: values.timeUnit || null,
+        isActiveOnAll: values.selectAll || false,
+      });
+
+      utils.viewer.workflows.getVerifiedNumbers.invalidate();
+    } else {
+      const validationErrors: string[] = [];
+
+      if (isEmpty) {
+        validationErrors.push(t("workflow_validation_empty_fields"));
+      }
+
+      if (!isVerified) {
+        validationErrors.push(t("workflow_validation_unverified_contacts"));
+      }
+
+      throw new Error(`${t("workflow_validation_failed")}: ${validationErrors.join("; ")}`);
+    }
+  };
+
+  const handleSaveWorkflow = async (): Promise<void> => {
+    const values = form.getValues();
+    await validateAndSubmitWorkflow(values);
+  };
+
   return session.data ? (
     <Shell withoutMain backPath="/workflows">
       <LicenseRequired>
         <Form
           form={form}
           handleSubmit={async (values) => {
-            let activeOnIds: number[] = [];
-            let isEmpty = false;
-            let isVerified = true;
-
-            values.steps.forEach((step) => {
-              const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
-
-              const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
-
-              if (isBodyEmpty) {
-                form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
-                  type: "custom",
-                  message: t("fill_this_field"),
-                });
-              }
-
-              if (step.reminderBody) {
-                step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
-                  locale: i18n.language,
-                  t,
-                });
-              }
-              if (step.emailSubject) {
-                step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
-                  locale: i18n.language,
-                  t,
-                });
-              }
-              isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
-
-              //check if phone number is verified
-              if (
-                (step.action === WorkflowActions.SMS_NUMBER ||
-                  step.action === WorkflowActions.WHATSAPP_NUMBER) &&
-                !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
-              ) {
-                isVerified = false;
-
-                form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-                  type: "custom",
-                  message: t("not_verified"),
-                });
-              }
-
-              if (
-                step.action === WorkflowActions.EMAIL_ADDRESS &&
-                !verifiedEmails?.find((verifiedEmail) => verifiedEmail === step.sendTo)
-              ) {
-                isVerified = false;
-
-                form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-                  type: "custom",
-                  message: t("not_verified"),
-                });
-              }
-            });
-
-            if (!isEmpty && isVerified) {
-              if (values.activeOn) {
-                activeOnIds = values.activeOn
-                  .filter((option) => option.value !== "all")
-                  .map((option) => {
-                    return parseInt(option.value, 10);
-                  });
-              }
-              updateMutation.mutate({
-                id: workflowId,
-                name: values.name,
-                activeOn: activeOnIds,
-                steps: values.steps,
-                trigger: values.trigger,
-                time: values.time || null,
-                timeUnit: values.timeUnit || null,
-                isActiveOnAll: values.selectAll || false,
-              });
-              utils.viewer.workflows.getVerifiedNumbers.invalidate();
-            }
+            await validateAndSubmitWorkflow(values);
           }}>
           <ShellMain
             backPath="/workflows"
@@ -348,6 +395,7 @@ function WorkflowPage({
                 {isAllDataLoaded && user ? (
                   <>
                     <WorkflowDetailsPage
+                      permissions={workflow && hasPermissions(workflow) ? workflow.permissions : undefined}
                       form={form}
                       workflowId={+workflowId}
                       user={user}
@@ -357,6 +405,7 @@ function WorkflowPage({
                       readOnly={readOnly}
                       isOrg={isOrg}
                       allOptions={isOrg ? teamOptions : allEventTypeOptions}
+                      onSaveWorkflow={handleSaveWorkflow}
                     />
                   </>
                 ) : (
