@@ -61,6 +61,7 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
     type: "meeting",
     title,
     meetingProfileName: profile.name,
+    v: process.env.MEETING_OG_IMAGE_VERSION ?? "",
   });
 
   if (profile.image) {
@@ -85,7 +86,9 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps): s
     name,
     slug,
     description,
+    v: process.env.APP_OG_IMAGE_VERSION ?? "",
   });
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
@@ -94,7 +97,9 @@ export const constructGenericImage = ({ title, description }: GenericImageProps)
     type: "generic",
     title,
     description,
+    v: process.env.GENERIC_OG_IMAGE_VERSION ?? "",
   });
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
