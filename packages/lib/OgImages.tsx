@@ -92,7 +92,7 @@ export const constructAppImage = ({ name, slug, logoUrl, description }: AppImage
     description,
     logoUrl,
   });
-  console.log(logoUrl, slug);
+
   if (process.env.APP_OG_IMAGE_VERSION) {
     params.set("v", process.env.APP_OG_IMAGE_VERSION);
   }
