@@ -181,9 +181,9 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
     teamId: teamId,
     resource: Resource.Team,
     userRole: membership.role,
-    actions: [CustomAction.Invite], // Using Invite as proxy for member access since teams don't have ListMembers
+    actions: [CustomAction.ListMembers],
     fallbackRoles: {
-      [CustomAction.Invite]: {
+      [CustomAction.ListMembers]: {
         roles: team.isPrivate
           ? [MembershipRole.ADMIN, MembershipRole.OWNER]
           : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
@@ -192,7 +192,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
   });
 
   // For teams, if you can invite, you can list members (or just be a member)
-  return permissions[CustomAction.Invite] || !team.isPrivate;
+  return permissions[CustomAction.ListMembers] || !team.isPrivate;
 };
 
 export default listMembersHandler;
