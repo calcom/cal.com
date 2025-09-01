@@ -113,7 +113,7 @@ async function handler(req: NextRequest) {
       case "app": {
         try {
           const svgHashesModule = await import("@calcom/web/public/app-store/svg-hashes.json");
-          const SVG_HASHES = svgHashesModule.default;
+          const SVG_HASHES = svgHashesModule.default ?? {};
           const { name, description, slug } = appSchema.parse({
             name: searchParams.get("name"),
             description: searchParams.get("description"),
