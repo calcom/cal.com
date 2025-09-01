@@ -994,13 +994,17 @@ export async function apiLogin(
 
   expect(response.status()).toBe(200);
 
-  // Critical: Navigate to a protected page to trigger NextAuth session loading
-  // This forces NextAuth to run the jwt and session callbacks that populate
-  // the session with profile, org, and other important data
-  await page.goto("/event-types");
+  /**
+   * Critical: Navigate to a protected page to trigger NextAuth session loading
+   * This forces NextAuth to run the jwt and session callbacks that populate
+   * the session with profile, org, and other important data
+   * We picked /settings/my-account/profile due to it being one of
+   * our lighest protected pages and doesnt do anything other than load the user profile
+   */
+  await page.goto("/settings/my-account/profile");
 
   // Wait for the session to be fully established
-  await page.waitForSelector('[data-testid="event-types"]');
+  await page.waitForSelector('[data-testid="profile-submit-button"]');
 
   return response;
 }
