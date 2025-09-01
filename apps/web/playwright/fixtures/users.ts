@@ -1000,7 +1000,7 @@ export async function apiLogin(
   await page.goto("/event-types");
 
   // Wait for the session to be fully established
-  await page.waitForLoadState("networkidle");
+  await page.waitForSelector('[data-testid="event-types"]');
 
   return response;
 }
