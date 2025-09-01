@@ -15,7 +15,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-import { describe, expect, beforeAll, vi, beforeEach, test } from "vitest";
+import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -30,6 +30,7 @@ import {
   scheduleBookingReminders,
   bookingSelect,
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";

@@ -279,6 +279,9 @@ export const useEmbedType = () => {
 };
 
 function makeBodyVisible() {
+  if (typeof document === "undefined") {
+    return;
+  }
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
@@ -296,6 +299,9 @@ function makeBodyVisible() {
  * This function reverses both of them
  */
 function showPageAsNonEmbed() {
+  if (typeof document === "undefined") {
+    return;
+  }
   makeBodyVisible();
   resetTransparentBackground();
   function resetTransparentBackground() {
