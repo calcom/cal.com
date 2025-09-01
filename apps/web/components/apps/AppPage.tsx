@@ -118,8 +118,8 @@ export const AppPage = ({
       mutation.mutate({ type, variant, slug });
       return;
     }
-
-    if (isConferencing(categories)) {
+    setIsLoading(true);
+    if (isConferencing(categories) && !concurrentMeetings) {
       mutation.mutate({
         type,
         variant,

@@ -61,7 +61,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
       return;
     }
-    if (isConferencing(app.categories)) {
+    if (isConferencing(app.categories) && !app.concurrentMeetings) {
       mutation.mutate({
         type: app.type,
         variant: app.variant,
