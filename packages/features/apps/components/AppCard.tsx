@@ -56,7 +56,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   }, [app.name, searchText]);
 
   const handleAppInstall = () => {
-    if (isConferencing(app.categories)) {
+    if (isConferencing(app.categories) && !app.concurrentMeetings) {
       mutation.mutate({
         type: app.type,
         variant: app.variant,
