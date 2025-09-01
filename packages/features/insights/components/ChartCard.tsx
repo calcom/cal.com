@@ -107,7 +107,7 @@ function Legend({
               aria-pressed={isClickable ? isEnabled : undefined}
               aria-label={`Toggle ${item.label}`}
               disabled={!isClickable}
-              onClick={isClickable ? () => onItemToggle!(item.label) : undefined}>
+              onClick={isClickable ? () => onItemToggle?.(item.label) : undefined}>
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
               <Tooltip content={item.label}>
                 <span
