@@ -318,7 +318,7 @@ export class UserAvailabilityService {
     if (userId) where.id = userId;
 
     const user = initialData?.user || (await this.getUser(where));
-    const weekStart = user?.weekStart;
+    const weekStart = user?.weekStart ?? "Monday";
 
     if (!user) {
       throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
