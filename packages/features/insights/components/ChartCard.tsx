@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useMemo, type ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
@@ -86,12 +86,13 @@ function Legend({
   enabledItems?: LegendItem[];
   onItemToggle?: (label: string) => void;
 }) {
-  const isClickable = !!onItemToggle;
+  const enabledSet = useMemo(() => new Set((enabledItems ?? []).map((i) => i.label)), [enabledItems]);
+  const isClickable = Boolean(onItemToggle);
 
   return (
     <div className="bg-default flex items-center gap-2 rounded-lg px-1.5 py-1">
       {items.map((item, index) => {
-        const isEnabled = enabledItems ? enabledItems.some((enabled) => enabled.label === item.label) : true;
+        const isEnabled = enabledItems ? enabledSet.has(item.label) : true;
 
         return (
           <Fragment key={item.label}>
@@ -103,9 +104,10 @@ function Legend({
                 !isEnabled && "opacity-25"
               )}
               style={{ backgroundColor: `${item.color}33` }}
-              aria-pressed={isEnabled}
+              aria-pressed={isClickable ? isEnabled : undefined}
               aria-label={`Toggle ${item.label}`}
-              onClick={isClickable ? () => onItemToggle(item.label) : undefined}>
+              disabled={!isClickable}
+              onClick={isClickable ? () => onItemToggle!(item.label) : undefined}>
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
               <Tooltip content={item.label}>
                 <span
