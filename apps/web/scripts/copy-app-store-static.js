@@ -1,10 +1,14 @@
 const fs = require("fs");
 const path = require("path");
 const glob = require("glob");
+const crypto = require("crypto");
 
 const copyAppStoreStatic = () => {
   // Get all static files from app-store packages
   const staticFiles = glob.sync("../../packages/app-store/**/static/**/*", { nodir: true });
+
+  // Object to store icon SVG hashes
+  const SVG_HASHES = {};
 
   staticFiles.forEach((file) => {
     // Extract app name from path
@@ -23,8 +27,20 @@ const copyAppStoreStatic = () => {
     // Copy file to destination
     const destPath = path.join(destDir, fileName);
     fs.copyFileSync(file, destPath);
+
+    // If it's an SVG file, compute hash
+    if (fileName.endsWith(".svg")) {
+      const content = fs.readFileSync(file, "utf8");
+      const hash = crypto.createHash("md5").update(content).digest("hex").slice(0, 8);
+      SVG_HASHES[appName] = hash;
+    }
+
     console.log(`Copied ${file} to ${destPath}`);
   });
+
+  // Write SVG hashes to a JSON file
+  const hashFilePath = path.join(process.cwd(), "public", "app-store", "svg-hashes.json");
+  fs.writeFileSync(hashFilePath, JSON.stringify(SVG_HASHES, null, 2));
 };
 
 // Run the copy function
