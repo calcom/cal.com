@@ -112,6 +112,8 @@ async function handler(req: NextRequest) {
       }
       case "app": {
         try {
+          const svgHashesModule = await import("../../../public/app-store/svg-hashes.json");
+          const SVG_HASHES = svgHashesModule.default || {};
           const { name, description, slug } = appSchema.parse({
             name: searchParams.get("name"),
             description: searchParams.get("description"),
@@ -119,21 +121,24 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
-          let appETag = null;
+          let svgHash = null;
 
           if (slug && slug.includes(".svg")) {
-            // slug format: "/app-store/{appName}/{filename}" (e.g., "/app-store/dub/icon-dark.svg")
-            try {
-              // e.g., full URL: "https://app.cal.com/app-store/dub/icon-dark.svg"
-              const svgUrl = new URL(slug, WEBAPP_URL);
-              const svgResponse = await fetch(svgUrl);
-              if (svgResponse.ok) {
-                const svgContent = await svgResponse.text();
-                const svgHash = btoa(svgContent).slice(0, 8);
-                appETag = `"app-${svgHash}"`;
-              }
-            } catch (error) {
-              console.warn("Failed to fetch SVG for ETag generation:", error);
+            // Extract app name from slug: "/app-store/{appPath}/icon-dark.svg"
+            // Examples:
+            // - "/app-store/dub/icon-dark.svg" → "dub"
+            // - "/app-store/templates/link-as-an-app/icon-primary.svg" → "templates/link-as-an-app"
+            // - "/app-store/zoom/icon.svg" → "zoom"
+            //
+            // Regex breakdown:
+            // - /\/app-store\/(.+?)\/[^\/]+\.svg$/
+            // - \/app-store\/ = matches literal "/app-store/"
+            // - (.+?) = captures everything (non-greedy) up to the last "/"
+            // - \/[^\/]+\.svg$/ = matches filename like "/icon-dark.svg"
+            const appNameMatch = slug.match(/\/app-store\/(.+?)\/[^\/]+\.svg$/);
+            if (appNameMatch) {
+              const appName = appNameMatch[1];
+              svgHash = SVG_HASHES[appName] ?? null;
             }
           }
 
@@ -145,8 +150,8 @@ async function handler(req: NextRequest) {
               "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
           };
 
-          if (appETag) {
-            headers["ETag"] = appETag;
+          if (svgHash) {
+            headers["ETag"] = svgHash;
           }
 
           return new Response(img.body, {
