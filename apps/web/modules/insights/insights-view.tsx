@@ -19,7 +19,10 @@ import {
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
   MostCancelledBookingsTables,
+  MostCompletedTeamMembersTable,
+  LeastCompletedTeamMembersTable,
   PopularEventsTable,
+  RecentNoShowGuestsChart,
   RecentFeedbackTable,
   TimezoneBadge,
 } from "@calcom/features/insights/components/booking";
@@ -82,22 +85,31 @@ function InsightsPageContent() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-          <div className="sm:col-span-2">
-            <PopularEventsTable />
-          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
+          <MostCompletedTeamMembersTable />
+          <LeastCompletedTeamMembersTable />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
           <HighestNoShowHostTable />
+          <div className="sm:col-span-2">
+            <RecentNoShowGuestsChart />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
             <RecentFeedbackTable />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
           </div>
         </div>
 
