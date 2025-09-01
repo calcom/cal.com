@@ -112,8 +112,6 @@ async function handler(req: NextRequest) {
       }
       case "app": {
         try {
-          const svgHashesModule = await import("@calcom/web/public/app-store/svg-hashes.json");
-          const SVG_HASHES = svgHashesModule.default ?? {};
           const { name, description, slug } = appSchema.parse({
             name: searchParams.get("name"),
             description: searchParams.get("description"),
@@ -121,6 +119,8 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
+          const svgHashesModule = await import("@calcom/web/public/app-store/svg-hashes.json");
+          const SVG_HASHES = svgHashesModule.default ?? {};
           let svgHash = null;
 
           if (slug && slug.includes(".svg")) {
