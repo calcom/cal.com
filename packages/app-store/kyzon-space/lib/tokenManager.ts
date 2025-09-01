@@ -78,5 +78,9 @@ export function isTokenExpired(token: KyzonCredentialKey): boolean {
   const now = Date.now();
   const bufferTime = 5 * 60 * 1000;
 
+  if (!token || typeof token.expiry_date !== "number" || !Number.isFinite(token.expiry_date)) {
+    return true;
+  }
+
   return token.expiry_date - bufferTime <= now;
 }
