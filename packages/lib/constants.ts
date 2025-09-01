@@ -178,7 +178,7 @@ export const CLOUDFLARE_USE_TURNSTILE_IN_BOOKER = process.env.NEXT_PUBLIC_CLOUDF
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
 export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 0;
-export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 2;
+export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 1;
 
 export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || "https://goblin.cal.com";
 export const WEBSITE_PRIVACY_POLICY_URL =
@@ -233,3 +233,9 @@ export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "
 export const NEXTJS_CACHE_TTL = 3600; // 1 hour
 
 export const DEFAULT_GROUP_ID = "default_group_id";
+
+const _rawCalAiPrice = process.env.NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE;
+export const CAL_AI_PHONE_NUMBER_MONTHLY_PRICE = (() => {
+  const parsed = _rawCalAiPrice && _rawCalAiPrice.trim() !== "" ? Number(_rawCalAiPrice) : NaN;
+  return Number.isFinite(parsed) ? parsed : 5;
+})();
