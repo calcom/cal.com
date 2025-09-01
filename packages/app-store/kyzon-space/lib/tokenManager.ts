@@ -73,14 +73,13 @@ export async function refreshKyzonToken(credentialId: number): Promise<KyzonCred
   }
 }
 
-// Check if token expires within next 5 minutes (buffer)
 export function isTokenExpired(token: KyzonCredentialKey): boolean {
   const now = Date.now();
-  const bufferTime = 5 * 60 * 1000;
 
   if (!token || typeof token.expiry_date !== "number" || !Number.isFinite(token.expiry_date)) {
     return true;
   }
 
-  return token.expiry_date - bufferTime <= now;
+  // expiry_date already includes a 60s skew; no extra buffer here
+  return token.expiry_date <= now;
 }
