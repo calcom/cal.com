@@ -148,13 +148,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 };
 
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
-  const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
   const isTargetingOrg = teamId === ctx.user.organizationId;
-
-  // If targeting org and user is org admin, allow access
-  if (isTargetingOrg && isOrgAdminOrOwner) {
-    return true;
-  }
 
   // Get team info to check if it's private
   const team = await prisma.team.findUnique({
@@ -175,11 +169,14 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   if (!membership) return false;
 
-  // Check PBAC permissions for listing team members
+  // Determine the resource type based on whether this is an org or team
+  const resource = isTargetingOrg ? Resource.Organization : Resource.Team;
+
+  // Check PBAC permissions for listing members
   const permissions = await getSpecificPermissions({
     userId: ctx.user.id,
     teamId: teamId,
-    resource: Resource.Team,
+    resource: resource,
     userRole: membership.role,
     actions: [CustomAction.ListMembers],
     fallbackRoles: {
@@ -191,8 +188,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
     },
   });
 
-  // For teams, if you can invite, you can list members (or just be a member)
-  return permissions[CustomAction.ListMembers] || !team.isPrivate;
+  return permissions[CustomAction.ListMembers];
 };
 
 export default listMembersHandler;
