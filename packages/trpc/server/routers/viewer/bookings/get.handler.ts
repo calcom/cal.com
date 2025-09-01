@@ -432,6 +432,7 @@ export async function getBookings({
           "in",
           bookingsFromUnion.map((booking) => booking.id)
         )
+        .where("Booking.deleted", "=", false)
         .select((eb) => [
           "Booking.id",
           "Booking.title",

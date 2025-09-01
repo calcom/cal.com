@@ -815,6 +815,7 @@ model Booking {
   rating                       Int?
   ratingFeedback               String?
   noShowHost                   Boolean?                          @default(false)
+  deleted                      Boolean?
   scheduledTriggers            WebhookScheduledTriggers[]
   oneTimePassword              String?                           @unique @default(uuid())
   /// @zod.email()
@@ -1726,7 +1727,7 @@ model BookingDenormalized {
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @id @unique
+  id             Int           @unique
   uid            String
   eventTypeId    Int?
   title          String
