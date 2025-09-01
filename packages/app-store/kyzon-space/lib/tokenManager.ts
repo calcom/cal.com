@@ -8,7 +8,19 @@ import {
 import { kyzonAxiosInstance } from "./axios";
 import { getKyzonAppKeys } from "./getKyzonAppKeys";
 
+const inFlightRefresh = new Map<number, Promise<KyzonCredentialKey | null>>();
+
 export async function refreshKyzonToken(credentialId: number): Promise<KyzonCredentialKey | null> {
+  const existing = inFlightRefresh.get(credentialId);
+  if (existing) return existing;
+
+  const refreshRequest = _refreshKyzonToken(credentialId);
+
+  inFlightRefresh.set(credentialId, refreshRequest);
+  return await refreshRequest;
+}
+
+async function _refreshKyzonToken(credentialId: number): Promise<KyzonCredentialKey | null> {
   try {
     const credential = await prisma.credential.findUnique({
       where: { id: credentialId },
@@ -70,6 +82,8 @@ export async function refreshKyzonToken(credentialId: number): Promise<KyzonCred
       code: err?.code,
     });
     return null;
+  } finally {
+    inFlightRefresh.delete(credentialId);
   }
 }
 
