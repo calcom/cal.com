@@ -89,7 +89,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": `public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000`,
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
             },
           });
         } catch (error) {
@@ -123,7 +124,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": `public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000`,
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
             },
           });
         } catch (error) {
@@ -157,7 +159,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": `public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000`,
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
             },
           });
         } catch (error) {
