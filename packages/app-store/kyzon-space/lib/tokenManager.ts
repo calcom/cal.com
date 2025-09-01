@@ -23,6 +23,11 @@ export async function refreshKyzonToken(credentialId: number): Promise<KyzonCred
 
     const currentKey = kyzonCredentialKeySchema.parse(credential.key);
 
+    if (!currentKey.refresh_token) {
+      console.warn(`KYZON refresh skipped: credential ${credentialId} has no refresh_token`);
+      return null;
+    }
+
     const { client_id, client_secret, api_key } = await getKyzonAppKeys();
 
     const { data: newTokens } = await kyzonAxiosInstance.post<{
