@@ -59,8 +59,8 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         },
         isAllDay: false,
         timezone: event.organizer?.timeZone || "Etc/UTC",
-        startDateUtcISOString: event.startTime,
-        endDateUtcISOString: event.endTime,
+        startDateUtcISOString: new Date(event.startTime).toISOString(),
+        endDateUtcISOString: new Date(event.endTime).toISOString(),
         recurrence: event.recurringEvent ? convertCalRecurrenceToKyzon(event.recurringEvent) : undefined,
         invitees: event.attendees?.map((attendee) => ({
           email: attendee.email,
@@ -104,8 +104,8 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
             description: event.description ?? undefined,
             isAllDay: false,
             timezone: event.organizer?.timeZone || "Etc/UTC",
-            startDateUtcISOString: event.startTime,
-            endDateUtcISOString: event.endTime,
+            startDateUtcISOString: new Date(event.startTime).toISOString(),
+            endDateUtcISOString: new Date(event.endTime).toISOString(),
             recurrence: event.recurringEvent ? convertCalRecurrenceToKyzon(event.recurringEvent) : undefined,
             invitees: event.attendees?.map((attendee) => ({
               email: attendee.email,
