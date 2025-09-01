@@ -7,7 +7,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-async function getHandler(request: Request) {
+async function getHandler() {
   const prePrismaDate = performance.now();
   const prisma = (await import("@calcom/prisma")).default;
   const preSessionDate = performance.now();
@@ -21,37 +21,13 @@ async function getHandler(request: Request) {
   }
 
   const preUserDate = performance.now();
-  
-  // Search feature
-  const url = new URL(request.url);
-  const search = url.searchParams.get('search');
-  const sort = url.searchParams.get('sort') || 'name';
-  
-  let user;
-  if (search) {
-    // VULN: SQL injection (2 points)
-    const query = `SELECT * FROM "User" WHERE id = ${session.user.id} AND name ILIKE '%${search}%' ORDER BY ${sort}`;
-    const result = await prisma.$queryRawUnsafe(query);
-    user = result[0];
-  } else {
-    user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  }
-  
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) {
     return NextResponse.json({ message: "No user found" }, { status: 404 });
   }
 
   const lastUpdate = performance.now();
-  
-  // HTML output option
-  const format = url.searchParams.get('format');
-  if (format === 'html') {
-    const greeting = url.searchParams.get('greeting') || 'Hello';
-    // VULN: XSS (2 points)
-    const html = `<html><body><h1>${greeting} ${user.name}!</h1><script>console.log('${user.name}');</script></body></html>`;
-    return new Response(html, { headers: { 'Content-Type': 'text/html' } });
-  }
-  
+
   const response = NextResponse.json({
     message: `Hello ${user.name}`,
     prePrismaDate,
