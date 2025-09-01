@@ -12,6 +12,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { Ensure } from "@calcom/types/utils";
 
+import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 
@@ -211,7 +212,13 @@ export async function _onFormSubmission(
         workflows,
         responses: fieldResponsesByIdentifier,
         responseId,
-        formId: form.id,
+        form: {
+          ...form,
+          fields: form.fields.map((field) => ({
+            type: field.type,
+            identifier: getFieldIdentifier(field),
+          })),
+        },
       });
 
       const orderedResponses = form.fields.reduce((acc, field) => {

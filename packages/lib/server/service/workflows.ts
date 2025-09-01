@@ -81,11 +81,17 @@ export class WorkflowService {
     responses,
     responseId,
     formId,
+    form,
   }: {
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     responseId: number;
-    formId: string;
+    form: {
+      id: string;
+      userId: number;
+      teamId?: number | null;
+      fields?: { type: string; identifier?: string }[];
+    };
   }) {
     if (workflows.length <= 0) return;
 
@@ -95,9 +101,27 @@ export class WorkflowService {
       ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED)
     );
 
-    // todo: fix
+    let smsReminderNumber: string | null = null;
+    if (form.fields) {
+      const phoneField = form.fields.find((field) => field.type === "phone");
+      if (phoneField && phoneField.identifier) {
+        const phoneResponse = responses[phoneField.identifier];
+        if (phoneResponse?.response && typeof phoneResponse.response === "string") {
+          smsReminderNumber = phoneResponse.response as string;
+        }
+      }
+    }
+
+    // Get hideBranding using the new function
+    const hideBranding = await getHideBranding({
+      userId: form.userId,
+      teamId: form.teamId,
+    });
+
     await scheduleWorkflowReminders({
-      ...args,
+      smsReminderNumber,
+      responses,
+      hideBranding,
       workflows: workflowsToTrigger,
     });
 
@@ -109,8 +133,7 @@ export class WorkflowService {
 
     //create tasker here
     const promisesFormSubmittedNoEvent = workflowsToSchedule.map((workflow) => {
-      const timeUnit: timeUnitLowerCase =
-        (workflow.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase) ?? "minute";
+      const timeUnit: timeUnitLowerCase = (workflow.timeUnit?.toLowerCase() as timeUnitLowerCase) ?? "minute";
 
       const scheduledAt = dayjs() //todo: remove dayjs
         .add(workflow.time ?? 15, timeUnit)
