@@ -1,5 +1,6 @@
 "use client";
 
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ReactNode } from "react";
 import { useId, useState } from "react";
 
@@ -34,6 +35,7 @@ export function PanelCard({
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const contentId = useId();
   const titleId = useId();
+  const [animationParent] = useAutoAnimate<HTMLDivElement>();
 
   const toggleCollapse = () => {
     setIsCollapsed((prev) => !prev);
@@ -43,6 +45,7 @@ export function PanelCard({
 
   return (
     <div
+      ref={animationParent}
       className={classNames(
         "bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1",
         !isCollapsed && "pb-1",
@@ -103,21 +106,20 @@ export function PanelCard({
           )}
         </div>
       </div>
-      <div
-        id={contentId}
-        role="region"
-        aria-labelledby={isStringTitle ? titleId : undefined}
-        className={classNames(
-          "bg-default border-muted w-full grow gap-3 rounded-xl border",
-          isCollapsed && collapsible && "hidden"
-        )}>
-        {subtitle && (
-          <h3 className="text-subtle border-muted border-b p-3 text-sm font-medium leading-none">
-            {subtitle}
-          </h3>
-        )}
-        {children}
-      </div>
+      {!(isCollapsed && collapsible) && (
+        <div
+          id={contentId}
+          role="region"
+          aria-labelledby={isStringTitle ? titleId : undefined}
+          className="bg-default border-muted w-full grow gap-3 rounded-xl border">
+          {subtitle && (
+            <h3 className="text-subtle border-muted border-b p-3 text-sm font-medium leading-none">
+              {subtitle}
+            </h3>
+          )}
+          {children}
+        </div>
+      )}
     </div>
   );
 }
