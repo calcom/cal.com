@@ -639,7 +639,7 @@ const nextConfig = (phase) => {
               value: nextJsOrgRewriteConfig.orgHostPath,
             },
           ],
-          destination: "/event-types?openPlain=true",
+          destination: "/event-types?openSupport=true",
           permanent: true,
         },
         {

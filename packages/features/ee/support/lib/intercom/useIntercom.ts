@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect } from "react";
+import type { IntercomBootProps } from "react-use-intercom";
 import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
@@ -17,7 +18,8 @@ const useIntercomHook = isInterComEnabled
   ? useIntercomLib
   : () => {
       return {
-        boot: noop,
+        // eslint-disable-next-line
+        boot: (props: IntercomBootProps) => {},
         show: noop,
         shutdown: noop,
       };
@@ -39,8 +41,7 @@ export const useIntercom = () => {
   const boot = async () => {
     if (!data || !statsData) return;
     let userHash;
-
-    const req = await fetch(`/api/intercom-hash`);
+    const req = await fetch(`/api/support/hash`);
     const res = await req.json();
     if (res?.hash) {
       userHash = res.hash;
@@ -83,7 +84,7 @@ export const useIntercom = () => {
   const open = async () => {
     let userHash;
 
-    const req = await fetch(`/api/intercom-hash`);
+    const req = await fetch(`/api/support/hash`);
     const res = await req.json();
     if (res?.hash) {
       userHash = res.hash;
@@ -126,8 +127,18 @@ export const useIntercom = () => {
   return { ...hookData, open, boot };
 };
 
+declare global {
+  interface Window {
+    Support?: {
+      open: () => void;
+    };
+  }
+}
+
 export const useBootIntercom = () => {
-  const { boot } = useIntercom();
+  const { hasPaidPlan } = useHasPaidPlan();
+  const { boot, open } = useIntercom();
+
   const { data: user } = trpc.viewer.me.get.useQuery();
   const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
     trpc: {
@@ -145,6 +156,13 @@ export const useBootIntercom = () => {
     boot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statsData]);
+  if (!hasPaidPlan) return;
+
+  if (typeof window !== "undefined" && !window.Support) {
+    window.Support = {
+      open,
+    };
+  }
 };
 
 export default useIntercom;

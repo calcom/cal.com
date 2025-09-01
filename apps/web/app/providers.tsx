@@ -2,7 +2,6 @@
 
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
-import { usePathname } from "next/navigation";
 import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -18,8 +17,6 @@ type ProvidersProps = {
 };
 export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();
-  const pathname = usePathname();
-  const isOnboardingPage = pathname?.startsWith("/getting-started");
 
   return (
     <SessionProvider>

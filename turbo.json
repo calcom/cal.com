@@ -257,7 +257,9 @@
     "NEXT_PUBLIC_API_V2_URL",
     "NEXT_PUBLIC_WEBAPP_URL",
     "NEXT_PUBLIC_WEBSITE_URL",
-    "BUILD_STANDALONE"
+    "BUILD_STANDALONE",
+    "INTERCOM_API_TOKEN",
+    "NEXT_PUBLIC_INTERCOM_APP_ID"
   ],
   "tasks": {
     "@calcom/prisma#build": {
