@@ -52,7 +52,6 @@ export class CombinedAuthStrategy {
       if (!apiKeyAllowed) {
         throw new UnauthorizedError("API key authentication not allowed for this endpoint");
       }
-
       try {
         const result = await this.apiKeyStrategy.authenticate(bearerToken);
         return {

@@ -9,7 +9,7 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   // Health routes (no auth)
   await fastify.register(healthRoutes, { prefix: "/api" });
 
-  // Public user routes (authenticated users)
+  // Public public routes (authenticated users)
   await fastify.register(
     async function (fastify: FastifyInstance) {
       // Apply authentication middleware to ALL public routes registered here

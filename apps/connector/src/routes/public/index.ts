@@ -6,4 +6,5 @@ export async function publicRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.addHook("preHandler", AuthGuards.authenticateFlexible());
   
   await fastify.register(userRoutes, { prefix: '/users' });
+
 }

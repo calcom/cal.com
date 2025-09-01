@@ -18,7 +18,6 @@ const getUserParamsSchema = z.object({
 
 export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   const userService = new UserService(fastify.prisma);
-
   // Route with specific auth methods allowed
   fastify.get('/me', {
     
