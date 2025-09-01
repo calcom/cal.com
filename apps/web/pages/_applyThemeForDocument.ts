@@ -62,7 +62,7 @@ export const applyTheme = function () {
 export const applyToDesktopClass = function () {
   try {
     const onReady = () => {
-      if (typeof window !== "undefined" && window.todesktop && document.documentElement) {
+      if (typeof window !== "undefined" && window.calIsDesktopApp && document.documentElement) {
         document.documentElement.classList.add("todesktop");
       } else if (document.documentElement) {
         return;
