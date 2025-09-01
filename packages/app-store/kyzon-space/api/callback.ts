@@ -1,6 +1,7 @@
 import type { AxiosError } from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
@@ -68,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         code,
         client_id,
         client_secret,
-        redirect_uri: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/${config.slug}/callback`,
+        redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
       },
       {
         headers: {
