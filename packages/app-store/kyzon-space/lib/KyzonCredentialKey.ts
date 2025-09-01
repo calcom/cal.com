@@ -1,13 +1,14 @@
 import { z } from "zod";
 
 export const kyzonCredentialKeySchema = z.object({
-  access_token: z.string(),
-  refresh_token: z.string().optional(),
-  token_type: z.string().optional(),
+  access_token: z.string().min(1),
+  refresh_token: z.string().min(1).optional(),
+  token_type: z.literal("Bearer").optional(),
   scope: z.string().optional(),
-  expiry_date: z.number(),
-  user_id: z.string(),
-  team_id: z.string(),
+  /* store ms since epoch, > now */
+  expiry_date: z.number().int().positive(),
+  user_id: z.coerce.string().min(1),
+  team_id: z.coerce.string().min(1),
 });
 
 export type KyzonCredentialKey = z.infer<typeof kyzonCredentialKeySchema>;
