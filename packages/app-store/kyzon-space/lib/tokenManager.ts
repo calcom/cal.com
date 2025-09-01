@@ -41,7 +41,7 @@ export async function refreshKyzonToken(credentialId: number): Promise<KyzonCred
       },
       {
         headers: {
-          "X-Api-Key": api_key,
+          "X-API-Key": api_key,
         },
       }
     );
