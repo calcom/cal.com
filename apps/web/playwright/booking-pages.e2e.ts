@@ -548,9 +548,10 @@ test.describe("Booking round robin event", () => {
     users,
   }) => {
     const [testUser] = users.get();
-    await testUser.apiLogin();
 
     const team = await testUser.getFirstTeamMembership();
+
+    await testUser.apiLogin(`/team/${team.team.slug}`);
 
     // Click first event type (round robin)
     await page.click('[data-testid="event-type-link"]');
