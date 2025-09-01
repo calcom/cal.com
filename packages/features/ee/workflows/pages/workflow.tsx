@@ -238,7 +238,6 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
         <Form
           form={form}
           handleSubmit={async (values) => {
-            let activeOnIds: number[] = [];
             let isEmpty = false;
             let isVerified = true;
 
@@ -296,17 +295,30 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
             });
 
             if (!isEmpty && isVerified) {
+              let activeOnEventTypeIds: number[] = [];
+              let activeOnRoutingFormIds: string[] = [];
+
               if (values.activeOn) {
-                activeOnIds = values.activeOn
-                  .filter((option) => option.value !== "all")
-                  .map((option) => {
-                    return parseInt(option.value, 10);
-                  });
+                if (isFormTrigger(values.trigger)) {
+                  // For form triggers, activeOn contains routing form IDs (strings)
+                  activeOnRoutingFormIds = values.activeOn
+                    .filter((option) => option.value !== "all")
+                    .map((option) => option.value);
+                } else {
+                  // For event triggers, activeOn contains event type IDs (numbers)
+                  activeOnEventTypeIds = values.activeOn
+                    .filter((option) => option.value !== "all")
+                    .map((option) => {
+                      return parseInt(option.value, 10);
+                    });
+                }
               }
+
               updateMutation.mutate({
                 id: workflowId,
                 name: values.name,
-                activeOn: activeOnIds,
+                activeOnEventTypeIds,
+                activeOnRoutingFormIds,
                 steps: values.steps,
                 trigger: values.trigger,
                 time: values.time || null,

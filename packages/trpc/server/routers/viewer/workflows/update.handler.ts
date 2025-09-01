@@ -36,7 +36,17 @@ type UpdateOptions = {
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
-  const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
+  const {
+    id,
+    name,
+    activeOnEventTypeIds,
+    activeOnRoutingFormIds,
+    steps,
+    trigger,
+    time,
+    timeUnit,
+    isActiveOnAll,
+  } = input;
 
   const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
@@ -101,7 +111,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let removedActiveOnIds: number[] = [];
 
-  let activeOnWithChildren: number[] = activeOn;
+  let activeOnWithChildren: number[] = activeOnEventTypeIds;
 
   let oldActiveOnIds: number[] = [];
 
@@ -115,16 +125,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
 
-    // activeOn are routing form ids
-    activeOnWithChildren = activeOn;
+    // activeOnRoutingFormIds are routing form ids
+    const routingFormIds = activeOnRoutingFormIds;
 
+    console.log("routingFormIds", routingFormIds);
+
+    // todo: fix this for routing forms
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
-      activeOnWithChildren,
+      [], // No event type IDs for form triggers
+      routingFormIds,
       isOrg,
       userWorkflow?.teamId,
-      userWorkflow?.userId,
-      true // isRoutingForms
+      userWorkflow?.userId
     );
+    console.log("isAuthorizedToAddIds", isAuthorizedToAddIds);
 
     if (!isAuthorizedToAddIds) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -139,17 +153,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     // Create new workflow - routing forms relationships
     await ctx.prisma.workflowsOnRoutingForms.createMany({
-      data: activeOnWithChildren.map((routingFormId) => ({
+      data: routingFormIds.map((routingFormId) => ({
         workflowId: id,
-        routingFormId: String(routingFormId),
+        routingFormId,
       })),
     });
   } else if (!isOrg) {
-    // activeOn are event types ids
+    // activeOnEventTypeIds are event types ids
     const activeOnEventTypes = await ctx.prisma.eventType.findMany({
       where: {
         id: {
-          in: activeOn,
+          in: activeOnEventTypeIds,
         },
         ...(userWorkflow.teamId && { parentId: null }), //all children managed event types are added after
       },
@@ -211,10 +225,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ...eventType.children.map((child) => child.id),
     ]);
 
-    newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
-
+    newActiveOn = activeOnEventTypeIds.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
       newActiveOn,
+      [], // No routing form IDs for event type triggers
       isOrg,
       userWorkflow?.teamId,
       userWorkflow?.userId
@@ -272,10 +286,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ).map((teamRel) => teamRel.teamId);
     }
 
-    newActiveOn = activeOn.filter((teamId) => !oldActiveOnIds.includes(teamId));
+    newActiveOn = activeOnEventTypeIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
 
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
       newActiveOn,
+      [], // No routing form IDs for team workflows
       isOrg,
       userWorkflow?.teamId,
       userWorkflow?.userId
@@ -285,13 +300,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
+    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOnEventTypeIds.includes(teamId));
 
     await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
       workflowSteps: userWorkflow.steps,
       isOrg,
-      activeOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)),
+      activeOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)),
     });
 
     //update active on
@@ -302,7 +317,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     await ctx.prisma.workflowsOnTeams.createMany({
-      data: activeOn.map((teamId) => ({
+      data: activeOnEventTypeIds.map((teamId) => ({
         workflowId: id,
         teamId,
       })),
@@ -337,7 +352,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       trigger,
       userId: user.id,
       teamId: userWorkflow.teamId,
-      alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+      alreadyScheduledActiveOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
     });
   }
 
@@ -454,7 +469,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       } else if (!isFormTrigger(trigger)) {
         // schedule notifications for edited steps (only for event-based triggers)
         await scheduleWorkflowNotifications({
-          activeOn,
+          activeOn: activeOnEventTypeIds,
           isOrg,
           workflowSteps: [newStep],
           time,
@@ -538,7 +553,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     } else if (!isFormTrigger(trigger)) {
       // schedule notification for new step (only for event-based triggers)
       await scheduleWorkflowNotifications({
-        activeOn,
+        activeOn: activeOnEventTypeIds,
         isOrg,
         workflowSteps: createdSteps,
         time,
@@ -609,7 +624,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // Remove or add booking field for sms reminder number (only for event types, not routing forms)
   if (!isFormTrigger(trigger)) {
     const smsReminderNumberNeeded =
-      activeOn.length &&
+      activeOnEventTypeIds.length &&
       steps.some(
         (step) =>
           step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
@@ -618,7 +633,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       activeOnToRemove: removedActiveOnIds,
       workflowId: id,
       isOrg,
-      activeOn,
+      activeOn: activeOnWithChildren,
     });
 
     if (!smsReminderNumberNeeded) {

@@ -145,10 +145,11 @@ export class WorkflowsInputService {
     const updateData: TUpdateInputSchema = {
       id: workflowIdToUse,
       name: updateDto.name ?? currentData.name,
-      activeOn:
+      activeOnEventTypeIds:
         updateDto?.activation?.activeOnEventTypeIds ??
         currentData?.activeOn.map((active) => active.eventTypeId) ??
         [],
+      activeOnRoutingFormIds: updateDto?.activation?.activeOnRoutingFormIds ?? [],
       steps: mappedSteps,
       trigger: triggerForZod,
       time:
