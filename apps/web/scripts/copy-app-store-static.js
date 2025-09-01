@@ -28,8 +28,8 @@ const copyAppStoreStatic = () => {
     const destPath = path.join(destDir, fileName);
     fs.copyFileSync(file, destPath);
 
-    // If it's an SVG file, compute hash
-    if (fileName.endsWith(".svg")) {
+    // If it's an icon SVG file, compute hash
+    if (fileName.includes("icon") && fileName.endsWith(".svg")) {
       const content = fs.readFileSync(file, "utf8");
       const hash = crypto.createHash("md5").update(content).digest("hex").slice(0, 8);
       SVG_HASHES[appName] = hash;
