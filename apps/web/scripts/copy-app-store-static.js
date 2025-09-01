@@ -15,11 +15,10 @@ const copyAppStoreStatic = () => {
     const appNameMatch = file.match(/app-store\/(.*?)\/static/);
     if (!appNameMatch) return;
 
-    const appName = appNameMatch[1];
+    const appDirName = appNameMatch[1];
     const fileName = path.basename(file);
-
     // Create destination directory if it doesn't exist
-    const destDir = path.join(process.cwd(), "public", "app-store", appName);
+    const destDir = path.join(process.cwd(), "public", "app-store", appDirName);
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
     }
@@ -32,7 +31,7 @@ const copyAppStoreStatic = () => {
     if (fileName.includes("icon") && fileName.endsWith(".svg")) {
       const content = fs.readFileSync(file, "utf8");
       const hash = crypto.createHash("md5").update(content).digest("hex").slice(0, 8);
-      SVG_HASHES[appName] = hash;
+      SVG_HASHES[appDirName] = hash;
     }
 
     console.log(`Copied ${file} to ${destPath}`);
