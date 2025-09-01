@@ -23,9 +23,12 @@ export function getKyzonCredentialKey(payload: {
   team_id: string;
 }): KyzonCredentialKey {
   const { expires_in, ...rest } = payload;
-
-  return {
+  const skewMs = 60_000; // refresh 1 min early
+  const ms = Math.max(5_000, expires_in * 1000 - skewMs); // clamp to ≥5 s
+  const candidate = {
     ...rest,
-    expiry_date: Math.round(Date.now() + expires_in * 1000),
+    expiry_date: Date.now() + ms,
   };
+  // Ensure shape is valid at runtime
+  return kyzonCredentialKeySchema.parse(candidate);
 }
