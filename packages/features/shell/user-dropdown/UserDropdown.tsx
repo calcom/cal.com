@@ -56,11 +56,19 @@ export function UserDropdown({ small }: UserDropdownProps) {
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleHelpClick = () => {
-    if (window.Plain) {
-      window.Plain.open();
-    }
+  const handleHelpClick = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
     setMenuOpen(false);
+
+    // Defer to next frame to avoid the originating click closing the dialog
+    requestAnimationFrame(() => {
+      // double RAF is extra-safe if your dropdown unmounts with a transition
+      requestAnimationFrame(() => {
+        if (window.Plain) window.Plain.open();
+      });
+    });
   };
 
   // Prevent rendering dropdown if user isn't available.
