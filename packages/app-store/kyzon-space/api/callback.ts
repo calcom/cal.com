@@ -143,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await createOAuthAppCredential({ appId: config.slug, type: config.type }, credentialKey, req);
 
   if (state?.defaultInstall) {
-    setDefaultConferencingApp(userId, config.slug);
+    await setDefaultConferencingApp(userId, config.slug);
   }
 
   res.redirect(
