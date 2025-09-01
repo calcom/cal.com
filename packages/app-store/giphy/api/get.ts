@@ -4,7 +4,7 @@ import { z, ZodError } from "zod";
 import { GiphyManager } from "../lib";
 
 const giphyUrlRegexp = new RegExp(
-  "^https?:\\/\\/(?:[\\w.-]+\\.)?giphy\\.com\\/media(?:\\/v1\\.[^/]+)?\\/([^/]+)\\/giphy\\.gif$"
+  "^https?:\/\/(?:[\w.-]+\.)?giphy\.com\/media\/.*\/([^/]+)\/giphy\.gif(?:\?.*)?$"
 );
 
 const getSchema = z.object({
