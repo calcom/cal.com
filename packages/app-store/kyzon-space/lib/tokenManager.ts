@@ -12,6 +12,9 @@ export async function refreshKyzonToken(credentialId: number): Promise<KyzonCred
   try {
     const credential = await prisma.credential.findUnique({
       where: { id: credentialId },
+      select: {
+        key: true,
+      },
     });
 
     if (!credential?.key) {
