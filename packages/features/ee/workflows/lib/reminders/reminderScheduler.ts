@@ -7,6 +7,7 @@ import {
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
+import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -110,43 +111,53 @@ const processWorkflowStep = async (
         sendTo = [step.sendTo || ""];
         break;
       case WorkflowActions.EMAIL_HOST:
-        // todo: this is not supported for form triggers
+        if (!evt) {
+          // EMAIL_HOST is not supported for form triggers
+          return;
+        }
+
         sendTo = [evt.organizer?.email || ""];
 
         const schedulingType = evt.eventType.schedulingType;
         const isTeamEvent =
-          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+          schedulingType == SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
         if (isTeamEvent && evt.team?.members) {
           sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
-        //todo: this needs to be the email coming form the response
-        const attendees = !!emailAttendeeSendToOverride
-          ? [emailAttendeeSendToOverride]
-          : evt.attendees?.map((attendee) => attendee.email);
+        if (evt) {
+          const attendees = !!emailAttendeeSendToOverride
+            ? [emailAttendeeSendToOverride]
+            : evt.attendees?.map((attendee) => attendee.email);
 
-        const limitGuestsDate = new Date("2025-01-13");
+          const limitGuestsDate = new Date("2025-01-13");
 
-        if (workflow.userId) {
-          const user = await prisma.user.findUnique({
-            where: {
-              id: workflow.userId,
-            },
-            select: {
-              createdDate: true,
-            },
-          });
-          if (user?.createdDate && user.createdDate > limitGuestsDate) {
-            sendTo = attendees.slice(0, 1);
+          if (workflow.userId) {
+            const user = await prisma.user.findUnique({
+              where: {
+                id: workflow.userId,
+              },
+              select: {
+                createdDate: true,
+              },
+            });
+            if (user?.createdDate && user.createdDate > limitGuestsDate) {
+              sendTo = attendees.slice(0, 1);
+            } else {
+              sendTo = attendees;
+            }
           } else {
             sendTo = attendees;
           }
-        } else {
-          sendTo = attendees;
         }
 
-        break;
+        if (responses) {
+          const submitterEmail = await getSubmitterEmail(responses);
+          if (submitterEmail) {
+            sendTo = [submitterEmail];
+          }
+        }
     }
 
     const emailParams = {

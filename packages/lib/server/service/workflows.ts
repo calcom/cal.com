@@ -8,6 +8,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
+import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
