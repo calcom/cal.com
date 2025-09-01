@@ -107,6 +107,8 @@ export default defineConfig({
         "@prisma/extension-accelerate",
         "@ewsjs/xhr",
         "next-i18next/serverSideTranslations",
+        "vitest",
+        "vitest-fetch-mock",
       ],
       output: {
         globals: {
