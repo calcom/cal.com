@@ -1,0 +1,51 @@
+import prisma from "@calcom/prisma";
+
+type AuditLogContext = {
+  type: string;
+  wasRescheduled?: boolean;
+  totalUpdates?: number;
+  actor: { type: string; id?: number; email?: string };
+  [key: string]: any;
+};
+
+export class BookingDeleteService {
+  static async deleteBooking({
+    bookingId,
+    actor,
+    wasRescheduled = false,
+    totalUpdates = 0,
+    additionalContext = {},
+  }: {
+    bookingId: number;
+    actor: { type: string; id?: number; email?: string };
+    wasRescheduled?: boolean;
+    totalUpdates?: number;
+    additionalContext?: Record<string, any>;
+  }) {
+    // Delete the booking (soft delete or update status as needed)
+    const booking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: "CANCELLED" },
+    });
+
+    // Create audit log entry
+    const context: AuditLogContext = {
+      type: "record_deleted",
+      wasRescheduled,
+      totalUpdates,
+      actor,
+      ...additionalContext,
+    };
+
+    await prisma.auditLog.create({
+      data: {
+        entity: "booking",
+        entityId: bookingId,
+        action: "delete",
+        context,
+      },
+    });
+
+    return booking;
+  }
+}

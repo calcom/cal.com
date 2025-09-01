@@ -37,6 +37,7 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { BookingDeleteService } from "./BookingDeleteService";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
@@ -444,6 +445,18 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    // --- Audit log integration ---
+    await BookingDeleteService.deleteBooking({
+      bookingId: bookingToDelete.id,
+      actor: userId ? { type: "user", id: userId } : { type: "system" },
+      wasRescheduled: !!bookingToDelete.rescheduled,
+      totalUpdates: bookingToDelete.iCalSequence ?? 0,
+      additionalContext: {
+        cancellationReason,
+      },
+    });
+    // --- end audit log integration ---
 
     if (!!bookingToDelete.payment.length) {
       await processPaymentRefund({

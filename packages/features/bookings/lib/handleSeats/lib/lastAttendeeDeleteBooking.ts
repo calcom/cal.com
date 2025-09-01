@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { BookingDeleteService } from "../../BookingDeleteService";
 import type { OriginalRescheduledBooking } from "../../handleNewBooking/originalRescheduledBookingUtils";
 
 /* Check if the original booking has no more attendees, if so delete the booking
@@ -64,6 +65,15 @@ const lastAttendeeDeleteBooking = async (
           status: BookingStatus.CANCELLED,
         },
       });
+      // --- Audit log integration ---
+      await BookingDeleteService.deleteBooking({
+        bookingId: originalRescheduledBooking.id,
+        actor: { type: "system" },
+        wasRescheduled: !!originalRescheduledBooking.fromReschedule,
+        totalUpdates: originalRescheduledBooking.iCalSequence ?? 0,
+        additionalContext: {},
+      });
+      // --- end audit log integration ---
     });
     deletedReferences = true;
   }
