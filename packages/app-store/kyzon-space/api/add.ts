@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { stringify } from "querystring";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -20,15 +19,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { client_id } = await getKyzonAppKeys();
   const state = encodeOAuthState(req);
 
-  const params = {
-    response_type: "code",
-    client_id,
-    redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
-    scope: "meetings:write calendar:write profile:read",
-    state,
-  };
-  const query = stringify(params);
-  const url = `${kyzonBaseUrl}/oauth/authorize?${query}`;
+  const query = new URLSearchParams();
+  query.set("response_type", "code");
+  query.set("client_id", client_id);
+  query.set("redirect_uri", `${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
+  query.set("scope", "meetings:write calendar:write profile:read");
+  if (state) {
+    query.set("state", state);
+  }
+
+  const url = `${kyzonBaseUrl}/oauth/authorize?${query.toString()}`;
 
   return res.status(200).json({ url });
 }
