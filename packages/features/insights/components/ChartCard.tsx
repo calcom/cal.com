@@ -6,6 +6,8 @@ import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+type PanelCardProps = React.ComponentProps<typeof PanelCard>;
+
 type LegendItem = {
   label: string;
   color: string; // hex format
@@ -14,27 +16,16 @@ type LegendItem = {
 export type LegendSize = "sm" | "default";
 
 export function ChartCard({
-  title,
-  subtitle,
-  cta,
   legend,
   legendSize,
   enabledLegend,
   onSeriesToggle,
-  children,
-  className,
-  titleTooltip,
-}: {
-  title: string | ReactNode;
-  subtitle?: string;
-  cta?: { label: string; onClick: () => void };
+  ...panelCardProps
+}: PanelCardProps & {
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
   enabledLegend?: Array<LegendItem>;
   onSeriesToggle?: (label: string) => void;
-  className?: string;
-  titleTooltip?: string;
-  children: ReactNode;
 }) {
   const legendComponent =
     legend && legend.length > 0 ? (
@@ -43,13 +34,18 @@ export function ChartCard({
 
   return (
     <PanelCard
-      title={title}
-      subtitle={subtitle}
-      cta={cta}
-      headerContent={legendComponent}
-      className={className}
-      titleTooltip={titleTooltip}>
-      {children}
+      {...panelCardProps}
+      headerContent={
+        panelCardProps.headerContent ? (
+          <div className="flex items-center gap-2">
+            {panelCardProps.headerContent}
+            {legendComponent}
+          </div>
+        ) : (
+          legendComponent
+        )
+      }>
+      {panelCardProps.children}
     </PanelCard>
   );
 }
