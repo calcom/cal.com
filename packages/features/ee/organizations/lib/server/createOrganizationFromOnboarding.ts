@@ -30,7 +30,7 @@ import {
   orgOnboardingInvitedMembersSchema,
   orgOnboardingTeamsSchema,
 } from "@calcom/prisma/zod-utils";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
@@ -305,6 +305,7 @@ async function inviteMembers(invitedMembers: InvitedMember[], organization: Team
       usernameOrEmail: member.email,
       role: MembershipRole.MEMBER,
     })),
+    isDirectUserAction: false,
   });
 }
 
@@ -317,7 +318,7 @@ async function ensureStripeCustomerIdIsUpdated({
 }) {
   const parsedMetadata = userMetadata.parse(owner.metadata);
 
-  await UserRepository.updateStripeCustomerId({
+  await new UserRepository(prisma).updateStripeCustomerId({
     id: owner.id,
     stripeCustomerId: stripeCustomerId,
     existingMetadata: parsedMetadata,
@@ -343,7 +344,7 @@ async function backwardCompatibilityForSubscriptionDetails({
     return organization;
   }
 
-  const existingMetadata = teamMetadataSchema.parse(organization.metadata);
+  const existingMetadata = teamMetadataStrictSchema.parse(organization.metadata);
   const updatedOrganization = await OrganizationRepository.updateStripeSubscriptionDetails({
     id: organization.id,
     stripeSubscriptionId: paymentSubscriptionId,
@@ -548,8 +549,17 @@ export const createOrganizationFromOnboarding = async ({
     } catch (error) {
       // Almost always the reason would be that the organization's slug conflicts with a team's slug
       // The owner might not have chosen the conflicting team for migration - Can be confirmed by checking `teams` column in the database.
-      log.error("RecoverableError: Error while setting slug for organization", safeStringify(error));
-      throw new Error("Unable to set slug for organization");
+      log.error(
+        "RecoverableError: Error while setting slug for organization",
+        safeStringify(error),
+        safeStringify({
+          attemptedSlug: organizationOnboarding.slug,
+          organizationId: organization.id,
+        })
+      );
+      throw new Error(
+        `Unable to set slug '${organizationOnboarding.slug}' for organization ${organization.id}`
+      );
     }
   }
 

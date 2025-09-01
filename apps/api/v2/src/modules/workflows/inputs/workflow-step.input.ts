@@ -10,6 +10,7 @@ export const SMS_ATTENDEE = "sms_attendee";
 export const SMS_NUMBER = "sms_number";
 export const WHATSAPP_ATTENDEE = "whatsapp_attendee";
 export const WHATSAPP_NUMBER = "whatsapp_number";
+export const CAL_AI_PHONE_CALL = "cal_ai_phone_call";
 
 export const STEP_ACTIONS = [
   EMAIL_HOST,
@@ -19,6 +20,7 @@ export const STEP_ACTIONS = [
   SMS_NUMBER,
   WHATSAPP_ATTENDEE,
   WHATSAPP_NUMBER,
+  CAL_AI_PHONE_CALL,
 ] as const;
 
 export const STEP_ACTIONS_TO_ENUM = {
@@ -29,6 +31,7 @@ export const STEP_ACTIONS_TO_ENUM = {
   [WHATSAPP_ATTENDEE]: WorkflowActions.WHATSAPP_ATTENDEE,
   [WHATSAPP_NUMBER]: WorkflowActions.WHATSAPP_NUMBER,
   [SMS_NUMBER]: WorkflowActions.SMS_NUMBER,
+  [CAL_AI_PHONE_CALL]: WorkflowActions.CAL_AI_PHONE_CALL,
 } as const;
 
 export const ENUM_TO_STEP_ACTIONS = {
@@ -39,6 +42,7 @@ export const ENUM_TO_STEP_ACTIONS = {
   [WorkflowActions.WHATSAPP_ATTENDEE]: WHATSAPP_ATTENDEE,
   [WorkflowActions.WHATSAPP_NUMBER]: WHATSAPP_NUMBER,
   [WorkflowActions.SMS_NUMBER]: SMS_NUMBER,
+  [WorkflowActions.CAL_AI_PHONE_CALL]: CAL_AI_PHONE_CALL,
 } as const;
 
 export type StepAction = (typeof STEP_ACTIONS)[number];

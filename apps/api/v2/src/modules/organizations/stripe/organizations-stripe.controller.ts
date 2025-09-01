@@ -53,7 +53,7 @@ export type OAuthCallbackState = {
   path: "/v2/organizations/:orgId/teams/:teamId/stripe",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Organizations/Teams Stripe")
+@DocsTags("Orgs / Teams / Stripe")
 export class OrganizationsStripeController {
   constructor(
     private readonly organizationsStripeService: OrganizationsStripeService,

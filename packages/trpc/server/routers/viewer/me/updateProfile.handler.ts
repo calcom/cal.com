@@ -40,7 +40,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const { travelSchedules, ...rest } = input;
@@ -221,7 +221,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
+  const updatedUserSelect = {
     select: {
       id: true,
       username: true,
@@ -239,7 +239,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         },
       },
     },
-  });
+  } satisfies Prisma.UserDefaultArgs;
 
   let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
 

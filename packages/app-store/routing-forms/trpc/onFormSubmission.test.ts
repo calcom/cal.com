@@ -102,7 +102,11 @@ describe("_onFormSubmission", () => {
         "triggerFormSubmittedNoEventWebhook",
         {
           responseId,
-          form: mockForm,
+          form: {
+            id: mockForm.id,
+            name: mockForm.name,
+            teamId: mockForm.teamId,
+          },
           responses: {
             email: {
               value: "test@response.com",

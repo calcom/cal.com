@@ -45,7 +45,8 @@ export const IS_CALCOM =
   (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
+    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.eu"));
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
@@ -177,7 +178,7 @@ export const CLOUDFLARE_USE_TURNSTILE_IN_BOOKER = process.env.NEXT_PUBLIC_CLOUDF
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
 export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 0;
-export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 2;
+export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 1;
 
 export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || "https://goblin.cal.com";
 export const WEBSITE_PRIVACY_POLICY_URL =
@@ -225,5 +226,16 @@ export const IS_DUB_REFERRALS_ENABLED =
 
 export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;
 
-export const IS_SMS_CREDITS_ENABLED = !!process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID;
+export const IS_SMS_CREDITS_ENABLED =
+  !!process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID || !!process.env.NEXT_PUBLIC_IS_E2E;
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
+
+export const NEXTJS_CACHE_TTL = 3600; // 1 hour
+
+export const DEFAULT_GROUP_ID = "default_group_id";
+
+const _rawCalAiPrice = process.env.NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE;
+export const CAL_AI_PHONE_NUMBER_MONTHLY_PRICE = (() => {
+  const parsed = _rawCalAiPrice && _rawCalAiPrice.trim() !== "" ? Number(_rawCalAiPrice) : NaN;
+  return Number.isFinite(parsed) ? parsed : 5;
+})();

@@ -1,9 +1,11 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getParsedTeam } from "./teamUtils";
@@ -153,7 +155,7 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   });
 }
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -163,11 +165,13 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   isOrganization: true,
   organizationSettings: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
 export class TeamRepository {
-  static async findById({ id }: { id: number }) {
-    const team = await prisma.team.findUnique({
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findById({ id }: { id: number }) {
+    const team = await this.prismaClient.team.findUnique({
       where: {
         id,
       },
@@ -179,14 +183,14 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  static async findAllByParentId({
+  async findAllByParentId({
     parentId,
     select = teamSelect,
   }: {
     parentId: number;
     select?: Prisma.TeamSelect;
   }) {
-    return await prisma.team.findMany({
+    return await this.prismaClient.team.findMany({
       where: {
         parentId,
       },
@@ -194,7 +198,7 @@ export class TeamRepository {
     });
   }
 
-  static async findByIdAndParentId({
+  async findByIdAndParentId({
     id,
     parentId,
     select = teamSelect,
@@ -203,7 +207,7 @@ export class TeamRepository {
     parentId: number;
     select?: Prisma.TeamSelect;
   }) {
-    return await prisma.team.findFirst({
+    return await this.prismaClient.team.findFirst({
       where: {
         id,
         parentId,
@@ -212,8 +216,26 @@ export class TeamRepository {
     });
   }
 
-  static async deleteById({ id }: { id: number }) {
-    const deletedTeam = await prisma.$transaction(async (tx) => {
+  async findFirstBySlugAndParentSlug({
+    slug,
+    parentSlug,
+    select = teamSelect,
+  }: {
+    slug: string;
+    parentSlug: string | null;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+      },
+      select,
+    });
+  }
+
+  async deleteById({ id }: { id: number }) {
+    const deletedTeam = await this.prismaClient.$transaction(async (tx) => {
       await tx.eventType.deleteMany({
         where: {
           teamId: id,
@@ -240,8 +262,8 @@ export class TeamRepository {
     return deletedTeam;
   }
 
-  static async findTeamWithMembers(teamId: number) {
-    return await prisma.team.findUnique({
+  async findTeamWithMembers(teamId: number) {
+    return await this.prismaClient.team.findUnique({
       where: { id: teamId },
       select: {
         members: {
@@ -257,8 +279,8 @@ export class TeamRepository {
     });
   }
 
-  static async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
-    const memberships = await prisma.membership.findMany({
+  async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
+    const memberships = await this.prismaClient.membership.findMany({
       where: {
         // Show all the teams this user belongs to regardless of the team being part of the user's org or not
         // We don't want to restrict in the listing here. If we need to restrict a situation where a user is part of the org along with being part of a non-org team, we should do that instead of filtering out from here
@@ -299,14 +321,78 @@ export class TeamRepository {
       }));
   }
 
-  static async findTeamWithOrganizationSettings(teamId: number) {
-    return await prisma.team.findUnique({
+  async findTeamWithOrganizationSettings(teamId: number) {
+    return await this.prismaClient.team.findUnique({
       where: { id: teamId },
       select: {
         parent: {
           select: {
             isOrganization: true,
             organizationSettings: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findParentOrganizationByTeamId(teamId: number) {
+    const team = await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        parent: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    return team?.parent;
+  }
+
+  async findOrganizationSettingsBySlug({ slug }: { slug: string }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        isOrganization: true,
+      },
+      select: {
+        organizationSettings: {
+          select: {
+            adminGetsNoSlotsNotification: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findTeamSlugById({ id }: { id: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        slug: true,
+      },
+    });
+  }
+
+  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        metadata: true,
+        members: {
+          where: {
+            userId,
+            role: {
+              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            },
           },
         },
       },
