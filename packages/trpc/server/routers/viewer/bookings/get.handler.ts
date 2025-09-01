@@ -8,12 +8,11 @@ import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
-import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
-import { isTeamOrOrgAdmin } from "@calcom/lib/event-types/utils/isTeamOrOrgAdmin";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -691,36 +690,36 @@ export async function getBookings({
     })
   );
 
+  const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+    if (booking.user?.id === userId) {
+      return true;
+    }
+
+    if (!booking.eventType?.hosts || booking.eventType.hosts.length === 0) {
+      return false;
+    }
+
+    const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
+
+    return booking.eventType.hosts.some(({ user: hostUser }) => {
+      return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
+    });
+  };
+
+  const checkIfUserIsTeamAdminOrOwner = async (userId: number, booking: (typeof plainBookings)[number]) => {
+    const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, booking.eventType?.teamId ?? 0));
+    return isTeamAdminOrOwner;
+  };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
-      const isUserHost = checkIfUserIsHost(
-        user.id,
-        {
-          user: booking.user,
-          attendees: booking.attendees,
-        },
-        {
-          users: booking.eventType?.users?.map((u) => u.user).filter(Boolean) as
-            | { id: number; email: string }[]
-            | undefined,
-          hosts: booking.eventType?.hosts?.filter((h) => h.user).map((h) => ({ user: h.user! })) as
-            | { user: { id: number; email: string } }[]
-            | undefined,
-        }
-      );
-
-      const isUserOwner = user.id === booking.eventType?.userId;
-
-      const isUserHostOrOwner = isUserHost || isUserOwner;
-
-      const hasTeamOrOrgPermissions = booking.eventType?.teamId
-        ? await isTeamOrOrgAdmin(user.id, booking.eventType.teamId, booking.eventType.team?.parentId)
-        : false;
-
-      const isHostOrTeamAdmin = isUserHostOrOwner || hasTeamOrOrgPermissions;
-
-      // If seats are enabled, the event is not set to show attendees, and the current user is not the host/team admin, filter out attendees who are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees && !isHostOrTeamAdmin) {
+      // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
+      if (
+        booking.seatsReferences.length &&
+        !booking.eventType?.seatsShowAttendees &&
+        !checkIfUserIsHost(user.id, booking) &&
+        !checkIfUserIsTeamAdminOrOwner(user.id, booking)
+      ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
@@ -749,9 +748,6 @@ export async function getBookings({
           price: booking.eventType?.price || 0,
           currency: booking.eventType?.currency || "usd",
           metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
-          userId: undefined,
-          users: undefined,
-          teamId: undefined,
         },
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
