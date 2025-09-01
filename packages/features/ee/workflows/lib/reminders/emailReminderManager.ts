@@ -63,6 +63,14 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
 };
 
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
+  if (args.evt) {
+    await scheduleEmailReminderForEvt(args);
+  } else {
+    await scheduleEmailReminderForForm(args);
+  }
+};
+
+const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     triggerEvent,
@@ -400,6 +408,13 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       }
     }
   }
+};
+
+const scheduleEmailReminderForForm = async (
+  args: scheduleEmailReminderArgs & { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
+) => {
+  // TODO: Create scheduleEmailReminderForForm function
+  throw new Error("Form email reminders not yet implemented");
 };
 
 export const deleteScheduledEmailReminder = async (reminderId: number) => {

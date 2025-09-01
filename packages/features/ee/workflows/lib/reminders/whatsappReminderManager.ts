@@ -8,6 +8,7 @@ import {
   WorkflowActions,
   WorkflowMethods,
 } from "@calcom/prisma/enums";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
@@ -16,7 +17,7 @@ import {
   getContentVariablesForTemplate,
 } from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
-import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
+import type { ScheduleTextReminderArgs, timeUnitLowerCase, BookingInfo } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -27,6 +28,14 @@ import {
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
 export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+  if (args.evt) {
+    await scheduleWhatsappReminderForEvt(args);
+  } else {
+    await scheduleWhatsappReminderForForm(args);
+  }
+};
+
+const scheduleWhatsappReminderForEvt = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
@@ -263,4 +272,11 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       }
     }
   }
+};
+
+const scheduleWhatsappReminderForForm = async (
+  args: ScheduleTextReminderArgs & { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
+) => {
+  // TODO: Create scheduleWhatsappReminderForForm function
+  throw new Error("Form WhatsApp reminders not yet implemented");
 };
