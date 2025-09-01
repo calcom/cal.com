@@ -107,6 +107,14 @@ export class BillingService implements OnModuleDestroy {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
+    if (!customerId) {
+      this.logger.log(
+        `No customer id found for team ${teamWithBilling?.slug} with id ${teamWithBilling?.id}.`
+      );
+      this.logger.log(teamWithBilling?.platformBilling, "platform billing");
+      throw new NotFoundException("No customer id associated with the team.");
+    }
+
     const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
       success_url: `${this.webAppUrl}/settings/platform/`,
