@@ -39,9 +39,4 @@ export class TaskProcessor {
     const succeded = settled.filter((result) => result.status === "fulfilled");
     console.info({ failed, succeded });
   }
-
-  async cleanup(): Promise<void> {
-    const count = await Task.cleanup();
-    console.info(`Cleaned up ${count} tasks`);
-  }
 }
