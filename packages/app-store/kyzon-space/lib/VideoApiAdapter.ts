@@ -140,11 +140,11 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       }
     },
 
-    deleteMeeting: async (uid: string): Promise<void> => {
+    deleteMeeting: async (meetingId: string): Promise<void> => {
       const key = await getRefreshedKey();
 
       try {
-        await kyzonAxiosInstance.delete(`/v1/teams/${key.team_id}/calendar-events/${uid}`, {
+        await kyzonAxiosInstance.delete(`/v1/teams/${key.team_id}/calendar-events/${meetingId}`, {
           headers: {
             Authorization: `Bearer ${key.access_token}`,
           },
@@ -152,7 +152,7 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       } catch (error) {
         // Don't throw error if calendar event deletion fails
         // as it might have already been deleted or expired
-        console.warn(`Failed to delete KYZON calendar event ${uid}:`, error);
+        console.warn(`Failed to delete KYZON calendar event ${meetingId}:`, error);
       }
     },
 
