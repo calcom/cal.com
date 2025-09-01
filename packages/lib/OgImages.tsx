@@ -92,7 +92,7 @@ export const constructAppImage = ({ name, slug, logoUrl, description }: AppImage
     description,
     logoUrl,
   });
-
+  console.log(logoUrl, slug);
   if (process.env.APP_OG_IMAGE_VERSION) {
     params.set("v", process.env.APP_OG_IMAGE_VERSION);
   }
@@ -194,10 +194,10 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   );
 };
 
-const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
+const VisualBlur = ({ logoUrl }: { logoUrl: string }) => {
   // Making a blur of a dark logo is very ugly. We use the filename to indicate,
   // when we don't want to render these blurry blob backgrounds.
-  if (visualSlug.indexOf("dark") > -1) return null;
+  if (logoUrl.indexOf("dark") > -1) return null;
 
   return (
     <div tw="flex relative">
@@ -207,7 +207,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(98px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${logoUrl})`,
           backgroundSize: "400px 400px",
         }}
       />
@@ -218,7 +218,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(150px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${logoUrl})`,
           backgroundSize: "630px 630px",
         }}
       />
@@ -230,7 +230,7 @@ export const App = ({ name, description, logoUrl }: AppImageProps) => (
   <Wrapper>
     <img src={`${WEBAPP_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[48px]" />
 
-    <VisualBlur visualSlug={logoUrl} />
+    <VisualBlur logoUrl={logoUrl} />
 
     <div tw="flex items-center w-full">
       <div tw="flex">
