@@ -118,15 +118,40 @@ async function handler(req: NextRequest) {
             slug: searchParams.get("slug"),
             imageType,
           });
+
+          let appETag = null;
+
+          if (slug && slug.includes(".svg")) {
+            // slug format: "/app-store/{appName}/{filename}" (e.g., "/app-store/dub/icon-dark.svg")
+            try {
+              // e.g., full URL: "https://app.cal.com/app-store/dub/icon-dark.svg"
+              const svgUrl = new URL(slug, WEBAPP_URL);
+              const svgResponse = await fetch(svgUrl);
+              if (svgResponse.ok) {
+                const svgContent = await svgResponse.text();
+                const svgHash = btoa(svgContent).slice(0, 8);
+                appETag = `"app-${svgHash}"`;
+              }
+            } catch (error) {
+              console.warn("Failed to fetch SVG for ETag generation:", error);
+            }
+          }
+
           const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
+
+          const headers: Record<string, string> = {
+            "Content-Type": "image/png",
+            "Cache-Control":
+              "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+          };
+
+          if (appETag) {
+            headers["ETag"] = appETag;
+          }
 
           return new Response(img.body, {
             status: 200,
-            headers: {
-              "Content-Type": "image/png",
-              "Cache-Control":
-                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
-            },
+            headers,
           });
         } catch (error) {
           if (error instanceof ZodError) {
