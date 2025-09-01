@@ -40,9 +40,8 @@ async function getAllRecordingsOlderThan6Months(): Promise<Recording[]> {
 
   // Calculate date 6 months ago
   const cutoffDate = new Date();
-  cutoffDate.setMonth(cutoffDate.getMonth() - 6);
-  cutoffDate.setDate(1); // Set to beginning of the month
-  cutoffDate.setHours(0, 0, 0, 0);
+  cutoffDate.setUTCMonth(cutoffDate.getUTCMonth() - 6);
+  cutoffDate.setUTCHours(0, 0, 0, 0);
   const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
 
   console.log(
