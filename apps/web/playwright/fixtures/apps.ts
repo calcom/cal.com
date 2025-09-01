@@ -15,23 +15,41 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId(`app-store-category-${category}`).nth(1).click();
       await page.goto("apps/categories/analytics");
     },
-    installAnalyticsAppSkipConfigure: async (app: string) => {
+    installAnalyticsAppSkipConfigure: async (app: string, userFixture: any) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
       await page.getByTestId("install-app-button").click();
-      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
-      await page.reload();
-      await page.click('[data-testid="install-app-button-personal"]');
-      await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+
+      const membership = await userFixture.getFirstTeamMembership().catch(() => null);
+
+      if (membership) {
+        await page.waitForURL(`apps/installation/accounts?slug=${app}`, { timeout: 10000 });
+        await page.waitForSelector('[data-testid="install-app-button-personal"]', {
+          state: "visible",
+          timeout: 10000,
+        });
+        await page.click('[data-testid="install-app-button-personal"]');
+      } else {
+        await page.waitForURL(`apps/installation/event-types?slug=${app}`, { timeout: 10000 });
+      }
       await page.click('[data-testid="set-up-later"]');
     },
-    installAnalyticsApp: async (app: string, eventTypeIds: number[]) => {
+    installAnalyticsApp: async (app: string, eventTypeIds: number[], userFixture: any) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
-      (await page.waitForSelector('[data-testid="install-app-button"]')).click();
-      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
-      await page.reload();
+      await page.waitForSelector('[data-testid="install-app-button"]');
+      await page.click('[data-testid="install-app-button"]');
 
-      await page.click('[data-testid="install-app-button-personal"]');
-      await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+      const membership = await userFixture.getFirstTeamMembership().catch(() => null);
+
+      if (membership) {
+        await page.waitForURL(`apps/installation/accounts?slug=${app}`, { timeout: 10000 });
+        await page.waitForSelector('[data-testid="install-app-button-personal"]', {
+          state: "visible",
+          timeout: 10000,
+        });
+        await page.click('[data-testid="install-app-button-personal"]');
+      } else {
+        await page.waitForURL(`apps/installation/event-types?slug=${app}`, { timeout: 10000 });
+      }
 
       // eslint-disable-next-line playwright/no-wait-for-timeout
       await page.waitForTimeout(1000);
