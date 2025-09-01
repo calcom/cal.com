@@ -5,6 +5,7 @@ import { z, ZodError } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import SVG_HASHES from "@calcom/web/public/app-store/svg-hashes.json";
 
 export const runtime = "edge";
 
@@ -121,8 +122,6 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
-          const svgHashesModule = await import("@calcom/web/public/app-store/svg-hashes.json");
-          const SVG_HASHES = svgHashesModule.default ?? {};
           const svgHash = SVG_HASHES[slug] ?? null;
 
           const img = new ImageResponse(
