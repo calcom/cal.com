@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { Frequency as CalFrequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate, RecurringEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -33,49 +35,68 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     return key;
   };
 
-  const createMeeting = async (event: CalendarEvent): Promise<VideoCallData> => {
+  const authenticatedRequest = async <T>(operation: (key: KyzonCredentialKey) => Promise<T>): Promise<T> => {
     const key = await getRefreshedKey();
 
-    const { data: spaceCallData } = await kyzonAxiosInstance.post<KyzonSpaceCallResponse>(
-      `/v1/teams/${key.team_id}/space/calls`,
-      {
-        name: event.title,
-        isScheduled: true,
-      } satisfies KyzonCreateSpaceCallRequestBody,
-      {
-        headers: {
-          Authorization: `Bearer ${key.access_token}`,
-        },
+    try {
+      return await operation(key);
+    } catch (error) {
+      // Only retry on 401 with a different token
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        const refreshedToken = await refreshKyzonToken(credential.id);
+        if (refreshedToken && refreshedToken.access_token !== key.access_token) {
+          return await operation(refreshedToken);
+        }
       }
+      throw error;
+    }
+  };
+
+  const createMeeting = async (event: CalendarEvent): Promise<VideoCallData> => {
+    const { data: spaceCallData } = await authenticatedRequest((key) =>
+      kyzonAxiosInstance.post<KyzonSpaceCallResponse>(
+        `/v1/teams/${key.team_id}/space/calls`,
+        {
+          name: event.title,
+          isScheduled: true,
+        } satisfies KyzonCreateSpaceCallRequestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${key.access_token}`,
+          },
+        }
+      )
     );
 
-    const { data: calendarData } = await kyzonAxiosInstance.post<KyzonGetCalendarEventResponse>(
-      `/v1/teams/${key.team_id}/calendar-events`,
-      {
-        title: event.title,
-        description: event.description ?? undefined,
-        location: {
-          spaceCallId: spaceCallData.id,
-        },
-        isAllDay: false,
-        timezone: event.organizer?.timeZone || "Etc/UTC",
-        startDateUtcISOString: new Date(event.startTime).toISOString(),
-        endDateUtcISOString: new Date(event.endTime).toISOString(),
-        recurrence: event.recurringEvent ? convertCalRecurrenceToKyzon(event.recurringEvent) : undefined,
-        invitees: event.attendees?.map((attendee) => ({
-          email: attendee.email,
-        })),
-        thirdPartySource: {
-          calendarSource: "Cal.com",
-          eventId: event.uid || "",
-        },
-        hasWaitRoom: false,
-      } satisfies KyzonCreateOrPutCalendarEventRequestBody,
-      {
-        headers: {
-          Authorization: `Bearer ${key.access_token}`,
-        },
-      }
+    const { data: calendarData } = await authenticatedRequest((key) =>
+      kyzonAxiosInstance.post<KyzonGetCalendarEventResponse>(
+        `/v1/teams/${key.team_id}/calendar-events`,
+        {
+          title: event.title,
+          description: event.description ?? undefined,
+          location: {
+            spaceCallId: spaceCallData.id,
+          },
+          isAllDay: false,
+          timezone: event.organizer?.timeZone || "Etc/UTC",
+          startDateUtcISOString: new Date(event.startTime).toISOString(),
+          endDateUtcISOString: new Date(event.endTime).toISOString(),
+          recurrence: event.recurringEvent ? convertCalRecurrenceToKyzon(event.recurringEvent) : undefined,
+          invitees: event.attendees?.map((attendee) => ({
+            email: attendee.email,
+          })),
+          thirdPartySource: {
+            calendarSource: "Cal.com",
+            eventId: event.uid || "",
+          },
+          hasWaitRoom: false,
+        } satisfies KyzonCreateOrPutCalendarEventRequestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${key.access_token}`,
+          },
+        }
+      )
     );
 
     return {
@@ -90,37 +111,39 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     createMeeting,
 
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
-      const key = await getRefreshedKey();
-
       if (!bookingRef.meetingId) {
         return await createMeeting(event);
       }
 
       try {
-        const { data: updatedCalendarEvent } = await kyzonAxiosInstance.put<KyzonGetCalendarEventResponse>(
-          `/v1/teams/${key.team_id}/calendar-events/${bookingRef.meetingId}`,
-          {
-            title: event.title,
-            description: event.description ?? undefined,
-            isAllDay: false,
-            timezone: event.organizer?.timeZone || "Etc/UTC",
-            startDateUtcISOString: new Date(event.startTime).toISOString(),
-            endDateUtcISOString: new Date(event.endTime).toISOString(),
-            recurrence: event.recurringEvent ? convertCalRecurrenceToKyzon(event.recurringEvent) : undefined,
-            invitees: event.attendees?.map((attendee) => ({
-              email: attendee.email,
-            })),
-            thirdPartySource: {
-              calendarSource: "Cal.com",
-              eventId: event.uid || "",
-            },
-            hasWaitRoom: false,
-          } satisfies KyzonCreateOrPutCalendarEventRequestBody,
-          {
-            headers: {
-              Authorization: `Bearer ${key.access_token}`,
-            },
-          }
+        const { data: updatedCalendarEvent } = await authenticatedRequest((key) =>
+          kyzonAxiosInstance.put<KyzonGetCalendarEventResponse>(
+            `/v1/teams/${key.team_id}/calendar-events/${bookingRef.meetingId}`,
+            {
+              title: event.title,
+              description: event.description ?? undefined,
+              isAllDay: false,
+              timezone: event.organizer?.timeZone || "Etc/UTC",
+              startDateUtcISOString: new Date(event.startTime).toISOString(),
+              endDateUtcISOString: new Date(event.endTime).toISOString(),
+              recurrence: event.recurringEvent
+                ? convertCalRecurrenceToKyzon(event.recurringEvent)
+                : undefined,
+              invitees: event.attendees?.map((attendee) => ({
+                email: attendee.email,
+              })),
+              thirdPartySource: {
+                calendarSource: "Cal.com",
+                eventId: event.uid || "",
+              },
+              hasWaitRoom: false,
+            } satisfies KyzonCreateOrPutCalendarEventRequestBody,
+            {
+              headers: {
+                Authorization: `Bearer ${key.access_token}`,
+              },
+            }
+          )
         );
 
         return {
@@ -141,14 +164,14 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     },
 
     deleteMeeting: async (meetingId: string): Promise<void> => {
-      const key = await getRefreshedKey();
-
       try {
-        await kyzonAxiosInstance.delete(`/v1/teams/${key.team_id}/calendar-events/${meetingId}`, {
-          headers: {
-            Authorization: `Bearer ${key.access_token}`,
-          },
-        });
+        await authenticatedRequest((key) =>
+          kyzonAxiosInstance.delete(`/v1/teams/${key.team_id}/calendar-events/${meetingId}`, {
+            headers: {
+              Authorization: `Bearer ${key.access_token}`,
+            },
+          })
+        );
       } catch (error) {
         // Don't throw error if calendar event deletion fails
         // as it might have already been deleted or expired
@@ -166,20 +189,20 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         return [];
       }
 
-      const key = await getRefreshedKey();
-
       try {
-        const response = await kyzonAxiosInstance.get<KyzonSingleSpaceCallWithinRangeResponse[]>(
-          `/v1/teams/${key.team_id}/space/calls`,
-          {
-            params: {
-              startDateUtcISOString: dateFrom,
-              endDateUtcISOString: dateTo,
-            } satisfies KyzonGetSpaceCallsWithinRangeRequestQuery,
-            headers: {
-              Authorization: `Bearer ${key.access_token}`,
-            },
-          }
+        const response = await authenticatedRequest((key) =>
+          kyzonAxiosInstance.get<KyzonSingleSpaceCallWithinRangeResponse[]>(
+            `/v1/teams/${key.team_id}/space/calls`,
+            {
+              params: {
+                startDateUtcISOString: dateFrom,
+                endDateUtcISOString: dateTo,
+              } satisfies KyzonGetSpaceCallsWithinRangeRequestQuery,
+              headers: {
+                Authorization: `Bearer ${key.access_token}`,
+              },
+            }
+          )
         );
 
         const spaceCalls = response.data;
