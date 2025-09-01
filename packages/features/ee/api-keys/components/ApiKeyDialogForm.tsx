@@ -128,7 +128,6 @@ export default function ApiKeyDialogForm({
           form={form}
           handleSubmit={async (event) => {
             if (defaultValues) {
-              console.log("Name changed");
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
             } else {
               const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);

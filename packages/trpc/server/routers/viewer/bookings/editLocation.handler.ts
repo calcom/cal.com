@@ -87,6 +87,7 @@ async function updateBookingLocationInDb({
   evt: Ensure<CalendarEvent, "location">;
   references: PartialReference[];
 }) {
+  const isSeatedEvent = !!evt.seatsPerTimeSlot;
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
@@ -97,6 +98,13 @@ async function updateBookingLocationInDb({
       ...(credentialId && credentialId > 0 ? { credentialId } : {}),
     };
   });
+  const responses = {
+    ...(typeof booking.responses === "object" && booking.responses),
+    location: {
+      value: evt.location,
+      optionValue: "",
+    },
+  };
 
   const bookingRepository = new BookingRepository(prisma);
   await bookingRepository.updateLocationById({
@@ -108,13 +116,7 @@ async function updateBookingLocationInDb({
         ...bookingMetadataUpdate,
       },
       referencesToCreate,
-      responses: {
-        ...(typeof booking.responses === "object" && booking.responses),
-        location: {
-          value: evt.location,
-          optionValue: "",
-        },
-      },
+      ...(!isSeatedEvent ? { responses } : {}),
       iCalSequence: (evt.iCalSequence || 0) + 1,
     },
   });
