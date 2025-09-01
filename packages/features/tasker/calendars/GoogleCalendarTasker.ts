@@ -1,9 +1,7 @@
-import logger from "@calcom/lib/logger";
-
 import { BaseTaskerService } from "../SafeDispatchTasker";
 import type { ILogger } from "../types/logger";
-import { GoogleCalendarSyncTasker } from "./GoogleCalendarSyncTasker";
-import { GoogleCalendarTriggerDevTasker } from "./GoogleCalendarTriggerTasker";
+import type { GoogleCalendarSyncTasker } from "./GoogleCalendarSyncTasker";
+import type { GoogleCalendarTriggerDevTasker } from "./GoogleCalendarTriggerTasker";
 import type { ICalendarTasker } from "./calendar";
 
 export interface ICalendarTaskerDependencies {
@@ -20,6 +18,8 @@ export class GoogleCalendarTasker extends BaseTaskerService<ICalendarTasker> {
   }
 }
 
+/* 
+this is how we can now create the google calendar tasker, we will use dependency injection in web/v2 
 const tasker = new GoogleCalendarTasker({
   primaryTasker: new GoogleCalendarTriggerDevTasker({ logger: logger as unknown as ILogger }),
   fallbackTasker: new GoogleCalendarSyncTasker({ logger: logger as unknown as ILogger }),
@@ -27,3 +27,4 @@ const tasker = new GoogleCalendarTasker({
 });
 
 tasker.dispatch("createEvent", { name: "" });
+ */
