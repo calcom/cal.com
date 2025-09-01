@@ -14,8 +14,8 @@ export type TargetRoutingFormForResponse = SerializableForm<
     user: {
       id: number;
       email: string;
-      timeFormat: number;
-      locale: string;
+      timeFormat: number | null;
+      locale: string | null;
     };
     team: {
       parentId: number | null;

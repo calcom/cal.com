@@ -94,7 +94,7 @@ export class WorkflowService {
       user: {
         email: string;
         timeFormat: number | null;
-        locale: string;
+        locale: string | null;
       };
     };
   }) {
