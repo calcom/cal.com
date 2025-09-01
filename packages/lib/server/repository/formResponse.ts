@@ -105,6 +105,8 @@ export class RoutingFormResponseRepository {
               select: {
                 id: true,
                 email: true,
+                timeFormat: true,
+                locale: true,
               },
             },
             id: true,

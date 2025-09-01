@@ -44,7 +44,7 @@ describe("_onFormSubmission", () => {
       { id: "field-1", identifier: "email", label: "Email", type: "email" },
       { id: "field-2", identifier: "name", label: "Name", type: "text" },
     ],
-    user: { id: 1, email: "test@example.com" },
+    user: { id: 1, email: "test@example.com", timeFormat: 12, locale: "en" },
     teamId: null,
     settings: { emailOwnerOnSubmission: true },
   };
@@ -128,7 +128,7 @@ describe("_onFormSubmission", () => {
         ...mockForm,
         teamId: 1,
         userWithEmails: ["team-member1@example.com", "team-member2@example.com"],
-        user: { id: 1, email: "test@example.com" },
+        user: { id: 1, email: "test@example.com", timeFormat: 12, locale: "en" },
       };
 
       await _onFormSubmission(teamForm as any, mockResponse, responseId);

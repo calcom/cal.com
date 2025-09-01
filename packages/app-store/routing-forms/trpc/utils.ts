@@ -106,7 +106,10 @@ export function getFieldResponse({
  */
 export async function _onFormSubmission(
   form: Ensure<
-    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
+    SerializableForm<App_RoutingForms_Form> & {
+      user: Pick<User, "id" | "email" | "timeFormat" | "locale">;
+      userWithEmails?: string[];
+    },
     "fields"
   >,
   response: FormResponse,
