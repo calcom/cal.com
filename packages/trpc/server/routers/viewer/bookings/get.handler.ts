@@ -701,7 +701,6 @@ export async function getBookings({
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
       if (
-        booking.seatsReferences.length &&
         !booking.eventType?.seatsShowAttendees &&
         !checkIfUserIsHost(user.id, booking) &&
         !(await checkIfUserIsTeamAdminOrOwner(user.id, booking))
