@@ -152,7 +152,12 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       } catch (error) {
         // Don't throw error if calendar event deletion fails
         // as it might have already been deleted or expired
-        console.warn(`Failed to delete KYZON calendar event ${meetingId}:`, error);
+        const err = error as any;
+        console.warn(`Failed to delete KYZON calendar event ${meetingId}:`, {
+          status: err?.response?.status,
+          message: err?.message,
+          code: err?.code,
+        });
       }
     },
 
@@ -194,7 +199,12 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
           return acc;
         }, []);
       } catch (error) {
-        console.warn("Failed to get KYZON Space availability:", error);
+        const err = error as any;
+        console.warn("Failed to get KYZON Space availability:", {
+          status: err?.response?.status,
+          message: err?.message,
+          code: err?.code,
+        });
         return [];
       }
     },
