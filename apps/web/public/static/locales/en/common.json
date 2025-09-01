@@ -3580,6 +3580,8 @@
   "free": "Free",
   "user_email": "User Email",
   "user_name": "User Name",
+  "expand_panel": "Expand Panel",
+  "collapse_panel": "Collapse Panel",
   "you_have_one_team": "You have one team",
   "consider_consolidating_one_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your team.",
   "consider_consolidating_multi_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your teams.",
