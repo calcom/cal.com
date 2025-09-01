@@ -51,8 +51,9 @@ export function createWorkflowPageFixture(page: Page) {
   };
 
   const assertListCount = async (count: number) => {
-    await page.reload();
     const workflowListCount = page.locator('[data-testid="workflow-list"] > li');
+    await expect(workflowListCount).toBeVisible();
+    await page.reload();
     await expect(workflowListCount).toHaveCount(count);
   };
 
