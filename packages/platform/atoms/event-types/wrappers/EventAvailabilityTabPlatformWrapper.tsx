@@ -2,10 +2,10 @@ import { useFormContext } from "react-hook-form";
 
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import { EventAvailabilityTab } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { ScheduleQueryData } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { User } from "@calcom/prisma/client";
 
-import type { Availability } from "../../availability/AvailabilitySettings";
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
 import { useSchedules } from "../../hooks/schedules/useSchedules";
 import { useTeamMembers } from "../../hooks/teams/useTeamMembers";
@@ -54,22 +54,21 @@ const EventAvailabilityTabPlatformWrapper = ({
       isSchedulePending={isSchedulePending}
       hostSchedulesQuery={({ userId }: { userId: number }) => hostSchedulesQuery({ userId, teamId })}
       scheduleQueryData={{
+        ...atomSchedule,
         isManaged: atomSchedule.isManaged,
         readOnly: atomSchedule.readOnly,
         id: atomSchedule.id,
         timeZone: atomSchedule.timeZone,
-        schedule:
-          atomSchedule.schedule.reduce(
-            (acc: Availability[], avail: Availability) => [
-              ...acc,
-              {
-                startTime: new Date(avail.startTime),
-                endTime: new Date(avail.endTime),
-                days: avail.days,
-              },
-            ],
-            []
-          ) || [],
+        schedule: (atomSchedule.schedule || []).map((avail: ScheduleQueryData["schedule"][number]) => ({
+          id: avail.id ?? null,
+          startTime: new Date(avail.startTime),
+          endTime: new Date(avail.endTime),
+          userId: avail.userId ?? null,
+          eventTypeId: avail.eventTypeId ?? null,
+          scheduleId: avail.scheduleId ?? null,
+          date: avail.date ? new Date(avail.date) : null,
+          days: avail.days,
+        })),
       }}
     />
   );
