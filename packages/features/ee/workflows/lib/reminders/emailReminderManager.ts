@@ -166,8 +166,16 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
       cancelReason: evt.cancellationReason,
       rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
-        recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
-      }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
+        recipientEmail
+          ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
+              isEmailAttendeeAction && seatReferenceUid
+                ? `&seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+                : ""
+            }`
+          : isEmailAttendeeAction && seatReferenceUid
+          ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+          : ""
+      }`,
 
       rescheduleReason: evt.rescheduleReason,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
