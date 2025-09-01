@@ -1,8 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -29,21 +30,16 @@ export function PanelCard({
   collapsible?: boolean;
   defaultCollapsed?: boolean;
 }) {
+  const { t } = useLocale();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const contentId = useId();
+  const titleId = useId();
 
   const toggleCollapse = () => {
     setIsCollapsed((prev) => !prev);
   };
 
-  const titleContent =
-    typeof title === "string" ? (
-      <div className="mr-4 flex shrink-0 items-center gap-1">
-        <h2 className="text-emphasis shrink-0 text-sm font-semibold">{title}</h2>
-        {titleTooltip && <InfoBadge content={titleTooltip} />}
-      </div>
-    ) : (
-      title
-    );
+  const isStringTitle = typeof title === "string";
 
   return (
     <div
@@ -70,14 +66,32 @@ export function PanelCard({
               }
               onClick={toggleCollapse}
               className="text-muted -ml-2"
+              aria-expanded={!isCollapsed}
+              aria-controls={contentId}
+              aria-label={isCollapsed ? t("expand_panel") : t("collapse_panel")}
             />
           )}
-          {collapsible && typeof title === "string" ? (
-            <button onClick={toggleCollapse} className="text-left transition-opacity hover:opacity-80">
-              {titleContent}
-            </button>
+          {isStringTitle ? (
+            <div className="mr-4 flex shrink-0 items-center gap-1">
+              <h2 id={titleId} className="text-emphasis shrink-0 text-sm font-semibold">
+                {collapsible ? (
+                  <button
+                    type="button"
+                    onClick={toggleCollapse}
+                    className="text-left transition-opacity hover:opacity-80"
+                    aria-expanded={!isCollapsed}
+                    aria-controls={contentId}
+                    aria-label={isCollapsed ? t("expand_panel") : t("collapse_panel")}>
+                    {title as string}
+                  </button>
+                ) : (
+                  (title as string)
+                )}
+              </h2>
+              {titleTooltip && <InfoBadge content={titleTooltip} />}
+            </div>
           ) : (
-            titleContent
+            title
           )}
         </div>
         <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
@@ -90,6 +104,9 @@ export function PanelCard({
         </div>
       </div>
       <div
+        id={contentId}
+        role="region"
+        aria-labelledby={isStringTitle ? titleId : undefined}
         className={classNames(
           "bg-default border-muted w-full grow gap-3 rounded-xl border",
           isCollapsed && collapsible && "hidden"

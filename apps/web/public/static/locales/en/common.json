@@ -3496,5 +3496,7 @@
   "free": "Free",
   "user_email": "User Email",
   "user_name": "User Name",
+  "expand_panel": "Expand Panel",
+  "collapse_panel": "Collapse Panel",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -26,7 +26,18 @@ export function ChartCard({
   const legendComponent = legend && legend.length > 0 ? <Legend items={legend} size={legendSize} /> : null;
 
   return (
-    <PanelCard {...panelCardProps} headerContent={legendComponent}>
+    <PanelCard
+      {...panelCardProps}
+      headerContent={
+        panelCardProps.headerContent ? (
+          <div className="flex items-center gap-2">
+            {panelCardProps.headerContent}
+            {legendComponent}
+          </div>
+        ) : (
+          legendComponent
+        )
+      }>
       {panelCardProps.children}
     </PanelCard>
   );
