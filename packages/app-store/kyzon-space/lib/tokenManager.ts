@@ -63,7 +63,12 @@ export async function refreshKyzonToken(credentialId: number): Promise<KyzonCred
 
     return newCredentialKey;
   } catch (error) {
-    console.error("Failed to refresh KYZON token:", error);
+    const err = error as any;
+    console.error("Failed to refresh KYZON token", {
+      status: err?.response?.status,
+      message: err?.message,
+      code: err?.code,
+    });
     return null;
   }
 }
