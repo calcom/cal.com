@@ -80,6 +80,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 type PrismaClientWithExtensions = typeof prismaWithClientExtensions;
+
 export type PrismaClient = PrismaClientWithExtensions;
 
 type OmitPrismaClient = Omit<

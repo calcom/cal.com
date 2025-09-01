@@ -1,8 +1,11 @@
 import { UserRepository } from "@/repositories/user.repository";
+import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+import { getUsernameList } from "@calcom/lib/defaultEvents";
+import type { PaginationQuery } from "@/types";
 import { ConflictError, ValidationError } from "@/utils/error";
 import bcrypt from "bcryptjs";
 
-import { PrismaClient } from "@calcom/prisma/client";
+import { PrismaClient } from "@calcom/prisma";
 import type { User, Prisma, UserPermissionRole } from "@calcom/prisma/client";
 
 import { BaseService } from "../base.service";
@@ -91,6 +94,46 @@ export class UserService extends BaseService {
       throw error;
     }
   }
+
+
+  async getUserEventsByUsernameString(usernameString: string) {
+    this.logOperation("getUsersByUsernameString", { usernameString });
+
+    try {
+      const usernameList = getUsernameList(usernameString);
+
+      const usersInOrgContext = await this.getUsersInOrgContext(
+        usernameList,
+        null
+      );
+      return usersInOrgContext;
+    } catch (error) {
+      this.logError("getUsersByUsernameString", error);
+      throw error;
+    }
+  }
+
+  async getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
+    const usersInOrgContext = await this.userRepository.findUsersByUsername({
+      usernameList,
+      orgSlug,
+    });
+
+    if (usersInOrgContext.length) {
+      return usersInOrgContext;
+    }
+
+    // note(Lauris): platform members (people who run platform) are part of platform organization while
+    // the platform organization does not have a domain. In this case there is no org domain but also platform member
+    // "User.organization" is not null so "UserRepository.findUsersByUsername" returns empty array and we do this as a last resort
+    // call to find platform member.
+    return await this.userRepository.findPlatformMembersByUsernames({
+      usernameList,
+    });
+  }
+
+
+
 
   async getUsers(filters: Prisma.UserWhereInput = {}, pagination: UserPaginationQuery = {}) {
     this.logOperation("getUsers", { filters, pagination });

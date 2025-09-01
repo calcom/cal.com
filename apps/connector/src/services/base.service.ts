@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 
 export abstract class BaseService {
   constructor(protected prisma: PrismaClient) {}

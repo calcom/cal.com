@@ -262,3 +262,5 @@ export const RAZORPAY_STATE_KEY = process.env.RAZORPAY_SECRET;
 export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_SECRET;
 export const RAZORPAY_REDIRECT_URL = `${WEBAPP_URL}/apps/razorpay/callback`;
 export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";
+
+export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";

@@ -1,14 +1,17 @@
 import type { UserPaginationQuery } from "@/schema/user.schema";
 import { NotFoundError } from "@/utils/error";
 
-import type { PrismaClient } from "@calcom/prisma/client";
+import { UserRepository as OldUserRepository } from "@calcom/lib/server/repository/user";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, User, UserPermissionRole } from "@calcom/prisma/client";
 
 import { BaseRepository } from "./base.repository";
 
 export class UserRepository extends BaseRepository<User> {
+  private oldUserRepo: OldUserRepository;
   constructor(prisma: PrismaClient) {
     super(prisma);
+    this.oldUserRepo = new OldUserRepository(prisma);
   }
 
   async create(data: Prisma.UserCreateInput): Promise<User> {
@@ -158,5 +161,17 @@ export class UserRepository extends BaseRepository<User> {
     } catch (error) {
       this.handleDatabaseError(error, "check email exists");
     }
+  }
+
+  async findUsersByUsername({ orgSlug, usernameList }: { orgSlug: string | null; usernameList: string[] }) {
+    const data = await this.oldUserRepo.findUsersByUsername({ orgSlug, usernameList });
+
+    console.log("Data for username: ", data);
+
+    return data;
+  }
+
+  async findPlatformMembersByUsernames({ usernameList }: { usernameList: string[] }) {
+    return this.oldUserRepo.findPlatformMembersByUsernames({ usernameList });
   }
 }
