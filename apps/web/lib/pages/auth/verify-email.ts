@@ -41,7 +41,7 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
   });
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
   const billingService = new StripeBillingService();
 

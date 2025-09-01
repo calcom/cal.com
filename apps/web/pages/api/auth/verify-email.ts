@@ -1,1 +1,1 @@
-export { default } from "@lib/pages/auth/verify-email";
+export { handler as default } from "@lib/pages/auth/verify-email";
