@@ -1,8 +1,8 @@
 {
   "/*": "Don't modify slug - If required, do it using cli edit command",
   "name": "KYZON Space",
-  "slug": "kyzon-space",
-  "type": "kyzon-space_video",
+  "slug": "kyzonspacevideo",
+  "type": "kyzonspace_video",
   "logo": "icon.svg",
   "url": "https://kyzonsolutions.com",
   "variant": "conferencing",

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "@calcom/kyzon-space",
+  "name": "@calcom/kyzonspacevideo",
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {

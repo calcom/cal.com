@@ -126,8 +126,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  // With this we take care of no duplicate kyzon-space key for a single user
-  // when creating a room using deleteMany if there is already a kyzon-space key
+  // With this we take care of no duplicate kyzonspacevideo key for a single user
+  // when creating a room using deleteMany if there is already a kyzonspacevideo key
   await prisma.credential.deleteMany({
     where: {
       type: config.type,

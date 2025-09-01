@@ -3341,9 +3341,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/kyzon-space@workspace:packages/app-store/kyzon-space":
+"@calcom/kyzonspacevideo@workspace:packages/app-store/kyzonspacevideo":
   version: 0.0.0-use.local
-  resolution: "@calcom/kyzon-space@workspace:packages/app-store/kyzon-space"
+  resolution: "@calcom/kyzonspacevideo@workspace:packages/app-store/kyzonspacevideo"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
