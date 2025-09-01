@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   setup:
-    name: Yarn install & cache
+    name: Yarn install & cache all
     runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 10
     steps:
