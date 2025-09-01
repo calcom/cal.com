@@ -8,36 +8,33 @@ vi.mock("@calcom/prisma/zod-utils", () => ({
   },
 }));
 
-vi.mock("@calcom/app-store", () => ({
-  default: {
-    stripepayment: () =>
-      Promise.resolve({
-        lib: {
-          PaymentService: class MockPaymentService {
-            async create(paymentData: { amount: number; currency: string }) {
-              return {
-                ...paymentData,
-                id: "mock-payment-id",
-                externalId: "mock-external-id",
-                success: true,
-              };
-            }
+vi.mock("@calcom/app-store/payment.services.generated", () => ({
+  PaymentServiceMap: {
+    stripepayment: Promise.resolve({
+      PaymentService: class MockPaymentService {
+        async create(paymentData: { amount: number; currency: string }) {
+          return {
+            ...paymentData,
+            id: "mock-payment-id",
+            externalId: "mock-external-id",
+            success: true,
+          };
+        }
 
-            async collectCard(paymentData: { amount: number; currency: string }) {
-              return {
-                ...paymentData,
-                id: "mock-payment-id",
-                externalId: "mock-external-id",
-                success: true,
-              };
-            }
+        async collectCard(paymentData: { amount: number; currency: string }) {
+          return {
+            ...paymentData,
+            id: "mock-payment-id",
+            externalId: "mock-external-id",
+            success: true,
+          };
+        }
 
-            async afterPayment() {
-              return true;
-            }
-          },
-        },
-      }),
+        async afterPayment() {
+          return true;
+        }
+      },
+    }),
   },
 }));
 
@@ -74,12 +71,22 @@ describe("handlePayment", () => {
     appId: "stripe" as const,
     app: {
       dirName: "stripepayment",
-      categories: ["payment"] as const,
+      categories: ["payment"],
     },
   };
 
   const mockEvent = {
+    type: "testEvent",
     title: "Test Event",
+    startTime: "2025-03-12T10:00:00Z",
+    endTime: "2025-03-12T11:00:00Z",
+    organizer: {
+      name: "Test Organizer",
+      email: "organizer@example.com",
+      timeZone: "UTC",
+      language: { locale: "en" },
+    },
+    attendees: [],
     responses: {},
   };
 
@@ -130,6 +137,7 @@ describe("handlePayment", () => {
         name: "quantity",
         type: "number" as const,
         price: 5,
+        required: false,
       },
     ];
 
@@ -159,6 +167,7 @@ describe("handlePayment", () => {
         name: "extraService",
         type: "boolean" as const,
         price: 15,
+        required: false,
       },
     ];
 
@@ -187,9 +196,10 @@ describe("handlePayment", () => {
       {
         name: "package",
         type: "select" as const,
+        required: false,
         options: [
-          { value: "basic", price: 10 },
-          { value: "premium", price: 20 },
+          { value: "basic", label: "Basic Package", price: 10 },
+          { value: "premium", label: "Premium Package", price: 20 },
         ],
       },
     ];
@@ -222,18 +232,21 @@ describe("handlePayment", () => {
         name: "quantity",
         type: "number" as const,
         price: 5,
+        required: false,
       },
       {
         name: "extraService",
         type: "boolean" as const,
         price: 15,
+        required: false,
       },
       {
         name: "package",
         type: "select" as const,
+        required: false,
         options: [
-          { value: "basic", price: 10 },
-          { value: "premium", price: 20 },
+          { value: "basic", label: "Basic Package", price: 10 },
+          { value: "premium", label: "Premium Package", price: 20 },
         ],
       },
     ];
@@ -263,9 +276,10 @@ describe("handlePayment", () => {
       {
         name: "mealChoice",
         type: "radio" as const,
+        required: false,
         options: [
-          { value: "basic", price: 10 },
-          { value: "premium", price: 20 },
+          { value: "basic", label: "Basic Meal", price: 10 },
+          { value: "premium", label: "Premium Meal", price: 20 },
         ],
       },
     ];
