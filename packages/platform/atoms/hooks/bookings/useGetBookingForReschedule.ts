@@ -47,7 +47,7 @@ export const useGetBookingForReschedule = (
           props.onError?.(err);
         });
     },
-    enabled: isInit && !!props?.uid,
+    enabled: isInit && !!props?.uid && props.uid !== "null" && props.uid !== "",
   });
 
   return bookingQuery;

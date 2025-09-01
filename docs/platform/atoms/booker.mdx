@@ -131,6 +131,9 @@ Below is a list of props that can be passed to the booker atom.
 | silentlyHandleCalendarFailures     | No       | Boolean when true the booker still displays slots when the third party calendars credentials are invalid or expired, Booker may show stale availability when enabled                             |
 | hideEventMetadata     | No       | Boolean that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information. Defaults to `false`.                             |
 
+> **Note:**  
+> When using `rescheduleUid` or `bookingUid` props, ensure you do **not** pass the string `"null"` or an empty string. If you do not have a valid value, omit the prop or pass `null`. Passing `"null"` or empty string may result in a 401 Unauthorized error from the API.
+
 ## Styling
 
 Booker atom accepts custom styles via the `customClassNames` prop. This prop is an object that contains root level styles and nested objects for styling different parts of the booker component. Each nested object groups related styles for a specific section of the booker (e.g., eventMeta, datePicker, availableTimeSlots, etc).

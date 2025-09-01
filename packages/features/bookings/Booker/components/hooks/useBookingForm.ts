@@ -47,7 +47,8 @@ export const useBookingForm = ({
       responses: event
         ? getBookingResponsesSchema({
             bookingFields: event.bookingFields,
-            view: rescheduleUid ? "reschedule" : "booking",
+            view:
+              rescheduleUid && rescheduleUid !== "null" && rescheduleUid !== "" ? "reschedule" : "booking",
           })
         : // Fallback until event is loaded.
           z.object({}),
