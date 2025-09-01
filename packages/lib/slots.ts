@@ -15,9 +15,14 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
 };
-export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
-const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
+export type TimeFrame = {
+  userIds?: number[];
+  startTime: number;
+  endTime: number;
+};
+
+const minimumOfOne = (input: number): number => (input < 1 ? 1 : input);
 
 function buildSlotsWithDateRanges({
   dateRanges,
@@ -25,7 +30,7 @@ function buildSlotsWithDateRanges({
   eventLength,
   timeZone,
   minimumBookingNotice,
-  offsetStart,
+  offsetStart = 0,
   datesOutOfOffice,
 }: {
   dateRanges: DateRange[];
@@ -36,14 +41,15 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
 }) {
-  // keep the old safeguards in; may be needed.
+  // Ensure frequency and eventLength have a minimum value of 1
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
-  offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
+  offsetStart = minimumOfOne(offsetStart);
 
-  const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  // Sort date ranges by start time ascending
+  const orderedDateRanges = dateRanges.slice().sort((a, b) => a.start.valueOf() - b.start.valueOf());
 
-  // there can only ever be one slot at a given start time, and based on duration also only a single length.
+  // Slots map keyed by ISO string of slot start time
   const slots = new Map<
     string,
     {
@@ -57,103 +63,90 @@ function buildSlotsWithDateRanges({
     }
   >();
 
+  // Determine interval aligned with common start times
   let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
-  const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
-
-  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-      interval = intervalsWithDefinedStartTimes[i];
+  const commonIntervals = [60, 30, 20, 15, 10, 5];
+  for (const ci of commonIntervals) {
+    if (frequency % ci === 0) {
+      interval = ci;
       break;
     }
   }
 
-  // Fix applied here: Use timezone-aware 'now' to calculate minimum booking notice
+  // Use timezone-aware 'now' for minimum booking notice calculation
   const nowInTimeZone = dayjs().tz(timeZone);
-  const startTimeWithMinNotice = nowInTimeZone.add(minimumBookingNotice, "minute");
+  const earliestStartTime = nowInTimeZone.add(minimumBookingNotice, "minute");
 
+  // Track slot boundaries to avoid overlapping slots
   const slotBoundaries = new Map<number, true>();
 
-  orderedDateRanges.forEach((range) => {
-    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
+  for (const range of orderedDateRanges) {
+    const dateKey = range.start.format("YYYY-MM-DD");
 
-    let slotStartTime = range.start.isAfter(startTimeWithMinNotice)
-      ? range.start
-      : startTimeWithMinNotice;
+    // Start time for slots is max of range start and earliest start time
+    let slotStartTime = range.start.isAfter(earliestStartTime) ? range.start : earliestStartTime;
 
-    // Align slotStartTime to interval boundaries
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
+    // Align slotStartTime to interval boundary (round up)
+    if (slotStartTime.minute() % interval !== 0) {
+      const remainder = slotStartTime.minute() % interval;
+      slotStartTime = slotStartTime.add(interval - remainder, "minute");
+    }
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+    // Apply offsetStart as minutes shift
+    slotStartTime = slotStartTime.add(offsetStart, "minute").tz(timeZone);
 
-    // Find the nearest appropriate slot boundary if this time falls within an existing slot
-    const slotBoundariesValueArray = Array.from(slotBoundaries.keys());
-    if (slotBoundariesValueArray.length > 0) {
-      slotBoundariesValueArray.sort((a, b) => a - b);
-
-      let prevBoundary = null;
-      for (let i = slotBoundariesValueArray.length - 1; i >= 0; i--) {
-        if (slotBoundariesValueArray[i] < slotStartTime.valueOf()) {
-          prevBoundary = slotBoundariesValueArray[i];
-          break;
+    // Adjust slotStartTime if it overlaps with previous slots
+    const sortedBoundaries = Array.from(slotBoundaries.keys()).sort((a, b) => a - b);
+    for (let i = sortedBoundaries.length - 1; i >= 0; i--) {
+      const boundary = sortedBoundaries[i];
+      if (boundary < slotStartTime.valueOf()) {
+        const boundaryEnd = dayjs(boundary).add(frequency, "minute");
+        if (boundaryEnd.isAfter(slotStartTime)) {
+          // If previous boundary end is after proposed start,
+          // move start to boundary end ensuring it doesn't go before date range start
+          slotStartTime = dayjs.max(boundaryEnd, range.start).tz(timeZone);
         }
-      }
-
-      if (prevBoundary) {
-        const prevBoundaryEnd = dayjs(prevBoundary).add(frequency + (offsetStart ?? 0), "minutes");
-        if (prevBoundaryEnd.isAfter(slotStartTime)) {
-          const dayjsPrevBoundary = dayjs(prevBoundary);
-          if (!dayjsPrevBoundary.isBefore(range.start)) {
-            slotStartTime = dayjsPrevBoundary;
-          } else {
-            slotStartTime = prevBoundaryEnd;
-          }
-          slotStartTime = slotStartTime.tz(timeZone);
-        }
+        break;
       }
     }
 
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
+    // Generate slots while end time is within current date range
+    while (
+      slotStartTime
+        .add(eventLength, "minute")
+        .subtract(1, "second")
+        .isSameOrBefore(range.end)
+    ) {
       const slotKey = slotStartTime.toISOString();
+
       if (slots.has(slotKey)) {
-        slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+        slotStartTime = slotStartTime.add(frequency, "minute");
         continue;
       }
 
+      // Mark this slot boundary as taken
       slotBoundaries.set(slotStartTime.valueOf(), true);
 
-      const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
-      let slotData: {
-        time: Dayjs;
-        userIds?: number[];
-        away?: boolean;
-        fromUser?: IFromUser;
-        toUser?: IToUser;
-        reason?: string;
-        emoji?: string;
-      } = {
-        time: slotStartTime,
-      };
+      // Check if the date has out-of-office info
+      const outOfOffice = datesOutOfOffice?.[dateKey];
 
-      if (dateOutOfOfficeExists) {
-        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
-
-        slotData = {
-          time: slotStartTime,
-          away: true,
-          ...(fromUser && { fromUser }),
-          ...(toUser && { toUser }),
-          ...(reason && { reason }),
-          ...(emoji && { emoji }),
-        };
-      }
+      // Prepare slot data with or without out-of-office metadata
+      const slotData = outOfOffice
+        ? {
+            time: slotStartTime,
+            away: true,
+            ...(outOfOffice.fromUser && { fromUser: outOfOffice.fromUser }),
+            ...(outOfOffice.toUser && { toUser: outOfOffice.toUser }),
+            ...(outOfOffice.reason && { reason: outOfOffice.reason }),
+            ...(outOfOffice.emoji && { emoji: outOfOffice.emoji }),
+          }
+        : { time: slotStartTime };
 
       slots.set(slotKey, slotData);
-      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+
+      slotStartTime = slotStartTime.add(frequency, "minute");
     }
-  });
+  }
 
   return Array.from(slots.values());
 }
@@ -166,15 +159,7 @@ const getSlots = ({
   eventLength,
   offsetStart = 0,
   datesOutOfOffice,
-}: GetSlots): {
-  time: Dayjs;
-  userIds?: number[];
-  away?: boolean;
-  fromUser?: IFromUser;
-  toUser?: IToUser;
-  reason?: string;
-  emoji?: string;
-}[] => {
+}: GetSlots) => {
   return buildSlotsWithDateRanges({
     dateRanges,
     frequency,
