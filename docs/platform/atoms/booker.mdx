@@ -132,7 +132,7 @@ Below is a list of props that can be passed to the booker atom.
 | hideEventMetadata     | No       | Boolean that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information. Defaults to `false`.                             |
 
 > **Note:**  
-> When using `rescheduleUid` or `bookingUid` props, ensure you do **not** pass the string `"null"` or an empty string. If you do not have a valid value, omit the prop or pass `null`. Passing `"null"` or empty string may result in a 401 Unauthorized error from the API.
+> When using `rescheduleUid` or `bookingUid` props, do **not** pass the string `"null"` or an empty string. If you don’t have a valid value, omit the prop or pass `null` (without quotes). Passing `"null"` or an empty string may result in a 401 Unauthorized error from the API.
 
 ## Styling
 
