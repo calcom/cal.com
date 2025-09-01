@@ -1,4 +1,4 @@
-import tasker from "@calcom/features/tasker";
+import { createSendAnalyticsEventTask } from "@calcom/features/tasker/tasks/createSendAnalyticsEventTask";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 interface HandleAnalyticsEventsProps {
@@ -31,7 +31,7 @@ export const handleAnalyticsEvents = async ({
   if (!dubCredential) return;
 
   try {
-    await tasker.create("sendAnalyticsEvent", {
+    await createSendAnalyticsEventTask({
       credentialId: dubCredential.id,
       info: {
         id: dub_id,

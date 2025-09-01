@@ -1,13 +1,9 @@
-import tasker from "@calcom/features/tasker";
 import { tasksConfig } from "@calcom/features/tasker/tasks";
+import { createCRMEventTask } from "@calcom/features/tasker/tasks/createCRMEventTask";
 
 class CRMScheduler {
   static async createEvent({ bookingUid }: { bookingUid: string }) {
-    return tasker.create(
-      "createCRMEvent",
-      { bookingUid },
-      { maxAttempts: tasksConfig.createCRMEvent?.maxAttempts ?? 5 }
-    );
+    return createCRMEventTask({ bookingUid }, { maxAttempts: tasksConfig.createCRMEvent?.maxAttempts ?? 5 });
   }
 }
 

@@ -1,6 +1,7 @@
 import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import tasker from "@calcom/features/tasker";
+import { createTriggerGuestNoShowWebhookTask } from "@calcom/features/tasker/tasks/createTriggerGuestNoShowWebhookTask";
+import { createTriggerHostNoShowWebhookTask } from "@calcom/features/tasker/tasks/createTriggerHostNoShowWebhookTask";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -54,8 +55,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
         const scheduledAt = dayjs(booking.startTime)
           .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
-        return tasker.create(
-          "triggerHostNoShowWebhook",
+        return createTriggerHostNoShowWebhookTask(
           {
             triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,
@@ -85,8 +85,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
           .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
 
-        return tasker.create(
-          "triggerGuestNoShowWebhook",
+        return createTriggerGuestNoShowWebhookTask(
           {
             triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,

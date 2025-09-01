@@ -1,6 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import tasker from "@calcom/features/tasker";
+import { createScanWorkflowBodyTask } from "@calcom/features/tasker/tasks/createScanWorkflowBodyTask";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
@@ -525,7 +525,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         });
 
         if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
-          await tasker.create("scanWorkflowBody", {
+          await createScanWorkflowBodyTask({
             workflowStepId: oldStep.id,
             userId: ctx.user.id,
             createdAt: new Date().toISOString(),
@@ -607,7 +607,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (SCANNING_WORKFLOW_STEPS) {
       await Promise.all(
         createdSteps.map((step) =>
-          tasker.create("scanWorkflowBody", {
+          createScanWorkflowBodyTask({
             workflowStepId: step.id,
             userId: ctx.user.id,
             createdAt: new Date().toISOString(),

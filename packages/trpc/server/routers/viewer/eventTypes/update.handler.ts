@@ -8,7 +8,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import tasker from "@calcom/features/tasker";
+import { createTranslateEventTypeDataTask } from "@calcom/features/tasker/tasks/createTranslateEventTypeDataTask";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -643,7 +643,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const title = newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined);
 
   if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
-    await tasker.create("translateEventTypeData", {
+    await createTranslateEventTypeDataTask({
       eventTypeId: id,
       description,
       title,
