@@ -8,6 +8,8 @@ import { intercom } from "@calcom/features/ee/support/lib/intercom/intercom";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   let contact: Contact;
 
-  const existingContact = await intercom.getContactByEmail(session.user.email);
+  const existingContact = await intercom.getContactByEmail("account@creationteset12212.com");
 
   if (existingContact.error) {
     return NextResponse.json({ error: existingContact?.error ?? "Error fetching intercom contact for user" });
@@ -39,6 +41,12 @@ export async function POST(req: NextRequest) {
   const { user } = session;
 
   if (!existingContact.data) {
+    const additionalUserInfo = await new UserRepository(prisma).getUserStats({ userId: session.user.id });
+    const sumOfTeamEventTypes = additionalUserInfo?.teams.reduce(
+      (sum, team) => sum + team.team.eventTypes.length,
+      0
+    );
+
     const newContact = await intercom.createContact({
       email: session.user.email,
       external_id: session.user.id.toString(),
@@ -56,11 +64,19 @@ export async function POST(req: NextRequest) {
         is_logged_in: !!user,
         has_orgs_plan: !!user?.org,
         organization: user?.org?.slug,
+        sum_of_bookings: additionalUserInfo?._count?.bookings,
+        sum_of_calendars: additionalUserInfo?._count?.userLevelSelectedCalendars,
+        sum_of_teams: additionalUserInfo?._count?.teams,
+        sum_of_event_types: additionalUserInfo?._count?.eventTypes,
+        sum_of_team_event_types: sumOfTeamEventTypes,
       },
     });
 
     if (newContact.error || !newContact.data) {
-      return NextResponse.json({ error: newContact.error ?? "Error creating contact from email" });
+      return NextResponse.json(
+        { error: newContact.error ?? "Error creating contact from email" },
+        { status: 500 }
+      );
     }
 
     contact = newContact.data;
