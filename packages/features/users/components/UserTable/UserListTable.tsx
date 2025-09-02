@@ -631,7 +631,7 @@ function UserListTableContent({
             </p>
             {!isPlatformUser ? (
               <>
-                {(permissions?.canChangeMemberRole ?? adminOrOwner) && <TeamListBulkAction table={table} />}
+                {permissions?.canChangeMemberRole && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
