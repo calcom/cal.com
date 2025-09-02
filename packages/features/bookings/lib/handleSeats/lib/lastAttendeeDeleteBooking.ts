@@ -66,13 +66,17 @@ const lastAttendeeDeleteBooking = async (
         },
       });
       // --- Audit log integration ---
-      await BookingDeleteService.deleteBooking({
-        bookingId: originalRescheduledBooking.id,
-        actor: { type: "system" },
-        wasRescheduled: !!originalRescheduledBooking.fromReschedule,
-        totalUpdates: originalRescheduledBooking.iCalSequence ?? 0,
-        additionalContext: {},
-      });
+      try {
+        await BookingDeleteService.deleteBooking({
+          bookingId: originalRescheduledBooking.id,
+          actor: { type: "system" },
+          wasRescheduled: !!originalRescheduledBooking.fromReschedule,
+          totalUpdates: originalRescheduledBooking.iCalSequence ?? 0,
+          additionalContext: {},
+        });
+      } catch (e) {
+        // Non-fatal: keep cancellation outcome; surface to logs/observability.
+      }
       // --- end audit log integration ---
     });
     deletedReferences = true;

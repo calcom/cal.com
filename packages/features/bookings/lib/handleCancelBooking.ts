@@ -450,8 +450,8 @@ async function handler(input: CancelBookingInput) {
     await BookingDeleteService.deleteBooking({
       bookingId: bookingToDelete.id,
       actor: userId ? { type: "user", id: userId } : { type: "system" },
-      wasRescheduled: !!bookingToDelete.rescheduled,
-      totalUpdates: bookingToDelete.iCalSequence ?? 0,
+      wasRescheduled: !!bookingToDelete.fromReschedule,
+      totalUpdates: evt.iCalSequence ?? 0,
       additionalContext: {
         cancellationReason,
       },

@@ -1,4 +1,5 @@
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 type AuditLogContext = {
   type: string;
@@ -25,25 +26,23 @@ export class BookingDeleteService {
     // Delete the booking (soft delete or update status as needed)
     const booking = await prisma.booking.update({
       where: { id: bookingId },
-      data: { status: "CANCELLED" },
+      data: { status: BookingStatus.CANCELLED },
+      select: { id: true },
     });
 
     // Create audit log entry
     const context: AuditLogContext = {
+      ...additionalContext,
       type: "record_deleted",
       wasRescheduled,
       totalUpdates,
       actor,
-      ...additionalContext,
     };
 
-    await prisma.auditLog.create({
-      data: {
-        entity: "booking",
-        entityId: bookingId,
-        action: "delete",
-        context,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.auditLog.create({
+        data: { entity: "booking", entityId: bookingId, action: "delete", context },
+      });
     });
 
     return booking;
