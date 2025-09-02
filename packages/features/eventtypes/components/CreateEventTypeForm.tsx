@@ -64,11 +64,9 @@ export default function CreateEventTypeForm({
               required
               addOnLeading={
                 !isPlatform ? (
-                  <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
-                    <span className="max-w-24 md:max-w-56">
-                      {`/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
-                    </span>
-                  </Tooltip>
+                  <span className="max-w-24 md:max-w-56">
+                    {`/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
+                  </span>
                 ) : undefined
               }
               containerClassName="[&>div]:gap-0"
@@ -115,6 +113,7 @@ export default function CreateEventTypeForm({
             <TextAreaField {...register("description")} placeholder={t("quick_video_meeting")} />
           ) : (
             <Editor
+              label={t("description")}
               getText={() => md.render(form.getValues("description") || "")}
               setText={(value: string) => form.setValue("description", turndown(value))}
               excludedToolbarItems={["blockType", "link"]}
@@ -145,7 +144,7 @@ export default function CreateEventTypeForm({
                   message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
                 },
               })}
-              addOnSuffix={t("minutes")}
+              addOnSuffix={t("minutes").toLowerCase()}
             />
           </div>
         </>

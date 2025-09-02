@@ -193,25 +193,27 @@ async function getHandler(request: NextRequest) {
     const response = await fetch(filteredLogo);
     const arrayBuffer = await response.arrayBuffer();
     let buffer: Buffer = Buffer.from(arrayBuffer);
+    let contentType = response.headers.get("content-type") || "image/png";
 
-    // If we need to resize the team logos (via Next.js' built-in image processing)
+    // Resize the team logos if needed
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
-      const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
-
-      buffer = await optimizeImage({
+      const { resizeImage } = await import("@calcom/lib/server/imageUtils");
+      const { buffer: outBuffer, contentType: outContentType } = await resizeImage({
         buffer,
-        contentType: detectContentType(buffer) ?? "image/jpeg",
-        quality: 100,
         width: logoDefinition.w,
-        height: logoDefinition.h, // optional
+        height: logoDefinition.h,
+        quality: 100,
+        contentType,
       });
+      buffer = outBuffer;
+      contentType = outContentType;
     }
 
     // Create a new response with the image buffer
     const imageResponse = new NextResponse(buffer as BodyInit);
 
     // Set the appropriate headers
-    imageResponse.headers.set("Content-Type", response.headers.get("content-type") || "image/png");
+    imageResponse.headers.set("Content-Type", contentType);
     imageResponse.headers.set("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
 
     return imageResponse;
