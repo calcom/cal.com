@@ -56,6 +56,12 @@ const Page = async () => {
   const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
   const [attributes, roles] = await Promise.all([getCachedAttributes(org.id), getCachedRoles(org.id)]);
 
+  const fallbackRolesThatCanSeeMembers: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
+
+  if (!org?.isPrivate) {
+    fallbackRolesThatCanSeeMembers.push(MembershipRole.MEMBER);
+  }
+
   // Get specific PBAC permissions for organization member actions
   const permissions = await getSpecificPermissions({
     userId: session.user.id,
@@ -71,7 +77,7 @@ const Page = async () => {
     ],
     fallbackRoles: {
       [CustomAction.ListMembers]: {
-        roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+        roles: fallbackRolesThatCanSeeMembers,
       },
       [CustomAction.Invite]: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
