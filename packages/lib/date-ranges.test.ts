@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -150,7 +151,7 @@ describe("processWorkingHours", () => {
       },
       {
         start: dayjs("2023-11-30T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-30T18:29:59.999Z").tz(timeZone),
+        end: dayjs("2023-11-30T22:00:00.000Z").tz(timeZone),
       },
     ]);
 

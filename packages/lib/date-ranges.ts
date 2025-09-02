@@ -234,6 +234,9 @@ export function processWorkingHours(
       if (!endTimeToKeyMap.has(endTimeKey)) {
         endTimeToKeyMap.set(endTimeKey, []);
       }
+      const keySet = new Set(endTimeToKeyMap.get(endTimeKey) || []);
+      keySet.add(newKey);
+      endTimeToKeyMap.set(endTimeKey, Array.from(keySet));
     }
   }
 
