@@ -5,7 +5,7 @@ import db from "@calcom/prisma";
 
 import type { Role, RolePermission, PermissionChange, CreateRoleData } from "../../domain/models/Role";
 import { RoleType } from "../../domain/models/Role";
-import { Resource } from "../../domain/types/permission-registry";
+import { parsePermissionString } from "../../domain/types/permission-registry";
 import { RoleOutputMapper } from "../mappers/RoleOutputMapper";
 
 /**
@@ -84,7 +84,6 @@ export class RoleRepository {
 
       if (data.permissions.length > 0) {
         const permissionData = data.permissions.map((permission) => {
-          // Parse permission string to handle nested resources like "organization.attributes.read"
           const { resource, action } = parsePermissionString(permission);
           return {
             id: uuidv4(),

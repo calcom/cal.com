@@ -6,9 +6,9 @@ import type { Resource, PermissionRegistry } from "@calcom/features/pbac/domain/
 import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { Checkbox, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Checkbox, Label } from "@calcom/ui/form";
 
 import { usePermissions } from "./usePermissions";
 

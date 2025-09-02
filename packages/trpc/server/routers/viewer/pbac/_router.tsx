@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
@@ -13,38 +13,7 @@ import { router } from "../../../trpc";
 
 // Create a Zod schema for PermissionString that validates the format
 const permissionStringSchema = z.custom<PermissionString>((val) => {
-  if (typeof val !== "string") return false;
-
-  // Handle special case for _resource
-  if (val.endsWith("._resource")) {
-    return true;
-  }
-
-  // Find the longest matching resource from the end
-  const resourceValues = Object.values(Resource);
-  let matchedResource: string | null = null;
-  let remainingAction: string | null = null;
-
-  // Sort resources by length (longest first) to match the most specific resource
-  const sortedResources = resourceValues.sort((a, b) => b.length - a.length);
-
-  for (const resource of sortedResources) {
-    if (val.startsWith(resource + ".")) {
-      matchedResource = resource;
-      remainingAction = val.substring(resource.length + 1);
-      break;
-    }
-  }
-
-  if (!matchedResource || !remainingAction) {
-    return false;
-  }
-
-  const isValidAction =
-    Object.values(CrudAction).includes(remainingAction as CrudAction) ||
-    Object.values(CustomAction).includes(remainingAction as CustomAction);
-
-  return isValidAction;
+  return isValidPermissionString(val);
 }, "Invalid permission string format. Must be 'resource.action' where resource and action are valid enums");
 
 // Schema for creating/updating roles

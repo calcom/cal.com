@@ -11,7 +11,7 @@ import type {
   UpdateAgentRequest,
   RetellAgent,
   CreatePhoneNumberParams,
-  RetellDynamicVariables,
+  CreatePhoneCallParams,
   ImportPhoneNumberParams,
 } from "./types";
 
@@ -221,16 +221,12 @@ export class RetellSDKClient implements RetellAIRepository {
     }
   }
 
-  async createPhoneCall(data: {
-    from_number: string;
-    to_number: string;
-    retell_llm_dynamic_variables?: RetellDynamicVariables;
-  }) {
+  async createPhoneCall(data: CreatePhoneCallParams) {
     try {
       const response = await this.client.call.createPhoneCall({
-        from_number: data.from_number,
-        to_number: data.to_number,
-        retell_llm_dynamic_variables: data.retell_llm_dynamic_variables,
+        from_number: data.fromNumber,
+        to_number: data.toNumber,
+        retell_llm_dynamic_variables: data.dynamicVariables,
       });
       return response;
     } catch (error) {
