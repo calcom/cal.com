@@ -2,6 +2,7 @@ import { useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { trpc } from "@calcom/trpc/react";
 
 import type { fieldsSchema } from "./schema";
 
@@ -45,6 +46,14 @@ function isEqual(searchParamValue: string | string[], formValue: string[] | stri
 export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
   const { getValues, formState } = useFormContext();
   const toPrefillValues = useRouterQuery();
+
+  try {
+    const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+    if (currentOrg?.organizationSettings?.disableAutofillOnBookingPage) {
+      return true;
+    }
+  } catch (error) {}
+
   if (!field.disableOnPrefill) {
     return false;
   }
