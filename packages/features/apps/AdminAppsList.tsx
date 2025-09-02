@@ -2,10 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 // eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
 import type { FC } from "react";
 import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
@@ -154,7 +154,7 @@ const AdminAppsList = ({
   onSubmit?: () => void;
   nav?: { onNext: () => void; onPrev: () => void };
 } & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
-  const { t } = useLocale();
+  const { t } = useTranslation("apps");
   return (
     <form
       {...rest}

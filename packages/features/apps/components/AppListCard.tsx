@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { AppListCardProps } from "@calcom/ui/components/app-list-card";

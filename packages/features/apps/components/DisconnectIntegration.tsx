@@ -1,25 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { ButtonProps } from "@calcom/ui/components/button";
 import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect-calendar-integration";
 import { showToast } from "@calcom/ui/components/toast";
 
-export default function DisconnectIntegration(props: {
+type DisconnectIntegrationProps = {
   credentialId: number;
   teamId?: number | null;
   label?: string;
   trashIcon?: boolean;
   isGlobal?: boolean;
   onSuccess?: () => void;
-  buttonProps?: ButtonProps;
-}) {
-  const { t } = useLocale();
-  const { onSuccess, credentialId, teamId } = props;
+  buttonProps?: any;
+};
+
+export default function DisconnectIntegration({
+  credentialId,
+  label,
+  onSuccess,
+  buttonProps,
+  teamId,
+}: DisconnectIntegrationProps) {
+  const { t } = useTranslation("apps");
   const [modalOpen, setModalOpen] = useState(false);
   const utils = trpc.useUtils();
 
@@ -47,7 +53,7 @@ export default function DisconnectIntegration(props: {
       isModalOpen={modalOpen}
       onModalOpen={() => setModalOpen((prevValue) => !prevValue)}
       disabled={disableDisconnect}
-      {...props}
+      {...buttonProps}
     />
   );
 }

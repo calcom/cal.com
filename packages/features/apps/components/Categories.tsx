@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
@@ -15,7 +15,7 @@ export function AppStoreCategories({
     count: number;
   }[];
 }) {
-  const { t, isLocaleReady } = useLocale();
+  const { t, ready } = useTranslation("apps");
   return (
     <div>
       <Slider
@@ -45,13 +45,13 @@ export function AppStoreCategories({
                 alt={category.name}
                 className="dark:invert"
               />
-              {isLocaleReady ? (
+              {ready ? (
                 <h3 className="text-emphasis text-sm font-semibold capitalize">{category.name}</h3>
               ) : (
                 <SkeletonText invisible />
               )}
               <p className="text-subtle pt-2 text-sm font-medium">
-                {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
+                {ready ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
                 <Icon name="arrow-right" className="inline-block h-4 w-4" />
               </p>
             </div>

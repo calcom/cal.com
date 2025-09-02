@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import { AppCard } from "@calcom/features/apps/components/AppCard";
 import Shell from "@calcom/features/shell/Shell";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
 
 export default function Apps({ apps, category }: CategoryDataProps) {
-  const { t, isLocaleReady } = useLocale();
+  const { t, ready } = useTranslation("apps");
 
   return (
     <>
@@ -25,7 +25,7 @@ export default function Apps({ apps, category }: CategoryDataProps) {
             <Link
               href="/apps"
               className="text-emphasis inline-flex items-center justify-start gap-1 rounded-sm py-2">
-              {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
+              {ready ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
             </Link>
             {category && (
               <span className="text-default gap-1">

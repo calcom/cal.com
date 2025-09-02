@@ -1,11 +1,12 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslation } from "react-i18next";
+
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 
 import { AppCard } from "./AppCard";
 import { Slider } from "./Slider";
 
 export const RecentAppsSlider = <T extends App>({ items }: { items: T[] }) => {
-  const { t } = useLocale();
+  const { t } = useTranslation("apps");
 
   return (
     <Slider<T>

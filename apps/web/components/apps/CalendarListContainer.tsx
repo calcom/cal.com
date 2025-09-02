@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
@@ -31,7 +32,7 @@ type Props = {
 };
 
 function CalendarList(props: Props) {
-  const { t } = useLocale();
+  const { t } = useTranslation("apps");
   const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (

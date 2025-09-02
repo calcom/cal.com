@@ -17,6 +17,7 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { inferRouterOutputs } from "@trpc/server";
+import { useTranslation } from "react-i18next";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type Credentials = RouterOutput["viewer"]["apps"]["appCredentialsByType"]["credentials"];
@@ -26,8 +27,8 @@ interface Props {
   onSuccess?: () => void;
 }
 
-export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
-  const { t } = useLocale();
+export const MultiDisconnectIntegration = ({ credentials, onSuccess }: Props) => {
+  const { t } = useTranslation("apps");
   const utils = trpc.useUtils();
   const [credentialToDelete, setCredentialToDelete] = useState<{
     id: number;

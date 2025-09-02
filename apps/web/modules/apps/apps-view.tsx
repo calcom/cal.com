@@ -2,6 +2,7 @@
 
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { AllApps } from "@calcom/features/apps/components/AllApps";
 import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
@@ -61,7 +62,7 @@ export type PageProps = {
 };
 
 export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: PageProps) {
-  const { t } = useLocale();
+  const { t } = useTranslation("apps");
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
   return (

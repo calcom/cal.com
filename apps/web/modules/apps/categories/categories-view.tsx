@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import Shell from "@calcom/features/shell/Shell";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui/components/icon";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Apps({ categories }: PageProps) {
-  const { t, isLocaleReady } = useLocale();
+  const { t } = useTranslation("apps");
 
   return (
     <Shell isPublic large title={t("app_store")} description={t("app_store_description")}>
@@ -22,7 +21,7 @@ export default function Apps({ categories }: PageProps) {
           href="/apps"
           className="text-emphasis inline-flex items-center justify-start gap-1 rounded-sm py-2">
           <Icon name="arrow-left" className="h-4 w-4" />
-          {isLocaleReady ? t("app_store") : <SkeletonText className="h-6 w-24" />}{" "}
+          {t("app_store")}{" "}
         </Link>
       </div>
       <div className="mb-16">

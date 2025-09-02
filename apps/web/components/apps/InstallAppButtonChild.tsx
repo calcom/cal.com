@@ -1,4 +1,5 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTranslation } from "react-i18next";
+
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
 import type { ButtonProps } from "@calcom/ui/components/button";
@@ -14,7 +15,7 @@ export const InstallAppButtonChild = ({
   credentials?: RouterOutputs["viewer"]["apps"]["appCredentialsByType"]["credentials"];
   paid?: AppFrontendPayload["paid"];
 } & ButtonProps) => {
-  const { t } = useLocale();
+  const { t } = useTranslation("apps");
 
   const shouldDisableInstallation = !multiInstall ? !!(credentials && credentials.length) : false;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer } from "react";
+import { useTranslation } from "react-i18next";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
 import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
@@ -187,7 +188,7 @@ type PageProps = {
 };
 
 export default function InstalledApps({ category, connectedCalendars, installedCalendars }: PageProps) {
-  const { t } = useLocale();
+  const { t } = useTranslation("apps");
   const utils = trpc.useUtils();
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
     // Exclude calendar and other from categoryList, we handle those slightly differently below
