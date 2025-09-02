@@ -1,4 +1,5 @@
 import { z } from "zod";
+import tzdata from "tzdata";
 
 import { ValidationError } from "./error";
 
@@ -42,3 +43,9 @@ export function createValidationPreHandler<T>(schema: z.ZodSchema<T>) {
     }
   };
 }
+
+// @note: This is a custom validation that checks if the timezone is valid and exists in the tzdb library
+const tzValidator = (timezone: string) => Object.keys(tzdata.zones).includes(timezone);
+const errorMsg = `Expected one of the following: ${Object.keys(tzdata.zones).join(", ")}`;
+
+export const timeZone = z.string().refine(tzValidator, { message: errorMsg });
