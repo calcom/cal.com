@@ -127,7 +127,7 @@ const AppProviders = (props: PageWrapperProps) => {
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
               <OrgBrandProvider>
-                <IntercomBootstrap />
+                {process.env.NEXT_PUBLIC_INTERCOM_APP_ID && <IntercomBootstrap />}
                 {props.children}
               </OrgBrandProvider>
             </FeatureFlagsProvider>
