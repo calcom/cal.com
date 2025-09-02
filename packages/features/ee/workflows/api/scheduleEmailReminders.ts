@@ -228,34 +228,40 @@ export async function handler(req: NextRequest) {
             ? !!reminder.booking.eventType?.team?.hideBranding
             : !!reminder.booking.user?.hideBranding;
 
-          const emailSubject = customTemplate(
-            reminder.workflowStep.emailSubject || "",
-            variables,
-            emailLocale,
-            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            brandingDisabled
+          const emailSubject = (
+            await customTemplate(
+              reminder.workflowStep.emailSubject || "",
+              variables,
+              emailLocale,
+              getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+              brandingDisabled
+            )
           ).text;
           emailContent.emailSubject = emailSubject;
-          emailContent.emailBody = customTemplate(
-            reminder.workflowStep.reminderBody || "",
-            variables,
-            emailLocale,
-            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            brandingDisabled
-          ).html;
-
-          emailBodyEmpty =
-            customTemplate(
+          emailContent.emailBody = (
+            await customTemplate(
               reminder.workflowStep.reminderBody || "",
               variables,
               emailLocale,
-              getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
+              getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+              brandingDisabled
+            )
+          ).html;
+
+          emailBodyEmpty =
+            (
+              await customTemplate(
+                reminder.workflowStep.reminderBody || "",
+                variables,
+                emailLocale,
+                getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
+              )
             ).text.length === 0;
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
           const brandingDisabled = reminder.booking.eventType?.team
             ? !!reminder.booking.eventType?.team?.hideBranding
             : !!reminder.booking.user?.hideBranding;
-          emailContent = emailReminderTemplate({
+          emailContent = await emailReminderTemplate({
             isEditingMode: false,
             locale: reminder.booking.user?.locale || "en",
             t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),
@@ -418,7 +424,7 @@ export async function handler(req: NextRequest) {
           ? !!reminder.booking.eventType?.team?.hideBranding
           : !!reminder.booking.user?.hideBranding;
 
-        emailContent = emailReminderTemplate({
+        emailContent = await emailReminderTemplate({
           isEditingMode: false,
           locale: reminder.booking.user?.locale || "en",
           t: await getTranslation(reminder.booking.user?.locale ?? "en", "common"),

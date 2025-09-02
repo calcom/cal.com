@@ -1,7 +1,7 @@
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
+import { getOrganizerInputLocationTypesSync } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
@@ -112,7 +112,7 @@ export const BookingFields = ({
         }
 
         if (field?.options) {
-          const organizerInputTypes = getOrganizerInputLocationTypes();
+          const organizerInputTypes = getOrganizerInputLocationTypesSync();
           const organizerInputObj: Record<string, number> = {};
 
           field.options.forEach((f) => {
