@@ -39,6 +39,68 @@ jobs:
         run: |
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
+  pr-size-check:
+    name: Check PR size
+    needs: [changes]
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check PR size limits
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+            
+            // Get all files changed in the PR
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number,
+              per_page: 100
+            });
+            
+            // Define file patterns to exclude from size limits
+            const excludePatterns = [
+              /\.md$/i,                    // Markdown files
+              /yarn\.lock$/,               // Yarn lock file
+              /package-lock\.json$/,       // NPM lock file
+              /pnpm-lock\.yaml$/,          // PNPM lock file
+              /\.lockb$/,                  // Bun lock file
+              /\.yarn\/releases\//,        // Yarn release files
+            ];
+            
+            // Filter out excluded files
+            const includedFiles = files.filter(file => {
+              return !excludePatterns.some(pattern => pattern.test(file.filename));
+            });
+            
+            const fileCount = includedFiles.length;
+            const totalChanges = includedFiles.reduce((sum, file) => sum + file.changes, 0);
+            
+            console.log(`PR Statistics:`);
+            console.log(`- Total files changed: ${files.length}`);
+            console.log(`- Files after exclusions: ${fileCount}`);
+            console.log(`- Total line changes: ${totalChanges}`);
+            console.log(`- Excluded files: ${files.length - fileCount}`);
+            
+            // Check limits
+            const FILE_LIMIT = 10;
+            const LINE_LIMIT = 500;
+            
+            if (fileCount > FILE_LIMIT) {
+              core.setFailed(`❌ PR exceeds file limit: ${fileCount} files changed (limit: ${FILE_LIMIT}). Consider splitting this PR into smaller changes.`);
+              return;
+            }
+            
+            if (totalChanges > LINE_LIMIT) {
+              core.setFailed(`❌ PR exceeds line change limit: ${totalChanges} lines changed (limit: ${LINE_LIMIT}). Consider splitting this PR into smaller changes.`);
+              return;
+            }
+            
+            console.log(`✅ PR size is within limits (${fileCount}/${FILE_LIMIT} files, ${totalChanges}/${LINE_LIMIT} lines)`);
+
   check-label:
     needs: [changes]
     runs-on: buildjet-2vcpu-ubuntu-2204
@@ -93,7 +155,7 @@ jobs:
 
   deps:
     name: Install dependencies
-    needs: [changes, check-label]
+    needs: [changes, check-label, pr-size-check]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
@@ -241,6 +303,7 @@ jobs:
     needs:
       [
         changes,
+        pr-size-check,
         lint,
         type-check,
         unit-test,
