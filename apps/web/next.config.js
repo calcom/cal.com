@@ -209,7 +209,6 @@ const nextConfig = (phase) => {
       ignoreDuringBuilds: !!process.env.CI,
     },
     transpilePackages: [
-      "@calcom/app-store",
       "@calcom/dayjs",
       "@calcom/emails",
       "@calcom/embed-core",

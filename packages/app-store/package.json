@@ -1,8 +1,7 @@
 {
   "name": "@calcom/app-store",
-  "private": false,
   "sideEffects": false,
-  "version": "0.1.0",
+  "version": "0.0.0",
   "main": "./index.js",
   "module": "./index.js",
   "types": "./index.d.ts",
@@ -11,9 +10,19 @@
     "*.tsx",
     "*.js",
     "*.d.ts",
-    "*/",
+    "*.json",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.d.ts",
+    "**/*.json",
+    "**/config.json",
+    "**/package.json",
+    "types/**/*",
     "!**/*.test.*",
-    "!**/__tests__/**"
+    "!**/__tests__/**",
+    "!node_modules/**",
+    "!scripts/**"
   ],
   "scripts": {
     "type-check": "tsc --pretty --noEmit",

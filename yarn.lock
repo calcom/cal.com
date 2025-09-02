@@ -2836,19 +2836,20 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/app-store@workspace:packages/app-store"
   dependencies:
+    "@calcom/types": "*"
+    lodash: ^4.17.21
+    qs-stringify: ^1.2.1
+    react-i18next: ^12.2.0
+    stripe: ^9.16.0
+  peerDependencies:
     "@calcom/dailyvideo": "*"
     "@calcom/dayjs": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/office365video": "*"
     "@calcom/trpc": "*"
-    "@calcom/types": "*"
     "@calcom/ui": "*"
     "@calcom/zoomvideo": "*"
-    lodash: ^4.17.21
-    qs-stringify: ^1.2.1
-    react-i18next: ^12.2.0
-    stripe: ^9.16.0
   languageName: unknown
   linkType: soft
 
@@ -3071,7 +3072,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/dailyvideo@*, @calcom/dailyvideo@workspace:packages/app-store/dailyvideo":
+"@calcom/dailyvideo@workspace:packages/app-store/dailyvideo":
   version: 0.0.0-use.local
   resolution: "@calcom/dailyvideo@workspace:packages/app-store/dailyvideo"
   dependencies:
@@ -3709,7 +3710,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/office365video@*, @calcom/office365video@workspace:packages/app-store/office365video":
+"@calcom/office365video@workspace:packages/app-store/office365video":
   version: 0.0.0-use.local
   resolution: "@calcom/office365video@workspace:packages/app-store/office365video"
   dependencies:
@@ -4455,7 +4456,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/zoomvideo@*, @calcom/zoomvideo@workspace:packages/app-store/zoomvideo":
+"@calcom/zoomvideo@workspace:packages/app-store/zoomvideo":
   version: 0.0.0-use.local
   resolution: "@calcom/zoomvideo@workspace:packages/app-store/zoomvideo"
   dependencies:
