@@ -25,13 +25,18 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
+import type { CreateRegularBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
+import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -63,6 +68,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -73,6 +79,7 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import {
@@ -126,6 +133,7 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import type { IBookingService } from "./interfaces/IBookingService";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -154,10 +162,6 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If rescheduling then increment sequence by 1
   return originalRescheduledBooking.iCalSequence + 1;
 }
-
-type BookingDataSchemaGetter =
-  | typeof getBookingDataSchema
-  | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
@@ -2492,3 +2496,38 @@ async function handler(
 }
 
 export default handler;
+
+export interface IBookingServiceDependencies {
+  cacheService: CacheService;
+  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
+  prismaClient: PrismaClient;
+  bookingRepository: BookingRepository;
+  featuresRepository: FeaturesRepository;
+  checkBookingLimitsService: CheckBookingLimitsService;
+}
+
+/**
+ * Takes care of creating/rescheduling non-recurring, non-instant bookings. Such bookings could be TeamBooking, UserBooking, SeatedUserBooking, SeatedTeamBooking, etc.
+ * We can't name it CoreBookingService because non-instant booking also creates a booking but it is entirely different from the regular booking.
+ * We are open to renaming it to something more descriptive.
+ */
+export class RegularBookingService implements IBookingService {
+  constructor(private readonly deps: IBookingServiceDependencies) {}
+
+  async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
+    // deps to be passed to handler in follow-up PR
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+  }
+
+  async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+  }
+
+  async rescheduleBookingForApiV1(input: {
+    bookingData: CreateRegularBookingData;
+    bookingMeta?: CreateBookingMeta;
+    bookingDataSchemaGetter: BookingDataSchemaGetter;
+  }) {
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, input.bookingDataSchemaGetter);
+  }
+}
