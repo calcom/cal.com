@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -9,6 +10,21 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";
 import { getSubscriptionFromId } from "../lib/subscriptions";
+
+const getBillingPortalUrl = async (customerId: string, return_url: string) => {
+  const log = logger.getSubLogger({ prefix: ["getBillingPortalUrl"] });
+  try {
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url,
+    });
+
+    return portalSession.url;
+  } catch (e) {
+    log.error(`Failed to create billing portal session for ${customerId}: ${e}`);
+    throw new Error("Failed to create billing portal session");
+  }
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST" && req.method !== "GET")
@@ -18,9 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const userId = req.session.user.id;
   const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : null;
-
+  let return_url = `${WEBAPP_URL}/settings/billing`;
   if (!teamId) {
-    return res.status(400).json({ message: "Team ID is required" });
+    const customerId = await getStripeCustomerIdFromUserId(userId);
+    if (!customerId) return res.status(404).json({ message: "CustomerId not found" });
+
+    const billingPortalUrl = await getBillingPortalUrl(customerId, return_url);
+
+    return res.redirect(302, billingPortalUrl);
   }
 
   const teamRepository = new TeamRepository(prisma);
@@ -28,23 +49,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     teamId,
     userId,
   });
-  let return_url = `${WEBAPP_URL}/settings/billing`;
+
+  if (!team) return res.status(404).json({ message: "Team not found" });
 
   if (typeof req.query.returnTo === "string") {
     const safeRedirectUrl = getSafeRedirectUrl(req.query.returnTo);
     if (safeRedirectUrl) return_url = safeRedirectUrl;
-  }
-
-  if (!team) {
-    const customerId = await getStripeCustomerIdFromUserId(userId);
-    if (!customerId) return res.status(404).json({ message: "CustomerId not found" });
-
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url,
-    });
-
-    return res.status(200).json({ url: portalSession.url });
   }
 
   const teamMetadataParsed = teamMetadataSchema.safeParse(team.metadata);
@@ -71,10 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!customerId) return res.status(400).json({ message: "CustomerId not found in stripe" });
 
-  const stripeSession = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url,
-  });
+  const billingPortalUrl = await getBillingPortalUrl(customerId, return_url);
 
-  res.redirect(302, stripeSession.url);
+  res.redirect(302, billingPortalUrl);
 }
