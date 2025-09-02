@@ -89,10 +89,8 @@ export const createBookingAndFetchGCalEvent = async (
 
   expect(refreshedCredential).toBeTruthy();
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
   const googleCalendarService = new GoogleCalendarService(
-    refreshedCredential,
+    { ...refreshedCredential!, delegatedTo: null },
     getCalendarServiceDependencies()
   );
 
