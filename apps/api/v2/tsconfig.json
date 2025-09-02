@@ -28,7 +28,8 @@
       "@calcom/platform-libraries/conferencing": ["../../../packages/platform/libraries/conferencing.ts"],
       "@calcom/platform-libraries/repositories": ["../../../packages/platform/libraries/repositories.ts"],
       "@calcom/platform-libraries/bookings": ["../../../packages/platform/libraries/bookings.ts"],
-      "@calcom/platform-libraries/private-links": ["../../../packages/platform/libraries/private-links.ts"]
+      "@calcom/platform-libraries/private-links": ["../../../packages/platform/libraries/private-links.ts"],
+      "@calcom/platform-libraries/taskers": ["../../../packages/platform/libraries/taskers.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,

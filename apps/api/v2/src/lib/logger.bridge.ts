@@ -1,4 +1,4 @@
-import { Injectable, Logger as NestLogger, Scope } from "@nestjs/common";
+import { Logger as NestLogger } from "@nestjs/common";
 
 // 1. Define an interface for the settings
 interface IMyLoggerSettings {
@@ -22,7 +22,7 @@ const LogLevel = {
  * from platform libraries. It forwards logs to NestLogger, allowing centralization
  * (e.g., sending to Axiom) and adds an optional prefix for context.
  */
-@Injectable({ scope: Scope.TRANSIENT }) // TRANSIENT ensures getSubLogger provides truly independent instances if needed elsewhere
+// TODO: now that we have dependency injection, we need to correctly handle adding the request object to this logger using decorators on api v2
 export class Logger {
   // Use NestLogger for the actual logging output
   private readonly nestLogger = new NestLogger("LoggerBridge");

@@ -41,6 +41,7 @@
     "@calcom/platform-enums": "*",
     "@calcom/platform-types": "*",
     "@calcom/prisma": "*",
+    "@calcom/trigger": "workspace:^",
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
