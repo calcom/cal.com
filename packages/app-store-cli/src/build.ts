@@ -98,9 +98,8 @@ function generateFiles() {
    * If a file has index.ts or index.tsx, it can be imported after removing the index.ts* part
    */
   function getModulePath(path: string, moduleName: string) {
-    return `./${path.replace(/\\/g, "/")}/${moduleName
-      .replace(/\/index\.ts|\/index\.tsx/, "")
-      .replace(/\.tsx$|\.ts$/, "")}`;
+    const cleanedModuleName = moduleName.replace(/\/index\.ts|\/index\.tsx/, "").replace(/\.tsx$|\.ts$/, "");
+    return `./${path.replace(/\\/g, "/")}/${cleanedModuleName}`;
   }
 
   type ImportConfig =
@@ -215,7 +214,9 @@ function generateFiles() {
       if (!(importConfig instanceof Array)) {
         chosenConfig = importConfig;
       } else {
-        if (fs.existsSync(path.join(APP_STORE_PATH, app.path, importConfig[0].fileToBeImported))) {
+        if (importConfig.length === 1) {
+          chosenConfig = importConfig[0];
+        } else if (fs.existsSync(path.join(APP_STORE_PATH, app.path, importConfig[0].fileToBeImported))) {
           chosenConfig = importConfig[0];
         } else {
           chosenConfig = importConfig[1];
@@ -227,9 +228,14 @@ function generateFiles() {
 
   serverOutput.push(
     ...getExportedObject("apiHandlers", {
-      importConfig: {
-        fileToBeImported: "api/index.ts",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "dist/api/index.js",
+        },
+        {
+          fileToBeImported: "api/index.ts",
+        },
+      ],
       lazyImport: true,
     })
   );
@@ -271,34 +277,43 @@ function generateFiles() {
   );
   schemasOutput.push(
     ...getExportedObject("appDataSchemas", {
-      // Import path must have / even for windows and not \
-      importConfig: {
-        fileToBeImported: "zod.ts",
-        importName: "appDataSchema",
-      },
-      // HACK: Key must be appId as this is used by eventType metadata and lookup is by appId
-      // This can be removed once we rename the ids of apps like stripe to that of their app folder name
+      importConfig: [
+        {
+          fileToBeImported: "dist/zod.js",
+          importName: "appDataSchema",
+        },
+        {
+          fileToBeImported: "zod.ts",
+          importName: "appDataSchema",
+        },
+      ],
       entryObjectKeyGetter: (app) => getAppId(app),
     })
   );
 
   appKeysSchemasOutput.push(
     ...getExportedObject("appKeysSchemas", {
-      importConfig: {
-        fileToBeImported: "zod.ts",
-        importName: "appKeysSchema",
-      },
-      // HACK: Key must be appId as this is used by eventType metadata and lookup is by appId
-      // This can be removed once we rename the ids of apps like stripe to that of their app folder name
+      importConfig: [
+        {
+          fileToBeImported: "dist/zod.js",
+          importName: "appKeysSchema",
+        },
+        {
+          fileToBeImported: "zod.ts",
+          importName: "appKeysSchema",
+        },
+      ],
       entryObjectKeyGetter: (app) => getAppId(app),
     })
   );
 
   browserOutput.push(
     ...getExportedObject("InstallAppButtonMap", {
-      importConfig: {
-        fileToBeImported: "components/InstallAppButton.tsx",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "components/InstallAppButton.tsx",
+        },
+      ],
       lazyImport: true,
     })
   );
@@ -307,26 +322,32 @@ function generateFiles() {
   // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
   browserOutput.push(
     ...getExportedObject("AppSettingsComponentsMap", {
-      importConfig: {
-        fileToBeImported: "components/AppSettingsInterface.tsx",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "components/AppSettingsInterface.tsx",
+        },
+      ],
       lazyImport: true,
     })
   );
 
   browserOutput.push(
     ...getExportedObject("EventTypeAddonMap", {
-      importConfig: {
-        fileToBeImported: "components/EventTypeAppCardInterface.tsx",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "components/EventTypeAppCardInterface.tsx",
+        },
+      ],
       lazyImport: true,
     })
   );
   browserOutput.push(
     ...getExportedObject("EventTypeSettingsMap", {
-      importConfig: {
-        fileToBeImported: "components/EventTypeAppSettingsInterface.tsx",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "components/EventTypeAppSettingsInterface.tsx",
+        },
+      ],
       lazyImport: true,
     })
   );
@@ -335,10 +356,16 @@ function generateFiles() {
     ...getExportedObject(
       "CrmServiceMap",
       {
-        importConfig: {
-          fileToBeImported: "lib/CrmService.ts",
-          importName: "default",
-        },
+        importConfig: [
+          {
+            fileToBeImported: "dist/lib/CrmService.js",
+            importName: "default",
+          },
+          {
+            fileToBeImported: "lib/CrmService.ts",
+            importName: "default",
+          },
+        ],
         lazyImport: true,
       },
       isCrmApp
@@ -349,10 +376,16 @@ function generateFiles() {
   const calendarServices = getExportedObject(
     "CalendarServiceMap",
     {
-      importConfig: {
-        fileToBeImported: "lib/CalendarService.ts",
-        importName: "default",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "dist/lib/CalendarService.js",
+          importName: "default",
+        },
+        {
+          fileToBeImported: "lib/CalendarService.ts",
+          importName: "default",
+        },
+      ],
       lazyImport: true,
     },
     isCalendarApp
@@ -382,16 +415,22 @@ function generateFiles() {
   const analyticsServices = getExportedObject(
     "AnalyticsServiceMap",
     {
-      importConfig: {
-        fileToBeImported: "lib/AnalyticsService.ts",
-        importName: "default",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "dist/lib/AnalyticsService.js",
+          importName: "default",
+        },
+        {
+          fileToBeImported: "lib/AnalyticsService.ts",
+          importName: "default",
+        },
+      ],
       lazyImport: true,
     },
     (app: App) => {
-      const hasAnalyticsService = fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, "lib/AnalyticsService.ts")
-      );
+      const hasAnalyticsService =
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/AnalyticsService.ts")) ||
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, "dist/lib/AnalyticsService.js"));
       return hasAnalyticsService;
     }
   );
@@ -419,14 +458,22 @@ function generateFiles() {
   const paymentServices = getExportedObject(
     "PaymentServiceMap",
     {
-      importConfig: {
-        fileToBeImported: "lib/PaymentService.ts",
-        importName: "PaymentService",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "dist/lib/PaymentService.js",
+          importName: "PaymentService",
+        },
+        {
+          fileToBeImported: "lib/PaymentService.ts",
+          importName: "PaymentService",
+        },
+      ],
       lazyImport: true,
     },
     (app: App) => {
-      const hasPaymentService = fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts"));
+      const hasPaymentService =
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts")) ||
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, "dist/lib/PaymentService.js"));
       return hasPaymentService;
     }
   );
@@ -437,14 +484,23 @@ function generateFiles() {
   const videoAdapters = getExportedObject(
     "VideoApiAdapterMap",
     {
-      importConfig: {
-        fileToBeImported: "lib/VideoApiAdapter.ts",
-        importName: "default",
-      },
+      importConfig: [
+        {
+          fileToBeImported: "dist/lib/VideoApiAdapter.js",
+          importName: "default",
+        },
+        {
+          fileToBeImported: "lib/VideoApiAdapter.ts",
+          importName: "default",
+        },
+      ],
       lazyImport: true,
     },
     (app: App) => {
-      return fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts"));
+      return (
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts")) ||
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, "dist/lib/VideoApiAdapter.js"))
+      );
     }
   );
 
@@ -472,6 +528,42 @@ function generateFiles() {
     Don't modify this file manually.
 **/
 `;
+  const utilityOutput = [];
+
+  const utilityFiles = [
+    { name: "getCalendar", path: "_utils/getCalendar", exportName: "getCalendar" },
+    { name: "getAppKeysFromSlug", path: "_utils/getAppKeysFromSlug", exportName: "default" },
+    { name: "getParsedAppKeysFromSlug", path: "_utils/getParsedAppKeysFromSlug", exportName: "default" },
+    { name: "getInstalledAppPath", path: "_utils/getInstalledAppPath", exportName: "default" },
+    { name: "invalidateCredential", path: "_utils/invalidateCredential", exportName: "invalidateCredential" },
+    {
+      name: "createDefaultInstallation",
+      path: "_utils/installation",
+      exportName: "createDefaultInstallation",
+    },
+    { name: "encodeOAuthState", path: "_utils/oauth/encodeOAuthState", exportName: "encodeOAuthState" },
+    { name: "decodeOAuthState", path: "_utils/oauth/decodeOAuthState", exportName: "decodeOAuthState" },
+    { name: "OAuthManager", path: "_utils/oauth/OAuthManager", exportName: "OAuthManager" },
+  ];
+
+  utilityOutput.push("export const UtilityMap = {");
+  utilityFiles.forEach(({ name, path, exportName }) => {
+    const jsPath = `dist/${path}.js`;
+    const tsPath = `${path}`;
+
+    const jsExists = fs.existsSync(`${APP_STORE_PATH}/${jsPath}`);
+    const importPath = jsExists ? jsPath : tsPath;
+
+    if (exportName === "default") {
+      utilityOutput.push(`  ${name}: () => import("./${importPath}"),`);
+    } else {
+      utilityOutput.push(
+        `  ${name}: () => import("./${importPath}").then(m => ({ default: m.${exportName} })),`
+      );
+    }
+  });
+  utilityOutput.push("};");
+
   const filesToGenerate: [string, string[]][] = [
     ["analytics.services.generated.ts", analyticsOutput],
     ["apps.metadata.generated.ts", metadataOutput],
@@ -484,6 +576,7 @@ function generateFiles() {
     ["calendar.services.generated.ts", calendarOutput],
     ["payment.services.generated.ts", paymentOutput],
     ["video.adapters.generated.ts", videoOutput],
+    ["utils.generated.ts", utilityOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
     fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
