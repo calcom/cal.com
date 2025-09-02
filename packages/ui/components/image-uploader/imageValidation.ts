@@ -28,11 +28,15 @@ const stripBomAndWhitespace = (data: Uint8Array): Uint8Array => {
 const checkTextBasedDangerousSignature = (data: Uint8Array): string | null => {
   const text = new TextDecoder("utf-8", { fatal: false }).decode(data).toLowerCase();
 
-  if (text.includes("<html") || matchesSignature(data, FILE_SIGNATURES.HTML)) {
+  if (
+    text.includes("<!doctype") ||
+    text.includes("<html") ||
+    matchesSignature(data, FILE_SIGNATURES.HTML)
+  ) {
     return "html_files_cannot_be_uploaded_as_images";
   }
 
-  if (matchesSignature(data, FILE_SIGNATURES.SCRIPT_TAG)) {
+  if (text.includes("<script") || matchesSignature(data, FILE_SIGNATURES.SCRIPT_TAG)) {
     return "script_files_cannot_be_uploaded_as_images";
   }
 
