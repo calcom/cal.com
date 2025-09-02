@@ -1,5 +1,9 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isEmailAction,
+  isFormTrigger,
+  isCalAIAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -112,11 +116,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (isFormTrigger(trigger)) {
     const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
+    const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
 
     if (hasEmailHostStep) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Email to host action is not allowed for form triggers",
+      });
+    }
+
+    if (hasCalAIStep) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cal.ai actions are not allowed for form triggers",
       });
     }
 
