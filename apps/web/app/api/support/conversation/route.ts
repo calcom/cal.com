@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   let contact: Contact;
 
-  const existingContact = await intercom.getContactByEmail("account@creationteset12212.com");
+  const existingContact = await intercom.getContactByEmail(session.user.email);
 
   if (existingContact.error) {
     return NextResponse.json({ error: existingContact?.error ?? "Error fetching intercom contact for user" });
