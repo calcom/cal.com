@@ -12,6 +12,8 @@ import {
 export interface ImageValidationResult {
   isValid: boolean;
   error?: string;
+  errorKey?: string;
+  errorParams?: Record<string, string | number>;
   detectedFormat?: string;
 }
 
@@ -23,39 +25,60 @@ export function validateBase64Image(base64Data: string): ImageValidationResult {
     const base64Content = base64Data.replace(/^data:image\/[^;]+;base64,/, "");
 
     if (!isValidBase64(base64Content)) {
-      return { isValid: false, error: "Invalid base64 format" };
+      return { isValid: false, error: "invalid_base64_format" };
     }
 
     const buffer = Buffer.from(base64Content, "base64");
     const uint8Array = new Uint8Array(buffer);
 
     if (uint8Array.length === 0) {
-      return { isValid: false, error: "Empty image data" };
+      return { isValid: false, error: "empty_image_data" };
     }
 
     if (matchesSignature(uint8Array, FILE_SIGNATURES.PDF)) {
-      return { isValid: false, error: "PDF files cannot be uploaded as images", detectedFormat: "PDF" };
+      return {
+        isValid: false,
+        errorKey: "unsupported_file_type",
+        errorParams: { type: "PDF" },
+        detectedFormat: "PDF",
+      };
     }
 
     if (
       matchesSignature(uint8Array, FILE_SIGNATURES.HTML) ||
       matchesSignature(uint8Array, FILE_SIGNATURES.HTML_TAG)
     ) {
-      return { isValid: false, error: "HTML files cannot be uploaded as images", detectedFormat: "HTML" };
+      return {
+        isValid: false,
+        errorKey: "unsupported_file_type",
+        errorParams: { type: "HTML" },
+        detectedFormat: "HTML",
+      };
     }
 
     if (matchesSignature(uint8Array, FILE_SIGNATURES.SCRIPT_TAG)) {
-      return { isValid: false, error: "Script files cannot be uploaded as images", detectedFormat: "Script" };
+      return {
+        isValid: false,
+        errorKey: "unsupported_file_type",
+        errorParams: { type: "Script" },
+        detectedFormat: "Script",
+      };
     }
 
     if (matchesSignature(uint8Array, FILE_SIGNATURES.ZIP)) {
-      return { isValid: false, error: "ZIP files cannot be uploaded as images", detectedFormat: "ZIP" };
+      return {
+        isValid: false,
+        errorKey: "unsupported_file_type",
+        errorParams: { type: "ZIP" },
+        detectedFormat: "ZIP",
+      };
     }
 
     if (matchesSignature(uint8Array, FILE_SIGNATURES.EXECUTABLE)) {
       return {
         isValid: false,
-        error: "Executable files cannot be uploaded as images",
+        errorKey: "unsupported_file_type",
+        errorParams: { type: "Executable" },
         detectedFormat: "Executable",
       };
     }
@@ -96,14 +119,14 @@ export function validateBase64Image(base64Data: string): ImageValidationResult {
       const textContent = buffer.toString("utf8");
 
       if (containsDangerousSVGContent(textContent)) {
-        return { isValid: false, error: "SVG contains potentially dangerous content", detectedFormat: "SVG" };
+        return { isValid: false, error: "svg_contains_dangerous_content", detectedFormat: "SVG" };
       }
 
       return { isValid: true, detectedFormat: "SVG" };
     }
 
-    return { isValid: false, error: "Unrecognized image format or invalid file", detectedFormat: "Unknown" };
+    return { isValid: false, error: "unrecognized_image_format", detectedFormat: "Unknown" };
   } catch (error) {
-    return { isValid: false, error: "Failed to validate image data" };
+    return { isValid: false, error: "failed_to_validate_image_file" };
   }
 }

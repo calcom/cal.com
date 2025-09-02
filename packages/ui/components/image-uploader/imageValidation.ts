@@ -1,10 +1,11 @@
+import { MAX_BANNER_SIZE } from "@calcom/lib/constants";
 import {
   FILE_SIGNATURES,
   matchesSignature,
   containsDangerousSVGContent,
 } from "@calcom/lib/imageValidationConstants";
 
-export const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
+export const MAX_IMAGE_FILE_SIZE = MAX_BANNER_SIZE;
 
 const stripBomAndWhitespace = (data: Uint8Array): Uint8Array => {
   let start = 0;
@@ -25,19 +26,17 @@ const stripBomAndWhitespace = (data: Uint8Array): Uint8Array => {
   return data.slice(start);
 };
 
-const checkTextBasedDangerousSignature = (data: Uint8Array): string | null => {
+const checkTextBasedDangerousSignature = (
+  data: Uint8Array
+): { key: string; params: Record<string, string | number> } | null => {
   const text = new TextDecoder("utf-8", { fatal: false }).decode(data).toLowerCase();
 
-  if (
-    text.includes("<!doctype") ||
-    text.includes("<html") ||
-    matchesSignature(data, FILE_SIGNATURES.HTML)
-  ) {
-    return "html_files_cannot_be_uploaded_as_images";
+  if (text.includes("<!doctype") || text.includes("<html") || matchesSignature(data, FILE_SIGNATURES.HTML)) {
+    return { key: "unsupported_file_type", params: { type: "HTML" } };
   }
 
   if (text.includes("<script") || matchesSignature(data, FILE_SIGNATURES.SCRIPT_TAG)) {
-    return "script_files_cannot_be_uploaded_as_images";
+    return { key: "unsupported_file_type", params: { type: "Script" } };
   }
 
   return null;
@@ -56,7 +55,12 @@ const createTrimmedTextHead = (text: string, maxLength = 512): Uint8Array => {
 export const validateImageFile = async (
   file: File,
   maxFileSize: number = MAX_IMAGE_FILE_SIZE
-): Promise<{ isValid: boolean; error?: string }> => {
+): Promise<{
+  isValid: boolean;
+  error?: string;
+  errorKey?: string;
+  errorParams?: Record<string, string | number>;
+}> => {
   if (file.size > maxFileSize) {
     return { isValid: false, error: "image_size_limit_exceed" };
   }
@@ -79,19 +83,19 @@ export const validateImageFile = async (
 
     const textBasedError = checkTextBasedDangerousSignature(trimmedHead);
     if (textBasedError) {
-      return { isValid: false, error: textBasedError };
+      return { isValid: false, errorKey: textBasedError.key, errorParams: textBasedError.params };
     }
 
     if (matchesSignature(trimmedHead, FILE_SIGNATURES.PDF)) {
-      return { isValid: false, error: "pdf_files_cannot_be_uploaded_as_images" };
+      return { isValid: false, errorKey: "unsupported_file_type", errorParams: { type: "PDF" } };
     }
 
     if (matchesSignature(trimmedHead, FILE_SIGNATURES.ZIP)) {
-      return { isValid: false, error: "zip_files_cannot_be_uploaded_as_images" };
+      return { isValid: false, errorKey: "unsupported_file_type", errorParams: { type: "ZIP" } };
     }
 
     if (matchesSignature(trimmedHead, FILE_SIGNATURES.EXECUTABLE)) {
-      return { isValid: false, error: "executable_files_cannot_be_uploaded_as_images" };
+      return { isValid: false, errorKey: "unsupported_file_type", errorParams: { type: "Executable" } };
     }
 
     const isValidImage =

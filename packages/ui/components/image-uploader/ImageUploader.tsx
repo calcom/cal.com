@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
+import { MAX_BANNER_SIZE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { ButtonColor, ButtonProps } from "../button";
@@ -96,11 +97,12 @@ export default function ImageUploader({
 
     const file = e.target.files[0];
 
-    const maxAvatarSize = 5 * 1024 * 1024; // 5MB for avatars
-    const validation = await validateImageFile(file, maxAvatarSize);
+    const validation = await validateImageFile(file, MAX_BANNER_SIZE);
 
     if (!validation.isValid) {
-      if (validation.error) {
+      if (validation.errorKey && validation.errorParams) {
+        showToast(t(validation.errorKey, validation.errorParams) as string, "error");
+      } else if (validation.error) {
         showToast(t(validation.error), "error");
       }
       e.target.value = "";
