@@ -78,6 +78,11 @@
       "import": "./dist/bookings.js",
       "require": "./dist/bookings.cjs",
       "types": "./dist/bookings.d.ts"
+    },
+    "./private-links": {
+      "import": "./dist/private-links.js",
+      "require": "./dist/private-links.cjs",
+      "types": "./dist/private-links.d.ts"
     }
   },
   "typesVersions": {
@@ -108,6 +113,9 @@
       ],
       "bookings": [
         "dist/bookings.d.ts"
+      ],
+      "private-links": [
+        "dist/private-links.d.ts"
       ]
     }
   }

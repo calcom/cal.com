@@ -89,7 +89,6 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
-      currency: "usd",
       subscription_data: {
         metadata: {
           teamId: teamId.toString(),
@@ -107,6 +106,10 @@ export class BillingService implements OnModuleDestroy {
   async updateSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
+
+    if (!customerId) {
+      throw new NotFoundException("No customer id associated with the team.");
+    }
 
     const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
@@ -403,7 +406,6 @@ export class BillingService implements OnModuleDestroy {
       fromReschedule?: string | null;
     }
   ) {
-
     if (this.configService.get("e2e")) {
       return true;
     }
@@ -465,7 +467,6 @@ export class BillingService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     try {
-      
       await this.billingQueue.close();
     } catch (err) {
       this.logger.error(err);

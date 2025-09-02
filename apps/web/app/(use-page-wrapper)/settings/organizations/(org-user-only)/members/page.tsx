@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import prisma from "@calcom/prisma";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";
@@ -19,7 +20,9 @@ export const generateMetadata = async () =>
 
 const getCachedAttributes = unstable_cache(
   async (orgId: number) => {
-    return await PrismaAttributeRepository.findAllByOrgIdWithOptions({ orgId });
+    const attributeRepo = new PrismaAttributeRepository(prisma);
+
+    return await attributeRepo.findAllByOrgIdWithOptions({ orgId });
   },
   undefined,
   { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
@@ -37,9 +40,7 @@ const getCachedRoles = unstable_cache(
 const Page = async () => {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
-  const attributes = await getCachedAttributes(org.id);
-
-  const roles = await getCachedRoles(org.id);
+  const [attributes, roles] = await Promise.all([getCachedAttributes(org.id), getCachedRoles(org.id)]);
 
   const facetedTeamValues = {
     roles,
