@@ -23,7 +23,7 @@
     "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
-    "@calcom/app-store": "*",
+    "@calcom/app-store": "0.1.0",
     "@calcom/dayjs": "*",
     "@calcom/emails": "*",
     "@calcom/features": "*",

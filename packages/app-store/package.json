@@ -1,7 +1,7 @@
 {
   "name": "@calcom/app-store",
   "sideEffects": false,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": "./index.js",
   "module": "./index.js",
   "types": "./index.d.ts",
@@ -89,6 +89,51 @@
       "import": "./apps.keys-schemas.generated.js",
       "require": "./apps.keys-schemas.generated.js",
       "types": "./apps.keys-schemas.generated.d.ts"
+    },
+    "./routing-forms/emails/components": {
+      "import": "./routing-forms/emails/components/index.js",
+      "require": "./routing-forms/emails/components/index.js",
+      "types": "./routing-forms/emails/components/index.d.ts"
+    },
+    "./_utils/oauth/universalSchema": {
+      "import": "./_utils/oauth/universalSchema.js",
+      "require": "./_utils/oauth/universalSchema.js",
+      "types": "./_utils/oauth/universalSchema.d.ts"
+    },
+    "./_utils/getCalendar": {
+      "import": "./_utils/getCalendar.js",
+      "require": "./_utils/getCalendar.js",
+      "types": "./_utils/getCalendar.d.ts"
+    },
+    "./_utils/throwIfNotHaveAdminAccessToTeam": {
+      "import": "./_utils/throwIfNotHaveAdminAccessToTeam.js",
+      "require": "./_utils/throwIfNotHaveAdminAccessToTeam.js",
+      "types": "./_utils/throwIfNotHaveAdminAccessToTeam.d.ts"
+    },
+    "./_appRegistry": {
+      "import": "./_appRegistry.js",
+      "require": "./_appRegistry.js",
+      "types": "./_appRegistry.d.ts"
+    },
+    "./locations": {
+      "import": "./locations.js",
+      "require": "./locations.js",
+      "types": "./locations.d.ts"
+    },
+    "./stripepayment/lib/customer": {
+      "import": "./stripepayment/lib/customer.js",
+      "require": "./stripepayment/lib/customer.js",
+      "types": "./stripepayment/lib/customer.d.ts"
+    },
+    "./basecamp3/trpc-router": {
+      "import": "./basecamp3/trpc-router.js",
+      "require": "./basecamp3/trpc-router.js",
+      "types": "./basecamp3/trpc-router.d.ts"
+    },
+    "./routing-forms/trpc-router": {
+      "import": "./routing-forms/trpc-router.js",
+      "require": "./routing-forms/trpc-router.js",
+      "types": "./routing-forms/trpc-router.d.ts"
     },
     "./*": {
       "import": "./*.js",

@@ -2786,7 +2786,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/api@workspace:apps/api/v1"
   dependencies:
-    "@calcom/app-store": "*"
+    "@calcom/app-store": 0.1.0
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
     "@calcom/features": "*"
@@ -2832,7 +2832,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/app-store@*, @calcom/app-store@workspace:packages/app-store":
+"@calcom/app-store@0.1.0, @calcom/app-store@workspace:packages/app-store":
   version: 0.0.0-use.local
   resolution: "@calcom/app-store@workspace:packages/app-store"
   dependencies:
@@ -3990,7 +3990,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/stripepayment@workspace:packages/app-store/stripepayment"
   dependencies:
-    "@calcom/app-store": "*"
+    "@calcom/app-store": 0.1.0
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
     "@calcom/features": "*"
@@ -4215,7 +4215,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.19.6
     "@boxyhq/saml-jackson": 1.52.2
-    "@calcom/app-store": "*"
+    "@calcom/app-store": 0.1.0
     "@calcom/app-store-cli": "*"
     "@calcom/config": "*"
     "@calcom/dayjs": "*"
