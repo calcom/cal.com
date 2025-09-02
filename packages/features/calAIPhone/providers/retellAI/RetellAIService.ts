@@ -220,6 +220,16 @@ export class RetellAIService {
     return this.callService.createTestCall(params);
   }
 
+  async createWebCall(params: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }) {
+    return this.callService.createWebCall(params);
+  }
+
   async generatePhoneNumberCheckoutSession(params: {
     userId: number;
     teamId?: number;

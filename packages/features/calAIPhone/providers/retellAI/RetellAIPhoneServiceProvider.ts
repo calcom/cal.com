@@ -266,6 +266,20 @@ export class RetellAIPhoneServiceProvider
     return await this.service.createTestCall(params);
   }
 
+  async createWebCall(params: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }): Promise<{
+    callId: string;
+    accessToken: string;
+    agentId: string;
+  }> {
+    return await this.service.createWebCall(params);
+  }
+
   async updateToolsFromAgentId(
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }

@@ -66,6 +66,7 @@ import type { FormValues } from "../pages/workflow";
 import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
 import { TestAgentDialog } from "./TestAgentDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
+import { WebCallDialog } from "./WebCallDialog";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -208,6 +209,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const verifiedEmails = _verifiedEmails || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
   const [isUnsubscribeDialogOpen, setIsUnsubscribeDialogOpen] = useState(false);
   const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
 
@@ -739,26 +741,57 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                     <div className="flex items-center gap-1">
                       {arePhoneNumbersActive.length > 0 ? (
-                        <Button
-                          color="secondary"
-                          onClick={() => setIsTestAgentDialogOpen(true)}
-                          disabled={props.readOnly || !arePhoneNumbersActive.length}>
-                          <Icon name="phone" className="mr-2 h-4 w-4" />
-                          {t("test_agent")}
-                        </Button>
+                        <Dropdown>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              color="secondary"
+                              className="rounded-[10px]"
+                              disabled={props.readOnly}
+                              EndIcon="chevron-down">
+                              {t("test_agent")}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                StartIcon="phone"
+                                onClick={() => setIsTestAgentDialogOpen(true)}>
+                                {t("phone_call")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                StartIcon="monitor"
+                                onClick={() => setIsWebCallDialogOpen(true)}>
+                                {t("web_call")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </Dropdown>
                       ) : (
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            setAgentConfigurationSheet((prev) => ({
-                              ...prev,
-                              open: true,
-                              activeTab: "phoneNumber",
-                            }));
-                          }}
-                          disabled={props.readOnly}>
-                          {t("connect_phone_number")}
-                        </Button>
+                        <>
+                          <Button
+                            color="secondary"
+                            onClick={() => {
+                              setAgentConfigurationSheet((prev) => ({
+                                ...prev,
+                                open: true,
+                                activeTab: "phoneNumber",
+                              }));
+                            }}
+                            disabled={props.readOnly}>
+                            {t("connect_phone_number")}
+                          </Button>
+                          <Button
+                            color="secondary"
+                            onClick={() => setIsWebCallDialogOpen(true)}
+                            disabled={props.readOnly}
+                            StartIcon="monitor">
+                            {t("test_web_call")}
+                          </Button>
+                        </>
                       )}
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
@@ -1396,6 +1429,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <TestAgentDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
+            agentId={stepAgentId}
+            teamId={teamId}
+            form={form}
+          />
+        )}
+
+        {stepAgentId && (
+          <WebCallDialog
+            open={isWebCallDialogOpen}
+            onOpenChange={setIsWebCallDialogOpen}
             agentId={stepAgentId}
             teamId={teamId}
             form={form}

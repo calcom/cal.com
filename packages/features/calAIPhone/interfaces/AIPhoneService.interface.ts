@@ -328,6 +328,21 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   }>;
 
   /**
+   * Create a web call
+   */
+  createWebCall(params: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }): Promise<{
+    callId: string;
+    accessToken: string;
+    agentId: string;
+  }>;
+
+  /**
    * Update tools from event type ID
    */
   updateToolsFromAgentId(

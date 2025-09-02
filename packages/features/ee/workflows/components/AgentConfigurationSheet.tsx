@@ -43,6 +43,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
 import { TestAgentDialog } from "./TestAgentDialog";
+import { WebCallDialog } from "./WebCallDialog";
 
 // Utility functions for prompt display
 const cleanPromptForDisplay = (prompt: string): string => {
@@ -141,6 +142,7 @@ export function AgentConfigurationSheet({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
   const [cancellingNumberId, setCancellingNumberId] = useState<number | null>(null);
   const [numberToDelete, setNumberToDelete] = useState<string | null>(null);
   // const [toolDialogOpen, setToolDialogOpen] = useState(false);
@@ -593,13 +595,39 @@ export function AgentConfigurationSheet({
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Button
-                            color="secondary"
-                            onClick={() => setIsTestAgentDialogOpen(true)}
-                            className="rounded-[10px]"
-                            disabled={readOnly}>
-                            {t("test_agent")}
-                          </Button>
+                          <Dropdown>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                color="secondary"
+                                className="rounded-[10px]"
+                                disabled={readOnly}
+                                EndIcon="chevron-down">
+                                {t("test_agent")}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="phone"
+                                  onClick={() => {
+                                    setIsTestAgentDialogOpen(true);
+                                  }}>
+                                  {t("phone_call")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="desktop"
+                                  onClick={() => {
+                                    setIsWebCallDialogOpen(true);
+                                  }}>
+                                  {t("web_call")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </Dropdown>
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
                               <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
@@ -967,6 +995,16 @@ export function AgentConfigurationSheet({
         <TestAgentDialog
           open={isTestAgentDialogOpen}
           onOpenChange={setIsTestAgentDialogOpen}
+          agentId={agentId}
+          teamId={teamId}
+          form={form}
+        />
+      )}
+
+      {agentId && (
+        <WebCallDialog
+          open={isWebCallDialogOpen}
+          onOpenChange={setIsWebCallDialogOpen}
           agentId={agentId}
           teamId={teamId}
           form={form}
