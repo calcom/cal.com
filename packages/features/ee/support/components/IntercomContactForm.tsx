@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -13,16 +14,38 @@ declare global {
   interface Window {
     Support?: {
       open: () => void;
+      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }
 
+// export const IntercomContactForm = ({ showTrigger, isOpen, setIsOpen }: { showTrigger: boolean, isOpen: boolean, setIsOpen: React.Dispatch<React.SetStateAction<boolean>> }) => {
 export const IntercomContactForm = () => {
   const { t } = useLocale();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [showTrigger, setShowTrigger] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && !window.Support) {
+      window.Support = {
+        open: () => {
+          setIsOpen(true);
+        },
+        shouldShowTriggerButton: (showTrigger) => {
+          setShowTrigger(showTrigger);
+        },
+      };
+    }
+
+    return () => {
+      if (typeof window !== "undefined" && window.Support) {
+        delete window.Support;
+      }
+    };
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,13 +76,33 @@ export const IntercomContactForm = () => {
     }
   };
 
-  if (typeof window !== "undefined" && !window.Support) {
-    window.Support = {
-      open() {
-        setIsOpen(true);
-      },
-    };
-  }
+  const contentRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node) return;
+
+      const isSmall = window.innerWidth < 768;
+
+      if (isSmall) {
+        setShowTrigger(false);
+      }
+
+      const wrapper = node.parentElement;
+      if (wrapper?.hasAttribute("data-radix-popper-content-wrapper")) {
+        if (!showTrigger) {
+          wrapper.style.left = "auto";
+          wrapper.style.right = "0px";
+          wrapper.style.bottom = "5rem";
+          wrapper.style.top = "auto";
+        } else {
+          wrapper.style.left = "0px";
+          wrapper.style.right = "auto";
+          wrapper.style.bottom = "auto";
+          wrapper.style.top = "0px";
+        }
+      }
+    },
+    [showTrigger]
+  );
 
   const resetForm = () => {
     setIsSubmitted(false);
@@ -67,9 +110,11 @@ export const IntercomContactForm = () => {
   };
 
   return (
-    <div className="fixed bottom-[1rem] right-[1rem] z-50">
+    <div className="fixed bottom-[1rem] right-[1rem] z-50 [&_[data-radix-popper-content-wrapper]]:!bottom-[1rem]">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild className="enabled:hover:bg-subtle bg-subtle shadow-none">
+        <PopoverTrigger
+          asChild
+          className={classNames("enabled:hover:bg-subtle bg-subtle shadow-none", !showTrigger && "!hidden")}>
           <Button
             onClick={() => setIsOpen(false)}
             className="bg-subtle text-emphasis flex h-12 w-12 items-center justify-center rounded-full border-none">
@@ -78,8 +123,12 @@ export const IntercomContactForm = () => {
         </PopoverTrigger>
 
         <PopoverContent
+          ref={contentRef}
           style={{ maxWidth: "450px", maxHeight: "650px" }}
-          className="!bg-muted no-scrollbar mb-2 mr-8 w-[450px] overflow-hidden overflow-y-scroll px-6 py-4">
+          className={classNames(
+            "!bg-muted no-scrollbar mb-2 w-screen overflow-hidden overflow-y-scroll px-6 py-4 md:w-[450px]",
+            showTrigger ? "mr-8" : "mr-0"
+          )}>
           <div className="flex w-full justify-between">
             <p className="mb-5 text-lg font-semibold">Contact support</p>
             <Button

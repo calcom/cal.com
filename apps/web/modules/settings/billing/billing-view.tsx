@@ -21,6 +21,7 @@ declare global {
   interface Window {
     Support?: {
       open: () => void;
+      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }

@@ -4,7 +4,6 @@ import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
 import CacheProvider from "react-inlinesvg/provider";
 
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
@@ -21,13 +20,11 @@ export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
   return (
     <SessionProvider>
       <TrpcProvider>
-        <DynamicIntercomProvider>
-          {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
-          {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-          <CacheProvider>
-            <WebPushProvider>{children}</WebPushProvider>
-          </CacheProvider>
-        </DynamicIntercomProvider>
+        {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
+        {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+        <CacheProvider>
+          <WebPushProvider>{children}</WebPushProvider>
+        </CacheProvider>
       </TrpcProvider>
     </SessionProvider>
   );
