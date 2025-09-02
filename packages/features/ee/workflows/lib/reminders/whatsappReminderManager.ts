@@ -28,6 +28,11 @@ import {
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
 export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+  if (!args.verifiedAt) {
+    log.warn(`Workflow step ${args.workflowStepId} not verified`);
+    return;
+  }
+
   if (args.evt) {
     await scheduleWhatsappReminderForEvt(args);
   } else {
@@ -51,11 +56,6 @@ const scheduleWhatsappReminderForEvt = async (args: ScheduleTextReminderArgs & {
     seatReferenceUid,
     verifiedAt,
   } = args;
-
-  if (!verifiedAt) {
-    log.warn(`Workflow step ${workflowStepId} not verified`);
-    return;
-  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;

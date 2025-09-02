@@ -184,7 +184,6 @@ const processWorkflowStep = async (
       ...(evt ? { evt } : { formData }),
     } as const;
 
-    // todo: scheduleEmailReminder work same as scheduleSMSReminder
     await scheduleEmailReminder(emailParams);
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -198,11 +197,9 @@ const processWorkflowStep = async (
       ...(evt ? { evt } : { formData }),
     } as const;
 
-    // todo: scheduleWhatsappReminder work same as scheduleSMSReminder
     await scheduleWhatsappReminder(whatsappParams);
   } else if (isCalAIAction(step.action)) {
     await scheduleAIPhoneCall({
-      evt,  //todo: support formData
       triggerEvent: workflow.trigger,
       timeSpan: {
         time: workflow.time,
@@ -213,6 +210,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       seatReferenceUid,
       verifiedAt: step.verifiedAt,
+      ...(evt ? { evt } : { formData }),
     });
   }
 };

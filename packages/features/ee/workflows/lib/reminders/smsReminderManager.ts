@@ -106,11 +106,6 @@ const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt:
     verifiedAt,
   } = args;
 
-  if (!verifiedAt) {
-    log.warn(`Workflow step ${workflowStepId} not yet verified`);
-    return;
-  }
-
   if (reminderPhone && (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone))) {
     log.warn(
       `Phone number opted out of SMS workflows`,
@@ -279,18 +274,22 @@ const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt:
 };
 
 export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
+  if (!args.verifiedAt) {
+    log.warn(`Workflow step ${args.workflowStepId} not yet verified`);
+    return;
+  }
+
   if (args.evt) {
     await scheduleSMSReminderForEvt(args);
   } else {
     scheduleSMSReminderForForm(args);
-    throw new Error("Form SMS reminders not yet implemented");
   }
 };
 
 const scheduleSMSReminderForForm = async (
   args: ScheduleTextReminderArgs & { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
 ) => {
-  // TODO: Create scheduleSMSReminderForForm function
+  log.error("Form triggers are not yet supported for SMS sending");
 };
 
 export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
