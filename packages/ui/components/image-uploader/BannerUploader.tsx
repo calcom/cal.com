@@ -4,6 +4,7 @@ import { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
+import { MAX_BANNER_SIZE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { ButtonColor } from "../button";
@@ -93,11 +94,12 @@ export default function BannerUploader({
 
     const file = e.target.files[0];
 
-    const maxBannerSize = 5 * 1024 * 1024;
-    const validation = await validateImageFile(file, maxBannerSize);
+    const validation = await validateImageFile(file, MAX_BANNER_SIZE);
 
     if (!validation.isValid) {
-      if (validation.error) {
+      if (validation.errorKey && validation.errorParams) {
+        showToast(t(validation.errorKey, validation.errorParams) as string, "error");
+      } else if (validation.error) {
         showToast(t(validation.error), "error");
       }
       e.target.value = "";
