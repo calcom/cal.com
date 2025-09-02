@@ -28,6 +28,7 @@ export enum CustomAction {
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
+  Impersonate = "impersonate",
 }
 
 export enum Scope {
@@ -57,6 +58,54 @@ export type PermissionRegistry = {
 };
 
 export type PermissionString = `${Resource}.${CrudAction | CustomAction}`;
+
+/**
+ * Parsed permission object containing resource and action parts
+ */
+export interface ParsedPermission {
+  resource: string;
+  action: string;
+}
+
+/**
+ * Parses a permission string into its resource and action components
+ * @param permission The permission string to parse
+ * @returns Parsed permission object with resource and action
+ */
+export const parsePermissionString = (permission: string): ParsedPermission => {
+  const lastDotIndex = permission.lastIndexOf(".");
+  const resource = permission.substring(0, lastDotIndex);
+  const action = permission.substring(lastDotIndex + 1);
+  return { resource, action };
+};
+
+/**
+ * Validates a permission string format
+ * @param val The permission string to validate
+ * @returns True if valid, false otherwise
+ */
+export const isValidPermissionString = (val: unknown): val is PermissionString => {
+  if (typeof val !== "string") return false;
+
+  // Handle special case for _resource
+  if (val.endsWith("._resource")) {
+    const resourcePart = val.slice(0, -10); // Remove "._resource"
+    return Object.values(Resource).includes(resourcePart as Resource);
+  }
+
+  // Split by the last dot to handle nested resources like "organization.attributes.create"
+  const lastDotIndex = val.lastIndexOf(".");
+  if (lastDotIndex === -1) return false;
+
+  const { resource, action } = parsePermissionString(val);
+
+  const isValidResource = Object.values(Resource).includes(resource as Resource);
+  const isValidAction =
+    Object.values(CrudAction).includes(action as CrudAction) ||
+    Object.values(CustomAction).includes(action as CustomAction);
+
+  return isValidResource && isValidAction;
+};
 
 /**
  * Helper function to filter out the _resource property from a ResourceConfig
@@ -215,21 +264,34 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_team_members",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers"],
     },
     [CustomAction.Remove]: {
       description: "Remove team members",
       category: "team",
       i18nKey: "pbac_action_remove",
       descriptionI18nKey: "pbac_desc_remove_team_members",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.ListMembers]: {
+      description: "List team members",
+      category: "team",
+      i18nKey: "pbac_action_list_members",
+      descriptionI18nKey: "pbac_desc_list_team_members",
     },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate team members",
+      category: "team",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_team_members",
+      dependsOn: ["team.read", "team.listMembers"],
     },
   },
   [Resource.Organization]: {
@@ -289,6 +351,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_change_organization_member_role",
       scope: [Scope.Organization],
       dependsOn: ["organization.listMembers", "role.read"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate organization members",
+      category: "org",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_organization_members",
+      scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
       description: "Edit organization settings",
