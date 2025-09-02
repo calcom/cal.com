@@ -18,24 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const userId = req.session.user.id;
   const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : null;
-
-  if (!teamId) {
-    return res.status(400).json({ message: "Team ID is required" });
-  }
-
-  const teamRepository = new TeamRepository(prisma);
-  const team = await teamRepository.getTeamByIdIfUserIsAdmin({
-    teamId,
-    userId,
-  });
   let return_url = `${WEBAPP_URL}/settings/billing`;
-
-  if (typeof req.query.returnTo === "string") {
-    const safeRedirectUrl = getSafeRedirectUrl(req.query.returnTo);
-    if (safeRedirectUrl) return_url = safeRedirectUrl;
-  }
-
-  if (!team) {
+  if (!teamId) {
     const customerId = await getStripeCustomerIdFromUserId(userId);
     if (!customerId) return res.status(404).json({ message: "CustomerId not found" });
 
@@ -44,7 +28,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return_url,
     });
 
-    return res.status(200).json({ url: portalSession.url });
+    return res.redirect(302, portalSession.url);
+  }
+
+  const teamRepository = new TeamRepository(prisma);
+  const team = await teamRepository.getTeamByIdIfUserIsAdmin({
+    teamId,
+    userId,
+  });
+
+  if (!team) return res.status(404).json({ message: "Team not found" });
+
+  if (typeof req.query.returnTo === "string") {
+    const safeRedirectUrl = getSafeRedirectUrl(req.query.returnTo);
+    if (safeRedirectUrl) return_url = safeRedirectUrl;
   }
 
   const teamMetadataParsed = teamMetadataSchema.safeParse(team.metadata);
