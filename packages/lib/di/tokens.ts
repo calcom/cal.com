@@ -51,4 +51,12 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  LOGGER: Symbol("Logger"),
+  LOGGER_MODULE: Symbol("LoggerModule"),
+  GOOGLE_CALENDAR_TASKER: Symbol("GoogleCalendarTasker"),
+  GOOGLE_CALENDAR_TASKER_MODULE: Symbol("GoogleCalendarTaskerModule"),
+  GOOGLE_CALENDAR_SYNC_TASKER: Symbol("GoogleCalendarSyncTasker"),
+  GOOGLE_CALENDAR_SYNC_TASKER_MODULE: Symbol("GoogleCalendarSyncTaskerModule"),
+  GOOGLE_CALENDAR_TRIGGER_DEV_TASKER: Symbol("GoogleCalendarTriggerDevTasker"),
+  GOOGLE_CALENDAR_TRIGGER_DEV_TASKER_MODULE: Symbol("GoogleCalendarTriggerDevTaskerModule"),
 };
