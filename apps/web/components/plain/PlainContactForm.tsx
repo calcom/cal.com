@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
 import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
@@ -9,15 +9,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  message: string;
-  attachments?: FileData[];
-}
-
-const PlainContactForm = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const PlainContactForm = ({ open, setIsOpen }: { open: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -62,6 +54,7 @@ const PlainContactForm = () => {
       setIsUploadingImage(false);
 
       const formData = new FormData();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       uploadFormData.forEach(({ key, value }: any) => {
         formData.append(key, value);
       });
@@ -144,8 +137,8 @@ const PlainContactForm = () => {
   };
 
   return (
-    <div className="absolute bottom-[1rem] right-[1rem] z-50">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <div className="fixed bottom-[1rem] right-[1rem] z-50">
+      <Popover open={open} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild className="enabled:hover:bg-subtle bg-subtle shadow-none">
           <Button
             onClick={() => setIsOpen(true)}

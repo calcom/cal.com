@@ -4,10 +4,10 @@ import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 type WorkflowExampleType = {
   Icon: IconName;
@@ -48,7 +48,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not authorized to create this workflow`;
+        const message = `${err.data.code}: ${t("unauthorized_create_workflow")}`;
         showToast(message, "error");
       }
     },
