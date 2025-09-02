@@ -2,6 +2,10 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
   extends: ["./packages/config/eslint-preset.js"],
+  plugins: ["import"],
+  rules: {
+    "import/no-cycle": ["warn", { maxDepth: Infinity }],
+  },
   overrides: [
     {
       files: ["packages/lib/**/*.{ts,tsx,js,jsx}", "packages/prisma/**/*.{ts,tsx,js,jsx}"],
