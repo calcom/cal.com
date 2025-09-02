@@ -1,5 +1,5 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAppFromSlugSync } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
@@ -121,7 +121,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
           (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
         );
         // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
-        const dependencyName = getAppFromSlug(dependency)?.name;
+        const dependencyName = getAppFromSlugSync(dependency)?.name;
         return { name: dependencyName, installed: dependencyInstalled };
       });
     }

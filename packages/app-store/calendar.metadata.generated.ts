@@ -3,18 +3,12 @@
     Don't modify this file manually.
 **/
 export const CalendarMetadataMap = {
-  applecalendar: import("./applecalendar/minimal-metadata"),
-  basecamp3: import("./basecamp3/minimal-metadata"),
-  caldavcalendar: import("./caldavcalendar/minimal-metadata"),
-  cron: import("./cron/minimal-metadata"),
-  exchange2013calendar: import("./exchange2013calendar/minimal-metadata"),
-  exchange2016calendar: import("./exchange2016calendar/minimal-metadata"),
-  exchangecalendar: import("./exchangecalendar/minimal-metadata"),
-  feishucalendar: import("./feishucalendar/minimal-metadata"),
-  googlecalendar: import("./googlecalendar/minimal-metadata"),
-  "ics-feedcalendar": import("./ics-feedcalendar/minimal-metadata"),
-  larkcalendar: import("./larkcalendar/minimal-metadata"),
-  office365calendar: import("./office365calendar/minimal-metadata"),
-  sendgrid: import("./sendgrid/minimal-metadata"),
-  zohocalendar: import("./zohocalendar/minimal-metadata"),
+  applecalendar: import("./applecalendar/_metadata"),
+  caldavcalendar: import("./caldavcalendar/_metadata"),
+  exchange2013calendar: import("./exchange2013calendar/_metadata"),
+  exchange2016calendar: import("./exchange2016calendar/_metadata"),
+  feishucalendar: import("./feishucalendar/_metadata"),
+  googlecalendar: import("./googlecalendar/_metadata"),
+  larkcalendar: import("./larkcalendar/_metadata"),
+  office365calendar: import("./office365calendar/_metadata"),
 };

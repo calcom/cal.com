@@ -11,7 +11,7 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAppFromSlugSync } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -1067,7 +1067,7 @@ async function handler(
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+      const app = getAppFromSlugSync(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
       if (isManagedEventType || isTeamEventType) {
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =

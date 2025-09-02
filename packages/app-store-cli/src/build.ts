@@ -467,44 +467,13 @@ function generateFiles() {
     videoOutput.push(...videoAdapters);
   }
 
-  forEachAppDir((app) => {
-    const minimalMetadataPath = path.join(APP_STORE_PATH, app.path, "minimal-metadata.ts");
-
-    const minimalMetadata = {
-      slug: app.slug,
-      name: app.name,
-      type: app.type,
-      ...(app.appData?.location && {
-        appData: {
-          location: {
-            type: app.appData.location.type,
-            ...(app.appData.location.linkType && { linkType: app.appData.location.linkType }),
-            ...(app.appData.location.messageForOrganizer && {
-              messageForOrganizer: app.appData.location.messageForOrganizer,
-            }),
-            ...(app.appData.location.variable && { variable: app.appData.location.variable }),
-            ...(app.appData.location.defaultValueVariable && {
-              defaultValueVariable: app.appData.location.defaultValueVariable,
-            }),
-            ...(app.appData.location.organizerInputType && {
-              organizerInputType: app.appData.location.organizerInputType,
-            }),
-          },
-        },
-      }),
-    };
-
-    const minimalMetadataContent = `export const metadata = ${JSON.stringify(minimalMetadata, null, 2)};`;
-    fs.writeFileSync(minimalMetadataPath, minimalMetadataContent);
-  });
-
   const calendarMetadataOutput = [];
   const calendarMetadataServices = getExportedObject(
     "CalendarMetadataMap",
     {
       importConfig: {
-        fileToBeImported: "minimal-metadata.ts",
-        importName: "metadata",
+        fileToBeImported: "_metadata.ts",
+        importName: "default",
       },
       lazyImport: true,
     },
@@ -519,8 +488,8 @@ function generateFiles() {
     "PaymentMetadataMap",
     {
       importConfig: {
-        fileToBeImported: "minimal-metadata.ts",
-        importName: "metadata",
+        fileToBeImported: "_metadata.ts",
+        importName: "default",
       },
       lazyImport: true,
     },
@@ -535,8 +504,8 @@ function generateFiles() {
     "VideoMetadataMap",
     {
       importConfig: {
-        fileToBeImported: "minimal-metadata.ts",
-        importName: "metadata",
+        fileToBeImported: "_metadata.ts",
+        importName: "default",
       },
       lazyImport: true,
     },
@@ -551,8 +520,8 @@ function generateFiles() {
     "AnalyticsMetadataMap",
     {
       importConfig: {
-        fileToBeImported: "minimal-metadata.ts",
-        importName: "metadata",
+        fileToBeImported: "_metadata.ts",
+        importName: "default",
       },
       lazyImport: true,
     },
@@ -567,8 +536,8 @@ function generateFiles() {
     "CrmMetadataMap",
     {
       importConfig: {
-        fileToBeImported: "minimal-metadata.ts",
-        importName: "metadata",
+        fileToBeImported: "_metadata.ts",
+        importName: "default",
       },
       lazyImport: true,
     },
@@ -583,8 +552,8 @@ function generateFiles() {
     "LocationMetadataMap",
     {
       importConfig: {
-        fileToBeImported: "minimal-metadata.ts",
-        importName: "metadata",
+        fileToBeImported: "_metadata.ts",
+        importName: "default",
       },
       lazyImport: true,
     },

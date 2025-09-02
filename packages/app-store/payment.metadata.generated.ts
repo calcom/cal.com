@@ -3,10 +3,5 @@
     Don't modify this file manually.
 **/
 export const PaymentMetadataMap = {
-  alby: import("./alby/minimal-metadata"),
-  btcpayserver: import("./btcpayserver/minimal-metadata"),
-  hitpay: import("./hitpay/minimal-metadata"),
-  "mock-payment-app": import("./mock-payment-app/minimal-metadata"),
-  paypal: import("./paypal/minimal-metadata"),
-  stripepayment: import("./stripepayment/minimal-metadata"),
+  stripepayment: import("./stripepayment/_metadata"),
 };

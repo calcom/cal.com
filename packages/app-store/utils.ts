@@ -116,15 +116,18 @@ export function hasIntegrationInstalled(type: App["type"]): boolean {
 }
 
 export {
-  getAppFromSlugSync as getAppFromSlug,
-  getAppNameSync as getAppName,
-  getAppTypeSync as getAppType,
-  getAppFromLocationValueSync as getAppFromLocationValue,
-  getAppFromSlug as getAppFromSlugAsync,
-  getAppName as getAppNameAsync,
-  getAppType as getAppTypeAsync,
-  getAppFromLocationValue as getAppFromLocationValueAsync,
-} from "./app.metadata.utils.generated";
+  getAppFromSlug,
+  getAppName,
+  getAppType,
+  getAppFromLocationValue,
+  getCalendarApps,
+  getPaymentApps,
+  getAnalyticsApps,
+  getLocationApps,
+  getAppFromSlugSync,
+  getAppNameSync,
+  getAppTypeSync,
+} from "./utils-hybrid";
 
 export function getAppNameLegacy(name: string): string | null {
   return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name ?? null;

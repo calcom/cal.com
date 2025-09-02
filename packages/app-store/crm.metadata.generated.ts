@@ -3,11 +3,5 @@
     Don't modify this file manually.
 **/
 export const CrmMetadataMap = {
-  attio: import("./attio/minimal-metadata"),
-  closecom: import("./closecom/minimal-metadata"),
-  hubspot: import("./hubspot/minimal-metadata"),
-  "pipedrive-crm": import("./pipedrive-crm/minimal-metadata"),
-  salesforce: import("./salesforce/minimal-metadata"),
-  "zoho-bigin": import("./zoho-bigin/minimal-metadata"),
-  zohocrm: import("./zohocrm/minimal-metadata"),
+  hubspot: import("./hubspot/_metadata"),
 };
