@@ -1004,8 +1004,8 @@ export async function apiLogin(
    */
   await page.goto(navigateToUrl || "/settings/my-account/profile");
 
-  // Wait for the session to be fully established
-  await page.waitForLoadState();
+  // Wait for the session API call to complete to ensure session is fully established
+  await page.waitForResponse("/api/auth/session");
 
   return response;
 }
