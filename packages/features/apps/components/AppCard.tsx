@@ -216,7 +216,7 @@ const InstallAppButtonChild = ({
         StartIcon="external-link"
         {...props}
         size="base">
-        {t("APPSTORE_VISIT")}
+        {t("visit")}
       </Button>
     );
   }

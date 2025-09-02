@@ -199,7 +199,7 @@ export const AppPage = ({
           StartIcon="external-link"
           loading={isLoading}
           disabled={isLoading}>
-          {t("APPSTORE_VISIT")}
+          {t("visit")}
         </Button>
       );
     }
