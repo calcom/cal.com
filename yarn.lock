@@ -3585,6 +3585,7 @@ __metadata:
     ical.js: ^1.4.0
     ics: ^2.37.0
     jimp: ^0.16.1
+    lingo.dev: ^0.111.1
     next-collect: ^0.2.1
     next-i18next: ^15.4.2
     rrule: ^2.7.1
@@ -4314,7 +4315,6 @@ __metadata:
     jsdom: ^22.0.0
     kbar: ^0.1.0-beta.36
     libphonenumber-js: ^1.11.18
-    lingo.dev: 0.111.1
     lodash: ^4.17.21
     lottie-react: ^2.3.1
     markdown-it: ^13.0.1
@@ -34449,7 +34449,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lingo.dev@npm:0.111.1":
+"lingo.dev@npm:^0.111.1":
   version: 0.111.1
   resolution: "lingo.dev@npm:0.111.1"
   dependencies:
