@@ -21,7 +21,8 @@
     "@fastify/swagger-ui": "^2.1.0",
     "bcryptjs": "^2.4.3",
     "fastify": "^4.24.3",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.24.6"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

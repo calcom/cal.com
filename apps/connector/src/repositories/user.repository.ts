@@ -18,6 +18,8 @@ export class UserRepository extends BaseRepository<User> {
           email: data.email,
           name: data.name,
           role: (data.role as UserPermissionRole) || ("USER" as UserPermissionRole),
+          password: data.password,
+          username: data.username,
         },
       });
     } catch (error) {
@@ -54,9 +56,17 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   async findMany(filters: Prisma.UserWhereInput = {}, pagination: PaginationQuery = {}) {
-    const { email, role, emailVerified } = filters;
+    const { username, name, email, role, emailVerified } = filters;
 
     const where: Prisma.UserWhereInput = {};
+
+    if (username) {
+      where.username = { contains: username as string, mode: "insensitive" };
+    }
+
+    if (name) {
+      where.name = { contains: name as string, mode: "insensitive" };
+    }
 
     if (email) {
       where.email = { contains: email as string, mode: "insensitive" };
@@ -72,7 +82,6 @@ export class UserRepository extends BaseRepository<User> {
 
     const paginationOptions = this.buildPaginationOptions(pagination);
 
-    console.log("paginationOptions", paginationOptions);
     return this.executePaginatedQuery(
       () =>
         this.prisma.user.findMany({
@@ -85,6 +94,7 @@ export class UserRepository extends BaseRepository<User> {
             role: true,
             emailVerified: true,
             createdDate: true,
+            username: true,
           },
         }),
       () => this.prisma.user.count({ where }),
@@ -110,6 +120,17 @@ export class UserRepository extends BaseRepository<User> {
       });
     } catch (error) {
       this.handleDatabaseError(error, "delete user");
+    }
+  }
+
+  async toggleLock(id: number, lock: boolean): Promise<void> {
+    try {
+      await this.prisma.user.update({
+        where: { id },
+        data: { locked: lock },
+      });
+    } catch (error) {
+      this.handleDatabaseError(error, "lock user");
     }
   }
 

@@ -12,11 +12,25 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
       openapi: "3.0.0",
       info: {
         title: "Cal ID API",
-        description: "API documentation for Cal ID",
+        description: `
+# Cal ID API Documentation
+
+This API provides comprehensive user management and authentication services.
+
+## Authentication
+Include JWT token in Authorization header: \`Bearer <token>\`
+Or use API key in X-API-Key header: \`<api-key>\`
+
+## Rate Limiting
+- Auth endpoints: 5 req/min
+- User endpoints: 100 req/min  
+- General endpoints: 1000 req/hour
+        `,
         version: "1.0.0",
         contact: {
           name: "API Support",
           email: "support@onehash.com",
+          url: "https://support.onehash.com",
         },
         license: {
           name: "MIT",
@@ -35,59 +49,43 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
             type: "http",
             scheme: "bearer",
             bearerFormat: "JWT",
-            description: "Enter JWT token in the format: Bearer <token>",
+            description: "JWT authorization header using the Bearer scheme",
+          },
+          apiKey: {
+            type: "apiKey",
+            name: "X-API-Key",
+            in: "header",
+            description: "API key for server-to-server authentication",
           },
         },
-        schemas: {
-          Error: {
-            type: "object",
-            properties: {
-              success: { type: "boolean", example: false },
-              message: { type: "string" },
-              error: {
-                type: "object",
-                properties: {
-                  code: { type: "string" },
-                  message: { type: "string" },
-                  details: { type: "object" },
+        // Only define common response patterns that aren't auto-generated
+        responses: {
+          BadRequest: {
+            description: "Bad Request - Invalid parameters",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean", example: false },
+                    message: { type: "string", example: "Invalid parameters" },
+                  },
                 },
               },
             },
           },
-          SuccessResponse: {
-            type: "object",
-            properties: {
-              success: { type: "boolean", example: true },
-              data: { type: "object" },
-              message: { type: "string" },
-              meta: { type: "object" },
-            },
-          },
-          PaginationMeta: {
-            type: "object",
-            properties: {
-              pagination: {
-                type: "object",
-                properties: {
-                  page: { type: "number" },
-                  limit: { type: "number" },
-                  total: { type: "number" },
-                  totalPages: { type: "number" },
+          Unauthorized: {
+            description: "Unauthorized - Invalid credentials",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean", example: false },
+                    message: { type: "string", example: "Unauthorized" },
+                  },
                 },
               },
-            },
-          },
-          User: {
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid" },
-              email: { type: "string", format: "email" },
-              name: { type: "string", nullable: true },
-              role: { type: "string", enum: ["USER", "ADMIN", "MODERATOR"] },
-              emailVerified: { type: "string", format: "date-time", nullable: true },
-              image: { type: "string", nullable: true },
-              createdAt: { type: "string", format: "date-time" },
-              updatedAt: { type: "string", format: "date-time" },
             },
           },
         },
@@ -96,29 +94,47 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
         { name: "Health", description: "Health check endpoints" },
         { name: "Users", description: "User management endpoints" },
         { name: "Auth", description: "Authentication endpoints" },
+        { name: "Admin", description: "Admin endpoints (requires admin role)" },
       ],
     },
     hideUntagged: true,
+    // Let Zod schemas handle the heavy lifting
+    transform: ({ schema, url }) => {
+      // Optional: Transform auto-generated schemas if needed
+      return { schema, url };
+    },
   });
 
-  // Register Swagger UI (only in development)
-  if (NODE_ENV === "development") {
+  // Register Swagger UI (enhanced but minimal)
+  const shouldExposeSwaggerUI = NODE_ENV === "development" || process.env.EXPOSE_SWAGGER_UI === "true";
+
+  if (shouldExposeSwaggerUI) {
     await fastify.register(swaggerUi, {
       routePrefix: "/docs",
       uiConfig: {
         docExpansion: "list",
-        deepLinking: false,
-        defaultModelsExpandDepth: 1,
-        defaultModelExpandDepth: 1,
+        deepLinking: true,
+        tryItOutEnabled: true,
+        filter: true,
+        syntaxHighlight: {
+          activate: true,
+          theme: "monokai",
+        },
       },
       staticCSP: true,
       transformSpecificationClone: true,
     });
 
-    fastify.log.info(`Swagger UI available at http://${HOST}:${PORT}/docs`);
+    // Convenience redirect
+    fastify.get("/swagger", async (request, reply) => {
+      return reply.redirect("/docs");
+    });
+
+    const baseUrl = NODE_ENV === "production" ? "https://api.yourproject.com" : `http://${HOST}:${PORT}`;
+    fastify.log.info(`📚 Swagger UI: ${baseUrl}/docs`);
   }
 
-  fastify.log.info("Swagger plugin registered successfully");
+  fastify.log.info("✅ Swagger plugin registered");
 }
 
 export default fp(swaggerPlugin, {

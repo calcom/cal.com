@@ -7,6 +7,9 @@ import { PrismaClient } from "@calcom/prisma/client";
 import type { User, Prisma, UserPermissionRole } from "@calcom/prisma/client";
 
 import { BaseService } from "../base.service";
+import z from "zod";
+import zodToJsonSchema from 'zod-to-json-schema';
+import { UserResponse } from "@/schema/user.schema";
 
 export interface CreateUserInput {
   email: string;
@@ -22,14 +25,7 @@ export interface UpdateUserInput {
   image?: string;
 }
 
-export interface UserResponse {
-  id: number;
-  email: string;
-  name: string | null;
-  role: UserPermissionRole;
-  emailVerified: Date | null;
-  createdAt: Date;
-}
+
 
 export class UserService extends BaseService {
   private userRepository: UserRepository;

@@ -3913,6 +3913,7 @@ __metadata:
     tsx: ^4.1.0
     typescript: ^5.2.2
     zod: ^3.22.4
+    zod-to-json-schema: ^3.24.6
   languageName: unknown
   linkType: soft
 
@@ -44776,7 +44777,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-to-json-schema@npm:^3.24.5":
+"zod-to-json-schema@npm:^3.24.5, zod-to-json-schema@npm:^3.24.6":
   version: 3.24.6
   resolution: "zod-to-json-schema@npm:3.24.6"
   peerDependencies:
