@@ -180,12 +180,12 @@ export function processWorkingHours(
 
       // Update endTimeToKeyMap (remove old keys, then ensure newKey is present once)
       if (endTimeToKeyMap) {
-        for (const [oldKey, oldEndTime] of oldEndTimesByKey) {
-          const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+        oldEndTimesByKey.forEach((oldEndTime, oldKey) => {
+          const oldKeys = endTimeToKeyMap?.get(oldEndTime) || [];
           const filteredKeys = oldKeys.filter((k) => k !== oldKey);
-          if (filteredKeys.length === 0) endTimeToKeyMap.delete(oldEndTime);
-          else endTimeToKeyMap.set(oldEndTime, filteredKeys);
-        }
+          if (filteredKeys.length === 0) endTimeToKeyMap?.delete(oldEndTime);
+          else endTimeToKeyMap?.set(oldEndTime, filteredKeys);
+        });
         const bucket = new Set(endTimeToKeyMap.get(newKey) || []);
         bucket.add(newKey);
         endTimeToKeyMap.set(newKey, Array.from(bucket));
