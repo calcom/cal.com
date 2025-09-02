@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
 
@@ -44,17 +44,19 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
       message: "The password set by default doesn't match your existing one. Contact an app admin.",
     });
 
-  const hashedPassword = await hashPassword(newPassword);
+  const { hash, salt } = await hashPasswordWithSalt(newPassword);
   await prisma.userPassword.upsert({
     where: {
       userId: ctx.user.id,
     },
     create: {
-      hash: hashedPassword,
+      hash,
+      salt,
       userId: ctx.user.id,
     },
     update: {
-      hash: hashedPassword,
+      hash,
+      salt,
     },
   });
 

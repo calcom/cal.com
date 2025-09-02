@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
@@ -58,7 +58,7 @@ export default async function handler(body: Record<string, string>) {
     correctedUsername = userValidation.username;
   }
 
-  const hashedPassword = await hashPassword(password);
+  const { hash, salt } = await hashPasswordWithSalt(password);
 
   if (foundToken && foundToken?.teamId) {
     const team = await prisma.team.findUnique({
@@ -94,8 +94,8 @@ export default async function handler(body: Record<string, string>) {
           username: correctedUsername,
           password: {
             upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
+              create: { hash, salt },
+              update: { hash, salt },
             },
           },
           emailVerified: new Date(Date.now()),
@@ -104,7 +104,7 @@ export default async function handler(body: Record<string, string>) {
         create: {
           username: correctedUsername,
           email: userEmail,
-          password: { create: { hash: hashedPassword } },
+          password: { create: { hash, salt } },
           identityProvider: IdentityProvider.CAL,
         },
       });
@@ -149,8 +149,8 @@ export default async function handler(body: Record<string, string>) {
         username: correctedUsername,
         password: {
           upsert: {
-            create: { hash: hashedPassword },
-            update: { hash: hashedPassword },
+            create: { hash, salt },
+            update: { hash, salt },
           },
         },
         emailVerified: new Date(Date.now()),
@@ -159,7 +159,7 @@ export default async function handler(body: Record<string, string>) {
       create: {
         username: correctedUsername,
         email: userEmail,
-        password: { create: { hash: hashedPassword } },
+        password: { create: { hash, salt } },
         identityProvider: IdentityProvider.CAL,
       },
     });

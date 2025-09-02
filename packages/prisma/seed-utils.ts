@@ -5,9 +5,9 @@ import { uuid } from "short-uuid";
 import type z from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
 import type { teamMetadataSchema } from "./zod-utils";
@@ -67,13 +67,16 @@ export async function createUserAndEventType({
     create: userData,
   });
 
+  const { hash, salt } = await hashPasswordWithSalt(user.password);
   await prisma.userPassword.upsert({
     where: { userId: theUser.id },
     update: {
-      hash: await hashPassword(user.password),
+      hash,
+      salt,
     },
     create: {
-      hash: await hashPassword(user.password),
+      hash,
+      salt,
       user: {
         connect: {
           id: theUser.id,
@@ -103,6 +106,7 @@ export async function createUserAndEventType({
           .toDate(),
         title: `${eventTypeInput.title}:${i + 1}`,
         uid: uuid(),
+        status: BookingStatus.ACCEPTED,
       }));
     } else {
       bookingFields = _bookings || [];
@@ -159,8 +163,7 @@ export async function createUserAndEventType({
               id,
             },
           },
-          status: bookingInput.status,
-          iCalUID: "",
+          status: bookingInput?.status ? bookingInput.status : BookingStatus.ACCEPTED,
         },
       });
       console.log(

@@ -2,7 +2,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { CreationSource } from "@calcom/prisma/enums";
 
@@ -18,7 +18,7 @@ vi.mock("@calcom/lib/server/i18n", () => {
 });
 
 vi.mock("@calcom/features/auth/lib/hashPassword", () => ({
-  hashPassword: vi.fn().mockResolvedValue("hashed-password"),
+  hashPasswordWithSalt: vi.fn().mockResolvedValue({ hash: "hashed-password", salt: "salt" }),
 }));
 
 vi.mock("../repository/user", () => {
@@ -109,7 +109,7 @@ describe("UserCreationService", () => {
 
   test("should hash password when provided", async () => {
     const mockPassword = "password";
-    vi.mocked(hashPassword).mockResolvedValue("hashed_password");
+    vi.mocked(hashPasswordWithSalt).mockResolvedValue({ hash: "hashed_password", salt: "salt" });
 
     const mockCreate = vi.fn().mockResolvedValue({
       username: "test",
@@ -131,10 +131,11 @@ describe("UserCreationService", () => {
       data: { ...mockUserData, password: mockPassword },
     });
 
-    expect(hashPassword).toHaveBeenCalledWith(mockPassword);
+    expect(hashPasswordWithSalt).toHaveBeenCalledWith(mockPassword);
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         hashedPassword: "hashed_password",
+        salt: "salt",
       })
     );
 

@@ -295,6 +295,7 @@ model UserPassword {
   hash   String
   userId Int    @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  salt   String? 
 }
 
 model TravelSchedule {

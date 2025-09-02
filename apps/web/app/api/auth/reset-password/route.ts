@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -34,7 +34,8 @@ async function handler(req: NextRequest) {
     },
   });
 
-  const hashedPassword = await hashPassword(rawPassword);
+  const { hash, salt } = hashPasswordWithSalt(rawPassword);
+
   // this can fail if a password request has been made for an email that has since changed or-
   // never existed within Cal. In this case we do not want to disclose the email's existence.
   // instead, we just return 404
@@ -46,8 +47,8 @@ async function handler(req: NextRequest) {
       data: {
         password: {
           upsert: {
-            create: { hash: hashedPassword },
-            update: { hash: hashedPassword },
+            create: { hash, salt },
+            update: { hash, salt },
           },
         },
         emailVerified: new Date(),

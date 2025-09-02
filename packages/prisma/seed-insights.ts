@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
@@ -357,7 +357,8 @@ async function main() {
   const seededForm = await seedRoutingForms(
     insightsTeam.id,
     owner?.user.id ?? insightsTeamMembers[0].user.id,
-    attributes
+    attributes,
+    javascriptEventId
   );
 
   if (seededForm) {
@@ -409,11 +410,15 @@ async function createPerformanceData() {
     for (let i = 0; i < numInsightsUsers; i++) {
       const timestamp = Date.now();
       const email = `insightsuser${timestamp}@example.com`;
+
+      const { hash, salt } = await hashPasswordWithSalt("insightsuser");
+
       const insightsUser = {
         email,
         password: {
           create: {
-            hash: await hashPassword("insightsuser"),
+            hash,
+            salt,
           },
         },
         name: `Insights User ${timestamp}`,
@@ -446,7 +451,7 @@ async function createPerformanceData() {
     }
 
     await prisma.membership.createMany({
-      data: extraMembersIds.map((memberId) => ({
+      data: extraMembersIds?.map((memberId) => ({
         teamId: insightsTeam?.id ?? 1,
         userId: memberId.id,
         role: "MEMBER",
@@ -456,7 +461,7 @@ async function createPerformanceData() {
       })),
     });
 
-    const updateMemberPromises = extraMembersIds.map((memberId) =>
+    const updateMemberPromises = extraMembersIds?.map((memberId) =>
       prisma.team.update({
         where: {
           id: insightsTeam?.id,

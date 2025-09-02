@@ -1,4 +1,4 @@
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
@@ -58,17 +58,19 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     throw new TRPCError({ code: "BAD_REQUEST", message: "password_hint_min" });
   }
 
-  const hashedPassword = await hashPassword(newPassword);
+  const { hash, salt } = await hashPasswordWithSalt(newPassword);
   await prisma.userPassword.upsert({
     where: {
       userId: user.id,
     },
     create: {
-      hash: hashedPassword,
+      hash,
+      salt,
       userId: user.id,
     },
     update: {
-      hash: hashedPassword,
+      hash,
+      salt,
     },
   });
 };

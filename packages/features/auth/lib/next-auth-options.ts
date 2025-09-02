@@ -47,7 +47,7 @@ import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
-import { verifyPassword } from "./verifyPassword";
+import { verifyKeycloakPassword } from "./verifyPassword";
 
 const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
@@ -145,7 +145,15 @@ const providers: Provider[] = [
         if (!user.password?.hash) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
-        const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
+        console.log("Verifying Keycloak password...", credentials.password, user.password.hash);
+        // const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
+        const isCorrectPassword = verifyKeycloakPassword({
+          inputPassword: credentials.password,
+          storedHashBase64: user.password.hash,
+          saltBase64: user.password.salt || "",
+          iterations: 27500,
+        });
+        console.log("isCorrectPassword", isCorrectPassword);
         if (!isCorrectPassword) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }

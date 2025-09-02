@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
@@ -40,13 +40,13 @@ async function handler(req: NextRequest) {
   const username = slugify(parsedQuery.data.username.trim());
   const userEmail = parsedQuery.data.email_address.toLowerCase();
 
-  const hashedPassword = await hashPassword(parsedQuery.data.password);
+  const { hash, salt } = hashPasswordWithSalt(parsedQuery.data.password);
 
   await prisma.user.create({
     data: {
       username,
       email: userEmail,
-      password: { create: { hash: hashedPassword } },
+      password: { create: { hash, salt } },
       role: "ADMIN",
       name: parsedQuery.data.full_name,
       emailVerified: new Date(),

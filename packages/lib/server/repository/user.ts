@@ -625,13 +625,14 @@ export class UserRepository {
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
       username: string;
       hashedPassword?: string;
+      salt?: string;
       organizationId: number | null;
       creationSource: CreationSource;
       locked: boolean;
     }
   ) {
     const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+    const { email, username, creationSource, locked, hashedPassword, salt, ...rest } = data;
 
     logger.info("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
@@ -641,7 +642,7 @@ export class UserRepository {
       data: {
         username,
         email: email,
-        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
+        ...(hashedPassword && { password: { create: { hash: hashedPassword, salt } } }),
         // Default schedule
         schedules: {
           create: {
