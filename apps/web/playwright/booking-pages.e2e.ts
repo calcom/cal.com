@@ -786,7 +786,7 @@ test.describe("Past booking cancellation", () => {
       status: "ACCEPTED",
     });
 
-    await page.goto("/bookings/past);
+    await page.goto("/bookings/past");
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
     await expect(page.locator('[data-testid="cancel"]')).toBeDisabled();
 
