@@ -2,7 +2,10 @@ import type { OrganizationSettings } from "@calcom/prisma/client";
 
 type MinimumOrganizationSettings = Pick<
   OrganizationSettings,
-  "orgAutoAcceptEmail" | "orgProfileRedirectsToVerifiedDomain" | "allowSEOIndexing"
+  | "orgAutoAcceptEmail"
+  | "orgProfileRedirectsToVerifiedDomain"
+  | "allowSEOIndexing"
+  | "disableAutofillOnBookingPage"
 >;
 
 type SEOOrganizationSettings = Pick<OrganizationSettings, "allowSEOIndexing">;
