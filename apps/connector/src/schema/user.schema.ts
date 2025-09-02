@@ -3,20 +3,7 @@ import zodToJsonSchema from "zod-to-json-schema";
 
 import { UserPermissionRole } from "@calcom/prisma/client";
 
-export const UserResponseSchema = z.object({
-  id: z.number(),
-  email: z.string().email(),
-  name: z.string().nullable(),
-  username: z.string().nullable().optional(),
-  role: z.string(),
-  organizationId: z.number().nullable().optional(),
-  createdAt: z.date().nullable(),
-  emailVerified: z.date().nullable(),
-});
-
-export const UserResponseJsonSchema = zodToJsonSchema(UserResponseSchema);
-export type UserResponse = z.infer<typeof UserResponseSchema>;
-
+//REQUEST SCHEMAS
 // Query schemas
 const getUsersQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -55,3 +42,18 @@ const updateUserBodySchema = createUserBodySchema.partial().extend({
 });
 
 export { getUsersQuerySchema, createUserBodySchema, updateUserBodySchema };
+
+//RESPONSE SCHEMAS
+export const UserResponseSchema = z.object({
+  id: z.number(),
+  email: z.string().email(),
+  name: z.string().nullable(),
+  username: z.string().nullable().optional(),
+  role: z.string(),
+  organizationId: z.number().nullable().optional(),
+  createdAt: z.date().nullable(),
+  emailVerified: z.date().nullable(),
+});
+
+export const UserResponseJsonSchema = zodToJsonSchema(UserResponseSchema);
+export type UserResponse = z.infer<typeof UserResponseSchema>;
