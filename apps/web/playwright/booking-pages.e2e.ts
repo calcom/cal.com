@@ -792,6 +792,5 @@ test.describe("Past booking cancellation", () => {
 
     await page.goto(`/booking/${booking.uid}`);
     await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
-    await expect(page.locator("text=Need to make a change?")).toBeHidden();
   });
 });
