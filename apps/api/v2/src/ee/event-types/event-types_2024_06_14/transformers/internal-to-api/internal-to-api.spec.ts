@@ -292,8 +292,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         isDefault: true,
         required: true,
         disableOnPrefill: false,
-        label: "",
-        placeholder: "",
+        label: undefined,
+        placeholder: undefined,
       },
     ];
 
