@@ -4,7 +4,14 @@ import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import {
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+  WorkflowActions,
+  WorkflowTemplates,
+} from "@calcom/prisma/client";
+import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { _onFormSubmission } from "./utils";
 
@@ -24,6 +31,16 @@ vi.mock("@calcom/features/tasker", () => {
   };
   return { default: Promise.resolve(tasker) };
 });
+
+// Mock workflow dependencies
+vi.mock("@calcom/lib/server/service/workflows", () => ({
+  WorkflowService: {
+    scheduleFormWorkflows: vi.fn(() => Promise.resolve()),
+  },
+}));
+vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
+  getAllWorkflowsFromRoutingForm: vi.fn(() => Promise.resolve([])),
+}));
 
 const mockSendEmail = vi.fn(() => Promise.resolve());
 const mockResponseEmailConstructor = vi.fn();
@@ -119,6 +136,112 @@ describe("_onFormSubmission", () => {
         },
         { scheduledAt: expect.any(Date) }
       );
+    });
+  });
+
+  describe("Workflows", () => {
+    it("should call WorkflowService.scheduleFormWorkflows for FORM_SUBMITTED workflows", async () => {
+      const mockWorkflows = [
+        {
+          id: 1,
+          name: "Form Submitted Workflow",
+          userId: 1,
+          teamId: null,
+          trigger: WorkflowTriggerEvents.FORM_SUBMITTED,
+          time: null,
+          timeUnit: null,
+          steps: [
+            {
+              id: 1,
+              action: WorkflowActions.EMAIL_ATTENDEE,
+              sendTo: null,
+              reminderBody: "Thank you for your submission!",
+              emailSubject: "Form Received",
+              template: WorkflowTemplates.CUSTOM,
+              verifiedAt: new Date(),
+              includeCalendarEvent: false,
+              numberVerificationPending: false,
+              numberRequired: false,
+            },
+          ],
+        },
+      ];
+
+      vi.mocked(getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
+
+      await _onFormSubmission(mockForm as any, mockResponse, responseId);
+
+      expect(getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
+        workflows: mockWorkflows,
+        responses: {
+          email: {
+            value: "test@response.com",
+            response: "test@response.com",
+          },
+          name: { value: "Test Name", response: "Test Name" },
+        },
+        responseId,
+        form: {
+          ...mockForm,
+          fields: mockForm.fields.map((field) => ({
+            type: field.type,
+            identifier: field.identifier,
+          })),
+        },
+      });
+    });
+
+    it("should call WorkflowService.scheduleFormWorkflows for FORM_SUBMITTED_NO_EVENT workflows", async () => {
+      const mockWorkflows = [
+        {
+          id: 2,
+          name: "Form Follow-up Workflow",
+          userId: 1,
+          teamId: null,
+          trigger: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+          time: 30,
+          timeUnit: "MINUTE",
+          steps: [
+            {
+              id: 2,
+              action: WorkflowActions.EMAIL_ATTENDEE,
+              sendTo: null,
+              reminderBody: "Follow up on your form submission",
+              emailSubject: "Follow Up",
+              template: WorkflowTemplates.CUSTOM,
+              verifiedAt: new Date(),
+              includeCalendarEvent: false,
+              numberVerificationPending: false,
+              numberRequired: false,
+            },
+          ],
+        },
+      ];
+
+      vi.mocked(getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
+
+      await _onFormSubmission(mockForm as any, mockResponse, responseId);
+
+      expect(getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
+        workflows: mockWorkflows,
+        responses: {
+          email: {
+            value: "test@response.com",
+            response: "test@response.com",
+          },
+          name: { value: "Test Name", response: "Test Name" },
+        },
+        responseId,
+        form: {
+          ...mockForm,
+          fields: mockForm.fields.map((field) => ({
+            type: field.type,
+            identifier: field.identifier,
+          })),
+        },
+      });
     });
   });
 
