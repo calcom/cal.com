@@ -3581,6 +3581,7 @@
   "executable_files_cannot_be_uploaded_as_images": "Executable files cannot be uploaded as images",
   "failed_to_validate_image_file": "Failed to validate image file",
   "invalid_image_file_format": "Invalid image file format",  
+  "visit": "Visit",
   "location_custom_label_input_label": "Custom label on booking page",
   "meeting_link": "Meeting link",
   "my_bookings": "My Bookings",
