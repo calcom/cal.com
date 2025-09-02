@@ -2306,14 +2306,20 @@ async function handler(
       }
     }
 
-    await Promise.all([...deleteWebhookScheduledTriggerPromises, ...scheduleTriggerPromises]).catch(
-      (error) => {
-        loggerWithEventDetails.error(
-          "Error while scheduling or canceling webhook triggers",
-          JSON.stringify({ error })
-        );
-      }
-    );
+    const scheduledTriggerResults = await Promise.allSettled([
+      ...deleteWebhookScheduledTriggerPromises,
+      ...scheduleTriggerPromises,
+    ]);
+    const failures = scheduledTriggerResults.filter((result) => result.status === "rejected");
+
+    if (failures.length > 0) {
+      loggerWithEventDetails.error(
+        "Error while scheduling or canceling webhook triggers",
+        safeStringify({
+          errors: failures.map((f) => f.reason),
+        })
+      );
+    }
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({
