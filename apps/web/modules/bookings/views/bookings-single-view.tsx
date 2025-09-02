@@ -814,8 +814,7 @@ export default function Success(props: PageProps) {
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
-                      ((!isBookingInPast && canCancelOrReschedule) ||
-                        ((!isBookingInPast || eventType.allowReschedulingPastBookings) && canReschedule)) &&
+                      canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
