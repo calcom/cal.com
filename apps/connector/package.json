@@ -16,7 +16,7 @@
     "@fastify/autoload": "^5.8.0",
     "@fastify/cors": "^8.4.0",
     "@fastify/env": "4.x",
-    "@fastify/jwt": "7.x",
+    "@fastify/jwt": "^10.0.0",
     "@fastify/swagger": "^8.12.0",
     "@fastify/swagger-ui": "^2.1.0",
     "bcryptjs": "^2.4.3",

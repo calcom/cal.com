@@ -23,10 +23,9 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
     
     schema: {
       description: 'Get current user profile',
-      tags: ['API Auth - Users'],
+      tags: ['Users'],
       security: [
         { bearerAuth: [] },
-        { apiKey: [] },
       ],
       response: {
         200: {

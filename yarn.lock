@@ -3902,7 +3902,7 @@ __metadata:
     "@fastify/autoload": ^5.8.0
     "@fastify/cors": ^8.4.0
     "@fastify/env": 4.x
-    "@fastify/jwt": 7.x
+    "@fastify/jwt": ^10.0.0
     "@fastify/swagger": ^8.12.0
     "@fastify/swagger-ui": ^2.1.0
     "@types/bcryptjs": ^2.4.6
@@ -5514,10 +5514,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fastify/error@npm:^3.0.0, @fastify/error@npm:^3.3.0, @fastify/error@npm:^3.4.0":
+"@fastify/error@npm:^3.3.0, @fastify/error@npm:^3.4.0":
   version: 3.4.1
   resolution: "@fastify/error@npm:3.4.1"
   checksum: 2c2e98c33327884c0927a73e8c3b8f162acbf1e4d058bacb68bca0c3607f36d6fde8c376fde45b2097e724d450266f8bb29134305fa24aabd200f83f087c7321
+  languageName: node
+  linkType: hard
+
+"@fastify/error@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@fastify/error@npm:4.2.0"
+  checksum: 92b1b368bf100fd78786d212515f481670f8102ffbbb4d43a561c3e9841fa57ef2b6af3360cad6770440a5548a1ec20e6e48e1784d7d45794ae88a2458abe962
   languageName: node
   linkType: hard
 
@@ -5530,16 +5537,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fastify/jwt@npm:7.x":
-  version: 7.2.4
-  resolution: "@fastify/jwt@npm:7.2.4"
+"@fastify/jwt@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "@fastify/jwt@npm:10.0.0"
   dependencies:
-    "@fastify/error": ^3.0.0
-    "@lukeed/ms": ^2.0.0
-    fast-jwt: ^3.3.2
-    fastify-plugin: ^4.0.0
+    "@fastify/error": ^4.2.0
+    "@lukeed/ms": ^2.0.2
+    fast-jwt: ^6.0.2
+    fastify-plugin: ^5.0.1
     steed: ^1.1.3
-  checksum: 5629b2b4cde1e9ce812532428044bbd734c8962e6d07163a2d16e66518df635f0d0e8ed21e6eeeb6dbc3538b125df26e0181884cecca65c37d8ef5179dd61de2
+  checksum: 88364dfc691b36df5c731bf59d289f2ab2e4e438bef43fb8e95763aeae568fe4650f255ccec6f0a5f2c9262ec04995a42b753754d03b60b52c7008dfb806cbe7
   languageName: node
   linkType: hard
 
@@ -8487,7 +8494,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lukeed/ms@npm:^2.0.0, @lukeed/ms@npm:^2.0.1":
+"@lukeed/ms@npm:^2.0.1, @lukeed/ms@npm:^2.0.2":
   version: 2.0.2
   resolution: "@lukeed/ms@npm:2.0.2"
   checksum: 6ae47ed3ebc857ffc0283cfe46129947209c770d0974eb86626138b6c194a760d08863ec593ec75a645aec133b3237b37af500739b030293e4d9a81130f4e2ae
@@ -25565,15 +25572,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-jwt@npm:^3.3.2":
-  version: 3.3.3
-  resolution: "fast-jwt@npm:3.3.3"
+"fast-jwt@npm:^6.0.2":
+  version: 6.0.2
+  resolution: "fast-jwt@npm:6.0.2"
   dependencies:
-    "@lukeed/ms": ^2.0.1
+    "@lukeed/ms": ^2.0.2
     asn1.js: ^5.4.1
     ecdsa-sig-formatter: ^1.0.11
-    mnemonist: ^0.39.5
-  checksum: b20fed1fd8aaabe8c7c964092b1839f90e7a084b02754168f702f18f8d4c2588811ec5f3e32253db8e6d6064cddbf182c046539fe68ba298101a002854ded34c
+    mnemonist: ^0.40.0
+  checksum: 00f89405ebec270b15c16aeffc5d1b1c4feeb762756dfef757e789605b02bbc771b519676b02e9cd177cafd86f7c7878c10f747298dcf5989af0d910cb7b993d
   languageName: node
   linkType: hard
 
@@ -25721,6 +25728,13 @@ __metadata:
   version: 4.5.1
   resolution: "fastify-plugin@npm:4.5.1"
   checksum: ddd1b2d470c3acd9397c2617b5842dcf71a6f9a32f05d02be1c12e8d37b8fc03af656900cec38e2afef5e9a3dfe5f994317810f4c5e9960b127b1ca179b56f73
+  languageName: node
+  linkType: hard
+
+"fastify-plugin@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "fastify-plugin@npm:5.0.1"
+  checksum: 2c207716fe02b00ce73449b102b890b434af21299fef35f37a34b491bd2f9ee1d95c753b11041ffbbe845411260cf4b547440bc2c3c3203ab4e2837825600961
   languageName: node
   linkType: hard
 
@@ -33167,12 +33181,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mnemonist@npm:^0.39.5":
-  version: 0.39.8
-  resolution: "mnemonist@npm:0.39.8"
+"mnemonist@npm:^0.40.0":
+  version: 0.40.3
+  resolution: "mnemonist@npm:0.40.3"
   dependencies:
-    obliterator: ^2.0.1
-  checksum: af611a79546949deb7f5044cc9a501fefe9e576a1a2f6461b2636eced1104ca7e066641add6358bc9b7b8c79cc7b080caad1e1d70fc400ae7961a955515f18bc
+    obliterator: ^2.0.4
+  checksum: f2a033f7fc830283dffa9280854379da40a555270dce32b9f8cf1c80ba323d77a9ad3f578573b277f7e265e63d650d7d3a60911cddffe373ae2364e68c43b7a0
   languageName: node
   linkType: hard
 
@@ -34992,7 +35006,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"obliterator@npm:^2.0.1":
+"obliterator@npm:^2.0.1, obliterator@npm:^2.0.4":
   version: 2.0.5
   resolution: "obliterator@npm:2.0.5"
   checksum: 49575c428d66941326f265b8962bbce05c2a209c180e6ebf49d07e6d6cf2e6ab3f805289ad58aec49e74825344c97e790e5658b55e226a8cb4f57d866db3adf5

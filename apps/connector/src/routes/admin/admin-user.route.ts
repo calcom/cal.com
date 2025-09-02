@@ -39,8 +39,8 @@ export async function apiAdminUserRoutes(fastify: FastifyInstance): Promise<void
     {
       schema: {
         description: "Get all users (paginated)",
-        tags: ["API Auth - Users"],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        tags: ["Admin"],
+        security: [{ bearerAuth: [] }],
         querystring: zodToJsonSchema(getUsersQuerySchema),
         response: {
           200: zodToJsonSchema(paginatedUsersResponseSchema),
@@ -89,8 +89,8 @@ export async function apiAdminUserRoutes(fastify: FastifyInstance): Promise<void
     {
       schema: {
         description: "Get user by slug",
-        tags: ["API Auth - Users"],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        tags: ["Admin"],
+        security: [{ bearerAuth: [] }],
         params: zodToJsonSchema(getUserBySlugParamSchema),
         response: {
           200: zodToJsonSchema(responseSchemas.success(UserResponseSchema, "User details retrieved")),
@@ -128,8 +128,8 @@ export async function apiAdminUserRoutes(fastify: FastifyInstance): Promise<void
     {
       schema: {
         description: "Create a new user",
-        tags: ["API Auth - Users"],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        tags: ["Admin"],
+        security: [{ bearerAuth: [] }],
         body: zodToJsonSchema(createUserBodySchema),
         response: {
           201: zodToJsonSchema(responseSchemas.created(UserResponseSchema, "User created successfully")),
@@ -168,8 +168,8 @@ export async function apiAdminUserRoutes(fastify: FastifyInstance): Promise<void
     {
       schema: {
         description: "Lock a user account",
-        tags: ["API Auth - Users"],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        tags: ["Admin"],
+        security: [{ bearerAuth: [] }],
         params: zodToJsonSchema(idParamSchema),
         response: {
           200: zodToJsonSchema(lockUserResponseSchema),
@@ -207,8 +207,8 @@ export async function apiAdminUserRoutes(fastify: FastifyInstance): Promise<void
     {
       schema: {
         description: "Unlock a user account",
-        tags: ["API Auth - Users"],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        tags: ["Admin"],
+        security: [{ bearerAuth: [] }],
         params: zodToJsonSchema(idParamSchema),
         response: {
           200: zodToJsonSchema(responseSchemas.success(z.null(), "User unlocked successfully")),
@@ -245,8 +245,8 @@ export async function apiAdminUserRoutes(fastify: FastifyInstance): Promise<void
     {
       schema: {
         description: "Get user by ID",
-        tags: ["API Auth - Users"],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        tags: ["Admin"],
+        security: [{ bearerAuth: [] }],
         params: zodToJsonSchema(idParamSchema),
         response: {
           200: zodToJsonSchema(responseSchemas.success(UserResponseSchema, "User details retrieved")),
@@ -290,8 +290,8 @@ export async function apiAdminUserRoutes(fastify: FastifyInstance): Promise<void
     {
       schema: {
         description: "Update user details",
-        tags: ["API Auth - Users"],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        tags: ["Admin"],
+        security: [{ bearerAuth: [] }],
         params: zodToJsonSchema(idParamSchema),
         body: zodToJsonSchema(updateUserBodySchema),
         response: {

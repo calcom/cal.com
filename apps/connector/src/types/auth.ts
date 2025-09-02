@@ -17,13 +17,13 @@ export interface AuthUser {
   role: UserRole;
 }
 
-// Extend Fastify types
-declare module "@fastify/jwt" {
-  interface FastifyJWT {
-    payload: JwtPayload;
-    user: AuthUser;
-  }
-}
+// // Extend Fastify types
+// declare module "@fastify/jwt" {
+//   interface FastifyJWT {
+//     payload: JwtPayload;
+//     user: AuthUser;
+//   }
+// }
 
 declare module "fastify" {
   interface FastifyRequest {
