@@ -42,6 +42,7 @@ jobs:
   pr-size-check:
     name: Check PR size
     needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
       pull-requests: read
