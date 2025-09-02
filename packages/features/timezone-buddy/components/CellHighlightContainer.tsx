@@ -22,7 +22,6 @@ export function CellHighlightContainer({ children }: { children: React.ReactNode
     if (isHover) {
       setIsAnimating(true);
     } else {
-      // Reduced timeout from 1000ms to 300ms for better responsiveness
       timeout = setTimeout(() => setIsAnimating(false), 300);
     }
     return () => {
@@ -30,7 +29,6 @@ export function CellHighlightContainer({ children }: { children: React.ReactNode
     };
   }, [isHover]);
 
-  // Reset animation when browsing date changes to prevent position jump
   useEffect(() => {
     if (prevBrowsingDateRef.current?.getTime() !== browsingDate.getTime()) {
       setIsAnimating(false);
