@@ -2,4 +2,8 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
   extends: ["./packages/config/eslint-preset.js"],
+  plugins: ["import"],
+  rules: {
+    "import/no-cycle": ["error", { maxDepth: Infinity }],
+  },
 };
