@@ -155,7 +155,8 @@ test.describe("pro user", () => {
     await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
       const bookingId = url.searchParams.get("rescheduleUid");
@@ -205,6 +206,9 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
@@ -237,6 +241,9 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
@@ -541,9 +548,10 @@ test.describe("Booking round robin event", () => {
     users,
   }) => {
     const [testUser] = users.get();
-    await testUser.apiLogin();
 
     const team = await testUser.getFirstTeamMembership();
+
+    await testUser.apiLogin(`/team/${team.team.slug}`);
 
     // Click first event type (round robin)
     await page.click('[data-testid="event-type-link"]');
@@ -648,9 +656,12 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
   });
 
   test("Should prevent cancellation and show an error message", async ({ page }) => {
+    const csrfTokenResponse = await page.request.get("/api/csrf");
+    const { csrfToken } = await csrfTokenResponse.json();
     const response = await page.request.post("/api/cancel", {
       data: {
         uid: bookingId,
+        csrfToken,
       },
       headers: {
         "Content-Type": "application/json",
