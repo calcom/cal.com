@@ -17,11 +17,15 @@ vi.mock("@calcom/ui/components/toast", () => ({
 const mockUseSession = vi.mocked(useSession);
 const mockShowToast = vi.mocked(showToast);
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+global.fetch = mockFetch as unknown as typeof fetch;
 
 describe("PlainContactForm", () => {
+  let mockSetIsOpen: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSetIsOpen = vi.fn();
+
     mockUseSession.mockReturnValue({
       data: {
         hasValidLicense: true,
@@ -35,42 +39,42 @@ describe("PlainContactForm", () => {
       },
       status: "authenticated",
       update: vi.fn(),
-    });
+    } as any);
   });
 
-  it("should render contact button when closed", () => {
-    render(<PlainContactForm />);
+  it("renders the contact button when closed", () => {
+    render(<PlainContactForm open={false} setIsOpen={mockSetIsOpen} />);
 
     const button = screen.getByRole("button");
     expect(button).toBeInTheDocument();
   });
 
-  it("should open contact form when button is clicked", () => {
-    render(<PlainContactForm />);
+  it("opens when the launcher button is clicked (calls setIsOpen(true))", () => {
+    render(<PlainContactForm open={false} setIsOpen={mockSetIsOpen} />);
 
     const button = screen.getByRole("button");
     fireEvent.click(button);
+
+    expect(mockSetIsOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("shows the form when open=true", () => {
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     expect(screen.getByText("Contact support")).toBeInTheDocument();
     expect(screen.getByLabelText("Describe the issue")).toBeInTheDocument();
     expect(screen.getByText("Attachments (optional)")).toBeInTheDocument();
   });
 
-  it("should show empty form initially", () => {
-    render(<PlainContactForm />);
-
-    const button = screen.getByRole("button");
-    fireEvent.click(button);
+  it("shows empty form initially", () => {
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     const messageInput = screen.getByLabelText("Describe the issue") as HTMLTextAreaElement;
     expect(messageInput.value).toBe("");
   });
 
-  it("should close form when X button is clicked", () => {
-    render(<PlainContactForm />);
-
-    const openButton = screen.getByRole("button");
-    fireEvent.click(openButton);
+  it("closes when X button is clicked (calls setIsOpen(false))", () => {
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     const buttons = screen.getAllByRole("button");
     const closeButton = buttons.find((button) => button.querySelector('svg use[href="#x"]'));
@@ -78,19 +82,16 @@ describe("PlainContactForm", () => {
 
     fireEvent.click(closeButton!);
 
-    expect(screen.queryByText("Contact support")).not.toBeInTheDocument();
+    expect(mockSetIsOpen).toHaveBeenCalledWith(false);
   });
 
-  it("should handle form submission successfully", async () => {
+  it("handles form submission successfully", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     });
 
-    render(<PlainContactForm />);
-
-    const openButton = screen.getByRole("button");
-    fireEvent.click(openButton);
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     fireEvent.change(screen.getByLabelText("Describe the issue"), {
       target: { value: "Test message" },
@@ -115,14 +116,11 @@ describe("PlainContactForm", () => {
     });
   });
 
-  it("should show loading state during submission", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+  it("shows loading state during submission", async () => {
+    // never resolves → stays loading
     mockFetch.mockImplementation(() => new Promise((_resolve) => {}));
 
-    render(<PlainContactForm />);
-
-    const openButton = screen.getByRole("button");
-    fireEvent.click(openButton);
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     fireEvent.change(screen.getByLabelText("Describe the issue"), {
       target: { value: "Test message" },
@@ -135,23 +133,19 @@ describe("PlainContactForm", () => {
     await expect(submitButton).toBeDisabled();
   });
 
-  it("should reset form after successful submission", async () => {
+  it("resets form after successful submission", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     });
 
-    render(<PlainContactForm />);
-
-    const openButton = screen.getByRole("button");
-    fireEvent.click(openButton);
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     fireEvent.change(screen.getByLabelText("Describe the issue"), {
       target: { value: "Test message" },
     });
 
-    const submitButton = screen.getByRole("button", { name: /send message/i });
-    fireEvent.click(submitButton);
+    fireEvent.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Message Sent")).toBeInTheDocument();
@@ -166,27 +160,21 @@ describe("PlainContactForm", () => {
     });
   });
 
-  it("should handle missing user session", () => {
+  it("handles missing user session", () => {
     mockUseSession.mockReturnValue({
       data: null,
       status: "unauthenticated",
       update: vi.fn(),
-    });
+    } as any);
 
-    render(<PlainContactForm />);
-
-    const openButton = screen.getByRole("button");
-    fireEvent.click(openButton);
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     const messageInput = screen.getByLabelText("Describe the issue") as HTMLTextAreaElement;
     expect(messageInput.value).toBe("");
   });
 
-  it("should require message field", async () => {
-    render(<PlainContactForm />);
-
-    const openButton = screen.getByRole("button");
-    fireEvent.click(openButton);
+  it("requires message field", async () => {
+    render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 
     await expect(screen.getByLabelText("Describe the issue")).toHaveAttribute("required");
   });
