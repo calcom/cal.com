@@ -657,8 +657,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
-    apiLogin: async (password?: string) =>
-      apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    apiLogin: async (navigateToUrl?: string, password?: string) =>
+      apiLogin({ ...(await self()), password: password || user.username }, store.page, navigateToUrl),
     /** Don't forget to close context at the end */
     apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
       const newContext = await browser.newContext();
@@ -969,7 +969,8 @@ export async function login(
 
 export async function apiLogin(
   user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
-  page: Page
+  page: Page,
+  navigateToUrl?: string
 ) {
   // Get CSRF token
   const csrfToken = await page
@@ -1001,10 +1002,10 @@ export async function apiLogin(
    * We picked /settings/my-account/profile due to it being one of
    * our lighest protected pages and doesnt do anything other than load the user profile
    */
-  await page.goto("/settings/my-account/profile");
+  await page.goto(navigateToUrl || "/settings/my-account/profile");
 
   // Wait for the session to be fully established
-  await page.waitForSelector('[data-testid="profile-submit-button"]');
+  await page.waitForLoadState();
 
   return response;
 }
