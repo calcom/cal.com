@@ -6,10 +6,49 @@ import {
 
 export const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
 
-/**
- * Enhanced browser-compatible image validation with magic number checking
- * Returns validation result with error message for the caller to handle
- */
+const stripBomAndWhitespace = (data: Uint8Array): Uint8Array => {
+  let start = 0;
+
+  if (data.length >= 3 && data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
+    start = 3;
+  }
+
+  while (start < data.length) {
+    const byte = data[start];
+    if (byte === 0x20 || byte === 0x09 || byte === 0x0a || byte === 0x0d || byte === 0x0c || byte === 0x0b) {
+      start++;
+    } else {
+      break;
+    }
+  }
+
+  return data.slice(start);
+};
+
+const checkTextBasedDangerousSignature = (data: Uint8Array): string | null => {
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(data).toLowerCase();
+
+  if (text.includes("<html") || matchesSignature(data, FILE_SIGNATURES.HTML)) {
+    return "html_files_cannot_be_uploaded_as_images";
+  }
+
+  if (matchesSignature(data, FILE_SIGNATURES.SCRIPT_TAG)) {
+    return "script_files_cannot_be_uploaded_as_images";
+  }
+
+  return null;
+};
+
+const createTrimmedTextHead = (text: string, maxLength = 512): Uint8Array => {
+  let trimmedText = text.replace(/^[\uFEFF\s]+/, "");
+
+  if (trimmedText.length > maxLength) {
+    trimmedText = trimmedText.substring(0, maxLength);
+  }
+
+  return new TextEncoder().encode(trimmedText);
+};
+
 export const validateImageFile = async (
   file: File,
   maxFileSize: number = MAX_IMAGE_FILE_SIZE
@@ -26,41 +65,52 @@ export const validateImageFile = async (
       return { isValid: false, error: "invalid_image_file_format" };
     }
 
-    // Check for dangerous file types first
-    if (matchesSignature(uint8Array, FILE_SIGNATURES.PDF)) {
+    const strippedData = stripBomAndWhitespace(uint8Array);
+
+    if (strippedData.length === 0) {
+      return { isValid: false, error: "invalid_image_file_format" };
+    }
+
+    const trimmedHead = strippedData.slice(0, 512);
+
+    const textBasedError = checkTextBasedDangerousSignature(trimmedHead);
+    if (textBasedError) {
+      return { isValid: false, error: textBasedError };
+    }
+
+    if (matchesSignature(trimmedHead, FILE_SIGNATURES.PDF)) {
       return { isValid: false, error: "pdf_files_cannot_be_uploaded_as_images" };
     }
 
-    if (matchesSignature(uint8Array, FILE_SIGNATURES.HTML)) {
-      return { isValid: false, error: "html_files_cannot_be_uploaded_as_images" };
-    }
-
-    if (matchesSignature(uint8Array, FILE_SIGNATURES.SCRIPT_TAG)) {
-      return { isValid: false, error: "script_files_cannot_be_uploaded_as_images" };
-    }
-
-    if (matchesSignature(uint8Array, FILE_SIGNATURES.ZIP)) {
+    if (matchesSignature(trimmedHead, FILE_SIGNATURES.ZIP)) {
       return { isValid: false, error: "zip_files_cannot_be_uploaded_as_images" };
     }
 
-    if (matchesSignature(uint8Array, FILE_SIGNATURES.EXECUTABLE)) {
+    if (matchesSignature(trimmedHead, FILE_SIGNATURES.EXECUTABLE)) {
       return { isValid: false, error: "executable_files_cannot_be_uploaded_as_images" };
     }
 
     const isValidImage =
-      matchesSignature(uint8Array, FILE_SIGNATURES.PNG) ||
-      matchesSignature(uint8Array, FILE_SIGNATURES.JPEG_FF_D8_FF) ||
-      matchesSignature(uint8Array, FILE_SIGNATURES.GIF87a) ||
-      matchesSignature(uint8Array, FILE_SIGNATURES.GIF89a) ||
-      matchesSignature(uint8Array, FILE_SIGNATURES.BMP) ||
-      matchesSignature(uint8Array, FILE_SIGNATURES.ICO) ||
-      (matchesSignature(uint8Array, FILE_SIGNATURES.WEBP) &&
-        uint8Array.length >= 12 &&
-        matchesSignature(uint8Array.slice(8), FILE_SIGNATURES.WEBP_SIGNATURE)) ||
-      // SVG validation with content scanning
-      ((matchesSignature(uint8Array, FILE_SIGNATURES.SVG) ||
-        matchesSignature(uint8Array, FILE_SIGNATURES.SVG_DIRECT)) &&
-        !containsDangerousSVGContent(new TextDecoder().decode(uint8Array)));
+      matchesSignature(trimmedHead, FILE_SIGNATURES.PNG) ||
+      matchesSignature(trimmedHead, FILE_SIGNATURES.JPEG_FF_D8_FF) ||
+      matchesSignature(trimmedHead, FILE_SIGNATURES.GIF87a) ||
+      matchesSignature(trimmedHead, FILE_SIGNATURES.GIF89a) ||
+      matchesSignature(trimmedHead, FILE_SIGNATURES.BMP) ||
+      matchesSignature(trimmedHead, FILE_SIGNATURES.ICO) ||
+      (matchesSignature(trimmedHead, FILE_SIGNATURES.WEBP) &&
+        trimmedHead.length >= 12 &&
+        matchesSignature(trimmedHead.slice(8), FILE_SIGNATURES.WEBP_SIGNATURE)) ||
+      (() => {
+        const fullText = new TextDecoder("utf-8", { fatal: false }).decode(strippedData);
+
+        const svgTrimmedHead = createTrimmedTextHead(fullText);
+
+        return (
+          (matchesSignature(svgTrimmedHead, FILE_SIGNATURES.SVG) ||
+            matchesSignature(svgTrimmedHead, FILE_SIGNATURES.SVG_DIRECT)) &&
+          !containsDangerousSVGContent(fullText)
+        );
+      })();
 
     if (!isValidImage) {
       return { isValid: false, error: "invalid_image_file_format" };
