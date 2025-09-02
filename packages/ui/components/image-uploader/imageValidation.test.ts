@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { MAX_BANNER_SIZE } from "@calcom/lib/constants";
+
 import { validateImageFile, MAX_IMAGE_FILE_SIZE } from "./imageValidation";
 
 describe("validateImageFile", () => {
@@ -66,7 +68,8 @@ describe("validateImageFile", () => {
       const result = await validateImageFile(pdfFile, MAX_IMAGE_FILE_SIZE);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("pdf_files_cannot_be_uploaded_as_images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "PDF" });
     });
 
     it("should reject HTML files", async () => {
@@ -79,7 +82,8 @@ describe("validateImageFile", () => {
       const result = await validateImageFile(htmlFile, MAX_IMAGE_FILE_SIZE);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("html_files_cannot_be_uploaded_as_images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "HTML" });
     });
 
     it("should reject script files", async () => {
@@ -88,7 +92,8 @@ describe("validateImageFile", () => {
       const result = await validateImageFile(scriptFile, MAX_IMAGE_FILE_SIZE);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("script_files_cannot_be_uploaded_as_images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "Script" });
     });
 
     it("should reject ZIP files", async () => {
@@ -97,7 +102,8 @@ describe("validateImageFile", () => {
       const result = await validateImageFile(zipFile, MAX_IMAGE_FILE_SIZE);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("zip_files_cannot_be_uploaded_as_images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "ZIP" });
     });
 
     it("should reject executable files", async () => {
@@ -106,7 +112,8 @@ describe("validateImageFile", () => {
       const result = await validateImageFile(exeFile, MAX_IMAGE_FILE_SIZE);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("executable_files_cannot_be_uploaded_as_images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "Executable" });
     });
   });
 
@@ -171,6 +178,41 @@ describe("validateImageFile", () => {
 
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
+    });
+  });
+
+  describe("New error format validation", () => {
+    it("should return errorKey and errorParams for unsupported file types", async () => {
+      const pdfFile = createMockFile([0x25, 0x50, 0x44, 0x46], "fake.png", "image/png");
+
+      const result = await validateImageFile(pdfFile, MAX_IMAGE_FILE_SIZE);
+
+      expect(result).toHaveProperty("isValid");
+      expect(result).toHaveProperty("errorKey");
+      expect(result).toHaveProperty("errorParams");
+      expect(result.isValid).toBe(false);
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "PDF" });
+    });
+
+    it("should return error field for backward compatibility when not using errorKey pattern", async () => {
+      const invalidFile = createMockFile([0x00, 0x01, 0x02, 0x03], "invalid.png", "image/png");
+
+      const result = await validateImageFile(invalidFile, MAX_IMAGE_FILE_SIZE);
+
+      expect(result).toHaveProperty("isValid");
+      expect(result).toHaveProperty("error");
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe("invalid_image_file_format");
+      expect(result.errorKey).toBeUndefined();
+      expect(result.errorParams).toBeUndefined();
+    });
+  });
+
+  describe("Constants integration", () => {
+    it("should use MAX_BANNER_SIZE constant correctly", () => {
+      expect(MAX_IMAGE_FILE_SIZE).toBe(MAX_BANNER_SIZE);
+      expect(MAX_IMAGE_FILE_SIZE).toBe(5 * 1024 * 1024); // 5MB
     });
   });
 
