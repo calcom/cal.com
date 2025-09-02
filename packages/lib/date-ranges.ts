@@ -160,31 +160,35 @@ export function processWorkingHours(
     // Apply merges if any overlaps found
     if (keysToDelete.length > 0) {
       const newKey = mergedEnd.valueOf();
-      results[newKey] = {
-        start: mergedStart,
-        end: mergedEnd,
-      };
+      // Make keys unique and avoid deleting the bucket-holder if it equals newKey
+      const uniqueKeys = Array.from(new Set(keysToDelete));
+      const toDelete = uniqueKeys.filter((k) => k !== newKey);
 
-      // Update endTimeToKeyMap
-      if (endTimeToKeyMap) {
-        for (const oldKey of keysToDelete) {
-          const oldEndTime = results[oldKey].end.valueOf();
-          const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
-          const filteredKeys = oldKeys.filter((k) => k !== oldKey);
-          if (filteredKeys.length === 0) {
-            endTimeToKeyMap.delete(oldEndTime);
-          } else {
-            endTimeToKeyMap.set(oldEndTime, filteredKeys);
-          }
-        }
-        const keySet = new Set(endTimeToKeyMap.get(newKey) || []);
-        keySet.add(newKey);
-        endTimeToKeyMap.set(newKey, Array.from(keySet));
+      // Snapshot end-times before any mutation
+      const oldEndTimesByKey = new Map<number, number>();
+      for (const k of toDelete) {
+        oldEndTimesByKey.set(k, results[k].end.valueOf());
       }
 
-      // Delete old entries
-      for (const oldKey of keysToDelete) {
-        delete results[oldKey];
+      // Remove old entries from results
+      for (const k of toDelete) {
+        delete results[k];
+      }
+
+      // Upsert merged entry
+      results[newKey] = { start: mergedStart, end: mergedEnd };
+
+      // Update endTimeToKeyMap (remove old keys, then ensure newKey is present once)
+      if (endTimeToKeyMap) {
+        for (const [oldKey, oldEndTime] of oldEndTimesByKey) {
+          const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+          const filteredKeys = oldKeys.filter((k) => k !== oldKey);
+          if (filteredKeys.length === 0) endTimeToKeyMap.delete(oldEndTime);
+          else endTimeToKeyMap.set(oldEndTime, filteredKeys);
+        }
+        const bucket = new Set(endTimeToKeyMap.get(newKey) || []);
+        bucket.add(newKey);
+        endTimeToKeyMap.set(newKey, Array.from(bucket));
       }
       continue;
     }
