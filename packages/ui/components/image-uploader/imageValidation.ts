@@ -4,7 +4,7 @@ import {
   containsDangerousSVGContent,
 } from "@calcom/lib/imageValidationConstants";
 
-import { MAX_IMAGE_FILE_SIZE } from "./imageValidation.test";
+export const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
 
 /**
  * Enhanced browser-compatible image validation with magic number checking

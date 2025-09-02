@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { validateImageFile } from "./imageValidation";
-
-export const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
+import { validateImageFile, MAX_IMAGE_FILE_SIZE } from "./imageValidation";
 
 describe("validateImageFile", () => {
   beforeEach(() => {
