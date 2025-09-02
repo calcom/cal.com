@@ -49,6 +49,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     const teammateEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
     let teammateApiKeyString: string;
     const teammateEmailTwo = `slots-2024-09-04-user-2-team-slots-${randomString()}`;
+    let teammateTwoApiKeyString: string;
 
     const outsiderEmail = `slots-2024-09-04-unrelated-team-slots-${randomString()}`;
     let outsider: User;
@@ -62,6 +63,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let collectiveEventTypeSlug: string;
     let collectiveEventTypeWithoutHostsId: number;
     let roundRobinEventTypeId: number;
+    let roundRobinEventTypeWithoutFixedHostsId: number;
     let collectiveBookingId: number;
     let roundRobinBookingId: number;
     let fullyBookedRoundRobinBookingIdOne: number;
@@ -115,6 +117,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(teammateOne.id, null);
       teammateApiKeyString = keyString;
+
+      const { keyString: keyStringForTeammateTwo } = await apiKeysRepositoryFixture.createApiKey(
+        teammateTwo.id,
+        null
+      );
+      teammateTwoApiKeyString = keyStringForTeammateTwo;
 
       const { keyString: unrelatedUserKeyString } = await apiKeysRepositoryFixture.createApiKey(
         outsider.id,
@@ -217,6 +225,36 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
       roundRobinEventTypeId = roundRobinEventType.id;
+
+      const roundRobinEventTypeWithoutFixedHosts = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "RR Event Type Without Fixed Hosts",
+        slug: `slots-2024-09-04-round-robin-event-type-${randomString()}`,
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+        users: {
+          connect: [{ id: teammateOne.id }, { id: teammateTwo.id }],
+        },
+        hosts: {
+          create: [
+            {
+              userId: teammateOne.id,
+              isFixed: false,
+            },
+            {
+              userId: teammateTwo.id,
+              isFixed: false,
+            },
+          ],
+        },
+      });
+
+      roundRobinEventTypeWithoutFixedHostsId = roundRobinEventTypeWithoutFixedHosts.id;
 
       const userSchedule: CreateScheduleInput_2024_06_11 = {
         name: "working time",
@@ -540,6 +578,72 @@ describe("Slots 2024-09-04 Endpoints", () => {
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
       bookingsRepositoryFixture.deleteById(bookingOne.id);
       bookingsRepositoryFixture.deleteById(bookingTwo.id);
+    });
+
+    it("should reserve all available slots for round robin event type with non-fixed hosts", async () => {
+      const now = "2049-09-05T12:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
+      const slotStartTime = "2050-09-05T10:00:00.000Z";
+
+      const reserveResponseOne = await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .set({ Authorization: `Bearer cal_test_${teammateApiKeyString}` })
+        .send({
+          eventTypeId: roundRobinEventTypeWithoutFixedHostsId,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(201);
+
+      const reserveResponseOneBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponseOne.body;
+      expect(reserveResponseOneBody.status).toEqual(SUCCESS_STATUS);
+      const responseReservedSlotOne: ReserveSlotOutputData_2024_09_04 = reserveResponseOneBody.data;
+      expect(responseReservedSlotOne.reservationUid).toBeDefined();
+      if (!responseReservedSlotOne.reservationUid) {
+        throw new Error("Reserved slot one uid is undefined");
+      }
+
+      const dbSlotOne = await selectedSlotRepositoryFixture.getByUid(responseReservedSlotOne.reservationUid);
+      expect(dbSlotOne).toBeDefined();
+      if (dbSlotOne) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlotOne.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+      }
+
+      const reserveResponseTwo = await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .set({ Authorization: `Bearer cal_test_${teammateTwoApiKeyString}` })
+        .send({
+          eventTypeId: roundRobinEventTypeWithoutFixedHostsId,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(201);
+
+      const reserveResponseTwoBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponseTwo.body;
+      expect(reserveResponseTwoBody.status).toEqual(SUCCESS_STATUS);
+      const responseReservedSlotTwo: ReserveSlotOutputData_2024_09_04 = reserveResponseTwoBody.data;
+      expect(responseReservedSlotTwo.reservationUid).toBeDefined();
+      if (!responseReservedSlotTwo.reservationUid) {
+        throw new Error("Reserved slot two uid is undefined");
+      }
+
+      const dbSlotTwo = await selectedSlotRepositoryFixture.getByUid(responseReservedSlotTwo.reservationUid);
+      expect(dbSlotTwo).toBeDefined();
+      if (dbSlotTwo) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlotTwo.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+      }
+
+      await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotOne.reservationUid);
+      await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotTwo.reservationUid);
+      clear();
     });
 
     afterAll(async () => {
