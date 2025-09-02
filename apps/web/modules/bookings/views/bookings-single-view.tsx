@@ -411,7 +411,7 @@ export default function Success(props: PageProps) {
   })();
 
   return (
-    <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+    <div className={isEmbed ? "" : "bg-default h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
@@ -453,103 +453,109 @@ export default function Success(props: PageProps) {
               aria-hidden="true">
               <div
                 className={classNames(
-                  "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
-                  "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
+                  "inline-block transform overflow-hidden rounded-2xl border sm:my-8 sm:max-w-xl",
+                  !isBackgroundTransparent && "bg-muted border-booker border-booker-width ",
+                  "text-left align-bottom transition-all sm:w-full sm:align-middle"
                 )}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 {!isFeedbackMode && (
                   <>
-                    <div
-                      className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
-                      {isRoundRobin && bookingInfo.user && (
-                        <Avatar
-                          className="mx-auto flex items-center justify-center"
-                          alt={bookingInfo.user.name || bookingInfo.user.email}
-                          size="xl"
-                          imageSrc={`${bookingInfo.user.avatarUrl}`}
-                        />
-                      )}
-                      {giphyImage && !needsConfirmation && isReschedulable && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={giphyImage} className="w-full rounded-lg" alt="Gif from Giphy" />
-                      )}
+                    <div className="p-5">
                       <div
                         className={classNames(
-                          "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
-                          isRoundRobin &&
-                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
-                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
-                          isCancelled ? "bg-error" : ""
+                          isRoundRobin && "min-w-32 min-h-24 z relative mx-auto h-24 w-32"
                         )}>
-                        {!giphyImage && !needsConfirmation && isReschedulable && (
-                          <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        {isRoundRobin && bookingInfo.user && (
+                          <Avatar
+                            className="mx-auto flex items-center justify-center"
+                            alt={bookingInfo.user.name || bookingInfo.user.email}
+                            size="xl"
+                            imageSrc={`${bookingInfo.user.avatarUrl}`}
+                          />
                         )}
-                        {needsConfirmation && isReschedulable && (
-                          <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                        {giphyImage && !needsConfirmation && isReschedulable && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} className="w-full rounded-lg" alt="Gif from Giphy" />
                         )}
-                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                        <div
+                          className={classNames(
+                            "flex h-12 w-12 items-center justify-center rounded-full ",
+                            isRoundRobin &&
+                              "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                            !giphyImage && isReschedulable && !needsConfirmation ? "bg-default" : "",
+                            !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
+                            isCancelled ? "bg-error" : ""
+                          )}>
+                          {!giphyImage && !needsConfirmation && isReschedulable && (
+                            <Icon name="check" className="text-semantic-success h-5 w-5" />
+                          )}
+                          {needsConfirmation && isReschedulable && (
+                            <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                          )}
+                          {isCancelled && <Icon name="x" className="text-semantic-error h-5 w-5" />}
+                        </div>
+                      </div>
+                      <div className="mb-8 mt-6 text-start last:mb-0">
+                        <h3
+                          className="text-emphasis text-2xl font-semibold leading-6"
+                          data-testid={isCancelled ? "cancelled-headline" : ""}
+                          id="modal-headline">
+                          {successPageHeadline}
+                        </h3>
+
+                        <div className="mt-3">
+                          <p className="text-default">{getTitle()}</p>
+                        </div>
+                        {props.paymentStatus &&
+                          (bookingInfo.status === BookingStatus.CANCELLED ||
+                            bookingInfo.status === BookingStatus.REJECTED) && (
+                            <h4>
+                              {!props.paymentStatus.success &&
+                                !props.paymentStatus.refunded &&
+                                t("booking_with_payment_cancelled")}
+                              {props.paymentStatus.success &&
+                                !props.paymentStatus.refunded &&
+                                (() => {
+                                  const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
+                                  const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
+
+                                  // Handle missing team or event type owner (same in processPaymentRefund.ts)
+                                  if (!eventType?.teamId && !eventType?.owner) {
+                                    return t("booking_with_payment_cancelled_no_refund");
+                                  }
+
+                                  // Handle DAYS policy with expired refund window
+                                  else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
+                                    const startTime = new Date(bookingInfo.startTime);
+                                    const cancelTime = new Date();
+                                    const daysDiff = Math.floor(
+                                      (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
+                                    );
+
+                                    if (daysDiff > refundDaysCount) {
+                                      return t("booking_with_payment_cancelled_refund_window_expired");
+                                    }
+                                  }
+                                  // Handle NEVER policy
+                                  else if (refundPolicy === RefundPolicy.NEVER) {
+                                    return t("booking_with_payment_cancelled_no_refund");
+                                  }
+
+                                  // Handle ALWAYS policy
+                                  else {
+                                    return t("booking_with_payment_cancelled_already_paid");
+                                  }
+                                })()}
+                              {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
+                            </h4>
+                          )}
                       </div>
                     </div>
-                    <div className="mb-8 mt-6 text-center last:mb-0">
-                      <h3
-                        className="text-emphasis text-2xl font-semibold leading-6"
-                        data-testid={isCancelled ? "cancelled-headline" : ""}
-                        id="modal-headline">
-                        {successPageHeadline}
-                      </h3>
-
-                      <div className="mt-3">
-                        <p className="text-default">{getTitle()}</p>
-                      </div>
-                      {props.paymentStatus &&
-                        (bookingInfo.status === BookingStatus.CANCELLED ||
-                          bookingInfo.status === BookingStatus.REJECTED) && (
-                          <h4>
-                            {!props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              t("booking_with_payment_cancelled")}
-                            {props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              (() => {
-                                const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
-                                const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
-
-                                // Handle missing team or event type owner (same in processPaymentRefund.ts)
-                                if (!eventType?.teamId && !eventType?.owner) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle DAYS policy with expired refund window
-                                else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
-                                  const startTime = new Date(bookingInfo.startTime);
-                                  const cancelTime = new Date();
-                                  const daysDiff = Math.floor(
-                                    (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
-                                  );
-
-                                  if (daysDiff > refundDaysCount) {
-                                    return t("booking_with_payment_cancelled_refund_window_expired");
-                                  }
-                                }
-                                // Handle NEVER policy
-                                else if (refundPolicy === RefundPolicy.NEVER) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle ALWAYS policy
-                                else {
-                                  return t("booking_with_payment_cancelled_already_paid");
-                                }
-                              })()}
-                            {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
-                          </h4>
-                        )}
-
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
+                    {/*(---Booking Infomation Starts----)*/}
+                    <div>
+                      <div className="text-default border-muted bg-default m-1 grid grid-cols-3 gap-x-4 rounded-xl border p-5 text-left rtl:text-right sm:gap-x-0 ">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -790,11 +796,8 @@ export default function Success(props: PageProps) {
                     </div>
                     {requiresLoginToUpdate && (
                       <>
-                        <hr className="border-subtle mb-8" />
                         <div className="text-center">
-                          <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                            {t("need_to_make_a_change")}
-                          </span>
+                          <span className="">{t("need_to_make_a_change")}</span>
                           {/* Login button but redirect to here */}
                           <span className="text-default inline">
                             <span className="underline" data-testid="reschedule-link">
@@ -817,8 +820,7 @@ export default function Success(props: PageProps) {
                       canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
-                          <hr className="border-subtle mb-8" />
-                          <div className="text-center last:pb-0">
+                          <div className="text-start last:pb-0">
                             <span className="text-emphasis ltr:mr-2 rtl:ml-2">
                               {t("need_to_make_a_change")}
                             </span>
@@ -861,7 +863,6 @@ export default function Success(props: PageProps) {
                         </>
                       ) : (
                         <>
-                          <hr className="border-subtle" />
                           <CancelBooking
                             booking={{
                               uid: bookingInfo?.uid,
@@ -897,7 +898,6 @@ export default function Success(props: PageProps) {
                     )}
                     {!needsConfirmation && !isCancellationMode && isReschedulable && !!calculatedDuration && (
                       <>
-                        <hr className="border-subtle mt-8" />
                         <div className="text-default align-center flex flex-row justify-center pt-8">
                           <span className="text-default flex self-center font-medium ltr:mr-2 rtl:ml-2 ">
                             {t("add_to_calendar")}
@@ -971,7 +971,6 @@ export default function Success(props: PageProps) {
 
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
-                        <hr className="border-subtle mt-8" />
                         <div className="text-default pt-8 text-center text-xs">
                           <a href="https://cal.com/signup">
                             {t("create_booking_link_with_calcom", { appName: APP_NAME })}

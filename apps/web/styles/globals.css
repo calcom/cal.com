@@ -113,7 +113,7 @@
   --cal-border-muted: hsla(220, 14%, 94%, 1); /* gray.100 */
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
-  --cal-border-booker: var(--cal-border-subtle);
+  --cal-border-booker: var(--cal-border-muted);
 
   /* Content/Text Standard */
   --cal-text-emphasis: hsla(210, 30%, 4%, 1); /* gray-900 */
