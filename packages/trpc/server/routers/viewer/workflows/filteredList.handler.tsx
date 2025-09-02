@@ -1,4 +1,5 @@
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -56,5 +57,19 @@ const { include: includedFields } = {
 } satisfies Prisma.WorkflowDefaultArgs;
 
 export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) => {
-  return await WorkflowRepository.getFilteredList({ userId: ctx.user.id, input });
+  const result = await WorkflowRepository.getFilteredList({ userId: ctx.user.id, input });
+
+  if (!result) {
+    return result;
+  }
+
+  // Add permissions to each workflow
+  const workflowsWithPermissions = await addPermissionsToWorkflows(result.filtered, ctx.user.id);
+
+  const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+  return {
+    ...result,
+    filtered: filteredWorkflows,
+  };
 };

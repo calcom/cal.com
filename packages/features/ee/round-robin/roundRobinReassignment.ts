@@ -4,7 +4,7 @@ import { cloneDeep } from "lodash";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
@@ -20,12 +20,12 @@ import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getEventName } from "@calcom/lib/event";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -89,6 +89,13 @@ export const roundRobinReassignment = async ({
     throw new Error("Event type not found");
   }
 
+  if (eventType.hostGroups && eventType.hostGroups.length > 1) {
+    logger.error(
+      `Event type ${eventTypeId} has more than one round robin group, reassignment is not allowed`
+    );
+    throw new Error("Reassignment not allowed with more than one round robin group");
+  }
+
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
@@ -98,6 +105,7 @@ export const roundRobinReassignment = async ({
         weight: 100,
         schedule: null,
         createdAt: new Date(0), // use earliest possible date as fallback
+        groupId: null,
       }));
 
   if (eventType.hosts.length === 0) {
@@ -145,8 +153,8 @@ export const roundRobinReassignment = async ({
     },
     roundRobinReassignLogger
   );
-
-  const reassignedRRHost = await getLuckyUser({
+  const luckyUserService = getLuckyUserService();
+  const reassignedRRHost = await luckyUserService.getLuckyUser({
     availableUsers,
     eventType,
     allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
@@ -412,9 +420,9 @@ export const roundRobinReassignment = async ({
     }
 
     if (emailsEnabled) {
-      await sendRoundRobinCancelledEmailsAndSMS(
-        cancelledRRHostEvt,
-        [
+      await sendRoundRobinReassignedEmailsAndSMS({
+        calEvent: cancelledRRHostEvt,
+        members: [
           {
             ...previousRRHost,
             name: previousRRHost.name || "",
@@ -423,9 +431,9 @@ export const roundRobinReassignment = async ({
             language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
           },
         ],
-        eventType?.metadata as EventTypeMetadata,
-        { name: reassignedRRHost.name, email: reassignedRRHost.email }
-      );
+        reassignedTo: { name: reassignedRRHost.name, email: reassignedRRHost.email },
+        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
+      });
     }
   }
 
