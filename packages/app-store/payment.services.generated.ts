@@ -3,10 +3,10 @@
     Don't modify this file manually.
 **/
 export const PaymentServiceMap = {
-  alby: import("./alby/lib/PaymentService"),
-  btcpayserver: import("./btcpayserver/lib/PaymentService"),
-  hitpay: import("./hitpay/lib/PaymentService"),
-  "mock-payment-app": import("./mock-payment-app/lib/PaymentService"),
-  paypal: import("./paypal/lib/PaymentService"),
+  alby: import("./alby/dist/lib/PaymentService.js"),
+  btcpayserver: import("./btcpayserver/dist/lib/PaymentService.js"),
+  hitpay: import("./hitpay/dist/lib/PaymentService.js"),
+  "mock-payment-app": import("./mock-payment-app/dist/lib/PaymentService.js"),
+  paypal: import("./paypal/dist/lib/PaymentService.js"),
   stripepayment: import("./stripepayment/lib/PaymentService"),
 };

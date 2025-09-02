@@ -4,4 +4,5 @@ export type SupportedCommands =
   | "delete"
   | "create-template"
   | "delete-template"
-  | "edit-template";
+  | "edit-template"
+  | "transpile";

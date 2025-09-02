@@ -443,8 +443,8 @@ async function mainDelete(): Promise<void> {
   readline.close();
 }
 
-const args = process.argv.slice(2);
-if (args[0] === "delete") {
+const scriptArgs = process.argv.slice(2);
+if (scriptArgs[0] === "delete") {
   mainDelete();
 } else {
   main();

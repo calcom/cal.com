@@ -1,5 +1,6 @@
-import React, { FC } from "react";
-import { SupportedCommands } from "src/types";
+import type { FC } from "react";
+import React from "react";
+import type { SupportedCommands } from "src/types";
 
 import Create from "./commandViews/Create";
 import CreateTemplate from "./commandViews/Create";
@@ -7,6 +8,7 @@ import Delete from "./commandViews/Delete";
 import DeleteTemplate from "./commandViews/DeleteTemplate";
 import Edit from "./commandViews/Edit";
 import EditTemplate from "./commandViews/EditTemplate";
+import Transpile from "./commandViews/Transpile";
 
 export const App: FC<{
   template: string;
@@ -41,6 +43,10 @@ export const App: FC<{
       throw new Error('Slug is required for "delete-template" command');
     }
     return <DeleteTemplate slug={slug} />;
+  }
+
+  if (command === "transpile") {
+    return <Transpile slug={slug} />;
   }
 
   return null;
