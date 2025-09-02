@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
 import { findUniqueDelegationCalendarCredential } from "@calcom/lib/delegationCredential/server";
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -136,7 +137,8 @@ async function getCalendarService(delegationUserCredential: DelegationUserCreden
   }
 
   const googleCalendarService = new GoogleCalendarService(
-    credentialForCalendarService as CredentialForCalendarServiceWithEmail
+    credentialForCalendarService as CredentialForCalendarServiceWithEmail,
+    getCalendarServiceDependencies()
   );
 
   return googleCalendarService;

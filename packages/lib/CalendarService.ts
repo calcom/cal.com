@@ -17,6 +17,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
 import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
 import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
 import type {
@@ -109,7 +110,12 @@ export default abstract class BaseCalendarService implements Calendar {
   private log: typeof logger;
   private credential: CredentialPayload;
 
-  constructor(credential: CredentialPayload, integrationName: string, url?: string) {
+  constructor(
+    credential: CredentialPayload,
+    integrationName: string,
+    dependencies: ICalendarServiceDependencies,
+    url?: string
+  ) {
     this.integrationName = integrationName;
 
     const {
@@ -124,7 +130,7 @@ export default abstract class BaseCalendarService implements Calendar {
     this.headers = getBasicAuthHeaders({ username, password });
     this.credential = credential;
 
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = dependencies.logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private getAttendees(event: CalendarEvent) {

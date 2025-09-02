@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
@@ -90,7 +91,10 @@ export const createBookingAndFetchGCalEvent = async (
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  const googleCalendarService = new GoogleCalendarService(refreshedCredential);
+  const googleCalendarService = new GoogleCalendarService(
+    refreshedCredential,
+    getCalendarServiceDependencies()
+  );
 
   const authedCalendar = await googleCalendarService.authedCalendar();
 

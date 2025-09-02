@@ -10,6 +10,7 @@ import {
   WEBAPP_URL,
   WEBAPP_URL_FOR_OAUTH,
 } from "@calcom/lib/constants";
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -78,11 +79,14 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       type: "google_calendar",
     });
 
-    const gCalService = new GoogleCalendarService({
-      ...gcalCredential,
-      user: null,
-      delegatedTo: null,
-    });
+    const gCalService = new GoogleCalendarService(
+      {
+        ...gcalCredential,
+        user: null,
+        delegatedTo: null,
+      },
+      getCalendarServiceDependencies()
+    );
 
     const calendar = new calendar_v3.Calendar({
       auth: oAuth2Client,

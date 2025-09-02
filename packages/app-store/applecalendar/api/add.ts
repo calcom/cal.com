@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -56,12 +57,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     try {
-      const dav = new CalendarService({
-        id: 0,
-        ...data,
-        user: { email: user.email },
-        delegationCredentialId: null,
-      });
+      const dav = new CalendarService(
+        {
+          id: 0,
+          ...data,
+          user: { email: user.email },
+          delegationCredentialId: null,
+        },
+        getCalendarServiceDependencies()
+      );
       await dav?.listCalendars();
       await prisma.credential.upsert({
         where: {

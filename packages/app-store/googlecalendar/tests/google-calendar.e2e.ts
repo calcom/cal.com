@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import prisma from "@calcom/prisma";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import { test } from "@calcom/web/playwright/lib/fixtures";
@@ -79,7 +80,10 @@ test.describe("Google Calendar", async () => {
 
         test.skip(!qaUsername, "QA username not found");
 
-        const googleCalendarService = new GoogleCalendarService(qaGCalCredential);
+        const googleCalendarService = new GoogleCalendarService(
+          qaGCalCredential,
+          getCalendarServiceDependencies()
+        );
 
         const calendars = await googleCalendarService.listCalendars();
 

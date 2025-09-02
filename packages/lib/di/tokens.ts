@@ -51,4 +51,7 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  LOGGER: Symbol("Logger"),
+  CALENDAR_SERVICE_MODULE: Symbol("CalendarServiceModule"),
+  CALENDAR_SERVICE_DEPENDENCIES: Symbol("CalendarServiceDependencies"),
 };

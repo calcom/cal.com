@@ -1,3 +1,4 @@
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -53,5 +54,6 @@ export const getCalendar = async (
     return null;
   }
 
-  return new CalendarService(credential as any);
+  const dependencies = getCalendarServiceDependencies();
+  return new CalendarService(credential as any, dependencies);
 };

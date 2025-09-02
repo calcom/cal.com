@@ -2,7 +2,8 @@ import { stringify } from "querystring";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation } from "@calcom/lib/CalEventParser";
-import logger from "@calcom/lib/logger";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
+import type logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -23,10 +24,10 @@ export default class ZohoCalendarService implements Calendar {
   private log: typeof logger;
   auth: { getToken: () => Promise<ZohoAuthCredentials> };
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, dependencies: ICalendarServiceDependencies) {
     this.integrationName = "zoho_calendar";
     this.auth = this.zohoAuth(credential);
-    this.log = logger.getSubLogger({
+    this.log = dependencies.logger.getSubLogger({
       prefix: [`[[lib] ${this.integrationName}`],
     });
   }

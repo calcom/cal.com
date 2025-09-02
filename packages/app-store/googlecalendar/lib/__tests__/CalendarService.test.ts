@@ -20,6 +20,7 @@ import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -290,7 +291,7 @@ describe("Calendar Cache", () => {
     });
 
     oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
-    const calendarService = new CalendarService(credentialInDb1);
+    const calendarService = new CalendarService(credentialInDb1, getCalendarServiceDependencies());
 
     // Test cache hit
     const data = await calendarService.getAvailability(dateFrom1, dateTo1, [testSelectedCalendar]);
@@ -304,7 +305,7 @@ describe("Calendar Cache", () => {
 
   test("Cache HIT: Should avoid Google API calls when cache is available", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
 
     const dateFrom = new Date().toISOString();
     const dateTo = new Date().toISOString();
@@ -362,7 +363,7 @@ describe("Calendar Cache", () => {
 
   test("Cache MISS: Should make Google API calls when cache is not available", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
 
     const dateFrom = new Date().toISOString();
@@ -410,7 +411,7 @@ describe("Calendar Cache", () => {
 
   test("Cache DISABLED: Should bypass cache when shouldServeCache=false", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
 
     const dateFrom = new Date().toISOString();
@@ -482,7 +483,7 @@ describe("Calendar Cache", () => {
 
   test("NO SELECTED CALENDARS: Should skip cache logic when no selectedCalendarIds", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
 
     const dateFrom = new Date().toISOString();
@@ -548,7 +549,7 @@ describe("Calendar Cache", () => {
 
   test("CACHE ERROR: Should handle cache errors gracefully and fall back to API", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
 
     const dateFrom = new Date().toISOString();
@@ -602,7 +603,7 @@ describe("Calendar Cache", () => {
 
   test("OTHER INTEGRATIONS ONLY: Should return empty array without cache or API calls", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
 
     const dateFrom = new Date().toISOString();
     const dateTo = new Date().toISOString();
@@ -642,7 +643,7 @@ describe("Calendar Cache", () => {
     const dateFrom = new Date(Date.now()).toISOString();
     // Tweak date so that it's a cache miss
     const dateTo = new Date(Date.now() + 100000000).toISOString();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
 
     // Test Cache Miss
     await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar]);
@@ -663,7 +664,7 @@ describe("Calendar Cache", () => {
 
   test("fetchAvailabilityAndSetCache should fetch and cache availability for selected calendars grouped by eventTypeId", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
 
     const selectedCalendars = [
       {
@@ -732,7 +733,7 @@ describe("Calendar Cache", () => {
 
   test("A cache set through fetchAvailabilityAndSetCache should be used when doing getAvailability", async () => {
     const credentialInDb = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb);
+    const calendarService = new CalendarService(credentialInDb, getCalendarServiceDependencies());
     vi.setSystemTime(new Date("2025-04-01T00:00:00.000Z"));
     setFullMockOAuthManagerRequest();
     const selectedCalendars = [
@@ -800,7 +801,7 @@ describe("Calendar Cache", () => {
 describe("Watching and unwatching calendar", () => {
   test("Calendar can be watched and unwatched", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credentialInDb1);
+    const calendarService = new CalendarService(credentialInDb1, getCalendarServiceDependencies());
 
     await calendarService.watchCalendar({
       calendarId: testSelectedCalendar.externalId,
@@ -879,7 +880,10 @@ describe("Watching and unwatching calendar", () => {
         },
       });
 
-      const calendarService = new CalendarService(delegationCredential1Member1);
+      const calendarService = new CalendarService(
+        delegationCredential1Member1,
+        getCalendarServiceDependencies()
+      );
       await calendarService.watchCalendar({
         calendarId: testSelectedCalendar.externalId,
         eventTypeIds: [null],
@@ -922,7 +926,10 @@ describe("Watching and unwatching calendar", () => {
         googleChannelExpiration: "1111111111",
       });
 
-      const calendarService = new CalendarService(delegationCredential1Member1);
+      const calendarService = new CalendarService(
+        delegationCredential1Member1,
+        getCalendarServiceDependencies()
+      );
       await calendarService.unwatchCalendar({
         calendarId: selectedCalendar.externalId,
         eventTypeIds: [null],
@@ -1153,7 +1160,7 @@ describe("Watching and unwatching calendar", () => {
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
     const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(credential, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
       {
@@ -1223,7 +1230,7 @@ describe("getAvailability", () => {
 describe("getPrimaryCalendar", () => {
   test("should fetch primary calendar using 'primary' keyword", async () => {
     const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(credential, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
     const mockPrimaryCalendar = {
       id: "user@example.com",
@@ -1424,7 +1431,7 @@ describe("Date Optimization Benchmarks", () => {
 
   test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
     const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(credential, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
 
     const mockBusyData = [
@@ -1469,7 +1476,7 @@ describe("Date Optimization Benchmarks", () => {
 describe("createEvent", () => {
   test("should create event with correct input/output format and handle all expected properties", async () => {
     const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(credential, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
 
     // Mock Google Calendar API response
@@ -1668,7 +1675,7 @@ describe("createEvent", () => {
 
   test("should handle recurring events correctly", async () => {
     const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(credential, getCalendarServiceDependencies());
     setFullMockOAuthManagerRequest();
 
     // Mock recurring event response
