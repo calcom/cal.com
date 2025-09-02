@@ -83,6 +83,17 @@ const FEATURES = [
   },
 ];
 
+function truncateDomain(domain: string) {
+  const maxLength = 25;
+  const cleanDomain = domain.replace(URL_PROTOCOL_REGEX, "");
+
+  if (cleanDomain.length <= maxLength) {
+    return cleanDomain;
+  }
+
+  return `${cleanDomain.substring(0, maxLength - 3)}.../`;
+}
+
 function UsernameField({
   username,
   setPremium,
@@ -398,11 +409,15 @@ export default function Signup({
                       setPremium={(value) => setPremiumUsername(value)}
                       addOnLeading={
                         orgSlug
-                          ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
-                              URL_PROTOCOL_REGEX,
-                              ""
-                            )}/`
-                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                          ? truncateDomain(
+                              `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                                URL_PROTOCOL_REGEX,
+                                ""
+                              )}/`
+                            )
+                          : truncateDomain(
+                              `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                            )
                       }
                     />
                   ) : null}
