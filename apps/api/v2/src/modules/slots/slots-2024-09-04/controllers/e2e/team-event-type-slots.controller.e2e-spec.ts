@@ -26,7 +26,12 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_09_04,
+  ERROR_STATUS,
+} from "@calcom/platform-constants";
 import {
   CreateScheduleInput_2024_06_11,
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
@@ -64,6 +69,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let collectiveEventTypeWithoutHostsId: number;
     let roundRobinEventTypeId: number;
     let roundRobinEventTypeWithoutFixedHostsId: number;
+    let roundRobinEventTypeWithFixedAndNonFixedHostsId: number;
     let collectiveBookingId: number;
     let roundRobinBookingId: number;
     let fullyBookedRoundRobinBookingIdOne: number;
@@ -255,6 +261,37 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       roundRobinEventTypeWithoutFixedHostsId = roundRobinEventTypeWithoutFixedHosts.id;
+
+      const roundRobinEventTypeWithFixedAndNonFixedHosts =
+        await eventTypesRepositoryFixture.createTeamEventType({
+          schedulingType: "ROUND_ROBIN",
+          team: {
+            connect: { id: team.id },
+          },
+          title: "RR Event Type With Fixed and Non-Fixed Hosts",
+          slug: `slots-2024-09-04-round-robin-event-type-${randomString()}`,
+          length: 60,
+          assignAllTeamMembers: true,
+          bookingFields: [],
+          locations: [],
+          users: {
+            connect: [{ id: teammateOne.id }, { id: teammateTwo.id }],
+          },
+          hosts: {
+            create: [
+              {
+                userId: teammateOne.id,
+                isFixed: true,
+              },
+              {
+                userId: teammateTwo.id,
+                isFixed: false,
+              },
+            ],
+          },
+        });
+
+      roundRobinEventTypeWithFixedAndNonFixedHostsId = roundRobinEventTypeWithFixedAndNonFixedHosts.id;
 
       const userSchedule: CreateScheduleInput_2024_06_11 = {
         name: "working time",
@@ -643,6 +680,56 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotOne.reservationUid);
       await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotTwo.reservationUid);
+      clear();
+    });
+
+    it("should reserve available slot for round robin event type with fixed and non-fixed hosts and should not be able to reserve another slot", async () => {
+      const now = "2049-09-05T12:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
+      const slotStartTime = "2050-09-05T10:00:00.000Z";
+
+      const reserveResponseOne = await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .set({ Authorization: `Bearer cal_test_${teammateApiKeyString}` })
+        .send({
+          eventTypeId: roundRobinEventTypeWithFixedAndNonFixedHostsId,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(201);
+
+      const reserveResponseBodyOne: ReserveSlotOutputResponse_2024_09_04 = reserveResponseOne.body;
+      expect(reserveResponseBodyOne.status).toEqual(SUCCESS_STATUS);
+      const responseReservedSlotOne: ReserveSlotOutputData_2024_09_04 = reserveResponseBodyOne.data;
+      expect(responseReservedSlotOne.reservationUid).toBeDefined();
+      if (!responseReservedSlotOne.reservationUid) {
+        throw new Error("Reserved slot uid is undefined");
+      }
+
+      const dbSlotOne = await selectedSlotRepositoryFixture.getByUid(responseReservedSlotOne.reservationUid);
+      expect(dbSlotOne).toBeDefined();
+      if (dbSlotOne) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlotOne.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+      }
+
+      const reserveResponseTwo = await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .send({
+          eventTypeId: roundRobinEventTypeWithFixedAndNonFixedHostsId,
+          slotStart: slotStartTime,
+        })
+        .set({ Authorization: `Bearer cal_test_${teammateTwoApiKeyString}` })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04);
+
+      expect(reserveResponseTwo.status).toEqual(400);
+      expect(reserveResponseTwo.body.status).toEqual(ERROR_STATUS);
+
+      await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotOne.reservationUid);
       clear();
     });
 
