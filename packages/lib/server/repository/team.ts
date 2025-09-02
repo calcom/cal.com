@@ -5,6 +5,7 @@ import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizatio
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getParsedTeam } from "./teamUtils";
@@ -328,6 +329,70 @@ export class TeamRepository {
           select: {
             isOrganization: true,
             organizationSettings: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findParentOrganizationByTeamId(teamId: number) {
+    const team = await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        parent: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    return team?.parent;
+  }
+
+  async findOrganizationSettingsBySlug({ slug }: { slug: string }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        isOrganization: true,
+      },
+      select: {
+        organizationSettings: {
+          select: {
+            adminGetsNoSlotsNotification: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findTeamSlugById({ id }: { id: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        slug: true,
+      },
+    });
+  }
+
+  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        metadata: true,
+        members: {
+          where: {
+            userId,
+            role: {
+              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            },
           },
         },
       },
