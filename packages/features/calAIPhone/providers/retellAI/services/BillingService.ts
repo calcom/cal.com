@@ -1,5 +1,6 @@
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -33,7 +34,7 @@ export class BillingService {
     if (!phoneNumberPriceId) {
       throw new HttpError({
         statusCode: 500,
-        message: "Phone number price ID not configured. Please contact support.",
+        message: "Phone number price ID not configured",
       });
     }
 
@@ -55,7 +56,7 @@ export class BillingService {
           quantity: 1,
         },
       ],
-      success_url: `${WEBAPP_URL}/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${WEBAPP_URL}/api/calAIPhone/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${WEBAPP_URL}/workflows/${workflowId}`,
       allow_promotion_codes: true,
       customer_update: {
@@ -69,7 +70,7 @@ export class BillingService {
         teamId: teamId?.toString() || "",
         agentId: agentId || "",
         workflowId: workflowId || "",
-        type: "phone_number_subscription",
+        type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
       },
       subscription_data: {
         metadata: {
@@ -77,7 +78,7 @@ export class BillingService {
           teamId: teamId?.toString() || "",
           agentId: agentId || "",
           workflowId: workflowId || "",
-          type: "phone_number_subscription",
+          type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
         },
       },
     });
