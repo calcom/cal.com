@@ -159,9 +159,7 @@ export default class ICSFeedCalendarService implements Calendar {
         // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
         const event = new ICAL.Event(vevent);
-        // Fix timezone extraction - get TZID from DTSTART property parameters
         const dtstartProperty = vevent.getFirstProperty("dtstart");
-        // In ical.js, parameters are accessible through the property's jCal array structure: [name, params, type, value]
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
 
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
@@ -200,14 +198,13 @@ export default class ICSFeedCalendarService implements Calendar {
             console.error("No timezone found");
           }
         }
-        // Find the VTIMEZONE that matches the event's TZID, not just the first one
+        
         let vtimezone = null;
         if (tzid) {
-          // Search for VTIMEZONE with matching TZID
           const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");
           vtimezone = allVtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === tzid);
         }
-        // Fallback to first VTIMEZONE if no match found
+
         if (!vtimezone) {
           vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
         }
