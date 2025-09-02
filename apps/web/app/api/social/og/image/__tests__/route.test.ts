@@ -24,6 +24,10 @@ vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "http://localhost:3000",
 }));
 
+vi.mock("@calcom/web/public/app-store/svg-hashes.json", () => ({
+  default: {},
+}));
+
 global.fetch = vi.fn();
 
 function createNextRequest(url: string): NextRequest {
