@@ -8,7 +8,7 @@ owner will have to confirm the rescheduled booking.`;
 export class RescheduleBookingInput_2024_08_13 {
   @IsDateString()
   @ApiProperty({
-    description: "Start time in ISO 8601 format for the new booking",
+    description: "Start time in ISO 8601 format for the new booking. Can be in UTC timezone (e.g., '2024-08-13T10:00:00Z') or include timezone information (e.g., '2024-08-13T10:00:00-05:00'). If no timezone is specified, the attendee's timezone will be used.",
     example: "2024-08-13T10:00:00Z",
   })
   start!: string;
@@ -32,7 +32,7 @@ export class RescheduleBookingInput_2024_08_13 {
 export class RescheduleSeatedBookingInput_2024_08_13 {
   @IsDateString()
   @ApiProperty({
-    description: "Start time in ISO 8601 format for the new booking",
+    description: "Start time in ISO 8601 format for the new booking. Can be in UTC timezone (e.g., '2024-08-13T10:00:00Z') or include timezone information (e.g., '2024-08-13T10:00:00-05:00'). If no timezone is specified, the attendee's timezone will be used.",
     example: "2024-08-13T10:00:00Z",
   })
   start!: string;
