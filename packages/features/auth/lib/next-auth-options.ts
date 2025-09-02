@@ -145,7 +145,6 @@ const providers: Provider[] = [
         if (!user.password?.hash) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
-        console.log("Verifying Keycloak password...", credentials.password, user.password.hash);
         // const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
         const isCorrectPassword = verifyKeycloakPassword({
           inputPassword: credentials.password,
@@ -153,7 +152,6 @@ const providers: Provider[] = [
           saltBase64: user.password.salt || "",
           iterations: 27500,
         });
-        console.log("isCorrectPassword", isCorrectPassword);
         if (!isCorrectPassword) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
