@@ -27,6 +27,7 @@ import {
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
@@ -650,11 +651,14 @@ export const getOptions = ({
             appId: "google-calendar",
             type: "google_calendar",
           });
-          const gCalService = new GoogleCalendarService({
-            ...gcalCredential,
-            user: null,
-            delegatedTo: null,
-          });
+          const gCalService = new GoogleCalendarService(
+            {
+              ...gcalCredential,
+              user: null,
+              delegatedTo: null,
+            },
+            getCalendarServiceDependencies()
+          );
 
           if (
             !(await CredentialRepository.findFirstByUserIdAndType({

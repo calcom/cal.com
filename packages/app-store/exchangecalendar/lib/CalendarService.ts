@@ -27,7 +27,8 @@ import {
 } from "ews-javascript-api";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import logger from "@calcom/lib/logger";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
+import type logger from "@calcom/lib/logger";
 import type {
   Calendar,
   CalendarEvent,
@@ -45,9 +46,9 @@ export default class ExchangeCalendarService implements Calendar {
   private log: typeof logger;
   private payload;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, dependencies: ICalendarServiceDependencies) {
     this.integrationName = "exchange_calendar";
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = dependencies.logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.payload = JSON.parse(
       symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
     );

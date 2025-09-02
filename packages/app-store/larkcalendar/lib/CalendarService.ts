@@ -1,5 +1,6 @@
 import { getLocation } from "@calcom/lib/CalEventParser";
-import logger from "@calcom/lib/logger";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
+import type logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
@@ -38,10 +39,10 @@ export default class LarkCalendarService implements Calendar {
   auth: { getToken: () => Promise<string> };
   private credential: CredentialPayload;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, dependencies: ICalendarServiceDependencies) {
     this.integrationName = "lark_calendar";
     this.auth = this.larkAuth(credential);
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = dependencies.logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.credential = credential;
   }
 

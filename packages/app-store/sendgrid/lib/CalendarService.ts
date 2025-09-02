@@ -3,7 +3,8 @@ import z from "zod";
 import type { SendgridNewContact } from "@calcom/lib/Sendgrid";
 import Sendgrid from "@calcom/lib/Sendgrid";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import logger from "@calcom/lib/logger";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
+import type logger from "@calcom/lib/logger";
 import type {
   Calendar,
   CalendarEvent,
@@ -31,9 +32,9 @@ export default class CloseComCalendarService implements Calendar {
   private sendgrid: Sendgrid;
   private log: typeof logger;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, dependencies: ICalendarServiceDependencies) {
     this.integrationName = "sendgrid_other_calendar";
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = dependencies.logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
     const parsedCredentialKey = apiKeySchema.safeParse(credential.key);
 

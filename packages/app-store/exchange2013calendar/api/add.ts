@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { getCalendarServiceDependencies } from "@calcom/lib/di/containers/CalendarService";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -42,11 +43,14 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   };
 
   try {
-    const dav = new CalendarService({
-      id: 0,
-      ...data,
-      user: { email: user.email },
-    });
+    const dav = new CalendarService(
+      {
+        id: 0,
+        ...data,
+        user: { email: user.email },
+      },
+      getCalendarServiceDependencies()
+    );
     await dav?.listCalendars();
     await prisma.credential.create({
       data,

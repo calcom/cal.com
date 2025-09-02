@@ -4,6 +4,7 @@ import ICAL from "ical.js";
 
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
 import type {
   Calendar,
   IntegrationCalendar,
@@ -42,7 +43,7 @@ export default class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, dependencies: ICalendarServiceDependencies) {
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
     this.urls = urls;
   }

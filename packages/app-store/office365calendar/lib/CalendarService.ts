@@ -8,8 +8,9 @@ import {
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
 } from "@calcom/lib/CalendarAppError";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
-import logger from "@calcom/lib/logger";
+import type logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
@@ -61,7 +62,10 @@ export default class Office365CalendarService implements Calendar {
   private credential: CredentialForCalendarServiceWithTenantId;
   private azureUserId?: string;
 
-  constructor(credential: CredentialForCalendarServiceWithTenantId) {
+  constructor(
+    credential: CredentialForCalendarServiceWithTenantId,
+    dependencies: ICalendarServiceDependencies
+  ) {
     this.integrationName = "office365_calendar";
     const tokenResponse = getTokenObjectFromCredential(credential);
     this.auth = new OAuthManager({
@@ -119,7 +123,7 @@ export default class Office365CalendarService implements Calendar {
       },
     });
     this.credential = credential;
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = dependencies.logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {

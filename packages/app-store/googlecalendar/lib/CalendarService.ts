@@ -11,6 +11,7 @@ import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/date
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -59,11 +60,11 @@ export default class GoogleCalendarService implements Calendar {
   private log: typeof logger;
   private credential: CredentialForCalendarServiceWithEmail;
 
-  constructor(credential: CredentialForCalendarServiceWithEmail) {
+  constructor(credential: CredentialForCalendarServiceWithEmail, dependencies: ICalendarServiceDependencies) {
     this.integrationName = "google_calendar";
     this.credential = credential;
     this.auth = new CalendarAuth(credential);
-    this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = dependencies.logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   public getCredentialId() {

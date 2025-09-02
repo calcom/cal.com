@@ -1,4 +1,5 @@
-import logger from "@calcom/lib/logger";
+import type { ICalendarServiceDependencies } from "@calcom/lib/di/interfaces/ICalendarServiceDependencies";
+import type logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -41,14 +42,14 @@ export default class BasecampCalendarService implements Calendar {
   private projectId = 0;
   private log: typeof logger;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, dependencies: ICalendarServiceDependencies) {
     this.integrationName = "basecamp3";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getAppKeysFromSlug("basecamp3").then(({ user_agent }: any) => {
       this.userAgent = user_agent as string;
     });
     this.auth = this.basecampAuth(credential).then((c) => c);
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = dependencies.logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private basecampAuth = async (credential: CredentialPayload) => {
