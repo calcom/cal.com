@@ -786,10 +786,12 @@ test.describe("Past booking cancellation", () => {
       status: "ACCEPTED",
     });
 
+    await page.goto("/bookings/past);
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await expect(page.locator('[data-testid="cancel"]')).toBeDisabled();
+
     await page.goto(`/booking/${booking.uid}`);
-
     await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
-
     await expect(page.locator("text=Need to make a change?")).toBeHidden();
   });
 });
