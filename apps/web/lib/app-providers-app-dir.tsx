@@ -11,7 +11,6 @@ import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posth
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
@@ -106,11 +105,6 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
   return <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>;
 }
 
-function IntercomBootstrap() {
-  useBootIntercom();
-  return null;
-}
-
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
@@ -126,10 +120,7 @@ const AppProviders = (props: PageWrapperProps) => {
             isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>
-                {process.env.NEXT_PUBLIC_INTERCOM_APP_ID && <IntercomBootstrap />}
-                {props.children}
-              </OrgBrandProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>

@@ -1,6 +1,8 @@
+import { usePathname } from "next/navigation";
 import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
 
+import { useBootIntercom } from "@calcom/ee/support/lib/intercom/useIntercom";
 import { IntercomContactForm } from "@calcom/features/ee/support/components/IntercomContactForm";
 import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -14,6 +16,11 @@ declare global {
   }
 }
 
+function IntercomBootstrap() {
+  useBootIntercom();
+  return null;
+}
+
 const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const { hasPaidPlan } = useHasPaidPlan();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -24,10 +31,26 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, [isMobile]);
 
+  const pathname = usePathname();
+  const isOnboardingPage = pathname?.startsWith("/getting-started");
+
+  if (isOnboardingPage) {
+    return <>{children}</>;
+  }
+
+  if (!hasPaidPlan) {
+    return (
+      <>
+        {children}
+        <IntercomContactForm />
+      </>
+    );
+  }
+
   return (
     <IntercomProvider appId={process.env.NEXT_PUBLIC_INTERCOM_APP_ID || ""}>
+      <IntercomBootstrap />
       {children}
-      {!hasPaidPlan && <IntercomContactForm />}
     </IntercomProvider>
   );
 };
