@@ -12,7 +12,6 @@ import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceUpdateAgentParams,
   AIPhoneServiceCreatePhoneNumberParams,
-  AIPhoneServiceImportPhoneNumberParams,
   AIPhoneServiceUpdatePhoneNumberParams,
   AIPhoneServiceAgentListItem,
   AIPhoneServiceImportPhoneNumberParamsExtended,
@@ -23,7 +22,7 @@ import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInte
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
-import type { RetellAIRepository, RetellAgentWithDetails, RetellLLMGeneralTools } from "./types";
+import type { RetellAIRepository } from "./types";
 
 export class RetellAIPhoneServiceProvider
   implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI>
@@ -114,7 +113,7 @@ export class RetellAIPhoneServiceProvider
 
   async createPhoneNumber(
     data: AIPhoneServiceCreatePhoneNumberParams<AIPhoneServiceProviderType.RETELL_AI>
-  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> & { provider: string }> {
     const result = await this.service.createPhoneNumber({
       area_code: data.area_code,
       nickname: data.nickname,
@@ -237,6 +236,7 @@ export class RetellAIPhoneServiceProvider
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     enabled?: boolean;
     generalPrompt?: string | null;
@@ -256,11 +256,24 @@ export class RetellAIPhoneServiceProvider
     phoneNumber?: string;
     userId: number;
     teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
   }): Promise<{
     callId: string;
     status: string;
     message: string;
   }> {
     return await this.service.createTestCall(params);
+  }
+
+  async updateToolsFromAgentId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ): Promise<void> {
+    return await this.service.updateToolsFromAgentId(agentId, data);
+  }
+
+  async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void> {
+    return await this.service.removeToolsForEventTypes(agentId, eventTypeIds);
   }
 }

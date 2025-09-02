@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { HttpError } from "@calcom/lib/http-error";
+import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { BillingService } from "../BillingService";
@@ -74,12 +74,12 @@ describe("BillingService", () => {
         expect.objectContaining({
           mode: "subscription",
           success_url:
-            "https://app.cal.com/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}",
+            "https://app.cal.com/api/calAIPhone/subscription/success?session_id={CHECKOUT_SESSION_ID}",
           cancel_url: "https://app.cal.com/workflows/workflow-123",
           metadata: expect.objectContaining({
             userId: "1",
             workflowId: "workflow-123",
-            type: "phone_number_subscription",
+            type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
           }),
         })
       );
