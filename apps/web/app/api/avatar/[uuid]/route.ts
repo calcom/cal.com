@@ -49,7 +49,6 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
 
     const validation = validateBase64Image(data);
     if (!validation.isValid) {
-      console.error(`Invalid image data found in database for objectKey ${objectKey}: ${validation.error}`);
       const url = new URL(AVATAR_FALLBACK, WEBAPP_URL).toString();
       return NextResponse.redirect(url, 302);
     }
