@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -9,6 +10,21 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";
 import { getSubscriptionFromId } from "../lib/subscriptions";
+
+const getBillingPortalUrl = async (customerId: string, return_url: string) => {
+  const log = logger.getSubLogger({ prefix: ["getBillingPortalUrl"] });
+  try {
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url,
+    });
+
+    return portalSession.url;
+  } catch (e) {
+    log.error(`Failed to create billing portal session for ${customerId}: ${e}`);
+    throw new Error("Failed to create billing portal session");
+  }
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST" && req.method !== "GET")
@@ -23,12 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const customerId = await getStripeCustomerIdFromUserId(userId);
     if (!customerId) return res.status(404).json({ message: "CustomerId not found" });
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url,
-    });
+    const billingPortalUrl = await getBillingPortalUrl(customerId, return_url);
 
-    return res.redirect(302, portalSession.url);
+    return res.redirect(302, billingPortalUrl);
   }
 
   const teamRepository = new TeamRepository(prisma);
@@ -68,10 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!customerId) return res.status(400).json({ message: "CustomerId not found in stripe" });
 
-  const stripeSession = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url,
-  });
+  const billingPortalUrl = await getBillingPortalUrl(customerId, return_url);
 
-  res.redirect(302, stripeSession.url);
+  res.redirect(302, billingPortalUrl);
 }
