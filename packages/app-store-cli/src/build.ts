@@ -279,10 +279,6 @@ function generateFiles() {
     ...getExportedObject("appDataSchemas", {
       importConfig: [
         {
-          fileToBeImported: "dist/zod.js",
-          importName: "appDataSchema",
-        },
-        {
           fileToBeImported: "zod.ts",
           importName: "appDataSchema",
         },
@@ -294,10 +290,6 @@ function generateFiles() {
   appKeysSchemasOutput.push(
     ...getExportedObject("appKeysSchemas", {
       importConfig: [
-        {
-          fileToBeImported: "dist/zod.js",
-          importName: "appKeysSchema",
-        },
         {
           fileToBeImported: "zod.ts",
           importName: "appKeysSchema",

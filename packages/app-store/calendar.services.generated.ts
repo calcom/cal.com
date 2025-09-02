@@ -5,15 +5,15 @@
 export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E
   ? {}
   : {
-      applecalendar: import("./applecalendar/dist/lib/CalendarService.js"),
-      caldavcalendar: import("./caldavcalendar/dist/lib/CalendarService.js"),
-      exchange2013calendar: import("./exchange2013calendar/dist/lib/CalendarService.js"),
-      exchange2016calendar: import("./exchange2016calendar/dist/lib/CalendarService.js"),
-      exchangecalendar: import("./exchangecalendar/dist/lib/CalendarService.js"),
+      applecalendar: import("./applecalendar/lib/CalendarService"),
+      caldavcalendar: import("./caldavcalendar/lib/CalendarService"),
+      exchange2013calendar: import("./exchange2013calendar/lib/CalendarService"),
+      exchange2016calendar: import("./exchange2016calendar/lib/CalendarService"),
+      exchangecalendar: import("./exchangecalendar/lib/CalendarService"),
       feishucalendar: import("./feishucalendar/lib/CalendarService"),
       googlecalendar: import("./googlecalendar/lib/CalendarService"),
-      "ics-feedcalendar": import("./ics-feedcalendar/dist/lib/CalendarService.js"),
-      larkcalendar: import("./larkcalendar/dist/lib/CalendarService.js"),
-      office365calendar: import("./office365calendar/dist/lib/CalendarService.js"),
+      "ics-feedcalendar": import("./ics-feedcalendar/lib/CalendarService"),
+      larkcalendar: import("./larkcalendar/lib/CalendarService"),
+      office365calendar: import("./office365calendar/lib/CalendarService"),
       zohocalendar: import("./zohocalendar/lib/CalendarService"),
     };

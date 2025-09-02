@@ -5,13 +5,13 @@
 export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E
   ? {}
   : {
-      dailyvideo: import("./dailyvideo/dist/lib/VideoApiAdapter.js"),
+      dailyvideo: import("./dailyvideo/lib/VideoApiAdapter"),
       huddle01video: import("./huddle01video/dist/lib/VideoApiAdapter.js"),
-      jelly: import("./jelly/dist/lib/VideoApiAdapter.js"),
-      jitsivideo: import("./jitsivideo/dist/lib/VideoApiAdapter.js"),
-      nextcloudtalk: import("./nextcloudtalk/dist/lib/VideoApiAdapter.js"),
-      office365video: import("./office365video/dist/lib/VideoApiAdapter.js"),
-      shimmervideo: import("./shimmervideo/dist/lib/VideoApiAdapter.js"),
+      jelly: import("./jelly/lib/VideoApiAdapter"),
+      jitsivideo: import("./jitsivideo/lib/VideoApiAdapter"),
+      nextcloudtalk: import("./nextcloudtalk/lib/VideoApiAdapter"),
+      office365video: import("./office365video/lib/VideoApiAdapter"),
+      shimmervideo: import("./shimmervideo/lib/VideoApiAdapter"),
       sylapsvideo: import("./sylapsvideo/lib/VideoApiAdapter"),
       tandemvideo: import("./tandemvideo/lib/VideoApiAdapter"),
       webex: import("./webex/lib/VideoApiAdapter"),

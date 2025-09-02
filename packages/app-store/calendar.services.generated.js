@@ -41,15 +41,15 @@ exports.CalendarServiceMap = void 0;
 exports.CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E
     ? {}
     : {
-        applecalendar: Promise.resolve().then(() => __importStar(require("./applecalendar/lib/CalendarService"))),
-        caldavcalendar: Promise.resolve().then(() => __importStar(require("./caldavcalendar/lib/CalendarService"))),
-        exchange2013calendar: Promise.resolve().then(() => __importStar(require("./exchange2013calendar/lib/CalendarService"))),
-        exchange2016calendar: Promise.resolve().then(() => __importStar(require("./exchange2016calendar/lib/CalendarService"))),
-        exchangecalendar: Promise.resolve().then(() => __importStar(require("./exchangecalendar/lib/CalendarService"))),
+        applecalendar: Promise.resolve().then(() => __importStar(require("./applecalendar/dist/lib/CalendarService.js"))),
+        caldavcalendar: Promise.resolve().then(() => __importStar(require("./caldavcalendar/dist/lib/CalendarService.js"))),
+        exchange2013calendar: Promise.resolve().then(() => __importStar(require("./exchange2013calendar/dist/lib/CalendarService.js"))),
+        exchange2016calendar: Promise.resolve().then(() => __importStar(require("./exchange2016calendar/dist/lib/CalendarService.js"))),
+        exchangecalendar: Promise.resolve().then(() => __importStar(require("./exchangecalendar/dist/lib/CalendarService.js"))),
         feishucalendar: Promise.resolve().then(() => __importStar(require("./feishucalendar/lib/CalendarService"))),
         googlecalendar: Promise.resolve().then(() => __importStar(require("./googlecalendar/lib/CalendarService"))),
-        "ics-feedcalendar": Promise.resolve().then(() => __importStar(require("./ics-feedcalendar/lib/CalendarService"))),
-        larkcalendar: Promise.resolve().then(() => __importStar(require("./larkcalendar/lib/CalendarService"))),
-        office365calendar: Promise.resolve().then(() => __importStar(require("./office365calendar/lib/CalendarService"))),
+        "ics-feedcalendar": Promise.resolve().then(() => __importStar(require("./ics-feedcalendar/dist/lib/CalendarService.js"))),
+        larkcalendar: Promise.resolve().then(() => __importStar(require("./larkcalendar/dist/lib/CalendarService.js"))),
+        office365calendar: Promise.resolve().then(() => __importStar(require("./office365calendar/dist/lib/CalendarService.js"))),
         zohocalendar: Promise.resolve().then(() => __importStar(require("./zohocalendar/lib/CalendarService"))),
     };

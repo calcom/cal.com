@@ -3,10 +3,10 @@
     Don't modify this file manually.
 **/
 export const CrmServiceMap = {
-  closecom: import("./closecom/dist/lib/CrmService.js"),
-  hubspot: import("./hubspot/dist/lib/CrmService.js"),
-  "pipedrive-crm": import("./pipedrive-crm/dist/lib/CrmService.js"),
-  salesforce: import("./salesforce/dist/lib/CrmService.js"),
+  closecom: import("./closecom/lib/CrmService"),
+  hubspot: import("./hubspot/lib/CrmService"),
+  "pipedrive-crm": import("./pipedrive-crm/lib/CrmService"),
+  salesforce: import("./salesforce/lib/CrmService"),
   "zoho-bigin": import("./zoho-bigin/lib/CrmService"),
   zohocrm: import("./zohocrm/lib/CrmService"),
 };
