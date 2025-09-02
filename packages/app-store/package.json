@@ -1,20 +1,99 @@
 {
   "name": "@calcom/app-store",
-  "private": true,
+  "private": false,
   "sideEffects": false,
-  "version": "0.0.0",
-  "main": "./index.ts",
+  "version": "0.1.0",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
   "files": [
-    "components.ts"
+    "*.ts",
+    "*.tsx",
+    "*.js",
+    "*.d.ts",
+    "*/",
+    "!**/*.test.*",
+    "!**/__tests__/**"
   ],
   "scripts": {
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json",
+    "build": "yarn app-store:build",
+    "local": "node scripts/local.js && yarn build && cd ../.. && yarn",
+    "publish-npm": "yarn && node scripts/prepublish.js && yarn build && npm publish --access public && node scripts/postpublish.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./appStoreMetaData": {
+      "import": "./appStoreMetaData.js",
+      "require": "./appStoreMetaData.js",
+      "types": "./appStoreMetaData.d.ts"
+    },
+    "./apps.browser.generated": {
+      "import": "./apps.browser.generated.js",
+      "require": "./apps.browser.generated.js",
+      "types": "./apps.browser.generated.d.ts"
+    },
+    "./apps.server.generated": {
+      "import": "./apps.server.generated.js",
+      "require": "./apps.server.generated.js",
+      "types": "./apps.server.generated.d.ts"
+    },
+    "./calendar.services.generated": {
+      "import": "./calendar.services.generated.js",
+      "require": "./calendar.services.generated.js",
+      "types": "./calendar.services.generated.d.ts"
+    },
+    "./payment.services.generated": {
+      "import": "./payment.services.generated.js",
+      "require": "./payment.services.generated.js",
+      "types": "./payment.services.generated.d.ts"
+    },
+    "./analytics.services.generated": {
+      "import": "./analytics.services.generated.js",
+      "require": "./analytics.services.generated.js",
+      "types": "./analytics.services.generated.d.ts"
+    },
+    "./crm.apps.generated": {
+      "import": "./crm.apps.generated.js",
+      "require": "./crm.apps.generated.js",
+      "types": "./crm.apps.generated.d.ts"
+    },
+    "./video.adapters.generated": {
+      "import": "./video.adapters.generated.js",
+      "require": "./video.adapters.generated.js",
+      "types": "./video.adapters.generated.d.ts"
+    },
+    "./apps.schemas.generated": {
+      "import": "./apps.schemas.generated.js",
+      "require": "./apps.schemas.generated.js",
+      "types": "./apps.schemas.generated.d.ts"
+    },
+    "./apps.keys-schemas.generated": {
+      "import": "./apps.keys-schemas.generated.js",
+      "require": "./apps.keys-schemas.generated.js",
+      "types": "./apps.keys-schemas.generated.d.ts"
+    },
+    "./*": {
+      "import": "./*.js",
+      "require": "./*.js",
+      "types": "./*.d.ts"
+    }
   },
   "dependencies": {
+    "lodash": "^4.17.21",
+    "qs-stringify": "^1.2.1",
+    "react-i18next": "^12.2.0",
+    "stripe": "^9.16.0"
+  },
+  "peerDependencies": {
     "@calcom/dailyvideo": "*",
     "@calcom/dayjs": "*",
     "@calcom/features": "*",
@@ -22,11 +101,7 @@
     "@calcom/office365video": "*",
     "@calcom/trpc": "*",
     "@calcom/ui": "*",
-    "@calcom/zoomvideo": "*",
-    "lodash": "^4.17.21",
-    "qs-stringify": "^1.2.1",
-    "react-i18next": "^12.2.0",
-    "stripe": "^9.16.0"
+    "@calcom/zoomvideo": "*"
   },
   "devDependencies": {
     "@calcom/types": "*"
