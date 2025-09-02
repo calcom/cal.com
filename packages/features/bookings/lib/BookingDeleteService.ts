@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -40,7 +41,7 @@ export class BookingDeleteService {
     };
 
     await prisma.$transaction(async (tx) => {
-      await tx.auditLog.create({
+      await (tx as any).auditlog.create({
         data: { entity: "booking", entityId: bookingId, action: "delete", context },
       });
     });
