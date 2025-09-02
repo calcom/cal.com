@@ -27,12 +27,6 @@ export const stripeCredentialKeysSchema = z.object({
   stripe_publishable_key: z.string(),
 });
 
-const stripeAppKeysSchema = z.object({
-  client_id: z.string(),
-  payment_fee_fixed: z.number(),
-  payment_fee_percentage: z.number(),
-});
-
 export class PaymentService implements IAbstractPaymentService {
   private stripe: Stripe;
   private credentials: z.infer<typeof stripeCredentialKeysSchema> | null;
@@ -246,14 +240,6 @@ export class PaymentService implements IAbstractPaymentService {
       const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
 
       const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
-
-      // Ensure that the stripe customer & payment method still exists
-      const customer = await this.stripe.customers.retrieve(setupIntent.customer as string, {
-        stripeAccount: this.credentials.stripe_user_id,
-      });
-      const paymentMethod = await this.stripe.paymentMethods.retrieve(setupIntent.payment_method as string, {
-        stripeAccount: this.credentials.stripe_user_id,
-      });
 
       if (!customer) {
         throw new Error(`Stripe customer does not exist for setupIntent ${setupIntent.id}`);
