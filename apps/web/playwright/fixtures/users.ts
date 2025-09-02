@@ -1004,8 +1004,13 @@ export async function apiLogin(
    */
   await page.goto(navigateToUrl || "/settings/my-account/profile");
 
-  // Wait for the session to be fully established
-  await page.waitForLoadState();
+  // Wait for the session API call to complete to ensure session is fully established
+  // Only wait if we're on a protected page that would trigger the session API call
+  try {
+    await page.waitForResponse("/api/auth/session", { timeout: 2000 });
+  } catch (error) {
+    // Session API call not made (likely on a public page), continue anyway
+  }
 
   return response;
 }

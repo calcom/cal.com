@@ -1,5 +1,8 @@
-import { CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CrudAction, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  PERMISSION_REGISTRY,
+  getPermissionsForScope,
+} from "@calcom/features/pbac/domain/types/permission-registry";
 import {
   getTransitiveDependencies,
   getTransitiveDependents,
@@ -18,10 +21,11 @@ interface UsePermissionsReturn {
   toggleSinglePermission: (permission: string, enabled: boolean, currentPermissions: string[]) => string[];
 }
 
-export function usePermissions(): UsePermissionsReturn {
+export function usePermissions(scope: Scope = Scope.Organization): UsePermissionsReturn {
   const getAllPossiblePermissions = () => {
     const permissions: string[] = [];
-    Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
+    const scopedRegistry = getPermissionsForScope(scope);
+    Object.entries(scopedRegistry).forEach(([resource, config]) => {
       if (resource !== "*") {
         Object.keys(config)
           .filter((action) => !action.startsWith("_"))
@@ -34,7 +38,8 @@ export function usePermissions(): UsePermissionsReturn {
   };
 
   const hasAllPermissions = (permissions: string[]) => {
-    return Object.entries(PERMISSION_REGISTRY).every(([resource, config]) => {
+    const scopedRegistry = getPermissionsForScope(scope);
+    return Object.entries(scopedRegistry).every(([resource, config]) => {
       if (resource === "*") return true;
       return Object.keys(config)
         .filter((action) => !action.startsWith("_"))
@@ -85,7 +90,8 @@ export function usePermissions(): UsePermissionsReturn {
     } else {
       // Filter out current resource permissions
       newPermissions = newPermissions.filter((p) => !p.startsWith(`${resource}.`));
-      const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
+      const scopedRegistry = getPermissionsForScope(scope);
+      const resourceConfig = scopedRegistry[resource as keyof typeof scopedRegistry];
 
       if (!resourceConfig) return currentPermissions;
 
