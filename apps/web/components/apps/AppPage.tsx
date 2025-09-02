@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
+import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
@@ -112,8 +113,13 @@ export const AppPage = ({
   });
 
   const handleAppInstall = () => {
+    if (isRedirectApp(slug)) {
+      setIsLoading(true);
+      mutation.mutate({ type, variant, slug });
+      return;
+    }
     setIsLoading(true);
-    if (isConferencing(categories)) {
+    if (isConferencing(categories) && !concurrentMeetings) {
       mutation.mutate({
         type,
         variant,
@@ -185,6 +191,19 @@ export const AppPage = ({
   }, []);
 
   const installOrDisconnectAppButton = () => {
+    if (isRedirectApp(slug)) {
+      return (
+        <Button
+          onClick={() => handleAppInstall()}
+          className="mt-2"
+          StartIcon="external-link"
+          loading={isLoading}
+          disabled={isLoading}>
+          {t("visit")}
+        </Button>
+      );
+    }
+
     if (appDbQuery.isPending) {
       return <SkeletonButton className="h-10 w-24" />;
     }

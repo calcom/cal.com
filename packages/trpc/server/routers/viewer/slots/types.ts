@@ -35,6 +35,7 @@ export const getScheduleSchemaObject = z.object({
   skipContactOwner: z.boolean().nullish(),
   _enableTroubleshooter: z.boolean().optional(),
   _bypassCalendarBusyTimes: z.boolean().optional(),
+  _silentCalendarFailures: z.boolean().optional(),
   _shouldServeCache: z.boolean().optional(),
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
