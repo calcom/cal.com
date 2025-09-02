@@ -250,11 +250,26 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
+  // Check if any workflow step has cal.ai action
+  const hasCalAIAction = () => {
+    const steps = form.getValues("steps") || [];
+    return steps.some((step) => isCalAIAction(step.action));
+  };
+
+  // Filter trigger options to hide isFormTrigger actions when cal.ai is part of any workflow step
+  const filteredTriggerOptions = triggerOptions.filter((option) => {
+    if (hasCalAIAction() && isFormTrigger(option.value)) {
+      return false;
+    }
+    return true;
+  });
+
   const filteredActionOptions =
     actionOptions
       ?.filter((option) => {
         if (
-          (isFormTrigger(trigger) && option.value === WorkflowActions.EMAIL_HOST) ||
+          (isFormTrigger(trigger) &&
+            (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
           (isCalAIAction(option.value) && form.watch("selectAll")) ||
           (isCalAIAction(option.value) && props.isOrganization)
         ) {
@@ -473,7 +488,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                     }}
                     defaultValue={selectedTrigger}
-                    options={triggerOptions}
+                    options={filteredTriggerOptions}
                   />
                 );
               }}
