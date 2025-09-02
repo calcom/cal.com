@@ -120,7 +120,6 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  // Block cancellation attempts for bookings that have already ended
   if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {
     throw new HttpError({
       statusCode: 400,
