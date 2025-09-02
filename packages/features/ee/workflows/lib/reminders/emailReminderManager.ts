@@ -75,6 +75,167 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   verifiedAt: Date | null;
 };
 
+type SendEmailReminderParams = {
+  mailData: {
+    subject: string;
+    html: string;
+    replyTo?: string;
+    attachments?: any[];
+    sender?: string | null;
+  };
+  sendTo: string[];
+  triggerEvent: WorkflowTriggerEvents;
+  scheduledDate: dayjs.Dayjs | null;
+  currentDate: dayjs.Dayjs;
+  uid: string;
+  workflowStepId?: number;
+  seatReferenceUid?: string;
+  isMandatoryReminder?: boolean;
+  userId?: number | null;
+  teamId?: number | null;
+};
+
+const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminderParams) => {
+  const {
+    mailData,
+    sendTo,
+    triggerEvent,
+    scheduledDate,
+    currentDate,
+    uid,
+    workflowStepId,
+    seatReferenceUid,
+    isMandatoryReminder,
+    userId,
+    teamId,
+  } = params;
+
+  const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
+
+  const featureRepo = new FeaturesRepository(prisma);
+
+  const isWorkflowSmtpEmailsEnabled = teamId
+    ? await featureRepo.checkIfTeamHasFeature(teamId, "workflow-smtp-emails")
+    : userId
+    ? await featureRepo.checkIfUserHasFeature(userId, "workflow-smtp-emails")
+    : false;
+
+  if (isWorkflowSmtpEmailsEnabled || !isSendgridEnabled) {
+    let reminderUid;
+    if (scheduledDate) {
+      const reminder = await prisma.workflowReminder.create({
+        data: {
+          bookingUid: uid,
+          workflowStepId,
+          method: WorkflowMethods.EMAIL,
+          scheduledDate: scheduledDate.toDate(),
+          scheduled: true,
+        },
+      });
+      reminderUid = reminder.uuid;
+    }
+
+    await sendOrScheduleWorkflowEmails({
+      ...mailData,
+      to: sendTo,
+      sendAt: scheduledDate?.toDate(),
+      referenceUid: reminderUid ?? undefined,
+    });
+
+    return;
+  }
+
+  /**
+   * @deprecated only needed for SendGrid, use SMTP with tasker instead
+   */
+  if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
+    try {
+      const promises = sendTo.map((email) => sendSendgridMail({ ...mailData, to: email }));
+      // TODO: Maybe don't await for this?
+      await Promise.all(promises);
+    } catch (error) {
+      log.error("Error sending Email");
+    }
+  } else if (
+    (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
+      triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
+    scheduledDate
+  ) {
+    // Sendgrid to schedule emails
+    // Can only schedule at least 60 minutes and at most 72 hours in advance
+    // To limit the amount of canceled sends we schedule at most 2 hours in advance
+    if (
+      currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
+      !scheduledDate.isAfter(currentDate.add(2, "hour"))
+    ) {
+      try {
+        const sendgridBatchId = await getBatchId();
+
+        // If sendEmail failed then workflowReminer will not be created, failing E2E tests
+        await sendSendgridMail({
+          ...mailData,
+          to: sendTo,
+          sendAt: scheduledDate.unix(),
+          batchId: sendgridBatchId,
+        });
+
+        if (!isMandatoryReminder) {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              workflowStepId: workflowStepId,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: sendgridBatchId,
+              seatReferenceId: seatReferenceUid,
+            },
+          });
+        } else {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: sendgridBatchId,
+              seatReferenceId: seatReferenceUid,
+              isMandatoryReminder: true,
+            },
+          });
+        }
+      } catch (error) {
+        log.error(`Error scheduling email with error ${error}`);
+      }
+    } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
+      // Write to DB and send to CRON if scheduled reminder date is past 2 hours
+      if (!isMandatoryReminder) {
+        await prisma.workflowReminder.create({
+          data: {
+            bookingUid: uid,
+            workflowStepId: workflowStepId,
+            method: WorkflowMethods.EMAIL,
+            scheduledDate: scheduledDate.toDate(),
+            scheduled: false,
+            seatReferenceId: seatReferenceUid,
+          },
+        });
+      } else {
+        await prisma.workflowReminder.create({
+          data: {
+            bookingUid: uid,
+            method: WorkflowMethods.EMAIL,
+            scheduledDate: scheduledDate.toDate(),
+            scheduled: false,
+            seatReferenceId: seatReferenceUid,
+            isMandatoryReminder: true,
+          },
+        });
+      }
+    }
+  }
+};
+
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
   if (args.evt) {
     await scheduleEmailReminderForEvt(args);
@@ -297,130 +458,19 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
 
   const mailData = await prepareEmailData();
 
-  const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
-
-  const featureRepo = new FeaturesRepository(prisma);
-
-  const isWorkflowSmtpEmailsEnabled = teamId
-    ? await featureRepo.checkIfTeamHasFeature(teamId, "workflow-smtp-emails")
-    : userId
-    ? await featureRepo.checkIfUserHasFeature(userId, "workflow-smtp-emails")
-    : false;
-
-  if (isWorkflowSmtpEmailsEnabled || !isSendgridEnabled) {
-    let reminderUid;
-    if (scheduledDate) {
-      const reminder = await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId,
-          method: WorkflowMethods.EMAIL,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: true,
-        },
-      });
-      reminderUid = reminder.uuid;
-    }
-
-    await sendOrScheduleWorkflowEmails({
-      ...mailData,
-      to: sendTo,
-      sendAt: scheduledDate?.toDate(),
-      referenceUid: reminderUid ?? undefined,
-    });
-
-    return;
-  }
-
-  /**
-   * @deprecated only needed for SendGrid, use SMTP with tasker instead
-   */
-  if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
-    try {
-      const promises = sendTo.map((email) => sendSendgridMail({ ...mailData, to: email }));
-      // TODO: Maybe don't await for this?
-      await Promise.all(promises);
-    } catch (error) {
-      log.error("Error sending Email");
-    }
-  } else if (
-    (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
-      triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
-    scheduledDate
-  ) {
-    // Sendgrid to schedule emails
-    // Can only schedule at least 60 minutes and at most 72 hours in advance
-    // To limit the amount of canceled sends we schedule at most 2 hours in advance
-    if (
-      currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
-      !scheduledDate.isAfter(currentDate.add(2, "hour"))
-    ) {
-      try {
-        const sendgridBatchId = await getBatchId();
-
-        // If sendEmail failed then workflowReminer will not be created, failing E2E tests
-        await sendSendgridMail({
-          ...mailData,
-          to: sendTo,
-          sendAt: scheduledDate.unix(),
-          batchId: sendgridBatchId,
-        });
-
-        if (!isMandatoryReminder) {
-          await prisma.workflowReminder.create({
-            data: {
-              bookingUid: uid,
-              workflowStepId: workflowStepId,
-              method: WorkflowMethods.EMAIL,
-              scheduledDate: scheduledDate.toDate(),
-              scheduled: true,
-              referenceId: sendgridBatchId,
-              seatReferenceId: seatReferenceUid,
-            },
-          });
-        } else {
-          await prisma.workflowReminder.create({
-            data: {
-              bookingUid: uid,
-              method: WorkflowMethods.EMAIL,
-              scheduledDate: scheduledDate.toDate(),
-              scheduled: true,
-              referenceId: sendgridBatchId,
-              seatReferenceId: seatReferenceUid,
-              isMandatoryReminder: true,
-            },
-          });
-        }
-      } catch (error) {
-        log.error(`Error scheduling email with error ${error}`);
-      }
-    } else if (scheduledDate.isAfter(currentDate.add(2, "hour"))) {
-      // Write to DB and send to CRON if scheduled reminder date is past 2 hours
-      if (!isMandatoryReminder) {
-        await prisma.workflowReminder.create({
-          data: {
-            bookingUid: uid,
-            workflowStepId: workflowStepId,
-            method: WorkflowMethods.EMAIL,
-            scheduledDate: scheduledDate.toDate(),
-            scheduled: false,
-            seatReferenceId: seatReferenceUid,
-          },
-        });
-      } else {
-        await prisma.workflowReminder.create({
-          data: {
-            bookingUid: uid,
-            method: WorkflowMethods.EMAIL,
-            scheduledDate: scheduledDate.toDate(),
-            scheduled: false,
-            seatReferenceId: seatReferenceUid,
-            isMandatoryReminder: true,
-          },
-        });
-      }
-    }
-  }
+  await sendOrScheduleWorkflowEmailWithReminder({
+    mailData,
+    sendTo,
+    triggerEvent,
+    scheduledDate,
+    currentDate,
+    uid,
+    workflowStepId,
+    seatReferenceUid,
+    isMandatoryReminder,
+    userId,
+    teamId,
+  });
 };
 
 const scheduleEmailReminderForForm = async (

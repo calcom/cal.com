@@ -108,4 +108,6 @@ export const IMMEDIATE_WORKFLOW_TRIGGER_EVENTS: WorkflowTriggerEvents[] = [
   WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
   WorkflowTriggerEvents.BOOKING_REJECTED,
   WorkflowTriggerEvents.BOOKING_REQUESTED,
+  WorkflowTriggerEvents.FORM_SUBMITTED,
+  WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
 ];
