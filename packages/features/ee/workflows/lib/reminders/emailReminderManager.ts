@@ -9,6 +9,7 @@ import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
@@ -85,9 +86,8 @@ type SendEmailReminderParams = {
   };
   sendTo: string[];
   triggerEvent: WorkflowTriggerEvents;
-  scheduledDate: dayjs.Dayjs | null;
-  currentDate: dayjs.Dayjs;
-  uid: string;
+  scheduledDate?: dayjs.Dayjs | null;
+  uid?: string;
   workflowStepId?: number;
   seatReferenceUid?: string;
   isMandatoryReminder?: boolean;
@@ -101,7 +101,6 @@ const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminder
     sendTo,
     triggerEvent,
     scheduledDate,
-    currentDate,
     uid,
     workflowStepId,
     seatReferenceUid,
@@ -109,6 +108,8 @@ const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminder
     userId,
     teamId,
   } = params;
+
+  const currentDate = dayjs();
 
   const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
@@ -237,6 +238,12 @@ const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminder
 };
 
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
+  const { verifiedAt, workflowStepId } = args;
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
+  }
+
   if (args.evt) {
     await scheduleEmailReminderForEvt(args);
   } else {
@@ -260,15 +267,9 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     includeCalendarEvent,
     isMandatoryReminder,
     action,
-    verifiedAt,
     userId,
     teamId,
   } = args;
-
-  if (!verifiedAt) {
-    log.warn(`Workflow step ${workflowStepId} not yet verified`);
-    return;
-  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -463,7 +464,6 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     sendTo,
     triggerEvent,
     scheduledDate,
-    currentDate,
     uid,
     workflowStepId,
     seatReferenceUid,
@@ -485,9 +485,55 @@ const scheduleEmailReminderForForm = async (
     };
   }
 ) => {
-  console.log("scheduleEmailReminderForForm", JSON.stringify(args.formData));
-  // TODO: Create scheduleEmailReminderForForm function
-  throw new Error("Form email reminders not yet implemented");
+  const {
+    formData,
+    triggerEvent,
+    sender,
+    workflowStepId,
+    sendTo,
+    emailSubject = "",
+    emailBody = "",
+    hideBranding,
+    userId,
+    teamId,
+  } = args;
+
+  const emailContent = {
+    emailSubject,
+    emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
+  };
+
+  if (emailBody) {
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
+    //todo: add variables
+    const emailSubjectTemplate = customTemplate(emailSubject, {}, formData.user.locale, timeFormat);
+    emailContent.emailSubject = emailSubjectTemplate.text;
+    emailContent.emailBody = customTemplate(
+      emailBody,
+      {},
+      formData.user.locale,
+      timeFormat,
+      hideBranding
+    ).html;
+  }
+
+  // Allows debugging generated email content without waiting for sendgrid to send emails
+  log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
+
+  const mailData = {
+    subject: emailContent.emailSubject,
+    html: emailContent.emailBody,
+    sender,
+  };
+
+  await sendOrScheduleWorkflowEmailWithReminder({
+    mailData,
+    sendTo,
+    triggerEvent,
+    workflowStepId,
+    userId,
+    teamId,
+  });
 };
 
 export const deleteScheduledEmailReminder = async (reminderId: number) => {

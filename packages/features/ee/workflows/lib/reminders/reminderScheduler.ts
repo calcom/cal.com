@@ -162,8 +162,6 @@ const processWorkflowStep = async (
           }
         }
 
-        console.log(`form data here ${JSON.stringify(formData)}`);
-
         if (formData) {
           const submitterEmail = await getSubmitterEmail(formData.responses);
           if (submitterEmail) {
