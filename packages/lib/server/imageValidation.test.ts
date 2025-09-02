@@ -122,7 +122,8 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("PDF");
-      expect(result.error).toBe("PDF files cannot be uploaded as images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "PDF" });
     });
 
     it("should reject HTML files with DOCTYPE", () => {
@@ -133,7 +134,8 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("HTML");
-      expect(result.error).toBe("HTML files cannot be uploaded as images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "HTML" });
     });
 
     it("should reject HTML files with <html> tag", () => {
@@ -144,7 +146,8 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("HTML");
-      expect(result.error).toBe("HTML files cannot be uploaded as images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "HTML" });
     });
 
     it("should reject script files", () => {
@@ -155,7 +158,8 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("Script");
-      expect(result.error).toBe("Script files cannot be uploaded as images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "Script" });
     });
 
     it("should reject ZIP files", () => {
@@ -166,7 +170,8 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("ZIP");
-      expect(result.error).toBe("ZIP files cannot be uploaded as images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "ZIP" });
     });
 
     it("should reject executable files", () => {
@@ -177,7 +182,8 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("Executable");
-      expect(result.error).toBe("Executable files cannot be uploaded as images");
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "Executable" });
     });
 
     it("should reject SVG with script content", () => {
@@ -189,7 +195,7 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("SVG");
-      expect(result.error).toBe("SVG contains potentially dangerous content");
+      expect(result.error).toBe("svg_contains_dangerous_content");
     });
 
     it("should reject SVG with javascript: URLs", () => {
@@ -202,7 +208,7 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("SVG");
-      expect(result.error).toBe("SVG contains potentially dangerous content");
+      expect(result.error).toBe("svg_contains_dangerous_content");
     });
 
     it("should reject SVG with onload handlers", () => {
@@ -214,7 +220,37 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("SVG");
-      expect(result.error).toBe("SVG contains potentially dangerous content");
+      expect(result.error).toBe("svg_contains_dangerous_content");
+    });
+  });
+
+  describe("Error format validation", () => {
+    it("should return errorKey and errorParams for unsupported file types", () => {
+      const pdfBytes = [...FILE_SIGNATURES.PDF, 0x2d, 0x31, 0x2e, 0x34];
+      const base64Data = createBase64Data(pdfBytes);
+
+      const result = validateBase64Image(base64Data);
+
+      expect(result).toHaveProperty("isValid");
+      expect(result).toHaveProperty("errorKey");
+      expect(result).toHaveProperty("errorParams");
+      expect(result).toHaveProperty("detectedFormat");
+      expect(result.isValid).toBe(false);
+      expect(result.errorKey).toBe("unsupported_file_type");
+      expect(result.errorParams).toEqual({ type: "PDF" });
+    });
+
+    it("should return error field for non-interpolated errors", () => {
+      const base64Data = "data:image/png;base64,";
+
+      const result = validateBase64Image(base64Data);
+
+      expect(result).toHaveProperty("isValid");
+      expect(result).toHaveProperty("error");
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe("empty_image_data");
+      expect(result.errorKey).toBeUndefined();
+      expect(result.errorParams).toBeUndefined();
     });
   });
 
@@ -225,7 +261,7 @@ describe("validateBase64Image", () => {
       const result = validateBase64Image(base64Data);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("Empty image data");
+      expect(result.error).toBe("empty_image_data");
     });
 
     it("should handle malformed base64", () => {
@@ -234,7 +270,7 @@ describe("validateBase64Image", () => {
       const result = validateBase64Image(base64Data);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("Invalid base64 format");
+      expect(result.error).toBe("invalid_base64_format");
     });
 
     it("should handle unrecognized file format", () => {
@@ -245,7 +281,7 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("Unknown");
-      expect(result.error).toBe("Unrecognized image format or invalid file");
+      expect(result.error).toBe("unrecognized_image_format");
     });
 
     it("should handle files too short for magic number detection", () => {
@@ -256,7 +292,7 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("Unknown");
-      expect(result.error).toBe("Unrecognized image format or invalid file");
+      expect(result.error).toBe("unrecognized_image_format");
     });
 
     it("should handle WEBP files without proper WEBP signature", () => {
@@ -267,7 +303,7 @@ describe("validateBase64Image", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.detectedFormat).toBe("Unknown");
-      expect(result.error).toBe("Unrecognized image format or invalid file");
+      expect(result.error).toBe("unrecognized_image_format");
     });
 
     it("should handle base64 data without proper data URL prefix", () => {
