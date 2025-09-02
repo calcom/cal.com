@@ -45,7 +45,6 @@ import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -84,25 +83,15 @@ const FEATURES = [
   },
 ];
 
-// Component to handle long URL prefixes in username field
-function UrlPrefix({ url }: { url: string }) {
-  const maxLength = 25; // Reduced to give more space for user input
-  
-  // Show full URL if it's short enough
-  if (url.length <= maxLength) {
-    return <span className="text-muted text-sm font-medium leading-none">{url}</span>;
+function truncateDomain(domain: string) {
+  const maxLength = 25;
+  const cleanDomain = domain.replace(URL_PROTOCOL_REGEX, "");
+
+  if (cleanDomain.length <= maxLength) {
+    return cleanDomain;
   }
-  
-  // For long URLs, show only beginning portion with ellipsis
-  const truncated = `${url.substring(0, maxLength - 3)}...`;
-  
-  return (
-    <Tooltip content={url}>
-      <span className="text-muted text-sm font-medium leading-none">
-        {truncated}
-      </span>
-    </Tooltip>
-  );
+
+  return `${cleanDomain.substring(0, maxLength - 3)}.../`;
 }
 
 function UsernameField({
@@ -181,7 +170,7 @@ function UsernameField({
 }
 
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
-  const separator = url.indexOf("?") !== -1 ? "&" : "?";
+  const separator = url.includes("?") ? "&" : "?";
   const param = `${key}=${encodeURIComponent(value)}`;
   return `${url}${separator}${param}`;
 }
@@ -219,6 +208,7 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
@@ -238,7 +228,6 @@ export default function Signup({
       if (err.checkoutSessionId) {
         const stripe = await getStripe();
         if (stripe) {
-          console.log("Redirecting to stripe checkout");
           const { error } = await stripe.redirectToCheckout({
             sessionId: err.checkoutSessionId,
           });
@@ -419,16 +408,16 @@ export default function Signup({
                       data-testid="signup-usernamefield"
                       setPremium={(value) => setPremiumUsername(value)}
                       addOnLeading={
-                        <UrlPrefix
-                          url={
-                            orgSlug
-                              ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
-                                  URL_PROTOCOL_REGEX,
-                                  ""
-                                )}/`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
-                          }
-                        />
+                        orgSlug
+                          ? truncateDomain(
+                              `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                                URL_PROTOCOL_REGEX,
+                                ""
+                              )}/`
+                            )
+                          : truncateDomain(
+                              `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                            )
                       }
                     />
                   ) : null}
@@ -496,6 +485,7 @@ export default function Signup({
                           showToast("error", t("username_required"));
                           return;
                         }
+                        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                         localStorage.setItem("username", username);
                         const sp = new URLSearchParams();
                         // @NOTE: don't remove username query param as it's required right now for stripe payment page
@@ -565,6 +555,7 @@ export default function Signup({
                         if (prepopulateFormValues?.username) {
                           // If username is present we save it in query params to check for premium
                           searchQueryParams.set("username", prepopulateFormValues.username);
+                          // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                           localStorage.setItem("username", prepopulateFormValues.username);
                         }
                         if (token) {
