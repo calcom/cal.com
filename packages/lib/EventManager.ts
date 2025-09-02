@@ -7,7 +7,7 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
@@ -262,6 +262,32 @@ export default class EventManager {
     return matches;
   }
 
+  private updateMSTeamsVideoCallData(
+    evt: CalendarEvent,
+    results: Array<EventResult<Exclude<Event, AdditionalInformation>>>
+  ) {
+    const office365CalendarWithTeams = results.find(
+      (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+    );
+    if (office365CalendarWithTeams) {
+      evt.videoCallData = {
+        type: "office365_video",
+        id: office365CalendarWithTeams.createdEvent?.id,
+        password: "",
+        url: office365CalendarWithTeams.createdEvent?.url,
+      };
+      if (evt.location && evt.responses) {
+        evt.responses["location"] = {
+          ...(evt.responses["location"] ?? {}),
+          value: {
+            optionValue: "",
+            value: evt.location,
+          },
+        };
+      }
+    }
+  }
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
@@ -310,12 +336,17 @@ export default class EventManager {
         evt["conferenceCredentialId"] = undefined;
       }
     }
+
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+    const isMSTeamsWithOutlookCalendar =
+      evt.location === MSTeamsLocationType &&
+      mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
-    if (isDedicated) {
+    // If the event is a Microsoft Teams meeting with Outlook Calendar, do not create a MSTeams video event, create calendar event will take care.
+    if (isDedicated && !isMSTeamsWithOutlookCalendar) {
       const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
@@ -341,6 +372,10 @@ export default class EventManager {
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
+
+    if (evt.location === MSTeamsLocationType) {
+      this.updateMSTeamsVideoCallData(evt, results);
+    }
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -416,6 +451,10 @@ export default class EventManager {
     const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+      if (evt.location === MSTeamsLocationType) {
+        this.updateMSTeamsVideoCallData(evt, results);
+      }
     }
 
     const referencesToCreate = results.map((result) => {
@@ -575,7 +614,8 @@ export default class EventManager {
     newBookingId?: number,
     changedOrganizer?: boolean,
     previousHostDestinationCalendar?: DestinationCalendar[] | null,
-    isBookingRequestedReschedule?: boolean
+    isBookingRequestedReschedule?: boolean,
+    skipDeleteEventsAndMeetings?: boolean
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -640,7 +680,7 @@ export default class EventManager {
       isDailyVideoRoomExpired = now > roomExpiryTime;
     }
 
-    if (evt.requiresConfirmation) {
+    if (evt.requiresConfirmation && !skipDeleteEventsAndMeetings) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
       await this.deleteEventsAndMeetings({
@@ -649,14 +689,15 @@ export default class EventManager {
       });
     } else {
       if (changedOrganizer) {
-        log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
-        await this.deleteEventsAndMeetings({
-          event: { ...event, destinationCalendar: previousHostDestinationCalendar },
-          bookingReferences: booking.references,
-        });
+        if (!skipDeleteEventsAndMeetings) {
+          log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+          await this.deleteEventsAndMeetings({
+            event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+            bookingReferences: booking.references,
+          });
+        }
 
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
-
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
@@ -750,7 +791,7 @@ export default class EventManager {
     });
   }
 
-  private async deleteEventsAndMeetings({
+  public async deleteEventsAndMeetings({
     event,
     bookingReferences,
     isBookingInRecurringSeries,
@@ -1212,7 +1253,7 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
 
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = new FeaturesRepository(prisma);
     const isTaskerEnabledForSalesforceCrm = event.team?.id
       ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
       : false;

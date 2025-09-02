@@ -119,3 +119,14 @@ export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
+
+export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/verifyCodeUnAuthenticated.handler";
+
+export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
+
+export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
+
+export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
+
+export { TeamService } from "@calcom/lib/server/service/teamService";
+export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";

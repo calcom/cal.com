@@ -84,7 +84,7 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     delete initialConfigCopy.operators.is_empty;
     delete initialConfigCopy.operators.is_not_empty;
 
-    // Between and Not between aren't directly supported by prisma. So, we need to update jsonLogicToPrisma to generate gte and lte query for between. It can be implemented later.
+    // These operators can be implemented later if needed.
     delete initialConfigCopy.operators.between;
     delete initialConfigCopy.operators.not_between;
 
