@@ -55,21 +55,24 @@ export function UserDropdown({ small }: UserDropdownProps) {
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openSupportAfterClose, setOpenSupportAfterClose] = useState(false);
 
   const handleHelpClick = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
 
+    setOpenSupportAfterClose(true);
     setMenuOpen(false);
-
-    // Defer to next frame to avoid the originating click closing the dialog
-    requestAnimationFrame(() => {
-      // double RAF is extra-safe if your dropdown unmounts with a transition
-      requestAnimationFrame(() => {
-        if (window.Support) window.Support.open();
-      });
-    });
   };
+
+  useEffect(() => {
+    if (!menuOpen && openSupportAfterClose) {
+      setTimeout(() => {
+        window.Support?.open();
+      }, 0);
+      setOpenSupportAfterClose(false);
+    }
+  }, [menuOpen, openSupportAfterClose]);
 
   // Prevent rendering dropdown if user isn't available.
   // We don't want to show nameless user.

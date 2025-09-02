@@ -19,7 +19,6 @@ declare global {
   }
 }
 
-// export const IntercomContactForm = ({ showTrigger, isOpen, setIsOpen }: { showTrigger: boolean, isOpen: boolean, setIsOpen: React.Dispatch<React.SetStateAction<boolean>> }) => {
 export const IntercomContactForm = () => {
   const { t } = useLocale();
   const [isSubmitting, setIsSubmitting] = useState(false);
