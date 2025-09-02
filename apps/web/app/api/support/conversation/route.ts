@@ -35,7 +35,10 @@ export async function POST(req: NextRequest) {
   const existingContact = await intercom.getContactByEmail(session.user.email);
 
   if (existingContact.error) {
-    return NextResponse.json({ error: existingContact?.error ?? "Error fetching intercom contact for user" });
+    return NextResponse.json(
+      { error: existingContact?.error ?? "Error fetching intercom contact for user" },
+      { status: 502 }
+    );
   }
 
   const { user } = session;
@@ -54,11 +57,11 @@ export async function POST(req: NextRequest) {
       type: "contact",
       custom_attributes: {
         user_name: user?.username,
-        link: `${WEBSITE_URL}/${user?.username}`,
+        link: `${WEBSITE_URL}/${encodeURIComponent(user?.username ?? "")}`,
         admin_link: `${WEBAPP_URL}/settings/admin/users/${user?.id}/edit`,
-        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${
-          user?.email ?? user?.username
-        }`,
+        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${encodeURIComponent(
+          user?.email ?? user?.username ?? ""
+        )}`,
         locale: user?.locale,
         completed_onboarding: user?.completedOnboarding,
         is_logged_in: !!user,
@@ -92,7 +95,7 @@ export async function POST(req: NextRequest) {
     const { message } = await req.json();
 
     if (!message.trim()) {
-      return NextResponse.json({ error: "Cannot start a conversation without message" });
+      return NextResponse.json({ error: "Cannot start a conversation without message" }, { status: 400 });
     }
 
     const conversation = await intercom.createConversation({

@@ -1,5 +1,6 @@
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
 
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
@@ -57,7 +58,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openSupportAfterClose, setOpenSupportAfterClose] = useState(false);
 
-  const handleHelpClick = (e?: React.MouseEvent) => {
+  const handleHelpClick = (e?: MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
 

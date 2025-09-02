@@ -115,7 +115,7 @@ export const IntercomContactForm = () => {
           asChild
           className={classNames("enabled:hover:bg-subtle bg-subtle shadow-none", !showTrigger && "!hidden")}>
           <Button
-            onClick={() => setIsOpen(false)}
+            onClick={() => setIsOpen(true)}
             className="bg-subtle text-emphasis flex h-12 w-12 items-center justify-center rounded-full border-none">
             <Icon name="message-circle" className="h-6 w-6" />
           </Button>
@@ -129,7 +129,7 @@ export const IntercomContactForm = () => {
             showTrigger ? "mr-8" : "mr-0"
           )}>
           <div className="flex w-full justify-between">
-            <p className="mb-5 text-lg font-semibold">Contact support</p>
+            <p className="mb-5 text-lg font-semibold">{t("contact_support")}</p>
             <Button
               color="minimal"
               variant="button"
@@ -142,24 +142,22 @@ export const IntercomContactForm = () => {
           <div>
             {isSubmitted ? (
               <div className="py-4 text-center">
-                <h4 className="mb-2 text-lg font-medium ">Message Sent</h4>
-                <p className="text-subtle mb-4 text-sm">
-                  Thank you for contacting us. We&apos;ll get back to you as soon as possible.
-                </p>
+                <h4 className="mb-2 text-lg font-medium ">{t("message_sent")}</h4>
+                <p className="text-subtle mb-4 text-sm">{t("support_message_sent_description")}</p>
                 <Button color="primary" className="my-2" onClick={resetForm} variant="button" size="base">
-                  Send Another Message
+                  {t("send_another_message")}
                 </Button>
               </div>
             ) : (
               <form onSubmit={onSubmit} className="flex flex-col gap-4">
                 <div>
-                  <Label htmlFor="message">Describe the issue</Label>
+                  <Label htmlFor="message">{t("describe_the_issue")}</Label>
                   <TextArea
                     id="message"
                     name="message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Please describe the issue you're facing, e.g. 'Busy slots are marked available', ..., etc."
+                    placeholder={t("support_message_placeholder")}
                     required
                     rows={4}
                   />
@@ -176,12 +174,12 @@ export const IntercomContactForm = () => {
                       {isSubmitting ? (
                         <div className="flex items-center">
                           <Icon name="loader" className="mr-2 h-4 w-4 animate-spin rounded-full" />
-                          Sending
+                          {t("sending")}
                         </div>
                       ) : (
                         <>
                           <Icon name="send" className="mr-2 h-4 w-4" />
-                          Send Message
+                          {t("send_message")}
                         </>
                       )}
                     </div>
