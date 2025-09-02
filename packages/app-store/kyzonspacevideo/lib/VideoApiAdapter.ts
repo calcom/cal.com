@@ -53,59 +53,89 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
   };
 
   const createMeeting = async (event: CalendarEvent): Promise<VideoCallData> => {
-    const { data: spaceCallData } = await authenticatedRequest((key) =>
-      kyzonAxiosInstance.post<KyzonSpaceCallResponse>(
-        `/v1/teams/${key.team_id}/space/calls`,
-        {
-          name: event.title,
-          isScheduled: true,
-        } satisfies KyzonCreateSpaceCallRequestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${key.access_token}`,
-          },
-        }
-      )
-    );
+    try {
+      const { data: spaceCallData } = await authenticatedRequest((key) =>
+        kyzonAxiosInstance.post<KyzonSpaceCallResponse>(
+          `/v1/teams/${key.team_id}/space/calls`,
+          {
+            name: event.title,
+            isScheduled: true,
+          } satisfies KyzonCreateSpaceCallRequestBody,
+          {
+            headers: {
+              Authorization: `Bearer ${key.access_token}`,
+            },
+          }
+        )
+      );
 
-    const { data: calendarData } = await authenticatedRequest((key) =>
-      kyzonAxiosInstance.post<KyzonGetCalendarEventResponse>(
-        `/v1/teams/${key.team_id}/calendar-events`,
-        {
-          title: event.title,
-          description: event.description ?? undefined,
-          location: {
-            spaceCallId: spaceCallData.id,
-          },
-          isAllDay: false,
-          timezone: event.organizer?.timeZone || "Etc/UTC",
-          startDateUtcISOString: new Date(event.startTime).toISOString(),
-          endDateUtcISOString: new Date(event.endTime).toISOString(),
-          recurrence: event.recurringEvent ? convertCalRecurrenceToKyzon(event.recurringEvent) : undefined,
-          invitees: event.attendees?.map((attendee) => ({
-            email: attendee.email,
-          })),
-          thirdPartySource: {
-            calendarSource: "Cal.com",
-            eventId: event.uid || "",
-          },
-          hasWaitRoom: true,
-          meetingFilesInWaitRoom: true,
-        } satisfies KyzonCreateOrPutCalendarEventRequestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${key.access_token}`,
-          },
-        }
-      )
-    );
+      const { data: calendarData } = await authenticatedRequest((key) =>
+        kyzonAxiosInstance.post<KyzonGetCalendarEventResponse>(
+          `/v1/teams/${key.team_id}/calendar-events`,
+          {
+            title: event.title,
+            description: event.description ?? undefined,
+            location: {
+              spaceCallId: spaceCallData.id,
+            },
+            isAllDay: false,
+            timezone: event.organizer?.timeZone || "Etc/UTC",
+            startDateUtcISOString: new Date(event.startTime).toISOString(),
+            endDateUtcISOString: new Date(event.endTime).toISOString(),
+            recurrence: event.recurringEvent ? convertCalRecurrenceToKyzon(event.recurringEvent) : undefined,
+            invitees: event.attendees?.map((attendee) => ({
+              email: attendee.email,
+            })),
+            thirdPartySource: {
+              calendarSource: "Cal.com",
+              eventId: event.uid || "",
+            },
+            hasWaitRoom: true,
+            meetingFilesInWaitRoom: true,
+          } satisfies KyzonCreateOrPutCalendarEventRequestBody,
+          {
+            headers: {
+              Authorization: `Bearer ${key.access_token}`,
+            },
+          }
+        )
+      );
 
-    return {
-      type: config.type,
-      id: calendarData.id,
-      password: calendarData.meetingPassword || spaceCallData.password,
-      url: calendarData.meetingLink || spaceCallData.url,
-    };
+      return {
+        type: config.type,
+        id: calendarData.id,
+        password: calendarData.meetingPassword || spaceCallData.password,
+        url: calendarData.meetingLink || spaceCallData.url,
+      };
+    } catch (error) {
+      const err = error as any;
+
+      console.error("Failed to create KYZON Space meeting:", {
+        status: err?.response?.status,
+        message: err?.message,
+        code: err?.code,
+        eventTitle: event.title,
+      });
+
+      let friendlyErrorMessage = "Unable to create KYZON Space meeting. Please try again.";
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 403) {
+          friendlyErrorMessage =
+            "You don't have permission to create meetings in KYZON Space. Please check your account permissions.";
+        } else if (err.response?.status === 429) {
+          friendlyErrorMessage =
+            "KYZON Space is currently experiencing high traffic. Please wait a moment and try again.";
+        } else if (typeof err.response?.status === "number" && err.response?.status >= 500) {
+          friendlyErrorMessage = "KYZON Space is temporarily unavailable. Please try again in a few minutes.";
+        } else if (err.code === "ECONNREFUSED" || err.code === "ENOTFOUND") {
+          friendlyErrorMessage =
+            "Cannot connect to KYZON Space. Please check your internet connection and try again.";
+        }
+      }
+
+      throw new Error(friendlyErrorMessage);
+    }
   };
 
   return {
@@ -155,7 +185,24 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
           url: updatedCalendarEvent.meetingLink || "",
         };
       } catch (error) {
-        // If update fails, return existing meeting data
+        const err = error as any;
+
+        console.warn("Failed to update KYZON Space meeting:", {
+          status: err?.response?.status,
+          message: err?.message,
+          code: err?.code,
+          meetingId: bookingRef.meetingId,
+          eventTitle: event.title,
+        });
+
+        // For 404 errors, the meeting might have been deleted - try creating a new one
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          console.info("Meeting not found, creating a new KYZON Space meeting instead");
+          return await createMeeting(event);
+        }
+
+        // For other errors, return existing meeting data to maintain functionality
+        // The booking will still work with the original meeting details
         return {
           type: config.type,
           id: bookingRef.meetingId,

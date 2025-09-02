@@ -36,7 +36,9 @@ async function _refreshKyzonToken(credentialId: number): Promise<KyzonCredential
     const currentKey = kyzonCredentialKeySchema.parse(credential.key);
 
     if (!currentKey.refresh_token) {
-      console.warn(`KYZON refresh skipped: credential ${credentialId} has no refresh_token`);
+      console.warn(
+        `KYZON token refresh failed: No refresh token available for credential ${credentialId}. User may need to reconnect to KYZON Space.`
+      );
       return null;
     }
 
@@ -76,11 +78,41 @@ async function _refreshKyzonToken(credentialId: number): Promise<KyzonCredential
     return newCredentialKey;
   } catch (error) {
     const err = error as any;
-    console.error("Failed to refresh KYZON token", {
-      status: err?.response?.status,
-      message: err?.message,
-      code: err?.code,
-    });
+
+    // Provide more detailed logging based on error type
+    let logLevel = "error";
+    let errorContext = "Failed to refresh KYZON token";
+
+    if (err?.response?.status === 400) {
+      errorContext = "KYZON refresh token is invalid or expired. User needs to reconnect.";
+    } else if (err?.response?.status === 401) {
+      errorContext = "KYZON authentication failed during token refresh. User needs to reconnect.";
+    } else if (err?.response?.status === 403) {
+      errorContext = "KYZON token refresh not allowed. Check app permissions.";
+    } else if (err?.response?.status >= 500) {
+      errorContext = "KYZON server error during token refresh. Will retry on next request.";
+      logLevel = "warn"; // Server errors are temporary
+    } else if (err?.code === "ECONNREFUSED" || err?.code === "ENOTFOUND") {
+      errorContext = "Cannot connect to KYZON servers for token refresh. Will retry on next request.";
+      logLevel = "warn"; // Network errors are temporary
+    }
+
+    if (logLevel === "error") {
+      console.error(errorContext, {
+        credentialId,
+        status: err?.response?.status,
+        message: err?.message,
+        code: err?.code,
+      });
+    } else {
+      console.warn(errorContext, {
+        credentialId,
+        status: err?.response?.status,
+        message: err?.message,
+        code: err?.code,
+      });
+    }
+
     return null;
   } finally {
     inFlightRefresh.delete(credentialId);

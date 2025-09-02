@@ -23,6 +23,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code, error, error_description } = req.query;
 
   if (error) {
+    console.error("KYZON OAuth error from query parameters:", {
+      error,
+      error_description,
+      hasState: !!(state?.onErrorReturnTo || state?.returnTo),
+    });
+
     if (state?.onErrorReturnTo || state?.returnTo) {
       res.redirect(
         getSafeRedirectUrl(state.onErrorReturnTo) ??
@@ -31,11 +37,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
       return;
     }
-    res.status(400).json({ message: error_description ?? error });
+
+    let friendlyErrorMessage = "Connection to KYZON Space was cancelled or failed.";
+    if (typeof error_description === "string") {
+      friendlyErrorMessage = error_description;
+    } else if (error === "access_denied") {
+      friendlyErrorMessage =
+        "Access to KYZON Space was denied. You can try connecting again if you'd like to use KYZON Space for your meetings.";
+    } else if (typeof error === "string") {
+      // Map common OAuth error codes to friendly messages
+      switch (error) {
+        case "invalid_request":
+          friendlyErrorMessage = "There was an issue with the connection request. Please try again.";
+          break;
+        case "unauthorized_client":
+          friendlyErrorMessage =
+            "The KYZON Space integration is not properly configured. Please contact support.";
+          break;
+        case "invalid_scope":
+          friendlyErrorMessage = "The requested permissions are not available. Please contact support.";
+          break;
+        case "server_error":
+          friendlyErrorMessage =
+            "KYZON Space is experiencing technical difficulties. Please try again later.";
+          break;
+        case "temporarily_unavailable":
+          friendlyErrorMessage = "KYZON Space is temporarily unavailable. Please try again in a few minutes.";
+          break;
+        default:
+          friendlyErrorMessage = `Connection failed: ${error}`;
+      }
+    }
+
+    res.status(400).json({ message: friendlyErrorMessage });
     return;
   }
 
   if (typeof code !== "string") {
+    console.error("KYZON OAuth callback missing authorization code:", {
+      codeType: typeof code,
+      codeValue: code,
+      hasState: !!(state?.onErrorReturnTo || state?.returnTo),
+    });
+
     if (state?.onErrorReturnTo || state?.returnTo) {
       res.redirect(
         getSafeRedirectUrl(state.onErrorReturnTo) ??
@@ -44,7 +88,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
       return;
     }
-    res.status(400).json({ message: "No code returned" });
+
+    const friendlyErrorMessage =
+      "No authorization code was received from KYZON Space. Please try connecting again.";
+    res.status(400).json({ message: friendlyErrorMessage });
     return;
   }
 
@@ -106,23 +153,82 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       team_id: profile.teamId,
     });
   } catch (error) {
-    let errorMessage = "Something went wrong connecting to KYZON Space.";
+    const axiosError = error as AxiosError<{
+      error: string;
+      error_description: string;
+      error_uri?: string;
+    }>;
+
+    console.error("KYZON OAuth callback error:", {
+      status: axiosError?.response?.status,
+      message: axiosError?.message,
+      code: axiosError?.code,
+      data: axiosError?.response?.data,
+      hasState: !!(state?.onErrorReturnTo || state?.returnTo),
+    });
+
+    if (state?.onErrorReturnTo || state?.returnTo) {
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          getInstalledAppPath({ variant: config.variant, slug: config.slug })
+      );
+      return;
+    }
+
+    let friendlyErrorMessage = "Unable to connect to KYZON Space. Please try again.";
 
     try {
-      const _errorMessage = (
-        error as AxiosError<{
-          error: string;
-          error_description: string;
-          error_uri?: string;
-        }>
-      ).response?.data.error_description;
+      // Check for specific error descriptions from the API
+      const apiErrorDescription = axiosError.response?.data?.error_description;
+      const apiError = axiosError.response?.data?.error;
 
-      if (_errorMessage) {
-        errorMessage = _errorMessage;
+      if (apiErrorDescription) {
+        friendlyErrorMessage = apiErrorDescription;
+      } else if (apiError) {
+        // Map common OAuth errors to user-friendly messages
+        switch (apiError) {
+          case "access_denied":
+            friendlyErrorMessage = "Access was denied. Please try connecting to KYZON Space again.";
+            break;
+          case "invalid_grant":
+            friendlyErrorMessage =
+              "The authorization code is invalid or has expired. Please try connecting again.";
+            break;
+          case "invalid_client":
+            friendlyErrorMessage =
+              "There's a configuration issue with the KYZON Space integration. Please contact support.";
+            break;
+          case "invalid_request":
+            friendlyErrorMessage = "There was an issue with the connection request. Please try again.";
+            break;
+          case "server_error":
+            friendlyErrorMessage =
+              "KYZON Space is temporarily unavailable. Please try again in a few minutes.";
+            break;
+          case "temporarily_unavailable":
+            friendlyErrorMessage = "KYZON Space is currently undergoing maintenance. Please try again later.";
+            break;
+          default:
+            friendlyErrorMessage = `Connection failed: ${apiError}`;
+        }
       }
-    } catch (e) {}
 
-    res.status(400).json({ message: errorMessage });
+      // Handle network-level errors
+      if (axiosError.code === "ECONNREFUSED" || axiosError.code === "ENOTFOUND") {
+        friendlyErrorMessage =
+          "Cannot reach KYZON Space servers. Please check your internet connection and try again.";
+      } else if (axiosError.response?.status === 429) {
+        friendlyErrorMessage = "Too many connection attempts. Please wait a moment and try again.";
+      } else if (axiosError.response?.status === 503) {
+        friendlyErrorMessage = "KYZON Space is temporarily unavailable. Please try again in a few minutes.";
+      }
+    } catch (e) {
+      // Fallback to generic message if error parsing fails
+      console.warn("Failed to parse KYZON OAuth error:", e);
+    }
+
+    res.status(400).json({ message: friendlyErrorMessage });
     return;
   }
 
