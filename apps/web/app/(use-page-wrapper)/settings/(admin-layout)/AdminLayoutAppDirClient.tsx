@@ -1,11 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
-import React, { useEffect } from "react";
+import React from "react";
 
 import type Shell from "@calcom/features/shell/Shell";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import type { UserPermissionRole } from "@calcom/prisma/enums";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
 export type AdminLayoutProps = {
@@ -14,14 +14,6 @@ export type AdminLayoutProps = {
 } & ComponentProps<typeof Shell>;
 export default function AdminLayoutAppDirClient({ userRole, children }: AdminLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  // Force redirect on component level
-  useEffect(() => {
-    if (userRole !== UserPermissionRole.ADMIN) {
-      router.replace("/settings/my-account/profile");
-    }
-  }, [userRole, router]);
 
   const isAppsPage = pathname?.startsWith("/settings/admin/apps");
   return (
