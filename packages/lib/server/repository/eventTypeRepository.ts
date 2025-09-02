@@ -577,6 +577,7 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
+      showOptimizedSlots: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
       maxActiveBookingPerBookerOfferReschedule: true,
@@ -606,6 +607,12 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -672,6 +679,7 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          groupId: true,
           user: {
             select: {
               timeZone: true,
@@ -866,6 +874,7 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
+      showOptimizedSlots: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
       maxActiveBookingPerBookerOfferReschedule: true,
@@ -895,6 +904,12 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -1185,6 +1200,7 @@ export class EventTypeRepository {
         onlyShowFirstAvailableSlot: true,
         allowReschedulingPastBookings: true,
         hideOrganizerEmail: true,
+        showOptimizedSlots: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,
@@ -1197,6 +1213,12 @@ export class EventTypeRepository {
         useEventLevelSelectedCalendars: true,
         restrictionScheduleId: true,
         useBookerTimezone: true,
+        hostGroups: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         team: {
           select: {
             id: true,
@@ -1246,6 +1268,7 @@ export class EventTypeRepository {
             createdAt: true,
             weight: true,
             priority: true,
+            groupId: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },
@@ -1387,5 +1410,17 @@ export class EventTypeRepository {
       ...eventType,
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     };
+  }
+
+  async getFirstEventTypeByUserId({ userId }: { userId: number }) {
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        userId,
+        teamId: null,
+      },
+      select: {
+        id: true,
+      },
+    });
   }
 }

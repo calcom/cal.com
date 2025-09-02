@@ -1,12 +1,11 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/booking-limits";
-import { getUserAvailabilityService } from "@calcom/lib/di/containers/get-user-availability";
-import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
+import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/BookingLimits";
+import { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
+import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
@@ -86,7 +85,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
   includeManagedEvents?: boolean;
   timeZone?: string | null;
 }) => {
-  const userAvailabilityService = getUserAvailabilityService();
   const {
     bookings,
     bookingLimits,
@@ -106,7 +104,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = userAvailabilityService.getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
@@ -163,14 +161,12 @@ const _getBusyTimesFromDurationLimits = async (
   timeZone: string,
   rescheduleUid?: string
 ) => {
-  const userAvailabilityService = getUserAvailabilityService();
-
   for (const key of descendingLimitKeys) {
     const limit = durationLimits?.[key];
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = userAvailabilityService.getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
@@ -184,7 +180,8 @@ const _getBusyTimesFromDurationLimits = async (
 
       // special handling of yearly limits to improve performance
       if (unit === "year") {
-        const totalYearlyDuration = await getTotalBookingDuration({
+        const bookingRepo = new BookingRepository(prisma);
+        const totalYearlyDuration = await bookingRepo.getTotalBookingDuration({
           eventId: eventType.id,
           startDate: periodStart.toDate(),
           endDate: periodStart.endOf(unit).toDate(),
@@ -232,7 +229,8 @@ const _getBusyTimesFromTeamLimits = async (
   timeZone: string,
   rescheduleUid?: string
 ) => {
-  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+  const busyTimesService = getBusyTimesService();
+  const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
     dateFrom.toISOString(),
     dateTo.toISOString(),
     bookingLimits
