@@ -22,16 +22,16 @@ export declare const appDataSchemas: {
         credentialId?: number;
     }>;
     basecamp3: import("zod").ZodObject<{
-        enabled: import("zod").ZodOptional<import("zod").ZodBoolean>;
         credentialId: import("zod").ZodOptional<import("zod").ZodNumber>;
+        enabled: import("zod").ZodOptional<import("zod").ZodBoolean>;
         appCategories: import("zod").ZodOptional<import("zod").ZodArray<import("zod").ZodString, "many">>;
     }, "strip", import("zod").ZodTypeAny, {
-        enabled?: boolean;
         credentialId?: number;
+        enabled?: boolean;
         appCategories?: string[];
     }, {
-        enabled?: boolean;
         credentialId?: number;
+        enabled?: boolean;
         appCategories?: string[];
     }>;
     btcpayserver: import("zod").ZodObject<{
@@ -105,18 +105,18 @@ export declare const appDataSchemas: {
         trackingId?: string;
     }>;
     giphy: import("zod").ZodObject<{
-        enabled: import("zod").ZodOptional<import("zod").ZodBoolean>;
         credentialId: import("zod").ZodOptional<import("zod").ZodNumber>;
+        enabled: import("zod").ZodOptional<import("zod").ZodBoolean>;
         appCategories: import("zod").ZodOptional<import("zod").ZodArray<import("zod").ZodString, "many">>;
         thankYouPage: import("zod").ZodOptional<import("zod").ZodString>;
     }, "strip", import("zod").ZodTypeAny, {
-        enabled?: boolean;
         credentialId?: number;
+        enabled?: boolean;
         appCategories?: string[];
         thankYouPage?: string;
     }, {
-        enabled?: boolean;
         credentialId?: number;
+        enabled?: boolean;
         appCategories?: string[];
         thankYouPage?: string;
     }>;
@@ -367,11 +367,11 @@ export declare const appDataSchemas: {
         enabled: import("zod").ZodOptional<import("zod").ZodBoolean>;
         appCategories: import("zod").ZodOptional<import("zod").ZodArray<import("zod").ZodString, "many">>;
         roundRobinLeadSkip: import("zod").ZodOptional<import("zod").ZodBoolean>;
-        roundRobinSkipCheckRecordOn: import("zod").ZodOptional<import("zod").ZodDefault<import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums.js").SalesforceRecordEnum>>>;
+        roundRobinSkipCheckRecordOn: import("zod").ZodOptional<import("zod").ZodDefault<import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums").SalesforceRecordEnum>>>;
         ifFreeEmailDomainSkipOwnerCheck: import("zod").ZodOptional<import("zod").ZodBoolean>;
         roundRobinSkipFallbackToLeadOwner: import("zod").ZodOptional<import("zod").ZodBoolean>;
         skipContactCreation: import("zod").ZodOptional<import("zod").ZodBoolean>;
-        createEventOn: import("zod").ZodOptional<import("zod").ZodDefault<import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums.js").SalesforceRecordEnum>>>;
+        createEventOn: import("zod").ZodOptional<import("zod").ZodDefault<import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums").SalesforceRecordEnum>>>;
         createNewContactUnderAccount: import("zod").ZodOptional<import("zod").ZodBoolean>;
         createLeadIfAccountNull: import("zod").ZodOptional<import("zod").ZodBoolean>;
         onBookingWriteToEventObject: import("zod").ZodOptional<import("zod").ZodBoolean>;
@@ -384,42 +384,42 @@ export declare const appDataSchemas: {
         onBookingWriteToRecord: import("zod").ZodOptional<import("zod").ZodBoolean>;
         onBookingWriteToRecordFields: import("zod").ZodOptional<import("zod").ZodRecord<import("zod").ZodString, import("zod").ZodObject<{
             value: import("zod").ZodUnion<[import("zod").ZodString, import("zod").ZodBoolean]>;
-            fieldType: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums.js").SalesforceFieldType>;
-            whenToWrite: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums.js").WhenToWriteToRecord>;
+            fieldType: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums").SalesforceFieldType>;
+            whenToWrite: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums").WhenToWriteToRecord>;
         }, "strip", import("zod").ZodTypeAny, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }>>>;
         ignoreGuests: import("zod").ZodOptional<import("zod").ZodBoolean>;
         onCancelWriteToEventRecord: import("zod").ZodOptional<import("zod").ZodBoolean>;
         onCancelWriteToEventRecordFields: import("zod").ZodOptional<import("zod").ZodRecord<import("zod").ZodString, import("zod").ZodObject<{
             value: import("zod").ZodUnion<[import("zod").ZodString, import("zod").ZodBoolean]>;
-            fieldType: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums.js").SalesforceFieldType>;
-            whenToWrite: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums.js").WhenToWriteToRecord>;
+            fieldType: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums").SalesforceFieldType>;
+            whenToWrite: import("zod").ZodNativeEnum<typeof import("./salesforce/lib/enums").WhenToWriteToRecord>;
         }, "strip", import("zod").ZodTypeAny, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }>>>;
     }, "strip", import("zod").ZodTypeAny, {
         credentialId?: number;
         enabled?: boolean;
         appCategories?: string[];
         roundRobinLeadSkip?: boolean;
-        roundRobinSkipCheckRecordOn?: import("./salesforce/lib/enums.js").SalesforceRecordEnum;
+        roundRobinSkipCheckRecordOn?: import("./salesforce/lib/enums").SalesforceRecordEnum;
         ifFreeEmailDomainSkipOwnerCheck?: boolean;
         roundRobinSkipFallbackToLeadOwner?: boolean;
         skipContactCreation?: boolean;
-        createEventOn?: import("./salesforce/lib/enums.js").SalesforceRecordEnum;
+        createEventOn?: import("./salesforce/lib/enums").SalesforceRecordEnum;
         createNewContactUnderAccount?: boolean;
         createLeadIfAccountNull?: boolean;
         onBookingWriteToEventObject?: boolean;
@@ -432,26 +432,26 @@ export declare const appDataSchemas: {
         onBookingWriteToRecord?: boolean;
         onBookingWriteToRecordFields?: Record<string, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }>;
         ignoreGuests?: boolean;
         onCancelWriteToEventRecord?: boolean;
         onCancelWriteToEventRecordFields?: Record<string, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }>;
     }, {
         credentialId?: number;
         enabled?: boolean;
         appCategories?: string[];
         roundRobinLeadSkip?: boolean;
-        roundRobinSkipCheckRecordOn?: import("./salesforce/lib/enums.js").SalesforceRecordEnum;
+        roundRobinSkipCheckRecordOn?: import("./salesforce/lib/enums").SalesforceRecordEnum;
         ifFreeEmailDomainSkipOwnerCheck?: boolean;
         roundRobinSkipFallbackToLeadOwner?: boolean;
         skipContactCreation?: boolean;
-        createEventOn?: import("./salesforce/lib/enums.js").SalesforceRecordEnum;
+        createEventOn?: import("./salesforce/lib/enums").SalesforceRecordEnum;
         createNewContactUnderAccount?: boolean;
         createLeadIfAccountNull?: boolean;
         onBookingWriteToEventObject?: boolean;
@@ -464,15 +464,15 @@ export declare const appDataSchemas: {
         onBookingWriteToRecord?: boolean;
         onBookingWriteToRecordFields?: Record<string, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }>;
         ignoreGuests?: boolean;
         onCancelWriteToEventRecord?: boolean;
         onCancelWriteToEventRecordFields?: Record<string, {
             value?: string | boolean;
-            fieldType?: import("./salesforce/lib/enums.js").SalesforceFieldType;
-            whenToWrite?: import("./salesforce/lib/enums.js").WhenToWriteToRecord;
+            fieldType?: import("./salesforce/lib/enums").SalesforceFieldType;
+            whenToWrite?: import("./salesforce/lib/enums").WhenToWriteToRecord;
         }>;
     }>;
     shimmervideo: import("zod").ZodObject<{}, "strip", import("zod").ZodTypeAny, {}, {}>;
@@ -483,7 +483,7 @@ export declare const appDataSchemas: {
         currency: import("zod").ZodString;
         paymentOption: import("zod").ZodOptional<import("zod").ZodEnum<[string, ...string[]]>>;
         enabled: import("zod").ZodOptional<import("zod").ZodBoolean>;
-        refundPolicy: import("zod").ZodOptional<import("zod").ZodNativeEnum<typeof import("@calcom/lib/payment/types.js").RefundPolicy>>;
+        refundPolicy: import("zod").ZodOptional<import("zod").ZodNativeEnum<typeof import("@calcom/lib/payment/types").RefundPolicy>>;
         refundDaysCount: import("zod").ZodOptional<import("zod").ZodNumber>;
         refundCountCalendarDays: import("zod").ZodOptional<import("zod").ZodBoolean>;
     }, "strip", import("zod").ZodTypeAny, {
@@ -493,7 +493,7 @@ export declare const appDataSchemas: {
         currency?: string;
         paymentOption?: string;
         enabled?: boolean;
-        refundPolicy?: import("@calcom/lib/payment/types.js").RefundPolicy;
+        refundPolicy?: import("@calcom/lib/payment/types").RefundPolicy;
         refundDaysCount?: number;
         refundCountCalendarDays?: boolean;
     }, {
@@ -503,7 +503,7 @@ export declare const appDataSchemas: {
         currency?: string;
         paymentOption?: string;
         enabled?: boolean;
-        refundPolicy?: import("@calcom/lib/payment/types.js").RefundPolicy;
+        refundPolicy?: import("@calcom/lib/payment/types").RefundPolicy;
         refundDaysCount?: number;
         refundCountCalendarDays?: boolean;
     }>;

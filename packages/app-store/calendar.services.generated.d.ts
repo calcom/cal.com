@@ -15,15 +15,15 @@ export declare const CalendarServiceMap: {
     office365calendar?: undefined;
     zohocalendar?: undefined;
 } | {
-    applecalendar: Promise<typeof import("./applecalendar/dist/lib/CalendarService.js")>;
-    caldavcalendar: Promise<typeof import("./caldavcalendar/dist/lib/CalendarService.js")>;
-    exchange2013calendar: Promise<typeof import("./exchange2013calendar/dist/lib/CalendarService.js")>;
-    exchange2016calendar: Promise<typeof import("./exchange2016calendar/dist/lib/CalendarService.js")>;
-    exchangecalendar: Promise<typeof import("./exchangecalendar/dist/lib/CalendarService.js")>;
+    applecalendar: Promise<typeof import("./applecalendar/lib/CalendarService")>;
+    caldavcalendar: Promise<typeof import("./caldavcalendar/lib/CalendarService")>;
+    exchange2013calendar: Promise<typeof import("./exchange2013calendar/lib/CalendarService")>;
+    exchange2016calendar: Promise<typeof import("./exchange2016calendar/lib/CalendarService")>;
+    exchangecalendar: Promise<typeof import("./exchangecalendar/lib/CalendarService")>;
     feishucalendar: Promise<typeof import("./feishucalendar/lib/CalendarService")>;
     googlecalendar: Promise<typeof import("./googlecalendar/lib/CalendarService")>;
-    "ics-feedcalendar": Promise<typeof import("./ics-feedcalendar/dist/lib/CalendarService.js")>;
-    larkcalendar: Promise<typeof import("./larkcalendar/dist/lib/CalendarService.js")>;
-    office365calendar: Promise<typeof import("./office365calendar/dist/lib/CalendarService.js")>;
+    "ics-feedcalendar": Promise<typeof import("./ics-feedcalendar/lib/CalendarService")>;
+    larkcalendar: Promise<typeof import("./larkcalendar/lib/CalendarService")>;
+    office365calendar: Promise<typeof import("./office365calendar/lib/CalendarService")>;
     zohocalendar: Promise<typeof import("./zohocalendar/lib/CalendarService")>;
 };

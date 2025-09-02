@@ -230,9 +230,6 @@ function generateFiles() {
     ...getExportedObject("apiHandlers", {
       importConfig: [
         {
-          fileToBeImported: "dist/api/index.js",
-        },
-        {
           fileToBeImported: "api/index.ts",
         },
       ],
@@ -350,10 +347,6 @@ function generateFiles() {
       {
         importConfig: [
           {
-            fileToBeImported: "dist/lib/CrmService.js",
-            importName: "default",
-          },
-          {
             fileToBeImported: "lib/CrmService.ts",
             importName: "default",
           },
@@ -369,10 +362,6 @@ function generateFiles() {
     "CalendarServiceMap",
     {
       importConfig: [
-        {
-          fileToBeImported: "dist/lib/CalendarService.js",
-          importName: "default",
-        },
         {
           fileToBeImported: "lib/CalendarService.ts",
           importName: "default",
@@ -408,10 +397,6 @@ function generateFiles() {
     "AnalyticsServiceMap",
     {
       importConfig: [
-        {
-          fileToBeImported: "dist/lib/AnalyticsService.js",
-          importName: "default",
-        },
         {
           fileToBeImported: "lib/AnalyticsService.ts",
           importName: "default",
@@ -452,10 +437,6 @@ function generateFiles() {
     {
       importConfig: [
         {
-          fileToBeImported: "dist/lib/PaymentService.js",
-          importName: "PaymentService",
-        },
-        {
           fileToBeImported: "lib/PaymentService.ts",
           importName: "PaymentService",
         },
@@ -477,10 +458,6 @@ function generateFiles() {
     "VideoApiAdapterMap",
     {
       importConfig: [
-        {
-          fileToBeImported: "dist/lib/VideoApiAdapter.js",
-          importName: "default",
-        },
         {
           fileToBeImported: "lib/VideoApiAdapter.ts",
           importName: "default",
