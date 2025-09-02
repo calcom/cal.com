@@ -27,7 +27,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
     const year = dayjs(booking?.start).year();
     const day = dayjs(date).format("dddd");
     const month = dayjs(date).format("MMMM");
-    const isBookingInPast = booking?.end ? dayjs(booking?.end).isBefore(dayjs()) : false;
 
     return (
       <main
@@ -134,7 +133,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               )}
             </div>
 
-            {booking.status === "accepted" && !isBookingInPast && (
+            {booking.status === "accepted" && (
               <>
                 <hr className="mx-3" />
                 <div className="mx-2 my-3 text-center">
