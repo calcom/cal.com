@@ -84,6 +84,13 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
     getCachedTeamAttributes(organizationId),
   ]);
 
+  const fallbackRolesCanListMembers: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
+
+  // If the team is not private we allow members to list other members
+  if (!team.isPrivate) {
+    fallbackRolesCanListMembers.push(MembershipRole.MEMBER);
+  }
+
   // Get specific PBAC permissions for team member actions
   const permissions = await getSpecificPermissions({
     userId: session.user.id,
@@ -108,7 +115,7 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
       },
       [CustomAction.ListMembers]: {
-        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        roles: fallbackRolesCanListMembers,
       },
       [CustomAction.Impersonate]: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
