@@ -407,14 +407,16 @@ export class UserAvailabilityService {
       return "PER_WEEK" in bookingLimits;
     }
 
+    // ALWAYS recalculate if there are weekly limits to respect weekStart changes
+    const shouldRecalculateLimits = hasWeeklyLimits(bookingLimits) || hasWeeklyLimits(durationLimits);
+
     if (
       initialData?.busyTimesFromLimits &&
       initialData?.eventTypeForLimits &&
-      !hasWeeklyLimits(bookingLimits)
+      !shouldRecalculateLimits // Only use cached data if no weekly limits
     ) {
       busyTimesFromLimits = initialData.busyTimesFromLimits.get(user.id) || [];
     } else if (eventType && (bookingLimits || durationLimits)) {
-      // Fall back to individual query if not available in initialData OR Booking Limit includes "PER_WEEK"
       busyTimesFromLimits = await getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
@@ -425,7 +427,7 @@ export class UserAvailabilityService {
         initialData?.busyTimesFromLimitsBookings ?? [],
         finalTimezone,
         initialData?.rescheduleUid ?? undefined,
-        weekStart
+        weekStart // This ensures current weekStart is always used
       );
     }
 
