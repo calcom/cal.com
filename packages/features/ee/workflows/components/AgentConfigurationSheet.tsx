@@ -42,7 +42,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
-import { TestAgentDialog } from "./TestAgentDialog";
+import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { WebCallDialog } from "./WebCallDialog";
 
 // Utility functions for prompt display
@@ -619,7 +619,7 @@ export function AgentConfigurationSheet({
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
-                                  StartIcon="desktop"
+                                  StartIcon="monitor"
                                   onClick={() => {
                                     setIsWebCallDialogOpen(true);
                                   }}>
@@ -992,7 +992,7 @@ export function AgentConfigurationSheet({
       </Dialog>
 
       {agentId && (
-        <TestAgentDialog
+        <TestPhoneCallDialog
           open={isTestAgentDialogOpen}
           onOpenChange={setIsTestAgentDialogOpen}
           agentId={agentId}

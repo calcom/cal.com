@@ -71,14 +71,12 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       const retellWebClient = retellWebClientRef.current;
 
       retellWebClient.on("call_started", () => {
-        console.log("Call started");
         setCallStatus("active");
         callStartTimeRef.current = new Date();
         startDurationTimer();
       });
 
       retellWebClient.on("call_ended", () => {
-        console.log("Call ended");
         setCallStatus("ended");
         stopDurationTimer();
       });
@@ -92,11 +90,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       });
 
       retellWebClient.on("update", (update: { transcript?: Array<{ role: string; content: string }> }) => {
-        console.log("Transcript update received:", JSON.stringify(update, null, 2));
-
         if (update.transcript && Array.isArray(update.transcript)) {
-          console.log(`Processing ${update.transcript.length} transcript entries`);
-
           try {
             const newEntries: TranscriptEntry[] = update.transcript
               .map((entry) => {
@@ -112,7 +106,6 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
               })
               .filter(Boolean) as TranscriptEntry[];
 
-            console.log(`Setting ${newEntries.length} transcript entries`);
             setTranscript(newEntries);
           } catch (error) {
             console.error("Error processing transcript update:", error);
@@ -279,7 +272,6 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
   };
 
   const handleClose = () => {
-    console.log("WebCallDialog handleClose called, callStatus:", callStatus);
     if (callStatus === "active") {
       handleEndCall();
     }
@@ -291,9 +283,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     <Dialog
       open={open}
       onOpenChange={(open) => {
-        console.log("WebCallDialog onOpenChange called with:", open);
         if (!open) {
-          console.log("Dialog closing, callStatus:", callStatus);
           if (callStatus === "active") {
             handleEndCall();
           }

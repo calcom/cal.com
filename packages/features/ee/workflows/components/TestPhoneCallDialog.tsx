@@ -13,7 +13,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import type { FormValues } from "../pages/workflow";
 
-interface TestAgentDialogProps {
+interface TestPhoneCallDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   agentId: string;
@@ -21,7 +21,7 @@ interface TestAgentDialogProps {
   form: UseFormReturn<FormValues>;
 }
 
-export function TestAgentDialog({ open, onOpenChange, agentId, teamId, form }: TestAgentDialogProps) {
+export function TestPhoneCallDialog({ open, onOpenChange, agentId, teamId, form }: TestPhoneCallDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
@@ -58,8 +58,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId, form }: T
   };
 
   return (
-    // Without modal={false}, the screen freezes when Sheet is open
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         type="creation"
         title={t("test_cal_ai_agent")}

@@ -64,7 +64,7 @@ import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate"
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
-import { TestAgentDialog } from "./TestAgentDialog";
+import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
 
@@ -1426,7 +1426,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         )}
 
         {stepAgentId && (
-          <TestAgentDialog
+          <TestPhoneCallDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
             agentId={stepAgentId}
