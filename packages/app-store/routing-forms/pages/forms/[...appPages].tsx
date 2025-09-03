@@ -52,7 +52,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const utils = trpc.useUtils();
   const [parent] = useAutoAnimate<HTMLUListElement>();
 
-  const mutation = trpc.viewer.routingFormOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.appRoutingForms.forms.cancel();
@@ -218,7 +218,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                           <ListLinkItem
                             href={`${appUrl}/form-edit/${form.id}`}
                             heading={form.name}
-                            disabled={readOnly}
+                            readOnly={readOnly}
                             subHeading={description}
                             className="space-x-2 rtl:space-x-reverse"
                             actions={

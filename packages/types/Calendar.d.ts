@@ -206,6 +206,8 @@ export interface CalendarEvent {
   iCalUID?: string | null;
   iCalSequence?: number | null;
   hideOrganizerEmail?: boolean;
+  disableCancelling?: boolean;
+  disableRescheduling?: boolean;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
@@ -256,17 +258,21 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
 
+export interface CalendarServiceEvent extends CalendarEvent {
+  calendarDescription: string;
+}
+
 export interface Calendar {
   getCredentialId?(): number;
   createEvent(
-    event: CalendarEvent,
+    event: CalendarServiceEvent,
     credentialId: number,
     externalCalendarId?: string
   ): Promise<NewCalendarEventType>;
 
   updateEvent(
     uid: string,
-    event: CalendarEvent,
+    event: CalendarServiceEvent,
     externalCalendarId?: string | null
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 

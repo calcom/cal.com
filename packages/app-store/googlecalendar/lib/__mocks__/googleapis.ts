@@ -3,12 +3,16 @@ import { vi } from "vitest";
 const setCredentialsMock = vi.fn();
 const freebusyQueryMock = vi.fn();
 const calendarListMock = vi.fn();
+const calendarsGetMock = vi.fn();
 const calendarMockImplementation = {
   channels: {
     stop: vi.fn().mockResolvedValue(undefined),
   },
   calendarList: {
     list: calendarListMock,
+  },
+  calendars: {
+    get: calendarsGetMock,
   },
   events: {
     watch: vi.fn().mockResolvedValue({
@@ -51,8 +55,14 @@ export type MockOAuth2Client = {
   type: "oauth2";
   args: [string, string, string];
   setCredentials: typeof setCredentialsMock;
-  refreshToken: Function;
-  isTokenExpiring: Function;
+  refreshToken: () => Promise<{
+    res: {
+      data: typeof MOCK_OAUTH2_TOKEN;
+      status: number;
+      statusText: string;
+    };
+  }>;
+  isTokenExpiring: () => boolean;
 };
 
 export const MOCK_JWT_TOKEN = {

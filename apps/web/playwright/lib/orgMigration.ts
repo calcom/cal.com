@@ -9,7 +9,7 @@ import type { Team, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["orgMigration"] });
 
@@ -65,10 +65,12 @@ export async function moveUserToOrg({
     );
   }
 
-  const userWithSameUsernameInOrg = await prisma.user.findFirst({
+  const userWithSameUsernameInOrg = await prisma.user.findUnique({
     where: {
-      username: targetOrgUsername,
-      organizationId: targetOrgId,
+      username_organizationId: {
+        username: targetOrgUsername,
+        organizationId: targetOrgId,
+      },
     },
   });
 
@@ -586,7 +588,7 @@ async function dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
     });
   }
 
-  const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+  const teamMetadata = teamMetadataStrictSchema.parse(team?.metadata);
   try {
     return await prisma.team.update({
       where: {

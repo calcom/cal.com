@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
 
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
@@ -36,7 +36,15 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, locations: inputLocations, scheduleId, ...rest } = input;
+  const {
+    schedulingType,
+    teamId,
+    metadata,
+    locations: inputLocations,
+    scheduleId,
+    calVideoSettings,
+    ...rest
+  } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
@@ -44,6 +52,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
+
+  const isCalVideoLocationActive = locations.some((location) => location.type === DailyLocationType);
 
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
@@ -54,6 +64,20 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     locations,
     schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
   };
+
+  if (isCalVideoLocationActive && calVideoSettings) {
+    data.calVideoSettings = {
+      create: {
+        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+      },
+    };
+  }
 
   if (teamId && schedulingType) {
     const hasMembership = await ctx.prisma.membership.findFirst({
@@ -68,7 +92,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     if (
       !isSystemAdmin &&
-      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin))
+      !isOrgAdmin &&
+      (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role))
     ) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -105,14 +130,15 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const profile = ctx.user.profile;
   try {
-    const eventType = await EventTypeRepository.create({
+    const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+    const eventType = await eventTypeRepo.create({
       ...data,
       profileId: profile.id,
     });
     return { eventType };
   } catch (e) {
     console.warn(e);
-    if (e instanceof PrismaClientKnownRequestError) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
       }

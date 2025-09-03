@@ -12,7 +12,13 @@ export class TeamsEventTypesRepository {
         id: eventTypeId,
         teamId,
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        calVideoSettings: true,
+      },
     });
   }
 
@@ -33,6 +39,7 @@ export class TeamsEventTypesRepository {
             }
           : true,
         destinationCalendar: true,
+        calVideoSettings: true,
         team: {
           select: {
             bannerUrl: true,
@@ -82,6 +89,7 @@ export class TeamsEventTypesRepository {
         schedule: true,
         hosts: true,
         destinationCalendar: true,
+        calVideoSettings: true,
         team: {
           select: {
             bannerUrl: true,
@@ -101,7 +109,13 @@ export class TeamsEventTypesRepository {
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        calVideoSettings: true,
+      },
     });
   }
 

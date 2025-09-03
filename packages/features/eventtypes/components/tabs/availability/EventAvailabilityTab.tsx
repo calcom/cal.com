@@ -18,6 +18,7 @@ import type {
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
@@ -34,7 +35,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
 type AvailabilityTableCustomClassNames = {
   tableContainer?: string;
@@ -113,6 +114,13 @@ type EventTypeScheduleProps = {
   eventType: EventTypeSetup;
   teamMembers: TeamMember[];
   customClassNames?: UserAvailabilityCustomClassNames;
+  fieldName?: "schedule" | "restrictionSchedule";
+  scheduleQueryData?: ScheduleQueryData;
+  restrictionScheduleQueryData?: ScheduleQueryData;
+  isSchedulePending?: boolean;
+  isRestrictionSchedulePending?: boolean;
+  restrictionScheduleRedirectUrl?: string;
+  isRestrictionScheduleEnabled?: boolean;
 } & Omit<EventTypeScheduleDetailsProps, "customClassNames"> &
   Omit<EventTypeTeamScheduleProps, "customClassNames">;
 
@@ -120,7 +128,7 @@ export type EventAvailabilityTabBaserProps = {
   isTeamEvent: boolean;
 };
 
-type UseCommonScheduleSettingsToggle = Omit<EventTypeScheduleProps, "customClassNames"> & {
+type UseTeamEventScheduleSettingsToggle = Omit<EventTypeScheduleProps, "customClassNames"> & {
   customClassNames?: EventAvailabilityTabCustomClassNames;
 };
 
@@ -251,11 +259,13 @@ const EventTypeScheduleDetails = memo(
             })}
           </ol>
         </div>
-        <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
-          <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-            <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
-            {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
-          </span>
+        <div className="bg-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <span className="text-default flex items-center justify-center text-center text-sm sm:justify-start">
+              <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+              {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
+            </span>
+          </div>
           {!!scheduleQueryData?.id &&
             !scheduleQueryData.isManaged &&
             !scheduleQueryData.readOnly &&
@@ -278,11 +288,161 @@ const EventTypeScheduleDetails = memo(
 
 EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 
+type EventTypeRestrictionScheduleDetailsProps = {
+  scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly"> & {
+    schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
+  };
+  isSchedulePending?: boolean;
+  user?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
+  restrictionScheduleRedirectUrl?: string;
+  customClassNames?: AvailabilityTableCustomClassNames;
+  useBookerTimezone?: boolean;
+};
+
+const EventTypeRestrictionScheduleDetails = memo(
+  ({
+    scheduleQueryData,
+    isSchedulePending,
+    user,
+    restrictionScheduleRedirectUrl,
+    customClassNames,
+    useBookerTimezone: initialUseBookerTimezone,
+  }: EventTypeRestrictionScheduleDetailsProps) => {
+    const timeFormat = user?.timeFormat;
+    const { t, i18n } = useLocale();
+    const formMethods = useFormContext<FormValues>();
+    const { setValue, watch } = formMethods;
+
+    const weekStart = weekStartNum(user?.weekStart);
+
+    const filterDays = (dayNum: number) =>
+      scheduleQueryData?.schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+
+    const useBookerTimezone = watch("useBookerTimezone");
+
+    useEffect(() => {
+      if (useBookerTimezone === undefined) {
+        setValue("useBookerTimezone", initialUseBookerTimezone || false, { shouldDirty: false });
+      }
+    }, [useBookerTimezone, setValue, initialUseBookerTimezone]);
+
+    return (
+      <div>
+        <div className={classNames("border-subtle space-y-4 border-x p-6", customClassNames?.tableContainer)}>
+          <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
+            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
+              const isAvailable = !!filterDays(index).length;
+              return (
+                <li
+                  key={day}
+                  className={classNames(
+                    "my-6 flex border-transparent last:mb-2",
+                    customClassNames?.tableRow
+                  )}>
+                  <span
+                    className={classNames(
+                      "w-20 font-medium sm:w-32 ",
+                      !isAvailable ? "text-subtle line-through" : "text-default",
+                      customClassNames?.day
+                    )}>
+                    {day}
+                  </span>
+                  {isSchedulePending ? (
+                    <SkeletonText className="block h-5 w-60" />
+                  ) : isAvailable ? (
+                    <div className="space-y-3 text-right">
+                      {filterDays(index).map((dayRange, i) => (
+                        <div
+                          key={i}
+                          className={classNames(
+                            "text-default flex items-center leading-4",
+                            customClassNames?.dayAvailabilityContainer
+                          )}>
+                          <span
+                            className={classNames(
+                              "w-16 sm:w-28 sm:text-left",
+                              customClassNames?.dayAvailabilityFrom
+                            )}>
+                            {format(dayRange.startTime, timeFormat === 12)}
+                          </span>
+                          <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>
+                            -
+                          </span>
+                          <div className={classNames("ml-6 sm:w-28", customClassNames?.dayAvailabilityTo)}>
+                            {format(dayRange.endTime, timeFormat === 12)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span
+                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
+                      {t("unavailable")}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+        <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <span
+              className={classNames(
+                "text-default flex items-center justify-center text-sm sm:justify-start",
+                useBookerTimezone && "text-muted line-through"
+              )}>
+              <Icon
+                name="globe"
+                className={classNames("h-3.5 w-3.5 ltr:mr-2 rtl:ml-2", useBookerTimezone && "text-muted")}
+              />
+              {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
+            </span>
+            <div className="ltr:mr-2 rtl:ml-2">
+              <CheckboxField
+                checked={useBookerTimezone}
+                disabled={isSchedulePending}
+                description={t("use_booker_timezone")}
+                informationIconText={t("use_booker_timezone_info")}
+                onChange={(e) => {
+                  setValue("useBookerTimezone", e.target.checked, { shouldDirty: true });
+                }}
+              />
+            </div>
+          </div>
+          {!!scheduleQueryData?.id &&
+            !scheduleQueryData.isManaged &&
+            !scheduleQueryData.readOnly &&
+            !!restrictionScheduleRedirectUrl && (
+              <Button
+                href={restrictionScheduleRedirectUrl}
+                disabled={isSchedulePending}
+                color="minimal"
+                EndIcon="external-link"
+                target="_blank"
+                rel="noopener noreferrer">
+                {t("edit_availability")}
+              </Button>
+            )}
+        </div>
+      </div>
+    );
+  }
+);
+
+EventTypeRestrictionScheduleDetails.displayName = "EventTypeRestrictionScheduleDetails";
+
 const EventTypeSchedule = ({
   eventType,
   schedulesQueryData,
   isSchedulesPending,
   customClassNames,
+  fieldName = "schedule",
+  scheduleQueryData,
+  restrictionScheduleQueryData,
+  isSchedulePending,
+  isRestrictionSchedulePending,
+  restrictionScheduleRedirectUrl,
   ...rest
 }: EventTypeScheduleProps) => {
   const { t } = useLocale();
@@ -291,14 +451,21 @@ const EventTypeSchedule = ({
     useLockedFieldsManager({ eventType, translate: t, formMethods });
   const { watch, setValue } = formMethods;
 
-  const scheduleId = watch("schedule");
+  // Map the fieldName to the actual form field name
+  const formFieldName = fieldName === "restrictionSchedule" ? "restrictionScheduleId" : fieldName;
+  const scheduleId = watch(formFieldName);
 
   useEffect(() => {
-    // after data is loaded.
     if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
-      const newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
+      let newValue;
+      if (fieldName === "restrictionSchedule") {
+        newValue =
+          eventType.restrictionScheduleId || schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
+      } else {
+        newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
+      }
       if (!newValue && newValue !== 0) return;
-      setValue("schedule", newValue, {
+      setValue(formFieldName, newValue, {
         shouldDirty: true,
       });
     }
@@ -349,6 +516,29 @@ const EventTypeSchedule = ({
     });
   }
 
+  if (
+    fieldName === "restrictionSchedule" &&
+    eventType.restrictionScheduleId &&
+    !schedulesQueryData.find((schedule) => schedule.id === eventType.restrictionScheduleId)
+  ) {
+    options.push({
+      value: eventType.restrictionScheduleId,
+      label: eventType.restrictionScheduleName ?? t("default_schedule_name"),
+      isDefault: false,
+      isManaged: false,
+    });
+  }
+
+  const filteredOptions =
+    fieldName === "restrictionSchedule"
+      ? options.filter((option) => option.value !== eventType.schedule)
+      : options;
+
+  const currentScheduleQueryData =
+    fieldName === "schedule" ? scheduleQueryData : restrictionScheduleQueryData;
+  const isCurrentSchedulePending =
+    fieldName === "schedule" ? isSchedulePending : isRestrictionSchedulePending;
+
   return (
     <div>
       <div
@@ -363,22 +553,27 @@ const EventTypeSchedule = ({
             customClassNames?.availabilitySelect?.label
           )}>
           {t("availability")}
-          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("schedule")}
+          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator(formFieldName)}
         </label>
         <Controller
-          name="schedule"
+          name={formFieldName}
           render={({ field: { onChange, value } }) => {
-            const optionValue: AvailabilityOption | undefined = options.find(
+            const optionValue: AvailabilityOption | undefined = filteredOptions.find(
               (option) => option.value === value
             );
             return (
               <Select
                 placeholder={t("select")}
-                options={options}
-                isDisabled={shouldLockDisableProps("schedule").disabled}
+                options={filteredOptions}
+                isDisabled={shouldLockDisableProps(formFieldName).disabled}
                 isSearchable={false}
                 onChange={(selected) => {
-                  if (selected) onChange(selected.value);
+                  if (selected) {
+                    onChange(selected.value);
+                    if (fieldName === "restrictionSchedule" && selected.value) {
+                      setValue("restrictionScheduleId", selected.value, { shouldDirty: true });
+                    }
+                  }
                 }}
                 className={classNames(
                   "block w-full min-w-0 flex-1 rounded-sm text-sm",
@@ -393,16 +588,34 @@ const EventTypeSchedule = ({
           }}
         />
       </div>
-      {scheduleId !== 0 ? (
-        <EventTypeScheduleDetails {...rest} customClassNames={customClassNames?.availabilityTable} />
+      {scheduleId !== 0 && (fieldName === "schedule" || fieldName === "restrictionSchedule") ? (
+        fieldName === "restrictionSchedule" ? (
+          <EventTypeRestrictionScheduleDetails
+            {...rest}
+            scheduleQueryData={currentScheduleQueryData}
+            isSchedulePending={isCurrentSchedulePending}
+            customClassNames={customClassNames?.availabilityTable}
+            useBookerTimezone={eventType.useBookerTimezone}
+            restrictionScheduleRedirectUrl={restrictionScheduleRedirectUrl}
+          />
+        ) : (
+          <EventTypeScheduleDetails
+            {...rest}
+            scheduleQueryData={currentScheduleQueryData}
+            isSchedulePending={isCurrentSchedulePending}
+            customClassNames={customClassNames?.availabilityTable}
+          />
+        )
       ) : (
-        isManagedEventType && (
+        isManagedEventType &&
+        fieldName === "schedule" && (
           <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
         )
       )}
     </div>
   );
 };
+
 const TeamMemberSchedule = ({
   host,
   index,
@@ -453,7 +666,7 @@ const TeamMemberSchedule = ({
         {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
         <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
       </div>
-      <div className="flex w-full flex-col pt-2 ">
+      <div className="flex w-full flex-col pt-2">
         {isPending ? (
           <Spinner className="mt-2 h-6 w-6" />
         ) : (
@@ -575,35 +788,80 @@ const useCommonScheduleState = (initialScheduleId: number | null) => {
   };
 };
 
-const UseCommonScheduleSettingsToggle = ({
+const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null) => {
+  const { setValue } = useFormContext<FormValues>();
+  const [restrictScheduleForHosts, setRestrictScheduleForHosts] = useState(!!initialRestrictionScheduleId);
+
+  // Toggle function for restriction schedule
+  const toggleRestrictScheduleState = (checked: boolean) => {
+    setRestrictScheduleForHosts(checked);
+    if (!checked) {
+      setValue("restrictionScheduleId", null, { shouldDirty: true });
+      setValue("useBookerTimezone", false, { shouldDirty: true });
+    }
+  };
+
+  return {
+    restrictScheduleForHosts,
+    toggleRestrictScheduleState,
+  };
+};
+
+const UseTeamEventScheduleSettingsToggle = ({
   eventType,
   customClassNames,
+  isRestrictionScheduleEnabled,
   ...rest
-}: UseCommonScheduleSettingsToggle) => {
+}: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
+  const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
+    eventType.restrictionScheduleId
+  );
+
   return (
-    <div className="border-subtle space-y-6 rounded-lg border p-6">
-      <SettingsToggle
-        checked={!useHostSchedulesForTeamEvent}
-        onCheckedChange={toggleScheduleState}
-        title={t("choose_common_schedule_team_event")}
-        description={t("choose_common_schedule_team_event_description")}>
-        {/* handles the state for which 'schedule' ID is set, as it's unknown until the Select dropdown is loaded */}
-        <EventTypeSchedule
-          customClassNames={customClassNames?.userAvailability}
-          eventType={eventType}
-          {...rest}
-        />
-      </SettingsToggle>
-      {useHostSchedulesForTeamEvent && (
-        <div className="lg:ml-14">
-          <TeamAvailability
-            teamMembers={rest.teamMembers}
-            hostSchedulesQuery={rest.hostSchedulesQuery}
-            customClassNames={customClassNames?.teamAvailability}
+    <div className="space-y-4">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <SettingsToggle
+          checked={!useHostSchedulesForTeamEvent}
+          onCheckedChange={toggleScheduleState}
+          title={t("choose_common_schedule_team_event")}
+          description={t("choose_common_schedule_team_event_description")}>
+          <EventTypeSchedule
+            customClassNames={customClassNames?.userAvailability}
+            eventType={eventType}
+            fieldName="schedule"
+            {...rest}
           />
+        </SettingsToggle>
+        {useHostSchedulesForTeamEvent && (
+          <div className="lg:ml-14">
+            <TeamAvailability
+              teamMembers={rest.teamMembers}
+              hostSchedulesQuery={rest.hostSchedulesQuery}
+              customClassNames={customClassNames?.teamAvailability}
+            />
+          </div>
+        )}
+      </div>
+      {!isPlatform && isRestrictionScheduleEnabled ? (
+        <div className="border-subtle space-y-6 rounded-lg border p-6">
+          <SettingsToggle
+            checked={restrictScheduleForHosts}
+            onCheckedChange={toggleRestrictScheduleState}
+            title={t("choose_restriction_schedule")}
+            description={t("restriction_schedule_description")}>
+            <EventTypeSchedule
+              customClassNames={customClassNames?.userAvailability}
+              eventType={eventType}
+              fieldName="restrictionSchedule"
+              {...rest}
+            />
+          </SettingsToggle>
         </div>
+      ) : (
+        <></>
       )}
     </div>
   );
@@ -611,7 +869,7 @@ const UseCommonScheduleSettingsToggle = ({
 
 export const EventAvailabilityTab = ({ eventType, isTeamEvent, ...rest }: EventAvailabilityTabProps) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseCommonScheduleSettingsToggle eventType={eventType} {...rest} />
+    <UseTeamEventScheduleSettingsToggle eventType={eventType} {...rest} />
   ) : (
     <EventTypeSchedule
       eventType={eventType}

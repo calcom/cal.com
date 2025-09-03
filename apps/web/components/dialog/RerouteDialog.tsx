@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -279,6 +280,7 @@ const NewRoutingManager = ({
   const { t } = useLocale();
   const router = useRouter();
   const bookerUrl = useBookerUrl();
+  const session = useSession();
   const teamMemberIdsMatchingAttributeLogic =
     teamMembersMatchingAttributeLogic?.data
       ?.map((member) => member.id)
@@ -305,7 +307,7 @@ const NewRoutingManager = ({
     booking,
     currentResponse,
     searchParams: new URLSearchParams({
-      // rescheduleReason
+      rescheduledBy: session?.data?.user?.email ?? "",
     }),
   });
 
@@ -469,6 +471,7 @@ const NewRoutingManager = ({
     // TODO: Long term, we should refactor handleNewBooking and use a different route specific for this purpose,
     createBookingMutation.mutate({
       rescheduleUid: booking.uid,
+      rescheduledBy: session?.data?.user?.email ?? undefined,
       // rescheduleReason,
       reroutingFormResponses: reroutingFormResponses,
       ...getTimeslotFields(),
@@ -536,18 +539,11 @@ const NewRoutingManager = ({
       url: chosenEventUrls.eventBookingAbsoluteUrl,
     });
 
-    console.log("SETTING NEW VALUE", {
-      type: "reschedule_to_different_event_new_tab",
-      reschedulerWindow,
-      newBooking: null,
-    });
     reroutingState.setValue({
       type: "reschedule_to_different_event_new_tab",
       reschedulerWindow,
       newBooking: null,
     });
-
-    console.log("VALUE NOW", JSON.stringify(reroutingState));
   }
 
   function reroutingPreview() {
@@ -907,7 +903,7 @@ export const RerouteDialog = ({ isOpenDialog, setIsOpenDialog, booking }: Rerout
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent enableOverflow preventCloseOnOutsideClick>
+      <DialogContent preventCloseOnOutsideClick>
         <DialogHeader title={t("reroute_booking")} subtitle={t("reroute_booking_description")} />
         <RerouteDialogContentAndFooter
           booking={teamEventTypeBooking}

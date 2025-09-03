@@ -50,7 +50,7 @@ import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser } from "./types";
+import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -77,6 +77,7 @@ const initalColumnVisibility = {
   teams: true,
   createdAt: false,
   updatedAt: false,
+  twoFactorEnabled: false,
   actions: true,
 };
 
@@ -109,8 +110,19 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 export type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
-  facetedTeamValues?: RouterOutputs["viewer"]["organizations"]["getFacetedValues"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: { id: string; name: string }[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
+  permissions?: MemberPermissions;
 };
 
 export function UserListTable(props: UserListTableProps) {
@@ -121,7 +133,13 @@ export function UserListTable(props: UserListTableProps) {
   );
 }
 
-function UserListTableContent({ org, attributes, teams, facetedTeamValues }: UserListTableProps) {
+function UserListTableContent({
+  org,
+  attributes,
+  teams,
+  facetedTeamValues,
+  permissions,
+}: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -158,11 +176,12 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
   const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
 
   const memorisedColumns = useMemo(() => {
-    const permissions = {
-      canEdit: adminOrOwner,
-      canRemove: adminOrOwner,
-      canResendInvitation: adminOrOwner,
-      canImpersonate: false,
+    // Use PBAC permissions if available, otherwise fall back to role-based check
+    const tablePermissions = {
+      canEdit: permissions?.canChangeMemberRole ?? adminOrOwner,
+      canRemove: permissions?.canRemove ?? adminOrOwner,
+      canResendInvitation: permissions?.canInvite ?? adminOrOwner,
+      canImpersonate: permissions?.canImpersonate ?? adminOrOwner,
     };
     const generateAttributeColumns = () => {
       if (!attributes?.length) {
@@ -303,7 +322,8 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
         cell: ({ row, table }) => {
-          const { role, username } = row.original;
+          const { role, username, customRole } = row.original;
+          const roleName = customRole?.name || role;
           return (
             <Badge
               data-testid={`member-${username}-role`}
@@ -311,7 +331,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
               }}>
-              {role}
+              {roleName}
             </Badge>
           );
         },
@@ -406,6 +426,26 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
+        id: "twoFactorEnabled",
+        accessorKey: "twoFactorEnabled",
+        header: t("2fa"),
+        enableHiding: adminOrOwner,
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 80,
+        cell: ({ row }) => {
+          const { twoFactorEnabled } = row.original;
+          if (!adminOrOwner || twoFactorEnabled === undefined) {
+            return null;
+          }
+          return (
+            <Badge variant={twoFactorEnabled ? "green" : "gray"}>
+              {twoFactorEnabled ? t("enabled") : t("disabled")}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         enableHiding: false,
         enableSorting: false,
@@ -413,14 +453,18 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         size: 80,
         cell: ({ row }) => {
           const user = row.original;
-          const permissionsRaw = permissions;
+          const permissionsRaw = tablePermissions;
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
-              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
+              user.accepted &&
+              !user.disableImpersonation &&
+              !isSelf &&
+              !!org?.canAdminImpersonate &&
+              permissionsRaw.canImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -438,7 +482,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate, permissions]);
 
   const table = useReactTable({
     data: flatData,
@@ -468,8 +512,8 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           case "role":
             return convertFacetedValuesToMap(
               facetedTeamValues.roles.map((role) => ({
-                label: role,
-                value: role,
+                label: role.name,
+                value: role.id,
               }))
             );
           case "teams":
@@ -587,7 +631,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
             </p>
             {!isPlatformUser ? (
               <>
-                {adminOrOwner && <TeamListBulkAction table={table} />}
+                {permissions?.canChangeMemberRole && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
@@ -596,11 +640,15 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                {adminOrOwner && <MassAssignAttributesBulkAction table={table} filters={columnFilters} />}
-                {adminOrOwner && <EventTypesList table={table} orgTeams={teams} />}
+                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                  <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
+                )}
+                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                  <EventTypesList table={table} orgTeams={teams} />
+                )}
               </>
             ) : null}
-            {adminOrOwner && (
+            {(permissions?.canRemove ?? adminOrOwner) && (
               <DeleteBulkUsers
                 users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
                 onRemove={() => table.toggleAllPageRowsSelected(false)}
@@ -628,7 +676,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            {adminOrOwner && (
+            {(permissions?.canInvite ?? adminOrOwner) && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"

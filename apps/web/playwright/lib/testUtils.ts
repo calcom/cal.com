@@ -7,12 +7,14 @@ import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
+import { v4 as uuid } from "uuid";
 
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import type { createEmailsFixture } from "../fixtures/emails";
+import type { CreateUsersFixture } from "../fixtures/users";
 import type { Fixtures } from "./fixtures";
 
 type Request = IncomingMessage & { body?: unknown };
@@ -153,6 +155,7 @@ export const bookTimeSlot = async (
     title?: string;
     attendeePhoneNumber?: string;
     expectedStatusCode?: number;
+    isRecurringEvent?: boolean;
   }
 ) => {
   // --- fill form
@@ -164,8 +167,9 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await submitAndWaitForResponse(page, "/api/book/event", {
-    action: () => page.locator('[name="email"]').press("Enter"),
+  const url = opts?.isRecurringEvent ? "/api/book/recurring-event" : "/api/book/event";
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
     expectedStatusCode: opts?.expectedStatusCode,
   });
 };
@@ -177,10 +181,12 @@ export async function expectSlotNotAllowedToBook(page: Page) {
   await expect(page.locator("[data-testid=slot-not-allowed-to-book]")).toBeVisible();
 }
 
-export const createNewEventType = async (page: Page, args: { eventTitle: string }) => {
+export const createNewUserEventType = async (page: Page, args: { eventTitle: string; username?: string }) => {
   await page.click("[data-testid=new-event-type]");
-  const eventTitle = args.eventTitle;
-  await page.fill("[name=title]", eventTitle);
+  if (args.username) {
+    await page.getByRole("button", { name: args.username }).click();
+  }
+  await page.fill("[name=title]", args.eventTitle);
   await page.fill("[name=length]", "10");
   await page.click("[type=submit]");
 
@@ -216,12 +222,9 @@ export async function setupManagedEvent({
 
 export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
   const eventTitle = args.eventTitle;
-  await createNewEventType(page, { eventTitle });
+  await createNewUserEventType(page, { eventTitle });
   await page.waitForSelector('[data-testid="event-title"]');
-  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-    "aria-current",
-    "page"
-  );
+  await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
@@ -562,4 +565,27 @@ export async function bookTeamEvent({
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
+}
+
+export async function setupOrgMember(users: CreateUsersFixture) {
+  const orgRequestedSlug = `example-${uuid()}`;
+
+  const orgMember = await users.create(undefined, {
+    hasTeam: true,
+    isOrg: true,
+    hasSubteam: true,
+    isOrgVerified: true,
+    isDnsSetup: true,
+    orgRequestedSlug,
+    schedulingType: SchedulingType.ROUND_ROBIN,
+  });
+
+  const { team: org } = await orgMember.getOrgMembership();
+  const { team } = await orgMember.getFirstTeamMembership();
+  const teamEvent = await orgMember.getFirstTeamEvent(team.id);
+  const userEvent = orgMember.eventTypes[0];
+
+  await orgMember.apiLogin();
+
+  return { orgMember, org, team, teamEvent, userEvent };
 }

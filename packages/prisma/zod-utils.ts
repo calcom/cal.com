@@ -188,6 +188,7 @@ export const eventTypeLocations = z.array(
     hostPhoneNumber: z.string().optional(),
     credentialId: z.number().optional(),
     teamName: z.string().optional(),
+    customLabel: z.string().optional(),
   })
 );
 
@@ -228,7 +229,13 @@ export type IntervalLimitsType = IntervalLimit | null;
 
 export { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
-export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
+export const eventTypeSlug = z
+  .string()
+  .trim()
+  .transform((val) => slugify(val))
+  .refine((val) => val.length >= 1, {
+    message: "Please enter at least one character",
+  });
 
 export const stringToDate = z.string().transform((a) => new Date(a));
 
@@ -259,6 +266,7 @@ const PlatformClientParamsSchema = z.object({
   platformCancelUrl: z.string().nullable().optional(),
   platformBookingUrl: z.string().nullable().optional(),
   platformBookingLocation: z.string().optional(),
+  areCalendarEventsEnabled: z.boolean().optional(),
 });
 
 export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
@@ -300,6 +308,12 @@ export const bookingCancelInput = bookingCancelSchema.refine(
   (data) => !!data.id || !!data.uid,
   "At least one of the following required: 'id', 'uid'."
 );
+
+export const bookingCancelWithCsrfSchema = bookingCancelSchema
+  .extend({
+    csrfToken: z.string().length(64, "Invalid CSRF token"),
+  })
+  .refine((data) => !!data.id || !!data.uid, "At least one of the following required: 'id', 'uid'.");
 
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
@@ -364,24 +378,41 @@ export enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
-export const teamMetadataSchema = z
-  .object({
-    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
-    requestedSlug: z.string().or(z.null()),
-    paymentId: z.string(),
-    subscriptionId: z.string().nullable(),
-    subscriptionItemId: z.string().nullable(),
-    orgSeats: z.number().nullable(),
-    orgPricePerSeat: z.number().nullable(),
-    migratedToOrgFrom: z
-      .object({
-        teamSlug: z.string().or(z.null()).optional(),
-        lastMigrationTime: z.string().optional(),
-        reverted: z.boolean().optional(),
-        lastRevertTime: z.string().optional(),
+const baseTeamMetadataSchema = z.object({
+  defaultConferencingApp: schemaDefaultConferencingApp.optional(),
+  requestedSlug: z.string().or(z.null()),
+  paymentId: z.string(),
+  subscriptionId: z.string().nullable(),
+  subscriptionItemId: z.string().nullable(),
+  orgSeats: z.number().nullable(),
+  orgPricePerSeat: z.number().nullable(),
+  migratedToOrgFrom: z
+    .object({
+      teamSlug: z.string().or(z.null()).optional(),
+      lastMigrationTime: z.string().optional(),
+      reverted: z.boolean().optional(),
+      lastRevertTime: z.string().optional(),
+    })
+    .optional(),
+  billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+});
+
+export const teamMetadataSchema = baseTeamMetadataSchema.partial().nullable();
+
+export const teamMetadataStrictSchema = baseTeamMetadataSchema
+  .extend({
+    subscriptionId: z
+      .string()
+      .refine((val) => val.startsWith("sub_"), {
+        message: "subscriptionId must start with 'sub_'",
       })
-      .optional(),
-    billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+      .nullable(),
+    subscriptionItemId: z
+      .string()
+      .refine((val) => val.startsWith("si_"), {
+        message: "subscriptionItemId must start with 'si_'",
+      })
+      .nullable(),
   })
   .partial()
   .nullable();
@@ -629,6 +660,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
@@ -660,7 +692,10 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
@@ -670,6 +705,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
   customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
 };
 
 // All properties that are defined as unlocked based on all managed props

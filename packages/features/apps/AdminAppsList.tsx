@@ -139,6 +139,7 @@ const AdminAppsList = ({
   useQueryParam = false,
   classNames,
   onSubmit = noop,
+  nav,
   ...rest
 }: {
   baseURL: string;
@@ -151,7 +152,9 @@ const AdminAppsList = ({
   className?: string;
   useQueryParam?: boolean;
   onSubmit?: () => void;
+  nav?: { onNext: () => void; onPrev: () => void };
 } & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
+  const { t } = useLocale();
   return (
     <form
       {...rest}
@@ -161,6 +164,7 @@ const AdminAppsList = ({
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
+        nav?.onNext();
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}
@@ -172,6 +176,16 @@ const AdminAppsList = ({
         }}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
+      <div className="flex justify-end gap-2 px-4 py-4">
+        {nav && (
+          <Button type="button" color="secondary" onClick={nav.onPrev}>
+            {t("prev_step")}
+          </Button>
+        )}
+        <Button type="submit" color="primary">
+          {t("finish")}
+        </Button>
+      </div>
     </form>
   );
 };

@@ -27,8 +27,10 @@ export function WebPushProvider({ children }: ProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const { mutate: addSubscription } = trpc.viewer.addNotificationsSubscription.useMutation();
-  const { mutate: removeSubscription } = trpc.viewer.removeNotificationsSubscription.useMutation();
+  const { mutate: addSubscription } =
+    trpc.viewer.loggedInViewerRouter.addNotificationsSubscription.useMutation();
+  const { mutate: removeSubscription } =
+    trpc.viewer.loggedInViewerRouter.removeNotificationsSubscription.useMutation();
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -69,7 +71,15 @@ export function WebPushProvider({ children }: ProviderProps) {
           }
         } catch (error) {
           console.error("Failed to subscribe:", error);
-          showToast("Failed to enable notifications", "error");
+          if (
+            error instanceof DOMException &&
+            error.name === "InvalidAccessError" &&
+            error.message.includes("applicationServerKey")
+          ) {
+            showToast("Please enable Google services for push messaging and try again", "error");
+          } else {
+            showToast("Failed to enable notifications", "error");
+          }
         } finally {
           setIsLoading(false);
         }

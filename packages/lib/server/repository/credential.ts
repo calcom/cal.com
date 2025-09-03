@@ -23,6 +23,7 @@ type CredentialUpdateInput = {
   userId?: number;
   appId?: string;
   delegationCredentialId?: string | null;
+  invalid?: boolean;
 };
 
 export class CredentialRepository {
@@ -44,7 +45,7 @@ export class CredentialRepository {
    * Doesn't retrieve key field as that has credentials
    */
   static async findFirstByIdWithUser({ id }: { id: number }) {
-    const credential = await prisma.credential.findFirst({ where: { id }, select: safeCredentialSelect });
+    const credential = await prisma.credential.findUnique({ where: { id }, select: safeCredentialSelect });
     return buildNonDelegationCredential(credential);
   }
 
@@ -52,7 +53,7 @@ export class CredentialRepository {
    * Includes 'key' field which is sensitive data.
    */
   static async findFirstByIdWithKeyAndUser({ id }: { id: number }) {
-    const credential = await prisma.credential.findFirst({
+    const credential = await prisma.credential.findUnique({
       where: { id },
       select: { ...safeCredentialSelect, key: true },
     });
@@ -227,5 +228,62 @@ export class CredentialRepository {
 
   static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {
     return prisma.credential.update({ where: { id }, data });
+  }
+
+  static async findPaymentCredentialByAppIdAndTeamId({
+    appId,
+    teamId,
+  }: {
+    appId: string | null;
+    teamId: number;
+  }) {
+    return await prisma.credential.findFirst({
+      where: {
+        teamId,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
+
+  static async findPaymentCredentialByAppIdAndUserId({
+    appId,
+    userId,
+  }: {
+    appId: string | null;
+    userId: number;
+  }) {
+    return await prisma.credential.findFirst({
+      where: {
+        userId,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
+
+  static async findPaymentCredentialByAppIdAndUserIdOrTeamId({
+    appId,
+    userId,
+    teamId,
+  }: {
+    appId: string | null;
+    userId: number;
+    teamId?: number | null;
+  }) {
+    const idToSearchObject = teamId ? { teamId } : { userId };
+    return await prisma.credential.findFirst({
+      where: {
+        ...idToSearchObject,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
   }
 }

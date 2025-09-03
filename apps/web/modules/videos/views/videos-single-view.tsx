@@ -3,6 +3,7 @@
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
+import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -20,7 +21,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
+import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -33,6 +34,12 @@ export default function JoinCall(props: PageProps) {
     calVideoLogo,
     displayLogInOverlay,
     loggedInUserName,
+    overrideName,
+    showRecordingButton,
+    enableAutomaticTranscription,
+    enableAutomaticRecordingForOrganizer,
+    showTranscriptionButton,
+    rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
@@ -61,30 +68,41 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: loggedInUserName ? loggedInUserName ?? undefined : undefined,
+        userName: overrideName ?? loggedInUserName ?? undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
-            recording: {
-              label: "Record",
-              tooltip: "Start or stop recording",
-              iconPath: RECORDING_DEFAULT_ICON,
-              iconPathDarkMode: RECORDING_DEFAULT_ICON,
-            },
-            transcription: {
-              label: "Cal.ai",
-              tooltip: "Transcription powered by AI",
-              iconPath: TRANSCRIPTION_STOPPED_ICON,
-              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
-            },
+            ...(showRecordingButton
+              ? {
+                  recording: {
+                    label: "Record",
+                    tooltip: "Start or stop recording",
+                    iconPath: RECORDING_DEFAULT_ICON,
+                    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+                  },
+                }
+              : {}),
+            ...(showTranscriptionButton
+              ? {
+                  transcription: {
+                    label: "Transcribe",
+                    tooltip: "Transcription powered by AI",
+                    iconPath: TRANSCRIPTION_STOPPED_ICON,
+                    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+                  },
+                }
+              : {}),
           },
         }),
       });
+
+      if (overrideName) {
+        callFrame.setUserName(overrideName);
+      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
       setDaily(callFrame ?? null);
-
       callFrame?.join();
     }
 
@@ -99,7 +117,12 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe />
+        <CalVideoPremiumFeatures
+          showRecordingButton={showRecordingButton}
+          enableAutomaticRecordingForOrganizer={enableAutomaticRecordingForOrganizer}
+          enableAutomaticTranscription={enableAutomaticTranscription}
+          showTranscriptionButton={showTranscriptionButton}
+        />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
@@ -126,7 +149,7 @@ export default function JoinCall(props: PageProps) {
       </div>
       {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
 
-      <VideoMeetingInfo booking={booking} />
+      <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
     </DailyProvider>
   );
 }
@@ -255,15 +278,23 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
 interface VideoMeetingInfo {
   booking: PageProps["booking"];
+  rediectAttendeeToOnExit?: string | null;
 }
 
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
   const [open, setOpen] = useState(false);
-  const { booking } = props;
+  const { booking, rediectAttendeeToOnExit } = props;
   const { t } = useLocale();
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
+  const timeZone = booking.user?.timeZone;
+
+  useDailyEvent("left-meeting", () => {
+    if (rediectAttendeeToOnExit) {
+      window.location.href = rediectAttendeeToOnExit;
+    }
+  });
 
   return (
     <>
@@ -276,11 +307,11 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>
-          <p>{booking.user?.timeZone}</p>
+          <p>{timeZone}</p>
           <h3>{t("when")}:</h3>
           <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
-            {formatToLocalizedTime(startTime)}
+            {formatToLocalizedTime({ date: startTime, timeZone })}
           </p>
           <h3>{t("time_left")}</h3>
           <ProgressBar

@@ -24,7 +24,8 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       to: toAddresses.join(","),
       ...getReplyToHeader(
         this.calEvent,
-        this.calEvent.attendees.map(({ email }) => email)
+        this.calEvent.attendees.map(({ email }) => email),
+        true
       ),
       subject: `${this.t("awaiting_approval")}: ${this.calEvent.title}`,
       html: await this.getHtmlRequestEmail(template, this.calEvent, this.calEvent.organizer),

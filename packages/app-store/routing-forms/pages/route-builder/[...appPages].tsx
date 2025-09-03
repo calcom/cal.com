@@ -32,11 +32,10 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
-import SingleForm, {
-  getServerSidePropsForSingleFormView as getServerSideProps,
-} from "../../components/SingleForm";
+import SingleForm from "../../components/SingleForm";
 import { EmptyState } from "../../components/_components/EmptyState";
 import { RoutingSkeleton } from "../../components/_components/RoutingSkeleton";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -1430,6 +1429,7 @@ export default function RouteBuilder({
   form,
   appUrl,
   enrichedWithUserProfileForm,
+  permissions,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <>
@@ -1437,11 +1437,10 @@ export default function RouteBuilder({
         form={form}
         appUrl={appUrl}
         enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+        permissions={permissions}
         Page={Page}
       />
       <Toaster position="bottom-right" />
     </>
   );
 }
-
-export { getServerSideProps };

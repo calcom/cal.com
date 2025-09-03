@@ -20,6 +20,7 @@ import {
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTranslatedWorkflowContent } from "../getTranslatedWorkflowContent";
+import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -157,6 +158,12 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
   if (translatedBody) {
+    const recipientEmail = getWorkflowRecipientEmail({
+      action,
+      attendeeEmail: attendeeToBeUsedInMail.email,
+      organizerEmail: evt.organizer.email,
+      sendToEmail: sendTo[0],
+    });
     const variables: VariablesType = {
       eventName: evt.title || "",
       organizerName: evt.organizer.name,
@@ -171,9 +178,13 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true`,
+      cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
+        recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
+      }`,
       cancelReason: evt.cancellationReason,
-      rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}`,
+      rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
+        recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
+      }`,
       rescheduleReason: evt.rescheduleReason,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
       noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
@@ -257,6 +268,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
       attendees: [attendee],
+      location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
     const attachments = includeCalendarEvent
@@ -289,7 +301,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
 
   const isWorkflowSmtpEmailsEnabled = teamId
     ? await featureRepo.checkIfTeamHasFeature(teamId, "workflow-smtp-emails")

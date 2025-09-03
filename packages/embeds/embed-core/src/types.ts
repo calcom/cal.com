@@ -32,6 +32,7 @@ export type UiConfig = {
   cssVarsPerTheme?: Record<Theme, Record<string, string>>;
   layout?: BookerLayouts;
   colorScheme?: string | null;
+  disableAutoScroll?: boolean;
 };
 
 declare global {
@@ -63,10 +64,13 @@ export type KnownConfig = {
   layout?: BookerLayouts;
   // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
   "ui.color-scheme"?: string;
+  "ui.autoscroll"?: "true" | "false";
   theme?: EmbedThemeConfig;
   // Prefixing with cal.embed because there could be more query params that aren't required by embed and are used for things like prefilling booking form, configuring dry run, and some other params simply to be forwarded to the booking success redirect URL.
   // There are some cal. prefixed query params as well, not meant for embed specifically, but in general for cal.com
   "cal.embed.pageType"?: EmbedPageType;
+  // If true, then when doing a "connect" with pre-rendered iframe, we won't fetch slots. This is useful when we are reusing the iframe fully as is.
+  "cal.embed.noSlotsFetchOnConnect"?: "true" | "false";
 };
 
 export type EmbedBookerState =
@@ -97,3 +101,12 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
     id?: string;
   };
 } & KnownConfig;
+
+export type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
+export type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
+
+export type ModalPrerenderOptions = {
+  slotsStaleTimeMs?: number;
+  iframeForceReloadThresholdMs?: number;
+  backgroundSlotsFetch?: boolean;
+};
