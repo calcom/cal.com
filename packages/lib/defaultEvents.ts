@@ -57,6 +57,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   travelSchedules: [],
   locked: false,
   isPlatformManaged: false,
+  weekStart: "Monday",
 };
 
 const customInputs: CustomInputSchema[] = [];
