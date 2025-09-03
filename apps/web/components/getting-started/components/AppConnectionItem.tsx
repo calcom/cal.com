@@ -84,6 +84,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                           {t("this_app_requires_connected_account", {
                             appName: title,
                             dependencyName: dependency.name,
+                            interpolation: { escapeValue: false },
                           })}
                         </span>
 

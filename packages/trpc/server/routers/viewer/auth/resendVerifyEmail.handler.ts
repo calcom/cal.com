@@ -21,11 +21,10 @@ const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
 export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
   let emailToVerify = ctx.user.email;
-  const identifer = emailToVerify;
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `resendVerifyEmail.${identifer}`,
+    identifier: `resendVerifyEmail.${ctx.user.id}`,
   });
 
   let emailVerified = Boolean(ctx.user.emailVerified);

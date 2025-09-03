@@ -1,6 +1,6 @@
 "use client";
 
-import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
@@ -12,11 +12,19 @@ interface SimplePermissionItemProps {
   resource: string;
   permissions: string[];
   onChange: (permissions: string[]) => void;
+  disabled?: boolean;
+  scope?: Scope;
 }
 
-export function SimplePermissionItem({ resource, permissions, onChange }: SimplePermissionItemProps) {
+export function SimplePermissionItem({
+  resource,
+  permissions,
+  onChange,
+  disabled,
+  scope,
+}: SimplePermissionItemProps) {
   const { t } = useLocale();
-  const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions();
+  const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
 
   const isAllResources = resource === "*";
   const options = isAllResources
@@ -37,10 +45,12 @@ export function SimplePermissionItem({ resource, permissions, onChange }: Simple
       </span>
       <ToggleGroup
         onValueChange={(val) => {
-          if (val) onChange(toggleResourcePermissionLevel(resource, val as PermissionLevel, permissions));
+          if (val && !disabled)
+            onChange(toggleResourcePermissionLevel(resource, val as PermissionLevel, permissions));
         }}
         value={getResourcePermissionLevel(resource, permissions)}
         options={options}
+        disabled={disabled}
       />
     </div>
   );

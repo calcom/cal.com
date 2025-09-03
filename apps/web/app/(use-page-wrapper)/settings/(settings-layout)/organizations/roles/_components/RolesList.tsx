@@ -1,9 +1,10 @@
 "use client";
 
+import type { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge } from "@calcom/ui/badge";
-import { Button } from "@calcom/ui/button";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownMenuContent,
@@ -46,6 +47,7 @@ interface RolesListProps {
   initialSelectedRole?: Role;
   initialSheetOpen?: boolean;
   teamId: number;
+  scope?: Scope;
 }
 
 export function RolesList({
@@ -54,6 +56,7 @@ export function RolesList({
   initialSelectedRole,
   initialSheetOpen,
   teamId,
+  scope,
 }: RolesListProps) {
   const { t } = useLocale();
   const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates(
@@ -78,8 +81,10 @@ export function RolesList({
                 role={role}
                 key={role.id}
                 onClick={() => {
-                  // Cant edit system roles
+                  // For system roles, open in view-only mode
                   if (role.type === "SYSTEM") {
+                    setSelectedRoleId(role.id);
+                    setIsOpen(true);
                     return;
                   }
 
@@ -107,6 +112,7 @@ export function RolesList({
         open={isOpen ?? false}
         onOpenChange={handleSheetOpenChange}
         teamId={teamId}
+        scope={scope}
       />
     </>
   );
@@ -132,7 +138,9 @@ function RoleItem({
     <div
       className={classNames(
         "border-subtle flex p-3",
-        canUpdate && role.type !== "SYSTEM" && "hover:bg-subtle cursor-pointer"
+        (canUpdate && role.type !== "SYSTEM") || role.type === "SYSTEM"
+          ? "hover:bg-subtle cursor-pointer"
+          : ""
       )}
       onClick={onClick}>
       <div className="flex w-full items-center gap-3 truncate">

@@ -19,8 +19,9 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
+import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -93,7 +94,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let timeTaken: Record<string, number | null> = {};
 
   const formQueryStart = performance.now();
-  const form = await RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
+  const form = await PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
   timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {
@@ -179,6 +180,9 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         },
       };
     }
+
+    log.error("Error handling the response", safeStringify(e));
+    throw new Error("Error handling the response");
   }
 
   // TODO: To be done using sentry tracing
