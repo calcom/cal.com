@@ -1,6 +1,7 @@
 import type { AppCategories } from "@prisma/client";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { defaultVideoAppCategories } from "@calcom/app-store/constants";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
@@ -166,16 +167,5 @@ export function doesAppSupportTeamInstall({
 export function isConferencing(appCategories: string[]) {
   return appCategories.some((category) => category === "conferencing" || category === "video");
 }
-
-export const MeetLocationType = "integrations:google:meet";
-
-export const MSTeamsLocationType = "integrations:office365_video";
-
-export const defaultVideoAppCategories: AppCategories[] = [
-  "messaging",
-  "conferencing",
-  // Legacy name for conferencing
-  "video",
-];
 
 export default getApps;
