@@ -58,7 +58,11 @@ function createTestEmbedElement(data: {
   isModal?: boolean;
 }) {
   const { dataset, getSkeletonData = mockGetSkeletonData() } = data;
-  const element = new (customElements.get("test-embed")!)({
+  const customElement = customElements.get("test-embed");
+  if (!customElement) {
+    throw new Error("Custom element 'test-embed' not found");
+  }
+  const element = new customElement({
     isModal: data.isModal ?? false,
     getSkeletonData,
     dataset: dataset || {},
@@ -132,7 +136,7 @@ function mockGetComputedStyle() {
 
 describe("EmbedElement", () => {
   let element: EmbedElement;
-  let mockGetSkeletonData: Mock;
+  let _mockGetSkeletonData: Mock;
 
   beforeEach(() => {
     // Register the custom element
