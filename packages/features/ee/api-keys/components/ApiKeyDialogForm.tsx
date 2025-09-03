@@ -60,12 +60,12 @@ export default function ApiKeyDialogForm({
     },
     mode: "onChange",
     criteriaMode: "all",
-    resolver: async (values) => {
+    resolver: (values) => {
       const errors: { note?: { type: string; message: string } } = {};
       if (values.note && values.note.length > API_NAME_LENGTH_MAX_LIMIT) {
         errors.note = {
           type: "maxLength",
-          message: `Name must be at most ${API_NAME_LENGTH_MAX_LIMIT} characters`,
+          message: t("api_key_name_too_long", { max: API_NAME_LENGTH_MAX_LIMIT }),
         };
       }
       return { values, errors };
