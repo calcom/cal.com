@@ -2832,10 +2832,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/app-store-types@*, @calcom/app-store-types@workspace:packages/app-store-types":
+  version: 0.0.0-use.local
+  resolution: "@calcom/app-store-types@workspace:packages/app-store-types"
+  dependencies:
+    "@calcom/tsconfig": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/app-store@*, @calcom/app-store@workspace:packages/app-store":
   version: 0.0.0-use.local
   resolution: "@calcom/app-store@workspace:packages/app-store"
   dependencies:
+    "@calcom/app-store-types": "*"
     "@calcom/dailyvideo": "*"
     "@calcom/dayjs": "*"
     "@calcom/features": "*"
