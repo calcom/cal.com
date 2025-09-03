@@ -28,6 +28,7 @@ export enum CustomAction {
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
+  Impersonate = "impersonate",
 }
 
 export enum Scope {
@@ -263,21 +264,34 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_team_members",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers"],
     },
     [CustomAction.Remove]: {
       description: "Remove team members",
       category: "team",
       i18nKey: "pbac_action_remove",
       descriptionI18nKey: "pbac_desc_remove_team_members",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.ListMembers]: {
+      description: "List team members",
+      category: "team",
+      i18nKey: "pbac_action_list_members",
+      descriptionI18nKey: "pbac_desc_list_team_members",
     },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate team members",
+      category: "team",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_team_members",
+      dependsOn: ["team.read", "team.listMembers"],
     },
   },
   [Resource.Organization]: {
@@ -337,6 +351,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_change_organization_member_role",
       scope: [Scope.Organization],
       dependsOn: ["organization.listMembers", "role.read"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate organization members",
+      category: "org",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_organization_members",
+      scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
       description: "Edit organization settings",

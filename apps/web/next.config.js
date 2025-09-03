@@ -11,6 +11,9 @@ const {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
+
+adjustEnvVariables();
+
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 const isOrganizationsEnabled =
@@ -714,5 +717,23 @@ const nextConfig = (phase) => {
     },
   };
 };
+
+function adjustEnvVariables() {
+  if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+    if (process.env.RESERVED_SUBDOMAINS) {
+      // It is better to ignore it completely so that accidentally if the org slug is itself in Reserved Subdomain that doesn't cause the booking pages to start giving 404s
+      console.warn(
+        `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't need to use reserved subdomain validation.`
+      );
+      delete process.env.RESERVED_SUBDOMAINS;
+    }
+
+    if (!process.env.ORGANIZATIONS_ENABLED) {
+      // This is basically a consent to add rewrites related to organizations. So, if single org slug mode is there, we have the consent already.
+      console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
+      process.env.ORGANIZATIONS_ENABLED = "1";
+    }
+  }
+}
 
 module.exports = (phase) => plugins.reduce((acc, next) => next(acc), nextConfig(phase));
