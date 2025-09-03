@@ -397,6 +397,127 @@ function buildTroubleshooterData({
   return troubleshooterData;
 }
 
+interface EmailSmsHandlerInput {
+  evt: CalendarEvent;
+  eventType: any;
+  booking: CreatedBooking;
+  metadata: AdditionalInformation;
+  additionalNotes: string | undefined;
+  customInputs: any;
+  noEmail: boolean;
+  isDryRun: boolean;
+  isConfirmedByDefault: boolean;
+  isReschedule: boolean;
+  rescheduleReason?: string;
+  iCalUID?: string;
+  isHostConfirmationEmailsDisabled?: boolean;
+  isAttendeeConfirmationEmailDisabled?: boolean;
+  attendeesList?: any[];
+  rescheduledMembers?: any[];
+  newBookedMembers?: any[];
+  cancelledMembers?: any[];
+  reassignedTo?: any;
+}
+
+async function handleSendingEmailsAndSms(input: EmailSmsHandlerInput): Promise<void> {
+  const {
+    evt,
+    eventType,
+    booking,
+    metadata,
+    additionalNotes,
+    customInputs,
+    noEmail,
+    isDryRun,
+    isConfirmedByDefault,
+    isReschedule,
+    rescheduleReason,
+    iCalUID,
+    isHostConfirmationEmailsDisabled,
+    isAttendeeConfirmationEmailDisabled,
+    attendeesList,
+    rescheduledMembers,
+    newBookedMembers,
+    cancelledMembers,
+    reassignedTo,
+  } = input;
+
+  if (noEmail === true) {
+    return;
+  }
+
+  if (isConfirmedByDefault) {
+    if (isReschedule) {
+      const copyEvent = cloneDeep(evt);
+      const copyEventAdditionalInfo = {
+        ...copyEvent,
+        additionalInformation: metadata,
+        additionalNotes,
+        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+      };
+
+      if (rescheduledMembers && newBookedMembers && cancelledMembers) {
+        if (!isDryRun) {
+          sendRoundRobinRescheduledEmailsAndSMS(
+            { ...copyEventAdditionalInfo, iCalUID },
+            rescheduledMembers,
+            eventType.metadata
+          );
+          sendRoundRobinScheduledEmailsAndSMS({
+            calEvent: copyEventAdditionalInfo,
+            members: newBookedMembers,
+            eventTypeMetadata: eventType.metadata,
+          });
+
+          const cancelledRRHostEvt = {
+            ...copyEventAdditionalInfo,
+            additionalInformation: metadata,
+          };
+          sendRoundRobinCancelledEmailsAndSMS(
+            cancelledRRHostEvt,
+            cancelledMembers,
+            eventType.metadata,
+            reassignedTo
+              ? {
+                  name: reassignedTo.name,
+                  email: reassignedTo.email,
+                }
+              : undefined
+          );
+        }
+      } else {
+        await sendRescheduledEmailsAndSMS(
+          {
+            ...copyEvent,
+            additionalInformation: metadata,
+            additionalNotes,
+            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+          },
+          eventType.metadata
+        );
+      }
+    } else {
+      await sendScheduledEmailsAndSMS(
+        {
+          ...evt,
+          additionalInformation: metadata,
+          additionalNotes,
+          customInputs,
+        },
+        eventType.metadata,
+        isHostConfirmationEmailsDisabled,
+        isAttendeeConfirmationEmailDisabled,
+        eventType.metadata
+      );
+    }
+  } else {
+    if (attendeesList && attendeesList.length > 0) {
+      await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
+      await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
+    }
+  }
+}
+
 export type PlatformParams = {
   platformClientId?: string;
   platformCancelUrl?: string;
@@ -1936,30 +2057,18 @@ async function handler(
           const reassignedTo = users.find(
             (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
           );
+          const reassignedToData = reassignedTo
+            ? {
+                name: reassignedTo.name,
+                email: reassignedTo.email,
+                ...(reqBody.rescheduledBy === bookerEmail && { reason: "Booker Rescheduled" }),
+              }
+            : undefined;
           sendRoundRobinCancelledEmailsAndSMS(
             cancelledRRHostEvt,
             cancelledMembers,
             eventType.metadata,
-            !!reassignedTo
-              ? {
-                  name: reassignedTo.name,
-                  email: reassignedTo.email,
-                  ...(reqBody.rescheduledBy === bookerEmail && { reason: "Booker Rescheduled" }),
-                }
-              : undefined
-          );
-        }
-      } else {
-        if (!isDryRun) {
-          // send normal rescheduled emails (non round robin event, where organizers stay the same)
-          await sendRescheduledEmailsAndSMS(
-            {
-              ...copyEvent,
-              additionalInformation: metadata,
-              additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-            },
-            eventType?.metadata
+            reassignedToData
           );
         }
       }
@@ -2090,21 +2199,6 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
-
-        if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
-          await sendScheduledEmailsAndSMS(
-            {
-              ...evt,
-              additionalInformation,
-              additionalNotes,
-              customInputs,
-            },
-            eventNameObject,
-            isHostConfirmationEmailsDisabled,
-            isAttendeeConfirmationEmailDisabled,
-            eventType.metadata
-          );
-        }
       }
     }
   } else {
@@ -2132,10 +2226,6 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    if (!isDryRun) {
-      await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
-      await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
-    }
   }
 
   if (booking.location?.startsWith("http")) {
@@ -2368,6 +2458,37 @@ async function handler(
   } catch (error) {
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
+
+  let isHostConfirmationEmailsDisabled = false;
+  let isAttendeeConfirmationEmailDisabled = false;
+
+  if (isConfirmedByDefault) {
+    isHostConfirmationEmailsDisabled = eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+    isAttendeeConfirmationEmailDisabled =
+      eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+  }
+
+  await handleSendingEmailsAndSms({
+    evt,
+    eventType,
+    booking,
+    metadata: (metadata as AdditionalInformation) || {},
+    additionalNotes,
+    customInputs,
+    noEmail: noEmail || false,
+    isDryRun,
+    isConfirmedByDefault,
+    isReschedule: !!rescheduleUid,
+    rescheduleReason,
+    iCalUID,
+    isHostConfirmationEmailsDisabled,
+    isAttendeeConfirmationEmailDisabled,
+    attendeesList,
+    rescheduledMembers: undefined,
+    newBookedMembers: undefined,
+    cancelledMembers: undefined,
+    reassignedTo: undefined,
+  });
 
   const evtWithMetadata = {
     ...evt,
