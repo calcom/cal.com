@@ -1,3 +1,4 @@
+import type { TDependencyData } from "@calcom/app-store-types/metadata";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
@@ -8,10 +9,7 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-export type TDependencyData = {
-  name?: string;
-  installed?: boolean;
-}[];
+export type { TDependencyData };
 
 /**
  * Get App metadata either using dirName or slug

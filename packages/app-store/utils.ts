@@ -1,23 +1,15 @@
 import type { AppCategories } from "@prisma/client";
 
-// If you import this file on any app it should produce circular dependency
-// import appStore from "./index";
+import type { LocationOption, CredentialDataWithTeamName } from "@calcom/app-store-types/metadata";
+import { defaultVideoAppCategories } from "@calcom/app-store-types/metadata";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import type { EventLocationType } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
-
-export type LocationOption = {
-  label: string;
-  value: EventLocationType["type"];
-  icon?: string;
-  disabled?: boolean;
-};
+export type { LocationOption, CredentialDataWithTeamName };
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
@@ -32,12 +24,6 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   delete store[key]["__createdUsingCli"];
   return store;
 }, {} as Record<string, AppMeta>);
-
-export type CredentialDataWithTeamName = CredentialForCalendarService & {
-  team?: {
-    name: string;
-  } | null;
-};
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
@@ -168,11 +154,7 @@ export function doesAppSupportTeamInstall({
 export function isConferencing(appCategories: string[]) {
   return appCategories.some((category) => category === "conferencing" || category === "video");
 }
-export const defaultVideoAppCategories: AppCategories[] = [
-  "messaging",
-  "conferencing",
-  // Legacy name for conferencing
-  "video",
-];
+
+export { defaultVideoAppCategories } from "@calcom/app-store-types/metadata";
 
 export default getApps;

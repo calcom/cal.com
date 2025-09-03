@@ -1,0 +1,17 @@
+{
+  "name": "@calcom/app-store-types",
+  "version": "0.0.0",
+  "description": "Shared types for Cal.com app store to prevent circular dependencies",
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./metadata": "./metadata.ts"
+  },
+  "dependencies": {
+    "@calcom/types": "*"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*"
+  }
+}

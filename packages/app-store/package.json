@@ -15,6 +15,7 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
   },
   "dependencies": {
+    "@calcom/app-store-types": "*",
     "@calcom/dailyvideo": "*",
     "@calcom/dayjs": "*",
     "@calcom/features": "*",
