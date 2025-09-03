@@ -1,5 +1,6 @@
 import type { z } from "zod";
 
+import type { TFilterQuerySchemaStrict } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import logger from "@calcom/lib/logger";
@@ -110,7 +111,7 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
 };
 
 export default formsHandler;
-type SupportedFilters = Omit<NonNullable<NonNullable<TFormSchema>["filters"]>, "upIds"> | undefined;
+type SupportedFilters = Omit<NonNullable<TFilterQuerySchemaStrict>, "upIds"> | undefined;
 
 export function getPrismaWhereFromFilters(
   user: {

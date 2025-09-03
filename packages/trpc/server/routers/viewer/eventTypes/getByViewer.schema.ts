@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
-export const filterQuerySchemaStrict = z.object({
+const filterQuerySchemaStrictForEventTypes = z.object({
   teamIds: z.number().array().optional(),
   // A user can only filter by only his userId
   upIds: z.string().array().max(1).optional(),
@@ -11,7 +11,7 @@ export const filterQuerySchemaStrict = z.object({
 
 export const ZEventTypeInputSchema = z
   .object({
-    filters: filterQuerySchemaStrict.optional(),
+    filters: filterQuerySchemaStrictForEventTypes.optional(),
     forRoutingForms: z.boolean().optional(),
   })
   .nullish();
@@ -19,7 +19,7 @@ export const ZEventTypeInputSchema = z
 export type TEventTypeInputSchema = z.infer<typeof ZEventTypeInputSchema>;
 
 export const ZGetEventTypesFromGroupSchema = z.object({
-  filters: filterQuerySchemaStrict.optional(),
+  filters: filterQuerySchemaStrictForEventTypes.optional(),
   forRoutingForms: z.boolean().optional(),
   cursor: z.number().nullish(),
   limit: z.number().default(10),

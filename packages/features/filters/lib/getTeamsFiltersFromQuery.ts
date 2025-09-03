@@ -34,6 +34,8 @@ export const filterQuerySchemaStrict = z.object({
   upIds: z.string().array().optional(),
 });
 
+export type TFilterQuerySchemaStrict = z.infer<typeof filterQuerySchemaStrict>;
+
 export const getTeamsFiltersFromQuery = (query: ParsedUrlQuery) => {
   const filters = filterQuerySchema.parse(query);
   // Ensure that filters are sorted so that react-query caching can work better

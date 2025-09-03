@@ -1,4 +1,4 @@
-import type { TFormSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
+import type { TFilterQuerySchemaStrict } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -100,7 +100,7 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
   );
 };
 
-type SupportedFilters = Omit<NonNullable<NonNullable<TFormSchema>["filters"]>, "upIds"> | undefined;
+type SupportedFilters = Omit<NonNullable<TFilterQuerySchemaStrict>, "upIds"> | undefined;
 
 export function getPrismaWhereFromFilters(
   user: {
