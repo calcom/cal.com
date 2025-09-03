@@ -1,4 +1,3 @@
-import type { AppCategories } from "@prisma/client";
 import type React from "react";
 import type { z } from "zod";
 
@@ -51,8 +50,6 @@ export type TDependencyData = {
   name?: string;
   installed?: boolean;
 }[];
-
-export const defaultVideoAppCategories: AppCategories[] = ["messaging", "conferencing", "video"];
 
 export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;

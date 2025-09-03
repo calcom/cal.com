@@ -6,8 +6,8 @@ import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
 
+import { defaultVideoAppCategories } from "./constants";
 import type { LocationOption, CredentialDataWithTeamName } from "./types";
-import { defaultVideoAppCategories } from "./types";
 
 export * from "./_utils/getEventTypeAppData";
 export type { LocationOption, CredentialDataWithTeamName };
@@ -156,6 +156,6 @@ export function isConferencing(appCategories: string[]) {
   return appCategories.some((category) => category === "conferencing" || category === "video");
 }
 
-export { defaultVideoAppCategories } from "./types";
+export { defaultVideoAppCategories } from "./constants";
 
 export default getApps;
