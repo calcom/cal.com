@@ -6,7 +6,7 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -245,6 +245,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
       attendees: [attendee],
+      location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
     const attachments = includeCalendarEvent
@@ -269,7 +270,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
-      sender,
+      sender: evt.hideOrganizerEmail ? SENDER_NAME : sender,
     };
   }
 
@@ -277,7 +278,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
 
   const isWorkflowSmtpEmailsEnabled = teamId
     ? await featureRepo.checkIfTeamHasFeature(teamId, "workflow-smtp-emails")
