@@ -69,8 +69,8 @@ export const mapBookingToMutationInput = ({
   return {
     ...values,
     user: username,
-    start: dayjs(date).format(),
-    end: dayjs(date)
+    start: dayjs.tz(date, timeZone).format(),
+    end: dayjs.tz(date, timeZone)
       // Defaults to the default event length in case no custom duration is set.
       .add(duration || event.length, "minute")
       .format(),
