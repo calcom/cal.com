@@ -14,8 +14,8 @@ vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/lib/server/repository/membership");
 vi.mock("../permission.service");
-vi.mock("@calcom/lib/constants", async (importOriginal) => {
-  const actual = (await importOriginal()) as typeof import("@calcom/lib/constants");
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = await vi.importActual("@calcom/lib/constants");
   return {
     ...actual,
     IS_CALCOM: true,
