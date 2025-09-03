@@ -476,19 +476,7 @@
         "../../packages/app-store/**/pages/**",
         "../../packages/app-store-cli/src/**"
       ],
-      "outputs": [
-        "../../packages/app-store/analytics.services.generated.ts",
-        "../../packages/app-store/apps.metadata.generated.ts",
-        "../../packages/app-store/apps.server.generated.ts",
-        "../../packages/app-store/apps.browser.generated.tsx",
-        "../../packages/app-store/apps.schemas.generated.ts",
-        "../../packages/app-store/apps.keys-schemas.generated.ts",
-        "../../packages/app-store/bookerApps.metadata.generated.ts",
-        "../../packages/app-store/crm.apps.generated.ts",
-        "../../packages/app-store/calendar.services.generated.ts",
-        "../../packages/app-store/payment.services.generated.ts",
-        "../../packages/app-store/video.adapters.generated.ts"
-      ],
+      "outputs": ["../../packages/app-store/*.generated.ts"],
       "env": ["NEXT_PUBLIC_IS_E2E"]
     },
     "@calcom/embed-react#type-check": {
