@@ -50,7 +50,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       } catch (error) {
         console.error("Failed to start web call:", error);
         setCallStatus("error");
-        setError("Failed to start web call. Please try again.");
+        setError(t("failed_to_start_web_call_try_again"));
       }
     },
     onError: (error: { message: string }) => {
@@ -64,13 +64,11 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     try {
       const { RetellWebClient } = await import("retell-client-js-sdk");
 
-      if (!retellWebClientRef.current) {
-        retellWebClientRef.current = new RetellWebClient();
-      }
-
-      const retellWebClient = retellWebClientRef.current;
+      const retellWebClient = new RetellWebClient();
+      retellWebClientRef.current = retellWebClient;
 
       retellWebClient.on("call_started", () => {
+        console.log("📞 Call started - setting up transcript listeners");
         setCallStatus("active");
         callStartTimeRef.current = new Date();
         startDurationTimer();
@@ -90,35 +88,47 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       });
 
       retellWebClient.on("update", (update: { transcript?: Array<{ role: string; content: string }> }) => {
+        console.log("📝 Received update event:", update);
+
         if (update.transcript && Array.isArray(update.transcript)) {
+          console.log("📜 Transcript array received:", update.transcript);
+
           try {
             const newEntries: TranscriptEntry[] = update.transcript
               .map((entry) => {
                 if (!entry.role || !entry.content) {
-                  console.warn("Invalid transcript entry:", entry);
+                  console.warn("⚠️ Invalid transcript entry:", entry);
                   return null;
                 }
-                return {
+                const mappedEntry = {
                   speaker: entry.role === "agent" ? "agent" : "user",
                   text: entry.content,
                   timestamp: new Date(),
                 };
+                console.log("✅ Mapped transcript entry:", mappedEntry);
+                return mappedEntry;
               })
               .filter(Boolean) as TranscriptEntry[];
 
+            console.log("🔄 Setting transcript with entries:", newEntries.length, "entries");
+            console.log("📋 Current transcript state has:", transcript.length, "entries");
+
             setTranscript(newEntries);
           } catch (error) {
-            console.error("Error processing transcript update:", error);
+            console.error("❌ Error processing transcript update:", error);
           }
         } else {
-          console.log("No transcript data in update or transcript is not an array");
+          console.log(
+            "🚫 No transcript data in update or transcript is not an array:",
+            typeof update.transcript
+          );
         }
       });
 
       retellWebClient.on("error", (error: Error | { message?: string }) => {
         console.error("Web call error:", error);
         setCallStatus("error");
-        setError("Call encountered an error. Please try again.");
+        setError(t("call_encountered_error_try_again"));
         stopDurationTimer();
       });
 
@@ -132,7 +142,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     } catch (error) {
       console.error("Error starting web call:", error);
       setCallStatus("error");
-      setError("Failed to initialize web call. Please ensure microphone permissions are granted.");
+      setError(t("failed_initialize_web_call_microphone_permissions"));
     }
   };
 
@@ -222,15 +232,15 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
   const getStatusText = () => {
     switch (callStatus) {
       case "connecting":
-        return "Connecting to agent...";
+        return t("connecting_to_agent");
       case "active":
-        return `Call active - ${_formatDuration(_callDuration)}`;
+        return t("call_active_duration", { duration: _formatDuration(_callDuration) });
       case "ended":
-        return `Call ended - Duration: ${_formatDuration(_callDuration)}`;
+        return t("call_ended_duration", { duration: _formatDuration(_callDuration) });
       case "error":
-        return "Call error";
+        return t("call_error");
       default:
-        return "Ready to start call";
+        return t("ready_to_start_call");
     }
   };
 
@@ -269,6 +279,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     setError(null);
     callStartTimeRef.current = null;
     stopDurationTimer();
+    retellWebClientRef.current = null;
   };
 
   const handleClose = () => {
@@ -304,14 +315,14 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
           {callStatus === "active" && (
             <div className="flex items-center gap-2">
               <div className="bg-error h-2 w-2 animate-pulse rounded-full" />
-              <span className="text-subtle text-xs">Live</span>
+              <span className="text-subtle text-xs">{t("live")}</span>
             </div>
           )}
         </div>
 
         <div className="mt-2 rounded-lg border p-3 placeholder:min-h-[300px]">
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-sm font-medium">Transcript</h4>
+            <h4 className="text-sm font-medium">{t("transcript")}</h4>
             {transcript.length > 0 && (
               <Button
                 type="button"
@@ -332,8 +343,8 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
                   <Icon name="message-circle" className="text-subtle mx-auto h-8 w-8" />
                   <p className="text-subtle mt-2 text-sm">
                     {callStatus === "idle"
-                      ? "Start a call to see the conversation"
-                      : "Waiting for conversation..."}
+                      ? t("start_call_to_see_conversation")
+                      : t("waiting_for_conversation")}
                   </p>
                 </div>
               </div>
@@ -350,7 +361,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
                     }`}>
                     <div className="mb-1 flex items-center gap-2">
                       <span className="text-xs font-medium">
-                        {entry.speaker === "agent" ? "AI Agent" : "You"}
+                        {entry.speaker === "agent" ? t("ai_agent") : t("you")}
                       </span>
                     </div>
                     <p>{entry.text}</p>

@@ -1,6 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import logger from "@calcom/lib/logger";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,20 +17,21 @@ export const createWebCallHandler = async ({ ctx, input }: CreateWebCallHandlerO
   const timeZone = ctx.user.timeZone ?? "Europe/London";
   const eventTypeId = input.eventTypeId;
 
-  const agent = await PrismaAgentRepository.findByIdWithCallAccess({
+  const aiService = createDefaultAIPhoneServiceProvider();
+
+  const agent = await aiService.getAgentWithDetails({
     id: input.agentId,
     userId: ctx.user.id,
+    teamId: input.teamId,
   });
 
   if (!agent?.providerAgentId) {
-    logger.error(`Agent not found with agentId ${input.agentId}`);
+    logger.error(`Agent not found or access denied for agentId ${input.agentId}, userId ${ctx.user.id}`);
     throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Agent not found",
+      code: "UNAUTHORIZED",
+      message: "Agent not found or you don't have permission to access this agent",
     });
   }
-
-  const aiService = createDefaultAIPhoneServiceProvider();
 
   try {
     await aiService.updateToolsFromAgentId(agent.providerAgentId, {
@@ -42,11 +42,10 @@ export const createWebCallHandler = async ({ ctx, input }: CreateWebCallHandlerO
     });
   } catch (error) {
     logger.error(`Failed to update tools for agent ${agent.providerAgentId}: ${error}`);
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message:
-        "You are not authorized to create web call with this event type. Failed to update tools for agent",
-    });
+    // throw new TRPCError({
+    //   code: "INTERNAL_SERVER_ERROR",
+    //   message: "Failed to configure agent for web call",
+    // });
   }
 
   return await aiService.createWebCall({

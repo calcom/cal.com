@@ -211,14 +211,6 @@ export class CallService {
       });
     }
 
-    if (!this.retellAIService) {
-      this.logger.error("RetellAIService not configured before createWebCall");
-      throw new HttpError({
-        statusCode: 500,
-        message: "Internal configuration error: AI phone service not initialized",
-      });
-    }
-
     const dynamicVariables = {
       EVENT_NAME: "Web Call Test with Agent",
       EVENT_DATE: "Monday, January 15, 2025",

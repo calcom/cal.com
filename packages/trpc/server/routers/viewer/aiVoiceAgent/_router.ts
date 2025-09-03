@@ -1,5 +1,6 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { eventOwnerProcedure } from "../eventTypes/util";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateWebCallInputSchema } from "./createWebCall.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -63,7 +64,7 @@ export const aiVoiceAgentRouter = router({
     });
   }),
 
-  createWebCall: authedProcedure.input(ZCreateWebCallInputSchema).mutation(async ({ ctx, input }) => {
+  createWebCall: eventOwnerProcedure.input(ZCreateWebCallInputSchema).mutation(async ({ ctx, input }) => {
     const { createWebCallHandler } = await import("./createWebCall.handler");
 
     return createWebCallHandler({
