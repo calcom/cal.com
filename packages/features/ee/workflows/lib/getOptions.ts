@@ -8,6 +8,7 @@ import {
   isWhatsappAction,
   isEmailToAttendeeAction,
   isCalAIAction,
+  isFormTrigger,
 } from "./actionHelperFunctions";
 import {
   WHATSAPP_WORKFLOW_TEMPLATES,
@@ -44,19 +45,11 @@ export function getWorkflowTriggerOptions(t: TFunction) {
   });
 }
 
-// make cleaner
-function isBookingTrigger(trigger: WorkflowTriggerEvents) {
-  return (
-    trigger === WorkflowTriggerEvents.BOOKING_CREATED ||
-    trigger === WorkflowTriggerEvents.BOOKING_CANCELLED ||
-    trigger === WorkflowTriggerEvents.BOOKING_RESCHEDULED ||
-    trigger === WorkflowTriggerEvents.BOOKING_CONFIRMED ||
-    trigger === WorkflowTriggerEvents.BOOKING_NO_SHOW ||
-    trigger === WorkflowTriggerEvents.BOOKING_UPDATED
-  );
-}
-
-function convertToTemplateOptions(t: TFunction, hasPaidPlan: boolean, templates: WorkflowTemplates[]) {
+function convertToTemplateOptions(
+  t: TFunction,
+  hasPaidPlan: boolean,
+  templates: readonly WorkflowTemplates[]
+) {
   return templates.map((template) => {
     return {
       label: t(`${template.toLowerCase()}`),
@@ -72,7 +65,7 @@ export function getWorkflowTemplateOptions(
   hasPaidPlan: boolean,
   trigger: WorkflowTriggerEvents
 ) {
-  if (!isBookingTrigger(trigger)) {
+  if (isFormTrigger(trigger)) {
     return convertToTemplateOptions(t, hasPaidPlan, [WorkflowTemplates.CUSTOM]);
   }
 
