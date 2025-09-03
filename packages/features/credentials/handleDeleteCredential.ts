@@ -392,15 +392,16 @@ const handleDeleteCredential = async ({
 
   // if zapier or make get disconnected, delete its apiKey, delete its webhooks and cancel all scheduled jobs
   if (credential.app?.slug === "zapier" || credential.app?.slug === "make") {
+    const ownerFilter = teamId ? { teamId } : { userId };
     await prisma.apiKey.deleteMany({
       where: {
-        userId: userId,
+        ...ownerFilter,
         appId: credential.app.slug,
       },
     });
     await prisma.webhook.deleteMany({
       where: {
-        userId: userId,
+        ...ownerFilter,
         appId: credential.app.slug,
       },
     });
