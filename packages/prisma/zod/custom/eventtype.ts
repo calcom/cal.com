@@ -9,17 +9,17 @@ const calVideoSettingsSchema = z
   .object({
     disableRecordingForGuests: z.boolean().nullish(),
     disableRecordingForOrganizer: z.boolean().nullish(),
+    redirectUrlOnExit: z.string().url().nullish(),
+    enableAutomaticRecordingForOrganizer: z.boolean().nullish(),
     enableAutomaticTranscription: z.boolean().nullish(),
     disableTranscriptionForGuests: z.boolean().nullish(),
     disableTranscriptionForOrganizer: z.boolean().nullish(),
-    redirectUrlOnExit: z.string().url().nullish(),
     enableFlappyBirdGame: z.boolean().nullish(),
-    enableAutomaticRecordingForOrganizer: z.boolean().nullish(),
   })
   .nullish();
 
 export const createEventTypeInput = z.object({
-  title: z.string().min(1),
+  title: z.string().trim().min(1),
   slug: imports.eventTypeSlug,
   description: z.string().nullish(),
   length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
@@ -45,7 +45,7 @@ export const createEventTypeInput = z.object({
   export const EventTypeDuplicateInput = z.object({
     id: z.number(),
     slug: z.string(),
-    title: z.string().min(1),
+    title: z.string().trim().min(1),
     description: z.string(),
     length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
     teamId: z.number().nullish(),

@@ -5,6 +5,7 @@ import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
@@ -37,7 +38,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: userIp,
+    identifier: piiHasher.hash(userIp),
   });
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */

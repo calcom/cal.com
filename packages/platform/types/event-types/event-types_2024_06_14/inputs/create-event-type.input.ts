@@ -149,9 +149,9 @@ export class CalVideoSettings {
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
-    description: "If true, enables the Flappy Bird game in the waiting room",
+    description: "If true, enables the automatic recording for the event when organizer joins the call",
   })
-  enableFlappyBirdGame?: boolean;
+  enableAutomaticRecordingForOrganizer?: boolean;
 
   @IsOptional()
   @IsBoolean()
@@ -163,16 +163,23 @@ export class CalVideoSettings {
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
-    description: "If true, enables the automatic recording for the event when organizer joins the call",
+    description: "If true, disables the transcription for the event when guests join the call",
   })
-  enableAutomaticRecordingForOrganizer?: boolean;
+  disableTranscriptionForGuests?: boolean;
 
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
-    description: "If true, disables the transcription for the event when guests join the call",
+    description: "If true, disables the transcription for the event when organizer joins the call",
   })
-  disableTranscriptionForGuests?: boolean;
+  disableTranscriptionForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the Flappy Bird game in the waiting room",
+  })
+  enableFlappyBirdGame?: boolean;
 }
 
 class BaseCreateEventTypeInput {
@@ -467,6 +474,20 @@ class BaseCreateEventTypeInput {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    default: false,
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()

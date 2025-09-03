@@ -2,70 +2,77 @@ import { createInstance } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
+import { fetchWithTimeout } from "../fetchWithTimeout";
+import logger from "../logger";
+
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { i18n } = require("@calcom/config/next-i18next.config");
+const log = logger.getSubLogger({ prefix: ["[i18n]"] });
+
+// Import only English translations directly to avoid HTTP requests
+// Other languages will be loaded dynamically to minimize bundle size
+const englishTranslations: Record<
+  string,
+  string
+> = require("../../../apps/web/public/static/locales/en/common.json");
+
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
-
-/**
- * Loads English fallback translations for when requested locale translations fail
- * Implements caching to avoid redundant network requests
- * @returns {Promise<Record<string, string>>} English translations object or empty object on failure
- */
-async function loadFallbackTranslations() {
-  const cacheKey = "en-common";
-
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey);
-  }
-
-  try {
-    const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`, {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch fallback translations: ${res.status}`);
-    }
-
-    const translations = await res.json();
-    translationCache.set(cacheKey, translations);
-    return translations;
-  } catch (error) {
-    console.error("Could not fetch fallback translations:", error);
-    return {};
-  }
-}
+const SUPPORTED_NAMESPACES = ["common"];
 
 /**
  * Loads translations for a specific locale and namespace with optimized caching
+ * English translations are bundled as englishTranslations for reliability,
+ * other languages use dynamic imports with HTTP fallback to minimize bundle size
  * @param {string} _locale - The locale code (e.g., 'en', 'fr', 'zh')
  * @param {string} ns - The namespace for the translations
  * @returns {Promise<Record<string, string>>} Translations object or fallback translations on failure
  */
-export async function loadTranslations(_locale: string, ns: string) {
-  const locale = _locale === "zh" ? "zh-CN" : _locale;
+export async function loadTranslations(_locale: string, _ns: string) {
+  let locale = _locale === "zh" ? "zh-CN" : _locale;
+  locale = i18n.locales.includes(locale) ? locale : "en";
+  const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
   const cacheKey = `${locale}-${ns}`;
 
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey);
   }
 
-  try {
-    const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-    const response = await fetch(url, {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    });
+  if (locale === "en") {
+    translationCache.set(cacheKey, englishTranslations);
+    return englishTranslations;
+  }
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch translations: ${response.status}`);
+  try {
+    const { default: localeTranslations } = await import(
+      `../../../apps/web/public/static/locales/${locale}/${ns}.json`
+    );
+
+    translationCache.set(cacheKey, localeTranslations);
+    return localeTranslations;
+  } catch (dynamicImportErr) {
+    log.warn(`Dynamic import failed for locale ${locale}:`, dynamicImportErr);
+
+    // Try HTTP fallback as second option
+    try {
+      const response = await fetchWithTimeout(
+        `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`,
+        {
+          cache: "no-store",
+        },
+        3000
+      );
+      if (response.ok) {
+        const httpTranslations = await response.json();
+        translationCache.set(cacheKey, httpTranslations);
+        return httpTranslations;
+      }
+    } catch (httpErr) {
+      log.error(`HTTP fallback also failed for locale ${locale}:`, httpErr);
     }
 
-    const translations = await response.json();
-    translationCache.set(cacheKey, translations);
-    return translations;
-  } catch (error) {
-    console.warn(`Failed to load translations for ${locale}/${ns}, falling back to English:`, error);
-    const fallbackTranslations = await loadFallbackTranslations();
-    return fallbackTranslations;
+    log.info(`Falling back to English for locale: ${locale}`);
+    return englishTranslations;
   }
 }
 

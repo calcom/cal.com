@@ -1,5 +1,5 @@
-import type { Account, IdentityProvider, Prisma, User, VerificationToken } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import type { Account, IdentityProvider, User, VerificationToken } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { Awaitable } from "next-auth";
 
 import type { PrismaClient } from "@calcom/prisma";
@@ -86,7 +86,7 @@ export default function CalComAdapter(prismaClient: PrismaClient): CalComAdapter
       } catch (error) {
         // If token already used/deleted, just return null
         // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === "P2025") return null;
         }
         throw error;
