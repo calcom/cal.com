@@ -27,14 +27,19 @@ const resolveEndpoint = (links: any) => {
   // to the correct API endpoints.
   // - viewer.me - 2 segment paths like this are for logged in requests
   // - viewer.public.i18n - 3 segments paths can be public or authed
+  // - viewer.eventTypes.duplicate.do - 4 segment paths for eventTypes sub-routers
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (ctx: any) => {
     const parts = ctx.op.path.split(".");
     let endpoint;
     let path = "";
+
     if (parts.length == 2) {
       endpoint = parts[0] as keyof typeof links;
       path = parts[1];
+    } else if (parts.length == 4 && parts[1] === "eventTypes") {
+      endpoint = `eventTypes/${parts[2]}` as keyof typeof links;
+      path = parts[3];
     } else {
       endpoint = parts[1] as keyof typeof links;
       path = parts.splice(2, parts.length - 2).join(".");
