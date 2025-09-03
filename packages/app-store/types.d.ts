@@ -46,11 +46,6 @@ export type CredentialDataWithTeamName = {
   } | null;
 };
 
-export type TDependencyData = {
-  name?: string;
-  installed?: boolean;
-}[];
-
 export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
   credentialIds?: number[];

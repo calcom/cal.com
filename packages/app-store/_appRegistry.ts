@@ -8,9 +8,10 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import type { TDependencyData } from "./types";
-
-export type { TDependencyData };
+export type TDependencyData = {
+  name?: string;
+  installed?: boolean;
+}[];
 
 /**
  * Get App metadata either using dirName or slug
