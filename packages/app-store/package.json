@@ -3,11 +3,78 @@
   "private": true,
   "sideEffects": false,
   "version": "0.0.0",
-  "main": "./index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
+    "dist/**",
     "components.ts"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./calendar": {
+      "import": "./dist/calendar.js",
+      "require": "./dist/calendar.cjs",
+      "types": "./dist/calendar.d.ts"
+    },
+    "./payment": {
+      "import": "./dist/payment.js",
+      "require": "./dist/payment.cjs",
+      "types": "./dist/payment.d.ts"
+    },
+    "./video": {
+      "import": "./dist/video.js",
+      "require": "./dist/video.cjs",
+      "types": "./dist/video.d.ts"
+    },
+    "./crm": {
+      "import": "./dist/crm.js",
+      "require": "./dist/crm.cjs",
+      "types": "./dist/crm.d.ts"
+    },
+    "./analytics": {
+      "import": "./dist/analytics.js",
+      "require": "./dist/analytics.cjs",
+      "types": "./dist/analytics.d.ts"
+    },
+    "./browser": {
+      "import": "./dist/browser.js",
+      "require": "./dist/browser.cjs",
+      "types": "./dist/browser.d.ts"
+    },
+    "./metadata": {
+      "import": "./dist/metadata.js",
+      "require": "./dist/metadata.cjs",
+      "types": "./dist/metadata.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils.js",
+      "require": "./dist/utils.cjs",
+      "types": "./dist/utils.d.ts"
+    },
+    "./appStoreMetaData": {
+      "import": "./dist/appStoreMetaData.js",
+      "require": "./dist/appStoreMetaData.cjs",
+      "types": "./dist/appStoreMetaData.d.ts"
+    },
+    "./bookerAppsMetaData": {
+      "import": "./bookerApps.metadata.generated.ts",
+      "require": "./bookerApps.metadata.generated.ts",
+      "types": "./bookerApps.metadata.generated.ts"
+    },
+    "./*": {
+      "import": "./*",
+      "require": "./*",
+      "types": "./*"
+    }
+  },
   "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
@@ -29,6 +96,11 @@
     "stripe": "^9.16.0"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "*",
+    "@types/react": "^18.0.26",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^4.9.4",
+    "vite": "^4.3.9",
+    "vite-plugin-dts": "^2.3.0"
   }
 }
