@@ -476,8 +476,7 @@
         "../../packages/app-store/**/pages/**",
         "../../packages/app-store-cli/src/**"
       ],
-      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"],
-      "env": ["NEXT_PUBLIC_IS_E2E"]
+      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"]
     },
     "@calcom/embed-react#type-check": {
       "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],
