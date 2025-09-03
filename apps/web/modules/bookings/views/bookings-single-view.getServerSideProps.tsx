@@ -218,6 +218,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
+  async function getParentTeamForBranding(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        hideBranding: true,
+        parent: {
+          select: {
+            hideBranding: true,
+          },
+        },
+      },
+    });
+  }
+
   const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
 
   // Filter out organizer information if hideOrganizerEmail is true
@@ -238,7 +253,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ? true
         : await shouldHideBrandingForEvent({
             eventTypeId: eventType.id,
-            team: eventType.team,
+            team:
+              eventType.team ||
+              (eventType.parent?.teamId ? await getParentTeamForBranding(eventType.parent.teamId) : null),
             owner: eventType.users[0] ?? null,
             organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
           }),
