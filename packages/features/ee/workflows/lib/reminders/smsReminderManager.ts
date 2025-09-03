@@ -289,7 +289,7 @@ const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt:
 };
 
 const scheduleSMSReminderForForm = async (
-  args: ScheduleTextReminderArgs & { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
+  args: ScheduleTextReminderArgs & { formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES } }
 ) => {
   log.error("Form triggers are not yet supported for SMS sending");
 };
