@@ -122,6 +122,13 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
+  if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Cannot cancel a booking that has already ended",
+    });
+  }
+
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
   if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
     const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
