@@ -157,11 +157,12 @@ const getSeatReferenceId = (calEvent: Pick<CalendarEvent, "attendeeSeatId">): st
 };
 
 export const getBookingUrl = (calEvent: CalendarEvent) => {
+  const seatReferenceUid = getSeatReferenceId(calEvent);
   if (calEvent.platformClientId) {
     if (!calEvent.platformBookingUrl) return "";
     return `${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${calEvent.type}&username=${
       calEvent.organizer.username
-    }&changes=true`;
+    }${seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}&changes=true`;
   }
 
   return `${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(calEvent)}?changes=true`;
@@ -171,10 +172,11 @@ export const getPlatformManageLink = (
   calEvent: Parameters<typeof getCancelLink>[0] &
     Parameters<typeof getRescheduleLink>[0]["calEvent"] &
     Pick<CalendarEvent, "platformBookingUrl" | "platformRescheduleUrl" | "team">,
-  t: TFunction,
-  seatUid?: string
+  t: TFunction
 ) => {
   const shouldDisplayReschedule = !calEvent.recurringEvent && calEvent.platformRescheduleUrl;
+  const seatUid = getSeatReferenceId(calEvent);
+
   let res =
     calEvent.platformBookingUrl || shouldDisplayReschedule || calEvent.platformCancelUrl
       ? `${t("need_to_reschedule_or_cancel")} `
@@ -204,9 +206,8 @@ export const getManageLink = (
     Pick<CalendarEvent, "platformClientId" | "bookerUrl">,
   t: TFunction
 ) => {
-  const seatReferenceUid = getSeatReferenceId(calEvent);
   if (calEvent.platformClientId) {
-    return getPlatformManageLink(calEvent, t, seatReferenceUid);
+    return getPlatformManageLink(calEvent, t);
   }
 
   return `${t("need_to_reschedule_or_cancel")} ${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(
