@@ -135,17 +135,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // activeOnRoutingFormIds are routing form ids
     const routingFormIds = activeOnRoutingFormIds;
 
-    console.log("routingFormIds", routingFormIds);
-
     // todo: fix this for routing forms
-    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
-      [], // No event type IDs for form triggers
-      routingFormIds,
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
+      newEventTypeIds: [], // No event type IDs for form triggers
+      newRoutingFormIds: routingFormIds,
       isOrg,
-      userWorkflow?.teamId,
-      userWorkflow?.userId
-    );
-    console.log("isAuthorizedToAddIds", isAuthorizedToAddIds);
+      teamId: userWorkflow?.teamId,
+      userId: userWorkflow?.userId,
+    });
 
     if (!isAuthorizedToAddIds) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -232,12 +229,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ]);
 
     newActiveOn = activeOnEventTypeIds.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
-    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
-      newActiveOn,
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
+      newEventTypeIds: newActiveOn,
+      newRoutingFormIds: [],
       isOrg,
-      userWorkflow?.teamId,
-      userWorkflow?.userId
-    );
+      teamId: userWorkflow?.teamId,
+      userId: userWorkflow?.userId,
+    });
 
     if (!isAuthorizedToAddIds) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -293,13 +291,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     newActiveOn = activeOnEventTypeIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
 
-    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
-      newActiveOn,
-      [], // No routing form IDs for team workflows
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
+      newEventTypeIds: newActiveOn,
+      newRoutingFormIds: [], // No routing form IDs for team workflows
       isOrg,
-      userWorkflow?.teamId,
-      userWorkflow?.userId
-    );
+      teamId: userWorkflow?.teamId,
+      userId: userWorkflow?.userId,
+    });
 
     if (!isAuthorizedToAddIds) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -762,7 +760,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // Remove or add booking field for sms reminder number (only for event types, not routing forms)
   if (!isFormTrigger(trigger)) {
     const smsReminderNumberNeeded =
-      activeOn.length &&
+      activeOnEventTypeIds.length &&
       steps.some(
         (step) =>
           step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE

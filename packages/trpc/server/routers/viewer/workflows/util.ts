@@ -456,13 +456,19 @@ async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId:
   return teamEventTypes.map((et) => et.id).concat(userEventTypes);
 }
 
-export async function isAuthorizedToAddActiveOnIds(
-  newEventTypeIds: number[],
-  newRoutingFormIds: string[],
-  isOrg: boolean,
-  teamId?: number | null,
-  userId?: number | null
-) {
+export async function isAuthorizedToAddActiveOnIds({
+  newEventTypeIds,
+  newRoutingFormIds,
+  isOrg,
+  teamId,
+  userId,
+}: {
+  newEventTypeIds: number[];
+  newRoutingFormIds: string[];
+  isOrg: boolean;
+  teamId?: number | null;
+  userId?: number | null;
+}) {
   // Check authorization for event type IDs
   for (const id of newEventTypeIds) {
     if (isOrg) {
