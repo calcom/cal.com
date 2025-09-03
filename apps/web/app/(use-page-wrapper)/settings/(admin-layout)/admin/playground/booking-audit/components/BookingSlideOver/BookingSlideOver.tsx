@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
 
@@ -68,6 +68,15 @@ export function BookingSlideOver({
     return availableTabs.map((tabId) => allTabs[tabId as BookingTabId]).filter(Boolean);
   }, [availableTabs, allTabs]);
 
+  const toggleGroupOptions = useMemo(() => {
+    return visibleTabs.map((tab) => ({
+      value: tab.id,
+      label: tab.label,
+      iconLeft: tab.icon ? <Icon name={tab.icon as any} className="h-4 w-4" /> : undefined,
+      disabled: tab.disabled,
+    }));
+  }, [visibleTabs]);
+
   // Ensure active tab is valid
   useEffect(() => {
     if (!visibleTabs.find((tab) => tab.id === activeTab)) {
@@ -110,25 +119,16 @@ export function BookingSlideOver({
 
         <div className="mt-6 flex h-full flex-col">
           {/* Tab Navigation */}
-          <div className="border-subtle flex rounded-lg border">
-            {visibleTabs.map((tab, index) => (
-              <button
-                key={tab.id}
-                className={classNames(
-                  "flex flex-1 items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors",
-                  index === 0 && "rounded-l-lg",
-                  index === visibleTabs.length - 1 && "rounded-r-lg",
-                  index !== visibleTabs.length - 1 && "border-muted border-r",
-                  activeTab === tab.id ? "bg-subtle text-emphasis" : "bg-muted text-default hover:bg-subtle",
-                  tab.disabled && "cursor-not-allowed opacity-50"
-                )}
-                onClick={() => !tab.disabled && setActiveTab(tab.id)}
-                disabled={tab.disabled}>
-                {tab.icon && <Icon name={tab.icon as any} className="h-4 w-4" />}
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <ToggleGroup
+            value={activeTab}
+            onValueChange={(value) => {
+              if (value) {
+                setActiveTab(value);
+              }
+            }}
+            options={toggleGroupOptions}
+            isFullWidth
+          />
 
           {/* Tab Content */}
           <div className="flex-1 overflow-hidden">
