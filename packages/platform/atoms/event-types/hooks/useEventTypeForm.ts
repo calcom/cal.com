@@ -328,33 +328,33 @@ export const useEventTypeForm = ({
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
-    const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? values.seatsPerTimeSlot;
-    const finalRecurringEvent = recurringEvent ?? values.recurringEvent;
+    const finalSeatsPerTimeSlot = _seatsPerTimeSlot ?? values.seatsPerTimeSlot;
+    const finalRecurringEvent = _recurringEvent ?? values.recurringEvent;
 
     if (finalSeatsPerTimeSlot && finalRecurringEvent) {
       throw new Error(t("recurring_event_seats_error"));
     }
 
-    if (bookingLimits) {
-      const isValid = validateIntervalLimitOrder(bookingLimits);
+    if (_bookingLimits) {
+      const isValid = validateIntervalLimitOrder(_bookingLimits);
       if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
     }
 
-    if (durationLimits) {
-      const isValid = validateIntervalLimitOrder(durationLimits);
+    if (_durationLimits) {
+      const isValid = validateIntervalLimitOrder(_durationLimits);
       if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
     }
 
-    const layoutError = validateBookerLayouts(metadata?.bookerLayouts || null);
+    const layoutError = validateBookerLayouts(_metadata?.bookerLayouts || null);
     if (layoutError) throw new Error(t(layoutError));
 
-    if (metadata?.multipleDuration !== undefined) {
-      if (metadata?.multipleDuration.length < 1) {
+    if (_metadata?.multipleDuration !== undefined) {
+      if (_metadata?.multipleDuration.length < 1) {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
         // if length is unchanged, we skip this check
         if (length !== undefined) {
-          if (!length && !metadata?.multipleDuration?.includes(length)) {
+          if (!length && !_metadata?.multipleDuration?.includes(length)) {
             //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
             throw new Error(t("event_setup_multiple_duration_default_error"));
           }
@@ -364,9 +364,9 @@ export const useEventTypeForm = ({
 
     // Prevent two payment apps to be enabled
     // Ok to cast type here because this metadata will be updated as the event type metadata
-    if (checkForMultiplePaymentApps(metadata)) throw new Error(t("event_setup_multiple_payment_apps_error"));
+    if (checkForMultiplePaymentApps(_metadata)) throw new Error(t("event_setup_multiple_payment_apps_error"));
 
-    if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
+    if (_metadata?.apps?.stripe?.paymentOption === "HOLD" && _seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
