@@ -1,12 +1,13 @@
 import type { AppCategories } from "@prisma/client";
 
-import type { LocationOption, CredentialDataWithTeamName } from "@calcom/app-store-types/metadata";
-import { defaultVideoAppCategories } from "@calcom/app-store-types/metadata";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
+
+import type { LocationOption, CredentialDataWithTeamName } from "./types";
+import { defaultVideoAppCategories } from "./types";
 
 export * from "./_utils/getEventTypeAppData";
 export type { LocationOption, CredentialDataWithTeamName };
@@ -155,6 +156,6 @@ export function isConferencing(appCategories: string[]) {
   return appCategories.some((category) => category === "conferencing" || category === "video");
 }
 
-export { defaultVideoAppCategories } from "@calcom/app-store-types/metadata";
+export { defaultVideoAppCategories } from "./types";
 
 export default getApps;
