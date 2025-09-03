@@ -13,7 +13,7 @@ import type { EventLocationTypeFromAppMeta } from "../types/App";
 import {
   MeetLocationType as importedMeetLocationType,
   MSTeamsLocationType as importedMSTeamsLocationType,
-} from "./constants";
+} from "./utils";
 
 export const MeetLocationType = importedMeetLocationType;
 export const MSTeamsLocationType = importedMSTeamsLocationType;

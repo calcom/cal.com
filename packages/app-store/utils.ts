@@ -1,16 +1,27 @@
 import type { AppCategories } from "@prisma/client";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { EventLocationType } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
-
-import { defaultVideoAppCategories } from "./constants";
-import type { LocationOption, CredentialDataWithTeamName } from "./types";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
-export type { LocationOption, CredentialDataWithTeamName };
+
+export type LocationOption = {
+  label: string;
+  value: EventLocationType["type"];
+  icon?: string;
+  disabled?: boolean;
+};
+
+export type CredentialDataWithTeamName = CredentialForCalendarService & {
+  team?: {
+    name: string;
+  } | null;
+};
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
@@ -156,6 +167,15 @@ export function isConferencing(appCategories: string[]) {
   return appCategories.some((category) => category === "conferencing" || category === "video");
 }
 
-export { defaultVideoAppCategories } from "./constants";
+export const MeetLocationType = "integrations:google:meet";
+
+export const MSTeamsLocationType = "integrations:office365_video";
+
+export const defaultVideoAppCategories: AppCategories[] = [
+  "messaging",
+  "conferencing",
+  // Legacy name for conferencing
+  "video",
+];
 
 export default getApps;
