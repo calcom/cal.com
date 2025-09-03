@@ -75,11 +75,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
-        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
-        enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
         enableFlappyBirdGame: calVideoSettings.enableFlappyBirdGame ?? false,
-        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
-        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
       },
     };
   }
