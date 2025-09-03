@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { bookingsProcedure } from "../bookings/util";
 import { ZAppByIdInputSchema } from "./apps/appById.schema";
 import { ZListLocalInputSchema } from "./apps/listLocal.schema";
 import { ZLocationOptionsInputSchema } from "./apps/locationOptions.schema";
@@ -269,7 +270,7 @@ export const quarantineRouter = router({
     });
   }),
 
-  editLocation: authedProcedure.input(ZEditLocationInputSchema).mutation(async ({ ctx, input }) => {
+  editLocation: bookingsProcedure.input(ZEditLocationInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.editBookingLocation) {
       UNSTABLE_HANDLER_CACHE.editBookingLocation = await import("./bookings/editLocation.handler").then(
         (mod) => mod.editLocationHandler
@@ -550,6 +551,15 @@ export const quarantineRouter = router({
           "@calcom/app-store/routing-forms/trpc/getAttributesForTeam.handler"
         );
         return getAttributesForTeamHandler({ ctx, input });
+      }),
+
+    getResponseWithFormFields: authedProcedure
+      .input(z.object({ formResponseId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { default: getResponseWithFormFieldsHandler } = await import(
+          "@calcom/app-store/routing-forms/trpc/getResponseWithFormFields.handler"
+        );
+        return getResponseWithFormFieldsHandler({ ctx, input });
       }),
   }),
 

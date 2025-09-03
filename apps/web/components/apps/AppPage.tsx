@@ -171,7 +171,7 @@ export const AppPage = ({
     [appDbQuery.data, availableForTeams]
   );
 
-  const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
+  const dependencyData = trpc.viewer.quarantine.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
   });
 

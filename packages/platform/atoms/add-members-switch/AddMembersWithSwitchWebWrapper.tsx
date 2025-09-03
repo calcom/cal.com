@@ -5,7 +5,7 @@ import { trpc } from "@calcom/trpc";
 export const AddMembersWithSwitchWebWrapper = ({ ...props }: AddMembersWithSwitchProps) => {
   const utils = trpc.useUtils();
 
-  utils.viewer.appRoutingForms.getAttributesForTeam.prefetch({
+  utils.viewer.quarantine.appRoutingForms.getAttributesForTeam.prefetch({
     teamId: props.teamId,
   });
   return <AddMembersWithSwitch {...props} />;

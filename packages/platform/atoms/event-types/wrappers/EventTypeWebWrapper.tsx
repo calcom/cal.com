@@ -131,7 +131,7 @@ const EventTypeWeb = ({
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
   });
-  const updateMutation = trpc.viewer.quarantine.updateEventType.useMutation({
+  const updateMutation = trpc.viewer.quarantine.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 

@@ -12,7 +12,7 @@ import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
-type Session = RouterOutputs["viewer"]["calVideo"]["getMeetingInformation"]["data"][number];
+type Session = RouterOutputs["viewer"]["quarantine"]["getMeetingInformation"]["data"][number];
 type Participant = Session["participants"][number];
 
 interface IMeetingSessionDetailsDialog {

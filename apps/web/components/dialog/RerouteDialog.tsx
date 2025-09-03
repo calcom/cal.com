@@ -38,7 +38,7 @@ const enum ReroutingStatusEnum {
   REROUTING_FAILED = "failed",
 }
 
-type ResponseWithForm = RouterOutputs["viewer"]["appRoutingForms"]["getResponseWithFormFields"];
+type ResponseWithForm = RouterOutputs["viewer"]["quarantine"]["appRoutingForms"]["getResponseWithFormFields"];
 
 type BookingToReroute = Pick<PrismaBooking, "metadata" | "responses" | "id" | "uid" | "title" | "status"> & {
   routedFromRoutingFormReponse: {
@@ -703,7 +703,7 @@ const RerouteDialogContentAndFooter = ({
     data: responseWithForm,
     isPending: isRoutingFormLoading,
     error: formResponseFetchError,
-  } = trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
+  } = trpc.viewer.quarantine.appRoutingForms.getResponseWithFormFields.useQuery({
     formResponseId: booking.routedFromRoutingFormReponse.id,
   });
 
@@ -773,7 +773,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   >([]);
 
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
+    trpc.viewer.quarantine.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
       onSuccess(data) {
         setTeamMembersMatchingAttributeLogic(data.result ? data.result.users : data.result);
       },

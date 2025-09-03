@@ -64,7 +64,7 @@ const IntegrationContainer = ({
     }
   };
 
-  const enableAppMutation = trpc.viewer.apps.toggle.useMutation({
+  const enableAppMutation = trpc.viewer.quarantine.toggle.useMutation({
     onSuccess: (enabled) => {
       utils.viewer.quarantine.listLocal.invalidate({ category });
       setDisableDialog(false);
