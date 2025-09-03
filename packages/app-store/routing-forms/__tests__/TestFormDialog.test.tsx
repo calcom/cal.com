@@ -18,17 +18,16 @@ vi.mock("../lib/processRoute", () => ({
   findMatchingRoute: vi.fn(),
 }));
 
-vi.mock("next/navigation", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("next/navigation")>();
-  return {
-    ...actual,
-    useRouter: vi.fn(() => ({
-      push: vi.fn(() => {
-        return;
-      }),
-    })),
-  };
-});
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(() => {
+      return;
+    }),
+  })),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+  useParams: vi.fn(() => ({})),
+  ReadonlyURLSearchParams: URLSearchParams,
+}));
 
 function mockMatchingRoute(route: any) {
   (findMatchingRoute as Mock<typeof findMatchingRoute>).mockReturnValue({
@@ -115,7 +114,7 @@ function mockFindTeamMembersMatchingAttributeLogicResponse(
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
-      routingForms: {
+      quarantine: {
         findTeamMembersMatchingAttributeLogicOfRoute: {
           useMutation: vi.fn(({ onSuccess }) => {
             return {
