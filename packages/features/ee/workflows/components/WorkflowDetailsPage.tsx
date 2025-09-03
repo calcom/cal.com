@@ -6,9 +6,10 @@ import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
@@ -78,6 +79,44 @@ export default function WorkflowDetailsPage(props: Props) {
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
 
+  // Get base action options and transform them for form triggers
+  const { data: baseActionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
+
+  const transformedActionOptions =
+    baseActionOptions
+      ?.filter((option: any) => {
+        if (
+          (isFormTrigger(form.getValues("trigger")) &&
+            (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
+          (isCalAIAction(option.value) && form.watch("selectAll")) ||
+          (isCalAIAction(option.value) && isOrg)
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((option: any) => {
+        let label = option.label;
+
+        // Transform labels for form triggers
+        if (isFormTrigger(form.getValues("trigger"))) {
+          if (option.value === WorkflowActions.EMAIL_ATTENDEE) {
+            label = t("email_attendee_action_form");
+          } else if (option.value === WorkflowActions.SMS_ATTENDEE) {
+            label = t("sms_attendee_action_form");
+          } else if (option.value === WorkflowActions.WHATSAPP_ATTENDEE) {
+            label = t("whatsapp_attendee_action_form");
+          }
+        }
+
+        return {
+          ...option,
+          label,
+          creditsTeamId: teamId,
+          isOrganization: isOrg,
+        };
+      }) ?? [];
+
   useEffect(() => {
     const matchingOption = allOptions.find((option) => option.value === eventTypeId);
     if (matchingOption && !selectedOptions.find((option) => option.value === eventTypeId)) {
@@ -131,8 +170,8 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="my-8 z-1 sm:my-0 md:flex">
-        <div className="pr-3 pl-2 md:sticky md:top-6 md:h-0 md:pl-0">
+      <div className="z-1 my-8 sm:my-0 md:flex">
+        <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
               data-testid="workflow-name"
@@ -187,13 +226,13 @@ export default function WorkflowDetailsPage(props: Props) {
                 name="selectAll"
                 render={({ field: { value, onChange } }) => (
                   <CheckboxField
-                  description={
-                    isOrg
-                      ? t("apply_to_all_teams")
-                      : isFormTrigger(form.getValues("trigger"))
-                      ? t("apply_to_all_routing_forms")
-                      : t("apply_to_all_event_types")
-                    }                    
+                    description={
+                      isOrg
+                        ? t("apply_to_all_teams")
+                        : isFormTrigger(form.getValues("trigger"))
+                        ? t("apply_to_all_routing_forms")
+                        : t("apply_to_all_event_types")
+                    }
                     disabled={props.readOnly}
                     onChange={(e) => {
                       onChange(e);
@@ -208,7 +247,7 @@ export default function WorkflowDetailsPage(props: Props) {
               />
             </div>
           )}
-          <div className="my-7 border-transparent md:border-subtle md:border-t" />
+          <div className="md:border-subtle my-7 border-transparent md:border-t" />
           {permissions.canDelete && (
             <Button
               type="button"
@@ -219,11 +258,11 @@ export default function WorkflowDetailsPage(props: Props) {
               {t("delete_workflow")}
             </Button>
           )}
-          <div className="my-7 border-t border-subtle md:border-none" />
+          <div className="border-subtle my-7 border-t md:border-none" />
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="p-3 py-5 w-full rounded-md border bg-muted border-subtle md:ml-3 md:p-8">
+        <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
               <WorkflowStepContainer
@@ -233,6 +272,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 readOnly={props.readOnly}
                 isOrganization={isOrg}
                 onSaveWorkflow={props.onSaveWorkflow}
+                actionOptions={transformedActionOptions}
               />
             </div>
           )}
@@ -251,6 +291,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     readOnly={props.readOnly}
                     isOrganization={isOrg}
                     onSaveWorkflow={props.onSaveWorkflow}
+                    actionOptions={transformedActionOptions}
                   />
                 );
               })}
@@ -258,7 +299,7 @@ export default function WorkflowDetailsPage(props: Props) {
           )}
           {!props.readOnly && (
             <>
-              <div className="flex justify-center my-3">
+              <div className="my-3 flex justify-center">
                 <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
               </div>
               <div className="flex justify-center">
@@ -278,6 +319,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+        actionOptions={transformedActionOptions}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}

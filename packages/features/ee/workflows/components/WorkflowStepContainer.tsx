@@ -80,6 +80,13 @@ type WorkflowStepProps = {
   readOnly: boolean;
   isOrganization?: boolean;
   onSaveWorkflow?: () => Promise<void>;
+  actionOptions: {
+    label: string;
+    value: WorkflowActions;
+    needsCredits: boolean;
+    creditsTeamId?: number;
+    isOrganization?: boolean;
+  }[];
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -131,7 +138,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const utils = trpc.useUtils();
   const params = useParams();
 
-  const { step, form, reload, setReload, teamId } = props;
+  const { step, form, reload, setReload, teamId, actionOptions } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
     { enabled: !!teamId }
@@ -246,7 +253,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
 
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
@@ -263,25 +269,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     }
     return true;
   });
-
-  const filteredActionOptions =
-    actionOptions
-      ?.filter((option) => {
-        if (
-          (isFormTrigger(trigger) &&
-            (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
-          (isCalAIAction(option.value) && form.watch("selectAll")) ||
-          (isCalAIAction(option.value) && props.isOrganization)
-        ) {
-          return false;
-        }
-        return true;
-      })
-      .map((option) => ({
-        ...option,
-        creditsTeamId: teamId ?? creditsTeamId,
-        isOrganization: props.isOrganization,
-      })) ?? [];
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
@@ -682,7 +669,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={filteredActionOptions.map((option) => ({
+                        options={actionOptions.map((option) => ({
                           ...option,
                           creditsTeamId: teamId ?? creditsTeamId,
                         }))}
