@@ -20,11 +20,6 @@ export default defineConfig({
         utils: resolve(__dirname, "./utils.ts"),
         appStoreMetaData: resolve(__dirname, "./appStoreMetaData.ts"),
       },
-      formats: ["es", "cjs"],
-      fileName: (format, entryName) => {
-        const extension = format === "es" ? "js" : "cjs";
-        return `${entryName}.${extension}`;
-      },
     },
     rollupOptions: {
       external: [

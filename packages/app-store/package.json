@@ -13,52 +13,52 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
+      "require": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
     },
     "./calendar": {
       "import": "./dist/calendar.js",
-      "require": "./dist/calendar.cjs",
+      "require": "./dist/calendar.mjs",
       "types": "./dist/calendar.d.ts"
     },
     "./payment": {
       "import": "./dist/payment.js",
-      "require": "./dist/payment.cjs",
+      "require": "./dist/payment.mjs",
       "types": "./dist/payment.d.ts"
     },
     "./video": {
       "import": "./dist/video.js",
-      "require": "./dist/video.cjs",
+      "require": "./dist/video.mjs",
       "types": "./dist/video.d.ts"
     },
     "./crm": {
       "import": "./dist/crm.js",
-      "require": "./dist/crm.cjs",
+      "require": "./dist/crm.mjs",
       "types": "./dist/crm.d.ts"
     },
     "./analytics": {
       "import": "./dist/analytics.js",
-      "require": "./dist/analytics.cjs",
+      "require": "./dist/analytics.mjs",
       "types": "./dist/analytics.d.ts"
     },
     "./browser": {
       "import": "./dist/browser.js",
-      "require": "./dist/browser.cjs",
+      "require": "./dist/browser.mjs",
       "types": "./dist/browser.d.ts"
     },
     "./metadata": {
       "import": "./dist/metadata.js",
-      "require": "./dist/metadata.cjs",
+      "require": "./dist/metadata.mjs",
       "types": "./dist/metadata.d.ts"
     },
     "./utils": {
       "import": "./dist/utils.js",
-      "require": "./dist/utils.cjs",
+      "require": "./dist/utils.mjs",
       "types": "./dist/utils.d.ts"
     },
     "./appStoreMetaData": {
       "import": "./dist/appStoreMetaData.js",
-      "require": "./dist/appStoreMetaData.cjs",
+      "require": "./dist/appStoreMetaData.mjs",
       "types": "./dist/appStoreMetaData.d.ts"
     },
     "./bookerAppsMetaData": {
