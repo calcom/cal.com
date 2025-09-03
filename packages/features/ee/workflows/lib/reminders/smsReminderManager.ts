@@ -88,38 +88,25 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   verifiedAt: Date | null;
 };
 
-const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
-  const {
-    evt,
-    reminderPhone,
-    triggerEvent,
-    action,
-    timeSpan,
-    message = "",
-    workflowStepId,
-    template,
-    sender,
-    userId,
-    teamId,
-    isVerificationPending = false,
-    seatReferenceUid,
-    verifiedAt,
-  } = args;
-
-  if (reminderPhone && (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone))) {
-    log.warn(
-      `Phone number opted out of SMS workflows`,
-      safeStringify({ workflowStep: workflowStepId, eventUid: evt.uid })
-    );
+export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
+  const { reminderPhone, sender, verifiedAt, workflowStepId, action, userId, teamId, isVerificationPending } =
+    args;
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not yet verified`);
     return;
   }
 
-  const { startTime, endTime } = evt;
-  const uid = evt.uid as string;
-  const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
-  let scheduledDate = null;
+  if (reminderPhone && (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone))) {
+    log.warn(`Phone number opted out of SMS workflows`, safeStringify({ workflowStep: workflowStepId }));
+    return;
+  }
 
   const senderID = getSenderId(reminderPhone, sender || SENDER_ID);
+
+  const params: ScheduleTextReminderArgs = {
+    ...args,
+    sender: senderID,
+  };
 
   //SMS_ATTENDEE action does not need to be verified
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
@@ -134,7 +121,40 @@ const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt:
     if (!!verifiedNumber) return true;
     return isVerificationPending;
   }
+
   const isNumberVerified = await getIsNumberVerified();
+
+  if (!reminderPhone || !isNumberVerified) {
+    log.warn(`No phone number or not verified`, safeStringify({ reminderPhone, isNumberVerified }));
+  }
+
+  if (params.evt) {
+    await scheduleSMSReminderForEvt(params);
+  } else {
+    scheduleSMSReminderForForm(params);
+  }
+};
+
+const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
+  const {
+    evt,
+    reminderPhone,
+    triggerEvent,
+    action,
+    timeSpan,
+    message = "",
+    workflowStepId,
+    template,
+    sender,
+    userId,
+    teamId,
+    seatReferenceUid,
+  } = args;
+
+  const { startTime, endTime } = evt;
+  const uid = evt.uid as string;
+  const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
+  let scheduledDate = null;
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
@@ -142,147 +162,129 @@ const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt:
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
 
-  if (reminderPhone && isNumberVerified) {
-    const useTwilio = shouldUseTwilio(triggerEvent, scheduledDate);
-    if (useTwilio) {
-      const attendeeToBeUsedInSMS = getAttendeeToBeUsedInSMS(action, evt, reminderPhone);
+  const useTwilio = shouldUseTwilio(triggerEvent, scheduledDate);
+  if (useTwilio) {
+    const attendeeToBeUsedInSMS = getAttendeeToBeUsedInSMS(action, evt, reminderPhone);
 
-      const name = action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.name : "";
-      const attendeeName =
-        action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : attendeeToBeUsedInSMS.name;
-      const timeZone =
-        action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;
+    const name = action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.name : "";
+    const attendeeName =
+      action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : attendeeToBeUsedInSMS.name;
+    const timeZone =
+      action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;
 
-      let smsMessage = message;
+    let smsMessage = message;
 
-      if (smsMessage) {
-        smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);
-      } else if (template === WorkflowTemplates.REMINDER) {
-        smsMessage =
-          smsReminderTemplate(
-            false,
-            evt.organizer.language.locale,
-            action,
-            evt.organizer.timeFormat,
-            evt.startTime,
-            evt.title,
-            timeZone,
-            attendeeName,
-            name
-          ) || message;
+    if (smsMessage) {
+      smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);
+    } else if (template === WorkflowTemplates.REMINDER) {
+      smsMessage =
+        smsReminderTemplate(
+          false,
+          evt.organizer.language.locale,
+          action,
+          evt.organizer.timeFormat,
+          evt.startTime,
+          evt.title,
+          timeZone,
+          attendeeName,
+          name
+        ) || message;
+    }
+
+    if (smsMessage.length > 0) {
+      const smsMessageWithoutOptOut = smsMessage;
+
+      if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
+        smsMessage = await WorkflowOptOutService.addOptOutMessage(smsMessage, evt.organizer.language.locale);
+      }
+      // Allows debugging generated email content without waiting for sendgrid to send emails
+      log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
+
+      if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
+        try {
+          await sendSmsOrFallbackEmail({
+            twilioData: {
+              phoneNumber: reminderPhone,
+              body: smsMessage,
+              sender,
+              bodyWithoutOptOut: smsMessageWithoutOptOut,
+              bookingUid: evt.uid,
+              userId,
+              teamId,
+            },
+            fallbackData: isAttendeeAction(action)
+              ? {
+                  email: evt.attendees[0].email,
+                  t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                  replyTo: evt.organizer.email,
+                }
+              : undefined,
+          });
+        } catch (error) {
+          log.error(`Error sending SMS with error ${error}`);
+        }
       }
 
-      if (smsMessage.length > 0) {
-        const smsMessageWithoutOptOut = smsMessage;
+      if (
+        (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
+          triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
+        scheduledDate
+      ) {
+        try {
+          // schedule at least 15 minutes in advance and at most 2 hours in advance
+          const scheduledNotification = await scheduleSmsOrFallbackEmail({
+            twilioData: {
+              phoneNumber: reminderPhone,
+              body: smsMessage,
+              scheduledDate: scheduledDate.toDate(),
+              sender,
+              bookingUid: evt.uid,
+              userId,
+              teamId,
+            },
+            fallbackData: isAttendeeAction(action)
+              ? {
+                  email: evt.attendees[0].email,
+                  t: await getTranslation(evt.attendees[0].language.locale, "common"),
+                  replyTo: evt.organizer.email,
+                  workflowStepId,
+                }
+              : undefined,
+          });
 
-        if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
-          smsMessage = await WorkflowOptOutService.addOptOutMessage(
-            smsMessage,
-            evt.organizer.language.locale
-          );
-        }
-        // Allows debugging generated email content without waiting for sendgrid to send emails
-        log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
-
-        if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
-          try {
-            await sendSmsOrFallbackEmail({
-              twilioData: {
-                phoneNumber: reminderPhone,
-                body: smsMessage,
-                sender: senderID,
-                bodyWithoutOptOut: smsMessageWithoutOptOut,
-                bookingUid: evt.uid,
-                userId,
-                teamId,
-              },
-              fallbackData: isAttendeeAction(action)
-                ? {
-                    email: evt.attendees[0].email,
-                    t: await getTranslation(evt.attendees[0].language.locale, "common"),
-                    replyTo: evt.organizer.email,
-                  }
-                : undefined,
-            });
-          } catch (error) {
-            log.error(`Error sending SMS with error ${error}`);
-          }
-        }
-
-        if (
-          (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
-            triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
-          scheduledDate
-        ) {
-          try {
-            // schedule at least 15 minutes in advance and at most 2 hours in advance
-            const scheduledNotification = await scheduleSmsOrFallbackEmail({
-              twilioData: {
-                phoneNumber: reminderPhone,
-                body: smsMessage,
+          if (scheduledNotification?.sid) {
+            await prisma.workflowReminder.create({
+              data: {
+                bookingUid: uid,
+                workflowStepId: workflowStepId,
+                method: WorkflowMethods.SMS,
                 scheduledDate: scheduledDate.toDate(),
-                sender: senderID,
-                bookingUid: evt.uid,
-                userId,
-                teamId,
+                scheduled: true,
+                referenceId: scheduledNotification.sid,
+                seatReferenceId: seatReferenceUid,
               },
-              fallbackData: isAttendeeAction(action)
-                ? {
-                    email: evt.attendees[0].email,
-                    t: await getTranslation(evt.attendees[0].language.locale, "common"),
-                    replyTo: evt.organizer.email,
-                    workflowStepId,
-                  }
-                : undefined,
             });
-
-            if (scheduledNotification?.sid) {
-              await prisma.workflowReminder.create({
-                data: {
-                  bookingUid: uid,
-                  workflowStepId: workflowStepId,
-                  method: WorkflowMethods.SMS,
-                  scheduledDate: scheduledDate.toDate(),
-                  scheduled: true,
-                  referenceId: scheduledNotification.sid,
-                  seatReferenceId: seatReferenceUid,
-                },
-              });
-            }
-          } catch (error) {
-            log.error(`Error scheduling SMS with error ${error}`);
           }
+        } catch (error) {
+          log.error(`Error scheduling SMS with error ${error}`);
         }
       }
-      return;
     }
-
-    if (!useTwilio && scheduledDate) {
-      // Write to DB and send to CRON if scheduled reminder date is past 2 hours from now
-      await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId: workflowStepId,
-          method: WorkflowMethods.SMS,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: false,
-          seatReferenceId: seatReferenceUid,
-        },
-      });
-    }
-  }
-};
-
-export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
-  if (!args.verifiedAt) {
-    log.warn(`Workflow step ${args.workflowStepId} not yet verified`);
     return;
   }
 
-  if (args.evt) {
-    await scheduleSMSReminderForEvt(args);
-  } else {
-    scheduleSMSReminderForForm(args);
+  if (!useTwilio && scheduledDate) {
+    // Write to DB and send to CRON if scheduled reminder date is past 2 hours from now
+    await prisma.workflowReminder.create({
+      data: {
+        bookingUid: uid,
+        workflowStepId: workflowStepId,
+        method: WorkflowMethods.SMS,
+        scheduledDate: scheduledDate.toDate(),
+        scheduled: false,
+        seatReferenceId: seatReferenceUid,
+      },
+    });
   }
 };
 
