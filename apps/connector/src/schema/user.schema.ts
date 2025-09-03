@@ -136,5 +136,4 @@ export const userProfileSchema = z.object({
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),
   organizationId: z.string().optional(),
-  // ... other fields
 });

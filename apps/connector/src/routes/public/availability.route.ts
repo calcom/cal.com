@@ -99,4 +99,37 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
     return ResponseFormatter.success(reply, null, 'Availability deleted');
   })
 
+  fastify.patch<{ Params: { availability: string } }>('/:availability', { 
+    preHandler: AuthGuards.authenticateFlexible(),
+    schema: {
+      description: 'Update an availability',
+      tags: ['API Auth - Users'],
+      security: [
+        { bearerAuth: [] },
+        { apiKey: [] },
+      ],
+      body: zodToJsonSchema(availabilityCreationBodySchema),
+      response: {
+        200: zodToJsonSchema(responseSchemas.success(availabilityWithScheduleSchema, 'Created availability')),
+        401: zodToJsonSchema(responseSchemas.unauthorized()),
+      },
+    },
+  }, async (request: AuthRequest, reply: FastifyReply) => {
+    const { availability } = request.params;
+    const userId = Number.parseInt(request.user!.id);
+
+    const userAvailability = await prisma.availability.findFirst({
+      where: { id: Number.parseInt(availability), Schedule: { userId } },
+    });
+
+    if (!userAvailability) return ResponseFormatter.forbidden(reply, 'Forbidden');
+
+    const data = await availabilityService.update( request.body as z.infer<typeof availabilityCreationBodySchema>, userId, Number.parseInt(availability));
+
+    console.log("Data: ", data);
+
+    return ResponseFormatter.success(reply, data, 'Availability updated');
+  })
+
+
 }

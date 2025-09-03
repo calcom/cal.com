@@ -22,4 +22,9 @@ export class AvailabilityService extends BaseService {
   async delete(id: number) {
     return await this.availabilityRepository.delete(id);
   }
+
+  async update(body: AvailabilityCreation, userId: number, availabilityId: number) {
+    const data = await this.availabilityRepository.update(body, userId, availabilityId);
+    return data;
+  }
 }

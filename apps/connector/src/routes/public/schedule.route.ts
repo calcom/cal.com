@@ -55,7 +55,6 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
     const userId = request.user!.id;
 
     const data = await scheduleService.findByUserId(Number.parseInt(userId));
-    console.log("Data: ", data);
 
     return ResponseFormatter.success(reply,  data, 'User schedules retrieved');
   }),
@@ -113,5 +112,39 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
 
       return ResponseFormatter.success(reply, null, 'Schedule deleted');
     }
+  ),
+
+
+  fastify.patch<{ Params: { schedule: string } }>('/:schedule', { 
+      preHandler: AuthGuards.authenticateFlexible(),
+      schema: {
+        description: 'Update a schedule for the current user',
+        tags: ['API Auth - Users'],
+        security: [
+          { bearerAuth: [] },
+          { apiKey: [] },
+        ],
+        body: zodToJsonSchema(scheduleBodySchema),
+        response: {
+          200: zodToJsonSchema(responseSchemas.success(scheduleSchema, 'Schedule updated')),
+          401: zodToJsonSchema(responseSchemas.unauthorized()),
+        },
+      },
+    }, async (request, reply: FastifyReply) => {
+      const { schedule } = request.params;
+      const userId = Number.parseInt(request.user!.id);
+
+      const userSchedule = await prisma.schedule.findFirst({
+        where: { id: Number.parseInt(schedule), userId },
+      });
+
+      if (!userSchedule) return ResponseFormatter.forbidden(reply, 'Forbidden');
+  
+      const data = await scheduleService.update( request.body as z.infer<typeof scheduleBodySchema>, userId, Number.parseInt(schedule));
+      console.log("Data: ", data);
+
+      return ResponseFormatter.success(reply, data, 'Schedule updated');
+    }
   )
+  
 }

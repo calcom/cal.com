@@ -38,6 +38,23 @@ export class ScheduleRepository extends BaseRepository<User> {
     return data;
   }
 
+  async updateSchedule(
+    body: {
+      timeZone?: string;
+      name: string;
+    },
+    userId: number,
+    scheduleId: number
+  ) {
+    let args: Prisma.ScheduleUpdateArgs = { data: { ...body, userId }, where: { id: scheduleId } };
+    // We create default availabilities for the schedule
+    // We include the recently created availability
+    args.include = { availability: true };
+
+    const data = await this.prisma.schedule.update(args);
+    return data;
+  }
+
   async detachDefaultScheduleFromUsers(id: number) {
     await this.prisma.user.updateMany({
       where: { defaultScheduleId: id },

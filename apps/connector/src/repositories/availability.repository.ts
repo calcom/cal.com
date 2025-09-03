@@ -25,4 +25,12 @@ export class AvailabilityRepository extends BaseRepository<User> {
   async delete(id: number) {
     return await this.prisma.availability.delete({ where: { id } });
   }
+
+  async update(data: AvailabilityCreation, userId: number, availabilityId: number) {
+    return await this.prisma.availability.update({
+      where: { id: availabilityId },
+      data,
+      include: { Schedule: { select: { userId: true } } },
+    })
+  }
 }

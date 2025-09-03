@@ -48,8 +48,19 @@ export class ScheduleService extends BaseService {
     return data;
   }
 
+  async update(body : {
+    timeZone?: string,
+    name: string
+  }, userId: number, scheduleId: number) {
+    const data = this.scheduleRepository.updateSchedule(body, userId, scheduleId);
+    return data;
+  }
+
+
   async delete(scheduleId: number) {
     this.scheduleRepository.detachDefaultScheduleFromUsers(scheduleId);
     return this.scheduleRepository.deleteSchedule(scheduleId);
   }
+
+
 }
