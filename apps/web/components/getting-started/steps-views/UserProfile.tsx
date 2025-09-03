@@ -9,6 +9,7 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
@@ -37,12 +38,12 @@ const UserProfile = ({ user }: UserProfileProps) => {
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useUtils();
   const router = useRouter();
-  const createEventType = trpc.viewer.eventTypes.create.useMutation();
+  const createEventType = trpc.viewer.quarantine.createEventType.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
 
   // Create a separate mutation for avatar updates
-  const avatarMutation = trpc.viewer.me.updateProfile.useMutation({
+  const avatarMutation = trpc.viewer.quarantine.updateProfile.useMutation({
     onSuccess: async (data) => {
       showToast(t("your_user_profile_updated_successfully"), "success");
       setImageSrc(data.avatarUrl ?? "");
@@ -53,7 +54,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
   });
 
   // Original mutation remains for onboarding completion
-  const mutation = trpc.viewer.me.updateProfile.useMutation({
+  const mutation = trpc.viewer.quarantine.updateProfile.useMutation({
     onSuccess: async () => {
       try {
         if (eventTypes?.length === 0) {

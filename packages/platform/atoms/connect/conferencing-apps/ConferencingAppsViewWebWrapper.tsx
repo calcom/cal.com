@@ -59,7 +59,7 @@ export const InstalledConferencingApps = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.quarantine.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ZOutOfOfficeInputSchema = z.object({
+export const ZOutOfOfficeCreateOrUpdateInputSchema = z.object({
   uuid: z.string().nullish(),
   forUserId: z.number().nullish(),
   dateRange: z.object({
@@ -14,4 +14,4 @@ export const ZOutOfOfficeInputSchema = z.object({
   notes: z.string().nullable().optional(),
 });
 
-export type TOutOfOfficeInputSchema = z.infer<typeof ZOutOfOfficeInputSchema>;
+export type TOutOfOfficeCreateOrUpdateInputSchema = z.infer<typeof ZOutOfOfficeCreateOrUpdateInputSchema>;

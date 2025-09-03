@@ -73,7 +73,7 @@ const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.quarantine.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
@@ -176,7 +176,7 @@ const ProfileView = ({ user }: Props) => {
       revalidateSettingsProfile();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.quarantine.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {

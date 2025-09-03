@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZGoogleWorkspaceInputSchema = z.object({
-  code: z.string(),
+  domain: z.string(),
 });
 
 export type TGoogleWorkspaceInputSchema = z.infer<typeof ZGoogleWorkspaceInputSchema>;

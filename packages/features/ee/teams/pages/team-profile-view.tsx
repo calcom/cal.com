@@ -318,7 +318,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
 
   const isDisabled = isSubmitting || !isDirty;
 
-  const publishMutation = trpc.viewer.teams.publish.useMutation({
+  const publishMutation = trpc.viewer.quarantine.publish.useMutation({
     async onSuccess(data: { url?: string }) {
       if (data.url) {
         router.push(data.url);

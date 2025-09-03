@@ -1149,7 +1149,11 @@ const Routes = ({
     hookForm,
   });
 
-  const { data: allForms } = trpc.viewer.quarantine.appRoutingForms.forms.useQuery();
+  const { data: allForms } = trpc.viewer.quarantine.appRoutingForms.forms.useQuery({
+    response: {},
+    formId: form.id,
+    formFillerId: "",
+  });
 
   const notHaveAttributesQuery = ({ form }: { form: { routes: z.infer<typeof zodRoutes> } }) => {
     return form.routes?.every((route) => {

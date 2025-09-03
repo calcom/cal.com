@@ -155,7 +155,7 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
-  const mutation = trpc.viewer.bookings.confirm.useMutation({
+  const mutation = trpc.viewer.quarantine.confirmBooking.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
         setRejectionDialogIsOpen(false);
@@ -290,7 +290,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
-  const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
+  const setLocationMutation = trpc.viewer.quarantine.editBookingLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);

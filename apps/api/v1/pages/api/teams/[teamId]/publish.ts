@@ -5,7 +5,7 @@ import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
+import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
@@ -40,10 +40,10 @@ const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   /** @see https://trpc.io/docs/server-side-calls */
   const ctx = await createContext({ req, res }, sessionGetter);
   try {
-    const createCaller = createCallerFactory(viewerTeamsRouter);
+    const createCaller = createCallerFactory(viewerRouter);
     const caller = createCaller(ctx);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await caller.publish(req.query as any /* Let tRPC handle this */);
+    return await caller.quarantine.publish(req.query as any /* Let tRPC handle this */);
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);

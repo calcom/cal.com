@@ -161,7 +161,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
 
-  const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
+  const createOrEditOutOfOfficeEntry = trpc.viewer.quarantine.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
         currentlyEditingOutOfOfficeEntry

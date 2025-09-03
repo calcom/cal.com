@@ -58,7 +58,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
-  const sessionMutation = trpc.viewer.me.updateProfile.useMutation({
+  const sessionMutation = trpc.viewer.quarantine.updateProfile.useMutation({
     onSuccess: (data) => {
       showToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());

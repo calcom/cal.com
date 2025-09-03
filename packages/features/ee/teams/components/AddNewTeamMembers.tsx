@@ -90,7 +90,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as TeamMember[];
   const totalFetched = flatData.length;
 
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+  const publishTeamMutation = trpc.viewer.quarantine.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },

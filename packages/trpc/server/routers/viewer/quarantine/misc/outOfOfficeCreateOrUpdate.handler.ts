@@ -15,14 +15,14 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { isAdminForUser } from "./outOfOffice.utils";
-import { type TOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
+import { isAdminForUser } from "../../ooo/outOfOffice.utils";
+import { type TOutOfOfficeCreateOrUpdateInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 
 type TBookingRedirect = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TOutOfOfficeInputSchema;
+  input: TOutOfOfficeCreateOrUpdateInputSchema;
 };
 
 export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect) => {

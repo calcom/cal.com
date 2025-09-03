@@ -8,7 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
+import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/quarantine/misc/response.schema";
 
 import { TRPCError } from "@trpc/server";
 

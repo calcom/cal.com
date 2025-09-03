@@ -34,7 +34,7 @@ import { List } from "@calcom/ui/components/list";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
-type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
+type App = RouterOutputs["viewer"]["quarantine"]["listLocal"][number];
 
 const IntegrationContainer = ({
   app,
@@ -66,7 +66,7 @@ const IntegrationContainer = ({
 
   const enableAppMutation = trpc.viewer.apps.toggle.useMutation({
     onSuccess: (enabled) => {
-      utils.viewer.apps.listLocal.invalidate({ category });
+      utils.viewer.quarantine.listLocal.invalidate({ category });
       setDisableDialog(false);
       showToast(
         enabled ? t("app_is_enabled", { appName: app.name }) : t("app_is_disabled", { appName: app.name }),
@@ -209,10 +209,10 @@ const EditKeysModal: FC<{
     resolver: zodResolver(appKeySchema),
   });
 
-  const saveKeysMutation = trpc.viewer.apps.saveKeys.useMutation({
+  const saveKeysMutation = trpc.viewer.quarantine.saveKeys.useMutation({
     onSuccess: () => {
       showToast(fromEnabled ? t("app_is_enabled", { appName }) : t("keys_have_been_saved"), "success");
-      utils.viewer.apps.listLocal.invalidate();
+      utils.viewer.quarantine.listLocal.invalidate();
       handleModelClose();
     },
     onError: (error) => {
@@ -283,7 +283,7 @@ const AdminAppsListContainer = () => {
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
 
-  const { data: apps, isPending } = trpc.viewer.apps.listLocal.useQuery(
+  const { data: apps, isPending } = trpc.viewer.quarantine.listLocal.useQuery(
     { category },
     { enabled: searchParams !== null }
   );
