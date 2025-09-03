@@ -53,7 +53,7 @@ export async function getHideBranding({
 }): Promise<boolean> {
   if (teamId) {
     // Get team data with parent organization
-    //todo: use repostory function
+    //todo: use repository function
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       select: {
@@ -70,7 +70,7 @@ export async function getHideBranding({
 
     return resolveHideBranding({
       entityHideBranding: team.hideBranding,
-      organizationHideBranding: team.parent?.hideBranding,
+      organizationHideBranding: team.parent?.hideBranding ?? null,
     });
   } else if (userId) {
     // Get user data with profile and organization

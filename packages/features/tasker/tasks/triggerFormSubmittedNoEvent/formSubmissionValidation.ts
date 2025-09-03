@@ -61,7 +61,7 @@ export async function getSubmitterEmail(responses: any) {
  * Check for duplicate form submissions within the last 60 minutes
  */
 async function hasDuplicateSubmission(formId: string, responses: any, responseId?: number): Promise<boolean> {
-  const submitterEmail = getSubmitterEmail(responses);
+  const submitterEmail = await getSubmitterEmail(responses);
 
   if (!submitterEmail) return false;
 

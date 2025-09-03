@@ -52,7 +52,10 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
   } else {
     await scheduleWhatsappReminderForForm(
       args as ScheduleTextReminderArgsWithRequiredFields & {
-        formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
+        formData: {
+          responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+          user: { email: string; timeFormat: number; locale: string };
+        };
       }
     );
   }

@@ -120,14 +120,14 @@ export class WorkflowService {
     // Get hideBranding using the new function
     const hideBranding = await getHideBranding({
       userId: form.userId,
-      teamId: form.teamId,
+      teamId: form.teamId ?? undefined,
     });
 
     await scheduleWorkflowReminders({
       smsReminderNumber,
       formData: {
         responses,
-        user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale },
+        user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
       },
       hideBranding,
       workflows: workflowsToTrigger,
@@ -152,7 +152,16 @@ export class WorkflowService {
         {
           responseId,
           responses,
-          formId: form.id,
+          form: {
+            id: form.id,
+            userId: form.userId,
+            teamId: form.teamId ?? undefined,
+            user: {
+              email: form.user.email,
+              timeFormat: form.user.timeFormat,
+              locale: form.user.locale ?? "en",
+            },
+          },
           workflow,
         },
         { scheduledAt }

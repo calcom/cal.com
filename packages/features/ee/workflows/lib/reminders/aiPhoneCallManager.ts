@@ -86,7 +86,7 @@ type ScheduleAIPhoneCallArgs = {
     time: number | null;
     timeUnit: TimeUnit | null;
   };
-  workflowStepId?: number;
+  workflowStepId: number;
   userId: number | null;
   teamId: number | null;
   seatReferenceUid?: string;
