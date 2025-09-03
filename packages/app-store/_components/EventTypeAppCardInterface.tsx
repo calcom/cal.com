@@ -2,7 +2,6 @@ import type z from "zod";
 
 import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
-import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
@@ -30,11 +29,7 @@ export const EventTypeAppCard = (props: {
   return (
     <ErrorBoundary message={`There is some problem with ${app.name} App`}>
       <EventTypeAppContext.Provider value={{ getAppData, setAppData, LockedIcon, disabled }}>
-        <DynamicComponent
-          slug={app.slug === "stripe" ? "stripepayment" : app.slug}
-          componentMap={EventTypeAddonMap}
-          {...props}
-        />
+        <DynamicComponent slug={app.slug === "stripe" ? "stripepayment" : app.slug} {...props} />
       </EventTypeAppContext.Provider>
     </ErrorBoundary>
   );
