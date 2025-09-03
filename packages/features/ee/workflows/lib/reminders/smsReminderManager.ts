@@ -4,6 +4,7 @@ import {
   getSMSMessageWithVariables,
   shouldUseTwilio,
 } from "@calcom/ee/workflows/lib/reminders/utils";
+import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { SENDER_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -15,7 +16,6 @@ import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
-import { getSubmitterEmail } from "@calcom/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
