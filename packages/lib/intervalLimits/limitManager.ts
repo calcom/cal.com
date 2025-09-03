@@ -67,14 +67,18 @@ export default class LimitManager {
 
     if (unit === "month" && this.busyMap.has(this.createKey(start, "month", timeZone))) {
       return true;
-    } else if (
-      unit === "week" &&
-      // weeks can be part of two months
-      ((this.busyMap.has(this.createKey(start, "month", timeZone)) &&
-        this.busyMap.has(this.createKey(start.endOf("week"), "month", timeZone))) ||
-        this.busyMap.has(this.createKey(start, "week", timeZone)))
-    ) {
-      return true;
+    } else if (unit === "week") {
+      const alignedStart = this.adjustWeekStart(start, timeZone);
+      const alignedEnd = alignedStart.add(6, "days").endOf("day");
+
+      // Check if week spans two months and both months are busy
+      const weekStartMonth = this.createKey(alignedStart, "month", timeZone);
+      const weekEndMonth = this.createKey(alignedEnd, "month", timeZone);
+
+      return (
+        (this.busyMap.has(weekStartMonth) && this.busyMap.has(weekEndMonth)) ||
+        this.busyMap.has(this.createKey(alignedStart, "week", timeZone))
+      );
     } else if (
       unit === "day" &&
       (this.busyMap.has(this.createKey(start, "month", timeZone)) ||
@@ -82,9 +86,9 @@ export default class LimitManager {
         this.busyMap.has(this.createKey(start, "day", timeZone)))
     ) {
       return true;
-    } else {
-      return false;
     }
+
+    return false;
   }
 
   /**
