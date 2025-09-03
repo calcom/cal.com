@@ -55,10 +55,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const [appName, apiEndpoint] = args;
   try {
-    /* Absolute path didn't work */
-    const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
-    const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
-    const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
+    /* Use isolated app loader to prevent static analysis of all apps */
+    const { loadAppApiHandlers } = await import("@calcom/app-store/appLoader");
+    const handlerKey = deriveAppDictKeyFromType(appName, {} as Record<string, unknown>);
+    const handlers = await loadAppApiHandlers(handlerKey);
     if (!handlers) throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
     if (typeof handler === "undefined")
