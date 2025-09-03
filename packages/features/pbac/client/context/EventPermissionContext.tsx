@@ -3,43 +3,54 @@
 import { createContext, useContext } from "react";
 import { createStore, useStore } from "zustand";
 
-import type { PermissionString } from "../../domain/types/permission-registry";
-
 export interface EventPermissions {
-  eventTypes: PermissionString[];
-  workflows: PermissionString[];
+  eventTypes: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+  workflows: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
 }
 
 interface EventPermissionStore {
   permissions: EventPermissions;
   setPermissions: (permissions: EventPermissions) => void;
-  hasEventTypePermission: (permission: PermissionString) => boolean;
-  hasWorkflowPermission: (permission: PermissionString) => boolean;
-  hasEventTypePermissions: (permissions: PermissionString[]) => boolean;
-  hasWorkflowPermissions: (permissions: PermissionString[]) => boolean;
+  hasEventTypePermission: (permission: keyof EventPermissions["eventTypes"]) => boolean;
+  hasWorkflowPermission: (permission: keyof EventPermissions["workflows"]) => boolean;
 }
 
 const createEventPermissionStore = (
-  initialPermissions: EventPermissions = { eventTypes: [], workflows: [] }
+  initialPermissions: EventPermissions = {
+    eventTypes: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+    workflows: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+  }
 ) =>
   createStore<EventPermissionStore>()((set, get) => ({
     permissions: initialPermissions,
     setPermissions: (permissions) => set({ permissions }),
     hasEventTypePermission: (permission) => {
       const { permissions } = get();
-      return permissions.eventTypes.includes(permission);
+      return permissions.eventTypes[permission];
     },
     hasWorkflowPermission: (permission) => {
       const { permissions } = get();
-      return permissions.workflows.includes(permission);
-    },
-    hasEventTypePermissions: (requiredPermissions) => {
-      const { permissions } = get();
-      return requiredPermissions.every((permission) => permissions.eventTypes.includes(permission));
-    },
-    hasWorkflowPermissions: (requiredPermissions) => {
-      const { permissions } = get();
-      return requiredPermissions.every((permission) => permissions.workflows.includes(permission));
+      return permissions.workflows[permission];
     },
   }));
 

@@ -9,7 +9,9 @@ import { z } from "zod";
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -43,20 +45,75 @@ const getCachedEventType = unstable_cache(
 );
 
 const getEventPermissions = async (userId: number, teamId: number | null) => {
-  if (!teamId) return { eventTypes: [], workflows: [] };
+  // Personal event - has all perms
+  if (!teamId)
+    return {
+      eventTypes: {
+        canRead: true,
+        canCreate: true,
+        canUpdate: true,
+        canDelete: true,
+      },
+      workflows: {
+        canRead: true,
+        canCreate: true,
+        canUpdate: true,
+        canDelete: true,
+      },
+    };
 
-  const permissionService = new PermissionCheckService();
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (!membership) throw new Error("Membership not found");
 
   const [eventTypePermissions, workflowPermissions] = await Promise.all([
-    permissionService.getResourcePermissions({
+    getResourcePermissions({
       userId,
       teamId,
       resource: Resource.EventType,
+      userRole: membership.role,
+      fallbackRoles: {
+        read: {
+          roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        update: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        delete: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        create: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
     }),
-    permissionService.getResourcePermissions({
+    getResourcePermissions({
       userId,
       teamId,
       resource: Resource.Workflow,
+      userRole: membership.role,
+      fallbackRoles: {
+        read: {
+          roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        update: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        delete: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        create: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
     }),
   ]);
 

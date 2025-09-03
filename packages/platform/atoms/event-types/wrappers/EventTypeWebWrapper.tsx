@@ -10,7 +10,6 @@ import type { ChildrenEventType } from "@calcom/features/eventtypes/components/C
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
-import type { EventPermissions } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,6 +30,21 @@ import { TRPCClientError } from "@trpc/react-query";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { useTabsNavigations } from "../hooks/useTabsNavigations";
+
+type EventPermissions = {
+  eventTypes: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+  workflows: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+};
 
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
@@ -100,7 +114,20 @@ export type EventTypeWebWrapperProps = {
 export const EventTypeWebWrapper = ({
   id,
   data: serverFetchedData,
-  permissions = { eventTypes: [], workflows: [] },
+  permissions = {
+    eventTypes: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+    workflows: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+  },
 }: EventTypeWebWrapperProps) => {
   const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
     { id },
@@ -149,7 +176,7 @@ const EventTypeWeb = ({
   });
 
   // Check workflow permissions
-  const { hasPermission: canReadWorkflows } = useWorkflowPermission("workflow.read");
+  const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
