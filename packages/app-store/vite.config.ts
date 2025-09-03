@@ -1,37 +1,8 @@
 import { resolve } from "path";
 import { defineConfig } from "vite";
-import dts from "vite-plugin-dts";
 
 export default defineConfig({
-  plugins: [
-    dts({
-      exclude: [
-        "**/*.test.*",
-        "**/*.spec.*",
-        "node_modules/**",
-        "**/apps/**",
-        "**/*.generated.*",
-        "**/lib/**",
-        "**/api/**",
-        "**/components/**",
-      ],
-      include: [
-        "./index.ts",
-        "./calendar.ts",
-        "./payment.ts",
-        "./video.ts",
-        "./crm.ts",
-        "./analytics.ts",
-        "./browser.ts",
-        "./metadata.ts",
-        "./utils.ts",
-        "./_utils.ts",
-        "./appStoreMetaData.ts",
-      ],
-      skipDiagnostics: true,
-      rollupTypes: true,
-    }),
-  ],
+  plugins: [],
   build: {
     target: "node18",
     lib: {

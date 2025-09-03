@@ -37,8 +37,12 @@ export class RetellSDKClient implements RetellAIRepository {
   }
 
   async createLLM(data: CreateLLMRequest) {
+    const toolWithEventTypeId = data.general_tools?.find((t) => "event_type_id" in t);
     this.logger.info("Creating LLM via SDK", {
-      eventTypeId: data.general_tools?.find((t) => "event_type_id" in t)?.event_type_id,
+      eventTypeId:
+        toolWithEventTypeId && "event_type_id" in toolWithEventTypeId
+          ? toolWithEventTypeId.event_type_id
+          : undefined,
     });
 
     try {

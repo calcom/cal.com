@@ -7,6 +7,8 @@
 // 2. Delete recordings from the JSON file (shows preview first, then prompts for confirmation):
 //    ts-node packages/app-store/dailyvideo/lib/scripts/deleteRecordings.ts delete
 
+export {};
+
 interface Recording {
   id: string;
   room_name: string;
