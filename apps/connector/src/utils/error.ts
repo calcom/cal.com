@@ -2,6 +2,7 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly code: string;
   public readonly isOperational: boolean;
+  public readonly success: boolean;
   public readonly details?: any;
 
   constructor(

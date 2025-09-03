@@ -1,4 +1,5 @@
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
+import { responseSchemas } from "@/schema/response";
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
@@ -26,10 +27,11 @@ import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/li
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
+import zodToJsonSchema from "zod-to-json-schema";
+import { scheduleBodySchema, scheduleSchema } from "@/schema/schedule.schema";
 
 export const scheduleCreateSchema = 
   z.object({ name: z.string(), timeZone: timeZone.optional() })
-
 
 export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
 
@@ -45,31 +47,8 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
         { apiKey: [] },
       ],
       response: {
-        200: {
-          description: 'Current user schedules',
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            message: { type: 'string' },
-            data: {
-              type: 'object',
-              properties: {
-                schedules: {
-                  type: 'object',
-                  additionalProperties: true
-                }
-              },
-            },
-          },
-        },
-        401: {
-          description: "Unauthorized",
-          type: "object",
-          properties: {
-            success: { type: "boolean" },
-            message: { type: "string" },
-          },
-        },
+        200: zodToJsonSchema(responseSchemas.success(z.array(scheduleSchema), 'Current user schedules')),
+        401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
   }, async (request: AuthRequest, reply: FastifyReply) => {
@@ -78,7 +57,7 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
     const data = await scheduleService.findByUserId(Number.parseInt(userId));
     console.log("Data: ", data);
 
-    return ResponseFormatter.success(reply, {schedules: data}, 'User schedules retrieved');
+    return ResponseFormatter.success(reply,  data, 'User schedules retrieved');
   }),
 
   fastify.post('/', { 
@@ -90,39 +69,10 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
         { bearerAuth: [] },
         { apiKey: [] },
       ],
-      body: {
-        type: 'object',
-        properties: {
-            name: {type: 'string'},
-            timeZone: {type: 'string'},
-        }
-      },
+      body: zodToJsonSchema(scheduleBodySchema),
       response: {
-        200: {
-          description: 'Created schedule',
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            message: { type: 'string' },
-            data: {
-              type: 'object',
-              properties: {
-                schedule: {
-                  type: 'object',
-                  additionalProperties: true
-                }
-              },
-            },
-          },
-        },
-        401: {
-          description: "Unauthorized",
-          type: "object",
-          properties: {
-            success: { type: "boolean" },
-            message: { type: "string" },
-          },
-        },
+        200: zodToJsonSchema(responseSchemas.success(scheduleSchema, 'Schedule created')),
+        401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
   }, async (request: AuthRequest, reply: FastifyReply) => {
@@ -132,7 +82,6 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
 
     const id = Number.parseInt(userId);
     const data = await scheduleService.create(body, id);
-    console.log("Data: ", data);
 
-    return ResponseFormatter.success(reply, {schedule: data}, 'Schedule created');
+    return ResponseFormatter.success(reply,  data, 'Schedule created');
   })}

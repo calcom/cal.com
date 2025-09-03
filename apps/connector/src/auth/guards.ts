@@ -1,4 +1,5 @@
 // ============================================================================
+import { UnauthorizedError } from "@/utils/error";
 // COMPLETE AuthGuards with authenticateSystemAdmin method
 // ============================================================================
 import { UserRole } from "@/types/auth";
@@ -48,7 +49,7 @@ export class AuthGuards {
         });
 
         if (error instanceof UnauthorizedError) {
-          throw error;
+          throw new UnauthorizedError(error);
         }
         throw new UnauthorizedError("Authentication failed");
       }
@@ -73,7 +74,7 @@ export class AuthGuards {
    * Flexible authentication (API key or Access token)
    */
   static authenticateFlexible() {
-    return this.authenticateBearer(["API_KEY", "ACCESS_TOKEN"]);
+      return this.authenticateBearer(["API_KEY", "ACCESS_TOKEN"]);
   }
 
   /**
