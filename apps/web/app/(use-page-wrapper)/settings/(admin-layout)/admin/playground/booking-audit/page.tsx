@@ -31,12 +31,10 @@ const mockBookingData: BookingData = {
 };
 
 export default function BookingAuditPlayground() {
-  const [slideOverOpen, setSlideOverOpen] = useState(false);
-  const [defaultTab, setDefaultTab] = useState<string>("audit");
+  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
 
   const openSlideOver = (tab = "details") => {
-    setDefaultTab(tab);
-    setSlideOverOpen(true);
+    setActiveTab(tab);
   };
 
   return (
@@ -130,10 +128,9 @@ export default function BookingAuditPlayground() {
             <strong>API Example:</strong>
             <pre className="bg-default text-subtle mt-2 overflow-auto rounded p-2 text-xs">
               {`<BookingSlideOver
-  open={isOpen}
-  onOpenChange={setIsOpen}
+  activeTab="audit"               // Open audit tab (undefined = closed)
+  onActiveTabChange={setActiveTab}
   booking={bookingData}
-  defaultTab="audit"              // Open audit tab by default
   availableTabs={["details", "audit"]}  // Show only these tabs
 />`}
             </pre>
@@ -143,10 +140,9 @@ export default function BookingAuditPlayground() {
 
       {/* BookingSlideOver Component */}
       <BookingSlideOver
-        open={slideOverOpen}
-        onOpenChange={setSlideOverOpen}
+        activeTab={activeTab as any}
+        onActiveTabChange={setActiveTab}
         booking={mockBookingData}
-        defaultTab={defaultTab}
         availableTabs={["details", "edit", "audit"]}
         onBookingUpdate={(updatedBooking) => {
           console.log("Booking updated:", updatedBooking);

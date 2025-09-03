@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
@@ -11,22 +11,16 @@ import { BookingDetailsTab, BookingEditTab, BookingAuditTab } from "./tabs";
 import type { BookingSlideOverProps, BookingTab, BookingTabId } from "./types";
 
 export function BookingSlideOver({
-  open,
-  onOpenChange,
+  activeTab,
+  onActiveTabChange,
   booking,
-  defaultTab = "details",
   availableTabs = ["details", "edit", "audit"],
   onBookingUpdate,
 }: BookingSlideOverProps) {
   const { t } = useLocale();
-  const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
-  // Reset active tab when slide-over opens with a specific default tab
-  useEffect(() => {
-    if (open && defaultTab) {
-      setActiveTab(defaultTab);
-    }
-  }, [open, defaultTab]);
+  const isOpen = activeTab !== undefined;
+  const currentTab = activeTab || "details";
 
   // Define all available tabs with their configurations
   const allTabs: Record<BookingTabId, BookingTab> = useMemo(
@@ -77,18 +71,11 @@ export function BookingSlideOver({
     }));
   }, [visibleTabs]);
 
-  // Ensure active tab is valid
-  useEffect(() => {
-    if (!visibleTabs.find((tab) => tab.id === activeTab)) {
-      setActiveTab(visibleTabs[0]?.id || "details");
-    }
-  }, [visibleTabs, activeTab]);
-
   // Get the active tab component
   const ActiveTabComponent = useMemo(() => {
-    const tab = visibleTabs.find((t) => t.id === activeTab);
+    const tab = visibleTabs.find((t) => t.id === currentTab);
     return tab?.component || BookingDetailsTab;
-  }, [visibleTabs, activeTab]);
+  }, [visibleTabs, currentTab]);
 
   // Format booking title with date
   const bookingTitle = useMemo(() => {
@@ -106,7 +93,13 @@ export function BookingSlideOver({
   }, [booking]);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onActiveTabChange(undefined);
+        }
+      }}>
       <SheetContent className="w-[95vw] max-w-2xl">
         <SheetHeader>
           <SheetTitle>{bookingTitle}</SheetTitle>
@@ -120,10 +113,10 @@ export function BookingSlideOver({
         <div className="mt-6 flex h-full flex-col">
           {/* Tab Navigation */}
           <ToggleGroup
-            value={activeTab}
+            value={currentTab}
             onValueChange={(value) => {
               if (value) {
-                setActiveTab(value);
+                onActiveTabChange(value as BookingTabId);
               }
             }}
             options={toggleGroupOptions}

@@ -32,10 +32,9 @@ export interface BookingTab {
 
 // Main slide-over component props
 export interface BookingSlideOverProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  activeTab?: BookingTabId; // Tab ID to open (undefined = closed)
+  onActiveTabChange: (activeTab?: BookingTabId) => void;
   booking: BookingData;
-  defaultTab?: string; // Tab ID to open by default
   availableTabs?: string[]; // Which tabs to show (if not provided, shows all)
   onBookingUpdate?: (booking: BookingData) => void;
 }
