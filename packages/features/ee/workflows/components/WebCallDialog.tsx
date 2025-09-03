@@ -207,7 +207,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
   const getStatusIcon = () => {
     switch (callStatus) {
       case "connecting":
-        return <Icon name="loader" className="text-brand h-4 w-4 animate-spin" />;
+        return <Icon name="loader" className="h-4 w-4 animate-spin rounded-full" />;
       case "active":
         return <Icon name="phone" className="text-success h-4 w-4" />;
       case "ended":
@@ -228,7 +228,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       case "ended":
         return `Call ended - Duration: ${_formatDuration(_callDuration)}`;
       case "error":
-        return error || "Call error";
+        return "Call error";
       default:
         return "Ready to start call";
     }
@@ -365,7 +365,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
         {error && callStatus === "error" && (
           <div className="border-error bg-error/10 rounded-lg p-3">
             <div className="flex items-center gap-2">
-              <Icon name="alert-triangle" className="text-error h-4 w-4" />
+              <Icon name="triangle-alert" className="text-error h-6 w-6" />
               <span className="text-error text-sm">{error}</span>
             </div>
           </div>
