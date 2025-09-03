@@ -51,12 +51,20 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               id: true,
               name: true,
               parentId: true,
+              mandatoryCancellationReasonForHost: true,
+              mandatoryCancellationReasonForAttendee: true,
             },
           },
           parentId: true,
           parent: {
             select: {
               teamId: true,
+              team: {
+                select: {
+                  mandatoryCancellationReasonForHost: true,
+                  mandatoryCancellationReasonForAttendee: true,
+                },
+              },
             },
           },
           userId: true,

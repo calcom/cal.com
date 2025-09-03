@@ -880,6 +880,7 @@ export default function Success(props: PageProps) {
                             currentUserEmail={currentUserEmail}
                             isHost={isHost}
                             internalNotePresets={props.internalNotePresets}
+                            teamCancellationSettings={props.teamCancellationSettings}
                           />
                         </>
                       ))}

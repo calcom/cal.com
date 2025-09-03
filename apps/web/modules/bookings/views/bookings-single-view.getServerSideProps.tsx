@@ -11,6 +11,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
@@ -218,7 +219,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
-  const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
+  const teamId = eventType.team?.id ?? eventType.parent?.teamId ?? null;
+  const internalNotes = await getInternalNotePresets(teamId);
+
+  const teamRepo = new TeamRepository(prisma);
+  const teamCancellationSettings = await teamRepo.getCancellationReasonSettings(teamId);
 
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedPreviousBooking =
@@ -255,6 +260,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       rescheduledToUid,
       isLoggedInUserHost,
       internalNotePresets: internalNotes,
+      teamCancellationSettings,
     },
   };
 }
