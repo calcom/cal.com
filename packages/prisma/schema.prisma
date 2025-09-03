@@ -2519,26 +2519,20 @@ model CalAiPhoneNumber {
 model CalendarSubscription {
   id                 String           @id @default(uuid())
   selectedCalendarId String           @unique
-  // Webhook subscription details (provider-agnostic)
-  channelId          String?
-  channelKind        String?
-  channelResourceId  String?
-  channelResourceUri String?
-  channelResource    String?
+  resourceId         String?
+  resourceUri        String?
+  resource           String?
   clientState        String?
-  channelExpiration  DateTime?
+  expiration         DateTime?
   syncCursor         String?
-  // Sync management
-  syncErrors         Int              @default(0)
-  maxSyncErrors      Int              @default(5)
   backoffUntil       DateTime?
-  // Timestamps
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
-  // Relations
   selectedCalendar   SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
 
-  @@index([channelExpiration, syncErrors, backoffUntil])
   @@index([syncCursor])
-  @@index([selectedCalendarId])
 }
+
+// model CalendarCacheEvent {
+
+// }

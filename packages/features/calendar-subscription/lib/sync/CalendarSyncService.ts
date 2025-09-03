@@ -1,4 +1,5 @@
-import logger from "@calcom/lib/logger";
+import type { CalendarSubscriptionRepository } from "calendar-subscription/lib/CalendarSubscriptionRepository";
+
 import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 
 import { GoogleCalendarSyncAdapter } from "./adapters/google.adapter";
@@ -14,8 +15,7 @@ export class CalendarSyncService {
     }
   ) {}
 
-  async handleSync(provider: "google") {
-    logger.info(`Syncing ${provider} calendar...`);
-    const events = await this.providers[provider].pullEvents();
-  }
+  // async process(events: CalendarEvent[]) {
+
+  // }
 }
