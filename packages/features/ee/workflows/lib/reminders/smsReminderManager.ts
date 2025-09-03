@@ -15,6 +15,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
+import { getSubmitterEmail } from "@calcom/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
@@ -309,7 +310,41 @@ const scheduleSMSReminderForForm = async (
     formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
   }
 ) => {
-  log.error("Form triggers are not yet supported for SMS sending");
+  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData } = args;
+
+  let smsMessage = message;
+
+  if (smsMessage.length > 0) {
+    const smsMessageWithoutOptOut = smsMessage;
+
+    if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
+      smsMessage = await WorkflowOptOutService.addOptOutMessage(smsMessage, formData.user.locale);
+    }
+    // Allows debugging generated email content without waiting for sendgrid to send emails
+    log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
+
+    try {
+      await sendSmsOrFallbackEmail({
+        twilioData: {
+          phoneNumber: reminderPhone,
+          body: smsMessage,
+          sender,
+          bodyWithoutOptOut: smsMessageWithoutOptOut,
+          userId,
+          teamId,
+        },
+        fallbackData: isAttendeeAction(action)
+          ? {
+              email: await getSubmitterEmail(formData.responses),
+              t: await getTranslation(formData.user.locale, "common"),
+              replyTo: formData.user.email,
+            }
+          : undefined,
+      });
+    } catch (error) {
+      log.error(`Error sending SMS with error ${error}`);
+    }
+  }
 };
 
 export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
