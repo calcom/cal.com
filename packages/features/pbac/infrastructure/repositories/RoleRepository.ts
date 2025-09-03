@@ -8,35 +8,6 @@ import { RoleType } from "../../domain/models/Role";
 import { parsePermissionString } from "../../domain/types/permission-registry";
 import { RoleOutputMapper } from "../mappers/RoleOutputMapper";
 
-/**
- * Parse a permission string to extract resource and action, handling nested resources
- * like "organization.attributes.read" -> { resource: "organization.attributes", action: "read" }
- */
-function parsePermissionString(permissionString: string): { resource: string; action: string } {
-  // Handle special case for _resource
-  if (permissionString.endsWith("._resource")) {
-    const resource = permissionString.substring(0, permissionString.length - 10); // Remove "._resource"
-    return { resource, action: "_resource" };
-  }
-
-  // Find the longest matching resource from the end
-  const resourceValues = Object.values(Resource);
-
-  // Sort resources by length (longest first) to match the most specific resource
-  const sortedResources = resourceValues.sort((a, b) => b.length - a.length);
-
-  for (const resource of sortedResources) {
-    if (permissionString.startsWith(resource + ".")) {
-      const action = permissionString.substring(resource.length + 1);
-      return { resource, action };
-    }
-  }
-
-  // Fallback to simple split if no resource matches (shouldn't happen with valid permissions)
-  const [resource, action] = permissionString.split(".");
-  return { resource, action };
-}
-
 export class RoleRepository {
   constructor(private readonly client: PrismaWithExtensions = db) {}
 
