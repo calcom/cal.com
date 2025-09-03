@@ -311,17 +311,60 @@ export class InputEventTypesService_2024_06_14 {
     existingFields: InputBookingField_2024_06_14[] | null,
     newFields: InputBookingField_2024_06_14[]
   ): InputBookingField_2024_06_14[] {
-    return newFields;
+    if (!existingFields || existingFields.length === 0) return this.dedupePreserveLast(newFields);
+
+    const keyOf = (f: InputBookingField_2024_06_14) => this.getFieldIdentifier(f);
+
+    const newByKey = new Map<string, InputBookingField_2024_06_14>();
+    for (const nf of newFields) {
+      const k = keyOf(nf);
+      if (k) newByKey.set(k, nf);
+    }
+
+    const merged: InputBookingField_2024_06_14[] = [];
+    for (const ef of existingFields) {
+      const k = keyOf(ef);
+      if (!k) {
+        merged.push(ef);
+        continue;
+      }
+      if (newByKey.has(k)) {
+        merged.push(newByKey.get(k)!);
+        newByKey.delete(k);
+      } else {
+        merged.push(ef);
+      }
+    }
+    for (const nf of newFields) {
+      const k = keyOf(nf);
+      if (k && newByKey.has(k)) {
+        merged.push(nf);
+        newByKey.delete(k);
+      }
+    }
+    return merged;
   }
 
   private getFieldIdentifier(field: InputBookingField_2024_06_14): string | null {
-    if ("slug" in field && field.slug) {
-      return field.slug;
+    if ("slug" in field && field.slug) return `slug:${field.slug}`;
+    const name = (field as any).name as string | undefined;
+    if (name && ["title", "notes", "guests", "rescheduleReason", "location"].includes(name)) {
+      return `sys:name:${name}`;
     }
-    if ("type" in field && field.type) {
-      return field.type;
+    const type = (field as any).type as string | undefined;
+    if (type && ["name", "email"].includes(type)) {
+      return `sys:type:${type}`;
     }
     return null;
+  }
+
+  private dedupePreserveLast(fields: InputBookingField_2024_06_14[]): InputBookingField_2024_06_14[] {
+    const byKey = new Map<string, InputBookingField_2024_06_14>();
+    for (const f of fields) {
+      const k = this.getFieldIdentifier(f);
+      if (k) byKey.set(k, f);
+    }
+    return Array.from(byKey.values());
   }
 
   isUserCustomField(field: SystemField | CustomField): field is CustomField {

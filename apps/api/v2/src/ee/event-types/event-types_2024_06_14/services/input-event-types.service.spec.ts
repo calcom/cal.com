@@ -86,61 +86,59 @@ describe("InputEventTypesService_2024_06_14", () => {
       expect(result).toEqual(newFields);
     });
 
-    it("should replace existing fields with new fields", () => {
+    it("should preserve existing fields and add new fields", () => {
       const existingFields = [existingEmailField, existingPhoneField];
       const newFields = [newAddressField];
 
       const result = service["mergeBookingFields"](existingFields, newFields);
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(3);
+      expect(result).toContain(existingEmailField);
+      expect(result).toContain(existingPhoneField);
       expect(result).toContain(newAddressField);
-      expect(result).not.toContain(existingEmailField);
-      expect(result).not.toContain(existingPhoneField);
     });
 
-    it("should replace existing fields with updated values", () => {
+    it("should update existing fields with new values while preserving others", () => {
       const existingFields = [existingEmailField, existingPhoneField];
       const newFields = [updatedPhoneField];
 
       const result = service["mergeBookingFields"](existingFields, newFields);
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
+      expect(result).toContain(existingEmailField);
       expect(result).toContain(updatedPhoneField);
-      expect(result).not.toContain(existingEmailField);
+      expect(result).not.toContain(existingPhoneField);
       expect(result.find((f: InputBookingField_2024_06_14) => "type" in f && f.type === "phone")).toEqual(
         updatedPhoneField
       );
     });
 
-    it("should remove fields not included in new fields", () => {
+    it("should preserve existing fields and update matching ones", () => {
       const existingFields = [existingEmailField, existingPhoneField, existingTitleField];
       const newFields = [existingEmailField];
 
       const result = service["mergeBookingFields"](existingFields, newFields);
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(3);
       expect(result).toContain(existingEmailField);
-      expect(
-        result.find((f: InputBookingField_2024_06_14) => "type" in f && f.type === "phone")
-      ).toBeUndefined();
-      expect(
-        result.find((f: InputBookingField_2024_06_14) => "slug" in f && f.slug === "title")
-      ).toBeUndefined();
+      expect(result).toContain(existingPhoneField);
+      expect(result).toContain(existingTitleField);
     });
 
-    it("should only keep fields included in new request", () => {
+    it("should merge existing and new fields correctly", () => {
       const existingFields = [existingEmailField, existingPhoneField, existingTitleField];
       const newFields = [existingEmailField, updatedPhoneField, newAddressField];
 
       const result = service["mergeBookingFields"](existingFields, newFields);
 
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(4);
       expect(result).toContain(existingEmailField);
       expect(result).toContain(updatedPhoneField);
+      expect(result).toContain(existingTitleField);
       expect(result).toContain(newAddressField);
-      expect(
-        result.find((f: InputBookingField_2024_06_14) => "slug" in f && f.slug === "title")
-      ).toBeUndefined();
+      expect(result.find((f: InputBookingField_2024_06_14) => "type" in f && f.type === "phone")).toEqual(
+        updatedPhoneField
+      );
     });
 
     it("should identify fields by slug for custom fields", () => {
