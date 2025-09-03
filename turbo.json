@@ -417,7 +417,8 @@
     },
     "dev": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
-      "cache": false
+      "outputs": [".next/**"],
+      "cache": true
     },
     "dx": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
