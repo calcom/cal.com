@@ -85,7 +85,7 @@ export default function JoinCall(props: PageProps) {
             ...(showTranscriptionButton
               ? {
                   transcription: {
-                    label: "Cal.ai",
+                    label: "Transcribe",
                     tooltip: "Transcription powered by AI",
                     iconPath: TRANSCRIPTION_STOPPED_ICON,
                     iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
@@ -288,6 +288,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
+  const timeZone = booking.user?.timeZone;
 
   useDailyEvent("left-meeting", () => {
     if (rediectAttendeeToOnExit) {
@@ -306,11 +307,11 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>
-          <p>{booking.user?.timeZone}</p>
+          <p>{timeZone}</p>
           <h3>{t("when")}:</h3>
           <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
-            {formatToLocalizedTime(startTime)}
+            {formatToLocalizedTime({ date: startTime, timeZone })}
           </p>
           <h3>{t("time_left")}</h3>
           <ProgressBar

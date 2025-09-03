@@ -10,10 +10,10 @@ import type { NextApiResponse } from "next";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
@@ -270,12 +270,13 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const timeBeforeGetOrderedLuckyUsers = performance.now();
+  const luckyUserService = getLuckyUserService();
   const {
     users: orderedLuckyUsers,
     perUserData,
     isUsingAttributeWeights,
   } = matchingHosts.length
-    ? await getOrderedListOfLuckyUsers({
+    ? await luckyUserService.getOrderedListOfLuckyUsers({
         // Assuming all are available
         availableUsers: [
           {

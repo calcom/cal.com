@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -26,11 +26,14 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.bookerUrl).toBe("https://cal.com/user/test-slug");
-    expect(event.title).toBe("Test Event");
-    expect(event.startTime).toBe(mockStartTime);
-    expect(event.endTime).toBe(mockEndTime);
-    expect(event.additionalNotes).toBe("Some notes");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.bookerUrl).toBe("https://cal.com/user/test-slug");
+      expect(event.title).toBe("Test Event");
+      expect(event.startTime).toBe(mockStartTime);
+      expect(event.endTime).toBe(mockEndTime);
+      expect(event.additionalNotes).toBe("Some notes");
+    }
   });
 
   it("should create an event with event type details", () => {
@@ -50,11 +53,14 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.type).toBe("test-slug");
-    expect(event.description).toBe("Test description");
-    expect(event.eventTypeId).toBe(123);
-    expect(event.hideCalendarNotes).toBe(true);
-    expect(event.hideCalendarEventDetails).toBe(false);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.type).toBe("test-slug");
+      expect(event.description).toBe("Test description");
+      expect(event.eventTypeId).toBe(123);
+      expect(event.hideCalendarNotes).toBe(true);
+      expect(event.hideCalendarEventDetails).toBe(false);
+    }
   });
 
   it("should create an event with organizer details", () => {
@@ -82,17 +88,20 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.organizer).toEqual({
-      id: 456,
-      name: "John Doe",
-      email: "john@example.com",
-      username: "johndoe",
-      timeZone: "America/New_York",
-      language: {
-        translate: mockTranslate,
-        locale: "en",
-      },
-    });
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.organizer).toEqual({
+        id: 456,
+        name: "John Doe",
+        email: "john@example.com",
+        username: "johndoe",
+        timeZone: "America/New_York",
+        language: {
+          translate: mockTranslate,
+          locale: "en",
+        },
+      });
+    }
   });
 
   it("should handle nameless organizer", () => {
@@ -119,7 +128,10 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.organizer.name).toBe("Nameless");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.organizer.name).toBe("Nameless");
+    }
   });
 
   it("should create an event with attendees", () => {
@@ -158,7 +170,10 @@ describe("CalendarEventBuilder", () => {
       .withAttendees(attendees)
       .build();
 
-    expect(event.attendees).toEqual(attendees);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.attendees).toEqual(attendees);
+    }
   });
 
   it("should create an event with metadata and responses", () => {
@@ -192,10 +207,13 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.additionalNotes).toBe("Some notes");
-    expect(event.customInputs).toEqual(customInputs);
-    expect(event.responses).toEqual(responses);
-    expect(event.userFieldsResponses).toEqual(userFieldsResponses);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.additionalNotes).toBe("Some notes");
+      expect(event.customInputs).toEqual(customInputs);
+      expect(event.responses).toEqual(responses);
+      expect(event.userFieldsResponses).toEqual(userFieldsResponses);
+    }
   });
 
   it("should create an event with location", () => {
@@ -216,8 +234,11 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.location).toBe("Conference Room A");
-    expect(event.conferenceCredentialId).toBe(789);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.location).toBe("Conference Room A");
+      expect(event.conferenceCredentialId).toBe(789);
+    }
   });
 
   it("should create an event with destination calendar", () => {
@@ -229,6 +250,8 @@ describe("CalendarEventBuilder", () => {
       userId: null,
       eventTypeId: null,
       credentialId: null,
+      createdAt: null,
+      updatedAt: null,
       delegationCredentialId: null,
       domainWideDelegationCredentialId: null,
     };
@@ -247,7 +270,10 @@ describe("CalendarEventBuilder", () => {
       .withDestinationCalendar([destinationCalendar])
       .build();
 
-    expect(event.destinationCalendar).toEqual([destinationCalendar]);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.destinationCalendar).toEqual([destinationCalendar]);
+    }
   });
 
   it("should create an event with identifiers", () => {
@@ -268,8 +294,11 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.iCalUID).toBe("ical-123");
-    expect(event.iCalSequence).toBe(2);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.iCalUID).toBe("ical-123");
+      expect(event.iCalSequence).toBe(2);
+    }
   });
 
   it("should create an event with confirmation settings", () => {
@@ -290,8 +319,11 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.requiresConfirmation).toBe(true);
-    expect(event.oneTimePassword).toBeUndefined();
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.requiresConfirmation).toBe(true);
+      expect(event.oneTimePassword).toBeUndefined();
+    }
   });
 
   it("should set oneTimePassword to null when isConfirmedByDefault is true", () => {
@@ -312,8 +344,11 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.requiresConfirmation).toBe(true);
-    expect(event.oneTimePassword).toBeNull();
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.requiresConfirmation).toBe(true);
+      expect(event.oneTimePassword).toBeNull();
+    }
   });
 
   it("should create an event with platform variables", () => {
@@ -336,10 +371,13 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.platformClientId).toBe("client-123");
-    expect(event.platformRescheduleUrl).toBe("https://platform.com/reschedule");
-    expect(event.platformCancelUrl).toBe("https://platform.com/cancel");
-    expect(event.platformBookingUrl).toBe("https://platform.com/booking");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.platformClientId).toBe("client-123");
+      expect(event.platformRescheduleUrl).toBe("https://platform.com/reschedule");
+      expect(event.platformCancelUrl).toBe("https://platform.com/cancel");
+      expect(event.platformBookingUrl).toBe("https://platform.com/booking");
+    }
   });
 
   it("should create an event with apps status", () => {
@@ -376,7 +414,10 @@ describe("CalendarEventBuilder", () => {
       .withAppsStatus(appsStatus)
       .build();
 
-    expect(event.appsStatus).toEqual(appsStatus);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.appsStatus).toEqual(appsStatus);
+    }
   });
 
   it("should create an event with video call data", () => {
@@ -401,7 +442,10 @@ describe("CalendarEventBuilder", () => {
       .withVideoCallData(videoCallData)
       .build();
 
-    expect(event.videoCallData).toEqual(videoCallData);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.videoCallData).toEqual(videoCallData);
+    }
   });
 
   it("should create an event with team information", () => {
@@ -435,7 +479,10 @@ describe("CalendarEventBuilder", () => {
       .withTeam(team)
       .build();
 
-    expect(event.team).toEqual(team);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.team).toEqual(team);
+    }
   });
 
   it("should create an event with recurring event information", () => {
@@ -459,7 +506,10 @@ describe("CalendarEventBuilder", () => {
       .withRecurring(recurringEvent)
       .build();
 
-    expect(event.recurringEvent).toEqual(recurringEvent);
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.recurringEvent).toEqual(recurringEvent);
+    }
   });
 
   it("should create an event with attendee seat ID", () => {
@@ -477,7 +527,10 @@ describe("CalendarEventBuilder", () => {
       .withAttendeeSeatId("seat-123")
       .build();
 
-    expect(event.attendeeSeatId).toBe("seat-123");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.attendeeSeatId).toBe("seat-123");
+    }
   });
 
   it("should create an event with UID", () => {
@@ -495,7 +548,10 @@ describe("CalendarEventBuilder", () => {
       .withUid("booking-uid-123")
       .build();
 
-    expect(event.uid).toBe("booking-uid-123");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.uid).toBe("booking-uid-123");
+    }
   });
 
   it("should create an event with one-time password", () => {
@@ -513,7 +569,10 @@ describe("CalendarEventBuilder", () => {
       .withOneTimePassword("otp123")
       .build();
 
-    expect(event.oneTimePassword).toBe("otp123");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.oneTimePassword).toBe("otp123");
+    }
   });
 
   it("should create an event with recurring event ID", () => {
@@ -531,9 +590,12 @@ describe("CalendarEventBuilder", () => {
       .withRecurringEventId("recurring-123")
       .build();
 
-    expect(event.existingRecurringEvent).toEqual({
-      recurringEventId: "recurring-123",
-    });
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.existingRecurringEvent).toEqual({
+        recurringEventId: "recurring-123",
+      });
+    }
   });
 
   it("should create a complete calendar event with all properties", () => {
@@ -597,6 +659,8 @@ describe("CalendarEventBuilder", () => {
           userId: 1,
           eventTypeId: 123,
           credentialId: 1,
+          createdAt: null,
+          updatedAt: null,
           delegationCredentialId: null,
           domainWideDelegationCredentialId: null,
         },
@@ -644,26 +708,29 @@ describe("CalendarEventBuilder", () => {
       .build();
 
     // Test that all properties are set correctly
-    expect(event.title).toBe("Complete Test Event");
-    expect(event.type).toBe("complete-test");
-    expect(event.organizer.name).toBe("John Doe");
-    expect(event.attendees).toHaveLength(1);
-    expect(event.location).toBe("Conference Room A");
-    expect(event.iCalUID).toBe("ical-123");
-    expect(event.requiresConfirmation).toBe(true);
-    expect(event.platformClientId).toBe("client-123");
-    expect(event.appsStatus).toHaveLength(1);
-    expect(event.videoCallData?.url).toBe("https://meet.example.com/123");
-    expect(event.team?.name).toBe("Engineering Team");
-    expect(event.recurringEvent?.count).toBe(5);
-    expect(event.attendeeSeatId).toBe("seat-123");
-    expect(event.uid).toBe("booking-uid-123");
-    expect(event.oneTimePassword).toBe("otp123");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.title).toBe("Complete Test Event");
+      expect(event.type).toBe("complete-test");
+      expect(event.organizer.name).toBe("John Doe");
+      expect(event.attendees).toHaveLength(1);
+      expect(event.location).toBe("Conference Room A");
+      expect(event.iCalUID).toBe("ical-123");
+      expect(event.requiresConfirmation).toBe(true);
+      expect(event.platformClientId).toBe("client-123");
+      expect(event.appsStatus).toHaveLength(1);
+      expect(event.videoCallData?.url).toBe("https://meet.example.com/123");
+      expect(event.team?.name).toBe("Engineering Team");
+      expect(event.recurringEvent?.count).toBe(5);
+      expect(event.attendeeSeatId).toBe("seat-123");
+      expect(event.uid).toBe("booking-uid-123");
+      expect(event.oneTimePassword).toBe("otp123");
+    }
   });
 
-  it("should throw an error when building without required fields", () => {
+  it("should return null when building without required fields", () => {
     const builder = new CalendarEventBuilder();
-    expect(() => builder.build()).toThrow("Missing required fields for calendar event");
+    expect(builder.build()).toBeNull();
   });
 
   it("should create an event from an existing event", () => {
@@ -684,7 +751,35 @@ describe("CalendarEventBuilder", () => {
       })
       .build();
 
-    expect(event.title).toBe("Updated Event");
-    expect(event.type).toBe("existing-type");
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.title).toBe("Updated Event");
+      expect(event.type).toBe("existing-type");
+    }
+  });
+
+  it("should propagate disableCancelling and disableRescheduling", () => {
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+        additionalNotes: "Some notes",
+      })
+      .withEventType({
+        slug: "test-slug",
+        description: "Test description",
+        id: 123,
+        disableCancelling: true,
+        disableRescheduling: true,
+      })
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.disableCancelling).toBe(true);
+      expect(event.disableRescheduling).toBe(true);
+    }
   });
 });

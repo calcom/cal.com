@@ -9,6 +9,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -17,7 +18,7 @@ import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
 const getTeamFeatures = unstable_cache(
   async (teamId: number) => {
-    const featuresRepository = new FeaturesRepository();
+    const featuresRepository = new FeaturesRepository(prisma);
     return await featuresRepository.getTeamFeatures(teamId);
   },
   ["team-features"],
@@ -66,7 +67,11 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
 
   return (
     <>
-      <SettingsLayoutAppDirClient {...props} teamFeatures={teamFeatures ?? {}} canViewRoles={canViewRoles} />
+      <SettingsLayoutAppDirClient
+        {...props}
+        teamFeatures={teamFeatures ?? {}}
+        permissions={{ canViewRoles }}
+      />
     </>
   );
 }
