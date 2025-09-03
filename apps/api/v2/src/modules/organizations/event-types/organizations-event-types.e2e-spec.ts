@@ -725,6 +725,7 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               type: "name",
               slug: "name",
+              label: "your_name",
               required: true,
               disableOnPrefill: false,
             },
@@ -822,6 +823,7 @@ describe("Organizations Event Types Endpoints", () => {
               type: "name",
               slug: "name",
               required: true,
+              label: "your_name",
               disableOnPrefill: false,
             },
             {
