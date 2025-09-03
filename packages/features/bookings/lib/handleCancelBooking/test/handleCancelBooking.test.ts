@@ -440,4 +440,73 @@ describe("Cancel Booking", () => {
       },
     });
   });
+
+  test("Should block cancelling past bookings", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "past-booking";
+    const idOfBookingToBeCancelled = 3040;
+    const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${minus1DateString}T05:00:00.000Z`,
+            endTime: `${minus1DateString}T05:30:00.000Z`,
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    // This should throw an error with current implementation
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: organizer.email,
+          cancellationReason: "Testing past booking cancellation",
+        },
+      })
+    ).rejects.toThrow("Cannot cancel a booking that has already ended");
+  });
 });

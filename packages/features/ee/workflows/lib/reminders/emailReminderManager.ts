@@ -6,7 +6,7 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -453,7 +453,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
-      sender,
+      sender: evt.hideOrganizerEmail ? SENDER_NAME : sender,
     };
   }
 
