@@ -38,8 +38,8 @@ const resolveEndpoint = (links: any) => {
       endpoint = parts[0] as keyof typeof links;
       path = parts[1];
     } else if (parts.length == 4 && parts[1] === "eventTypes") {
-      endpoint = `eventTypes/${parts[2]}` as keyof typeof links;
-      path = parts[3];
+      endpoint = `eventTypes/${parts[2]}/${parts[3]}` as keyof typeof links;
+      path = "";
     } else {
       endpoint = parts[1] as keyof typeof links;
       path = parts.splice(2, parts.length - 2).join(".");
