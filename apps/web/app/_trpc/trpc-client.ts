@@ -15,6 +15,7 @@ const resolveEndpoint = (links: any) => {
   // to the correct API endpoints.
   // - viewer.me - 2 segment paths like this are for logged in requests
   // - viewer.public.i18n - 3 segments paths can be public or authed
+  // - viewer.quarantine.appRoutingForms.forms - 4 segments paths for quarantine router
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (ctx: any) => {
     const parts = ctx.op.path.split(".");
@@ -23,6 +24,9 @@ const resolveEndpoint = (links: any) => {
     if (parts.length == 2) {
       endpoint = parts[0] as keyof typeof links;
       path = parts[1];
+    } else if (parts.length >= 3 && parts[1] === "quarantine") {
+      endpoint = "quarantine" as keyof typeof links;
+      path = parts.splice(2, parts.length - 2).join(".");
     } else {
       endpoint = parts[1] as keyof typeof links;
       path = parts.splice(2, parts.length - 2).join(".");
