@@ -11,7 +11,7 @@ import {
   getLocationForOrganizerDefaultConferencingAppInEvtFormat,
   SystemError,
   UserError,
-} from "../editLocation.handler";
+} from "../quarantine/bookings/editLocation.handler";
 
 describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   const mockTranslate = vi.fn((key: string) => key);
