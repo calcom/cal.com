@@ -17,15 +17,15 @@ import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { BookingsProcedureContext } from "../../bookings/util";
+import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
+import type { BookingsProcedureContext } from "./util";
 
 // #region EditLocation Types and Helpers
 type EditLocationOptions = {

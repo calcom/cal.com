@@ -1,2 +1,2 @@
-export { ZUpdateInputSchema } from "../../eventTypes/types";
-export type { TUpdateInputSchema } from "../../eventTypes/types";
+export { ZUpdateInputSchema } from "./types";
+export type { TUpdateInputSchema } from "./types";

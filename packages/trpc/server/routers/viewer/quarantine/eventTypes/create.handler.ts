@@ -6,10 +6,10 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepo
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import type { TrpcSessionUser } from "../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;

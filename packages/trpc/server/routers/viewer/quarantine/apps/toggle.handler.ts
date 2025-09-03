@@ -3,10 +3,10 @@ import { sendDisabledAppEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import type { TrpcSessionUser } from "../../../types";
 import type { TToggleInputSchema } from "./toggle.schema";
 
 type ToggleOptions = {

@@ -25,13 +25,13 @@ import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { PersonAttendeeCommonFields } from "../../bookings/types";
+import type { TrpcSessionUser } from "../../../types";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
+import type { PersonAttendeeCommonFields } from "./types";
 
 type RequestRescheduleOptions = {
   ctx: {

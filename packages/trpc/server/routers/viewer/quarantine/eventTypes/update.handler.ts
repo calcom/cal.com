@@ -23,18 +23,18 @@ import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { setDestinationCalendarHandler } from "../../calendars/setDestinationCalendar.handler";
+import type { TrpcSessionUser } from "../../../types";
+import { setDestinationCalendarHandler } from "../../viewer/calendars/setDestinationCalendar.handler";
+import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
-} from "../../eventTypes/util";
-import type { TUpdateInputSchema } from "./update.schema";
+} from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 

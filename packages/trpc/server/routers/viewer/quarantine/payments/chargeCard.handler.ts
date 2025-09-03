@@ -9,12 +9,12 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
+import type { TrpcSessionUser } from "../../../types";
 import type { TChargeCardInputSchema } from "./chargeCard.schema";
 
 interface ChargeCardHandlerOptions {
