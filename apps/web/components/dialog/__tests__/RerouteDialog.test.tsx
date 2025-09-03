@@ -100,95 +100,95 @@ vi.mock("@calcom/ui/components/tooltip", () => ({
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
-      appRoutingForms: {
-        getResponseWithFormFields: {
-          useQuery: vi.fn(() => ({
-            data: {
-              form: {
-                id: "form-id",
-                name: "Test Form",
-                fields: [
-                  {
-                    id: "company-size",
+      quarantine: {
+        appRoutingForms: {
+          getResponseWithFormFields: {
+            useQuery: vi.fn(() => ({
+              data: {
+                form: {
+                  id: "form-id",
+                  name: "Test Form",
+                  fields: [
+                    {
+                      id: "company-size",
+                      label: "Company Size",
+                      type: "select",
+                      options: [
+                        { label: "Small", value: "small" },
+                        { label: "Medium", value: "medium" },
+                        { label: "Large", value: "large" },
+                      ],
+                    },
+                    {
+                      id: "country",
+                      label: "Country",
+                      type: "select",
+                      options: [
+                        { label: "USA", value: "usa" },
+                        { label: "Canada", value: "canada" },
+                        { label: "UK", value: "uk" },
+                      ],
+                    },
+                    {
+                      id: "email",
+                      label: "Email",
+                      type: "email",
+                      required: true,
+                    },
+                  ],
+                  routes: [
+                    {
+                      id: "mock-route-id",
+                      action: {
+                        eventTypeId: 123,
+                        type: RouteActionType.EventTypeRedirectUrl,
+                        value: "team/test-team/new-test-event",
+                      },
+                      __testMatching: true,
+                    },
+                    {
+                      id: "fallback-route",
+                      isFallback: true,
+                      action: {
+                        type: RouteActionType.CustomPageMessage,
+                        value: "456",
+                      },
+                      __testMatching: false,
+                    },
+                  ],
+                },
+                response: {
+                  "company-size": {
                     label: "Company Size",
-                    type: "select",
-                    options: [
-                      { label: "Small", value: "small" },
-                      { label: "Medium", value: "medium" },
-                      { label: "Large", value: "large" },
-                    ],
+                    value: "small",
                   },
-                  {
-                    id: "country",
+                  country: {
                     label: "Country",
-                    type: "select",
-                    options: [
-                      { label: "USA", value: "usa" },
-                      { label: "Canada", value: "canada" },
-                      { label: "UK", value: "uk" },
-                    ],
+                    value: "usa",
                   },
-                  {
-                    id: "email",
-                    label: "Email",
-                    type: "email",
-                    required: true,
-                  },
-                ],
-                routes: [
-                  {
-                    id: "mock-route-id",
-                    action: {
-                      eventTypeId: 123,
-                      type: RouteActionType.EventTypeRedirectUrl,
-                      value: "team/test-team/new-test-event",
-                    },
-                    __testMatching: true,
-                  },
-                  {
-                    id: "fallback-route",
-                    isFallback: true,
-                    action: {
-                      type: RouteActionType.CustomPageMessage,
-                      value: "456",
-                    },
-                    __testMatching: false,
-                  },
-                ],
-              },
-              response: {
-                "company-size": {
-                  label: "Company Size",
-                  value: "small",
-                },
-                country: {
-                  label: "Country",
-                  value: "usa",
                 },
               },
-            },
-            isPending: false,
-          })),
+              isPending: false,
+            })),
+          },
         },
-      },
-      eventTypes: {
-        get: {
-          useQuery: vi.fn(() => ({
-            data: {
-              eventType: {
-                id: "123",
-                title: "Mocked Event Type",
-                slug: "mocked-event-type",
-                length: 30,
-                schedulingType: "ROUND_ROBIN",
-                team: { slug: "mocked-team" },
+        eventTypes: {
+          get: {
+            useQuery: vi.fn(() => ({
+              data: {
+                eventType: {
+                  id: "123",
+                  title: "Mocked Event Type",
+                  slug: "mocked-event-type",
+                  length: 30,
+                  schedulingType: "ROUND_ROBIN",
+                  team: { slug: "mocked-team" },
+                },
               },
-            },
-            isPending: false,
-          })),
+              isPending: false,
+            })),
+          },
         },
-      },
-      routingForms: {
         findTeamMembersMatchingAttributeLogicOfRoute: {
           useMutation: vi.fn(({ onSuccess }) => {
             return {
