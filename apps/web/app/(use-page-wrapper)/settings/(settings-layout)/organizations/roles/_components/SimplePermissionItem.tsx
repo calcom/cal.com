@@ -1,7 +1,8 @@
 "use client";
 
-import type { Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
+  Scope,
   PERMISSION_REGISTRY,
   getPermissionsForScope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
@@ -24,7 +25,7 @@ export function SimplePermissionItem({
   permissions,
   onChange,
   disabled,
-  scope,
+  scope = Scope.Organization,
 }: SimplePermissionItemProps) {
   const { t } = useLocale();
   const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
