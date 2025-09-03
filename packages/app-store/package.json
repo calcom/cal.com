@@ -13,52 +13,52 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
     "./calendar": {
       "import": "./dist/calendar.js",
-      "require": "./dist/calendar.mjs",
+      "require": "./dist/calendar.cjs",
       "types": "./dist/calendar.d.ts"
     },
     "./payment": {
       "import": "./dist/payment.js",
-      "require": "./dist/payment.mjs",
+      "require": "./dist/payment.cjs",
       "types": "./dist/payment.d.ts"
     },
     "./video": {
       "import": "./dist/video.js",
-      "require": "./dist/video.mjs",
+      "require": "./dist/video.cjs",
       "types": "./dist/video.d.ts"
     },
     "./crm": {
       "import": "./dist/crm.js",
-      "require": "./dist/crm.mjs",
+      "require": "./dist/crm.cjs",
       "types": "./dist/crm.d.ts"
     },
     "./analytics": {
       "import": "./dist/analytics.js",
-      "require": "./dist/analytics.mjs",
+      "require": "./dist/analytics.cjs",
       "types": "./dist/analytics.d.ts"
     },
     "./browser": {
       "import": "./dist/browser.js",
-      "require": "./dist/browser.mjs",
+      "require": "./dist/browser.cjs",
       "types": "./dist/browser.d.ts"
     },
     "./metadata": {
       "import": "./dist/metadata.js",
-      "require": "./dist/metadata.mjs",
+      "require": "./dist/metadata.cjs",
       "types": "./dist/metadata.d.ts"
     },
     "./utils": {
       "import": "./dist/utils.js",
-      "require": "./dist/utils.mjs",
+      "require": "./dist/utils.cjs",
       "types": "./dist/utils.d.ts"
     },
     "./appStoreMetaData": {
       "import": "./dist/appStoreMetaData.js",
-      "require": "./dist/appStoreMetaData.mjs",
+      "require": "./dist/appStoreMetaData.cjs",
       "types": "./dist/appStoreMetaData.d.ts"
     },
     "./bookerAppsMetaData": {
@@ -101,6 +101,6 @@
     "@vitejs/plugin-react": "^4.0.0",
     "typescript": "^4.9.4",
     "vite": "^4.3.9",
-    "vite-plugin-dts": "^2.3.0"
+    "vite-plugin-dts": "^3.7.2"
   }
 }
