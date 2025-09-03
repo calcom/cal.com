@@ -1,7 +1,10 @@
 "use client";
 
 import type { Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  PERMISSION_REGISTRY,
+  getPermissionsForScope,
+} from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
@@ -25,6 +28,7 @@ export function SimplePermissionItem({
 }: SimplePermissionItemProps) {
   const { t } = useLocale();
   const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
+  const scopedRegistry = getPermissionsForScope(scope);
 
   const registry = scopedRegistry || PERMISSION_REGISTRY;
   const isAllResources = resource === "*";
