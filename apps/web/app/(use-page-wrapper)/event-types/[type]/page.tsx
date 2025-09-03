@@ -118,8 +118,18 @@ const getEventPermissions = async (userId: number, teamId: number | null) => {
   ]);
 
   return {
-    eventTypes: eventTypePermissions,
-    workflows: workflowPermissions,
+    eventTypes: {
+      canRead: eventTypePermissions.canRead,
+      canCreate: eventTypePermissions.canCreate,
+      canUpdate: eventTypePermissions.canEdit,
+      canDelete: eventTypePermissions.canDelete,
+    },
+    workflows: {
+      canRead: workflowPermissions.canRead,
+      canCreate: workflowPermissions.canCreate,
+      canUpdate: workflowPermissions.canEdit,
+      canDelete: workflowPermissions.canDelete,
+    },
   };
 };
 
