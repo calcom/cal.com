@@ -1,5 +1,7 @@
 import type { PaginationQuery } from "@/types";
 import z from "zod";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import zodToJsonSchema from "zod-to-json-schema";
 
 import type { Prisma } from "@calcom/prisma/client";
@@ -61,3 +63,78 @@ export const UserResponseSchema = z.object({
 
 export const UserResponseJsonSchema = zodToJsonSchema(UserResponseSchema);
 export type UserResponse = z.infer<typeof UserResponseSchema>;
+
+
+export const updateProfileBodySchema = z.object({
+  username: z.string().optional(),
+  name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
+  email: z.string().email().optional(),
+  bio: z.string().optional(),
+  avatarUrl: z.string().nullable().optional(),
+  timeZone: timeZoneSchema.optional(),
+  weekStart: z.string().optional(),
+  hideBranding: z.boolean().optional(),
+  allowDynamicBooking: z.boolean().optional(),
+  allowSEOIndexing: z.boolean().optional(),
+  receiveMonthlyDigestEmail: z.boolean().optional(),
+  brandColor: z.string().optional(),
+  darkBrandColor: z.string().optional(),
+  theme: z.string().optional().nullable(),
+  appTheme: z.string().optional().nullable(),
+  completedOnboarding: z.boolean().optional(),
+  locale: z.string().optional(),
+  timeFormat: z.number().optional(),
+  disableImpersonation: z.boolean().optional(),
+  metadata: z.record(z.any()).optional(),
+  travelSchedules: z
+    .array(
+      z.object({
+        id: z.number().optional(),
+        timeZone: timeZoneSchema,
+        endDate: z.string().optional(),
+        startDate: z.string(),
+      })
+    )
+    .optional(),
+  secondaryEmails: z
+    .array(
+      z.object({
+        id: z.number(),
+        email: z.string(),
+        isDeleted: z.boolean().default(false),
+      })
+    )
+    .optional(),
+});
+
+export const userProfileUpdateResponseSchema = z.object({
+  id: z.number(),
+  username: z.string().nullable().optional(),
+  email: z.string(),
+  name: z.string().nullable().optional(),
+  avatarUrl: z.string().nullable().optional(),
+  hasEmailBeenChanged: z.boolean().optional(),
+  sendEmailVerification: z.boolean().optional(),
+});
+
+export const userProfileQueryResponse =  z.object({
+  id: z.number(),
+  email: z.string(),
+  name: z.string(),
+  role: z.string(),
+  organizationId: z.number().nullable(),
+});
+
+export const userProfileSchema = z.object({
+  username: z.string().optional(),
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+  bio: z.string().optional(),
+  avatarUrl: z.string().nullable().optional(),
+  allowSEOIndexing: z.boolean().optional(),
+  brandColor: z.string().optional(),
+  darkBrandColor: z.string().optional(),
+  theme: z.string().optional().nullable(),
+  organizationId: z.string().optional(),
+  // ... other fields
+});
