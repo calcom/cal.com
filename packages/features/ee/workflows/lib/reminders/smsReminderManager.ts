@@ -105,7 +105,12 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     return;
   }
 
-  if (reminderPhone && (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone))) {
+  if (!reminderPhone) {
+    log.warn(`No phone number provided for WhatsApp reminder in workflow step ${workflowStepId}`);
+    return;
+  }
+
+  if (await WorkflowOptOutContactRepository.isOptedOut(reminderPhone)) {
     log.warn(`Phone number opted out of SMS workflows`, safeStringify({ workflowStep: workflowStepId }));
     return;
   }

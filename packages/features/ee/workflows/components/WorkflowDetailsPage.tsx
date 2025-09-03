@@ -16,7 +16,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction, isCalAIAction, isFormTrigger } from "../lib/actionHelperFunctions";
+import { isSMSAction, isCalAIAction, isFormTrigger, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -88,6 +88,7 @@ export default function WorkflowDetailsPage(props: Props) {
         if (
           (isFormTrigger(form.getValues("trigger")) &&
             (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
+          isWhatsappAction(option.value) ||
           (isCalAIAction(option.value) && form.watch("selectAll")) ||
           (isCalAIAction(option.value) && isOrg)
         ) {

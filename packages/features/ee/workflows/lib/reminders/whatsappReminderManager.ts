@@ -295,8 +295,13 @@ const scheduleWhatsappReminderForEvt = async (
 };
 
 const scheduleWhatsappReminderForForm = async (
-  args: ScheduleTextReminderArgsWithPhone & { formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES } }
+  args: ScheduleTextReminderArgsWithRequiredFields & {
+    formData: {
+      responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+      user: { email: string; timeFormat: number; locale: string };
+    };
+  }
 ) => {
-  // TODO: Create scheduleWhatsappReminderForForm function
-  throw new Error("Form WhatsApp reminders not yet implemented");
+  // We need to add new Whatsapp templates. Current templates are booking specific
+  log.warn("Form WhatsApp reminders not yet supported");
 };
