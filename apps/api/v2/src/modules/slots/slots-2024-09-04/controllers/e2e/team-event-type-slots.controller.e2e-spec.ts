@@ -678,6 +678,19 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
 
+      const reserveResponseThree = await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .set({ Authorization: `Bearer cal_test_${outsiderApiKeyString}` })
+        .send({
+          eventTypeId: roundRobinEventTypeWithoutFixedHostsId,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04);
+
+      expect(reserveResponseThree.status).toEqual(400);
+      expect(reserveResponseThree.body.status).toEqual(ERROR_STATUS);
+
       await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotOne.reservationUid);
       await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotTwo.reservationUid);
       clear();
