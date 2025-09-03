@@ -60,7 +60,7 @@ export class CheckBookingLimitsService {
     teamId,
     user,
     includeManagedEvents = false,
-    weekStartDay = 0,
+    weekStartDay = 1,
   }: {
     eventStartDate: Date;
     eventId?: number;
