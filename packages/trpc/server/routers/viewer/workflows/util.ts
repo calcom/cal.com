@@ -1050,7 +1050,8 @@ export async function getAllWorkflowsFromRoutingForm(routingForm: {
     userId,
     teamId,
     orgId,
-    false // workflowsLockedForUser - routing forms are not managed
+    false, // workflowsLockedForUser - routing forms are not managed
+    "routingForm"
   );
 
   return allWorkflows;
