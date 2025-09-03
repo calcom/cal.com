@@ -84,4 +84,34 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
     const data = await scheduleService.create(body, id);
 
     return ResponseFormatter.success(reply,  data, 'Schedule created');
-  })}
+  }),
+
+  fastify.delete<{ Params: { schedule: string } }>('/:schedule', { 
+      preHandler: AuthGuards.authenticateFlexible(),
+      schema: {
+        description: 'Create a schedule for the current user',
+        tags: ['API Auth - Users'],
+        security: [
+          { bearerAuth: [] },
+          { apiKey: [] },
+        ],
+        response: { 200: zodToJsonSchema(responseSchemas.successNoData('Schedule deleted')),
+          401: zodToJsonSchema(responseSchemas.unauthorized()),
+        },
+      },
+    }, async (request, reply: FastifyReply) => {
+      const { schedule } = request.params;
+      const userId = Number.parseInt(request.user!.id);
+
+      const userSchedule = await prisma.schedule.findFirst({
+        where: { id: Number.parseInt(schedule), userId },
+      });
+
+      if (!userSchedule) return ResponseFormatter.forbidden(reply, 'Forbidden');
+  
+      scheduleService.delete( Number.parseInt(schedule));
+
+      return ResponseFormatter.success(reply, null, 'Schedule deleted');
+    }
+  )
+}

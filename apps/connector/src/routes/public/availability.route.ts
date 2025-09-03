@@ -50,7 +50,7 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
   fastify.post('/', { 
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
-      description: 'Create a schedule',
+      description: 'Create availability for the current user and given schedule',
       tags: ['API Auth - Users'],
       security: [
         { bearerAuth: [] },
@@ -68,4 +68,35 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
     const data = await availabilityService.create(body);
 
     return ResponseFormatter.success(reply, data, 'Availability created');
-  })}
+  }),
+
+  fastify.delete<{ Params: { availability: string } }>('/:availability', { 
+    preHandler: AuthGuards.authenticateFlexible(),
+    schema: {
+      description: 'Delete an availability',
+      tags: ['API Auth - Users'],
+      security: [
+        { bearerAuth: [] },
+        { apiKey: [] },
+      ],
+      response: {
+        200: zodToJsonSchema(responseSchemas.successNoData('Availability deleted')),
+        401: zodToJsonSchema(responseSchemas.unauthorized()),
+      },
+    },
+  }, async (request: AuthRequest, reply: FastifyReply) => {
+    const { availability } = request.params;
+    const userId = Number.parseInt(request.user!.id);
+
+    const userAvailability = await prisma.availability.findFirst({
+      where: { id: Number.parseInt(availability), Schedule: { userId } },
+    });
+
+    if (!userAvailability) return ResponseFormatter.forbidden(reply, 'Forbidden');
+
+    availabilityService.delete( Number.parseInt(availability));
+
+    return ResponseFormatter.success(reply, null, 'Availability deleted');
+  })
+
+}

@@ -37,4 +37,15 @@ export class ScheduleRepository extends BaseRepository<User> {
     const data = await this.prisma.schedule.create(args);
     return data;
   }
+
+  async detachDefaultScheduleFromUsers(id: number) {
+    await this.prisma.user.updateMany({
+      where: { defaultScheduleId: id },
+      data: { defaultScheduleId: undefined },
+    });
+  }
+
+  async deleteSchedule(id: number) {
+    await this.prisma.schedule.delete({ where: { id } });
+  }
 }

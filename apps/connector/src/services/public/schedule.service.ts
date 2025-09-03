@@ -47,4 +47,9 @@ export class ScheduleService extends BaseService {
     const data = this.scheduleRepository.createSchedule(args);
     return data;
   }
+
+  async delete(scheduleId: number) {
+    this.scheduleRepository.detachDefaultScheduleFromUsers(scheduleId);
+    return this.scheduleRepository.deleteSchedule(scheduleId);
+  }
 }

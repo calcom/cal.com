@@ -21,4 +21,8 @@ export class AvailabilityRepository extends BaseRepository<User> {
 
     return availability
   }
+
+  async delete(id: number) {
+    return await this.prisma.availability.delete({ where: { id } });
+  }
 }

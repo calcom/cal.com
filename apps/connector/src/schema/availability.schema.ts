@@ -71,5 +71,5 @@ export const availabilityCreationBodySchema = z.object({
 export const availabilityQueryStringSchema = z.object({
   dateFrom: z.string(),
   dateTo: z.string(),
-  eventTypeId: z.number(),
+  eventTypeId: z.number().optional(),
 });
