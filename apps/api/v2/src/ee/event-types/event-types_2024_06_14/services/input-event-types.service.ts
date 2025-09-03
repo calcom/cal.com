@@ -178,9 +178,13 @@ export class InputEventTypesService_2024_06_14 {
       disableGuests,
       ...rest
     } = inputEventType;
-    const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
-    const metadataTransformed = !!eventTypeDb?.metadata
-      ? EventTypeMetaDataSchema.parse(eventTypeDb.metadata)
+
+    const eventTypeDb = await this.eventTypesRepository.getEventTypeWithBookingFields(eventTypeId);
+    const existingBookingFields = eventTypeDb?.bookingFields as InputBookingField_2024_06_14[] | null;
+
+    const metadataEventType = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
+    const metadataTransformed = !!metadataEventType?.metadata
+      ? EventTypeMetaDataSchema.parse(metadataEventType.metadata)
       : {};
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -190,13 +194,15 @@ export class InputEventTypesService_2024_06_14 {
         ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
         : bookingFields;
 
+    const finalBookingFields = effectiveBookingFields
+      ? this.mergeBookingFields(existingBookingFields, effectiveBookingFields)
+      : undefined;
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: effectiveBookingFields
-        ? this.transformInputBookingFields(effectiveBookingFields)
-        : undefined,
+      bookingFields: finalBookingFields ? this.transformInputBookingFields(finalBookingFields) : undefined,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -299,6 +305,52 @@ export class InputEventTypesService_2024_06_14 {
       attendeePhoneNumberField?.required && !attendeePhoneNumberField?.hidden;
 
     return isEmailFieldRequiredAndVisible || isAttendeePhoneNumberFieldRequiredAndVisible;
+  }
+
+  private mergeBookingFields(
+    existingFields: InputBookingField_2024_06_14[] | null,
+    newFields: InputBookingField_2024_06_14[]
+  ): InputBookingField_2024_06_14[] {
+    if (!existingFields || existingFields.length === 0) {
+      return newFields;
+    }
+
+    const existingFieldsMap = new Map<string, InputBookingField_2024_06_14>();
+    existingFields.forEach((field) => {
+      const key = this.getFieldIdentifier(field);
+      if (key) {
+        existingFieldsMap.set(key, field);
+      }
+    });
+
+    const newFieldsMap = new Map<string, InputBookingField_2024_06_14>();
+    newFields.forEach((field) => {
+      const key = this.getFieldIdentifier(field);
+      if (key) {
+        newFieldsMap.set(key, field);
+      }
+    });
+
+    const mergedFields = [...newFields];
+
+    existingFields.forEach((existingField) => {
+      const key = this.getFieldIdentifier(existingField);
+      if (key && !newFieldsMap.has(key)) {
+        mergedFields.push(existingField);
+      }
+    });
+
+    return mergedFields;
+  }
+
+  private getFieldIdentifier(field: InputBookingField_2024_06_14): string | null {
+    if ("slug" in field && field.slug) {
+      return field.slug;
+    }
+    if ("type" in field && field.type) {
+      return field.type;
+    }
+    return null;
   }
 
   isUserCustomField(field: SystemField | CustomField): field is CustomField {
