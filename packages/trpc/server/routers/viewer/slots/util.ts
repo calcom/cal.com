@@ -1041,7 +1041,6 @@ export class AvailableSlotsService {
         queuedFormResponseId,
       });
     }
-
     const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
       await this.dependencies.qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
         eventType,
@@ -1156,6 +1155,7 @@ export class AvailableSlotsService {
       minimumBookingNotice: eventType.minimumBookingNotice,
       frequency: eventType.slotInterval || input.duration || eventType.length,
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+      showOptimizedSlots: eventType.showOptimizedSlots,
     });
 
     let availableTimeSlots: typeof timeSlots = [];

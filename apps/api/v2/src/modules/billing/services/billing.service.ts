@@ -107,6 +107,10 @@ export class BillingService implements OnModuleDestroy {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
+    if (!customerId) {
+      throw new NotFoundException("No customer id associated with the team.");
+    }
+
     const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
       success_url: `${this.webAppUrl}/settings/platform/`,
@@ -116,6 +120,7 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
+      currency: "usd",
     });
 
     if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
