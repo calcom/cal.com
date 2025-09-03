@@ -63,7 +63,7 @@ import type {
 import type { zodRoutes } from "../../zod";
 import { RouteActionType } from "../../zod";
 
-type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
+type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["get"];
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
@@ -159,7 +159,7 @@ const buildEventsData = ({
       eventTypeAppMetadata?: Record<string, any>;
     }
   >();
-  eventTypesByGroup?.eventTypeGroups.forEach((group) => {
+  eventTypesByGroup?.eventTypeGroups.forEach((group: any) => {
     const eventTypeValidInContext = areTheySiblingEntities({
       entity1: {
         teamId: group.teamId ?? null,
@@ -172,7 +172,7 @@ const buildEventsData = ({
       },
     });
 
-    group.eventTypes.forEach((eventType) => {
+    group.eventTypes.forEach((eventType: any) => {
       if (eventType.teamId && eventType.schedulingType === SchedulingType.MANAGED) {
         return;
       }
@@ -1384,7 +1384,7 @@ function Page({
     );
 
   const { data: eventTypesByGroup, isLoading: areEventsLoading } =
-    trpc.viewer.eventTypes.getByViewer.useQuery({
+    trpc.viewer.eventTypes.getByViewer.get.useQuery({
       forRoutingForms: true,
     });
 

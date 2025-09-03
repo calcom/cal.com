@@ -21,8 +21,8 @@ export type AvailabilityOption = {
   isDefault: boolean;
   isManaged?: boolean;
 };
-export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
-export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"]["get"];
+export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["get"]["eventType"];
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
   isFixed: boolean;
@@ -176,8 +176,9 @@ export type FormValues = {
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
 
-export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
-export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
+export type EventTypeAssignedUsers =
+  RouterOutputs["viewer"]["eventTypes"]["get"]["get"]["eventType"]["children"];
+export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["get"]["eventType"]["hosts"];
 export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypes"]["update"];
 export type TabMap = {
   advanced: React.ReactNode;

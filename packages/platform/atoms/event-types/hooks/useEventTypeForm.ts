@@ -4,11 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import {
-  DEFAULT_PROMPT_VALUE,
-  DEFAULT_BEGIN_MESSAGE,
-} from "@calcom/features/calAIPhone/promptTemplates";
-import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
+import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
   FormValues,
@@ -301,23 +297,23 @@ export const useEventTypeForm = ({
     const dirtyValues = getDirtyFields(values);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
-      periodDates,
-      periodCountCalendarDays,
-      beforeEventBuffer,
-      afterEventBuffer,
-      seatsPerTimeSlot,
-      seatsShowAttendees,
-      seatsShowAvailabilityCount,
-      bookingLimits,
-      onlyShowFirstAvailableSlot,
-      durationLimits,
-      recurringEvent,
-      eventTypeColor,
-      customReplyToEmail,
-      locations,
-      metadata,
-      customInputs,
-      assignAllTeamMembers,
+      periodDates: _periodDates,
+      periodCountCalendarDays: _periodCountCalendarDays,
+      beforeEventBuffer: _beforeEventBuffer,
+      afterEventBuffer: _afterEventBuffer,
+      seatsPerTimeSlot: _seatsPerTimeSlot,
+      seatsShowAttendees: _seatsShowAttendees,
+      seatsShowAvailabilityCount: _seatsShowAvailabilityCount,
+      bookingLimits: _bookingLimits,
+      onlyShowFirstAvailableSlot: _onlyShowFirstAvailableSlot,
+      durationLimits: _durationLimits,
+      recurringEvent: _recurringEvent,
+      eventTypeColor: _eventTypeColor,
+      customReplyToEmail: _customReplyToEmail,
+      locations: _locations,
+      metadata: _metadata,
+      customInputs: _customInputs,
+      assignAllTeamMembers: _assignAllTeamMembers,
       // We don't need to send send these values to the backend
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       seatsPerTimeSlotEnabled,
@@ -378,32 +374,7 @@ export const useEventTypeForm = ({
     const { availability, users, scheduleName, ...rest } = input;
     const payload = {
       ...rest,
-      length,
-      locations,
-      recurringEvent,
-      periodStartDate: periodDates?.startDate,
-      periodEndDate: periodDates?.endDate,
-      periodCountCalendarDays,
-      id: eventType.id,
-      beforeEventBuffer,
-      afterEventBuffer,
-      bookingLimits,
-      onlyShowFirstAvailableSlot,
-      durationLimits,
-      eventTypeColor,
-      customReplyToEmail,
-      seatsPerTimeSlot,
-      seatsShowAttendees,
-      seatsShowAvailabilityCount,
-      metadata,
-      customInputs,
-      children,
-      assignAllTeamMembers,
-      multiplePrivateLinks: values.multiplePrivateLinks,
-      aiPhoneCallConfig: rest.aiPhoneCallConfig
-        ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
-        : undefined,
-    } satisfies EventTypeUpdateInput;
+    };
     // Filter out undefined values
     const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
       if (value !== undefined) {
@@ -414,7 +385,7 @@ export const useEventTypeForm = ({
     }, {}) as EventTypeUpdateInput;
 
     if (dirtyFieldExists) {
-      onSubmit({ ...filteredPayload, id: eventType.id });
+      onSubmit(filteredPayload);
     }
   };
 

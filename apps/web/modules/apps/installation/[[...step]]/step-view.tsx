@@ -177,12 +177,12 @@ const OnboardingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeGroups]);
 
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.update.do.useMutation({
     onSuccess: async (data) => {
       showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
     },
     async onSettled() {
-      await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.get.get.invalidate();
     },
     onError: (err) => {
       let message = "";

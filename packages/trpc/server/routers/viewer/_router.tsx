@@ -23,7 +23,21 @@ import { creditsRouter } from "./credits/_router";
 import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
-import { eventTypesRouter } from "./eventTypes/_router";
+import { bulkEventFetchRouter } from "./eventTypes/bulkEventFetch/_router";
+import { bulkUpdateToDefaultLocationRouter } from "./eventTypes/bulkUpdateToDefaultLocation/_router";
+import { createRouter } from "./eventTypes/create/_router";
+import { deleteRouter } from "./eventTypes/delete/_router";
+import { duplicateRouter } from "./eventTypes/duplicate/_router";
+import { getRouter } from "./eventTypes/get/_router";
+import { getByViewerRouter } from "./eventTypes/getByViewer/_router";
+import { getEventTypesFromGroupRouter } from "./eventTypes/getEventTypesFromGroup/_router";
+import { getHashedLinkRouter } from "./eventTypes/getHashedLink/_router";
+import { getHashedLinksRouter } from "./eventTypes/getHashedLinks/_router";
+import { getTeamAndEventTypeOptionsRouter } from "./eventTypes/getTeamAndEventTypeOptions/_router";
+import { getUserEventGroupsRouter } from "./eventTypes/getUserEventGroups/_router";
+import { listRouter } from "./eventTypes/list/_router";
+import { listWithTeamRouter } from "./eventTypes/listWithTeam/_router";
+import { updateRouter } from "./eventTypes/update/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { i18nRouter } from "./i18n/_router";
@@ -53,7 +67,23 @@ export const viewerRouter = router({
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
   credentials: credentialsRouter,
-  eventTypes: eventTypesRouter,
+  eventTypes: router({
+    getByViewer: getByViewerRouter,
+    getUserEventGroups: getUserEventGroupsRouter,
+    getEventTypesFromGroup: getEventTypesFromGroupRouter,
+    getTeamAndEventTypeOptions: getTeamAndEventTypeOptionsRouter,
+    list: listRouter,
+    listWithTeam: listWithTeamRouter,
+    create: createRouter,
+    get: getRouter,
+    update: updateRouter,
+    delete: deleteRouter,
+    duplicate: duplicateRouter,
+    bulkEventFetch: bulkEventFetchRouter,
+    bulkUpdateToDefaultLocation: bulkUpdateToDefaultLocationRouter,
+    getHashedLink: getHashedLinkRouter,
+    getHashedLinks: getHashedLinksRouter,
+  }),
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
   timezones: timezonesRouter,

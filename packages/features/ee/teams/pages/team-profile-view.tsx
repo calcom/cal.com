@@ -127,9 +127,9 @@ const ProfileView = () => {
     async onSuccess() {
       revalidateTeamsList();
       await utils.viewer.teams.list.invalidate();
-      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.get.invalidate();
       revalidateEventTypesList();
-      await utils.viewer.eventTypes.getByViewer.invalidate();
+      await utils.viewer.eventTypes.getByViewer.get.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");
@@ -279,7 +279,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
         slug: res?.slug as string,
       });
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.get.invalidate();
       revalidateEventTypesList();
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();

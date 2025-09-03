@@ -94,13 +94,13 @@ export type EventTypeWebWrapperProps = {
 };
 
 export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.get.useQuery(
     { id },
     { enabled: !serverFetchedData }
   );
 
   if (serverFetchedData) {
-    return <EventTypeWeb {...serverFetchedData} id={id} />;
+    return <EventTypeWeb {...serverFetchedData.get} id={id} />;
   }
 
   if (!eventTypeQueryData) return null;
@@ -131,7 +131,7 @@ const EventTypeWeb = ({
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
   });
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.update.do.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 
@@ -156,8 +156,8 @@ const EventTypeWeb = ({
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
-      await utils.viewer.eventTypes.get.invalidate();
-      await utils.viewer.eventTypes.getByViewer.invalidate();
+      await utils.viewer.eventTypes.get.get.invalidate();
+      await utils.viewer.eventTypes.getByViewer.get.invalidate();
     },
     onError: (err) => {
       let message = "";
@@ -182,7 +182,10 @@ const EventTypeWeb = ({
     },
   });
 
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const { form, handleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: (data) => updateMutation.mutate({ ...data, id: eventType.id }),
+  });
   const slug = form.watch("slug") ?? eventType.slug;
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
@@ -323,9 +326,9 @@ const EventTypeWeb = ({
     data: { tabName },
   } = useTypedQuery(querySchema);
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+  const deleteMutation = trpc.viewer.eventTypes.delete.do.useMutation({
     onSuccess: async () => {
-      await utils.viewer.eventTypes.invalidate();
+      await utils.viewer.eventTypes.getByViewer.get.invalidate();
       if (team?.slug) {
         // When a team event-type is deleted,
         // guests could still hit a stale cache and see the old page.

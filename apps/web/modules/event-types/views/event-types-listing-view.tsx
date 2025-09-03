@@ -62,10 +62,10 @@ import { TRPCClientError } from "@trpc/client";
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
 
-type InfiniteEventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
-type InfiniteEventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
+type InfiniteEventTypeGroup = GetUserEventGroupsResponse["get"]["eventTypeGroups"][number];
+type InfiniteEventType = GetEventTypesFromGroupsResponse["get"]["eventTypes"][number];
 
-type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
+type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["get"]["eventTypeGroups"];
 
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
@@ -97,7 +97,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const query = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+  const query = trpc.viewer.eventTypes.getEventTypesFromGroup.get.useInfiniteQuery(
     {
       limit: LIMIT,
       searchQuery: debouncedSearchTerm,
@@ -264,14 +264,14 @@ export const InfiniteEventTypeList = ({
     onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+      await utils.viewer.eventTypes.getEventTypesFromGroup.get.cancel();
     },
   });
 
-  const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
+  const setHiddenMutation = trpc.viewer.eventTypes.update.do.useMutation({
     onMutate: async (data) => {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+      await utils.viewer.eventTypes.getEventTypesFromGroup.get.cancel();
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.get.getInfiniteData({
         limit: LIMIT,
         searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
@@ -291,7 +291,7 @@ export const InfiniteEventTypeList = ({
     },
     onError: async (err, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+        utils.viewer.eventTypes.getEventTypesFromGroup.get.setInfiniteData(
           {
             limit: LIMIT,
             searchQuery: debouncedSearchTerm,
@@ -326,15 +326,15 @@ export const InfiniteEventTypeList = ({
     newOrder[pageNo].eventTypes[index % LIMIT] = newPositionEventType;
     newOrder[newPageNo].eventTypes[newIdx] = currentPositionEventType;
 
-    await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-    const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+    await utils.viewer.eventTypes.getEventTypesFromGroup.get.cancel();
+    const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.get.getInfiniteData({
       limit: LIMIT,
       searchQuery: debouncedSearchTerm,
       group: { teamId: group?.teamId, parentId: group?.parentId },
     });
 
     if (previousValue) {
-      utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+      utils.viewer.eventTypes.getEventTypesFromGroup.get.setInfiniteData(
         {
           limit: LIMIT,
           searchQuery: debouncedSearchTerm,
@@ -381,21 +381,21 @@ export const InfiniteEventTypeList = ({
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+  const deleteMutation = trpc.viewer.eventTypes.delete.do.useMutation({
     onSuccess: () => {
       showToast(t("event_type_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
     },
     onMutate: async ({ id }) => {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+      await utils.viewer.eventTypes.getEventTypesFromGroup.get.cancel();
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.get.getInfiniteData({
         limit: LIMIT,
         searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
       });
 
       if (previousValue) {
-        await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+        await utils.viewer.eventTypes.getEventTypesFromGroup.get.setInfiniteData(
           {
             limit: LIMIT,
             searchQuery: debouncedSearchTerm,
@@ -423,7 +423,7 @@ export const InfiniteEventTypeList = ({
     },
     onError: (err, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+        utils.viewer.eventTypes.getEventTypesFromGroup.get.setInfiniteData(
           {
             limit: LIMIT,
             searchQuery: debouncedSearchTerm,
@@ -900,8 +900,8 @@ const InfiniteScrollMain = ({
   eventTypeGroups,
   profiles,
 }: {
-  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"];
-  profiles: GetUserEventGroupsResponse["profiles"];
+  eventTypeGroups: GetUserEventGroupsResponse["get"]["eventTypeGroups"];
+  profiles: GetUserEventGroupsResponse["get"]["profiles"];
 }) => {
   const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
@@ -951,7 +951,7 @@ type Props = {
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    userEventGroupsData?.profiles
+    userEventGroupsData?.get?.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
       ?.map((profile) => {
@@ -991,8 +991,8 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
 
   return (
     <InfiniteScrollMain
-      profiles={userEventGroupsData.profiles}
-      eventTypeGroups={userEventGroupsData.eventTypeGroups}
+      profiles={userEventGroupsData.get.profiles}
+      eventTypeGroups={userEventGroupsData.get.eventTypeGroups}
     />
   );
 };

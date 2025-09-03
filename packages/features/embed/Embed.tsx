@@ -50,7 +50,7 @@ import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "./lib/hooks/useEmbedParams";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "./types";
 
-type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
+type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
   types: EmbedTypes;
   tabs: EmbedTabs;
@@ -362,7 +362,7 @@ const EmailEmbed = ({
   }
 
   const multipleDurations = eventType?.metadata?.multipleDuration ?? [];
-  const durationsOptions = multipleDurations.map((duration) => ({
+  const durationsOptions = multipleDurations.map((duration: any) => ({
     label: `${duration} ${t("minutes")}`,
     value: duration,
   }));
@@ -422,7 +422,7 @@ const EmailEmbed = ({
             <div className="text-default mb-[9px] text-sm">{t("duration")}</div>
             {durationsOptions.length > 0 ? (
               <Select<{ label: string; value: number }>
-                value={durationsOptions.find((option) => option.value === selectedDuration)}
+                value={durationsOptions.find((option: any) => option.value === selectedDuration)}
                 options={durationsOptions}
                 onChange={(option) => {
                   setSelectedDuration(option?.value);
@@ -708,7 +708,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const eventId = embedParams.eventId;
   const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
-  const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
+  const { data: eventTypeData } = trpc.viewer.eventTypes.get.get.useQuery(
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );

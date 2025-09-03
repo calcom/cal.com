@@ -46,11 +46,11 @@ export const useCreateEventType = (
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const createMutation = trpc.viewer.eventTypes.create.useMutation({
+  const createMutation = trpc.viewer.eventTypes.create.do.useMutation({
     onSuccess: async ({ eventType }) => {
       onSuccessMutation(eventType);
 
-      await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
+      await utils.viewer.eventTypes.getEventTypesFromGroup.get.fetchInfinite({
         group: { teamId: eventType.teamId, parentId: eventType.parentId },
         searchQuery: debouncedSearchTerm,
         limit: 10,

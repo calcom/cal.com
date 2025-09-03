@@ -46,7 +46,7 @@ export default function EventTypeWebhookListItem(props: {
       showToast(t("webhook_removed_successfully"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.get.get.invalidate();
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
@@ -56,7 +56,7 @@ export default function EventTypeWebhookListItem(props: {
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.get.get.invalidate();
     },
   });
 

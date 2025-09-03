@@ -3,7 +3,7 @@ import { _generateMetadata } from "app/_utils";
 
 import { ConferencingAppsViewWebWrapper } from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { bulkEventFetchRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/bulkEventFetch/_router";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -17,13 +17,13 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const [appsCaller, eventTypesCaller] = await Promise.all([
     createRouterCaller(appsRouter),
-    createRouterCaller(eventTypesRouter),
+    createRouterCaller(bulkEventFetchRouter),
   ]);
 
   const [integrations, defaultConferencingApp, eventTypesQueryData] = await Promise.all([
     appsCaller.integrations({ variant: "conferencing", onlyInstalled: true }),
     appsCaller.getUsersDefaultConferencingApp(),
-    eventTypesCaller.bulkEventFetch(),
+    eventTypesCaller.get(),
   ]);
 
   return (

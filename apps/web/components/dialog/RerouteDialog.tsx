@@ -315,7 +315,7 @@ const NewRoutingManager = ({
   const enableChosenEventTypeQuery = !!chosenEventTypeId;
   // TODO: Get bare minimum eventType details
   const { data: chosenEventTypeData, isPending: isChosenEventTypePending } =
-    trpc.viewer.eventTypes.get.useQuery(
+    trpc.viewer.eventTypes.get.get.useQuery(
       // enabled prop ensures that the query is not run if the chosenEventTypeId is not there
       { id: chosenEventTypeId! },
       {

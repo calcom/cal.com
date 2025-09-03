@@ -43,7 +43,7 @@ export const SkeletonLoader = () => {
 
 type IntegrationsOutput = RouterOutputs["viewer"]["apps"]["integrations"];
 type DefaultConferencingApp = RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"] | undefined;
-type EventTypesList = RouterOutputs["viewer"]["eventTypes"]["bulkEventFetch"]["eventTypes"];
+type EventTypesList = RouterOutputs["viewer"]["eventTypes"]["bulkEventFetch"]["get"]["eventTypes"];
 
 export const InstalledConferencingApps = ({
   disconnectIntegrationModalCtrl,
@@ -61,7 +61,7 @@ export const InstalledConferencingApps = ({
 
   const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.do.useMutation();
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
     utils.viewer.apps.integrations.invalidate();

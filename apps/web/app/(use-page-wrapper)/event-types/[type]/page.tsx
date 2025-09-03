@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { getRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/get/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -33,7 +33,7 @@ export const generateMetadata = async () => {
 
 const getCachedEventType = unstable_cache(
   async (eventTypeId: number, headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
+    const caller = await createRouterCaller(getRouter, await getTRPCContext(headers, cookies));
     return await caller.get({ id: eventTypeId });
   },
   ["viewer.eventTypes.get"],
@@ -59,7 +59,7 @@ const ServerPage = async ({ params }: PageProps) => {
     throw new Error("This event type does not exist");
   }
 
-  return <EventTypeWebWrapper data={data} id={eventTypeId} />;
+  return <EventTypeWebWrapper data={{ get: data }} id={eventTypeId} />;
 };
 
 export default ServerPage;

@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { getUserEventGroupsRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/getUserEventGroups/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -34,10 +34,10 @@ const getCachedEventGroups = unstable_cache(
     }
   ) => {
     const eventTypesCaller = await createRouterCaller(
-      eventTypesRouter,
+      getUserEventGroupsRouter,
       await getTRPCContext(headers, cookies)
     );
-    return await eventTypesCaller.getUserEventGroups({ filters });
+    return await eventTypesCaller.get({ filters });
   },
   ["viewer.eventTypes.getUserEventGroups"],
   { revalidate: 3600 } // seconds
@@ -61,8 +61,8 @@ const Page = async ({ searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
-      <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
+      CTA={<EventTypesCTA userEventGroupsData={{ get: userEventGroupsData }} />}>
+      <EventTypes userEventGroupsData={{ get: userEventGroupsData }} user={session.user} />
     </ShellMainAppDir>
   );
 };

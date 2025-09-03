@@ -42,7 +42,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: async (data) => {
-      await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      await utils.viewer.eventTypes.getUserEventGroups.get.invalidate();
       revalidateEventTypesList();
       onSuccess(data);
     },

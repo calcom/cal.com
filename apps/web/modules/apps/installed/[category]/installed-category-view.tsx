@@ -48,10 +48,10 @@ const IntegrationsContainer = ({
 
   const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.do.useMutation();
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
-    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+    trpc.viewer.eventTypes.bulkEventFetch.get.useQuery();
 
   const handleUpdateUserDefaultConferencingApp = ({
     appSlug,

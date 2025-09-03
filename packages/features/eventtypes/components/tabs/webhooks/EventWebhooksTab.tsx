@@ -44,7 +44,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       revalidateEventTypeEditPage(eventType.id);
       showToast(t("webhook_updated_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.get.get.invalidate();
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -57,7 +57,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       revalidateEventTypeEditPage(eventType.id);
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.get.get.invalidate();
     },
     onError(error) {
       showToast(`${error.message}`, "error");

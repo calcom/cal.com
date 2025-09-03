@@ -27,7 +27,7 @@ type shortcutArrayType = {
   shortcuts?: string[];
 };
 
-type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
+type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["get"]["eventTypeGroups"];
 type EventTypeGroup = EventTypeGroups[number];
 
 const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
@@ -39,7 +39,7 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
 
 const useEventTypesAction = () => {
   const router = useRouter();
-  const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+  const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.get.useInfiniteQuery(
     {
       limit: 10,
       group: { teamId: null, parentId: null },

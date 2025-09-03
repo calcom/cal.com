@@ -58,7 +58,7 @@ const WorkflowListItem = (props: ItemProps) => {
       revalidateEventTypeEditPage(eventType.id);
       await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
 
-      await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
+      await utils.viewer.eventTypes.get.get.invalidate({ id: eventType.id });
       showToast(
         t("workflow_turned_on_successfully", {
           workflowName: workflow.name,
@@ -174,7 +174,7 @@ const WorkflowListItem = (props: ItemProps) => {
   );
 };
 
-type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["get"]["eventType"];
 
 type Props = {
   eventType: EventTypeSetup;

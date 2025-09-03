@@ -30,7 +30,7 @@ interface Props {
 export function EventTypesList({ table, teamId }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
+  const { data } = trpc.viewer.eventTypes.getByViewer.get.useQuery({
     filters: { teamIds: [teamId], schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
   const addMutation = trpc.viewer.teams.addMembersToEventTypes.useMutation({
