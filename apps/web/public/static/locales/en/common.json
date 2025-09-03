@@ -1561,7 +1561,6 @@
   "webhook_subscriber_url_reserved": "Webhook subscriber url is already defined",
   "custom_input_as_variable_info": "Ignore all special characters of the additional input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
   "using_booking_questions_as_variables": "How do I use booking questions as variables?",
-  "using_form_responses_as_variables": "How do I use form responses as variables?",
   "download_desktop_app": "Download desktop app",
   "set_ping_link": "Set Ping link",
   "rate_limit_exceeded": "Rate limit exceeded",

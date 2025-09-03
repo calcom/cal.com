@@ -1230,16 +1230,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     </div>
                   )}
-                  {!props.readOnly && (
+                  {!props.readOnly && !isFormTrigger(trigger) && (
                     <div className="mt-3">
                       <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                         <div className="text-default mt-2 flex text-sm">
                           <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                          <p className="text-left">
-                            {isFormTrigger(trigger)
-                              ? t("using_form_responses_as_variables")
-                              : t("using_booking_questions_as_variables")}
-                          </p>
+                          {/* Todo: add routing form response variable info here */}
+                          <p className="text-left">{t("using_booking_questions_as_variables")}</p>
                         </div>
                       </button>
                     </div>
