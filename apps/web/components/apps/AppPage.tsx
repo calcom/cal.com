@@ -153,7 +153,7 @@ export const AppPage = ({
    */
   const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
 
-  const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
+  const appDbQuery = trpc.viewer.quarantine.appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
     function refactorMeWithoutEffect() {

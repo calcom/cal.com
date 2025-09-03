@@ -32,7 +32,7 @@ type Props = {
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
+  const query = trpc.viewer.quarantine.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (
     <QueryCell

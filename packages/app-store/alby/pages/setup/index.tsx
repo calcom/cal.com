@@ -8,10 +8,10 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui/components/toast";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 
@@ -75,11 +75,11 @@ function AlbySetupCallback() {
 function AlbySetupPage(props: IAlbySetupProps) {
   const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "alby" });
+  const integrations = trpc.viewer.quarantine.integrations.useQuery({ variant: "payment", appId: "alby" });
   const [albyPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = albyPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
-  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.quarantine.saveKeys.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");
@@ -113,8 +113,10 @@ function AlbySetupPage(props: IAlbySetupProps) {
     });
 
     saveKeysMutation.mutate({
-      credentialId,
-      key: albyCredentialKeysSchema.parse({
+      slug: "alby",
+      dirName: "alby",
+      type: "alby_payment",
+      keys: albyCredentialKeysSchema.parse({
         account_id: accountInfo.identifier,
         account_email: accountInfo.email,
         account_lightning_address: accountInfo.lightning_address,

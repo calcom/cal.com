@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZAppCredentialsByTypeInputSchema } from "../apps/appCredentialsByType.schema";
+import { ZIntegrationsInputSchema } from "../apps/integrations.schema";
 import { bookingsProcedure } from "../bookings/util";
 import { ZAppByIdInputSchema } from "./apps/appById.schema";
 import { ZListLocalInputSchema } from "./apps/listLocal.schema";
@@ -35,6 +37,9 @@ type QuarantineRouterHandlerCache = {
   setDefaultConferencingApp?: typeof import("./apps/setDefaultConferencingApp.handler").setDefaultConferencingAppHandler;
   toggle?: typeof import("./apps/toggle.handler").toggleHandler;
   updateUserDefaultConferencingApp?: typeof import("./apps/updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
+  integrations?: typeof import("../apps/integrations.handler").integrationsHandler;
+  appCredentialsByType?: typeof import("../apps/appCredentialsByType.handler").appCredentialsByTypeHandler;
+  getUsersDefaultConferencingApp?: typeof import("../apps/getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
 
   chargeCard?: typeof import("./payments/chargeCard.handler").chargeCardHandler;
 
@@ -201,6 +206,23 @@ export const quarantineRouter = router({
         input,
       });
     }),
+
+  integrations: authedProcedure.input(ZIntegrationsInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.integrations) {
+      UNSTABLE_HANDLER_CACHE.integrations = await import("../apps/integrations.handler").then(
+        (mod) => mod.integrationsHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.integrations) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.integrations({
+      ctx,
+      input,
+    });
+  }),
 
   chargeCard: authedProcedure.input(ZChargerCardInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.chargeCard) {
@@ -493,6 +515,41 @@ export const quarantineRouter = router({
     return UNSTABLE_HANDLER_CACHE.workflowOrder({
       ctx,
       input,
+    });
+  }),
+
+  appCredentialsByType: authedProcedure
+    .input(ZAppCredentialsByTypeInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
+        UNSTABLE_HANDLER_CACHE.appCredentialsByType = await import(
+          "../apps/appCredentialsByType.handler"
+        ).then((mod) => mod.appCredentialsByTypeHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.appCredentialsByType({
+        ctx,
+        input,
+      });
+    }),
+
+  getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
+      UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp = await import(
+        "../apps/getUsersDefaultConferencingApp.handler"
+      ).then((mod) => mod.getUsersDefaultConferencingAppHandler);
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp({
+      ctx,
     });
   }),
 
