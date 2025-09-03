@@ -5,7 +5,7 @@ export function Logo({
   icon,
   inline = true,
   className,
-  src = "/api/logo",
+  src = "/api/customLogo",
 }: {
   small?: boolean;
   icon?: boolean;
