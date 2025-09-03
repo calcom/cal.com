@@ -230,16 +230,26 @@ export class CallService {
       eventTypeId: eventTypeId.toString(),
     };
 
-    const webCall = await this.retellRepository.createWebCall({
-      agentId: agent.providerAgentId,
-      dynamicVariables,
-    });
-
-    return {
-      callId: webCall.call_id,
-      accessToken: webCall.access_token,
-      agentId: webCall.agent_id,
-    };
+    try {
+      const webCall = await this.retellRepository.createWebCall({
+        agentId: agent.providerAgentId,
+        dynamicVariables,
+      });
+      return {
+        callId: webCall.call_id,
+        accessToken: webCall.access_token,
+        agentId: webCall.agent_id,
+      };
+    } catch (error) {
+      this.logger.error("Failed to create web call in external AI service", {
+        agentId: agent.providerAgentId,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to create web call",
+      });
+    }
   }
 
   private async validateCreditsForTestCall({ userId, teamId }: { userId: number; teamId?: number }) {
