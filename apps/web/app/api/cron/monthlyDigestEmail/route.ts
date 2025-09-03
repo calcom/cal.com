@@ -6,7 +6,6 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
-import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
@@ -114,12 +113,39 @@ async function postHandler(request: NextRequest) {
         },
       };
 
-      const countGroupedByStatus = await EventsInsights.countGroupedByStatus(whereConditional);
+      const countGroupedByStatus = await prisma.bookingTimeStatusDenormalized.groupBy({
+        where: whereConditional,
+        by: ["timeStatus", "noShowHost"],
+        _count: {
+          _all: true,
+        },
+      });
 
-      EventData["Created"] = countGroupedByStatus["_all"];
-      EventData["Completed"] = countGroupedByStatus["completed"];
-      EventData["Rescheduled"] = countGroupedByStatus["rescheduled"];
-      EventData["Cancelled"] = countGroupedByStatus["cancelled"];
+      const statusCounts = countGroupedByStatus.reduce(
+        (aggregate: { [x: string]: number }, item) => {
+          if (typeof item.timeStatus === "string" && item) {
+            aggregate[item.timeStatus] += item?._count?._all ?? 0;
+            aggregate["_all"] += item?._count?._all ?? 0;
+
+            if (item.noShowHost) {
+              aggregate["noShowHost"] += item?._count?._all ?? 0;
+            }
+          }
+          return aggregate;
+        },
+        {
+          completed: 0,
+          rescheduled: 0,
+          cancelled: 0,
+          noShowHost: 0,
+          _all: 0,
+        }
+      );
+
+      EventData["Created"] = statusCounts["_all"];
+      EventData["Completed"] = statusCounts["completed"];
+      EventData["Rescheduled"] = statusCounts["rescheduled"];
+      EventData["Cancelled"] = statusCounts["cancelled"];
 
       // Most Booked Event Type
       const bookingWhere: Prisma.BookingTimeStatusDenormalizedWhereInput = {
