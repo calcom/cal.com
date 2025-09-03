@@ -56,6 +56,11 @@
       "require": "./dist/utils.cjs",
       "types": "./dist/utils.d.ts"
     },
+    "./_utils": {
+      "import": "./dist/_utils.js",
+      "require": "./dist/_utils.cjs",
+      "types": "./dist/_utils.d.ts"
+    },
     "./appStoreMetaData": {
       "import": "./dist/appStoreMetaData.js",
       "require": "./dist/appStoreMetaData.cjs",
