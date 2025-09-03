@@ -311,36 +311,7 @@ export class InputEventTypesService_2024_06_14 {
     existingFields: InputBookingField_2024_06_14[] | null,
     newFields: InputBookingField_2024_06_14[]
   ): InputBookingField_2024_06_14[] {
-    if (!existingFields || existingFields.length === 0) {
-      return newFields;
-    }
-
-    const existingFieldsMap = new Map<string, InputBookingField_2024_06_14>();
-    existingFields.forEach((field) => {
-      const key = this.getFieldIdentifier(field);
-      if (key) {
-        existingFieldsMap.set(key, field);
-      }
-    });
-
-    const newFieldsMap = new Map<string, InputBookingField_2024_06_14>();
-    newFields.forEach((field) => {
-      const key = this.getFieldIdentifier(field);
-      if (key) {
-        newFieldsMap.set(key, field);
-      }
-    });
-
-    const mergedFields = [...newFields];
-
-    existingFields.forEach((existingField) => {
-      const key = this.getFieldIdentifier(existingField);
-      if (key && !newFieldsMap.has(key)) {
-        mergedFields.push(existingField);
-      }
-    });
-
-    return mergedFields;
+    return newFields;
   }
 
   private getFieldIdentifier(field: InputBookingField_2024_06_14): string | null {

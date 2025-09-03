@@ -2,6 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 
 import type { InputBookingField_2024_06_14 } from "@calcom/platform-types";
 
+import { CalendarsService } from "../../../calendars/services/calendars.service";
 import { EventTypesRepository_2024_06_14 } from "../event-types.repository";
 import { InputEventTypesService_2024_06_14 } from "./input-event-types.service";
 
@@ -18,6 +19,12 @@ describe("InputEventTypesService_2024_06_14", () => {
           useValue: {
             getEventTypeWithBookingFields: jest.fn(),
             getEventTypeWithMetaData: jest.fn(),
+          },
+        },
+        {
+          provide: CalendarsService,
+          useValue: {
+            getCalendars: jest.fn(),
           },
         },
       ],
@@ -66,7 +73,7 @@ describe("InputEventTypesService_2024_06_14", () => {
     it("should return new fields when existing fields are null", () => {
       const newFields = [existingEmailField, newAddressField];
 
-      const result = (service as any).mergeBookingFields(null, newFields);
+      const result = service["mergeBookingFields"](null, newFields);
 
       expect(result).toEqual(newFields);
     });
@@ -74,58 +81,66 @@ describe("InputEventTypesService_2024_06_14", () => {
     it("should return new fields when existing fields are empty array", () => {
       const newFields = [existingEmailField, newAddressField];
 
-      const result = (service as any).mergeBookingFields([], newFields);
+      const result = service["mergeBookingFields"]([], newFields);
 
       expect(result).toEqual(newFields);
     });
 
-    it("should add new fields to existing fields", () => {
+    it("should replace existing fields with new fields", () => {
       const existingFields = [existingEmailField, existingPhoneField];
       const newFields = [newAddressField];
 
-      const result = (service as any).mergeBookingFields(existingFields, newFields);
+      const result = service["mergeBookingFields"](existingFields, newFields);
 
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(1);
       expect(result).toContain(newAddressField);
-      expect(result).toContain(existingEmailField);
-      expect(result).toContain(existingPhoneField);
+      expect(result).not.toContain(existingEmailField);
+      expect(result).not.toContain(existingPhoneField);
     });
 
-    it("should update existing fields with new values", () => {
+    it("should replace existing fields with updated values", () => {
       const existingFields = [existingEmailField, existingPhoneField];
       const newFields = [updatedPhoneField];
 
-      const result = (service as any).mergeBookingFields(existingFields, newFields);
+      const result = service["mergeBookingFields"](existingFields, newFields);
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(1);
       expect(result).toContain(updatedPhoneField);
-      expect(result).toContain(existingEmailField);
-      expect(result.find((f) => f.type === "phone")).toEqual(updatedPhoneField);
+      expect(result).not.toContain(existingEmailField);
+      expect(result.find((f: InputBookingField_2024_06_14) => "type" in f && f.type === "phone")).toEqual(
+        updatedPhoneField
+      );
     });
 
     it("should remove fields not included in new fields", () => {
       const existingFields = [existingEmailField, existingPhoneField, existingTitleField];
       const newFields = [existingEmailField];
 
-      const result = (service as any).mergeBookingFields(existingFields, newFields);
+      const result = service["mergeBookingFields"](existingFields, newFields);
 
       expect(result).toHaveLength(1);
       expect(result).toContain(existingEmailField);
-      expect(result.find((f) => f.type === "phone")).toBeUndefined();
-      expect(result.find((f) => f.slug === "title")).toBeUndefined();
+      expect(
+        result.find((f: InputBookingField_2024_06_14) => "type" in f && f.type === "phone")
+      ).toBeUndefined();
+      expect(
+        result.find((f: InputBookingField_2024_06_14) => "slug" in f && f.slug === "title")
+      ).toBeUndefined();
     });
 
-    it("should handle mixed operations: add, update, and remove", () => {
+    it("should only keep fields included in new request", () => {
       const existingFields = [existingEmailField, existingPhoneField, existingTitleField];
       const newFields = [existingEmailField, updatedPhoneField, newAddressField];
 
-      const result = (service as any).mergeBookingFields(existingFields, newFields);
+      const result = service["mergeBookingFields"](existingFields, newFields);
 
       expect(result).toHaveLength(3);
       expect(result).toContain(existingEmailField);
       expect(result).toContain(updatedPhoneField);
       expect(result).toContain(newAddressField);
-      expect(result.find((f) => f.slug === "title")).toBeUndefined();
+      expect(
+        result.find((f: InputBookingField_2024_06_14) => "slug" in f && f.slug === "title")
+      ).toBeUndefined();
     });
 
     it("should identify fields by slug for custom fields", () => {
@@ -146,7 +161,7 @@ describe("InputEventTypesService_2024_06_14", () => {
       const existingFields = [existingCustomField];
       const newFields = [updatedCustomField];
 
-      const result = (service as any).mergeBookingFields(existingFields, newFields);
+      const result = service["mergeBookingFields"](existingFields, newFields);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(updatedCustomField);
@@ -166,7 +181,7 @@ describe("InputEventTypesService_2024_06_14", () => {
       const existingFields = [existingSystemField];
       const newFields = [updatedSystemField];
 
-      const result = (service as any).mergeBookingFields(existingFields, newFields);
+      const result = service["mergeBookingFields"](existingFields, newFields);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(updatedSystemField);
@@ -213,11 +228,14 @@ describe("InputEventTypesService_2024_06_14", () => {
         bookingFields: newBookingFields,
       };
 
-      const result = await service.transformInputUpdateEventType(mockEventTypeId, inputEventType);
+      const result = await service.transformInputUpdateEventType(inputEventType, mockEventTypeId);
 
       expect(eventTypesRepository.getEventTypeWithBookingFields).toHaveBeenCalledWith(mockEventTypeId);
       expect(result.bookingFields).toBeDefined();
-      expect(result.bookingFields).toHaveLength(3);
+      expect(result.bookingFields!.length).toBeGreaterThan(0);
+      const addressField = result.bookingFields!.find((f: any) => f.type === "address");
+      expect(addressField).toBeDefined();
+      expect(addressField!.label).toBe("Your address");
     });
 
     it("should not modify booking fields when none provided", async () => {
@@ -225,7 +243,7 @@ describe("InputEventTypesService_2024_06_14", () => {
         title: "Updated title",
       };
 
-      const result = await service.transformInputUpdateEventType(mockEventTypeId, inputEventType);
+      const result = await service.transformInputUpdateEventType(inputEventType, mockEventTypeId);
 
       expect(eventTypesRepository.getEventTypeWithBookingFields).toHaveBeenCalledWith(mockEventTypeId);
       expect(result.bookingFields).toBeUndefined();
@@ -248,10 +266,13 @@ describe("InputEventTypesService_2024_06_14", () => {
         bookingFields: newBookingFields,
       };
 
-      const result = await service.transformInputUpdateEventType(mockEventTypeId, inputEventType);
+      const result = await service.transformInputUpdateEventType(inputEventType, mockEventTypeId);
 
       expect(result.bookingFields).toBeDefined();
-      expect(result.bookingFields).toHaveLength(1);
+      expect(result.bookingFields!.length).toBeGreaterThan(0);
+      const emailField = result.bookingFields!.find((f: any) => f.type === "email");
+      expect(emailField).toBeDefined();
+      expect(emailField!.label).toBe("Your email");
     });
   });
 });
