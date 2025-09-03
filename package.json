@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
-    "app-store:build": "yarn app-store-cli build",
+    "app-store:build": "yarn turbo build --filter=@calcom/app-store-cli",
     "app-store:watch": "yarn app-store-cli watch",
     "app-store": "yarn app-store-cli cli",
     "create-app": "yarn app-store create",
