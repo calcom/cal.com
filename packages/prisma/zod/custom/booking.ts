@@ -1,7 +1,7 @@
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { routingFormResponseInDbSchema } from "@calcom/lib/zod/routingFormResponse";
+import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import { CreationSource } from "@calcom/prisma/enums";
 
 export const bookingCreateBodySchema = z.object({
