@@ -476,7 +476,7 @@
         "../../packages/app-store/**/pages/**",
         "../../packages/app-store-cli/src/**"
       ],
-      "outputs": ["../../packages/app-store/apps.server.generated.ts", "../../packages/*.generated.tsx"],
+      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"],
       "env": ["NEXT_PUBLIC_IS_E2E"]
     },
     "@calcom/embed-react#type-check": {
