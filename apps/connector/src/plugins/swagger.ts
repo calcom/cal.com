@@ -88,8 +88,9 @@ Server will differentiate automatically.
         },
         tags: [
           { name: "Health", description: "Health check endpoints" },
-          { name: "Users", description: "User management endpoints" },
           { name: "Admin", description: "Admin endpoints (requires admin role)" },
+          { name: "Users", description: "User management endpoints" },
+          { name: "Event Types", description: "Event type management endpoints" },
         ],
       },
       hideUntagged: true,

@@ -22,10 +22,10 @@ export interface ApiResponse<T = any> {
   };
 }
 
-export interface PaginationQuery {
+export interface PaginationQuery<T extends object = Prisma.UserOrderByWithRelationInput> {
   page?: number;
   limit?: number;
-  orderBy?: keyof Prisma.UserOrderByWithRelationInput;
+  orderBy?: keyof T;
   orderDir?: "asc" | "desc";
 }
 

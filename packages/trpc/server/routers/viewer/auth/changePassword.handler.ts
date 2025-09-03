@@ -1,6 +1,6 @@
 import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
-import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { verifyKeycloakPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -40,12 +40,23 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   });
 
   const currentPassword = currentPasswordQuery?.hash;
+  const currentHash = currentPasswordQuery?.salt;
 
-  if (!currentPassword) {
+  if (!currentPassword || !currentHash) {
     throw new TRPCError({ code: "NOT_FOUND", message: "MISSING_PASSWORD" });
   }
 
-  const passwordsMatch = await verifyPassword(oldPassword, currentPassword);
+  // const passwordsMatch = await verifyPassword(oldPassword, currentPassword);
+
+  const passwordsMatch = verifyKeycloakPassword({
+    inputPassword: oldPassword,
+    storedHashBase64: currentPassword,
+    saltBase64: currentHash,
+    iterations: 27500,
+  });
+
+  console.log("passwordsMatch", passwordsMatch);
+
   if (!passwordsMatch) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "incorrect_password" });
   }

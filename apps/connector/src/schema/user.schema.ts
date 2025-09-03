@@ -1,6 +1,8 @@
+import type { PaginationQuery } from "@/types";
 import z from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 
+import type { Prisma } from "@calcom/prisma/client";
 import { UserPermissionRole } from "@calcom/prisma/client";
 
 //REQUEST SCHEMAS
@@ -42,6 +44,8 @@ const updateUserBodySchema = createUserBodySchema.partial().extend({
 });
 
 export { getUsersQuerySchema, createUserBodySchema, updateUserBodySchema };
+
+export type UserPaginationQuery = PaginationQuery<Prisma.UserOrderByWithRelationInput>;
 
 //RESPONSE SCHEMAS
 export const UserResponseSchema = z.object({

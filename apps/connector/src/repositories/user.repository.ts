@@ -1,4 +1,4 @@
-import type { PaginationQuery } from "@/types";
+import type { UserPaginationQuery } from "@/schema/user.schema";
 import { NotFoundError } from "@/utils/error";
 
 import type { PrismaClient } from "@calcom/prisma/client";
@@ -55,7 +55,7 @@ export class UserRepository extends BaseRepository<User> {
     }
   }
 
-  async findMany(filters: Prisma.UserWhereInput = {}, pagination: PaginationQuery = {}) {
+  async findMany(filters: Prisma.UserWhereInput = {}, pagination: UserPaginationQuery = {}) {
     const { username, name, email, role, emailVerified } = filters;
 
     const where: Prisma.UserWhereInput = {};
@@ -80,13 +80,14 @@ export class UserRepository extends BaseRepository<User> {
       where.emailVerified = emailVerified ? { not: null } : null;
     }
 
-    const paginationOptions = this.buildPaginationOptions(pagination);
-
     return this.executePaginatedQuery(
-      () =>
+      pagination, // First parameter: pagination query
+      (
+        options // Second parameter: findManyFn
+      ) =>
         this.prisma.user.findMany({
           where,
-          ...paginationOptions,
+          ...options, // Use the options parameter instead of paginationOptions
           select: {
             id: true,
             email: true,
@@ -97,8 +98,7 @@ export class UserRepository extends BaseRepository<User> {
             username: true,
           },
         }),
-      () => this.prisma.user.count({ where }),
-      pagination
+      () => this.prisma.user.count({ where }) // Third parameter: countFn
     );
   }
 

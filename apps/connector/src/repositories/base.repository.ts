@@ -2,7 +2,6 @@ import type { PaginationQuery } from "@/types";
 import { DatabaseError } from "@/utils/error";
 
 import type { PrismaClient } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
 
 export abstract class BaseRepository<T extends { id: number | string }> {
   constructor(protected prisma: PrismaClient) {}
@@ -25,27 +24,36 @@ export abstract class BaseRepository<T extends { id: number | string }> {
     throw new DatabaseError(`Database operation failed: ${operation}`, error);
   }
 
-  protected buildPaginationOptions(query: PaginationQuery) {
+  protected buildPaginationOptions<T extends object>(query: PaginationQuery<T>) {
     const { page = 1, limit = 10, orderBy, orderDir = "desc" } = query;
 
     return {
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: orderBy
-        ? ({ [orderBy]: orderDir } as Prisma.UserOrderByWithRelationInput)
-        : ({ createdDate: "desc" } as Prisma.UserOrderByWithRelationInput),
+      ...(orderBy ? { orderBy: { [orderBy]: orderDir } } : {}),
     };
   }
 
-  protected async executePaginatedQuery<TResult>(
-    findManyFn: () => Promise<TResult[]>,
-    countFn: () => Promise<number>,
-    query: PaginationQuery
+  protected async executePaginatedQuery<TResult, TOrderBy extends object>(
+    query: PaginationQuery<TOrderBy>,
+    findManyFn: (options: {
+      skip: number;
+      take: number;
+      orderBy: TOrderBy | undefined;
+    }) => Promise<TResult[]>,
+    countFn: () => Promise<number>
   ) {
     const { page = 1, limit = 10 } = query;
 
     try {
-      const [data, total] = await Promise.all([findManyFn(), countFn()]);
+      const rawOptions = this.buildPaginationOptions(query);
+      const options = {
+        skip: rawOptions.skip,
+        take: rawOptions.take,
+        orderBy: rawOptions.orderBy as TOrderBy | undefined,
+      };
+
+      const [data, total] = await Promise.all([findManyFn(options), countFn()]);
 
       return {
         data,

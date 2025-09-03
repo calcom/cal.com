@@ -13,7 +13,7 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(
     async function (fastify: FastifyInstance) {
       // Apply authentication middleware to ALL public routes registered here
-      // fastify.addHook("preHandler", AuthGuards.authenticateFlexible());
+      fastify.addHook("preHandler", AuthGuards.authenticateFlexible());
 
       // All your public routes now inherit authentication automatically
       await fastify.register(publicRoutes);
