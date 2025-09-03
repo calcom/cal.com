@@ -117,6 +117,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           slug: seatedEventTypeSlug,
           length: 60,
           seatsPerTimeSlot: 3,
+          seatsShowAttendees: true,
         },
         user.id
       );
