@@ -88,6 +88,14 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   verifiedAt: Date | null;
 };
 
+export type ScheduleTextReminderArgsWithRequiredFields = Omit<
+  ScheduleTextReminderArgs,
+  "reminderPhone" | "sender"
+> & {
+  reminderPhone: string; // Required, not nullable
+  sender: string; // Required, not nullable
+};
+
 export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   const { reminderPhone, sender, verifiedAt, workflowStepId, action, userId, teamId, isVerificationPending } =
     args;
@@ -102,7 +110,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   }
 
   const senderID = getSenderId(reminderPhone, sender || SENDER_ID);
-
   const params: ScheduleTextReminderArgs = {
     ...args,
     sender: senderID,
@@ -126,16 +133,25 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
 
   if (!reminderPhone || !isNumberVerified) {
     log.warn(`No phone number or not verified`, safeStringify({ reminderPhone, isNumberVerified }));
+    return; // Early return if no valid phone
   }
 
   if (params.evt) {
-    await scheduleSMSReminderForEvt(params);
+    await scheduleSMSReminderForEvt(
+      params as ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
+    );
   } else {
-    scheduleSMSReminderForForm(params);
+    scheduleSMSReminderForForm(
+      params as ScheduleTextReminderArgsWithRequiredFields & {
+        formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
+      }
+    );
   }
 };
 
-const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
+const scheduleSMSReminderForEvt = async (
+  args: ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
+) => {
   const {
     evt,
     reminderPhone,
@@ -289,7 +305,9 @@ const scheduleSMSReminderForEvt = async (args: ScheduleTextReminderArgs & { evt:
 };
 
 const scheduleSMSReminderForForm = async (
-  args: ScheduleTextReminderArgs & { formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES } }
+  args: ScheduleTextReminderArgsWithRequiredFields & {
+    formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
+  }
 ) => {
   log.error("Form triggers are not yet supported for SMS sending");
 };

@@ -17,7 +17,12 @@ import {
   getContentVariablesForTemplate,
 } from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
-import type { ScheduleTextReminderArgs, timeUnitLowerCase, BookingInfo } from "./smsReminderManager";
+import type {
+  ScheduleTextReminderArgs,
+  timeUnitLowerCase,
+  BookingInfo,
+  ScheduleTextReminderArgsWithRequiredFields,
+} from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -28,19 +33,34 @@ import {
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
 export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
-  if (!args.verifiedAt) {
+  const { verifiedAt, workflowStepId, evt, reminderPhone } = args;
+  if (!verifiedAt) {
     log.warn(`Workflow step ${args.workflowStepId} not verified`);
     return;
   }
 
-  if (args.evt) {
-    await scheduleWhatsappReminderForEvt(args);
+  // Early return if no valid phone number
+  if (!reminderPhone) {
+    log.warn(`No phone number provided for WhatsApp reminder in workflow step ${workflowStepId}`);
+    return;
+  }
+
+  if (evt) {
+    await scheduleWhatsappReminderForEvt(
+      args as ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
+    );
   } else {
-    await scheduleWhatsappReminderForForm(args);
+    await scheduleWhatsappReminderForForm(
+      args as ScheduleTextReminderArgsWithRequiredFields & {
+        formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
+      }
+    );
   }
 };
 
-const scheduleWhatsappReminderForEvt = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
+const scheduleWhatsappReminderForEvt = async (
+  args: ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
+) => {
   const {
     evt,
     reminderPhone,
@@ -275,7 +295,7 @@ const scheduleWhatsappReminderForEvt = async (args: ScheduleTextReminderArgs & {
 };
 
 const scheduleWhatsappReminderForForm = async (
-  args: ScheduleTextReminderArgs & { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES }
+  args: ScheduleTextReminderArgsWithPhone & { formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES } }
 ) => {
   // TODO: Create scheduleWhatsappReminderForForm function
   throw new Error("Form WhatsApp reminders not yet implemented");
