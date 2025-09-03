@@ -12,6 +12,7 @@ import {
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
+import { InsightsRoutingBaseService } from "@calcom/lib/server/service/InsightsRoutingBaseService";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -20,7 +21,6 @@ import { router } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
-import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
 
 const UserBelongsToTeamInput = z.object({
@@ -841,7 +841,13 @@ export const insightsRouter = router({
     .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
     .query(async ({ ctx, input }) => {
       const { userId, teamId, isAll } = input;
-      return await RoutingEventsInsights.getRoutingFormsForFilters({
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        scope: "user",
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+      });
+      return await insightsRoutingService.getRoutingFormsForFilters({
         userId: ctx.user.id,
         teamId,
         isAll,
@@ -867,7 +873,9 @@ export const insightsRouter = router({
   routingFormResponsesForDownload: userBelongsToTeamProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      const headersPromise = RoutingEventsInsights.getRoutingFormHeaders({
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+
+      const headersPromise = insightsRoutingService.getRoutingFormHeaders({
         userId: ctx.user.id,
         teamId: input.selectedTeamId,
         isAll: input.scope === "org",
@@ -877,14 +885,13 @@ export const insightsRouter = router({
           | undefined,
       });
 
-      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       const dataPromise = insightsRoutingService.getTableData({
         sorting: input.sorting,
         limit: input.limit,
         offset: input.offset,
       });
 
-      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
+      return await insightsRoutingService.getRoutingFormPaginatedResponsesForDownload({
         headersPromise,
         dataPromise,
       });
@@ -899,7 +906,13 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const options = await RoutingEventsInsights.getRoutingFormFieldOptions({
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        scope: "user",
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+      });
+      const options = await insightsRoutingService.getRoutingFormFieldOptions({
         ...input,
         userId: ctx.user.id,
         organizationId: ctx.user.organizationId ?? null,
@@ -926,7 +939,13 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const headers = await RoutingEventsInsights.getRoutingFormHeaders({
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        scope: "user",
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+      });
+      const headers = await insightsRoutingService.getRoutingFormHeaders({
         userId: ctx.user.id,
         teamId: input.teamId ?? null,
         isAll: input.isAll,
@@ -964,7 +983,7 @@ export const insightsRouter = router({
           searchQuery,
         });
 
-        const csvString = objectToCsv(csvData);
+        const csvString = InsightsRoutingBaseService.objectToCsv(csvData);
         const downloadAs = `routed-to-${period}-${dayjs(rest.startDate).format("YYYY-MM-DD")}-${dayjs(
           rest.endDate
         ).format("YYYY-MM-DD")}.csv`;
@@ -1171,26 +1190,4 @@ export async function getEventTypeList({
   });
 
   return eventTypeResult;
-}
-
-function objectToCsv(data: Record<string, string>[]) {
-  if (!data.length) return "";
-
-  const headers = Object.keys(data[0]);
-  const csvRows = [
-    headers.join(","),
-    ...data.map((row) =>
-      headers
-        .map((header) => {
-          const value = row[header]?.toString() || "";
-          // Escape quotes and wrap in quotes if contains comma or newline
-          return value.includes(",") || value.includes("\n") || value.includes('"')
-            ? `"${value.replace(/"/g, '""')}"` // escape double quotes
-            : value;
-        })
-        .join(",")
-    ),
-  ];
-
-  return csvRows.join("\n");
 }

@@ -1,6 +1,15 @@
 import { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import mapKeys from "lodash/mapKeys";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
 import { z } from "zod";
 
+import {
+  RoutingFormFieldType,
+  isValidRoutingFormFieldType,
+} from "@calcom/app-store/routing-forms/lib/FieldTypes";
+import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
@@ -12,6 +21,7 @@ import {
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { readonlyPrisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -1033,5 +1043,289 @@ export class InsightsRoutingBaseService {
     }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
 
     return sortedGroupedByFormAndField;
+  }
+
+  async getRoutingFormsForFilters({
+    userId,
+    teamId,
+    isAll,
+    organizationId,
+  }: {
+    userId: number;
+    teamId?: number;
+    isAll: boolean;
+    organizationId?: number | undefined;
+    routingFormId?: string | undefined;
+  }) {
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
+      teamId,
+      isAll,
+      organizationId,
+    });
+    return await this.prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: {
+            responses: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getRoutingFormFieldOptions({
+    userId,
+    teamId,
+    isAll,
+    routingFormId,
+    organizationId,
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+    isAll: boolean;
+    organizationId?: number | null;
+    routingFormId?: string | null;
+  }) {
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
+      teamId,
+      isAll,
+      routingFormId,
+      organizationId,
+    });
+
+    const routingForms = await this.prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        fields: true,
+      },
+    });
+
+    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+    return fields;
+  }
+
+  async getRoutingFormHeaders({
+    userId,
+    teamId,
+    isAll,
+    organizationId,
+    routingFormId,
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+    isAll: boolean;
+    organizationId?: number | null;
+    routingFormId?: string | null;
+  }) {
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+
+    const routingForms = await this.prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        name: true,
+        fields: true,
+      },
+    });
+
+    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+    const ids = new Set<string>();
+    const headers = (fields || [])
+      .map((f) => {
+        return {
+          id: f.id,
+          label: f.label,
+          type: f.type,
+          options: f.options,
+        };
+      })
+      .filter((field) => {
+        if (!field.label || !isValidRoutingFormFieldType(field.type)) {
+          return false;
+        }
+        if (
+          field.type === RoutingFormFieldType.SINGLE_SELECT ||
+          field.type === RoutingFormFieldType.MULTI_SELECT
+        ) {
+          return field.options && field.options.length > 0;
+        }
+        return true;
+      })
+      .filter((field) => {
+        if (ids.has(field.id)) {
+          return false;
+        } else {
+          ids.add(field.id);
+          return true;
+        }
+      });
+
+    return headers;
+  }
+
+  async getRoutingFormPaginatedResponsesForDownload({
+    headersPromise,
+    dataPromise,
+  }: {
+    headersPromise: ReturnType<typeof InsightsRoutingBaseService.prototype.getRoutingFormHeaders>;
+    dataPromise: ReturnType<typeof InsightsRoutingBaseService.prototype.getTableData>;
+  }) {
+    const [headers, data] = await Promise.all([headersPromise, dataPromise]);
+
+    const dataWithFlatResponse = data.data.map((item) => {
+      const bookingAttendees = item.bookingAttendees || [];
+
+      const fields = (headers || []).reduce((acc, header) => {
+        const id = header.id;
+        const field = item.fields.find((field) => field.fieldId === id);
+        if (!field) {
+          acc[header.label] = "";
+          return acc;
+        }
+        if (header.type === "select") {
+          acc[header.label] = header.options?.find((option) => option.id === field.valueString)?.label;
+        } else if (header.type === "multiselect" && Array.isArray(field.valueStringArray)) {
+          acc[header.label] = field.valueStringArray
+            .map((value) => header.options?.find((option) => option.id === value)?.label)
+            .filter((label): label is string => label !== undefined)
+            .sort()
+            .join(", ");
+        } else if (header.type === "number") {
+          acc[header.label] = field.valueNumber?.toString() || "";
+        } else {
+          acc[header.label] = field.valueString || "";
+        }
+        return acc;
+      }, {} as Record<string, string | undefined>);
+
+      return {
+        "Booking UID": item.bookingUid,
+        "Booking Link": item.bookingUid ? `${WEBAPP_URL}/booking/${item.bookingUid}` : "",
+        "Response ID": item.id,
+        "Form Name": item.formName,
+        "Submitted At": item.createdAt.toISOString(),
+        "Has Booking": item.bookingUid !== null,
+        "Booking Status": item.bookingStatus || "NO_BOOKING",
+        "Booking Created At": item.bookingCreatedAt?.toISOString() || "",
+        "Booking Start Time": item.bookingStartTime?.toISOString() || "",
+        "Booking End Time": item.bookingEndTime?.toISOString() || "",
+        "Assignment Reason": item.bookingAssignmentReason || "",
+        "Routed To Name": item.bookingUserName || "",
+        "Routed To Email": item.bookingUserEmail || "",
+        ...mapKeys(fields, (_, key) => startCase(key)),
+        utm_source: item.utm_source || "",
+        utm_medium: item.utm_medium || "",
+        utm_campaign: item.utm_campaign || "",
+        utm_term: item.utm_term || "",
+        utm_content: item.utm_content || "",
+        ...((bookingAttendees || [])
+          .filter((attendee) => typeof attendee.name === "string" && typeof attendee.email === "string")
+          .reduce((acc, attendee, index) => {
+            acc[`Attendee ${index + 1}`] = `${attendee.name} (${attendee.email})`;
+            return acc;
+          }, {} as Record<string, string>) || {}),
+      };
+    });
+
+    return {
+      data: dataWithFlatResponse,
+      total: data.total,
+    };
+  }
+
+  private async getWhereForTeamOrAllTeams({
+    userId,
+    teamId,
+    isAll,
+    organizationId,
+    routingFormId,
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+    isAll: boolean;
+    organizationId?: number | null;
+    routingFormId?: string | null;
+  }): Promise<Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">> {
+    let teamIds: number[] = [];
+    if (isAll && organizationId) {
+      const teamsFromOrg = await this.prisma.team.findMany({
+        where: {
+          parentId: organizationId,
+        },
+        select: {
+          id: true,
+        },
+      });
+      teamIds = [organizationId, ...teamsFromOrg.map((t) => t.id)];
+    } else if (teamId) {
+      teamIds = [teamId];
+    }
+
+    if (teamIds.length > 0) {
+      const accessibleTeams = await this.prisma.membership.findMany({
+        where: {
+          userId: userId ?? -1,
+          teamId: {
+            in: teamIds,
+          },
+          accepted: true,
+        },
+        select: {
+          teamId: true,
+        },
+      });
+      teamIds = accessibleTeams.map((membership) => membership.teamId);
+    }
+
+    const formsWhereCondition: Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId"> = {
+      ...(teamIds.length > 0
+        ? {
+            teamId: {
+              in: teamIds,
+            },
+          }
+        : {
+            userId: userId ?? -1,
+            teamId: null,
+          }),
+      ...(routingFormId && {
+        id: routingFormId,
+      }),
+    };
+
+    return formsWhereCondition;
+  }
+
+  static objectToCsv(data: Record<string, string>[]) {
+    if (!data.length) return "";
+
+    const headers = Object.keys(data[0]);
+    const csvRows = [
+      headers.join(","),
+      ...data.map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header]?.toString() || "";
+            return value.includes(",") || value.includes("\n") || value.includes('"')
+              ? `"${value.replace(/"/g, '""')}"`
+              : value;
+          })
+          .join(",")
+      ),
+    ];
+
+    return csvRows.join("\n");
   }
 }
