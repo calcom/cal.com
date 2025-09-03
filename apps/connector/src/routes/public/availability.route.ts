@@ -1,4 +1,5 @@
 
+import { AvailabilityService } from '@/services/public/availability.service';
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
@@ -7,6 +8,8 @@ import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { UserService } from '@/services/public/user.service';
+import { availabilityCreationSchema, availabilitySchema } from '@/types/availability';
+
 import { AuthGuards, AuthRequest } from '@/auth/guards';
 import { validateQuery, validateParams } from '@/middlewares/validation';
 import { ResponseFormatter } from '@/utils/response';
@@ -28,14 +31,8 @@ import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billlin
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
-const availabilitySchema = z
-  .object({
-    dateFrom: z.string(),
-    dateTo: z.string(),
-    eventTypeId: stringOrNumber.optional(),
-  })
-
 export async function availabilityRoutes(fastify: FastifyInstance): Promise<void> {
+  const availabilityService = new AvailabilityService(prisma);
   // Route with specific auth methods allowed
   fastify.get('/my-availability', { 
     preHandler: AuthGuards.authenticateFlexible(),
@@ -98,4 +95,59 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
 
       ResponseFormatter.success(reply, {availability: data}, 'User availability retrieved');
       // return {availability: data}
-  });}
+  }),
+
+  fastify.post('/', { 
+    preHandler: AuthGuards.authenticateFlexible(),
+    schema: {
+      description: 'Create a schedule',
+      tags: ['API Auth - Users'],
+      security: [
+        { bearerAuth: [] },
+        { apiKey: [] },
+      ],
+      body: {
+        type: 'object',
+        properties: {
+          scheduleId: {type: 'number'},
+          days: {type:'array'},
+          startTime: {type: 'string'},
+          endTime: {type: 'string'},
+        }
+      },
+      response: {
+        200: {
+          description: 'Created availability',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                availability: {
+                  type: 'object',
+                  additionalProperties: true
+                }
+              },
+            },
+          },
+        },
+        401: {
+          description: "Unauthorized",
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            message: { type: "string" },
+          },
+        },
+      },
+    },
+  }, async (request: AuthRequest, reply: FastifyReply) => {
+    const body = availabilityCreationSchema.parse(request.body);
+
+    const data = await availabilityService.create(body);
+    console.log("Data: ", data);
+
+    return ResponseFormatter.success(reply, {availability: data}, 'Availability created');
+  })}

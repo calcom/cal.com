@@ -95,7 +95,6 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
         properties: {
             name: {type: 'string'},
             timeZone: {type: 'string'},
-            eventTypeId: {type: 'number'},
         }
       },
       response: {
@@ -108,7 +107,7 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
             data: {
               type: 'object',
               properties: {
-                schedules: {
+                schedule: {
                   type: 'object',
                   additionalProperties: true
                 }
@@ -135,5 +134,5 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
     const data = await scheduleService.create(body, id);
     console.log("Data: ", data);
 
-    return ResponseFormatter.success(reply, {schedules: data}, 'User schedules retrieved');
+    return ResponseFormatter.success(reply, {schedule: data}, 'Schedule created');
   })}
