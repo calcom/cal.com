@@ -100,6 +100,23 @@ vi.mock("@calcom/ui/components/tooltip", () => ({
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
+      eventTypes: {
+        get: {
+          useQuery: vi.fn(() => ({
+            data: {
+              eventType: {
+                id: "123",
+                title: "Mocked Event Type",
+                slug: "mocked-event-type",
+                length: 30,
+                schedulingType: "ROUND_ROBIN",
+                team: { slug: "mocked-team" },
+              },
+            },
+            isPending: false,
+          })),
+        },
+      },
       quarantine: {
         appRoutingForms: {
           getResponseWithFormFields: {
@@ -166,23 +183,6 @@ vi.mock("@calcom/trpc/react", () => ({
                     label: "Country",
                     value: "usa",
                   },
-                },
-              },
-              isPending: false,
-            })),
-          },
-        },
-        eventTypes: {
-          get: {
-            useQuery: vi.fn(() => ({
-              data: {
-                eventType: {
-                  id: "123",
-                  title: "Mocked Event Type",
-                  slug: "mocked-event-type",
-                  length: 30,
-                  schedulingType: "ROUND_ROBIN",
-                  team: { slug: "mocked-team" },
                 },
               },
               isPending: false,
