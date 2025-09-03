@@ -96,6 +96,16 @@ export const getEventTypesFromDB = async (id: number) => {
       parent: {
         select: {
           teamId: true,
+          team: {
+            select: {
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
         },
       },
     },
