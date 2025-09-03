@@ -91,7 +91,7 @@ export default function WorkflowListPage({ workflows }: Props) {
       newList[index + increment] = type;
     }
 
-    await utils.viewer.appRoutingForms.forms.cancel();
+    await utils.viewer.quarantine.appRoutingForms.forms.cancel();
 
     mutation.mutate({
       ids: newList?.map((type) => type.id),
