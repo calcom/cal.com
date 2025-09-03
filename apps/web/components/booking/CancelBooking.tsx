@@ -199,12 +199,15 @@ export default function CancelBooking(props: Props) {
                 data-testid="confirm_cancel"
                 disabled={
                   props.isHost &&
-                  (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
+                  (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
                 onClick={async () => {
                   setLoading(true);
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
+
+                  const response = await fetch("/api/csrf", { cache: "no-store" });
+                  const { csrfToken } = await response.json();
 
                   const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
@@ -215,6 +218,7 @@ export default function CancelBooking(props: Props) {
                       seatReferenceUid,
                       cancelledBy: currentUserEmail,
                       internalNote: internalNote,
+                      csrfToken,
                     }),
                     headers: {
                       "Content-Type": "application/json",

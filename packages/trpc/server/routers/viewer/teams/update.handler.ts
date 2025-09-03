@@ -8,7 +8,7 @@ import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -70,7 +70,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     rrTimestampBasis: input.rrTimestampBasis,
   };
 
-  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+  if (
+    input.logo &&
+    (input.logo.startsWith("data:image/png;base64,") ||
+      input.logo.startsWith("data:image/jpeg;base64,") ||
+      input.logo.startsWith("data:image/jpg;base64,"))
+  ) {
     data.logoUrl = await uploadLogo({ teamId: input.id, logo: input.logo });
   } else if (typeof input.logo !== "undefined" && !input.logo) {
     data.logoUrl = null;
@@ -90,7 +95,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.slug = input.slug;
 
     // If we save slug, we don't need the requestedSlug anymore
-    const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+    const metadataParse = teamMetadataStrictSchema.safeParse(prevTeam.metadata);
     if (metadataParse.success) {
       const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
       data.metadata = {

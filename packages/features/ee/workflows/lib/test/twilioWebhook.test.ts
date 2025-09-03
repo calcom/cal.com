@@ -1,5 +1,7 @@
 import { describe, beforeEach, vi, test, expect } from "vitest";
 
+import { CreditUsageType } from "@calcom/prisma/enums";
+
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
   return {
@@ -32,6 +34,11 @@ vi.mock("@calcom/prisma", () => ({
       findUnique: vi.fn().mockResolvedValue(null),
     },
   },
+}));
+
+vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
+  default: vi.fn().mockResolvedValue(null),
+  getPublishedOrgIdFromMemberOrTeamId: vi.fn().mockResolvedValue(null),
 }));
 
 describe("Twilio Webhook Handler", () => {
@@ -73,6 +80,7 @@ describe("Twilio Webhook Handler", () => {
         bookingUid: undefined,
         smsSid: "SM123",
         credits: 0,
+        creditFor: CreditUsageType.SMS,
       });
     });
 
@@ -110,16 +118,13 @@ describe("Twilio Webhook Handler", () => {
         bookingUid: undefined,
         smsSid: "SM123",
         credits: 0,
+        creditFor: CreditUsageType.SMS,
       });
     });
 
     test("should create expense log with null credits if userId is not part of a team", async () => {
       mockFindFirst.mockResolvedValue(null);
       const webhookHandler = (await import("../../../../../../apps/web/pages/api/twilio/webhook")).default;
-
-      vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
-        default: vi.fn().mockResolvedValue(null),
-      }));
 
       const mockRequest = {
         method: "POST",
@@ -150,6 +155,9 @@ describe("Twilio Webhook Handler", () => {
         bookingUid: undefined,
         smsSid: "SM123",
         credits: null,
+        creditFor: CreditUsageType.SMS,
+        smsSegments: undefined,
+        teamId: undefined,
       });
     });
   });

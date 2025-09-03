@@ -150,7 +150,7 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   // If he is invited to a sub-team and is already part of the organization.
   if (
     team.parentId &&
-    UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    new UserRepository(prisma).isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
     return INVITE_STATUS.CAN_BE_INVITED;
   }
@@ -160,10 +160,27 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
     return INVITE_STATUS.USER_PENDING_MEMBER_OF_THE_ORG;
   }
 
+  const hasDifferentOrganizationProfile = invitee.profiles.some((profile) => {
+    const isRegularTeam = !team.isOrganization && !team.parentId;
+    if (isRegularTeam) {
+      // ⚠️ Inviting to a regular team but the user has a profile with some organization
+      return true;
+    }
+
+    const isOrganization = team.isOrganization && !team.parentId;
+    if (isOrganization) {
+      // ⚠️ User has profile with different organization than the organization being invited to
+      return profile.organizationId !== team.id;
+    }
+
+    // ⚠️ User having profile with an organization is invited to join a sub-team that is not part of the organization
+    return profile.organizationId != team.parentId;
+  });
+
   if (
     !ENABLE_PROFILE_SWITCHER &&
-    // Member of an organization is invited to join a team that is not a subteam of the organization
-    invitee.profiles.find((profile) => profile.organizationId != team.parentId)
+    // User having profile with an organization is invited to join a sub-team that is not part of the organization
+    hasDifferentOrganizationProfile
   ) {
     return INVITE_STATUS.USER_MEMBER_OF_OTHER_ORGANIZATION;
   }
@@ -565,7 +582,7 @@ export function getAutoJoinStatus({
 
   const isAutoAcceptEmail = connectionInfoMap[invitee.email].autoAccept;
   const isUserMemberOfTheTeamsParentOrganization = team.parentId
-    ? UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    ? new UserRepository(prisma).isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
     : null;
 
   if (isUserMemberOfTheTeamsParentOrganization) {
@@ -828,7 +845,7 @@ export async function handleExistingUsersInvites({
     if (parentOrganization) {
       const parsedOrg = getParsedTeam(parentOrganization);
       // Create profiles if needed
-      await Promise.all([
+      await Promise.all(
         autoJoinUsers
           .concat(regularUsers)
           .filter((u) => u.needToCreateProfile)
@@ -841,8 +858,8 @@ export async function handleExistingUsersInvites({
               },
               organizationId: parsedOrg.id,
             })
-          ),
-      ]);
+          )
+      );
     }
   } else {
     const organization = team;
@@ -877,6 +894,22 @@ export async function handleExistingUsersInvites({
             role: user.newRole,
           },
         });
+
+        // If auto-accepting into org, also accept any pending sub-team memberships
+        if (shouldAutoAccept) {
+          await prisma.membership.updateMany({
+            where: {
+              userId: user.id,
+              accepted: false,
+              team: {
+                parentId: organization.id,
+              },
+            },
+            data: {
+              accepted: true,
+            },
+          });
+        }
         return {
           ...user,
           profile,

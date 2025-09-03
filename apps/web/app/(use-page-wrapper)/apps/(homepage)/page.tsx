@@ -5,6 +5,8 @@ import { getAppManifest, getAppCategories } from "@calcom/app-store/manifest";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload } from "@calcom/types/App";
+import prisma from "@calcom/prisma";
+import type { AppCategories } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -29,7 +31,8 @@ const ServerPage = async () => {
 
   let userAdminTeamsIds: number[] = [];
   if (session?.user?.id) {
-    const userAdminTeams = await UserRepository.getUserAdminTeams(session.user.id);
+    const userRepo = new UserRepository(prisma);
+    const userAdminTeams = await userRepo.getUserAdminTeams({ userId: session.user.id });
     userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
   }
 
