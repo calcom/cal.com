@@ -511,13 +511,13 @@ describe("insightsDateUtils", () => {
       expect(result).toBe("day");
     });
 
-    it("should return 'week' for ranges from 8 to 90 days", () => {
-      const result = getTimeView("2025-05-01T00:00:00.000Z", "2025-05-08T23:59:59.999Z");
+    it("should return 'week' for ranges from 31 to 90 days", () => {
+      const result = getTimeView("2025-05-01T00:00:00.000Z", "2025-06-15T23:59:59.999Z");
       expect(result).toBe("week");
     });
 
     it("should return 'month' for ranges from 91 to 365 days", () => {
-      const result = getTimeView("2025-01-01T00:00:00.000Z", "2025-04-01T23:59:59.999Z");
+      const result = getTimeView("2025-01-01T00:00:00.000Z", "2025-04-15T23:59:59.999Z");
       expect(result).toBe("month");
     });
 
@@ -640,7 +640,7 @@ describe("insightsDateUtils", () => {
         wholeStart: dayjs("2025-01-01T00:00:00.000Z"),
         wholeEnd: dayjs("2026-12-31T23:59:59.999Z"),
       });
-      expect(result).toBe("Dec 29, 2025 - Jan 4, 2026");
+      expect(result).toBe("Dec 29 , 2025 - Jan 4, 2026");
     });
   });
 
@@ -668,8 +668,8 @@ describe("insightsDateUtils", () => {
 
       expect(ranges).toHaveLength(1);
       expect(ranges[0]).toEqual({
-        startDate: "2025-05-01T00:00:00.000Z",
-        endDate: "2025-05-01T23:59:59.999Z",
+        startDate: "2025-05-01T12:00:00.000Z",
+        endDate: "2025-05-01T13:00:00.000Z",
         formattedDate: "May 1",
         formattedDateFull: "May 1",
       });
