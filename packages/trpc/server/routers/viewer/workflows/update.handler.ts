@@ -261,6 +261,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       })),
     });
   } else {
+    //todo: important org workflows need to be fixed
     // todo: I think this doesn't work for form triggers, I won't reach this code
     // activeOn are team ids
     if (userWorkflow.isActiveOnAll) {
@@ -792,8 +793,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
   }
-
-  //todo: need to supports forms
 
   // Remove or add attendeePhoneNumber field for AI phone call actions
   const aiPhoneCallStepsNeeded =

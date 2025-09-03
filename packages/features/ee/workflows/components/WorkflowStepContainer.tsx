@@ -1222,7 +1222,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                         <div className="text-default mt-2 flex text-sm">
                           <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                          {/* Todo: add routing form response variable info here */}
                           <p className="text-left">{t("using_booking_questions_as_variables")}</p>
                         </div>
                       </button>
@@ -1333,11 +1332,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
-              <h1 className="w-full text-xl font-semibold">
-                {isFormTrigger(trigger)
-                  ? t("how_form_responses_as_variables")
-                  : t("how_booking_questions_as_variables")}
-              </h1>
+              <h1 className="w-full text-xl font-semibold"> {t("how_booking_questions_as_variables")}</h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
