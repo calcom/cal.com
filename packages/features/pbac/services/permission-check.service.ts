@@ -1,5 +1,4 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { IS_CALCOM } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import prisma from "@calcom/prisma";
@@ -17,7 +16,7 @@ import type {
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
 
-const DOGFOOD_PBAC_INTERNALLY = IS_CALCOM;
+const DOGFOOD_PBAC_INTERNALLY = true;
 
 export class PermissionCheckService {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;

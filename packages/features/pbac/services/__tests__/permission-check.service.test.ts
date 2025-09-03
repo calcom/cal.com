@@ -14,13 +14,6 @@ vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/lib/server/repository/membership");
 vi.mock("../permission.service");
-vi.mock("@calcom/lib/constants", async () => {
-  const actual = await vi.importActual("@calcom/lib/constants");
-  return {
-    ...actual,
-    IS_CALCOM: true,
-  };
-});
 
 type MockRepository = {
   [K in keyof IPermissionRepository]: Mock;
