@@ -69,14 +69,9 @@ export const EventDuration = ({
   const isEmbed = useIsEmbed();
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
-    // For multi-duration or dynamic events, set only once on mount and preserve user picks.
-    const hasMultiple = !!event.metadata?.multipleDuration;
-    if (
-      (selectedDuration == null && (hasMultiple || isDynamicEvent)) ||
-      (!hasMultiple && !isDynamicEvent && selectedDuration !== event.length)
-    ) {
+    // Only store event duration in url if event has multiple durations.
+    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
       setSelectedDuration(event.length);
-    }
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   useEffect(() => {
