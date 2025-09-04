@@ -306,6 +306,17 @@ model DestinationCalendar {
   @@index([credentialId])
 }
 
+enum UserPlan {
+  INDIVIDUALS
+  TEAMS
+  ORGANIZATIONS
+  ENTERPRISE
+  PLATFORM_STARTER
+  PLATFORM_ESSENTIALS
+  PLATFORM_SCALE
+  PLATFORM_ENTERPRISE
+}
+
 enum UserPermissionRole {
   USER
   ADMIN
@@ -446,6 +457,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  plan                           UserPlan?
 
   @@unique([email])
   @@unique([email, username])
