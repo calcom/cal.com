@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Vereisen dat extra opmerkingen worden ingevuld tijdens het boeken",
   "email_address_action": "e-mail versturen naar een specifiek e-mailadres",
   "after_event_trigger": "na afloop van gebeurtenis",
+  "booking_rejected_trigger": "wanneer boeking wordt geweigerd",
+  "booking_requested_trigger": "wanneer boeking wordt aangevraagd",
+  "booking_payment_initiated_trigger": "wanneer betaling voor boeking wordt gestart",
+  "booking_paid_trigger": "wanneer betaling voor boeking succesvol is",
+  "booking_no_show_updated_trigger": "wanneer boeking no-show wordt bijgewerkt",
   "how_long_after": "Hoelang na afloop van de gebeurtenis?",
   "how_long_after_hosts_no_show": "Hoe lang nadat hosts niet verschijnen bij een cal videovergadering?",
   "how_long_after_guests_no_show": "Hoe lang nadat gasten niet verschijnen bij een cal videovergadering?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Overweeg een organisatie op te zetten om facturering, beheerderstools en analyses voor je teams te verenigen.",
   "search_variables": "Variabelen zoeken",
   "no_variables_found": "Geen variabelen gevonden",
+  "api_key_name_too_long": "Naam mag niet langer zijn dan {{max}} tekens",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Vyžadovať vyplnenie dodatočných poznámok pri rezervácii",
   "email_address_action": "poslať email na konkrétnu emailovú adresu",
   "after_event_trigger": "po skončení udalosti",
+  "booking_rejected_trigger": "keď je rezervácia odmietnutá",
+  "booking_requested_trigger": "keď je rezervácia vyžiadaná",
+  "booking_payment_initiated_trigger": "keď je platba za rezerváciu iniciovaná",
+  "booking_paid_trigger": "keď je platba za rezerváciu úspešná",
+  "booking_no_show_updated_trigger": "keď je neúčasť na rezervácii aktualizovaná",
   "how_long_after": "Ako dlho po skončení udalosti?",
   "how_long_after_hosts_no_show": "Ako dlho po tom, čo sa hostitelia nezúčastnia na cal video stretnutí?",
   "how_long_after_guests_no_show": "Ako dlho po tom, čo sa hostia nezúčastnia na cal video stretnutí?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Zvážte vytvorenie organizácie na zjednotenie fakturácie, administratívnych nástrojov a analytiky v rámci vašich tímov.",
   "search_variables": "Vyhľadať premenné",
   "no_variables_found": "Neboli nájdené žiadne premenné",
+  "api_key_name_too_long": "Názov nesmie presiahnuť {{max}} znakov",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

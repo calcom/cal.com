@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Требовать указания дополнительной информации при бронировании",
   "email_address_action": "отправить письмо на указанный адрес электронной почты",
   "after_event_trigger": "после окончания события",
+  "booking_rejected_trigger": "когда бронирование отклонено",
+  "booking_requested_trigger": "когда запрошено бронирование",
+  "booking_payment_initiated_trigger": "когда начата оплата за бронирование",
+  "booking_paid_trigger": "когда оплата за бронирование успешна",
+  "booking_no_show_updated_trigger": "когда обновлен статус отсутствия на встрече",
   "how_long_after": "Спустя какое время после окончания события?",
   "how_long_after_hosts_no_show": "Через какое время после того, как организаторы не появились на видеовстрече cal?",
   "how_long_after_guests_no_show": "Через какое время после того, как гости не появились на видеовстрече cal?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Рассмотрите возможность создания организации для объединения выставления счетов, административных инструментов и аналитики в ваших командах.",
   "search_variables": "Поиск переменных",
   "no_variables_found": "Переменные не найдены",
+  "api_key_name_too_long": "Имя не должно превышать {{max}} символов",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

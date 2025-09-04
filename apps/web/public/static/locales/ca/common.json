@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Requerir que s'omplin notes addicionals en fer la reserva",
   "email_address_action": "enviar correu electrònic a una adreça específica",
   "after_event_trigger": "després que acabi l'esdeveniment",
+  "booking_rejected_trigger": "quan la reserva és rebutjada",
+  "booking_requested_trigger": "quan la reserva és sol·licitada",
+  "booking_payment_initiated_trigger": "quan s'inicia el pagament de la reserva",
+  "booking_paid_trigger": "quan el pagament de la reserva és correcte",
+  "booking_no_show_updated_trigger": "quan s'actualitza la no presentació a la reserva",
   "how_long_after": "Quant temps després que acabi l'esdeveniment?",
   "how_long_after_hosts_no_show": "Quant temps després que els amfitrions no es presentin a la reunió de vídeo de cal?",
   "how_long_after_guests_no_show": "Quant temps després que els convidats no es presentin a la reunió de vídeo de cal?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Considera configurar una organització per unificar la facturació, les eines d'administració i les analítiques dels teus equips.",
   "search_variables": "Cerca variables",
   "no_variables_found": "No s'han trobat variables",
+  "api_key_name_too_long": "El nom no ha de superar els {{max}} caràcters",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

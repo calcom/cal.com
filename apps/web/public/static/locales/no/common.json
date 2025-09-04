@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Krev at tilleggsinformasjon fylles ut når man booker",
   "email_address_action": "sende e-post til en bestemt e-postadresse",
   "after_event_trigger": "etter at hendelsen er ferdig",
+  "booking_rejected_trigger": "når bestilling blir avvist",
+  "booking_requested_trigger": "når bestilling blir forespurt",
+  "booking_payment_initiated_trigger": "når betaling for bestilling blir initiert",
+  "booking_paid_trigger": "når betaling for bestilling er vellykket",
+  "booking_no_show_updated_trigger": "når manglende oppmøte for bestilling blir oppdatert",
   "how_long_after": "Hvor lenge etter at hendelsen er ferdig?",
   "how_long_after_hosts_no_show": "Hvor lenge etter at verter ikke dukker opp på cal videomøte?",
   "how_long_after_guests_no_show": "Hvor lenge etter at gjester ikke dukker opp på cal videomøte?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Vurder å opprette en organisasjon for å samle fakturering, adminverktøy og analyser for teamene dine.",
   "search_variables": "Søk i variabler",
   "no_variables_found": "Ingen variabler funnet",
+  "api_key_name_too_long": "Navnet må ikke overstige {{max}} tegn",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

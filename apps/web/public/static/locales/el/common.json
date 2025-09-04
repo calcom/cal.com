@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Απαίτηση συμπλήρωσης πρόσθετων σημειώσεων κατά την κράτηση",
   "email_address_action": "αποστολή email σε συγκεκριμένη διεύθυνση",
   "after_event_trigger": "μετά τη λήξη του event",
+  "booking_rejected_trigger": "όταν η κράτηση απορρίπτεται",
+  "booking_requested_trigger": "όταν ζητείται κράτηση",
+  "booking_payment_initiated_trigger": "όταν ξεκινά η πληρωμή της κράτησης",
+  "booking_paid_trigger": "όταν η πληρωμή της κράτησης είναι επιτυχής",
+  "booking_no_show_updated_trigger": "όταν ενημερώνεται η μη εμφάνιση στην κράτηση",
   "how_long_after": "Πόσο μετά τη λήξη του event;",
   "how_long_after_hosts_no_show": "Πόσο μετά την απουσία των διοργανωτών από τη συνάντηση βίντεο του cal;",
   "how_long_after_guests_no_show": "Πόσο μετά την απουσία των καλεσμένων από τη συνάντηση βίντεο του cal;",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Σκεφτείτε να δημιουργήσετε έναν οργανισμό για να ενοποιήσετε τη χρέωση, τα εργαλεία διαχείρισης και τα αναλυτικά στοιχεία σε όλες τις ομάδες σας.",
   "search_variables": "Αναζήτηση μεταβλητών",
   "no_variables_found": "Δεν βρέθηκαν μεταβλητές",
+  "api_key_name_too_long": "Το όνομα δεν πρέπει να υπερβαίνει τους {{max}} χαρακτήρες",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Exigir que as notas adicionais sejam preenchidas na reserva",
   "email_address_action": "enviar e-mail para um endereço de e-mail específico",
   "after_event_trigger": "depois do fim do evento",
+  "booking_rejected_trigger": "quando a reserva é rejeitada",
+  "booking_requested_trigger": "quando a reserva é solicitada",
+  "booking_payment_initiated_trigger": "quando o pagamento da reserva é iniciado",
+  "booking_paid_trigger": "quando o pagamento da reserva é bem-sucedido",
+  "booking_no_show_updated_trigger": "quando a falta de comparecimento é atualizada",
   "how_long_after": "Quanto tempo após o fim do evento?",
   "how_long_after_hosts_no_show": "Quanto tempo após os anfitriões não aparecerem na reunião de vídeo do Cal?",
   "how_long_after_guests_no_show": "Quanto tempo após os convidados não aparecerem na reunião de vídeo do Cal?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Considere configurar uma organização para unificar faturação, ferramentas de administração e análises nas suas equipas.",
   "search_variables": "Pesquisar variáveis",
   "no_variables_found": "Nenhuma variável encontrada",
+  "api_key_name_too_long": "O nome não deve exceder {{max}} caracteres",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

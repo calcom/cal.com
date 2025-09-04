@@ -1852,6 +1852,11 @@ checksums:
     require_additional_notes_description: 122b82a7aaa152c0699e515976722d23
     email_address_action: b2781c452a4f0a3f941d3219f4a6034f
     after_event_trigger: c6eee0242d7bf2049809c45c8f83f279
+    booking_rejected_trigger: be181cc910ed632534e2b6568bb7f2db
+    booking_requested_trigger: c5705df48595da5f8de0240d7fb93704
+    booking_payment_initiated_trigger: f3a9f131b7408c8af96ef68a48e071d9
+    booking_paid_trigger: 1b5dea0c7ee29445057f1013abec0a4c
+    booking_no_show_updated_trigger: 9f4554967f8c03d2cd45b9104ee2be7a
     how_long_after: 5869f7636010a4c0afd608b1f369dc49
     how_long_after_hosts_no_show: a1e521c09c91f3c4e016d9900965d3e6
     how_long_after_guests_no_show: 8e1774a854eb638dd78151d6ac314215
@@ -3588,4 +3593,5 @@ checksums:
     consider_consolidating_multi_team_org: c800dc24c5b9d2e7551e00d4550ffbe1
     search_variables: 109713c41acc0d58dcb26bd70f0fa3b3
     no_variables_found: ff245d81f9b63e74656862119685bb55
+    api_key_name_too_long: 1175b1d59bbe58c2a1b1e86de785dce8
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

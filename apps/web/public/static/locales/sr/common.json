@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Zahtevajte da se popune dodatne napomene pre rezervisanja",
   "email_address_action": "pošalji imejl na određene imejl adrese",
   "after_event_trigger": "nakon što se događaj završi",
+  "booking_rejected_trigger": "kada je rezervacija odbijena",
+  "booking_requested_trigger": "kada je rezervacija zatražena",
+  "booking_payment_initiated_trigger": "kada je plaćanje rezervacije inicirano",
+  "booking_paid_trigger": "kada je plaćanje rezervacije uspešno",
+  "booking_no_show_updated_trigger": "kada je ažurirano odsustvo sa rezervacije",
   "how_long_after": "Koliko vremena nakon što se događaj završi?",
   "how_long_after_hosts_no_show": "Koliko dugo nakon što se domaćini ne pojave na Cal video sastanku?",
   "how_long_after_guests_no_show": "Koliko dugo nakon što se gosti ne pojave na Cal video sastanku?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Razmotrite postavljanje organizacije za objedinjavanje naplate, administratorskih alata i analitike za vaše timove.",
   "search_variables": "Pretraži promenljive",
   "no_variables_found": "Nisu pronađene promenljive",
+  "api_key_name_too_long": "Ime ne sme biti duže od {{max}} karaktera",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

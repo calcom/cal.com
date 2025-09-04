@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "বুকিংয়ের সময় অতিরিক্ত নোটগুলি পূরণ করতে হবে",
   "email_address_action": "একটি নির্দিষ্ট ইমেল ঠিকানায় ইমেল প্রেরণ করুন",
   "after_event_trigger": "ঘটনা শেষ হওয়ার পরে",
+  "booking_rejected_trigger": "যখন বুকিং প্রত্যাখ্যান করা হয়",
+  "booking_requested_trigger": "যখন বুকিং অনুরোধ করা হয়",
+  "booking_payment_initiated_trigger": "যখন বুকিং পেমেন্ট শুরু করা হয়",
+  "booking_paid_trigger": "যখন বুকিং পেমেন্ট সফল হয়",
+  "booking_no_show_updated_trigger": "যখন বুকিং নো-শো আপডেট করা হয়",
   "how_long_after": "ইভেন্ট শেষ হওয়ার পরে কতক্ষণ?",
   "how_long_after_hosts_no_show": "হোস্টগুলি কতক্ষণ পরে ক্যাল ভিডিও সভায় প্রদর্শিত হয় না?",
   "how_long_after_guests_no_show": "অতিথিরা কতক্ষণ ক্যাল ভিডিও সভায় প্রদর্শিত হয় না?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "আপনার দলগুলির মধ্যে বিলিং, অ্যাডমিন টুলস এবং অ্যানালিটিক্স একত্রিত করতে একটি সংগঠন সেট আপ করার কথা বিবেচনা করুন।",
   "search_variables": "ভেরিয়েবল অনুসন্ধান করুন",
   "no_variables_found": "কোন ভেরিয়েবল পাওয়া যায়নি",
+  "api_key_name_too_long": "নাম অবশ্যই {{max}} অক্ষরের বেশি হবে না",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑ুষান্ত"
 }

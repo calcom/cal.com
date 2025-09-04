@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Вимагати введення додаткових приміток під час бронювання",
   "email_address_action": "надсилати електронний лист на вказану адресу",
   "after_event_trigger": "після завершення заходу",
+  "booking_rejected_trigger": "коли бронювання відхилено",
+  "booking_requested_trigger": "коли надіслано запит на бронювання",
+  "booking_payment_initiated_trigger": "коли ініційовано оплату за бронювання",
+  "booking_paid_trigger": "коли оплату за бронювання успішно здійснено",
+  "booking_no_show_updated_trigger": "коли оновлено статус відсутності на зустрічі",
   "how_long_after": "Через який час після завершення заходу?",
   "how_long_after_hosts_no_show": "Скільки часу після того, як господарі не з'явилися на відеозустрічі на Cal?",
   "how_long_after_guests_no_show": "Скільки часу після того, як гості не з'явилися на відеозустрічі на Cal?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Розгляньте можливість створення організації для об'єднання оплати, інструментів адміністрування та аналітики у ваших командах.",
   "search_variables": "Пошук змінних",
   "no_variables_found": "Змінних не знайдено",
+  "api_key_name_too_long": "Назва не повинна перевищувати {{max}} символів",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

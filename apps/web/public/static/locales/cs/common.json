@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Požadovat vyplnění doplňujících poznámek při rezervaci",
   "email_address_action": "odeslat e-mail na specifickou e-mailovou adresu",
   "after_event_trigger": "po ukončení události",
+  "booking_rejected_trigger": "když je rezervace zamítnuta",
+  "booking_requested_trigger": "když je rezervace vyžádána",
+  "booking_payment_initiated_trigger": "když je zahájena platba za rezervaci",
+  "booking_paid_trigger": "když je platba za rezervaci úspěšná",
+  "booking_no_show_updated_trigger": "když je aktualizována nepřítomnost na rezervaci",
   "how_long_after": "Jak dlouho po ukončení události?",
   "how_long_after_hosts_no_show": "Jak dlouho po tom, co se hostitelé neobjeví na cal video schůzce?",
   "how_long_after_guests_no_show": "Jak dlouho po tom, co se hosté neobjeví na cal video schůzce?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Zvažte založení organizace pro sjednocení fakturace, administrativních nástrojů a analytiky napříč vašimi týmy.",
   "search_variables": "Hledat proměnné",
   "no_variables_found": "Nebyly nalezeny žádné proměnné",
+  "api_key_name_too_long": "Název nesmí přesáhnout {{max}} znaků",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

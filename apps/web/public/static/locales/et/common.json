@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Nõua broneerimisel lisamärkuste täitmist",
   "email_address_action": "saada e-kiri kindlale e-posti aadressile",
   "after_event_trigger": "pärast sündmuse lõppu",
+  "booking_rejected_trigger": "kui broneeringust keeldutakse",
+  "booking_requested_trigger": "kui broneering on taotletud",
+  "booking_payment_initiated_trigger": "kui broneeringu makse algatatakse",
+  "booking_paid_trigger": "kui broneeringu makse on edukas",
+  "booking_no_show_updated_trigger": "kui broneeringu mitteilmumine on uuendatud",
   "how_long_after": "Kui kaua pärast ürituse lõppu?",
   "how_long_after_hosts_no_show": "Kui kaua pärast seda, kui võõrustajad ei ilmu Cal videokoosolekule?",
   "how_long_after_guests_no_show": "Kui kaua pärast seda, kui külalised ei ilmu Cal videokoosolekule?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Kaaluge organisatsiooni loomist, et ühtlustada arveldamist, haldustööriistu ja analüütikat oma meeskondade vahel.",
   "search_variables": "Otsi muutujaid",
   "no_variables_found": "Muutujaid ei leitud",
+  "api_key_name_too_long": "Nimi ei tohi ületada {{max}} tähemärki",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

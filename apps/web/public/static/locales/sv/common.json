@@ -1855,6 +1855,11 @@
   "require_additional_notes_description": "Kräv ytterligare anteckningar som ska fyllas i vid bokning",
   "email_address_action": "skicka e-post till en specifik e-postadress",
   "after_event_trigger": "efter händelsens slut",
+  "booking_rejected_trigger": "när bokningen avvisas",
+  "booking_requested_trigger": "när bokningen begärs",
+  "booking_payment_initiated_trigger": "när bokningsbetalningen initieras",
+  "booking_paid_trigger": "när bokningsbetalningen är framgångsrik",
+  "booking_no_show_updated_trigger": "när bokningens no-show uppdateras",
   "how_long_after": "Hur länge efter händelsens slut?",
   "how_long_after_hosts_no_show": "Hur länge efter att värdarna inte dyker upp på cal video-mötet?",
   "how_long_after_guests_no_show": "Hur länge efter att gästerna inte dyker upp på cal video-mötet?",
@@ -3591,5 +3596,6 @@
   "consider_consolidating_multi_team_org": "Överväg att skapa en organisation för att förena fakturering, administratörsverktyg och analys för dina team.",
   "search_variables": "Sök variabler",
   "no_variables_found": "Inga variabler hittades",
+  "api_key_name_too_long": "Namnet får inte överstiga {{max}} tecken",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
