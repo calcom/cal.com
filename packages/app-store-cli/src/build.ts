@@ -76,16 +76,7 @@ function generateFiles() {
         const rawConfig = fs.readFileSync(configPath).toString();
         const parsedConfig = JSON.parse(rawConfig);
 
-        try {
-          app = AppMetaSchema.parse(parsedConfig);
-          console.log(`✓ Validated config.json for ${appDirs[i].name}`);
-        } catch (error) {
-          console.warn(
-            `⚠️  Config validation failed for ${appDirs[i].name}:`,
-            error instanceof Error ? error.message : String(error)
-          );
-          app = parsedConfig;
-        }
+        app = AppMetaSchema.parse(parsedConfig);
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         app = require(metadataPath).metadata;
