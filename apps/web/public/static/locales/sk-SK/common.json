@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Zvážte vytvorenie organizácie na zjednotenie fakturácie, administratívnych nástrojov a analytiky v rámci vašich tímov.",
   "search_variables": "Vyhľadať premenné",
   "no_variables_found": "Neboli nájdené žiadne premenné",
+  "api_key_name_too_long": "Názov nesmie presiahnuť {{max}} znakov",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

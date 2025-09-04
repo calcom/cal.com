@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Zvažte založení organizace pro sjednocení fakturace, administrativních nástrojů a analytiky napříč vašimi týmy.",
   "search_variables": "Hledat proměnné",
   "no_variables_found": "Nebyly nalezeny žádné proměnné",
+  "api_key_name_too_long": "Název nesmí přesáhnout {{max}} znaků",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

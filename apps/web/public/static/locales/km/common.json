@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "សូមពិចារណាបង្កើតអង្គភាពមួយដើម្បីបង្រួបបង្រួមការចេញវិក្កយបត្រ ឧបករណ៍គ្រប់គ្រង និងការវិភាគនៅក្នុងក្រុមរបស់អ្នក។",
   "search_variables": "ស្វែងរកអថេរ",
   "no_variables_found": "រកមិនឃើញអថេរទេ",
+  "api_key_name_too_long": "ឈ្មោះមិនត្រូវលើសពី {{max}} តួអក្សរទេ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
