@@ -179,6 +179,20 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
+          name: "@calcom/features",
+          include: ["packages/features/**/*.{test,spec}.tsx"],
+          exclude: [
+            "packages/features/form-builder/**/*",
+            "packages/features/bookings/**/*",
+            "packages/features/eventtypes/**/*"
+          ],
+          environment: "jsdom",
+          setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.tsx"],
+        },
+      },
+      {
+        test: {
+          globals: true,
           name: "@calcom/web/components",
           include: ["apps/web/components/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",

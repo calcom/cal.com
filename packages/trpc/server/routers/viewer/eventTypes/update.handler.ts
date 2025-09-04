@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { randomBytes } from "crypto";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
@@ -20,7 +21,13 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
+import {
+  SchedulingType,
+  EventTypeAutoTranslatedField,
+  RRTimestampBasis,
+  CreationSource,
+} from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -272,6 +279,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (customInputs) {
+    if (!id) throw new Error("Missing eventType id");
     data.customInputs = handleCustomInputs(customInputs, id);
   }
 
@@ -405,98 +413,86 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  // Handle hostGroups updates
-  if (hostGroups !== undefined) {
-    const existingHostGroups = await ctx.prisma.hostGroup.findMany({
-      where: {
-        eventTypeId: id,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
+  if (teamId && hosts) {
+    const emailHosts = hosts.filter((h: { email?: string }) => typeof h.email === "string");
+    const userHosts = hosts.filter((h: { userId?: number }) => typeof h.userId === "number");
 
-    await Promise.all(
-      hostGroups.map(async (group) => {
-        await ctx.prisma.hostGroup.upsert({
-          where: { id: group.id },
-          update: { name: group.name },
-          create: {
-            id: group.id,
-            name: group.name,
-            eventTypeId: id,
-          },
-        });
-      })
-    );
+    // handle invites for email hosts
+    // Create verification tokens for team invites
+    for (const invite of emailHosts) {
+      if (!invite.email) continue;
+      const normalizedEmail = invite.email.trim().toLowerCase();
 
-    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
-
-    // Delete groups that are no longer in the new list
-    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
-
-    if (groupsToDelete.length > 0) {
-      await ctx.prisma.hostGroup.deleteMany({
+      // Check if a verification token already exists for this email and team
+      const existingToken = await ctx.prisma.verificationToken.findFirst({
         where: {
-          id: {
-            in: groupsToDelete.map((group) => group.id),
-          },
+          identifier: normalizedEmail,
+          teamId,
         },
       });
+
+      if (!existingToken) {
+        // Create a new verification token for team invite
+        await ctx.prisma.verificationToken.create({
+          data: {
+            identifier: normalizedEmail,
+            token: randomBytes(32).toString("hex"),
+            expires: new Date(new Date().setHours(168)), // +1 week
+            teamId,
+          },
+        });
+      }
     }
-  }
 
-  if (teamId && hosts) {
-    // check if all hosts can be assigned (memberships that have accepted invite)
-    const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
-    // guard against missing IDs, this may mean a member has just been removed
-    // or this request was forged.
-    // we let this pass through on organization sub-teams
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-      });
+    // Now process userHosts with your existing logic
+    const memberships = await ctx.prisma.membership.findMany({
+      where: {
+        teamId,
+        accepted: true,
+      },
+    });
+    const teamMemberIds = memberships.map((m) => m.userId);
+
+    if (
+      !userHosts.every((host) => teamMemberIds.includes(host.userId as number)) &&
+      !eventType.team?.parentId
+    ) {
+      throw new TRPCError({ code: "FORBIDDEN" });
     }
 
-    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
-
-    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
-    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
-    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+    const oldHostsSet = new Set(eventType.hosts.map((h) => h.userId));
+    const newHostsSet = new Set(userHosts.map((h) => h.userId as number));
+    const existingHosts = userHosts.filter((h) => oldHostsSet.has(h.userId as number));
+    const newHosts = userHosts.filter((h) => !oldHostsSet.has(h.userId as number));
+    const removedHosts = eventType.hosts.filter((h) => !newHostsSet.has(h.userId));
 
     data.hosts = {
       deleteMany: {
-        OR: removedHosts.map((host) => ({
-          userId: host.userId,
+        OR: removedHosts.map((h) => ({
+          userId: h.userId,
           eventTypeId: id,
         })),
       },
-      create: newHosts.map((host) => {
-        return {
-          ...host,
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          groupId: host.groupId,
-        };
-      }),
-      update: existingHosts.map((host) => ({
-        where: {
-          userId_eventTypeId: {
-            userId: host.userId,
-            eventTypeId: id,
+      create: newHosts
+        .filter((h) => typeof h.userId === "number")
+        .map((h) => ({
+          ...h,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
+          priority: h.priority ?? 2,
+          weight: h.weight ?? 100,
+          userId: h.userId as number,
+        })),
+      update: existingHosts
+        .filter((h) => typeof h.userId === "number")
+        .map((h) => ({
+          where: { userId_eventTypeId: { userId: h.userId as number, eventTypeId: id } },
+          data: {
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || h.isFixed,
+            priority: h.priority ?? 2,
+            weight: h.weight ?? 100,
+            scheduleId: h.scheduleId ?? null,
           },
-        },
-        data: {
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          scheduleId: host.scheduleId ?? null,
-          groupId: host.groupId,
-        },
-      })),
+        })),
     };
   }
 
@@ -505,60 +501,145 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       input.metadata.disableStandardEmails.all.host = false;
       input.metadata.disableStandardEmails.all.attendee = false;
     }
-  }
 
-  if (input.metadata?.disableStandardEmails?.confirmation) {
-    //check if user is allowed to disabled standard emails
-    const workflows = await ctx.prisma.workflow.findMany({
-      where: {
-        activeOn: {
-          some: {
-            eventTypeId: input.id,
+    if (input.metadata?.disableStandardEmails?.confirmation) {
+      //check if user is allowed to disabled standard emails
+      const workflows = await ctx.prisma.workflow.findMany({
+        where: {
+          activeOn: {
+            some: {
+              eventTypeId: input.id,
+            },
           },
+          trigger: WorkflowTriggerEvents.NEW_EVENT,
         },
-        trigger: WorkflowTriggerEvents.NEW_EVENT,
-      },
-      include: {
-        steps: true,
-      },
+        include: {
+          steps: true,
+        },
+      });
+
+      if (input.metadata?.disableStandardEmails.confirmation?.host) {
+        if (!allowDisablingHostConfirmationEmails(workflows)) {
+          input.metadata.disableStandardEmails.confirmation.host = false;
+        }
+      }
+
+      if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
+        if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
+          input.metadata.disableStandardEmails.confirmation.attendee = false;
+        }
+      }
+    }
+
+    const apps = eventTypeAppMetadataOptionalSchema.parse(input.metadata?.apps);
+    for (const appKey in apps) {
+      const app = apps[appKey as keyof typeof appDataSchemas];
+      // There should only be one enabled payment app in the metadata
+      if (app.enabled && app.price && app.currency) {
+        data.price = app.price;
+        data.currency = app.currency;
+        break;
+      }
+    }
+    // Handle multiple private links using the service
+    const privateLinksRepo = HashedLinkRepository.create();
+    const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
+    const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
+
+    const privateLinksService = new HashedLinkService();
+    await privateLinksService.handleMultiplePrivateLinks({
+      eventTypeId: input.id,
+      multiplePrivateLinks,
+      connectedMultiplePrivateLinks,
     });
+    // Unified host processing block
+    if (teamId && hosts) {
+      // Separate userId-based and email-based hosts
+      const userIdHosts = hosts.filter((host) => host.userId);
+      const emailHosts = hosts.filter((host) => host.email && host.isPending);
 
-    if (input.metadata?.disableStandardEmails.confirmation?.host) {
-      if (!allowDisablingHostConfirmationEmails(workflows)) {
-        input.metadata.disableStandardEmails.confirmation.host = false;
+      // Validate userId hosts are team members (unless sub-team)
+      const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+      if (
+        !userIdHosts.every((host) => teamMemberIds.includes(host.userId as number)) &&
+        !eventType.team?.parentId
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+        });
       }
-    }
 
-    if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
-      if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
-        input.metadata.disableStandardEmails.confirmation.attendee = false;
+      // Invite email hosts to team as Members
+      if (emailHosts.length > 0) {
+        const { inviteMembersWithNoInviterPermissionCheck } = await import(
+          "../teams/inviteMember/inviteMember.handler"
+        );
+        try {
+          await inviteMembersWithNoInviterPermissionCheck({
+            inviterName: ctx.user?.username ?? null,
+            teamId: teamId,
+            language: ctx.user.locale || "en",
+            creationSource: CreationSource.WEBAPP,
+            orgSlug: eventType.team?.slug || null,
+            invitations: emailHosts
+              .filter((host) => typeof host.email === "string" && host.email)
+              .map((host) => ({
+                usernameOrEmail: host.email as string,
+                role: MembershipRole.MEMBER,
+              })),
+            isDirectUserAction: false,
+          });
+        } catch (error) {
+          console.warn("Failed to invite some email hosts:", error);
+        }
       }
+
+      // Compute create/update/delete for hosts, including scheduleId/groupId
+      const allHosts = [...userIdHosts, ...emailHosts];
+      const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+      const newHostsSet = new Set(allHosts.filter((h) => h.userId).map((host) => host.userId));
+
+      const existingHosts = allHosts.filter((newHost) => newHost.userId && oldHostsSet.has(newHost.userId));
+      const newHosts = allHosts.filter((newHost) => !newHost.userId || !oldHostsSet.has(newHost.userId));
+      const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+
+      data.hosts = {
+        deleteMany: {
+          OR: removedHosts.map((host) => ({
+            userId: host.userId,
+            eventTypeId: id,
+          })),
+        },
+        create: newHosts
+          .filter((host) => typeof host.userId === "number")
+          .map((host) => ({
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+            priority: host.priority ?? 2,
+            weight: host.weight ?? 100,
+            scheduleId: host.scheduleId ?? null,
+            groupId: host.groupId,
+            user: { connect: { id: host.userId as number } },
+          })),
+        update: existingHosts
+          .filter((host) => typeof host.userId === "number")
+          .map((host) => ({
+            where: {
+              userId_eventTypeId: {
+                userId: host.userId as number,
+                eventTypeId: id,
+              },
+            },
+            data: {
+              isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+              priority: host.priority ?? 2,
+              weight: host.weight ?? 100,
+              scheduleId: host.scheduleId ?? null,
+              groupId: host.groupId,
+            },
+          })),
+      };
     }
   }
-
-  const apps = eventTypeAppMetadataOptionalSchema.parse(input.metadata?.apps);
-  for (const appKey in apps) {
-    const app = apps[appKey as keyof typeof appDataSchemas];
-    // There should only be one enabled payment app in the metadata
-    if (app.enabled && app.price && app.currency) {
-      data.price = app.price;
-      data.currency = app.currency;
-      break;
-    }
-  }
-  console.log("multiplePrivateLinks", multiplePrivateLinks);
-  // Handle multiple private links using the service
-  const privateLinksRepo = HashedLinkRepository.create();
-  const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
-  console.log("connectedLinks", connectedLinks);
-  const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
-
-  const privateLinksService = new HashedLinkService();
-  await privateLinksService.handleMultiplePrivateLinks({
-    eventTypeId: input.id,
-    multiplePrivateLinks,
-    connectedMultiplePrivateLinks,
-  });
 
   if (assignAllTeamMembers !== undefined) {
     data.assignAllTeamMembers = assignAllTeamMembers;

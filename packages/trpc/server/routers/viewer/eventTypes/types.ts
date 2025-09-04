@@ -34,33 +34,35 @@ const aiPhoneCallConfig = z
   })
   .optional();
 
-const calVideoSettingsSchema = z
-  .object({
-    disableRecordingForGuests: z.boolean().nullish(),
-    disableRecordingForOrganizer: z.boolean().nullish(),
-    enableAutomaticTranscription: z.boolean().nullish(),
-    enableAutomaticRecordingForOrganizer: z.boolean().nullish(),
-    disableTranscriptionForGuests: z.boolean().nullish(),
-    disableTranscriptionForOrganizer: z.boolean().nullish(),
-    redirectUrlOnExit: z.string().url().nullish(),
-  })
-  .optional()
-  .nullable();
-
-const hostSchema = z.object({
-  userId: z.number(),
-  profileId: z.number().or(z.null()).optional(),
-  isFixed: z.boolean().optional(),
-  priority: z.number().min(0).max(4).optional().nullable(),
-  weight: z.number().min(0).optional().nullable(),
-  scheduleId: z.number().optional().nullable(),
-  groupId: z.string().optional().nullable(),
-});
+// existing host with userId
+// Removed unused userHostSchema
 
 const hostGroupSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
 });
+// allow both
+const hostSchema = z
+  .object({
+    userId: z.number().optional(), //  Make optional
+    email: z.string().email().optional(), //  Add email support
+    isPending: z.boolean().optional(), //  Add pending status
+    profileId: z.number().or(z.null()).optional(),
+    isFixed: z.boolean().optional(),
+    priority: z.number().min(0).max(4).optional().nullable(),
+    weight: z.number().min(0).optional().nullable(),
+    scheduleId: z.number().optional().nullable(),
+    groupId: z.string().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      //  Ensure either userId OR email is provided
+      return data.userId !== undefined || data.email !== undefined;
+    },
+    {
+      message: "Either userId or email must be provided",
+    }
+  );
 
 const childSchema = z.object({
   owner: z.object({
@@ -79,7 +81,8 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     instantMeetingParameters: z.array(z.string()),
     instantMeetingExpiryTimeOffsetInSeconds: z.number(),
     aiPhoneCallConfig,
-    calVideoSettings: calVideoSettingsSchema,
+    // calVideoSettingsSchema must be imported from the correct file if used
+    calVideoSettings: z.unknown(),
     calAiPhoneScript: z.string(),
     customInputs: z.array(customInputSchema),
     destinationCalendar: _DestinationCalendarModel

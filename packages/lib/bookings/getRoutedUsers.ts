@@ -70,7 +70,7 @@ type BaseUser = {
 };
 
 type BaseHost<User extends BaseUser> = {
-  isFixed: boolean;
+  isFixed?: boolean;
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
@@ -121,7 +121,6 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
           email: user.email,
           user: user,
           createdAt: null,
-          groupId: null,
         };
       }),
     };
@@ -143,12 +142,13 @@ export async function getNormalizedHostsWithDelegationCredentials<
 }) {
   if (eventType.hosts?.length && eventType.schedulingType) {
     const hostsWithoutDelegationCredential = eventType.hosts.map((host) => ({
-      isFixed: host.isFixed,
+      isFixed: host.isFixed ?? false,
       user: host.user,
       priority: host.priority,
       weight: host.weight,
-      createdAt: host.createdAt,
-      groupId: host.groupId,
+      createdAt: host.createdAt ?? new Date(),
+      // do not add groupId if undefined to preserve original shape
+      ...(host.groupId !== undefined ? { groupId: host.groupId } : {}),
     }));
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
@@ -201,7 +201,6 @@ export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
     priority?: number | null;
     weight?: number | null;
     createdAt: Date | null;
-    groupId: string | null;
   }[];
 }) {
   const matchingRRTeamMembers = await findMatchingTeamMembersIdsForEventRRSegment({

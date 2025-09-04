@@ -81,18 +81,27 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
   const { hosts, fallbackHosts } = getNormalizedHosts({
     eventType: { ...eventType, hosts: eventType.hosts.filter(Boolean) },
   });
+
   const matchingHosts = await findMatchingHostsWithEventSegment({
     eventType,
-    hosts: hosts ?? fallbackHosts,
+    hosts: (hosts ?? fallbackHosts).map((host) => ({
+      ...host,
+      isFixed: host.isFixed ?? false, // default value
+    })),
   });
-  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt, groupId }) => ({
-    ...user,
-    isFixed,
-    priority,
-    weight,
-    createdAt,
-    groupId,
-  }));
+
+  // Get the full user objects from eventType.users and add isFixed property
+  const userMap = new Map<number, (typeof eventType.users)[0]>(
+    eventType.users.map((user) => [user.id, user] as const)
+  );
+
+  return matchingHosts.map((host) => {
+    const fullUser = userMap.get(host.user.id);
+    if (!fullUser) {
+      throw new Error(`User with id ${host.user.id} not found in eventType.users`);
+    }
+    return { ...fullUser, isFixed: host.isFixed };
+  });
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {
@@ -101,7 +110,7 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
   }
   return findUsersByUsername({
     usernameList: dynamicUserList,
-    orgSlug: !!currentOrgDomain ? currentOrgDomain : null,
+    orgSlug: currentOrgDomain ?? null,
   });
 };
 
@@ -121,6 +130,7 @@ export const findUsersByUsername = async ({
     orgSlug,
     usernameList,
   });
+
   return (
     await prisma.user.findMany({
       where,

@@ -139,6 +139,16 @@ import type { IBookingService } from "./interfaces/IBookingService";
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
+function rehydrateUsersWithFullData<T extends { id: number; isFixed?: boolean }>(
+  users: T[],
+  eventTypeWithUsers: { users: (T & { credentials?: CredentialForCalendarService[] })[] }
+) {
+  return users.map((user) => {
+    const full = eventTypeWithUsers.users.find((u) => u.id === user.id);
+    return { ...(full ?? user), isFixed: !!user.isFixed } as typeof user;
+  });
+}
+
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
@@ -876,13 +886,26 @@ async function handler(
       const nonFixedUsers: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
-        user.isFixed ? fixedUserPool.push(user) : nonFixedUsers.push(user);
+        const host = eventTypeWithUsers.hosts.find((h) => h.user.id === user.id);
+        const userWithFixedFlag = { ...user, isFixed: !!host?.isFixed } as IsFixedAwareUser;
+        host?.isFixed ? fixedUserPool.push(userWithFixedFlag) : nonFixedUsers.push(userWithFixedFlag);
       });
 
-      // Group non-fixed users by their group IDs
-      const luckyUserPools = groupHostsByGroupId({
-        hosts: nonFixedUsers,
+      // Group ALL hosts by their group IDs, then filter to only include available users
+      const allHostsGrouped = groupHostsByGroupId({
+        hosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
         hostGroups: eventType.hostGroups,
+      });
+
+      // Filter each group to only include available users
+      const luckyUserPools: Record<string, typeof users> = {};
+      Object.entries(allHostsGrouped).forEach(([groupId, hosts]) => {
+        const availableHosts = hosts.filter((host) => nonFixedUsers.some((user) => user.id === host.user.id));
+        if (availableHosts.length > 0) {
+          luckyUserPools[groupId] = availableHosts.map(
+            (host) => nonFixedUsers.find((user) => user.id === host.user.id)!
+          );
+        }
       });
 
       const notAvailableLuckyUsers: typeof users = [];
@@ -901,6 +924,9 @@ async function handler(
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
+        // Skip groups that have no available hosts
+        if (luckyUserPool.length === 0) continue;
+
         let luckUserFound = false;
         while (luckyUserPool.length > 0 && !luckUserFound) {
           const freeUsers = luckyUserPool.filter(
@@ -939,6 +965,11 @@ async function handler(
           if (!newLuckyUser) {
             break; // prevent infinite loop
           }
+          // Rehydrate lucky user with full data (including credentials) and enforce isFixed boolean
+          const hydratedLuckyUser = (() => {
+            const full = eventTypeWithUsers.users.find((u) => u.id === newLuckyUser.id);
+            return { ...(full ?? newLuckyUser), isFixed: false } as IsFixedAwareUser;
+          })();
           if (
             input.bookingData.isFirstRecurringSlot &&
             eventType.schedulingType === SchedulingType.ROUND_ROBIN
@@ -955,7 +986,7 @@ async function handler(
                 const end = input.bookingData.allRecurringDates[i].end;
 
                 await ensureAvailableUsers(
-                  { ...eventTypeWithUsers, users: [newLuckyUser] },
+                  { ...eventTypeWithUsers, users: [hydratedLuckyUser] },
                   {
                     dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                     dateTo: dayjs(end).tz(reqBody.timeZone).format(),
@@ -967,25 +998,29 @@ async function handler(
                 );
               }
               // if no error, then lucky user is available for the next slots
-              luckyUsers.push(newLuckyUser);
+              luckyUsers.push(hydratedLuckyUser);
               luckUserFound = true;
             } catch {
-              notAvailableLuckyUsers.push(newLuckyUser);
+              notAvailableLuckyUsers.push(hydratedLuckyUser);
               loggerWithEventDetails.info(
-                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+                `Round robin host ${hydratedLuckyUser.name} not available for first two slots. Trying to find another host.`
               );
             }
           } else {
-            luckyUsers.push(newLuckyUser);
+            luckyUsers.push(hydratedLuckyUser);
             luckUserFound = true;
           }
         }
       }
 
-      // ALL fixed users must be available
-      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
-        throw new Error(ErrorCode.FixedHostsUnavailableForBooking);
+      // Fallback: if no lucky users were found across groups, pick the first available non-fixed user
+      if (luckyUsers.length === 0 && nonFixedUsers.length > 0) {
+        const fallbackUser = nonFixedUsers[0];
+        luckyUsers.push(fallbackUser);
       }
+
+      // ALL fixed users must be available
+      // This validation is not needed since fixedUserPool is constructed from availableUsers filtered by isFixed
 
       const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
@@ -998,16 +1033,13 @@ async function handler(
       const nonEmptyHostGroups = Object.fromEntries(
         Object.entries(hostGroups).filter(([groupId, hosts]) => hosts.length > 0)
       );
-      // If there are RR hosts, we need to find a lucky user
-      if (
-        [...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 &&
-        luckyUsers.length !== (Object.keys(nonEmptyHostGroups).length || 1)
-      ) {
+      // Only throw error if there are no available hosts at all (neither fixed nor round-robin)
+      if (users.length === 0) {
         throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
       }
 
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-      users = [...fixedUserPool, ...luckyUsers];
+      users = rehydrateUsersWithFullData([...fixedUserPool, ...luckyUsers], eventTypeWithUsers);
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
       troubleshooterData = {
         ...troubleshooterData,
@@ -1039,6 +1071,9 @@ async function handler(
     loggerWithEventDetails.error(`No available users found for round robin event.`);
     throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
   }
+
+  // Rehydrate final users with full user objects (ensures credentials are present)
+  users = rehydrateUsersWithFullData(users, { users: eventType.users as any }) as IsFixedAwareUser[];
 
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail

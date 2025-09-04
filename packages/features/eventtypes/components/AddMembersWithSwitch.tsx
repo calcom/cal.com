@@ -1,127 +1,34 @@
-import { useMemo, type ComponentProps, type Dispatch, type SetStateAction } from "react";
+import { useMemo, type Dispatch, type SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import type { Options } from "react-select";
 
+import { AssignAllTeamMembers } from "@calcom/atoms/add-members-switch";
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
 import { AddMembersWithSwitchWebWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchWebWrapper";
+import SettingsToggle from "@calcom/atoms/add-members-switch/SettingsToggle";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Segment } from "@calcom/features/Segment";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type {
   FormValues,
-  Host,
   SettingsToggleClassNames,
   TeamMember,
-} from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { Label } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+  Host,
+  AttributesQueryValue,
+} from "../lib/types";
+import CheckedHostField from "./CheckedHostField";
+import type { CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 
-import AssignAllTeamMembers from "./AssignAllTeamMembers";
-import CheckedTeamSelect from "./CheckedTeamSelect";
-import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
+// Helper function to sort by label
+const sortByLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label);
 
-interface IUserToValue {
-  id: number | null;
-  name: string | null;
-  username: string | null;
-  avatar: string;
-  email: string;
-  defaultScheduleId: number | null;
-}
-
-export const mapUserToValue = (
-  { id, name, username, avatar, email, defaultScheduleId }: IUserToValue,
-  pendingString: string
-) => ({
-  value: `${id || ""}`,
-  label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
-  avatar,
-  email,
-  defaultScheduleId,
+// Helper function to map user to value
+export const mapUserToValue = (user: { id: number; name?: string | null; email: string }) => ({
+  value: user.id.toString(),
+  label: user.name || user.email,
+  avatar: "",
 });
-
-const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
-  if (a.label < b.label) {
-    return -1;
-  }
-  if (a.label > b.label) {
-    return 1;
-  }
-  return 0;
-};
-
-const CheckedHostField = ({
-  labelText,
-  placeholder,
-  options = [],
-  isFixed,
-  value,
-  onChange,
-  helperText,
-  isRRWeightsEnabled,
-  groupId,
-  customClassNames,
-  ...rest
-}: {
-  labelText?: string;
-  placeholder: string;
-  isFixed: boolean;
-  value: Host[];
-  onChange?: (options: Host[]) => void;
-  options?: Options<CheckedSelectOption>;
-  helperText?: React.ReactNode | string;
-  isRRWeightsEnabled?: boolean;
-  groupId: string | null;
-} & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
-  return (
-    <div className="flex flex-col rounded-md">
-      <div>
-        {labelText ? <Label>{labelText}</Label> : <></>}
-        <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
-          onChange={(options) => {
-            onChange &&
-              onChange(
-                options.map((option) => ({
-                  isFixed,
-                  userId: parseInt(option.value, 10),
-                  priority: option.priority ?? 2,
-                  weight: option.weight ?? 100,
-                  scheduleId: option.defaultScheduleId,
-                  groupId: option.groupId,
-                }))
-              );
-          }}
-          value={(value || [])
-            .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
-            .reduce((acc, host) => {
-              const option = options.find((member) => member.value === host.userId.toString());
-              if (!option) return acc;
-
-              acc.push({
-                ...option,
-                priority: host.priority ?? 2,
-                isFixed,
-                weight: host.weight ?? 100,
-                groupId: host.groupId,
-              });
-
-              return acc;
-            }, [] as CheckedSelectOption[])}
-          controlShouldRenderValue={false}
-          options={options}
-          placeholder={placeholder}
-          isRRWeightsEnabled={isRRWeightsEnabled}
-          customClassNames={customClassNames}
-          groupId={groupId}
-          {...rest}
-        />
-      </div>
-    </div>
-  );
-};
 
 function MembersSegmentWithToggle({
   teamId,
@@ -287,11 +194,10 @@ export function AddMembersWithSwitch({
         <>
           {!groupId && (
             <AssignAllTeamMembers
-              assignAllTeamMembers={assignAllTeamMembers}
-              setAssignAllTeamMembers={setAssignAllTeamMembers}
-              onActive={onActive}
-              onInactive={onAssignAllTeamMembersInactive}
-              customClassNames={customClassNames?.assingAllTeamMembers}
+              onAssignAll={() => setAssignAllTeamMembers(true)}
+              disabled={false}
+              checked={assignAllTeamMembers}
+              onCheckedChange={(checked) => setAssignAllTeamMembers(checked)}
             />
           )}
 
@@ -316,19 +222,37 @@ export function AddMembersWithSwitch({
           <div className="mb-2">
             {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && !groupId && (
               <AssignAllTeamMembers
-                assignAllTeamMembers={assignAllTeamMembers}
-                setAssignAllTeamMembers={setAssignAllTeamMembers}
-                onActive={onActive}
-                onInactive={onAssignAllTeamMembersInactive}
-                customClassNames={customClassNames?.assingAllTeamMembers}
+                onAssignAll={() => setAssignAllTeamMembers(true)}
+                disabled={false}
+                checked={assignAllTeamMembers}
+                onCheckedChange={(checked) => setAssignAllTeamMembers(checked)}
               />
             )}
           </div>
           <div className="mb-2">
             <CheckedHostField
               data-testid={rest["data-testid"]}
-              value={value}
-              onChange={onChange}
+              value={value.map((host) => ({
+                value: host.userId?.toString() ?? host.email ?? "",
+                label: host.email ?? host.userId?.toString() ?? "",
+                avatar: "",
+                priority: host.priority ?? undefined,
+                weight: host.weight ?? undefined,
+                isFixed: host.isFixed ?? false,
+                groupId: host.groupId ?? null,
+              }))}
+              onChange={(options) => {
+                onChange(
+                  options.map((option) => ({
+                    userId: parseInt(option.value) || undefined,
+                    email: option.label,
+                    isFixed: option.isFixed ?? false,
+                    priority: option.priority ?? undefined,
+                    weight: option.weight ?? undefined,
+                    groupId: option.groupId ?? null,
+                  }))
+                );
+              }}
               isFixed={isFixed}
               className="mb-2"
               options={teamMembers

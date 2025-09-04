@@ -112,6 +112,7 @@ describe("BookingRepository", () => {
           endDate: new Date(),
           includeNoShowInRRCalculation: false,
           virtualQueuesData: null,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         });
 
         expect(bookings).toHaveLength(1);
@@ -127,6 +128,7 @@ describe("BookingRepository", () => {
           endDate: new Date(),
           includeNoShowInRRCalculation: true,
           virtualQueuesData: null,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         });
 
         expect(bookings).toHaveLength(2);
@@ -142,6 +144,7 @@ describe("BookingRepository", () => {
           endDate: new Date(),
           includeNoShowInRRCalculation: false,
           virtualQueuesData: null,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         });
 
         expect(bookings).toHaveLength(1);
@@ -157,6 +160,7 @@ describe("BookingRepository", () => {
           endDate: new Date(),
           includeNoShowInRRCalculation: true,
           virtualQueuesData: null,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         });
 
         expect(bookings).toHaveLength(2);
@@ -173,6 +177,7 @@ describe("BookingRepository", () => {
           endDate: new Date(),
           includeNoShowInRRCalculation: false,
           virtualQueuesData: null,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         });
 
         expect(bookings).toHaveLength(2);
@@ -189,6 +194,7 @@ describe("BookingRepository", () => {
           endDate: new Date(),
           includeNoShowInRRCalculation: true,
           virtualQueuesData: null,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         });
 
         expect(bookings).toHaveLength(4);

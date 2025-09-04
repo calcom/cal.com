@@ -1,25 +1,32 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Options, Props } from "react-select";
+import React, { useState } from "react";
+import type { Props, Options, GroupBase, ClassNamesConfig } from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
-import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
+// Email utilities
+const EMAIL_RE =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const isValidEmail = (val: string) => EMAIL_RE.test(val.trim());
+const parseEmails = (input: string) =>
+  input
+    .split(/[,\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 export type CheckedSelectOption = {
-  avatar: string;
+  avatar?: string;
   label: string;
   value: string;
   priority?: number;
@@ -27,7 +34,9 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
-  groupId: string | null;
+  isPending?: boolean;
+  profileId?: number;
+  groupId?: string | null;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -43,9 +52,8 @@ export type CheckedTeamSelectCustomClassNames = {
       removeButton?: string;
     };
   };
-  priorityDialog?: PriorityDialogCustomClassNames;
-  weightDialog?: WeightDialogCustomClassNames;
 };
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
@@ -61,43 +69,69 @@ export const CheckedTeamSelect = ({
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
 }) => {
+  // ✅ Hooks MUST come after props destructure
   const isPlatform = useIsPlatform();
-  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
-  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
-
-  const [currentOption, setCurrentOption] = useState(value[0] ?? null);
-
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
+// (Removed the following unused hooks)
+// const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
+// const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+// const [currentOption, setCurrentOption] = useState<CheckedSelectOption | null>(null);
+
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
-  const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
-    const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
-
-    const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
-    props.onChange(newValueAllGroups);
-  };
+  // Helper
+  function getPriorityTextAndColor(priority?: number) {
+    switch (priority) {
+      case 0:
+        return { text: t("low"), color: "text-gray-500" };
+      case 1:
+        return { text: t("medium"), color: "text-blue-500" };
+      case 2:
+        return { text: t("high"), color: "text-red-500" };
+      default:
+        return { text: t("normal"), color: "text-black" };
+    }
+  }
 
   return (
     <>
-      <Select
+      <CreatableSelect<CheckedSelectOption, true, GroupBase<CheckedSelectOption>>
         {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
-        isSearchable={true}
-        options={options}
-        value={valueFromGroup}
-        onChange={handleSelectChange}
         isMulti
+        isSearchable
+        options={options}
+        value={value}
         className={customClassNames?.hostsSelect?.select}
-        innerClassNames={{
-          ...customClassNames?.hostsSelect?.innerClassNames,
-          control: "rounded-md",
+        classNames={
+          customClassNames?.hostsSelect?.innerClassNames as ClassNamesConfig<
+            CheckedSelectOption,
+            true,
+            GroupBase<CheckedSelectOption>
+          >
+        }
+        onChange={(newVal) => props.onChange(newVal)}
+        onCreateOption={(inputValue) => {
+          const emails = parseEmails(inputValue);
+          const validEmails = emails.filter(isValidEmail);
+          if (validEmails.length > 0) {
+            const newOptions = validEmails.map((email) => ({
+              value: email,
+              label: `${email} (invite pending)`,
+              avatar: "",
+              isPending: true,
+              groupId: groupId ?? null,
+            }));
+            props.onChange([...(value || []), ...newOptions]);
+          } else {
+            showToast("Please enter valid email address(es)", "error");
+          }
         }}
       />
-      {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
-       - Slides down from the top instead of just teleporting in from nowhere*/}
+
       <ul
         className={classNames(
           "mb-4 mt-3 rounded-md",
@@ -106,123 +140,77 @@ export const CheckedTeamSelect = ({
         )}
         ref={animationRef}>
         {valueFromGroup.map((option, index) => (
-          <>
-            <li
-              key={option.value}
-              className={classNames(
-                `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
-                customClassNames?.selectedHostList?.listItem?.container
-              )}>
-              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && (
-                <Icon
-                  name="user"
-                  className={classNames(
-                    "mt-0.5 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.avatar
-                  )}
-                />
-              )}
-              <p
-                className={classNames(
-                  "text-emphasis my-auto ms-3 text-sm",
-                  customClassNames?.selectedHostList?.listItem?.name
-                )}>
-                {option.label}
-              </p>
-              <div className="ml-auto flex items-center">
-                {option && !option.isFixed ? (
-                  <>
-                    <Tooltip content={t("change_priority")}>
-                      <Button
-                        color="minimal"
-                        onClick={() => {
-                          setPriorityDialogOpen(true);
-                          setCurrentOption(option);
-                        }}
-                        className={classNames(
-                          "mr-6 h-2 p-0 text-sm hover:bg-transparent",
-                          getPriorityTextAndColor(option.priority).color,
-                          customClassNames?.selectedHostList?.listItem?.changePriorityButton
-                        )}>
-                        {t(getPriorityTextAndColor(option.priority).text)}
-                      </Button>
-                    </Tooltip>
-                    {isRRWeightsEnabled ? (
-                      <Button
-                        color="minimal"
-                        className={classNames(
-                          "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
-                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
-                        )}
-                        onClick={() => {
-                          setWeightDialogOpen(true);
-                          setCurrentOption(option);
-                        }}>
-                        {option.weight ?? 100}%
-                      </Button>
-                    ) : (
-                      <></>
-                    )}
-                  </>
-                ) : (
-                  <></>
-                )}
+          <li
+            key={option.value}
+            className={classNames(
+              `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
+              customClassNames?.selectedHostList?.listItem?.container
+            )}>
+            {!isPlatform && option.avatar ? (
+              <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+            ) : (
+              <Icon
+                name="user"
+                className={classNames("mt-0.5 h-4 w-4", customClassNames?.selectedHostList?.listItem?.avatar)}
+              />
+            )}
 
-                <Icon
-                  name="x"
-                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                  className={classNames(
-                    "my-auto ml-2 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.removeButton
-                  )}
-                />
-              </div>
-            </li>
-          </>
+            <p
+              className={classNames(
+                "text-emphasis my-auto ms-3 text-sm",
+                customClassNames?.selectedHostList?.listItem?.name
+              )}>
+              {option.label}
+            </p>
+
+            <div className="ml-auto flex items-center">
+              {!option.isPending && !option.isFixed && (
+                <>
+                  <Tooltip content={t("change_priority")}>
+                    <Button
+                      color="minimal"
+                      className={classNames(
+                        "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                        getPriorityTextAndColor(option.priority).color,
+                        customClassNames?.selectedHostList?.listItem?.changePriorityButton
+                      )}
+                      onClick={() => {
+                        setPriorityDialogOpen(true);
+                        setCurrentOption(option);
+                      }}>
+                      {t(getPriorityTextAndColor(option.priority).text)}
+                    </Button>
+                  </Tooltip>
+
+                  {isRRWeightsEnabled ? (
+                    <Button
+                      color="minimal"
+                      className={classNames(
+                        "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
+                        customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                      )}
+                      onClick={() => {
+                        setWeightDialogOpen(true);
+                        setCurrentOption(option);
+                      }}>
+                      {option.weight ?? 100}%
+                    </Button>
+                  ) : null}
+                </>
+              )}
+
+              <Icon
+                name="x"
+                onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                className={classNames(
+                  "my-auto ml-2 h-4 w-4",
+                  customClassNames?.selectedHostList?.listItem?.removeButton
+                )}
+              />
+            </div>
+          </li>
         ))}
       </ul>
-      {currentOption && !currentOption.isFixed ? (
-        <>
-          <PriorityDialog
-            isOpenDialog={priorityDialogOpen}
-            setIsOpenDialog={setPriorityDialogOpen}
-            option={currentOption}
-            options={options}
-            onChange={props.onChange}
-            customClassNames={customClassNames?.priorityDialog}
-          />
-          <WeightDialog
-            isOpenDialog={weightDialogOpen}
-            setIsOpenDialog={setWeightDialogOpen}
-            option={currentOption}
-            options={options}
-            onChange={props.onChange}
-            customClassNames={customClassNames?.weightDialog}
-          />
-        </>
-      ) : (
-        <></>
-      )}
     </>
   );
 };
-
-const getPriorityTextAndColor = (priority?: number) => {
-  switch (priority) {
-    case 0:
-      return { text: "lowest", color: "text-gray-300" };
-    case 1:
-      return { text: "low", color: "text-gray-400" };
-    case 2:
-      return { text: "medium", color: "text-gray-500" };
-    case 3:
-      return { text: "high", color: "text-gray-600" };
-    case 4:
-      return { text: "highest", color: "text-gray-700" };
-    default:
-      return { text: "medium", color: "text-gray-500" };
-  }
-};
-
-export default CheckedTeamSelect;

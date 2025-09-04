@@ -34,8 +34,8 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
-        priority: undefined,
-        weight: undefined,
+        priority: null,
+        weight: null,
         groupId: null,
       },
       {
@@ -47,8 +47,8 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
-        priority: undefined,
-        weight: undefined,
+        priority: null,
+        weight: null,
         groupId: null,
       },
       {
@@ -60,15 +60,15 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
-        priority: undefined,
-        weight: undefined,
+        priority: null,
+        weight: null,
         groupId: null,
       },
     ];
 
     const rrHosts = hosts.filter((host) => !host.isFixed);
     const fixedHosts = hosts.filter((host) => host.isFixed);
-    const rrHostsAfterFairness = [rrHosts[2]];
+    const rrHostsAfterFairness = [rrHosts[1]];
 
     // Configure the mock return value
     (filterHostsByLeadThreshold as Mock).mockResolvedValue(rrHostsAfterFairness);
@@ -161,6 +161,9 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
         isFixed: true,
         email: user.email,
         createdAt: null,
+        priority: null,
+        weight: null,
+        groupId: null,
       })),
     });
 
@@ -183,6 +186,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
+        groupId: null,
       },
       {
         weight: 100,
@@ -195,6 +199,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
+        groupId: null,
       },
       {
         weight: 100,
@@ -207,6 +212,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
           credentials: [],
           userLevelSelectedCalendars: [],
         },
+        groupId: null,
       },
     ];
 
@@ -331,8 +337,28 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedRRHosts: [hosts[2]],
-      allFallbackRRHosts: [hosts[0], hosts[2]],
+      qualifiedRRHosts: [
+        {
+          ...hosts[2],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
+      allFallbackRRHosts: [
+        {
+          ...hosts[0],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+        {
+          ...hosts[2],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
       fixedHosts: [],
     });
   });
@@ -408,8 +434,22 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
     });
 
     expect(result).toEqual({
-      qualifiedRRHosts: [hosts[1]],
-      fixedHosts: [hosts[2]],
+      qualifiedRRHosts: [
+        {
+          ...hosts[1],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
+      fixedHosts: [
+        {
+          ...hosts[2],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
     });
   });
 
@@ -489,14 +529,28 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedRRHosts: [hosts[0]],
+      qualifiedRRHosts: [
+        {
+          ...hosts[0],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
       fixedHosts: [],
     });
 
     // Verify that findMatchingHostsWithEventSegment was called with correct parameters
     expect(findMatchingHostsSpy).toHaveBeenCalledWith({
       eventType,
-      hosts: hosts.filter((host) => !host.isFixed), // Only round-robin hosts should be passed
+      hosts: hosts
+        .filter((host) => !host.isFixed)
+        .map((host) => ({
+          ...host,
+          priority: null,
+          weight: null,
+          groupId: null,
+        })), // Only round-robin hosts should be passed
     });
 
     // Verify that filterHostsByLeadThreshold was not called since we returned early
@@ -583,7 +637,14 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedRRHosts: [hosts[1]],
+      qualifiedRRHosts: [
+        {
+          ...hosts[1],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
       fixedHosts: [],
     });
   });
@@ -683,8 +744,28 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedRRHosts: [hosts[2]],
-      allFallbackRRHosts: [hosts[1], hosts[2]],
+      qualifiedRRHosts: [
+        {
+          ...hosts[2],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
+      allFallbackRRHosts: [
+        {
+          ...hosts[1],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+        {
+          ...hosts[2],
+          priority: null,
+          weight: null,
+          groupId: null,
+        },
+      ],
       fixedHosts: [],
     });
   });
