@@ -842,13 +842,13 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    {canCancelAndReschedule && (
+                                    {!isBookingInPast && canCancel && (
                                       <span className="mx-2">{t("or_lowercase")}</span>
                                     )}
                                   </span>
                                 )}
 
-                              {canCancel && (
+                              {!isBookingInPast && canCancel && (
                                 <button
                                   data-testid="cancel"
                                   className={classNames(

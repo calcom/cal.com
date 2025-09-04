@@ -606,9 +606,10 @@ test.describe("Booking round robin event", () => {
     users,
   }) => {
     const [testUser] = users.get();
-    await testUser.apiLogin();
 
     const team = await testUser.getFirstTeamMembership();
+
+    await testUser.apiLogin(`/team/${team.team.slug}`);
 
     // Click first event type (round robin)
     await page.click('[data-testid="event-type-link"]');
@@ -716,9 +717,12 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
   });
 
   test("Should prevent cancellation and show an error message", async ({ page }) => {
+    const csrfTokenResponse = await page.request.get("/api/csrf");
+    const { csrfToken } = await csrfTokenResponse.json();
     const response = await page.request.post("/api/cancel", {
       data: {
         uid: bookingId,
+        csrfToken,
       },
       headers: {
         "Content-Type": "application/json",
@@ -965,5 +969,33 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
       action: "cancel",
       testName: "Org Owner",
     });
+  });
+});
+
+test.describe("Past booking cancellation", () => {
+  test("Cancel button should be hidden for past bookings", async ({ page, users, bookings }) => {
+    const user = await users.create({
+      name: "Test User",
+    });
+
+    await user.apiLogin();
+
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 1);
+    const endDate = new Date(pastDate.getTime() + 30 * 60 * 1000);
+
+    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id, {
+      title: "Past Meeting",
+      startTime: pastDate,
+      endTime: endDate,
+      status: "ACCEPTED",
+    });
+
+    await page.goto("/bookings/past");
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await expect(page.locator('[data-testid="cancel"]')).toBeDisabled();
+
+    await page.goto(`/booking/${booking.uid}`);
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 });

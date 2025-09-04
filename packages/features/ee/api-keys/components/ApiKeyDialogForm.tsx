@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import dayjs from "@calcom/dayjs";
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import { API_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -56,6 +57,18 @@ export default function ApiKeyDialogForm({
       note: defaultValues?.note || "",
       neverExpires: defaultValues?.neverExpires || false,
       expiresAt: defaultValues?.expiresAt || dayjs().add(30, "day").toDate(),
+    },
+    mode: "onChange",
+    criteriaMode: "all",
+    resolver: (values) => {
+      const errors: { note?: { type: string; message: string } } = {};
+      if (values.note && values.note.length > API_NAME_LENGTH_MAX_LIMIT) {
+        errors.note = {
+          type: "maxLength",
+          message: t("api_key_name_too_long", { max: API_NAME_LENGTH_MAX_LIMIT }),
+        };
+      }
+      return { values, errors };
     },
   });
   const watchNeverExpires = form.watch("neverExpires");
@@ -182,7 +195,7 @@ export default function ApiKeyDialogForm({
           {!defaultValues && (
             <div className="flex flex-col">
               <div className="flex justify-between py-2">
-                <span className="text-default block text-sm font-medium">{t("expire_date")}</span>
+                <span className="text-default flex items-center text-sm font-medium">{t("expire_date")}</span>
                 <Controller
                   name="neverExpires"
                   control={form.control}

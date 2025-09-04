@@ -217,7 +217,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
       return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || 
              (isDisabledRescheduling && !isHostOrOwner && !hasTeamOrOrgPermissions);
     case "cancel":
-      return (isDisabledCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) || (isBookingInPast && isPending && !isConfirmed);
+      return (isDisabledCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) || isBookingInPast;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "meeting_session_details":
