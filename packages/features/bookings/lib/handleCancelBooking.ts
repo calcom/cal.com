@@ -83,6 +83,16 @@ async function handler(input: CancelBookingInput) {
     internalNote,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
+
+  log.info(
+    "Booking cancellation initiated",
+    safeStringify({
+      bookingUid: bookingToDelete.uid,
+      cancelledBy,
+      seatReferenceUid,
+    })
+  );
+
   const {
     userId,
     platformBookingUrl,
@@ -194,7 +204,6 @@ async function handler(input: CancelBookingInput) {
 
   const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostsPresent = !!bookingToDelete.eventType?.hosts;
   const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
   for (let index = 0; index < bookingToDelete.attendees.length; index++) {

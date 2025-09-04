@@ -42,6 +42,10 @@ const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
+const getTruncatedString = (str: string) => {
+  return `${str.slice(0, 10)}...`;
+};
+
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && error.hasOwnProperty("config");
 
@@ -427,28 +431,69 @@ export default class GoogleCalendarService implements Calendar {
     const calendar = await this.authedCalendar();
 
     const selectedCalendar = externalCalendarId || "primary";
+    const truncatedSelectedCalendar = getTruncatedString(selectedCalendar);
+    this.log.info(
+      "Google Calendar deletion initiated",
+      safeStringify({
+        eventId: uid,
+        truncatedSelectedCalendar,
+        bookingUid: event.uid,
+        bookingId: event.bookingId,
+      })
+    );
 
     try {
-      const event = await calendar.events.delete({
+      const response = await calendar.events.delete({
         calendarId: selectedCalendar,
         eventId: uid,
         sendNotifications: false,
         sendUpdates: "none",
       });
-      return event?.data;
+
+      this.log.info(
+        "Google Calendar deletion successful",
+        safeStringify({
+          truncatedSelectedCalendar,
+          eventId: uid,
+          bookingUid: event.uid,
+          status: response?.status,
+        })
+      );
+
+      return response?.data;
     } catch (error) {
+      const err = error as GoogleCalError;
+
       this.log.error(
         "There was an error deleting event from google calendar: ",
-        safeStringify({ error, event, externalCalendarId })
+        safeStringify({
+          truncatedSelectedCalendar,
+          eventId: uid,
+          bookingUid: event.uid,
+          statusCode: err.code,
+          errorMessage: err.message,
+        })
       );
-      const err = error as GoogleCalError;
+
       /**
        *  410 is when an event is already deleted on the Google cal before on cal.com
        *  404 is when the event is on a different calendar
        */
-      if (err.code === 410) return;
+      if (err.code === 410) {
+        this.log.info(
+          "Google Calendar event already deleted (410)",
+          safeStringify({ eventId: uid, bookingUid: event.uid })
+        );
+        return;
+      }
       console.error("There was an error contacting google calendar service: ", err);
-      if (err.code === 404) return;
+      if (err.code === 404) {
+        this.log.info(
+          "Google Calendar event not found (404)",
+          safeStringify({ eventId: uid, bookingUid: event.uid })
+        );
+        return;
+      }
       throw err;
     }
   }
