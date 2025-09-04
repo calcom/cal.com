@@ -182,31 +182,35 @@ export class BookingEmailSmsHandler {
         originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
       );
 
-      sendRoundRobinRescheduledEmailsAndSMS(
-        { ...copyEventAdditionalInfo, iCalUID: evt.iCalUID },
-        rescheduledMembers,
-        metadata
-      );
-      sendRoundRobinScheduledEmailsAndSMS({
-        calEvent: copyEventAdditionalInfo,
-        members: newBookedMembers,
-        eventTypeMetadata: metadata,
-      });
-      const reassignedTo = users.find(
-        (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
-      );
-      sendRoundRobinCancelledEmailsAndSMS(
-        cancelledRRHostEvt,
-        cancelledMembers,
-        metadata,
-        reassignedTo
-          ? {
-              name: reassignedTo.name,
-              email: reassignedTo.email,
-              ...(isRescheduledByBooker && { reason: "Booker Rescheduled" }),
-            }
-          : undefined
-      );
+      try {
+        await sendRoundRobinRescheduledEmailsAndSMS(
+          { ...copyEventAdditionalInfo, iCalUID: evt.iCalUID },
+          rescheduledMembers,
+          metadata
+        );
+        await sendRoundRobinScheduledEmailsAndSMS({
+          calEvent: copyEventAdditionalInfo,
+          members: newBookedMembers,
+          eventTypeMetadata: metadata,
+        });
+        const reassignedTo = users.find(
+          (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+        );
+        await sendRoundRobinCancelledEmailsAndSMS(
+          cancelledRRHostEvt,
+          cancelledMembers,
+          metadata,
+          reassignedTo
+            ? {
+                name: reassignedTo.name,
+                email: reassignedTo.email,
+                ...(isRescheduledByBooker && { reason: "Booker Rescheduled" }),
+              }
+            : undefined
+        );
+      } catch (err) {
+        this.log.error("Failed to send rescheduled round robin event related emails");
+      }
     } else {
       await sendRescheduledEmailsAndSMS(
         {
