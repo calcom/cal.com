@@ -50,7 +50,7 @@ export default function Platform() {
     await mutateAsync({ id: id });
   };
 
-  const refetchTeamBilling = useCallback(() => {
+  const validateBillingState = useCallback(() => {
     refectTeamBilling();
     refetchPlatformUser();
   }, [refectTeamBilling, refetchPlatformUser]);
@@ -61,11 +61,11 @@ export default function Platform() {
   }, [data]);
 
   useEffect(() => {
-    refetchTeamBilling();
-  }, [pathname, refectTeamBilling, refetchPlatformUser, refetchTeamBilling]);
+    validateBillingState();
+  }, [pathname, refectTeamBilling, refetchPlatformUser, validateBillingState]);
 
   useExternalRedirectHandler(() => {
-    refetchTeamBilling();
+    validateBillingState();
   });
 
   if (isUserLoading || isOAuthClientLoading) return <div className="m-5">{t("loading")}</div>;
