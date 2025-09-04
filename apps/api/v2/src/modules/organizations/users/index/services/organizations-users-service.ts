@@ -8,7 +8,7 @@ import { Team } from "@prisma/client";
 import { plainToInstance } from "class-transformer";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationsUsersService {
