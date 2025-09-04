@@ -3578,6 +3578,14 @@ checksums:
     webhook_metadata: 695d4f7da261ba76e3be4de495491028
     stats: 5cf8b052c89fa1b05397a956ebec69b2
     booking_status: fe88452fca9d95db1fce15446f545aab
+    unsupported_file_type: 081413e5566bff167caff11f7a1584b6
+    only_image_files_allowed: f2ca528a5c825d23cb1795492012fd2f
+    failed_to_validate_image_file: fb0b149ef0e6c7ec40ec5fc92e9488d4
+    invalid_image_file_format: e379415061b2158591ff3ffa62476a75
+    svg_contains_dangerous_content: a3dd4954ee3d5b9c10da6347ff22daab
+    unrecognized_image_format: 920eee38f2ee187b325ed796eb349003
+    invalid_base64_format: 03a47e4d4eda2c943894bb0d69736ac4
+    empty_image_data: 5418faf33d0af19d1368b9d427da454a
     visit: 654d6dc335d93b0d9ac26f296bbf53cc
     location_custom_label_input_label: 944fd3bbb28cf884e36ba96ed2186c1c
     meeting_link: 892205c2e48aad28d01f62b8ef621560
