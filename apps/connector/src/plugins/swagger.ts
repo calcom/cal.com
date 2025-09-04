@@ -13,6 +13,21 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
   console.log("PORT:", PORT);
 
   try {
+    // Determine the correct server URL
+    const getServerUrl = () => {
+      if (NODE_ENV === "production") {
+        // For production, use HTTPS and full domain
+        return `https://api.${HOST}/api`;
+      } else {
+        // For development, check if we're running on localhost with HTTP
+        const protocol =
+          HOST === "localhost" || HOST === "127.0.0.1" || HOST === "0.0.0.0" ? "http" : "https";
+        return `${protocol}://${HOST}:${PORT}/api`;
+      }
+    };
+
+    const serverUrl = getServerUrl();
+
     // Register Swagger with improved error handling
     await fastify.register(swagger, {
       openapi: {
@@ -33,8 +48,12 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
         },
         servers: [
           {
-            url: NODE_ENV === "production" ? `https://api.${HOST}` : `http://${HOST}:${PORT}`,
+            url: serverUrl,
             description: NODE_ENV === "production" ? "Production server" : "Development server",
+          },
+          {
+            url: "/api",
+            description: "Relative URL (fallback)",
           },
         ],
         components: {
@@ -44,13 +63,11 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
               scheme: "bearer",
               bearerFormat: "JWT | API Key",
               description: `
-Use the Authorization header with Bearer scheme.  
+Use the Authorization header with Bearer scheme.
 
-Example:  
-- JWT: \`Authorization: Bearer <jwt-token>\`  
-- API Key (prefixed with "calid_"): \`Authorization: Bearer calid_xxxxx\`  
-
-Server will differentiate automatically.
+Examples:
+- JWT: Authorization: Bearer <jwt-token>
+- API Key: Authorization: Bearer calid_xxxxx
     `,
             },
           },
@@ -101,31 +118,6 @@ Server will differentiate automatically.
       // Improved transform function with error handling
       transform: ({ schema, url }) => {
         try {
-          // Add validation for schema structure
-          // if (!schema) {
-          //   console.warn(`⚠️ No schema found for route: ${url}`);
-          //   return { schema: {}, url };
-          // }
-
-          // Log problematic schemas for debugging
-          // if (schema.response) {
-          //   Object.keys(schema.response).forEach((statusCode) => {
-          //     const responseSchema = schema.response[statusCode];
-          //     if (
-          //       responseSchema &&
-          //       typeof responseSchema === "object" &&
-          //       !responseSchema.type &&
-          //       !responseSchema.properties &&
-          //       !responseSchema.$ref
-          //     ) {
-          //       console.warn(
-          //         `⚠️ Potentially problematic response schema for ${url} (${statusCode}):`,
-          //         responseSchema
-          //       );
-          //     }
-          //   });
-          // }
-
           return { schema, url };
         } catch (error) {
           console.error(`❌ Error transforming schema for ${url}:`, error);
@@ -151,6 +143,11 @@ Server will differentiate automatically.
           syntaxHighlight: {
             activate: true,
             theme: "monokai",
+          },
+          // Add request interceptor to handle CORS
+          requestInterceptor: (request) => {
+            console.log("Swagger UI request:", request.url);
+            return request;
           },
         },
         staticCSP: true,
@@ -195,7 +192,7 @@ export const minimalSwaggerPlugin = fp(
         },
         servers: [
           {
-            url: `http://${HOST}:${PORT}`,
+            url: NODE_ENV === "production" ? `http://${HOST}/api` : `https://${HOST}:${PORT}/api`,
             description: "Development server",
           },
         ],
