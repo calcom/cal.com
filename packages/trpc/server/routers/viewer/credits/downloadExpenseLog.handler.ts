@@ -20,6 +20,8 @@ const headers = [
   "Number of Segments",
   "Call Duration",
   "External Ref",
+  "Phone Number", 
+  "Email",
 ];
 
 export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseLogOptions) => {
@@ -52,6 +54,8 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     log.creditType,
     log.bookingUid ?? "",
     log.smsSegments?.toString() ?? "-",
+    log.phoneNumber ?? "",
+    log.email ?? "",
     log.callDuration?.toString() ?? "-",
     log.externalRef ?? "-",
   ]);

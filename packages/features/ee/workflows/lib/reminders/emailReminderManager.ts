@@ -18,6 +18,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -65,6 +66,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     template,
     sender,
     workflowStepId,
+    seatReferenceUid,
     sendTo,
     emailSubject = "",
     emailBody = "",
@@ -130,6 +132,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
   if (emailBody) {
+    const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
     const recipientEmail = getWorkflowRecipientEmail({
       action,
       attendeeEmail: attendeeToBeUsedInMail.email,
@@ -152,11 +155,20 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
         recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
-      }`,
+      }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
       cancelReason: evt.cancellationReason,
       rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
-        recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
+        recipientEmail
+          ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
+              isEmailAttendeeAction && seatReferenceUid
+                ? `&seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+                : ""
+            }`
+          : isEmailAttendeeAction && seatReferenceUid
+          ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+          : ""
       }`,
+
       rescheduleReason: evt.rescheduleReason,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
       noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
@@ -165,10 +177,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(evt.attendees[0].timeZone),
     };
 
-    const locale =
-      action === WorkflowActions.EMAIL_ATTENDEE
-        ? attendeeToBeUsedInMail.language?.locale
-        : evt.organizer.language.locale;
+    const locale = isEmailAttendeeAction
+      ? attendeeToBeUsedInMail.language?.locale
+      : evt.organizer.language.locale;
 
     const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
     emailContent.emailSubject = emailSubjectTemplate.text;
