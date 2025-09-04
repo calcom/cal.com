@@ -57,7 +57,7 @@ export async function setupTeamAndBookingSeats(
   teamUser: { id: number },
   role: "ADMIN" | "MEMBER" | "OWNER"
 ) {
-  const bookingWithEventType = await prisma.booking.findFirst({
+  const bookingWithEventType = await prisma.booking.findUnique({
     where: { uid: booking.uid },
     select: {
       id: true,
