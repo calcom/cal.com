@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Fontold meg egy szervezet létrehozását a számlázás, az adminisztrációs eszközök és az elemzések egyesítéséhez a csapataidban.",
   "search_variables": "Változók keresése",
   "no_variables_found": "Nem találhatók változók",
+  "api_key_name_too_long": "A név nem haladhatja meg a {{max}} karaktert",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
