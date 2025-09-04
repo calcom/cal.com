@@ -2,10 +2,7 @@ import {
   allowDisablingHostConfirmationEmails,
   allowDisablingAttendeeConfirmationEmails,
 } from "ee/workflows/lib/allowDisablingStandardEmails";
-import { default as cloneDeep } from "lodash/cloneDeep";
 
-import { SchedulingType } from "@calcom/atoms/dist/packages/prisma-client";
-import type { EventTypeMetadata } from "@calcom/atoms/dist/packages/prisma/zod-utils";
 import dayjs from "@calcom/dayjs";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import {
@@ -25,6 +22,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { DestinationCalendar, User } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export enum BookingSideEffectAction {
@@ -112,14 +111,14 @@ export async function handleSendingEmailsAndSms(payload: EmailsAndSmsSideEffects
         users,
         isRescheduledByBooker,
       } = data;
-      const copyEvent = cloneDeep(evt);
+      const copyEvent = structuredClone(evt);
       const copyEventAdditionalInfo = {
         ...copyEvent,
         additionalInformation: videoMetadata,
         additionalNotes, // Resets back to the additionalNote input and not the override value
         cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
       };
-      const cancelledRRHostEvt = cloneDeep(copyEventAdditionalInfo);
+      const cancelledRRHostEvt = structuredClone(copyEventAdditionalInfo);
       logger.debug("Emails: Sending rescheduled emails for booking confirmation");
 
       /*
