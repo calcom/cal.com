@@ -41,7 +41,7 @@ type EventTypeGroup = {
   bookerUrl?: string;
   profile: {
     slug?: string | null;
-    name: string;
+    name: string | null;
     image?: string;
     eventTypesLockedByOrg?: boolean;
   };
