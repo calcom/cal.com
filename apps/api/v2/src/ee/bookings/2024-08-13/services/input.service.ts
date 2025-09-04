@@ -22,7 +22,6 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { CreationSource } from "@prisma/client";
 import { isURL, isPhoneNumber } from "class-validator";
 import { Request } from "express";
 import { DateTime } from "luxon";
@@ -46,6 +45,7 @@ import {
 } from "@calcom/platform-types";
 import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
 import { EventType } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;
