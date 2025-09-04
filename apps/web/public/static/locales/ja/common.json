@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "組織を設定して、チーム全体の請求、管理ツール、分析を統合することを検討してください。",
   "search_variables": "変数を検索",
   "no_variables_found": "変数が見つかりません",
+  "api_key_name_too_long": "名前は{{max}}文字を超えてはいけません",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

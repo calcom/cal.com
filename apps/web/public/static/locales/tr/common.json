@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Faturalama, yönetim araçları ve analitiği ekipleriniz genelinde birleştirmek için bir organizasyon kurmayı düşünün.",
   "search_variables": "Değişkenlerde ara",
   "no_variables_found": "Değişken bulunamadı",
+  "api_key_name_too_long": "İsim {{max}} karakteri geçmemelidir",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Envisagez de créer une organisation pour unifier la facturation, les outils d'administration et les analyses pour vos équipes.",
   "search_variables": "Rechercher des variables",
   "no_variables_found": "Aucune variable trouvée",
+  "api_key_name_too_long": "Le nom ne doit pas dépasser {{max}} caractères",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Kaaluge organisatsiooni loomist, et ühtlustada arveldamist, haldustööriistu ja analüütikat oma meeskondade vahel.",
   "search_variables": "Otsi muutujaid",
   "no_variables_found": "Muutujaid ei leitud",
+  "api_key_name_too_long": "Nimi ei tohi ületada {{max}} tähemärki",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
