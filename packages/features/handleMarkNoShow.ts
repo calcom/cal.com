@@ -142,6 +142,20 @@ const handleMarkNoShow = async ({
               metadata: true,
               parentId: true,
               teamId: true,
+              hosts: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
               parent: {
                 select: {
                   teamId: true,
@@ -225,7 +239,24 @@ const handleMarkNoShow = async ({
           try {
             const organizer = booking.user || booking.eventType.owner;
             const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata);
+            const metadata =
+              parsedMetadata.success && parsedMetadata.data?.videoCallUrl
+                ? { videoCallUrl: parsedMetadata.data.videoCallUrl }
+                : undefined;
             const bookerUrl = await getBookerBaseUrl(booking.eventType?.team?.parentId ?? null);
+            const destinationCalendar = booking.destinationCalendar
+              ? [booking.destinationCalendar]
+              : booking.user?.destinationCalendar
+              ? [booking.user?.destinationCalendar]
+              : [];
+            const team = !!booking.eventType?.team
+              ? {
+                  name: booking.eventType.team.name,
+                  id: booking.eventType.team.id,
+                  members: [],
+                }
+              : undefined;
+
             const calendarEvent: ExtendedCalendarEvent = {
               type: booking.eventType.slug,
               title: booking.title,
@@ -249,29 +280,17 @@ const handleMarkNoShow = async ({
               eventType: {
                 slug: booking.eventType.slug,
                 schedulingType: booking.eventType.schedulingType,
-                hosts: [],
+                hosts: booking.eventType.hosts,
               },
-              destinationCalendar: booking.destinationCalendar
-                ? [booking.destinationCalendar]
-                : booking.user?.destinationCalendar
-                ? [booking.user?.destinationCalendar]
-                : [],
+              destinationCalendar,
               bookerUrl,
-              ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
-                ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
-                : {}),
+              metadata,
               rescheduleReason: null,
               cancellationReason: null,
               hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
               eventTypeId: booking.eventType?.id,
               customReplyToEmail: booking.eventType?.customReplyToEmail,
-              team: !!booking.eventType?.team
-                ? {
-                    name: booking.eventType.team.name,
-                    id: booking.eventType.team.id,
-                    members: [],
-                  }
-                : undefined,
+              team,
             };
 
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({

@@ -34,19 +34,14 @@ export async function handleBookingRequested(args: {
         parentId: number | null;
       } | null;
       currency: string;
-      hosts?:
-        | {
-            user: {
-              email: string;
-              destinationCalendar?:
-                | {
-                    primaryEmail: string | null;
-                  }
-                | null
-                | undefined;
-            };
-          }[]
-        | undefined;
+      hosts?: {
+        user: {
+          email: string;
+          destinationCalendar?: {
+            primaryEmail: string | null;
+          } | null;
+        };
+      }[];
       description: string | null;
       id: number;
       length: number;
