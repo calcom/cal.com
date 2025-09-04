@@ -702,7 +702,7 @@ model InstantMeetingToken {
   token     String   @unique
   expires   DateTime
   teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id])
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   bookingId Int?     @unique
   booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
