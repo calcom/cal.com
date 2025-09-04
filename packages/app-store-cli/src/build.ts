@@ -73,17 +73,13 @@ function generateFiles() {
       let app;
 
       if (fs.existsSync(configPath)) {
-        const rawConfig = fs.readFileSync(configPath).toString();
-        const parsedConfig = JSON.parse(rawConfig);
-
         try {
+          const rawConfig = fs.readFileSync(configPath, "utf8");
+          const parsedConfig = JSON.parse(rawConfig);
           app = AppMetaSchema.parse(parsedConfig);
         } catch (error) {
-          throw new Error(
-            `Config validation failed for ${appDirs[i].name}: ${
-              error instanceof Error ? error.message : String(error)
-            }`
-          );
+          const prefix = `Config error in ${path.join(APP_STORE_PATH, appDirs[i].path, "config.json")}`;
+          throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
