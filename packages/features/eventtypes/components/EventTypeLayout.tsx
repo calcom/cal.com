@@ -105,6 +105,14 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
+          <Button
+            onClick={async () => {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_APP_STORE_URL}/api`);
+              const data = await response.json();
+              console.log(data);
+            }}>
+            Call
+          </Button>
           {!formMethods.getValues("metadata")?.managedEventConfig && (
             <>
               <div
