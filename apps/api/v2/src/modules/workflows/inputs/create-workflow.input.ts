@@ -87,7 +87,6 @@ export type TriggerDtoType =
   | OnRescheduleTriggerDto
   | OnCancelTriggerDto
   | OnAfterCalVideoGuestsNoShowTriggerDto
-  | OnAfterCalVideoHostsNoShowTriggerDto
   | OnFormSubmittedTriggerDto
   | OnFormSubmittedNoEventTriggerDto
   | OnRejectedTriggerDto
@@ -184,7 +183,6 @@ export class CreateWorkflowDto {
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnAfterCalVideoHostsNoShowTriggerDto
     | OnFormSubmittedTriggerDto
     | OnFormSubmittedNoEventTriggerDto;
 

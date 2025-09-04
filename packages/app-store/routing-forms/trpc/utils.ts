@@ -33,22 +33,6 @@ export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   }
 >;
 
-// Type for form submission events used in workflows
-export type FormSubmissionEvent = {
-  formId: string;
-  formName: string;
-  submitterName?: string;
-  submitterEmail?: string;
-  submittedAt: Date;
-  responses: Record<string, any>;
-  teamName?: string;
-  organizerName: string;
-  hasBooking: boolean;
-  timeZone: string;
-  userId: number;
-  teamId?: number | null;
-};
-
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
 }

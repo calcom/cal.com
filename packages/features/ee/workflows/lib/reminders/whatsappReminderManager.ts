@@ -8,7 +8,6 @@ import {
   WorkflowActions,
   WorkflowMethods,
 } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
@@ -17,12 +16,7 @@ import {
   getContentVariablesForTemplate,
 } from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
-import type {
-  ScheduleTextReminderArgs,
-  timeUnitLowerCase,
-  BookingInfo,
-  ScheduleTextReminderArgsWithRequiredFields,
-} from "./smsReminderManager";
+import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -33,37 +27,6 @@ import {
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
 export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
-  const { verifiedAt, workflowStepId, evt, reminderPhone } = args;
-  if (!verifiedAt) {
-    log.warn(`Workflow step ${args.workflowStepId} not verified`);
-    return;
-  }
-
-  // Early return if no valid phone number
-  if (!reminderPhone) {
-    log.warn(`No phone number provided for WhatsApp reminder in workflow step ${workflowStepId}`);
-    return;
-  }
-
-  if (evt) {
-    await scheduleWhatsappReminderForEvt(
-      args as ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
-    );
-  } else {
-    await scheduleWhatsappReminderForForm(
-      args as ScheduleTextReminderArgsWithRequiredFields & {
-        formData: {
-          responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-          user: { email: string; timeFormat: number; locale: string };
-        };
-      }
-    );
-  }
-};
-
-const scheduleWhatsappReminderForEvt = async (
-  args: ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
-) => {
   const {
     evt,
     reminderPhone,
@@ -79,6 +42,11 @@ const scheduleWhatsappReminderForEvt = async (
     seatReferenceUid,
     verifiedAt,
   } = args;
+
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not verified`);
+    return;
+  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -295,16 +263,4 @@ const scheduleWhatsappReminderForEvt = async (
       }
     }
   }
-};
-
-const scheduleWhatsappReminderForForm = async (
-  args: ScheduleTextReminderArgsWithRequiredFields & {
-    formData: {
-      responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-      user: { email: string; timeFormat: number; locale: string };
-    };
-  }
-) => {
-  // We need to add new Whatsapp templates. Current templates are booking specific
-  log.warn("Form WhatsApp reminders not yet supported");
 };

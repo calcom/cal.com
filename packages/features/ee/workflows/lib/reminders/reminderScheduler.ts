@@ -186,18 +186,21 @@ const processWorkflowStep = async (
 
     await scheduleEmailReminder(emailParams);
   } else if (isWhatsappAction(step.action)) {
+    if (!evt) {
+      // Whatsapp action not not yet supported for form triggers
+      return;
+    }
+
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
 
-    const whatsappParams = {
+    await scheduleWhatsappReminder({
       ...scheduleFunctionParams,
       reminderPhone: sendTo,
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
       isVerificationPending: step.numberVerificationPending,
-      ...(evt ? { evt } : { formData }),
-    } as const;
-
-    await scheduleWhatsappReminder(whatsappParams);
+      evt,
+    });
   } else if (isCalAIAction(step.action)) {
     if (!evt) {
       // cal.ai not yet supported for form triggers

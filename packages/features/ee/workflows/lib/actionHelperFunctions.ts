@@ -12,6 +12,7 @@ import {
 import emailRatingTemplate from "./reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "./reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "./reminders/templates/smsReminderTemplate";
+import type { WorkflowStep } from "./types";
 
 export function shouldScheduleEmailReminder(action: WorkflowActions) {
   return action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST;
@@ -146,4 +147,8 @@ export function isFormTrigger(trigger: WorkflowTriggerEvents) {
     trigger === WorkflowTriggerEvents.FORM_SUBMITTED ||
     trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT
   );
+}
+
+export function hasCalAIAction(steps: WorkflowStep[]) {
+  return steps.some((step) => isCalAIAction(step.action));
 }
