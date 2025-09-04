@@ -1,15 +1,13 @@
 import { z } from "zod";
 
-import {
-  _AttendeeModel,
-  _BookingModel as Booking,
-  _EventTypeModel,
-  _PaymentModel,
-  _TeamModel,
-  _UserModel,
-} from "@calcom/prisma/zod";
 import { iso8601 } from "@calcom/prisma/zod-utils";
+import { _AttendeeModel } from "@calcom/prisma/zod/attendee";
+import { _BookingModel as Booking } from "@calcom/prisma/zod/booking";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
+import { _PaymentModel } from "@calcom/prisma/zod/payment";
+import { _TeamModel } from "@calcom/prisma/zod/team";
+import { _UserModel } from "@calcom/prisma/zod/user";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
 

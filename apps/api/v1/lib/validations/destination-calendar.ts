@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { _DestinationCalendarModel as DestinationCalendar } from "@calcom/prisma/zod";
+import { _DestinationCalendarModel as DestinationCalendar } from "@calcom/prisma/zod/destinationcalendar";
 
 export const schemaDestinationCalendarBaseBodyParams = DestinationCalendar.pick({
   integration: true,

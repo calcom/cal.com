@@ -1,15 +1,19 @@
 import type { AppCategories, Prisma } from "@prisma/client";
 
+// eslint-disable-next-line no-restricted-imports
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
+// eslint-disable-next-line no-restricted-imports
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import type { CompleteEventType } from "@calcom/prisma/zod/eventtype";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isPaymentService = (x: unknown): x is { PaymentService: any } =>
   !!x && typeof x === "object" && "PaymentService" in x && typeof x.PaymentService === "function";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isKeyOf = <T extends object>(obj: T, key: unknown): key is keyof T =>
   typeof key === "string" && key in obj;
 

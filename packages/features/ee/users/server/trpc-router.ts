@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { CreationSource } from "@calcom/prisma/enums";
 import { RedirectType } from "@calcom/prisma/enums";
-import { _UserModel as User } from "@calcom/prisma/zod";
+import { _UserModel as User } from "@calcom/prisma/zod/user";
 import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 

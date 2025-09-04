@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+// eslint-disable-next-line no-restricted-imports
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -8,12 +9,12 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { _EventTypeModel } from "@calcom/prisma/zod";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
   unlockedManagedEventTypeProps,
 } from "@calcom/prisma/zod-utils";
+import { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";

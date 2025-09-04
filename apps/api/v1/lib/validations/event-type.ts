@@ -6,8 +6,9 @@ import {
   MIN_EVENT_DURATION_MINUTES,
 } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
-import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { _EventTypeModel as EventType } from "@calcom/prisma/zod/eventtype";
+import { _HostModel } from "@calcom/prisma/zod/host";
 
 import { Frequency } from "~/lib/types";
 

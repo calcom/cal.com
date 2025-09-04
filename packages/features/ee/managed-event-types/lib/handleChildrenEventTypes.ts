@@ -6,9 +6,9 @@ import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { _EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
+import { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
@@ -93,6 +93,7 @@ export default async function handleChildrenEventTypes({
   children,
   prisma,
   profileId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   updatedValues,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type

@@ -10,8 +10,8 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import type { EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 
@@ -32,8 +32,10 @@ export const EventTypeDescription = ({
   eventType,
   className,
   shortenDescription,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isPublic,
 }: EventTypeDescriptionProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { t, i18n } = useLocale();
 
   const recurringEvent = useMemo(

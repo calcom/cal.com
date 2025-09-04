@@ -8,7 +8,8 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { _MembershipModel as Membership, _TeamModel as Team } from "@calcom/prisma/zod";
+import { _MembershipModel as Membership } from "@calcom/prisma/zod/membership";
+import { _TeamModel as Team } from "@calcom/prisma/zod/team";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
