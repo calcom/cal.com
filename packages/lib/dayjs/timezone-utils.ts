@@ -35,8 +35,19 @@ export function convertBetweenTimezones(
   fromTimezone: string,
   toTimezone: string
 ): Dayjs {
-  // Parse the time in the source timezone, then convert to target
-  const sourceTime = dayjs.tz(time, fromTimezone);
+  let sourceTime: Dayjs;
+
+  if (typeof time === "string") {
+    // For string inputs (naive/offset-less), parse in the source timezone
+    sourceTime = dayjs.tz(time, fromTimezone);
+  } else {
+    // For Date or Dayjs objects (absolute instants), treat as absolute time
+    // and convert directly to target timezone without re-interpreting local fields
+    sourceTime = dayjs(time).tz(toTimezone);
+    return sourceTime;
+  }
+
+  // Convert from source timezone to target timezone
   return sourceTime.tz(toTimezone);
 }
 
@@ -105,12 +116,18 @@ export function isDateInDst(datetime: string | Date | Dayjs, timezone: string): 
   const targetTime = dayjs.tz(datetime, timezone);
   const year = targetTime.year();
 
-  // Get standard (winter) offset by checking January
-  const standardOffset = dayjs.tz(`${year}-01-01T12:00:00`, timezone).utcOffset();
+  // Get both January and July offsets to handle both hemispheres correctly
+  const januaryOffset = dayjs.tz(`${year}-01-01T12:00:00`, timezone).utcOffset();
+  const julyOffset = dayjs.tz(`${year}-07-01T12:00:00`, timezone).utcOffset();
   const currentOffset = targetTime.utcOffset();
 
-  // If current offset is different from standard, we're in DST
-  return currentOffset !== standardOffset;
+  // DST offset is the larger of the two (closer to UTC, less negative)
+  // For Northern Hemisphere: July > January (e.g., -240 > -300, so July is DST)
+  // For Southern Hemisphere: January > July (e.g., -180 > -240, so January is DST)
+  const dstOffset = Math.max(januaryOffset, julyOffset);
+
+  // Return true if current offset equals the DST offset
+  return currentOffset === dstOffset;
 }
 
 /**
@@ -174,9 +191,13 @@ export function createTimeInTimezone(dateString: string, timeString: string, tim
  * @returns true if the timezone is valid
  */
 export function isValidTimezone(timezone: string): boolean {
+  // Use a more efficient validation by checking if the timezone can be parsed
+  // without throwing an exception. We'll use a simple date and check if the
+  // timezone conversion works properly.
   try {
-    dayjs().tz(timezone);
-    return true;
+    const testDate = dayjs().tz(timezone);
+    // If we get here without throwing, the timezone is valid
+    return testDate.isValid();
   } catch {
     return false;
   }
