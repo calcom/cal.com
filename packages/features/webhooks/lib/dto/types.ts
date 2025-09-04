@@ -1,4 +1,5 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/trpc/utils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -177,7 +178,7 @@ export interface FormSubmittedDTO extends BaseEventDTO {
   };
   response: {
     id: number;
-    data: Record<string, unknown>;
+    data: FORM_SUBMITTED_WEBHOOK_RESPONSES;
   };
 }
 
@@ -207,7 +208,7 @@ export interface FormSubmittedNoEventDTO extends BaseEventDTO {
   };
   response: {
     id: number;
-    data: Record<string, unknown>;
+    data: FORM_SUBMITTED_WEBHOOK_RESPONSES;
   };
 }
 

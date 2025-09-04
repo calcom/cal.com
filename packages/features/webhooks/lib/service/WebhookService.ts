@@ -132,6 +132,11 @@ export class WebhookService implements IWebhookService {
     payload: WebhookPayload,
     subscribers: WebhookSubscriber[]
   ): Promise<void> {
+    if (subscribers.length === 0) {
+      log.debug("No subscribers to process for trigger:", trigger);
+      return;
+    }
+
     const promises = subscribers.map(async (subscriber) => {
       try {
         log.debug("Processing webhook", {
@@ -162,10 +167,36 @@ export class WebhookService implements IWebhookService {
           trigger,
           webhookId: subscriber.id,
         });
+        // Re-throw to ensure Promise.allSettled captures the failure
+        throw err;
       }
     });
 
-    await Promise.all(promises);
+    // Use Promise.allSettled to prevent single webhook failure from killing entire processor
+    const results = await Promise.allSettled(promises);
+
+    // Log summary for monitoring
+    const successCount = results.filter((result) => result.status === "fulfilled").length;
+    const failureCount = results.filter((result) => result.status === "rejected").length;
+
+    log.info(`Webhook processing completed for ${trigger}`, {
+      totalSubscribers: subscribers.length,
+      successful: successCount,
+      failed: failureCount,
+    });
+
+    // Log individual failures for debugging
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const subscriber = subscribers[index];
+        log.error(`Webhook processing failed for subscriber`, {
+          trigger,
+          webhookId: subscriber?.id,
+          subscriberUrl: subscriber?.subscriberUrl,
+          error: result.reason,
+        });
+      }
+    });
   }
 
   async scheduleTimeBasedWebhook(

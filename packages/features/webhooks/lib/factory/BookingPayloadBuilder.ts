@@ -1,15 +1,15 @@
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { EventTypeInfo, BookingWebhookEventDTO } from "../dto/types";
 import type { WebhookPayload } from "./types";
 
 type BookingExtraDataMap = {
-  [WebhookTriggerEvents.BOOKING_CREATED]: undefined;
+  [WebhookTriggerEvents.BOOKING_CREATED]: null;
   [WebhookTriggerEvents.BOOKING_CANCELLED]: { cancelledBy?: string; cancellationReason?: string };
-  [WebhookTriggerEvents.BOOKING_REQUESTED]: undefined;
-  [WebhookTriggerEvents.BOOKING_REJECTED]: undefined;
+  [WebhookTriggerEvents.BOOKING_REQUESTED]: null;
+  [WebhookTriggerEvents.BOOKING_REJECTED]: null;
   [WebhookTriggerEvents.BOOKING_RESCHEDULED]: {
     rescheduleId?: number;
     rescheduleUid?: string;
@@ -24,54 +24,58 @@ type BookingExtraDataMap = {
   };
 };
 
-function createBookingWebhookPayload<T extends keyof BookingExtraDataMap>(
+interface CreateBookingWebhookPayloadParams<T extends keyof BookingExtraDataMap> {
   booking: {
     id: number;
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
-  },
-  eventType: EventTypeInfo,
-  evt: CalendarEvent,
-  status: string,
-  triggerEvent: string,
-  createdAt: string,
-  extra?: BookingExtraDataMap[T]
+  };
+  eventType: EventTypeInfo;
+  evt: CalendarEvent;
+  status: BookingStatus;
+  triggerEvent: WebhookTriggerEvents;
+  createdAt: string;
+  extra?: BookingExtraDataMap[T];
+}
+
+function createBookingWebhookPayload<T extends keyof BookingExtraDataMap>(
+  params: CreateBookingWebhookPayloadParams<T>
 ): WebhookPayload {
-  const utcOffsetOrganizer = getUTCOffsetByTimezone(evt.organizer?.timeZone, evt.startTime);
-  const organizer = { ...evt.organizer, utcOffset: utcOffsetOrganizer };
+  const utcOffsetOrganizer = getUTCOffsetByTimezone(params.evt.organizer?.timeZone, params.evt.startTime);
+  const organizer = { ...params.evt.organizer, utcOffset: utcOffsetOrganizer };
 
   return {
-    triggerEvent,
-    createdAt,
+    triggerEvent: params.triggerEvent,
+    createdAt: params.createdAt,
     payload: {
-      ...evt,
-      bookingId: booking.id,
-      startTime: evt.startTime,
-      endTime: evt.endTime,
-      title: evt.title,
-      type: evt.type,
+      ...params.evt,
+      bookingId: params.booking.id,
+      startTime: params.evt.startTime,
+      endTime: params.evt.endTime,
+      title: params.evt.title,
+      type: params.evt.type,
       organizer,
       attendees:
-        evt.attendees?.map((a) => ({
+        params.evt.attendees?.map((a) => ({
           ...a,
-          utcOffset: getUTCOffsetByTimezone(a.timeZone, evt.startTime),
+          utcOffset: getUTCOffsetByTimezone(a.timeZone, params.evt.startTime),
         })) ?? [],
-      location: evt.location,
-      uid: evt.uid,
-      customInputs: evt.customInputs,
-      responses: evt.responses,
-      userFieldsResponses: evt.userFieldsResponses,
-      status,
-      eventTitle: eventType?.eventTitle,
-      eventDescription: eventType?.eventDescription,
-      requiresConfirmation: eventType?.requiresConfirmation,
-      price: eventType?.price,
-      currency: eventType?.currency,
-      length: eventType?.length,
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      description: evt.description || evt.additionalNotes,
-      ...extra,
+      location: params.evt.location,
+      uid: params.evt.uid,
+      customInputs: params.evt.customInputs,
+      responses: params.evt.responses,
+      userFieldsResponses: params.evt.userFieldsResponses,
+      status: params.status,
+      eventTitle: params.eventType?.eventTitle,
+      eventDescription: params.eventType?.eventDescription,
+      requiresConfirmation: params.eventType?.requiresConfirmation,
+      price: params.eventType?.price,
+      currency: params.eventType?.currency,
+      length: params.eventType?.length,
+      smsReminderNumber: params.booking.smsReminderNumber || undefined,
+      description: params.evt.description || params.evt.additionalNotes,
+      ...(params.extra || {}),
     },
   };
 }
@@ -88,101 +92,100 @@ const BOOKING_WEBHOOK_EVENTS: WebhookTriggerEvents[] = [
 ];
 
 export class BookingPayloadBuilder {
-  canHandle(triggerEvent: string): boolean {
-    return BOOKING_WEBHOOK_EVENTS.includes(triggerEvent as WebhookTriggerEvents);
+  canHandle(triggerEvent: WebhookTriggerEvents): boolean {
+    return BOOKING_WEBHOOK_EVENTS.includes(triggerEvent);
   }
 
   build(dto: BookingWebhookEventDTO): WebhookPayload {
-    // TypeScript automatically narrows the DTO type based on triggerEvent (discriminated union)
     switch (dto.triggerEvent) {
       case WebhookTriggerEvents.BOOKING_CREATED:
-        return createBookingWebhookPayload(
-          dto.booking,
-          dto.eventType,
-          dto.evt,
-          "ACCEPTED",
-          dto.triggerEvent,
-          dto.createdAt
-        );
+        return createBookingWebhookPayload({
+          booking: dto.booking,
+          eventType: dto.eventType,
+          evt: dto.evt,
+          status: BookingStatus.ACCEPTED,
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+        });
 
       case WebhookTriggerEvents.BOOKING_CANCELLED:
-        return createBookingWebhookPayload(
-          dto.booking,
-          dto.eventType,
-          dto.evt,
-          "CANCELLED",
-          dto.triggerEvent,
-          dto.createdAt,
-          {
+        return createBookingWebhookPayload({
+          booking: dto.booking,
+          eventType: dto.eventType,
+          evt: dto.evt,
+          status: BookingStatus.CANCELLED,
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+          extra: {
             cancelledBy: dto.cancelledBy,
             cancellationReason: dto.cancellationReason,
-          }
-        );
+          },
+        });
 
       case WebhookTriggerEvents.BOOKING_REQUESTED:
-        return createBookingWebhookPayload(
-          dto.booking,
-          dto.eventType,
-          dto.evt,
-          "PENDING",
-          dto.triggerEvent,
-          dto.createdAt
-        );
+        return createBookingWebhookPayload({
+          booking: dto.booking,
+          eventType: dto.eventType,
+          evt: dto.evt,
+          status: BookingStatus.PENDING,
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+        });
 
       case WebhookTriggerEvents.BOOKING_REJECTED:
-        return createBookingWebhookPayload(
-          dto.booking,
-          dto.eventType,
-          dto.evt,
-          "REJECTED",
-          dto.triggerEvent,
-          dto.createdAt
-        );
+        return createBookingWebhookPayload({
+          booking: dto.booking,
+          eventType: dto.eventType,
+          evt: dto.evt,
+          status: BookingStatus.REJECTED,
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+        });
 
       case WebhookTriggerEvents.BOOKING_RESCHEDULED:
-        return createBookingWebhookPayload(
-          dto.booking,
-          dto.eventType,
-          dto.evt,
-          "ACCEPTED",
-          dto.triggerEvent,
-          dto.createdAt,
-          {
+        return createBookingWebhookPayload({
+          booking: dto.booking,
+          eventType: dto.eventType,
+          evt: dto.evt,
+          status: BookingStatus.ACCEPTED,
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+          extra: {
             rescheduleId: dto.rescheduleId,
             rescheduleUid: dto.rescheduleUid,
             rescheduleStartTime: dto.rescheduleStartTime,
             rescheduleEndTime: dto.rescheduleEndTime,
             rescheduledBy: dto.rescheduledBy,
-          }
-        );
+          },
+        });
 
       case WebhookTriggerEvents.BOOKING_PAID:
-        return createBookingWebhookPayload(
-          dto.booking,
-          dto.eventType,
-          dto.evt,
-          "ACCEPTED",
-          dto.triggerEvent,
-          dto.createdAt,
-          {
+        return createBookingWebhookPayload({
+          booking: dto.booking,
+          eventType: dto.eventType,
+          evt: dto.evt,
+          status: BookingStatus.ACCEPTED,
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+          extra: {
             paymentId: dto.paymentId,
             paymentData: dto.paymentData,
-          }
-        );
+          },
+        });
 
       case WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED:
-        return createBookingWebhookPayload(
-          dto.booking,
-          dto.eventType,
-          dto.evt,
-          "ACCEPTED",
-          dto.triggerEvent,
-          dto.createdAt,
-          {
+        return createBookingWebhookPayload({
+          booking: dto.booking,
+          eventType: dto.eventType,
+          evt: dto.evt,
+          status: BookingStatus.ACCEPTED,
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+          extra: {
             paymentId: dto.paymentId,
             paymentData: dto.paymentData,
-          }
-        );
+          },
+        });
 
       case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED:
         return {

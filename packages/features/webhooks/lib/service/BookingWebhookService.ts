@@ -386,7 +386,32 @@ export class BookingWebhookService implements IBookingWebhookService {
       );
     }
 
-    await Promise.all(schedulePromises);
+    // Use Promise.allSettled to prevent single webhook scheduling failure from killing entire processor
+    const results = await Promise.allSettled(schedulePromises);
+
+    // Log summary for monitoring
+    const successCount = results.filter((result) => result.status === "fulfilled").length;
+    const failureCount = results.filter((result) => result.status === "rejected").length;
+
+    console.log(`Meeting webhook scheduling completed`, {
+      bookingId: params.booking.id,
+      totalWebhooks: schedulePromises.length,
+      successful: successCount,
+      failed: failureCount,
+    });
+
+    // Log individual failures for debugging
+    if (failureCount > 0) {
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.error(`Meeting webhook scheduling failed`, {
+            bookingId: params.booking.id,
+            index,
+            error: result.reason,
+          });
+        }
+      });
+    }
   }
 
   async cancelScheduledMeetingWebhooks(params: CancelScheduledMeetingWebhooksParams): Promise<void> {
@@ -467,7 +492,32 @@ export class BookingWebhookService implements IBookingWebhookService {
         })
       );
 
-      await Promise.all(noShowPromises);
+      // Use Promise.allSettled to prevent single webhook scheduling failure from killing entire processor
+      const results = await Promise.allSettled(noShowPromises);
+
+      // Log summary for monitoring
+      const successCount = results.filter((result) => result.status === "fulfilled").length;
+      const failureCount = results.filter((result) => result.status === "rejected").length;
+
+      console.log(`No-show webhook scheduling completed`, {
+        bookingId: params.booking.id,
+        totalWebhooks: noShowPromises.length,
+        successful: successCount,
+        failed: failureCount,
+      });
+
+      // Log individual failures for debugging
+      if (failureCount > 0) {
+        results.forEach((result, index) => {
+          if (result.status === "rejected") {
+            console.error(`No-show webhook scheduling failed`, {
+              bookingId: params.booking.id,
+              index,
+              error: result.reason,
+            });
+          }
+        });
+      }
     } catch (error) {
       console.error("Failed to schedule no-show webhooks:", error);
     }

@@ -1,3 +1,4 @@
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/trpc/utils";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../dto/types";
@@ -12,26 +13,43 @@ export class FormPayloadBuilder {
   }
 
   build(dto: FormSubmittedDTO | FormSubmittedNoEventDTO): WebhookPayload {
-    // Legacy compatibility: Form webhooks need special payload structure
-    // They include both structured payload AND unwrapped response fields at root level
-    const payload: Record<string, unknown> = {
+    // Type the responses properly using the routing-forms type
+    const responses = dto.response.data;
+
+    // Create properly typed payload with primitive types
+    const payload: {
+      formId: string;
+      formName: string;
+      teamId: number | null;
+      responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+      [key: string]: unknown; // For backward compatibility fields
+    } = {
       formId: dto.form.id,
       formName: dto.form.name,
-      teamId: dto.teamId,
-      responses: dto.response.data,
+      teamId: dto.teamId ?? null,
+      responses,
     };
 
     // Add unwrapped response fields at root level for backwards compatibility
-    // This matches legacy sendGenericWebhookPayload with rootData
-    if (dto.response.data && typeof dto.response.data === "object") {
-      Object.entries(dto.response.data).forEach(([key, value]) => {
-        if (value && typeof value === "object" && "value" in value) {
-          // Type-safe extraction of the value property
-          const responseValue = value as { value: unknown };
-          payload[key] = responseValue.value;
+    // This ensures both `value` (deprecated) and `response` (new) are available
+    Object.entries(responses).forEach(([fieldKey, fieldValue]) => {
+      if (fieldValue && typeof fieldValue === "object") {
+        // Each field should have both `value` (deprecated) and `response` (new)
+        const responseField = fieldValue as {
+          value?: unknown;
+          response?: unknown;
+        };
+
+        // Add the field value directly to payload root for backward compatibility
+        // This preserves the legacy behavior where field values were at root level
+        if (responseField.value !== undefined) {
+          payload[fieldKey] = responseField.value;
+        } else if (responseField.response !== undefined) {
+          // Fallback to response if value is not present
+          payload[fieldKey] = responseField.response;
         }
-      });
-    }
+      }
+    });
 
     return {
       triggerEvent: dto.triggerEvent,
