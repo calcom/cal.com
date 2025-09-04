@@ -10,7 +10,7 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
   WorkflowTemplates,
-} from "@calcom/prisma/client";
+} from "@calcom/prisma/enums";
 import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { _onFormSubmission } from "./utils";

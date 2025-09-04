@@ -8,7 +8,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { Ensure } from "@calcom/types/utils";
 
