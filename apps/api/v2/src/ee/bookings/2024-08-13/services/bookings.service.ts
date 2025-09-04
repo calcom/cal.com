@@ -1028,22 +1028,24 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
-    const fetchedBookings = await getAllUserBookings({
+    const filters = {
+      ...this.inputService.transformGetBookingsFilters(queryParams),
+      ...(userIds?.length ? { userIds } : {}),
+    };
+
+    const { getBookings } = await import("@calcom/trpc/server/routers/viewer/bookings/get.handler");
+
+    const { totalCount } = await getBookings({
+      user,
+      prisma: this.prismaReadService.prisma,
+      kysely: this.kyselyReadService.kysely,
       bookingListingByStatus: [],
+      filters,
+      take: 0, // We only need count, not actual bookings
       skip: 0,
-      take: null,
-      filters: {
-        ...this.inputService.transformGetBookingsFilters(queryParams),
-        ...(userIds?.length ? { userIds } : {}),
-      },
-      ctx: {
-        user,
-        prisma: this.prismaReadService.prisma,
-        kysely: this.kyselyReadService.kysely,
-      },
     });
 
-    return fetchedBookings.bookings.length;
+    return totalCount;
   }
 
   async getBookingsStatistics(
@@ -1055,17 +1057,16 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
-    const skip = 0;
-    const take = null;
+    const filters = {
+      ...this.inputService.transformGetBookingsFilters(queryParams),
+      ...(userIds?.length ? { userIds } : {}),
+    };
 
     const fetchedBookings = await getAllUserBookings({
       bookingListingByStatus: [],
-      skip,
-      take,
-      filters: {
-        ...this.inputService.transformGetBookingsFilters(queryParams),
-        ...(userIds?.length ? { userIds } : {}),
-      },
+      skip: 0,
+      take: null,
+      filters,
       ctx: {
         user,
         prisma: this.prismaReadService.prisma,
