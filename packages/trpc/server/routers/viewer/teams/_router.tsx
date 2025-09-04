@@ -12,7 +12,6 @@ import { ZGetSchema } from "./get.schema";
 import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
-import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasActiveTeamPlanInputSchema } from "./hasActiveTeamPlan.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
@@ -21,7 +20,6 @@ import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
-import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
@@ -94,10 +92,6 @@ export const viewerTeamsRouter = router({
     const { default: handler } = await import("./updateMembership.handler");
     return handler(opts);
   }),
-  publish: authedProcedure.input(ZPublishInputSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./publish.handler");
-    return handler(opts);
-  }),
   /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
   getUpgradeable: authedProcedure.query(async ({ ctx }) => {
     const { default: handler } = await import("./getUpgradeable.handler");
@@ -113,10 +107,6 @@ export const viewerTeamsRouter = router({
   }),
   legacyListMembers: authedProcedure.input(ZLegacyListMembersInputSchema).query(async (opts) => {
     const { default: handler } = await import("./legacyListMembers.handler");
-    return handler(opts);
-  }),
-  getUserConnectedApps: authedProcedure.input(ZGetUserConnectedAppsInputSchema).query(async (opts) => {
-    const { default: handler } = await import("./getUserConnectedApps.handler");
     return handler(opts);
   }),
   hasTeamPlan,

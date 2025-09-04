@@ -5,8 +5,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { checkIfOrgNeedsUpgradeHandler } from "../organizations/checkIfOrgNeedsUpgrade.handler";
+import { checkInvalidAppCredentials } from "../quarantine/me/checkForInvalidAppCredentials";
 import { getUpgradeableHandler } from "../teams/getUpgradeable.handler";
-import { checkInvalidAppCredentials } from "./checkForInvalidAppCredentials";
 import { shouldVerifyEmailHandler } from "./shouldVerifyEmail.handler";
 
 type Props = {

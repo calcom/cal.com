@@ -15,11 +15,11 @@ export default function PayPalSetup() {
   const [newSecretKey, setNewSecretKey] = useState("");
   const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "paypal" });
+  const integrations = trpc.viewer.quarantine.integrations.useQuery({ variant: "payment", appId: "paypal" });
   const [paypalPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
-  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.quarantine.saveKeys.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");
@@ -70,8 +70,10 @@ export default function PayPalSetup() {
                   color="secondary"
                   onClick={() => {
                     saveKeysMutation.mutate({
-                      credentialId,
-                      key: {
+                      slug: "paypal",
+                      dirName: "paypal",
+                      type: "paypal_payment",
+                      keys: {
                         client_id: newClientId,
                         secret_key: newSecretKey,
                       },

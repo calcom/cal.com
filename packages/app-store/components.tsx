@@ -69,7 +69,7 @@ export const AppDependencyComponent = ({
   dependencyData,
 }: {
   appName: string;
-  dependencyData: RouterOutputs["viewer"]["apps"]["queryForDependencies"];
+  dependencyData: RouterOutputs["viewer"]["quarantine"]["queryForDependencies"];
 }) => {
   const { t } = useLocale();
 

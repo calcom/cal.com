@@ -14,7 +14,7 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TChargeCardInputSchema } from "./chargeCard.schema";
 
 interface ChargeCardHandlerOptions {

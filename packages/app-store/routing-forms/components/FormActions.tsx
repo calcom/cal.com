@@ -70,7 +70,7 @@ function NewFormDialog({
   const action = newFormDialogState?.action;
   const target = newFormDialogState?.target;
 
-  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const mutation = trpc.viewer.quarantine.appRoutingForms.formMutation.useMutation({
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
@@ -78,7 +78,7 @@ function NewFormDialog({
       showToast(err.message || t("something_went_wrong"), "error");
     },
     onSettled: () => {
-      utils.viewer.appRoutingForms.forms.invalidate();
+      utils.viewer.quarantine.appRoutingForms.forms.invalidate();
     },
   });
 
@@ -205,13 +205,13 @@ function Dialogs({
   const router = useRouter();
   const { t } = useLocale();
 
-  const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
+  const deleteMutation = trpc.viewer.quarantine.appRoutingForms.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
-      await utils.viewer.appRoutingForms.forms.cancel();
-      const previousValue = utils.viewer.appRoutingForms.forms.getData();
+      await utils.viewer.quarantine.appRoutingForms.forms.cancel();
+      const previousValue = utils.viewer.quarantine.appRoutingForms.forms.getData();
       if (previousValue) {
         const filtered = previousValue.filtered.filter(({ form: { id } }) => id !== formId);
-        utils.viewer.appRoutingForms.forms.setData(
+        utils.viewer.quarantine.appRoutingForms.forms.setData(
           {},
           {
             ...previousValue,
@@ -227,12 +227,12 @@ function Dialogs({
       router.push(`${appUrl}/forms`);
     },
     onSettled: () => {
-      utils.viewer.appRoutingForms.forms.invalidate();
+      utils.viewer.quarantine.appRoutingForms.forms.invalidate();
       setDeleteDialogOpen(false);
     },
     onError: (err, newTodo, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
+        utils.viewer.quarantine.appRoutingForms.forms.setData({}, context.previousValue);
       }
       showToast(err.message || t("something_went_wrong"), "error");
     },
@@ -305,10 +305,10 @@ export function FormActionsProvider({
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const toggleMutation = trpc.viewer.quarantine.appRoutingForms.formMutation.useMutation({
     onMutate: async ({ id: formId, disabled }) => {
-      await utils.viewer.appRoutingForms.forms.cancel();
-      const previousValue = utils.viewer.appRoutingForms.forms.getData();
+      await utils.viewer.quarantine.appRoutingForms.forms.cancel();
+      const previousValue = utils.viewer.quarantine.appRoutingForms.forms.getData();
       if (previousValue) {
         const formIndex = previousValue.filtered.findIndex(({ form: { id } }) => id === formId);
         const previousListOfForms = [...previousValue.filtered];
@@ -316,7 +316,7 @@ export function FormActionsProvider({
         if (formIndex !== -1 && previousListOfForms[formIndex] && disabled !== undefined) {
           previousListOfForms[formIndex].form.disabled = disabled;
         }
-        utils.viewer.appRoutingForms.forms.setData(
+        utils.viewer.quarantine.appRoutingForms.forms.setData(
           {},
           {
             filtered: previousListOfForms,
@@ -330,16 +330,16 @@ export function FormActionsProvider({
       showToast(t("form_updated_successfully"), "success");
     },
     onSettled: (routingForm) => {
-      utils.viewer.appRoutingForms.forms.invalidate();
+      utils.viewer.quarantine.appRoutingForms.forms.invalidate();
       if (routingForm) {
-        utils.viewer.appRoutingForms.formQuery.invalidate({
+        utils.viewer.quarantine.appRoutingForms.formQuery.invalidate({
           id: routingForm.id,
         });
       }
     },
     onError: (err, value, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
+        utils.viewer.quarantine.appRoutingForms.forms.setData({}, context.previousValue);
       }
       showToast(err.message || t("something_went_wrong"), "error");
     },

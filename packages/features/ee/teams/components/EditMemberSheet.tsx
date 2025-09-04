@@ -106,7 +106,7 @@ export function EditMemberSheet({
     },
   });
 
-  const { data: getUserConnectedApps, isPending } = trpc.viewer.teams.getUserConnectedApps.useQuery({
+  const { data: getUserConnectedApps, isPending } = trpc.viewer.quarantine.getUserConnectedApps.useQuery({
     userIds: [selectedUser.id],
     teamId,
   });

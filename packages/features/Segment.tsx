@@ -17,11 +17,12 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import cn from "@calcom/ui/classNames";
 
-export type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
+export type Attributes = RouterOutputs["viewer"]["quarantine"]["appRoutingForms"]["getAttributesForTeam"];
 export function useAttributes(teamId: number) {
-  const { data: attributes, isPending } = trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery({
-    teamId,
-  });
+  const { data: attributes, isPending } =
+    trpc.viewer.quarantine.appRoutingForms.getAttributesForTeam.useQuery({
+      teamId,
+    });
   return {
     attributes,
     isPending,

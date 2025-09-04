@@ -55,11 +55,11 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const mutation = trpc.viewer.loggedInViewerRouter.routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
-      await utils.viewer.appRoutingForms.forms.cancel();
-      await utils.viewer.appRoutingForms.invalidate();
+      await utils.viewer.quarantine.appRoutingForms.forms.cancel();
+      await utils.viewer.quarantine.appRoutingForms.invalidate();
     },
     onSettled: () => {
-      utils.viewer.appRoutingForms.invalidate();
+      utils.viewer.quarantine.appRoutingForms.invalidate();
     },
   });
 
@@ -69,7 +69,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   }, []);
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
-  const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
+  const queryRes = trpc.viewer.quarantine.appRoutingForms.forms.useQuery({
     filters,
   });
 
@@ -124,7 +124,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
         newList[index + increment] = type;
       }
 
-      await utils.viewer.appRoutingForms.forms.cancel();
+      await utils.viewer.quarantine.appRoutingForms.forms.cancel();
 
       mutation.mutate({
         ids: newList?.map((type) => type.id),

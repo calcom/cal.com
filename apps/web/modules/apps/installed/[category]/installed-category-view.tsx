@@ -37,16 +37,16 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const query = trpc.viewer.apps.integrations.useQuery({
+  const query = trpc.viewer.quarantine.integrations.useQuery({
     variant,
     exclude,
     onlyInstalled: true,
     includeTeamInstalledApps: true,
   });
 
-  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.quarantine.getUsersDefaultConferencingApp.useQuery();
 
-  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.quarantine.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 

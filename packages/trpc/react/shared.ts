@@ -23,6 +23,7 @@ export const ENDPOINTS = [
   "ooo",
   "payments",
   "public",
+  "quarantine",
   "timezones",
   "saml",
   "slots",

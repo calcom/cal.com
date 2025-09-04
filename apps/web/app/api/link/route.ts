@@ -8,7 +8,7 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
+import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
@@ -95,7 +95,7 @@ async function handler(request: NextRequest) {
     const res = {} as any; // Response is still mocked as it's not used in this context
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
-    const createCaller = createCallerFactory(bookingsRouter);
+    const createCaller = createCallerFactory(viewerRouter);
     const caller = createCaller({
       ...ctx,
       req: legacyReq,
@@ -103,7 +103,7 @@ async function handler(request: NextRequest) {
       user: { ...user, locale: user?.locale ?? "en" },
     });
 
-    await caller.confirm({
+    await caller.quarantine.confirm({
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,

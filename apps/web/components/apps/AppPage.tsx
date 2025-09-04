@@ -153,7 +153,7 @@ export const AppPage = ({
    */
   const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
 
-  const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
+  const appDbQuery = trpc.viewer.quarantine.appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -171,7 +171,7 @@ export const AppPage = ({
     [appDbQuery.data, availableForTeams]
   );
 
-  const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
+  const dependencyData = trpc.viewer.quarantine.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
   });
 

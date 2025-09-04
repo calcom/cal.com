@@ -7,14 +7,14 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 
-type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
+type Attributes = RouterOutputs["viewer"]["quarantine"]["appRoutingForms"]["getAttributesForTeam"];
 type MatchingTeamMembersData = RouterOutputs["viewer"]["attributes"]["findTeamMembersMatchingAttributeLogic"];
 const mockGetAttributesForTeam = (
   arg: { data: Attributes; isPending: false } | { data: undefined; isPending: true }
 ) => {
   (
-    trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery as Mock<
-      typeof trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery
+    trpc.viewer.quarantine.appRoutingForms.getAttributesForTeam.useQuery as Mock<
+      typeof trpc.viewer.quarantine.appRoutingForms.getAttributesForTeam.useQuery
     >
   )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,9 +63,11 @@ const mockAttributesWithSingleSelect = () => {
 vi.mock("@calcom/trpc", () => ({
   trpc: {
     viewer: {
-      appRoutingForms: {
-        getAttributesForTeam: {
-          useQuery: vi.fn(),
+      quarantine: {
+        appRoutingForms: {
+          getAttributesForTeam: {
+            useQuery: vi.fn(),
+          },
         },
       },
       attributes: {

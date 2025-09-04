@@ -1,5 +1,3 @@
-import app_Basecamp3 from "@calcom/app-store/basecamp3/trpc-router";
-import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
@@ -34,6 +32,7 @@ import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { permissionsRouter } from "./pbac/_router";
 import { phoneNumberRouter } from "./phoneNumber/_router";
+import { quarantineRouter } from "./quarantine/_router";
 import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
@@ -72,8 +71,7 @@ export const viewerRouter = router({
   pbac: permissionsRouter,
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
-  appRoutingForms: app_RoutingForms,
-  appBasecamp3: app_Basecamp3,
+  quarantine: quarantineRouter,
   features: featureFlagRouter,
   users: userAdminRouter,
   oAuth: oAuthRouter,

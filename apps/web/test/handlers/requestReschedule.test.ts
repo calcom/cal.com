@@ -18,7 +18,7 @@ import { describe } from "vitest";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { TRequestRescheduleInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.schema";
+import type { TRequestRescheduleInputSchema } from "@calcom/trpc/server/routers/viewer/quarantine/bookings/requestReschedule.schema";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -35,7 +35,7 @@ describe("Handler: requestReschedule", () => {
       emails,
     }) => {
       const { requestRescheduleHandler } = await import(
-        "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.handler"
+        "@calcom/trpc/server/routers/viewer/quarantine/bookings/requestReschedule.handler"
       );
       const booker = getBooker({
         email: "booker@example.com",
@@ -141,7 +141,7 @@ describe("Handler: requestReschedule", () => {
       emails,
     }) => {
       const { requestRescheduleHandler } = await import(
-        "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.handler"
+        "@calcom/trpc/server/routers/viewer/quarantine/bookings/requestReschedule.handler"
       );
       const booker = getBooker({
         email: "booker@example.com",

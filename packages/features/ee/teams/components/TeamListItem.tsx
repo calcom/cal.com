@@ -331,7 +331,7 @@ export default function TeamListItem(props: Props) {
 const TeamPublishButton = ({ teamId }: { teamId: number }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+  const publishTeamMutation = trpc.viewer.quarantine.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },
@@ -356,7 +356,7 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
 
 const TeamPublishSection = ({ children, teamId }: { children: React.ReactNode; teamId: number }) => {
   const router = useRouter();
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+  const publishTeamMutation = trpc.viewer.quarantine.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },

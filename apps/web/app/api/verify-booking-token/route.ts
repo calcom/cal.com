@@ -8,7 +8,7 @@ import { z } from "zod";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
+import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
@@ -116,7 +116,7 @@ async function handleBookingAction(
 
   try {
     /** @see https://trpc.io/docs/server-side-calls */
-    const createCaller = createCallerFactory(bookingsRouter);
+    const createCaller = createCallerFactory(viewerRouter);
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
     const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
@@ -130,7 +130,7 @@ async function handleBookingAction(
       user: { ...user, locale: user?.locale ?? "en" },
     });
 
-    await caller.confirm({
+    await caller.quarantine.confirm({
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,

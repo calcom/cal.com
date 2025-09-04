@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

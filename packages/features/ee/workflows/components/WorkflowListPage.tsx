@@ -68,7 +68,7 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const router = useRouter();
 
-  const mutation = trpc.viewer.workflows.workflowOrder.useMutation({
+  const mutation = trpc.viewer.quarantine.workflowOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.workflows.filteredList.cancel();
@@ -91,7 +91,7 @@ export default function WorkflowListPage({ workflows }: Props) {
       newList[index + increment] = type;
     }
 
-    await utils.viewer.appRoutingForms.forms.cancel();
+    await utils.viewer.quarantine.appRoutingForms.forms.cancel();
 
     mutation.mutate({
       ids: newList?.map((type) => type.id),
