@@ -209,7 +209,7 @@ export class BookingEmailSmsHandler {
             : undefined
         );
       } catch (err) {
-        this.log.error("Failed to send rescheduled round robin event related emails");
+        this.log.error("Failed to send rescheduled round robin event related emails", err);
       }
     } else {
       await sendRescheduledEmailsAndSMS(
