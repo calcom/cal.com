@@ -104,9 +104,7 @@ export class WorkflowService {
         ...workflows.filter(
           (workflow) =>
             this._beforeAfterEventTriggers.includes(workflow.trigger) ||
-            (isNormalBookingOrFirstRecurringSlot
-              ? workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
-              : false)
+            (isNormalBookingOrFirstRecurringSlot && workflow.trigger === WorkflowTriggerEvents.NEW_EVENT)
         )
       );
     }
