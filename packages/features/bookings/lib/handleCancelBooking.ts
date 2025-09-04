@@ -51,13 +51,16 @@ const shouldChargeCancellationFee = (
   eventType: {
     hosts?: Array<{ user: { id: number } }>;
     owner?: { id: number; hideBranding?: boolean } | null;
-    metadata?: Record<string, unknown> | null;
+    metadata?: Prisma.JsonValue;
   },
   startTime: Date,
   userId: number,
   _cancelledBy?: string
 ): boolean => {
-  const metadata = eventType?.metadata as Record<string, unknown> | null | undefined;
+  const metadata =
+    typeof eventType?.metadata === "object" && eventType?.metadata !== null
+      ? (eventType.metadata as Record<string, unknown>)
+      : null;
   const apps = metadata?.apps as Record<string, unknown> | undefined;
   const stripe = apps?.stripe as Record<string, unknown> | undefined;
 
