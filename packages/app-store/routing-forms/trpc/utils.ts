@@ -7,7 +7,7 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import type { SerializableField, OrderedResponses } from "../types/types";
