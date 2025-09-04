@@ -61,7 +61,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const userId = session?.user?.id;
-  const hasTeamOrOrgPermissions = userId !== undefined ? await isTeamAdmin(userId, eventData.team?.id ?? 0) : false;
+  const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, eventData.team?.id ?? 0)) : false;
 
   let isHostOrOwner = (eventData.owner?.id && eventData.owner?.id === userId) || hasTeamOrOrgPermissions;
 

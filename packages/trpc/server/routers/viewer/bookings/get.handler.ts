@@ -118,7 +118,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
       let hasTeamOrOrgPermissions = false;
       if (booking.eventType?.team?.id) {
-        hasTeamOrOrgPermissions = await isTeamAdmin(user.id, booking.eventType.team.id);
+        hasTeamOrOrgPermissions = !!(await isTeamAdmin(user.id, booking.eventType.team.id));
       }
 
       const isUserHostOrOwner = isUserHost || isUserOwnerOfEventType;

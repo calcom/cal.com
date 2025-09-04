@@ -120,10 +120,10 @@ async function handler(input: CancelBookingInput) {
     },
     bookingToDelete.eventType || undefined
   );
-  const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
+  const userIsOwnerOfEventType = userId !== undefined && bookingToDelete.eventType?.owner?.id === userId;
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
 
-  const hasTeamOrOrgPermissions = await isTeamAdmin(userId, bookingToDelete.eventType?.team?.id ?? 0);
+  const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, bookingToDelete.eventType?.team?.id ?? 0)) : false;
 
   if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) {
     throw new HttpError({

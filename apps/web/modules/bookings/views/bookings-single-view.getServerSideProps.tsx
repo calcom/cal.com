@@ -175,7 +175,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
-  const hasTeamOrOrgPermissions = userId !== undefined ? await isTeamAdmin(userId, eventType.team?.id ?? 0) : false;
+  const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, eventType.team?.id ?? 0)) : false;
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);

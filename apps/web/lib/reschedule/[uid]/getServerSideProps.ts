@@ -145,7 +145,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     : false;
   const userIsOwnerOfEventType = userId !== undefined && booking?.eventType?.owner?.id === userId;
 
-  const hasTeamOrOrgPermissions = userId !== undefined ? await isTeamAdmin(userId, booking?.eventType?.team?.id ?? 0) : false;
+  const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, booking?.eventType?.team?.id ?? 0)) : false;
 
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType || !!hasTeamOrOrgPermissions;
   if (isDisabledRescheduling && !isHostOrOwner) {
