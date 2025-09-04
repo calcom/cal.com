@@ -1097,10 +1097,7 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SMTP", async () => {
-    await scheduleEmailReminder({
-      ...baseArgs,
-      teamId: 123,
-    });
+    await scheduleEmailReminder(baseArgs);
     expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
   });
 });
