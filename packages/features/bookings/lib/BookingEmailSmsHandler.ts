@@ -1,3 +1,4 @@
+import { default as cloneDeep } from "lodash/cloneDeep";
 import type { Logger } from "tslog";
 
 import dayjs from "@calcom/dayjs";
@@ -112,14 +113,14 @@ export class BookingEmailSmsHandler {
       users,
       isRescheduledByBooker,
     } = data;
-    const copyEvent = structuredClone(evt);
+    const copyEvent = cloneDeep(evt);
     const copyEventAdditionalInfo = {
       ...copyEvent,
       additionalInformation: videoMetadata,
       additionalNotes,
       cancellationReason: `$RCH$${rescheduleReason || ""}`,
     };
-    const cancelledRRHostEvt = structuredClone(copyEventAdditionalInfo);
+    const cancelledRRHostEvt = cloneDeep(copyEventAdditionalInfo);
     this.log.debug("Emails: Sending rescheduled emails for booking confirmation");
 
     if (schedulingType === SchedulingType.ROUND_ROBIN) {
