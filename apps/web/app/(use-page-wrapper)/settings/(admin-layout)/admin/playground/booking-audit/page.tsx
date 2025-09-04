@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { BookingSlideOver, type BookingData } from "./components/BookingSlideOver";
 
@@ -44,65 +43,6 @@ export default function BookingAuditPlayground() {
         <p className="mt-2 text-gray-600">
           This page demonstrates the booking slide-over component with multiple tabs including audit history.
         </p>
-      </div>
-
-      {/* Mock Booking Header */}
-      <div className="bg-default border-muted rounded-lg border p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">{mockBookingData.title}</h2>
-            <div className="text-subtle flex items-center gap-2 text-sm">
-              <Icon name="calendar" className="h-4 w-4" />
-              Thu, 13 June, 9:00am • {mockBookingData.duration} min
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => openSlideOver("details")} color="secondary">
-              View Details
-            </Button>
-            <Button onClick={() => openSlideOver("edit")} color="secondary">
-              Edit Booking
-            </Button>
-            <Button onClick={() => openSlideOver("audit")}>View Audit</Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Explanation */}
-      <div className="bg-muted rounded-lg p-4">
-        <h3 className="mb-2 text-lg font-semibold">BookingSlideOver Features</h3>
-        <ul className="space-y-2 text-sm">
-          <li className="flex items-center gap-2">
-            <Icon name="check" className="h-4 w-4 text-green-500" />
-            <span>
-              <strong>Multiple Tabs:</strong> Details, Edit, Audit History, and extensible for more
-            </span>
-          </li>
-          <li className="flex items-center gap-2">
-            <Icon name="check" className="h-4 w-4 text-green-500" />
-            <span>
-              <strong>Default Tab Selection:</strong> Open directly to any specific tab
-            </span>
-          </li>
-          <li className="flex items-center gap-2">
-            <Icon name="check" className="h-4 w-4 text-green-500" />
-            <span>
-              <strong>Tab Filtering:</strong> Show only relevant tabs using availableTabs prop
-            </span>
-          </li>
-          <li className="flex items-center gap-2">
-            <Icon name="check" className="h-4 w-4 text-green-500" />
-            <span>
-              <strong>Extracted Components:</strong> Each tab is a separate, reusable component
-            </span>
-          </li>
-          <li className="flex items-center gap-2">
-            <Icon name="check" className="h-4 w-4 text-green-500" />
-            <span>
-              <strong>Enhanced PanelCard:</strong> Function-based titles with i18n support
-            </span>
-          </li>
-        </ul>
       </div>
 
       {/* Usage Examples */}
