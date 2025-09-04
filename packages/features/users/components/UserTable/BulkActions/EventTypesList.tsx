@@ -31,7 +31,14 @@ interface Props {
 export function EventTypesList({ table, orgTeams }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const teamIds = orgTeams?.map((team) => team.id);
+  const selectedUsers = table.getSelectedRowModel().flatRows.map((row) => row.original);
+
+  const selectedUserTeamIds = Array.from(
+    new Set(selectedUsers.flatMap((user) => user.teams.map((team) => team.id)))
+  );
+
+  const teamIds = selectedUserTeamIds.length > 0 ? selectedUserTeamIds : orgTeams?.map((team) => team.id);
+
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
     filters: { teamIds, schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
@@ -76,7 +83,6 @@ export function EventTypesList({ table, orgTeams }: Props) {
   const [selectedTeams, setSelectedTeams] = useState<Set<number>>(new Set());
   const [removeHostFromEvents, setRemoveHostFromEvents] = useState<Set<number>>(new Set());
   const teams = data?.eventTypeGroups;
-  const selectedUsers = table.getSelectedRowModel().flatRows.map((row) => row.original);
 
   // Add value array to the set
   const addValue = (set: Set<number>, setSet: Dispatch<SetStateAction<Set<number>>>, value: number[]) => {
