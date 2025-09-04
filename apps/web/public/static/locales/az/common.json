@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Komandalarınız üzrə ödənişləri, admin alətlərini və analitikanı birləşdirmək üçün təşkilat qurmağı nəzərdən keçirin.",
   "search_variables": "Dəyişənləri axtar",
   "no_variables_found": "Heç bir dəyişən tapılmadı",
+  "api_key_name_too_long": "Ad {{max}} simvolu keçməməlidir",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

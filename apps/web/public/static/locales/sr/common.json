@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Razmotrite postavljanje organizacije za objedinjavanje naplate, administratorskih alata i analitike za vaše timove.",
   "search_variables": "Pretraži promenljive",
   "no_variables_found": "Nisu pronađene promenljive",
+  "api_key_name_too_long": "Ime ne sme biti duže od {{max}} karaktera",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

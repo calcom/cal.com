@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Erwägen Sie die Einrichtung einer Organisation, um Abrechnung, Administrationstools und Analysen für Ihre Teams zu vereinheitlichen.",
   "search_variables": "Variablen durchsuchen",
   "no_variables_found": "Keine Variablen gefunden",
+  "api_key_name_too_long": "Der Name darf {{max}} Zeichen nicht überschreiten",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
