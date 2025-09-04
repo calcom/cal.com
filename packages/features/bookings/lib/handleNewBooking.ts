@@ -87,14 +87,14 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import {
+  BookingState,
+  BookingEmailSmsHandler,
+  type EmailsAndSmsSideEffectsPayload,
+} from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
-import {
-  BookingState,
-  handleSendingEmailsAndSms,
-  type EmailsAndSmsSideEffectsPayload,
-} from "./handleBookingEmailsAndSmsSideEffects";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
@@ -2325,7 +2325,8 @@ async function handler(
 
   // Side Effects
   if (emailsAndSmsSideEffectsPayload) {
-    await handleSendingEmailsAndSms(emailsAndSmsSideEffectsPayload);
+    const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger });
+    await emailsAndSmsHandler.send(emailsAndSmsSideEffectsPayload);
   }
 
   return {
