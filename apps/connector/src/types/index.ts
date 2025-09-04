@@ -1,36 +1,8 @@
-import type { Prisma } from "@calcom/prisma/client";
-
 export * from "./auth";
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-  meta?: {
-    pagination?: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-    [key: string]: any;
-  };
-}
-
-export interface PaginationQuery<T extends object = Prisma.UserOrderByWithRelationInput> {
+export interface PaginationQuery<T> {
   page?: number;
   limit?: number;
   orderBy?: keyof T;
   orderDir?: "asc" | "desc";
-}
-
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
