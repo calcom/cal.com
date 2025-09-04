@@ -12,6 +12,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import { useRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -59,9 +60,24 @@ const editorConfig = {
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   const plainText = props.plainText ?? false;
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  const handleLabelClick = () => {
+    if (editorRef.current) {
+      const contentEditable = editorRef.current.querySelector('[contenteditable="true"]');
+      if (contentEditable) {
+        (contentEditable as HTMLElement).focus();
+      }
+    }
+  };
+
   return (
     <div className="editor rounded-md">
-      {props.label && <label className="mb-1 block text-sm font-medium leading-6">{props.label}</label>}
+      {props.label && (
+        <label className="mb-1 block text-sm font-medium leading-6" onClick={handleLabelClick}>
+          {props.label}
+        </label>
+      )}
       <LexicalComposer initialConfig={{ ...editorConfig }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2 focus-within:ring-offset-0">
           <ToolbarPlugin
@@ -76,6 +92,7 @@ export const Editor = (props: TextEditorProps) => {
             setFirstRender={props.setFirstRender}
           />
           <div
+            ref={editorRef}
             className={classNames("editor-inner scroll-bar overflow-x-hidden", !editable && "!bg-subtle")}
             style={{ height: props.height, maxHeight: props.maxHeight }}>
             <RichTextPlugin
