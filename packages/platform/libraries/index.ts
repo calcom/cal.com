@@ -34,6 +34,7 @@ export {
   MembershipRole,
   TimeUnit,
   WebhookTriggerEvents,
+  WorkflowTriggerEvents,
   WorkflowActions,
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
