@@ -1,4 +1,3 @@
-import type { BookingType } from "bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import {
   allowDisablingHostConfirmationEmails,
   allowDisablingAttendeeConfirmationEmails,
@@ -18,6 +17,7 @@ import {
   sendOrganizerRequestEmail,
   sendAttendeeRequestEmailAndSMS,
 } from "@calcom/emails";
+import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
@@ -52,7 +52,7 @@ export type RescheduleEmailAndSmsPayload = EmailAndSmsPayload & {
     isFixed?: boolean;
   })[];
   changedOrganizer?: boolean;
-  isReschduledByBooker: boolean;
+  isRescheduledByBooker: boolean;
   originalRescheduledBooking: NonNullable<BookingType>;
   additionalNotes?: string | null;
 };
@@ -110,7 +110,7 @@ export async function handleSendingEmailsAndSms(payload: EmailsAndSmsSideEffects
         changedOrganizer,
         videoMetadata,
         users,
-        isReschduledByBooker,
+        isRescheduledByBooker,
       } = data;
       const copyEvent = cloneDeep(evt);
       const copyEventAdditionalInfo = {
@@ -218,7 +218,7 @@ export async function handleSendingEmailsAndSms(payload: EmailsAndSmsSideEffects
             ? {
                 name: reassignedTo.name,
                 email: reassignedTo.email,
-                ...(isReschduledByBooker && { reason: "Booker Rescheduled" }),
+                ...(isRescheduledByBooker && { reason: "Booker Rescheduled" }),
               }
             : undefined
         );

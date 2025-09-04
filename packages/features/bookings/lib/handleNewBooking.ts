@@ -1843,7 +1843,7 @@ async function handler(
           videoMetadata,
           originalRescheduledBooking,
           rescheduleReason,
-          isReschduledByBooker: reqBody.rescheduledBy === bookerEmail,
+          isRescheduledByBooker: reqBody.rescheduledBy === bookerEmail,
           users,
           changedOrganizer,
         },
