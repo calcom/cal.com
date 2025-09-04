@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Overweeg een organisatie op te zetten om facturering, beheerderstools en analyses voor je teams te verenigen.",
   "search_variables": "Variabelen zoeken",
   "no_variables_found": "Geen variabelen gevonden",
+  "api_key_name_too_long": "Naam mag niet langer zijn dan {{max}} tekens",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
