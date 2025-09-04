@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { RetellWebClient } from "retell-client-js-sdk";
@@ -6,10 +7,12 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { FormValues } from "../pages/workflow";
 
@@ -18,6 +21,7 @@ interface WebCallDialogProps {
   onOpenChange: (open: boolean) => void;
   agentId: string;
   teamId?: number;
+  isOrganization?: boolean;
   form: UseFormReturn<FormValues>;
 }
 
@@ -29,7 +33,14 @@ interface TranscriptEntry {
 
 type CallStatus = "idle" | "connecting" | "active" | "ended" | "error";
 
-export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: WebCallDialogProps) {
+export function WebCallDialog({
+  open,
+  onOpenChange,
+  agentId,
+  teamId,
+  isOrganization = false,
+  form,
+}: WebCallDialogProps) {
   const { t } = useLocale();
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
@@ -43,6 +54,22 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const callStatusRef = useRef<CallStatus>("idle");
   const isEmbed = useIsEmbed();
+
+  const { data: creditsData, isLoading: creditsLoading } = trpc.viewer.credits.getAllCredits.useQuery(
+    { teamId },
+    { enabled: open }
+  );
+
+  const getBillingPath = () => {
+    if (!teamId) return "/settings/billing";
+    return isOrganization ? "/settings/organizations/billing" : `/settings/teams/${teamId}/billing`;
+  };
+
+  const totalAvailableCredits = creditsData
+    ? (creditsData.credits.totalRemainingMonthlyCredits || 0) + (creditsData.credits.additionalCredits || 0)
+    : 0;
+  const hasCredits = creditsData ? totalAvailableCredits > 0 : false;
+  const creditsAmount = totalAvailableCredits;
 
   const createWebCallMutation = trpc.viewer.aiVoiceAgent.createWebCall.useMutation({
     onSuccess: async (data) => {
@@ -273,7 +300,10 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       stopDurationTimer();
       if (retellWebClientRef.current && callStatus === "active") {
         try {
-          retellWebClientRef.current.stopCall();
+          const result = retellWebClientRef.current.stopCall();
+          if (result && typeof result === "object" && "catch" in result) {
+            result.catch(console.error);
+          }
         } catch (error) {
           console.error("Error stopping call during cleanup:", error);
         }
@@ -312,8 +342,12 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       open={open}
       onOpenChange={(open) => {
         if (!open) {
-          if (callStatus === "active") {
-            handleEndCall();
+          if (retellWebClientRef.current) {
+            try {
+              retellWebClientRef.current.stopCall();
+            } catch (e) {
+              console.error("Error stopping call on close:", e);
+            }
           }
           resetDialogState();
         }
@@ -324,7 +358,26 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
         type="creation"
         title={t("web_call")}
         description={t("test_your_agent_with_web_call")}>
-        <div className="flex items-center justify-between rounded-lg border p-3">
+        {!creditsLoading && (
+          <Alert
+            severity="info"
+            CustomIcon="info"
+            title={t("credits_required")}
+            message={
+              hasCredits ? (
+                t("web_call_credits_info", { credits: creditsAmount })
+              ) : (
+                <>
+                  {t("web_call_no_credits")}{" "}
+                  <Link href={getBillingPath()} className="text-semantic-info underline">
+                    {t("purchase_credits")}
+                  </Link>
+                </>
+              )
+            }
+          />
+        )}
+        <div className="mt-2 flex items-center justify-between rounded-lg border p-3">
           <div className="flex items-center gap-2">
             {getStatusIcon()}
             <span className="text-sm font-medium">{getStatusText()}</span>
@@ -411,14 +464,16 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
             callStatus === "error" ||
             callStatus === "ended" ||
             callStatus === "connecting" ? (
-              <Button
-                type="button"
-                onClick={handleStartCall}
-                loading={createWebCallMutation.isPending || callStatus === "connecting"}
-                disabled={createWebCallMutation.isPending || callStatus === "connecting"}>
-                <Icon name="phone" className="mr-2 h-4 w-4" />
-                {callStatus === "connecting" ? t("connecting") : t("start_web_call")}
-              </Button>
+              <Tooltip content={!hasCredits ? t("credits_required_tooltip") : undefined}>
+                <Button
+                  type="button"
+                  onClick={handleStartCall}
+                  loading={createWebCallMutation.isPending || callStatus === "connecting"}
+                  disabled={!hasCredits || createWebCallMutation.isPending || callStatus === "connecting"}>
+                  <Icon name="phone" className="mr-2 h-4 w-4" />
+                  {callStatus === "connecting" ? t("connecting") : t("start_web_call")}
+                </Button>
+              </Tooltip>
             ) : (
               <Button
                 type="button"

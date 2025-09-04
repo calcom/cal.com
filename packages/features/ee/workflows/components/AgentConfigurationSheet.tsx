@@ -115,6 +115,7 @@ type AgentConfigurationSheetProps = {
   onUpdate: (data: AgentFormValues) => void;
   readOnly?: boolean;
   teamId?: number;
+  isOrganization?: boolean;
   workflowId?: string;
   workflowStepId?: number;
   activeTab?: "prompt" | "phoneNumber";
@@ -130,6 +131,7 @@ export function AgentConfigurationSheet({
   onUpdate,
   readOnly = false,
   teamId,
+  isOrganization = false,
   workflowId,
   workflowStepId: _workflowStepId,
   form,
@@ -1007,6 +1009,7 @@ export function AgentConfigurationSheet({
           onOpenChange={setIsWebCallDialogOpen}
           agentId={agentId}
           teamId={teamId}
+          isOrganization={isOrganization}
           form={form}
         />
       )}

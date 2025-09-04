@@ -1419,6 +1419,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             }}
             readOnly={props.readOnly}
             teamId={teamId}
+            isOrganization={props.isOrganization}
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
@@ -1441,6 +1442,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             onOpenChange={setIsWebCallDialogOpen}
             agentId={stepAgentId}
             teamId={teamId}
+            isOrganization={props.isOrganization}
             form={form}
           />
         )}

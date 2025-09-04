@@ -42,10 +42,10 @@ export const createWebCallHandler = async ({ ctx, input }: CreateWebCallHandlerO
     });
   } catch (error) {
     logger.error(`Failed to update tools for agent ${agent.providerAgentId}: ${error}`);
-    // throw new TRPCError({
-    //   code: "INTERNAL_SERVER_ERROR",
-    //   message: "Failed to configure agent for web call",
-    // });
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to configure agent for web call",
+    });
   }
 
   return await aiService.createWebCall({
