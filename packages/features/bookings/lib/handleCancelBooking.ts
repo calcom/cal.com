@@ -50,25 +50,19 @@ const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 const shouldChargeCancellationFee = (
   eventType: {
     hosts?: Array<{ user: { id: number } }>;
-    owner?: { id: number };
-    metadata?: {
-      apps?: {
-        stripe?: {
-          cancellationFeeEnabled?: boolean;
-          paymentOption?: string;
-          cancellationFeeTimeValue?: number;
-          cancellationFeeTimeUnit?: string;
-        };
-      };
-    };
+    owner?: { id: number; hideBranding?: boolean } | null;
+    metadata?: Record<string, unknown> | null;
   },
   startTime: Date,
   userId: number,
   _cancelledBy?: string
 ): boolean => {
-  const metadata = eventType?.metadata;
-  const cancellationFeeEnabled = metadata?.apps?.stripe?.cancellationFeeEnabled;
-  const paymentOption = metadata?.apps?.stripe?.paymentOption;
+  const metadata = eventType?.metadata as Record<string, unknown> | null | undefined;
+  const apps = metadata?.apps as Record<string, unknown> | undefined;
+  const stripe = apps?.stripe as Record<string, unknown> | undefined;
+
+  const cancellationFeeEnabled = stripe?.cancellationFeeEnabled as boolean | undefined;
+  const paymentOption = stripe?.paymentOption as string | undefined;
 
   if (!cancellationFeeEnabled || paymentOption !== "HOLD") {
     return false;
@@ -80,8 +74,8 @@ const shouldChargeCancellationFee = (
     return false;
   }
 
-  const timeValue = metadata.apps.stripe.cancellationFeeTimeValue;
-  const timeUnit = metadata.apps.stripe.cancellationFeeTimeUnit;
+  const timeValue = stripe?.cancellationFeeTimeValue as number | undefined;
+  const timeUnit = stripe?.cancellationFeeTimeUnit as string | undefined;
 
   if (!timeValue || !timeUnit) {
     return false;
@@ -391,6 +385,7 @@ async function handler(input: CancelBookingInput) {
   await Promise.all(promises);
 
   if (
+    bookingToDelete.eventType &&
     shouldChargeCancellationFee(
       bookingToDelete.eventType,
       bookingToDelete.startTime,
