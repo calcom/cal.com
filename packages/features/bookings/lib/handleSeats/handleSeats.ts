@@ -127,7 +127,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: resultBooking?.seatReferenceUid,
         isDryRun,
-        isConfirmedByDefault: !evt.requiresConfirmation || true,
+        isConfirmedByDefault: !evt.requiresConfirmation,
         isRescheduleEvent: !!rescheduleUid,
         isNormalBookingOrFirstRecurringSlot: true,
       });
