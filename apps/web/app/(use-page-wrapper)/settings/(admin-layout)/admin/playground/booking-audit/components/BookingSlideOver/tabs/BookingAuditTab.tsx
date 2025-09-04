@@ -333,10 +333,9 @@ export function BookingAuditTab({ booking }: BookingTabProps) {
                   title={({ collapsed }) =>
                     collapsed ? `${t("show")} ${t("details")}` : `${t("hide")} ${t("details")}`
                   }
-                  className="m-0 border-0 bg-transparent p-0"
                   collapsible
                   defaultCollapsed={true}>
-                  <div className="bg-muted mt-2 rounded-lg p-4">
+                  <div className="rounded-lg p-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="text-subtle">ID</div>
                       <div className="font-mono">{entry.id}</div>
