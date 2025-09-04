@@ -356,7 +356,7 @@ export class OutputEventTypesService_2024_06_14 {
     if (!Array.isArray(eventType?.bookingFields) || eventType.bookingFields.length === 0) return eventType;
 
     const visibleBookingFields: OutputBookingField_2024_06_14[] = [];
-    for (const bookingField of eventType?.bookingFields) {
+    for (const bookingField of eventType.bookingFields) {
       if ("hidden" in bookingField && bookingField.hidden === true) {
         continue;
       }
