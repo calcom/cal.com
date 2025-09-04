@@ -10,6 +10,7 @@ import prisma from "@calcom/prisma";
 import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import type { BookingInfo } from "./smsReminderManager";
 
@@ -79,8 +80,7 @@ const createWorkflowReminderAndExtractPhone = async (
   return { workflowReminder, attendeePhoneNumber };
 };
 
-interface ScheduleAIPhoneCallArgs {
-  evt: BookingInfo;
+type ScheduleAIPhoneCallArgs = {
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
@@ -91,15 +91,41 @@ interface ScheduleAIPhoneCallArgs {
   teamId: number | null;
   seatReferenceUid?: string;
   verifiedAt: Date | null;
-}
+} & (
+  | { evt: BookingInfo; formData?: never }
+  | {
+      evt?: never;
+      formData: {
+        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+        user: {
+          email: string;
+          timeFormat: number | null;
+          locale: string;
+        };
+      };
+    }
+);
 
 export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
-  const { evt, triggerEvent, timeSpan, workflowStepId, userId, teamId, seatReferenceUid, verifiedAt } = args;
-
-  if (!verifiedAt || !workflowStepId) {
-    logger.warn(`Workflow step ${workflowStepId} not yet verified or not found`);
+  if (!args.verifiedAt) {
+    logger.warn(`Workflow step ${args.workflowStepId} not yet verified`);
     return;
   }
+
+  if (!args.workflowStepId) {
+    logger.warn(`Workflow step ID is required for AI phone call scheduling`);
+    return;
+  }
+
+  if (args.evt) {
+    await scheduleAIPhoneCallForEvt(args);
+  } else {
+    await scheduleAIPhoneCallForForm(args);
+  }
+};
+
+const scheduleAIPhoneCallForEvt = async (args: ScheduleAIPhoneCallArgs & { evt: BookingInfo }) => {
+  const { evt, triggerEvent, timeSpan, workflowStepId, userId, teamId, seatReferenceUid } = args;
 
   // Get the workflow step to check if it has an agent configured
   const workflowStep = await prisma.workflowStep.findUnique({
@@ -207,7 +233,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         seatReferenceUid,
       });
 
-      // Schedule the actual AI phone call immediatel
+      // Schedule the actual AI phone call immediately
       // Should i execute the task immediately or schedule it for later?
       await scheduleAIPhoneCallTask({
         workflowReminderId: workflowReminder.id,
@@ -227,6 +253,21 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
       logger.error(`Error scheduling immediate AI phone call with error ${error}`);
     }
   }
+};
+
+const scheduleAIPhoneCallForForm = async (
+  _args: ScheduleAIPhoneCallArgs & {
+    formData: {
+      responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+      user: {
+        email: string;
+        timeFormat: number | null;
+        locale: string;
+      };
+    };
+  }
+) => {
+  logger.error("Form triggers are not yet supported for AI phone call sending");
 };
 
 interface ScheduleAIPhoneCallTaskArgs {
