@@ -4,9 +4,9 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);

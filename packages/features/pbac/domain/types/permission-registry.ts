@@ -28,6 +28,7 @@ export enum CustomAction {
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
+  Impersonate = "impersonate",
 }
 
 export enum Scope {
@@ -41,6 +42,7 @@ export interface PermissionDetails {
   i18nKey: string;
   descriptionI18nKey: string;
   scope?: Scope[]; // Optional for backward compatibility
+  dependsOn?: PermissionString[]; // Dependencies that must be enabled when this permission is enabled
 }
 
 export type ResourceConfig = {
@@ -56,6 +58,54 @@ export type PermissionRegistry = {
 };
 
 export type PermissionString = `${Resource}.${CrudAction | CustomAction}`;
+
+/**
+ * Parsed permission object containing resource and action parts
+ */
+export interface ParsedPermission {
+  resource: string;
+  action: string;
+}
+
+/**
+ * Parses a permission string into its resource and action components
+ * @param permission The permission string to parse
+ * @returns Parsed permission object with resource and action
+ */
+export const parsePermissionString = (permission: string): ParsedPermission => {
+  const lastDotIndex = permission.lastIndexOf(".");
+  const resource = permission.substring(0, lastDotIndex);
+  const action = permission.substring(lastDotIndex + 1);
+  return { resource, action };
+};
+
+/**
+ * Validates a permission string format
+ * @param val The permission string to validate
+ * @returns True if valid, false otherwise
+ */
+export const isValidPermissionString = (val: unknown): val is PermissionString => {
+  if (typeof val !== "string") return false;
+
+  // Handle special case for _resource
+  if (val.endsWith("._resource")) {
+    const resourcePart = val.slice(0, -10); // Remove "._resource"
+    return Object.values(Resource).includes(resourcePart as Resource);
+  }
+
+  // Split by the last dot to handle nested resources like "organization.attributes.create"
+  const lastDotIndex = val.lastIndexOf(".");
+  if (lastDotIndex === -1) return false;
+
+  const { resource, action } = parsePermissionString(val);
+
+  const isValidResource = Object.values(Resource).includes(resource as Resource);
+  const isValidAction =
+    Object.values(CrudAction).includes(action as CrudAction) ||
+    Object.values(CustomAction).includes(action as CustomAction);
+
+  return isValidResource && isValidAction;
+};
 
 /**
  * Helper function to filter out the _resource property from a ResourceConfig
@@ -122,6 +172,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "role",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_roles",
+      dependsOn: ["role.read"],
     },
     [CrudAction.Read]: {
       description: "View roles",
@@ -134,12 +185,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "role",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_roles",
+      dependsOn: ["role.read"],
     },
     [CrudAction.Delete]: {
       description: "Delete roles",
       category: "role",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_roles",
+      dependsOn: ["role.read"],
     },
   },
   [Resource.EventType]: {
@@ -151,6 +204,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "event",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_event_types",
+      dependsOn: ["eventType.read"],
     },
     [CrudAction.Read]: {
       description: "View event types",
@@ -163,12 +217,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "event",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_event_types",
+      dependsOn: ["eventType.read"],
     },
     [CrudAction.Delete]: {
       description: "Delete event types",
       category: "event",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_event_types",
+      dependsOn: ["eventType.read"],
     },
   },
   [Resource.Team]: {
@@ -181,6 +237,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_teams",
       scope: [Scope.Organization],
+      dependsOn: ["team.read"],
     },
     [CrudAction.Read]: {
       description: "View team details",
@@ -193,30 +250,48 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_team_settings",
+      dependsOn: ["team.read"],
     },
     [CrudAction.Delete]: {
       description: "Delete team",
       category: "team",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_team",
+      dependsOn: ["team.read"],
     },
     [CustomAction.Invite]: {
       description: "Invite team members",
       category: "team",
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_team_members",
+      dependsOn: ["team.read", "team.listMembers"],
     },
     [CustomAction.Remove]: {
       description: "Remove team members",
       category: "team",
       i18nKey: "pbac_action_remove",
       descriptionI18nKey: "pbac_desc_remove_team_members",
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.ListMembers]: {
+      description: "List team members",
+      category: "team",
+      i18nKey: "pbac_action_list_members",
+      descriptionI18nKey: "pbac_desc_list_team_members",
     },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate team members",
+      category: "team",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_team_members",
+      dependsOn: ["team.read", "team.listMembers"],
     },
   },
   [Resource.Organization]: {
@@ -243,6 +318,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_organization_members",
       scope: [Scope.Organization],
+      dependsOn: ["organization.read"],
     },
     [CustomAction.Invite]: {
       description: "Invite organization members",
@@ -250,6 +326,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_organization_members",
       scope: [Scope.Organization],
+      dependsOn: ["organization.listMembers"],
     },
     [CustomAction.Remove]: {
       description: "Remove organization members",
@@ -257,6 +334,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_remove",
       descriptionI18nKey: "pbac_desc_remove_organization_members",
       scope: [Scope.Organization],
+      dependsOn: ["organization.listMembers"],
     },
     [CustomAction.ManageBilling]: {
       description: "Manage organization billing",
@@ -264,12 +342,21 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_manage_billing",
       descriptionI18nKey: "pbac_desc_manage_organization_billing",
       scope: [Scope.Organization],
+      dependsOn: ["organization.read"],
     },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "org",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_organization_member_role",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.listMembers", "role.read"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate organization members",
+      category: "org",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_organization_members",
       scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
@@ -278,6 +365,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_edit_organization_settings",
       scope: [Scope.Organization],
+      dependsOn: ["organization.read"],
     },
   },
   [Resource.Booking]: {
@@ -296,6 +384,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_read_team_bookings",
       descriptionI18nKey: "pbac_desc_view_team_bookings",
       scope: [Scope.Team],
+      dependsOn: ["booking.read"],
     },
     [CustomAction.ReadOrgBookings]: {
       description: "View organization bookings",
@@ -303,18 +392,21 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_read_org_bookings",
       descriptionI18nKey: "pbac_desc_view_organization_bookings",
       scope: [Scope.Organization],
+      dependsOn: ["booking.read"],
     },
     [CustomAction.ReadRecordings]: {
       description: "View booking recordings",
       category: "booking",
       i18nKey: "pbac_action_read_recordings",
       descriptionI18nKey: "pbac_desc_view_booking_recordings",
+      dependsOn: ["booking.read"],
     },
     [CrudAction.Update]: {
       description: "Update bookings",
       category: "booking",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_bookings",
+      dependsOn: ["booking.read"],
     },
   },
   [Resource.Insights]: {
@@ -337,6 +429,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "workflow",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_workflows",
+      dependsOn: ["workflow.read"],
     },
     [CrudAction.Read]: {
       description: "View workflows",
@@ -349,12 +442,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "workflow",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_workflows",
+      dependsOn: ["workflow.read"],
     },
     [CrudAction.Delete]: {
       description: "Delete workflows",
       category: "workflow",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_workflows",
+      dependsOn: ["workflow.read"],
     },
   },
   [Resource.Attributes]: {
@@ -372,18 +467,21 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_organization_attributes",
+      dependsOn: ["organization.attributes.read"],
     },
     [CrudAction.Delete]: {
       description: "Delete organization attributes",
       category: "attributes",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_organization_attributes",
+      dependsOn: ["organization.attributes.read"],
     },
     [CrudAction.Create]: {
       description: "Create organization attributes",
       category: "attributes",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
+      dependsOn: ["organization.attributes.read"],
     },
   },
   [Resource.RoutingForm]: {
@@ -395,6 +493,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "routing",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_routing_forms",
+      dependsOn: ["routingForm.read"],
     },
     [CrudAction.Read]: {
       description: "View routing forms",
@@ -407,12 +506,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "routing",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_routing_forms",
+      dependsOn: ["routingForm.read"],
     },
     [CrudAction.Delete]: {
       description: "Delete routing forms",
       category: "routing",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_routing_forms",
+      dependsOn: ["routingForm.read"],
     },
   },
 };
