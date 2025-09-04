@@ -35,10 +35,13 @@ export async function getServerSession(options: {
 }) {
   const { req, authOptions: { secret } = {} } = options;
 
+  console.log(req);
+
   const token = await getToken({
     req,
     secret,
   });
+  console.log(token);
 
   log.debug("Getting server session", safeStringify({ token }));
 
