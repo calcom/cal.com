@@ -12,7 +12,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import { useRef } from "react";
+import { useId, useRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -52,23 +52,25 @@ const editorConfig = {
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   const plainText = props.plainText ?? false;
+  const labelId = useId();
   const editorContainerRef = useRef<HTMLDivElement>(null);
 
   const handleLabelClick = () => {
-    setTimeout(() => {
-      if (editorContainerRef.current) {
-        const contentEditable = editorContainerRef.current.querySelector(".editor-input");
-        if (contentEditable) {
-          (contentEditable as HTMLElement).focus();
-        }
+    if (editorContainerRef.current) {
+      const contentEditable = editorContainerRef.current.querySelector(".editor-input");
+      if (contentEditable) {
+        (contentEditable as HTMLElement).focus();
       }
-    }, 0);
+    }
   };
 
   return (
     <div className="editor rounded-md">
       {props.label && (
-        <label className="mb-1 block cursor-pointer text-sm font-medium leading-6" onClick={handleLabelClick}>
+        <label
+          id={labelId}
+          className="mb-1 block cursor-pointer text-sm font-medium leading-6"
+          onClick={handleLabelClick}>
           {props.label}
         </label>
       )}
@@ -93,6 +95,7 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
+                  aria-labelledby={labelId}
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input focus:outline-none"

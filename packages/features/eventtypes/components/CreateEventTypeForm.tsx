@@ -114,8 +114,6 @@ export default function CreateEventTypeForm({
               {...register("description")}
               label={t("description")}
               placeholder={t("quick_video_meeting")}
-              name="description"
-              id="description-field"
             />
           ) : (
             <Editor
