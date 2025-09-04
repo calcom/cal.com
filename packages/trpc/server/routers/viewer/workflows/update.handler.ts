@@ -1,5 +1,8 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isEmailAction,
+  isSMSOrWhatsappAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -32,7 +35,10 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone">;
+    user: Pick<
+      NonNullable<TrpcSessionUser>,
+      "id" | "metadata" | "locale" | "timeFormat" | "timeZone" | "organizationId"
+    >;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -41,7 +47,8 @@ const log = logger.getSubLogger({ prefix: ["[Workflows.update] "] });
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
-  const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
+  const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll, autoTranslateWorkflowEnabled } =
+    input;
 
   const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
@@ -531,6 +538,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             createdAt: new Date().toISOString(),
           });
         } else {
+          if (
+            user.organizationId &&
+            autoTranslateWorkflowEnabled &&
+            (newStep.reminderBody !== oldStep.reminderBody || newStep.emailSubject !== oldStep.emailSubject)
+          ) {
+            await tasker.create("translateWorkflowStepData", {
+              workflowStepId: oldStep.id,
+              userId: ctx.user.id,
+              reminderBody: newStep.reminderBody,
+              emailSubject: !isSMSOrWhatsappAction(newStep.action) ? newStep.emailSubject : null,
+              userLocale: ctx.user.locale || "en",
+            });
+          }
           // schedule notifications for edited steps
           await scheduleWorkflowNotifications({
             activeOn,
@@ -615,6 +635,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         )
       );
     } else {
+      await Promise.all(
+        createdSteps.map((step) => {
+          if (
+            user.organizationId &&
+            autoTranslateWorkflowEnabled &&
+            (step.emailSubject || step.reminderBody)
+          ) {
+            return tasker.create("translateWorkflowStepData", {
+              workflowStepId: step.id,
+              userId: ctx.user.id,
+              reminderBody: step.reminderBody,
+              emailSubject: !isSMSOrWhatsappAction(step.action) ? step.emailSubject : null,
+              userLocale: ctx.user.locale || "en",
+            });
+          }
+        })
+      );
+
       // schedule notification for new step
       await scheduleWorkflowNotifications({
         activeOn,
@@ -629,6 +667,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  if (!user.organizationId && autoTranslateWorkflowEnabled) {
+    logger.error(
+      "Auto-translating workflow requires an organization. This should not happen - UI controls should prevent this state."
+    );
+  }
+
   //update trigger, name, time, timeUnit
   await ctx.prisma.workflow.update({
     where: {
@@ -640,6 +684,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       time,
       timeUnit,
       isActiveOnAll,
+      autoTranslateWorkflowEnabled: !!user.organizationId && autoTranslateWorkflowEnabled,
     },
   });
 

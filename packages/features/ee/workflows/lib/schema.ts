@@ -17,6 +17,7 @@ export const formSchema = z.object({
   trigger: z.nativeEnum(WorkflowTriggerEvents),
   time: z.number().gte(0).optional(),
   timeUnit: z.nativeEnum(TimeUnit).optional(),
+  autoTranslateWorkflowEnabled: z.boolean().optional(),
   steps: z
     .object({
       id: z.number(),

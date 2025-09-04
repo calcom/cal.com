@@ -18,6 +18,7 @@ import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import { getTranslatedWorkflowContent } from "../getTranslatedWorkflowContent";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
@@ -156,7 +157,17 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       const timeZone =
         action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;
 
-      let smsMessage = message;
+      const locale =
+        action === WorkflowActions.SMS_ATTENDEE
+          ? attendeeToBeUsedInSMS.language?.locale
+          : evt.organizer.language.locale;
+
+      const { translatedBody: translatedSmsMessage } = await getTranslatedWorkflowContent({
+        workflowStepId,
+        targetLocale: locale,
+      });
+
+      let smsMessage = translatedSmsMessage || message;
 
       if (smsMessage) {
         smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);

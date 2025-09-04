@@ -6,7 +6,7 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
-import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -19,6 +19,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getTranslatedWorkflowContent } from "../getTranslatedWorkflowContent";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
@@ -133,13 +134,30 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       break;
   }
 
+  let translatedSubject = emailSubject;
+  let translatedBody = emailBody;
+
+  if (attendeeToBeUsedInMail?.language?.locale && workflowStepId) {
+    try {
+      const { translatedSubject: translatedEmailSubject, translatedBody: translatedEmailBody } =
+        await getTranslatedWorkflowContent({
+          workflowStepId,
+          targetLocale: attendeeToBeUsedInMail.language.locale,
+        });
+      translatedSubject = translatedEmailSubject || emailSubject;
+      translatedBody = translatedEmailBody || emailBody;
+    } catch (error) {
+      log.error(`Error translating workflow with error ${error}`);
+    }
+  }
+
   let emailContent = {
-    emailSubject,
-    emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
+    emailSubject: translatedSubject,
+    emailBody: `<body style="white-space: pre-wrap;">${translatedBody}</body>`,
   };
   const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
-  if (emailBody) {
+  if (translatedBody) {
     const recipientEmail = getWorkflowRecipientEmail({
       action,
       attendeeEmail: attendeeToBeUsedInMail.email,
@@ -180,10 +198,15 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         ? attendeeToBeUsedInMail.language?.locale
         : evt.organizer.language.locale;
 
-    const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
+    const emailSubjectTemplate = customTemplate(
+      translatedSubject,
+      variables,
+      locale,
+      evt.organizer.timeFormat
+    );
     emailContent.emailSubject = emailSubjectTemplate.text;
     emailContent.emailBody = customTemplate(
-      emailBody,
+      translatedBody,
       variables,
       locale,
       evt.organizer.timeFormat,
@@ -270,7 +293,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
-      sender: evt.hideOrganizerEmail ? SENDER_NAME : sender,
+      sender,
     };
   }
 

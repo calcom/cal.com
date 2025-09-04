@@ -45,6 +45,7 @@ import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -212,6 +213,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
+
+  const autoTranslateWorkflowEnabled = form.watch("autoTranslateWorkflowEnabled");
 
   const action = step?.action;
   const requirePhoneNumber =
@@ -1201,6 +1204,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     </div>
                   )}
+                  <div className="mt-3 [&_label]:my-1 [&_label]:font-normal">
+                    <SettingsToggle
+                      title={t("translate_workflow_button")}
+                      checked={!!autoTranslateWorkflowEnabled}
+                      onCheckedChange={(value) => {
+                        form.setValue("autoTranslateWorkflowEnabled", value, { shouldDirty: true });
+                      }}
+                      disabled={!props.user.organizationId}
+                      tooltip={!props.user.organizationId ? t("orgs_upgrade_to_enable_feature") : undefined}
+                    />
+                  </div>
                   {!props.readOnly && (
                     <div className="mt-3 ">
                       <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
