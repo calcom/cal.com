@@ -91,10 +91,10 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import {
-  BookingSideEffectAction,
+  BookingState,
   handleSendingEmailsAndSms,
   type EmailsAndSmsSideEffectsPayload,
-} from "./handleBookingSideEffects";
+} from "./handleBookingEmailsAndSmsSideEffects";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
@@ -1831,7 +1831,7 @@ async function handler(
 
     if (noEmail !== true && isConfirmedByDefault && !isDryRun) {
       emailsAndSmsSideEffectsPayload = {
-        action: BookingSideEffectAction.BOOKING_RESCHEDULED,
+        action: BookingState.BOOKING_RESCHEDULED,
         data: {
           evt: {
             ...evt,
@@ -1955,7 +1955,7 @@ async function handler(
       if (noEmail !== true) {
         if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
           emailsAndSmsSideEffectsPayload = {
-            action: BookingSideEffectAction.BOOKING_CONFIRMED,
+            action: BookingState.BOOKING_CONFIRMED,
             data: { eventType, eventNameObject, workflows, evt },
           };
         }
@@ -1988,7 +1988,7 @@ async function handler(
     );
     if (!isDryRun) {
       emailsAndSmsSideEffectsPayload = {
-        action: BookingSideEffectAction.BOOKING_REQUESTED,
+        action: BookingState.BOOKING_REQUESTED,
         data: { evt, attendees: attendeesList, eventType, additionalNotes },
       };
     }

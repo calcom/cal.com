@@ -26,7 +26,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
-export enum BookingSideEffectAction {
+export enum BookingState {
   /** For newly confirmed bookings. */
   BOOKING_CONFIRMED = "BOOKING_CONFIRMED",
   /** For bookings that have been successfully rescheduled. */
@@ -67,17 +67,17 @@ export type RequestedEmailAndSmsPayload = EmailAndSmsPayload & {
 };
 
 type RescheduledSideEffectsPayload = {
-  action: BookingSideEffectAction.BOOKING_RESCHEDULED;
+  action: BookingState.BOOKING_RESCHEDULED;
   data: RescheduleEmailAndSmsPayload;
 };
 
 type ConfirmedSideEffectsPayload = {
-  action: BookingSideEffectAction.BOOKING_CONFIRMED;
+  action: BookingState.BOOKING_CONFIRMED;
   data: ConfirmedEmailAndSmsPayload;
 };
 
 type RequestedSideEffectsPayload = {
-  action: BookingSideEffectAction.BOOKING_REQUESTED;
+  action: BookingState.BOOKING_REQUESTED;
   data: RequestedEmailAndSmsPayload;
 };
 
@@ -96,7 +96,7 @@ export async function handleSendingEmailsAndSms(payload: EmailsAndSmsSideEffects
      * Handles notifications for a RESCHEDULED booking.
      * It includes complex logic for Round Robin scenarios where hosts might change.
      */
-    case BookingSideEffectAction.BOOKING_RESCHEDULED: {
+    case BookingState.BOOKING_RESCHEDULED: {
       const { data } = payload;
 
       const {
@@ -239,7 +239,7 @@ export async function handleSendingEmailsAndSms(payload: EmailsAndSmsSideEffects
     /**
      * Handles notifications for a newly CONFIRMED booking.
      */
-    case BookingSideEffectAction.BOOKING_CONFIRMED: {
+    case BookingState.BOOKING_CONFIRMED: {
       const { data } = payload;
 
       const {
@@ -274,7 +274,7 @@ export async function handleSendingEmailsAndSms(payload: EmailsAndSmsSideEffects
     /**
      * Handles notifications when a booking REQUEST is made (requires confirmation).
      */
-    case BookingSideEffectAction.BOOKING_REQUESTED: {
+    case BookingState.BOOKING_REQUESTED: {
       const { data } = payload;
 
       const {
