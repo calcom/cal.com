@@ -17,7 +17,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
 import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
-import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -123,11 +123,7 @@ async function handler(input: CancelBookingInput) {
   const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
 
-  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
-    userId,
-    bookingToDelete.eventType?.team?.id,
-    bookingToDelete.eventType?.team?.parentId
-  );
+  const hasTeamOrOrgPermissions = await isTeamAdmin(userId, bookingToDelete.eventType?.team?.id ?? 0);
 
   if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) {
     throw new HttpError({

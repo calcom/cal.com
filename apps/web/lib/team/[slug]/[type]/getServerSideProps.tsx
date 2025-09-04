@@ -8,7 +8,7 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/org
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import slugify from "@calcom/lib/slugify";
@@ -61,11 +61,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const userId = session?.user?.id;
-  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
-    userId,
-    eventData.team?.id,
-    eventData.team?.parentId
-  );
+  const hasTeamOrOrgPermissions = await isTeamAdmin(userId, eventData.team?.id ?? 0);
 
   let isHostOrOwner = (eventData.owner?.id && eventData.owner?.id === userId) || hasTeamOrOrgPermissions;
 

@@ -8,7 +8,7 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
-import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -145,11 +145,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     : false;
   const userIsOwnerOfEventType = userId !== undefined && booking?.eventType?.owner?.id === userId;
 
-  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
-    userId,
-    booking?.eventType?.team?.id,
-    booking?.eventType?.team?.parentId
-  );
+  const hasTeamOrOrgPermissions = await isTeamAdmin(userId, booking?.eventType?.team?.id ?? 0);
 
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType || !!hasTeamOrOrgPermissions;
   if (isDisabledRescheduling && !isHostOrOwner) {

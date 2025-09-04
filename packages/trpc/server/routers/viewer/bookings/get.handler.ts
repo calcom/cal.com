@@ -9,7 +9,7 @@ import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
-import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -118,11 +118,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
       let hasTeamOrOrgPermissions = false;
       if (booking.eventType?.team?.id) {
-        hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
-          user.id,
-          booking.eventType.team.id,
-          booking.eventType.team.parentId
-        );
+        hasTeamOrOrgPermissions = await isTeamAdmin(user.id, booking.eventType.team.id);
       }
 
       const isUserHostOrOwner = isUserHost || isUserOwnerOfEventType;
