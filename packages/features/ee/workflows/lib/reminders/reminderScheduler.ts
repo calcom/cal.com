@@ -199,10 +199,6 @@ const processWorkflowStep = async (
 
     await scheduleWhatsappReminder(whatsappParams);
   } else if (isCalAIAction(step.action)) {
-    if (!evt) {
-      // cal.ai not yet supported for form triggers
-      return;
-    }
     await scheduleAIPhoneCall({
       triggerEvent: workflow.trigger,
       timeSpan: {
@@ -214,7 +210,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       seatReferenceUid,
       verifiedAt: step.verifiedAt,
-      evt,
+      ...(evt ? { evt } : { formData }),
     });
   }
 };
