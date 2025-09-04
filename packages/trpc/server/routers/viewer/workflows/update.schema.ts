@@ -10,7 +10,8 @@ import {
 export const ZUpdateInputSchema = z.object({
   id: z.number(),
   name: z.string(),
-  activeOn: z.number().array(),
+  activeOnEventTypeIds: z.number().array(),
+  activeOnRoutingFormIds: z.string().array(),
   steps: z
     .object({
       id: z.number(),

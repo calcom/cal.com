@@ -8,6 +8,7 @@ import {
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
+import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -15,12 +16,12 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
-import { scheduleSMSReminder } from "./smsReminderManager";
-import type { ScheduleTextReminderAction } from "./smsReminderManager";
+import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
@@ -35,18 +36,30 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   bookerUrl: string;
 };
 
-type ProcessWorkflowStepParams = {
+type ProcessWorkflowStepParams = (
+  | { calendarEvent: ExtendedCalendarEvent; formData?: never }
+  | {
+      calendarEvent?: never;
+      formData: {
+        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+        user: {
+          email: string;
+          timeFormat: number | null;
+          locale: string;
+        };
+      };
+    }
+) & {
   smsReminderNumber: string | null;
-  calendarEvent: ExtendedCalendarEvent;
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
 };
 
-export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
+export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   workflows: Workflow[];
   isDryRun?: boolean;
-}
+};
 
 const processWorkflowStep = async (
   workflow: Workflow,
@@ -57,6 +70,7 @@ const processWorkflowStep = async (
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
+    formData,
   }: ProcessWorkflowStepParams
 ) => {
   if (!step?.verifiedAt) return;
@@ -68,27 +82,35 @@ const processWorkflowStep = async (
     });
   }
 
+  // Common parameters for all scheduling functions
+  const scheduleFunctionParams = {
+    triggerEvent: workflow.trigger,
+    timeSpan: {
+      time: workflow.time,
+      timeUnit: workflow.timeUnit,
+    },
+    workflowStepId: step.id,
+    template: step.template,
+    userId: workflow.userId,
+    teamId: workflow.teamId,
+    seatReferenceUid,
+    verifiedAt: step.verifiedAt,
+  } as const;
+
   if (isSMSAction(step.action)) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
-    await scheduleSMSReminder({
-      evt,
+
+    const smsParams = {
+      ...scheduleFunctionParams,
       reminderPhone: sendTo,
-      triggerEvent: workflow.trigger,
       action: step.action as ScheduleTextReminderAction,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
       message: step.reminderBody || "",
-      workflowStepId: step.id,
-      template: step.template,
       sender: step.sender,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
-      seatReferenceUid,
-      verifiedAt: step.verifiedAt,
-    });
+      ...(evt ? { evt } : { formData }),
+    } as const;
+
+    await scheduleSMSReminder(smsParams);
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
     step.action === WorkflowActions.EMAIL_HOST ||
@@ -101,85 +123,91 @@ const processWorkflowStep = async (
         sendTo = [step.sendTo || ""];
         break;
       case WorkflowActions.EMAIL_HOST:
+        if (!evt) {
+          // EMAIL_HOST is not supported for form triggers
+          return;
+        }
+
         sendTo = [evt.organizer?.email || ""];
 
         const schedulingType = evt.eventType.schedulingType;
         const isTeamEvent =
-          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+          schedulingType == SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
         if (isTeamEvent && evt.team?.members) {
           sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
-        const attendees = !!emailAttendeeSendToOverride
-          ? [emailAttendeeSendToOverride]
-          : evt.attendees?.map((attendee) => attendee.email);
+        if (evt) {
+          const attendees = !!emailAttendeeSendToOverride
+            ? [emailAttendeeSendToOverride]
+            : evt.attendees?.map((attendee) => attendee.email);
 
-        const limitGuestsDate = new Date("2025-01-13");
+          const limitGuestsDate = new Date("2025-01-13");
 
-        if (workflow.userId) {
-          const user = await prisma.user.findUnique({
-            where: {
-              id: workflow.userId,
-            },
-            select: {
-              createdDate: true,
-            },
-          });
-          if (user?.createdDate && user.createdDate > limitGuestsDate) {
-            sendTo = attendees.slice(0, 1);
+          if (workflow.userId) {
+            const user = await prisma.user.findUnique({
+              where: {
+                id: workflow.userId,
+              },
+              select: {
+                createdDate: true,
+              },
+            });
+            if (user?.createdDate && user.createdDate > limitGuestsDate) {
+              sendTo = attendees.slice(0, 1);
+            } else {
+              sendTo = attendees;
+            }
           } else {
             sendTo = attendees;
           }
-        } else {
-          sendTo = attendees;
         }
 
-        break;
+        if (formData) {
+          const submitterEmail = getSubmitterEmail(formData.responses);
+          if (submitterEmail) {
+            sendTo = [submitterEmail];
+          }
+        }
     }
 
-    await scheduleEmailReminder({
-      evt,
-      triggerEvent: workflow.trigger,
+    const emailParams = {
+      ...scheduleFunctionParams,
       action: step.action,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
       sendTo,
       emailSubject: step.emailSubject || "",
       emailBody: step.reminderBody || "",
-      template: step.template,
       sender: step.sender || SENDER_NAME,
-      workflowStepId: step.id,
       hideBranding,
-      seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
       verifiedAt: step.verifiedAt,
-    });
+      ...(evt ? { evt } : { formData }),
+    } as const;
+
+    await scheduleEmailReminder(emailParams);
   } else if (isWhatsappAction(step.action)) {
+    if (!evt) {
+      // Whatsapp action not not yet supported for form triggers
+      return;
+    }
+
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+
     await scheduleWhatsappReminder({
-      evt,
+      ...scheduleFunctionParams,
       reminderPhone: sendTo,
-      triggerEvent: workflow.trigger,
       action: step.action as ScheduleTextReminderAction,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
       message: step.reminderBody || "",
-      workflowStepId: step.id,
-      template: step.template,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
-      seatReferenceUid,
-      verifiedAt: step.verifiedAt,
+      evt,
     });
   } else if (isCalAIAction(step.action)) {
+    if (!evt) {
+      // cal.ai not yet supported for form triggers
+      return;
+    }
     await scheduleAIPhoneCall({
-      evt,
       triggerEvent: workflow.trigger,
       timeSpan: {
         time: workflow.time,
@@ -190,6 +218,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       seatReferenceUid,
       verifiedAt: step.verifiedAt,
+      evt,
     });
   }
 };
@@ -203,6 +232,7 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     hideBranding,
     seatReferenceUid,
     isDryRun = false,
+    formData,
   } = args;
   if (isDryRun || !workflows.length) return;
 
@@ -210,13 +240,15 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     if (workflow.steps.length === 0) continue;
 
     for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        calendarEvent: evt,
+      const params = {
         emailAttendeeSendToOverride,
         smsReminderNumber,
         hideBranding,
         seatReferenceUid,
-      });
+        ...(evt ? { calendarEvent: evt } : { formData }),
+      } as const;
+
+      await processWorkflowStep(workflow, step, params);
     }
   }
 };

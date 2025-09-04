@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -56,7 +56,9 @@ import {
   getTemplateBodyForAction,
   shouldScheduleEmailReminder,
   isSMSOrWhatsappAction,
+  isFormTrigger,
   isCalAIAction,
+  hasCalAIAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -79,6 +81,13 @@ type WorkflowStepProps = {
   readOnly: boolean;
   isOrganization?: boolean;
   onSaveWorkflow?: () => Promise<void>;
+  actionOptions: {
+    label: string;
+    value: WorkflowActions;
+    needsCredits: boolean;
+    creditsTeamId?: number;
+    isOrganization?: boolean;
+  }[];
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -87,9 +96,9 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.BEFORE_EVENT]: "how_long_before",
     [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "how_long_after_hosts_no_show",
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
+    [WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "how_long_after_form_submitted_no_event",
   };
-  if (!triggerMap[trigger]) return null;
-  return t(triggerMap[trigger]!);
+  return triggerMap[trigger] ? t(triggerMap[trigger]) : null;
 };
 
 const CalAIAgentDataSkeleton = () => {
@@ -129,7 +138,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const utils = trpc.useUtils();
   const params = useParams();
 
-  const { step, form, reload, setReload, teamId } = props;
+  const { step, form, reload, setReload, teamId, actionOptions } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
     { enabled: !!teamId }
@@ -238,11 +247,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
+  const trigger = useWatch({
+    control: form.control,
+    name: "trigger",
+  });
+  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
 
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
+  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
+
+  // Filter trigger options to hide isFormTrigger actions when cal.ai is part of any workflow step
+  const filteredTriggerOptions = triggerOptions.filter((option) => {
+    if (hasCalAIAction(form.getValues("steps")) && isFormTrigger(option.value)) {
+      return false;
+    }
+    return true;
+  });
+
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
@@ -392,7 +413,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   //trigger
   if (!step) {
-    const trigger = form.getValues("trigger");
     const triggerString = t(`${trigger.toLowerCase()}_trigger`);
 
     const selectedTrigger = {
@@ -449,7 +469,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                     }}
                     defaultValue={selectedTrigger}
-                    options={triggerOptions}
+                    options={filteredTriggerOptions}
                   />
                 );
               }}
@@ -458,7 +478,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="mt-5">
                 <Label>{timeSectionText}</Label>
                 <TimeTimeUnitInput disabled={props.readOnly} />
-                {!props.readOnly && (
+                {!props.readOnly && trigger !== WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT && (
                   <div className="mt-1 flex text-gray-500">
                     <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
                     <p className="text-sm">{t("testing_workflow_info_message")}</p>
@@ -643,21 +663,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actionOptions
-                          ?.filter((option) => {
-                            if (
-                              (isCalAIAction(option.value) && form.watch("selectAll")) ||
-                              (isCalAIAction(option.value) && props.isOrganization)
-                            ) {
-                              return false;
-                            }
-                            return true;
-                          })
-                          ?.map((option) => ({
-                            ...option,
-                            creditsTeamId: teamId ?? creditsTeamId,
-                            isOrganization: props.isOrganization,
-                          }))}
+                        options={actionOptions.map((option) => ({
+                          ...option,
+                          creditsTeamId: teamId ?? creditsTeamId,
+                        }))}
                       />
                     );
                   }}
@@ -916,7 +925,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     )}
                   </div>
                 )}
-              {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+              {isEmailSubjectNeeded &&
+                canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
                 !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                   <div className="mt-2">
                     <Controller
@@ -1097,7 +1107,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }))}
                           isOptionDisabled={(option: {
                             label: string;
-                            value: any;
+                            value: string;
                             needsTeamsUpgrade: boolean;
                           }) => option.needsTeamsUpgrade}
                         />
@@ -1201,8 +1211,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     </div>
                   )}
-                  {!props.readOnly && (
-                    <div className="mt-3 ">
+                  {!props.readOnly && !isFormTrigger(trigger) && (
+                    <div className="mt-3">
                       <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                         <div className="text-default mt-2 flex text-sm">
                           <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
@@ -1217,7 +1227,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="w-full mt-7"
+                  className="mt-7 w-full"
                   onClick={() => {
                     let isEmpty = false;
 
@@ -1316,7 +1326,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
-              <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold"> {t("how_booking_questions_as_variables")}</h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
@@ -1376,13 +1386,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId}
             agentData={agentData}
             onUpdate={(data) => {
-              updateAgentMutation.mutate({
-                id: stepAgentId!,
-                teamId: teamId,
-                generalPrompt: data.generalPrompt,
-                beginMessage: data.beginMessage,
-                generalTools: data.generalTools,
-              });
+              if (stepAgentId) {
+                updateAgentMutation.mutate({
+                  id: stepAgentId,
+                  teamId: teamId,
+                  generalPrompt: data.generalPrompt,
+                  beginMessage: data.beginMessage,
+                  generalTools: data.generalTools,
+                });
+              }
             }}
             readOnly={props.readOnly}
             teamId={teamId}

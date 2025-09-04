@@ -6,16 +6,23 @@ import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction, isCalAIAction } from "../lib/actionHelperFunctions";
+import {
+  isSMSAction,
+  isCalAIAction,
+  isFormTrigger,
+  isWhatsappAction,
+  hasCalAIAction,
+} from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -58,11 +65,6 @@ export default function WorkflowDetailsPage(props: Props) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const hasCalAIAction = () => {
-    const steps = form.getValues("steps") || [];
-    return steps.some((step) => isCalAIAction(step.action));
-  };
-
   const permissions = _permissions || {
     canView: !teamId ? true : !props.readOnly,
     canUpdate: !teamId ? true : !props.readOnly,
@@ -77,6 +79,43 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
+
+  // Get base action options and transform them for form triggers
+  const { data: baseActionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
+
+  const transformedActionOptions =
+    baseActionOptions
+      ?.filter((option) => {
+        if (
+          (isFormTrigger(form.getValues("trigger")) &&
+            (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
+          isWhatsappAction(option.value) ||
+          (isCalAIAction(option.value) && form.watch("selectAll")) ||
+          (isCalAIAction(option.value) && isOrg)
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((option) => {
+        let label = option.label;
+
+        // Transform labels for form triggers
+        if (isFormTrigger(form.getValues("trigger"))) {
+          if (option.value === WorkflowActions.EMAIL_ATTENDEE) {
+            label = t("email_attendee_action_form");
+          } else if (option.value === WorkflowActions.SMS_ATTENDEE) {
+            label = t("sms_attendee_action_form");
+          }
+        }
+
+        return {
+          ...option,
+          label,
+          creditsTeamId: teamId,
+          isOrganization: isOrg,
+        };
+      }) ?? [];
 
   useEffect(() => {
     const matchingOption = allOptions.find((option) => option.value === eventTypeId);
@@ -150,7 +189,11 @@ export default function WorkflowDetailsPage(props: Props) {
               </div>
             </div>
           ) : (
-            <Label>{t("which_event_type_apply")}</Label>
+            <Label>
+              {isFormTrigger(form.getValues("trigger"))
+                ? t("which_routing_form_apply")
+                : t("which_event_type_apply")}
+            </Label>
           )}
           <Controller
             name="activeOn"
@@ -166,18 +209,30 @@ export default function WorkflowDetailsPage(props: Props) {
                   setValue={(s: Option[]) => {
                     form.setValue("activeOn", s);
                   }}
-                  countText={isOrg ? "count_team" : "nr_event_type"}
+                  countText={
+                    isOrg
+                      ? "count_team"
+                      : isFormTrigger(form.getValues("trigger"))
+                      ? "nr_routing_form"
+                      : "nr_event_type"
+                  }
                 />
               );
             }}
           />
-          {!hasCalAIAction() && (
+          {!hasCalAIAction(form.getValues("steps")) && (
             <div className="mt-3">
               <Controller
                 name="selectAll"
                 render={({ field: { value, onChange } }) => (
                   <CheckboxField
-                    description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
+                    description={
+                      isOrg
+                        ? t("apply_to_all_teams")
+                        : isFormTrigger(form.getValues("trigger"))
+                        ? t("apply_to_all_routing_forms")
+                        : t("apply_to_all_event_types")
+                    }
                     disabled={props.readOnly}
                     onChange={(e) => {
                       onChange(e);
@@ -217,6 +272,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 readOnly={props.readOnly}
                 isOrganization={isOrg}
                 onSaveWorkflow={props.onSaveWorkflow}
+                actionOptions={transformedActionOptions}
               />
             </div>
           )}
@@ -235,6 +291,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     readOnly={props.readOnly}
                     isOrganization={isOrg}
                     onSaveWorkflow={props.onSaveWorkflow}
+                    actionOptions={transformedActionOptions}
                   />
                 );
               })}
@@ -262,6 +319,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+        actionOptions={transformedActionOptions}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}

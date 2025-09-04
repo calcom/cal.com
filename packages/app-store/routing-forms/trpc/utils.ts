@@ -7,9 +7,12 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { Ensure } from "@calcom/types/utils";
 
+import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
 
@@ -87,7 +90,10 @@ export function getFieldResponse({
  */
 export async function _onFormSubmission(
   form: Ensure<
-    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
+    SerializableForm<App_RoutingForms_Form> & {
+      user: Pick<User, "id" | "email" | "timeFormat" | "locale">;
+      userWithEmails?: string[];
+    },
     "fields"
   >,
   response: FormResponse,
@@ -186,6 +192,22 @@ export async function _onFormSubmission(
       const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
       await Promise.all(promises);
+
+      const workflows = await getAllWorkflowsFromRoutingForm(form);
+
+      await WorkflowService.scheduleFormWorkflows({
+        workflows,
+        responses: fieldResponsesByIdentifier,
+        responseId,
+        form: {
+          ...form,
+          fields: form.fields.map((field) => ({
+            type: field.type,
+            identifier: getFieldIdentifier(field),
+          })),
+        },
+      });
+
       const orderedResponses = form.fields.reduce((acc, field) => {
         acc.push(response[field.id]);
         return acc;
