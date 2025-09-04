@@ -77,6 +77,18 @@ export class AuthGuards {
       return this.authenticateBearer(["API_KEY", "ACCESS_TOKEN"]);
   }
 
+  static authenticateOptional() {
+    try {
+      return this.authenticateBearer(["API_KEY", "ACCESS_TOKEN"]);
+    } catch(e) {
+      if(e instanceof UnauthorizedError) 
+      {
+        return async (request: AuthRequest, reply: FastifyReply): Promise<void> => {
+        }
+      }
+    }
+  }
+
   /**
    * System Admin authentication - authenticates user and checks for ADMIN role
    * This method first authenticates the user using flexible auth (API Key OR Access Token)

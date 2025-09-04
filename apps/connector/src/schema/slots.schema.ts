@@ -26,3 +26,24 @@ export const slotsResponseSchema = z.object({
     )
   ),
 });
+
+export const reservationBodySchema = z.object({
+  eventTypeId: z.number().int().positive(),
+  slotStart: z.string().datetime({ offset: true }), // ISO8601 with timezone (Z)
+  slotDuration: z.union([z.string(), z.number()]).optional(), // "30" is a string here
+  reservationDuration: z.number().int().positive().optional(),
+});
+
+export const reservationResponseSchema = z.object({
+  eventTypeId: z.number().int().positive(),
+
+  slotStart: z.string().datetime({ offset: true }),
+  slotEnd: z.string().datetime({ offset: true }),
+
+  slotDuration: z.coerce.number().int().positive(),
+
+  reservationUid: z.string().uuid(),
+
+  reservationDuration: z.number().int().positive(),
+  reservationUntil: z.string().datetime({ offset: true }),
+});
