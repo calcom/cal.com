@@ -165,7 +165,7 @@ const processWorkflowStep = async (
         }
 
         if (formData) {
-          const submitterEmail = await getSubmitterEmail(formData.responses);
+          const submitterEmail = getSubmitterEmail(formData.responses);
           if (submitterEmail) {
             sendTo = [submitterEmail];
           }

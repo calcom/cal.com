@@ -340,7 +340,7 @@ const scheduleSMSReminderForForm = async (
         },
         fallbackData: isAttendeeAction(action)
           ? {
-              email: await getSubmitterEmail(formData.responses),
+              email: getSubmitterEmail(formData.responses),
               t: await getTranslation(formData.user.locale, "common"),
               replyTo: formData.user.email,
             }

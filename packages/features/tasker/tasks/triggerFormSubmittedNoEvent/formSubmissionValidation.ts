@@ -46,7 +46,7 @@ async function hasBooking(responseId: number): Promise<boolean> {
   return !!bookingFromResponse;
 }
 
-export async function getSubmitterEmail(responses: any) {
+export function getSubmitterEmail(responses: any) {
   const submitterEmail = Object.values(responses).find(
     (response): response is { value: string; label: string } => {
       const value =
@@ -61,7 +61,7 @@ export async function getSubmitterEmail(responses: any) {
  * Check for duplicate form submissions within the last 60 minutes
  */
 async function hasDuplicateSubmission(formId: string, responses: any, responseId?: number): Promise<boolean> {
-  const submitterEmail = await getSubmitterEmail(responses);
+  const submitterEmail = getSubmitterEmail(responses);
 
   if (!submitterEmail) return false;
 
