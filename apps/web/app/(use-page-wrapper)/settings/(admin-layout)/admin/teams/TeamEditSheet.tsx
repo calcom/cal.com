@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -82,19 +82,21 @@ export function TeamEditSheet({ teamId, open, onClose }: TeamEditSheetProps) {
     });
   };
 
-  if (team && !form.formState.isDirty) {
-    form.reset({
-      name: team.name,
-      slug: team.slug || "",
-      bio: team.bio || "",
-      brandColor: team.brandColor || "",
-      darkBrandColor: team.darkBrandColor || "",
-      bannerUrl: team.bannerUrl || "",
-      timeFormat: team.timeFormat || undefined,
-      timeZone: team.timeZone || "",
-      weekStart: team.weekStart || "",
-    });
-  }
+  useEffect(() => {
+    if (team && open) {
+      form.reset({
+        name: team.name,
+        slug: team.slug || "",
+        bio: team.bio || "",
+        brandColor: team.brandColor || "",
+        darkBrandColor: team.darkBrandColor || "",
+        bannerUrl: team.bannerUrl || "",
+        timeFormat: team.timeFormat || undefined,
+        timeZone: team.timeZone || "",
+        weekStart: team.weekStart || "",
+      });
+    }
+  }, [team, open, form]);
 
   return (
     <>

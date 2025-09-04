@@ -115,6 +115,9 @@ export function TeamFeaturesSheet({ teamId, open, onClose }: TeamFeaturesSheetPr
   const assignedFeatureIds = teamFeatures?.map((tf) => tf.featureId) || [];
   const availableFeatures = allFeatures?.filter((f) => !assignedFeatureIds.includes(f.slug)) || [];
 
+  const enabledGloballyFeatures = availableFeatures.filter((f) => f.enabled);
+  const disabledGloballyFeatures = availableFeatures.filter((f) => !f.enabled);
+
   return (
     <>
       <Sheet open={open} onOpenChange={onClose}>
@@ -154,20 +157,18 @@ export function TeamFeaturesSheet({ teamId, open, onClose }: TeamFeaturesSheetPr
               )}
             </div>
 
-            {/* Available Features */}
+            {/* Available Features - Enabled Globally */}
             <div>
-              <h3 className="mb-3 text-lg font-medium">{t("available_features")}</h3>
-              {availableFeatures.length > 0 ? (
+              <h3 className="mb-3 text-lg font-medium">{t("features_enabled_globally")}</h3>
+              {enabledGloballyFeatures.length > 0 ? (
                 <div className="space-y-2">
-                  {availableFeatures.map((feature) => (
+                  {enabledGloballyFeatures.map((feature) => (
                     <div
                       key={feature.slug}
                       className="flex items-center justify-between rounded-lg border p-3">
                       <div className="flex items-center gap-3">
-                        <Badge variant={feature.enabled ? "blue" : "gray"}>{feature.slug}</Badge>
-                        <span className="text-sm text-gray-600">
-                          {feature.enabled ? t("enabled_globally") : t("disabled_globally")}
-                        </span>
+                        <Badge variant="blue">{feature.slug}</Badge>
+                        <span className="text-sm text-gray-600">{t("enabled_globally")}</span>
                       </div>
                       <Button color="secondary" size="sm" onClick={() => handleAssignFeature(feature.slug)}>
                         <Icon name="plus" className="h-4 w-4" />
@@ -176,7 +177,31 @@ export function TeamFeaturesSheet({ teamId, open, onClose }: TeamFeaturesSheetPr
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">{t("no_features_available")}</p>
+                <p className="text-sm text-gray-500">{t("no_enabled_features_available")}</p>
+              )}
+            </div>
+
+            {/* Available Features - Disabled Globally */}
+            <div>
+              <h3 className="mb-3 text-lg font-medium">{t("features_disabled_globally")}</h3>
+              {disabledGloballyFeatures.length > 0 ? (
+                <div className="space-y-2">
+                  {disabledGloballyFeatures.map((feature) => (
+                    <div
+                      key={feature.slug}
+                      className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="flex items-center gap-3">
+                        <Badge variant="gray">{feature.slug}</Badge>
+                        <span className="text-sm text-gray-600">{t("disabled_globally")}</span>
+                      </div>
+                      <Button color="secondary" size="sm" onClick={() => handleAssignFeature(feature.slug)}>
+                        <Icon name="plus" className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">{t("no_disabled_features_available")}</p>
               )}
             </div>
           </div>
