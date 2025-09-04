@@ -447,6 +447,17 @@ class BaseEventTypeOutput_2024_06_14 {
       "If hidden the event type will not be publically available in the public /v2/event-types endpoint and it requires making authenticated request to /v2/event-types/{eventTypeId} to get it.",
   })
   hidden?: boolean;
+
+  @DocsProperty()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {

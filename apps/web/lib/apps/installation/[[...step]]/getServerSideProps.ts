@@ -18,7 +18,8 @@ import { STEPS } from "~/apps/installation/[[...step]]/constants";
 import type { OnboardingPageProps, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
 
 const getUser = async (userId: number) => {
-  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
+  const userRepo = new UserRepository(prisma);
+  const userAdminTeams = await userRepo.getUserAdminTeams({ userId });
 
   if (!userAdminTeams?.id) {
     return null;
@@ -316,7 +317,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isConferencing,
       isOrg,
       // conferencing apps dont support team install
-      installableOnTeams: !isConferencing,
+      installableOnTeams: !!appMetadata?.concurrentMeetings || !isConferencing,
     } as OnboardingPageProps,
   };
 };

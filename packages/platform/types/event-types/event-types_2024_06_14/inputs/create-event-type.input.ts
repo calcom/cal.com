@@ -145,6 +145,13 @@ export class CalVideoSettings {
     description: "URL to which participants are redirected when they exit the call",
   })
   redirectUrlOnExit?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic recording for the event when organizer joins the call",
+  })
+  enableAutomaticRecordingForOrganizer?: boolean;
 }
 
 class BaseCreateEventTypeInput {
@@ -447,6 +454,17 @@ class BaseCreateEventTypeInput {
       "If hidden the event type will not be publically available in the public /v2/event-types endpoint and it requires making authenticated request to /v2/event-types/{eventTypeId} to get it.",
   })
   hidden?: boolean;
+  @DocsPropertyOptional()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    default: false,
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
