@@ -17,6 +17,7 @@ const englishTranslations: Record<
 > = require("../../../apps/web/public/static/locales/en/common.json");
 
 const translationCache = new Map<string, Record<string, string>>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
 
@@ -47,7 +48,6 @@ export async function loadTranslations(_locale: string, _ns: string) {
     const { default: localeTranslations } = await import(
       `../../../apps/web/public/static/locales/${locale}/${ns}.json`
     );
-
     translationCache.set(cacheKey, localeTranslations);
     return localeTranslations;
   } catch (dynamicImportErr) {
@@ -89,9 +89,9 @@ export const getTranslation = async (locale: string, ns: string) => {
   }
 
   const resources = await loadTranslations(locale, ns);
-
   const _i18n = createInstance();
-  _i18n.init({
+
+  await _i18n.init({
     lng: locale,
     resources: {
       [locale]: {
@@ -99,6 +99,9 @@ export const getTranslation = async (locale: string, ns: string) => {
       },
     },
     fallbackLng: "en",
+    interpolation: {
+      escapeValue: false,
+    },
   });
 
   // Cache the i18n instance
