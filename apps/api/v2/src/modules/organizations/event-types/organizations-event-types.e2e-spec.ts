@@ -6,7 +6,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { SchedulingType, User } from "@prisma/client";
+import { User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -33,6 +33,7 @@ import {
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 describe("Organizations Event Types Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

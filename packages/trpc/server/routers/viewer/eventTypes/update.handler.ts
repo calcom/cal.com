@@ -19,7 +19,7 @@ import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
