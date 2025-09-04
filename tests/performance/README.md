@@ -105,14 +105,14 @@ TOKEN=your_token_here \
 ./tests/scripts/run-k6-local.sh load
 ```
 
-Supported env vars:  
-- `BASE_URL`  
-- `TOKEN`  
-- `TEST_USER_FREE`  
-- `TEST_PASSWORD_FREE`  
-- `TEST_USER_PRO`  
-- `TEST_PASSWORD_PRO`
+Supported env vars:
 
+- `BASE_URL`
+- `TOKEN`
+- `TEST_USER_FREE`
+- `TEST_PASSWORD_FREE`
+- `TEST_USER_PRO`
+- `TEST_PASSWORD_PRO`
 
 ## Test Scenarios
 
@@ -155,4 +155,3 @@ To add a new test:
 2. Import necessary helpers from `utils/helpers.js`
 3. Define test options including VUs, duration, and thresholds
 4. Implement the test scenario using k6 and helper functions
-

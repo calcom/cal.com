@@ -8,7 +8,7 @@ items:
 
 {DESCRIPTION}
 
-   ## How to Get Started
+## How to Get Started
 
 1. **Log in** to your [Dub.co](https://dub.co) account by installing the app.
 2. **Set up the [Client SDK](https://dub.co/docs/sdks/client-side/introduction)** on your website:

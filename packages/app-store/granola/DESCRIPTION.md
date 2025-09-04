@@ -27,4 +27,3 @@ Granola has GPT-4 built in, so it can help you do your post-meeting action items
 ## Share your notes with one click
 
 Granola makes it easy to share notes on the platforms you already use
-

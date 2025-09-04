@@ -5,11 +5,13 @@
 The whole thing is a monorepo. You need to be working in the apps/web folder.
 
 Linting and Formatting
+
 - Run lint with report generation: `yarn lint:report`
 - Run type checking: `yarn type-check:ci --force`
 - Run auto-fix: `yarn lint -- --fix`
 
 Development
+
 - Install dependencies: `yarn`
 - Set up environment:
   - Copy `.env.example` to `.env`
@@ -18,17 +20,20 @@ Development
   - Set DATABASE_DIRECT_URL to the same value as DATABASE_URL
 
 Database Setup
+
 - Development: `yarn workspace @calcom/prisma db-migrate`
 - Production: `yarn workspace @calcom/prisma db-deploy`
 
 When setting up local development database, it'll create a bunch of users for you. The passwords are the same as the username. e.g. 'free:free' and 'pro:pro'
 
 PR Requirements
+
 - PR title must follow Conventional Commits specification
 - For most PRs, you only need to run linting and type checking
 - E2E tests will only run if PR has "ready-for-e2e" label
 
 Logging
+
 - Control logging verbosity by setting `NEXT_PUBLIC_LOGGER_LEVEL` in .env:
   - 0: silly
   - 1: trace
@@ -110,6 +115,7 @@ Type casting with "as any" is strictly forbidden in the Cal.com codebase. When e
 The event types page UI components are located in `apps/web/modules/event-types/views/event-types-listing-view.tsx`. This file contains the layout implementation for the search bar and team tabs components on the event types listing page.
 
 Changes to shared UI patterns (like tab layouts and button alignments) need to be checked across multiple views to maintain consistency:
+
 - Event types page layout: `apps/web/modules/event-types/views/event-types-listing-view.tsx`
 - Bookings page layout: `apps/web/modules/bookings/views/bookings-listing-view.tsx`
 - Common elements like tabs, search bars, and filter buttons should maintain consistent alignment across views
@@ -121,13 +127,14 @@ To add new workflow triggers:
 1. Check packages/prisma/schema.prisma for existing webhooks and workflow trigger enums as reference
 2. Add the same enums to workflows (only when asked by user specifically, or else focus on users requirement)
 3. Add enums to packages/features/ee/workflows/lib/constants.ts for UI display
-4. Add translations to en/locale.json using the format {enum}_trigger (all lowercase). Webhook triggers serve as the reference implementation pattern for workflow triggers.
+4. Add translations to en/locale.json using the format {enum}\_trigger (all lowercase). Webhook triggers serve as the reference implementation pattern for workflow triggers.
 
 ## When working with app-store integrations in Cal.com
 
-The Cal.com repository uses generated files (*.generated.ts) for app-store integrations. These files are created by the app-store-cli tool. When making structural changes to how integrations are imported or used, you need to update CLI code that generates these files. Typically manual changes to the *.generated.ts files are not made. That was only for PR 19771 for a proof-of-concept. Recent changes have moved from dynamic imports to static map-based imports for better performance. When working with browser components in the app-store, static imports should be used rather than dynamic imports (using Next.js' dynamic function) to maintain consistency with the performance improvements.
+The Cal.com repository uses generated files (_.generated.ts) for app-store integrations. These files are created by the app-store-cli tool. When making structural changes to how integrations are imported or used, you need to update CLI code that generates these files. Typically manual changes to the _.generated.ts files are not made. That was only for PR 19771 for a proof-of-concept. Recent changes have moved from dynamic imports to static map-based imports for better performance. When working with browser components in the app-store, static imports should be used rather than dynamic imports (using Next.js' dynamic function) to maintain consistency with the performance improvements.
 
 When modifying the app-store-cli build.ts file, you must ensure it correctly handles all types of generated files:
+
 1. Regular service files (calendar.services.generated.ts, crm.services.generated.ts, etc.) need default imports
 2. Browser component files (apps.browser-addon.generated.tsx, etc.) may require dynamic imports with Next.js
 3. After making changes to build.ts, always verify all generated files have the correct imports by checking each file type
@@ -145,6 +152,7 @@ Cal.com events in Google Calendar can be identified by checking if the iCalUID e
 ## When working with CI/CD in the Cal.com repository
 
 When reviewing CI check failures in Cal.com:
+
 1. E2E tests can be flaky and may fail intermittently
 2. Focus only on CI failures that are directly related to your code changes
 3. Infrastructure-related failures (like dependency installation issues) can be disregarded if all code-specific checks (type checking, linting, unit tests) are passing
@@ -154,6 +162,7 @@ When reviewing CI check failures in Cal.com:
 Database models in Cal.com are defined in `packages/prisma/schema.prisma`. When adding new fields to models:
 
 1. For timestamp fields like `createdAt` and `updatedAt`:
+
    - Do not set default values if you want existing records to have null values
    - Only new records should get timestamps automatically
    - For `updatedAt` fields, ensure they're updated when records are modified
@@ -164,7 +173,7 @@ Database models in Cal.com are defined in `packages/prisma/schema.prisma`. When 
 
 ## When working with generated files in the Cal.com repository
 
-When fixing imports in Cal.com's generated files (like packages/app-store/apps.browser-*.generated.tsx), always check the actual exports in the source files first. For EventTypeAppCardInterface components, they likely use named exports rather than default exports, requiring imports like `import * as ComponentName from "./path"` instead of `import ComponentName from "./path"`. This verification step is crucial when working with browser-addon, browser-appsettings, browser-eventtypesettings, and browser-install generated files. For these files, if you're seeing import errors, check whether the components are exported as default exports in their source files and adjust your import statements accordingly.
+When fixing imports in Cal.com's generated files (like packages/app-store/apps.browser-_.generated.tsx), always check the actual exports in the source files first. For EventTypeAppCardInterface components, they likely use named exports rather than default exports, requiring imports like `import _ as ComponentName from "./path"`instead of`import ComponentName from "./path"`. This verification step is crucial when working with browser-addon, browser-appsettings, browser-eventtypesettings, and browser-install generated files. For these files, if you're seeing import errors, check whether the components are exported as default exports in their source files and adjust your import statements accordingly.
 
 ## When working with git and CI systems
 
@@ -177,9 +186,10 @@ When working with imports in the Cal.com codebase, particularly in app-store int
 ## When working with tRPC components in the Cal.com repository
 
 When making changes that affect tRPC components or after pulling updates that modify tRPC-related files, you need to follow a specific build order:
+
 1. First run `yarn prisma generate` to ensure all database types are up-to-date
 2. Then run `cd packages/trpc && yarn build` to rebuild the tRPC package
-This sequence ensures that type definitions are properly generated before building the tRPC components that depend on them, preventing type errors during compilation.
+   This sequence ensures that type definitions are properly generated before building the tRPC components that depend on them, preventing type errors during compilation.
 
 ## When working with workflows or webhooks in the Cal.com repository
 
@@ -192,6 +202,7 @@ To seed new feature flags in Cal.com, create a Prisma migration using the comman
 ## When adding new UI elements or text strings to Cal.com
 
 All UI strings in Cal.com must be properly translated using the i18n system. This includes:
+
 - Labels for new UI elements (like dropdown labels, settings headers)
 - Option values that are displayed to users
 - Any text that appears in the interface

@@ -278,7 +278,7 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
             init: () => {},
             open: () => {
               setIsOpen(true);
-            }
+            },
           };
         }
         return () => window.removeEventListener("resize", checkScreenSize);

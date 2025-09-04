@@ -14,7 +14,9 @@ export default function useIsBookingPage(): boolean {
     "/apps/routing-forms/routing-link", // Routing Form page
     "/forms/", // Rewrites to /apps/routing-forms/routing-link
   ].some((route) => pathname?.startsWith(route));
-  const isBookingsListPage = ["/upcoming", "/unconfirmed", "/recurring", "/cancelled", "/past"].some((route) => pathname?.endsWith(route));
+  const isBookingsListPage = ["/upcoming", "/unconfirmed", "/recurring", "/cancelled", "/past"].some(
+    (route) => pathname?.endsWith(route)
+  );
 
   const searchParams = useCompatSearchParams();
   const isUserBookingPage = Boolean(searchParams?.get("user"));

@@ -73,7 +73,6 @@ export class GoogleCalendarService {
       bookingReference.delegationCredential
     );
 
-
     const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
 
     try {

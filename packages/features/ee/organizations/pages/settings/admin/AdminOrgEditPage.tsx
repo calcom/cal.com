@@ -8,9 +8,9 @@ import type { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { orgSettingsSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 type FormValues = {

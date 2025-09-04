@@ -20,7 +20,7 @@ const headers = [
   "Number of Segments",
   "Call Duration",
   "External Ref",
-  "Phone Number", 
+  "Phone Number",
   "Email",
 ];
 

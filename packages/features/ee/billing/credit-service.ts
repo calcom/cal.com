@@ -336,7 +336,20 @@ export class CreditService {
     tx: PrismaTransaction;
     externalRef?: string;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, phoneNumber, email, tx } = props;
+    const {
+      credits,
+      creditType,
+      bookingUid,
+      smsSid,
+      teamId,
+      userId,
+      smsSegments,
+      callDuration,
+      creditFor,
+      phoneNumber,
+      email,
+      tx,
+    } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 

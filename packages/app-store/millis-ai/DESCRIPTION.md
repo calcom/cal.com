@@ -12,4 +12,3 @@ items:
 Effortlessly create advanced LLM-based voice applications with ultra-low latency — The Fastest on the Market.
 
 Millis AI gives you everything you need to create instant, human-like, and affordable voice agents.
-

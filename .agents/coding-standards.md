@@ -1,7 +1,5 @@
 # Coding Standards & Best Practices
 
-
-
 ## Import Guidelines
 
 ### Type Imports
@@ -14,8 +12,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 // ❌ Bad - Regular import for types
 import { User } from "@prisma/client";
 ```
-
-
 
 ## Code Structure
 

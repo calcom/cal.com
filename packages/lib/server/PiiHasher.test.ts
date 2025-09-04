@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
+
 import { hashEmail, Md5PiiHasher } from "./PiiHasher";
 
 describe("PII Hasher Test Suite", () => {
-
   const hasher = new Md5PiiHasher("test-salt");
 
   it("can hash email addresses", async () => {

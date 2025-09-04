@@ -9,7 +9,13 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
-const PlainContactForm = ({ open, setIsOpen }: { open: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
+const PlainContactForm = ({
+  open,
+  setIsOpen,
+}: {
+  open: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
