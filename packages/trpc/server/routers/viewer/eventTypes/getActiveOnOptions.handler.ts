@@ -250,8 +250,8 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
   });
 
   const user = ctx.user;
-  const teamId = input?.teamId;
-  const isOrg = input?.isOrg;
+  const teamId = input.teamId;
+  const isOrg = input.isOrg;
 
   const shouldIncludeTeamOptions = isOrg;
   const shouldSkipEventTypes = isOrg;

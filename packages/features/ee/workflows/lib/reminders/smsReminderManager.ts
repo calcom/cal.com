@@ -329,6 +329,8 @@ const scheduleSMSReminderForForm = async (
     log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
     try {
+      const submitterEmail = getSubmitterEmail(formData.responses);
+
       await sendSmsOrFallbackEmail({
         twilioData: {
           phoneNumber: reminderPhone,
@@ -338,13 +340,14 @@ const scheduleSMSReminderForForm = async (
           userId,
           teamId,
         },
-        fallbackData: isAttendeeAction(action)
-          ? {
-              email: getSubmitterEmail(formData.responses),
-              t: await getTranslation(formData.user.locale, "common"),
-              replyTo: formData.user.email,
-            }
-          : undefined,
+        fallbackData:
+          isAttendeeAction(action) && submitterEmail
+            ? {
+                email: submitterEmail,
+                t: await getTranslation(formData.user.locale, "common"),
+                replyTo: formData.user.email,
+              }
+            : undefined,
       });
     } catch (error) {
       log.error(`Error sending SMS with error ${error}`);

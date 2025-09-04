@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import logger from "@calcom/lib/logger";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { ZWorkflow } from "@calcom/trpc/server/routers/viewer/workflows/getAllActiveWorkflows.schema";
@@ -38,7 +39,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
 
   try {
     WorkflowService.scheduleFormWorkflows({
-      workflows: [workflow],
+      workflows: [workflow as Workflow],
       responses,
       responseId,
       form: form,
