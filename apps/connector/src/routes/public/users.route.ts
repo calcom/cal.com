@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { UserService } from '@/services/public/user.service';
+import { UserService } from '@/services/public';
 import { AuthGuards, AuthRequest } from '@/auth/guards';
 import { validateQuery, validateParams } from '@/middlewares/validation';
 import { ResponseFormatter } from '@/utils/response';

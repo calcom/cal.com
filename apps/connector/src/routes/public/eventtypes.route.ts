@@ -6,7 +6,7 @@ import {
   getEventTypesQuerySchema,
   EventTypeResponseSchema,
 } from "@/schema/event-type.schema";
-import { EventTypeService } from "@/services/public/event-type.service";
+import { EventTypeService } from "@/services/public";
 import { ConflictError } from "@/utils";
 import { ResponseFormatter } from "@/utils/response";
 import type { FastifyInstance, FastifyReply } from "fastify";

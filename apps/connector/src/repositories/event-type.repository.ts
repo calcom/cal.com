@@ -254,11 +254,17 @@ export class EventTypeRepository extends BaseRepository<EventType> {
     }
   }
 
-  async slugExists(slug: string, userId: number, excludeEventTypeId?: number): Promise<boolean> {
+  async slugExists(
+    slug: string,
+    userId?: number,
+    teamId?: number,
+    excludeEventTypeId?: number
+  ): Promise<boolean> {
     try {
       const where: Prisma.EventTypeWhereInput = {
         slug,
         userId,
+        teamId,
       };
 
       if (excludeEventTypeId) {

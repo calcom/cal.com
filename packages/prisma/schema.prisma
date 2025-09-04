@@ -322,7 +322,7 @@ model User {
   password            UserPassword?
   bio                 String?
   avatarUrl           String?
-  timeZone            String               @default("Europe/London")
+  timeZone            String               @default("Asia/Kolkata")
   travelSchedules     TravelSchedule[]
   weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
@@ -544,7 +544,7 @@ model Team {
   inviteTokens           VerificationToken[]
   webhooks               Webhook[]
   timeFormat             Int?
-  timeZone               String                  @default("Europe/London")
+  timeZone               String                  @default("Asia/Kolkata")
   weekStart              String                  @default("Sunday")
   routingForms           App_RoutingForms_Form[]
   apiKeys                ApiKey[]

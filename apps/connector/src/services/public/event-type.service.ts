@@ -101,7 +101,7 @@ export class EventTypeService extends BaseService {
 
       // Check if slug already exists for this user (excluding current event type)
       if (input.slug && input.slug !== existingEventType.slug) {
-        const slugExists = await this.eventTypeRepository.slugExists(input.slug, userId, id);
+        const slugExists = await this.eventTypeRepository.slugExists(input.slug, userId, undefined, id);
         if (slugExists) {
           throw new ConflictError("Event type with this slug already exists for this user");
         }
