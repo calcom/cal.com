@@ -1,3 +1,5 @@
+import type { SelectedCalendar } from "@calcom/prisma/client";
+
 type CalendarSubscriptionProvider = "google" | "outlook";
 
 export type CalendarSubscriptionResult = {
@@ -16,23 +18,23 @@ export type CalendarSubscriptionEvent = {
   provider: CalendarSubscriptionProvider;
 };
 
-export interface CalendarSubscriptionPort {
+export interface ICalendarSubscriptionPort {
   /**
    * Subscribes to a calendar
-   * @param externalId
+   * @param selectedCalendar
    */
-  subscribe(externalId: string): Promise<CalendarSubscriptionResult>;
+  subscribe(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionResult>;
 
   /**
    * Unsubscribes from a calendar
-   * @param selectedCalendarId
+   * @param selectedCalendar
    */
-  unsubscribe(selectedCalendarId: string): Promise<void>;
+  unsubscribe(selectedCalendar: SelectedCalendar): Promise<void>;
 
   /**
    * Handle webhook events
    * @param selectedCalendarId
    *
    */
-  handle(selectedCalendarId: string): Promise<CalendarSubscriptionEvent[]>;
+  handle(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent[]>;
 }

@@ -1,17 +1,18 @@
 import type {
   CalendarSubscriptionEvent,
-  CalendarSubscriptionPort,
+  ICalendarSubscriptionPort,
   CalendarSubscriptionResult,
 } from "../lib/CalendarSubscriptionPort.interface";
 
-export class OutlookCalendarSubscriptionAdapter implements CalendarSubscriptionPort {
-  subscribe(externalId: string): Promise<CalendarSubscriptionResult> {
+export class OutlookCalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
+  subscribe(selectedCalendar): Promise<CalendarSubscriptionResult> {
     throw new Error("Method not implemented.");
   }
-  unsubscribe(selectedCalendarId: string): Promise<void> {
+  unsubscribe(selectedCalendar): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  handle(selectedCalendarId: string): Promise<CalendarSubscriptionEvent[]> {
+
+  handle(selectedCalendar): Promise<CalendarSubscriptionEvent[]> {
     throw new Error("Method not implemented.");
   }
 }

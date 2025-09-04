@@ -19,6 +19,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       create: {
         selectedCalendarId,
         ...calendarSubscription,
+        createdAt: new Date(),
       },
     });
   }

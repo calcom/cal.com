@@ -4,6 +4,8 @@ import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/S
 
 import { GoogleCalendarSyncAdapter } from "./adapters/google.adapter";
 
+const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
+
 export class CalendarSyncService {
   private providers = {
     google: new GoogleCalendarSyncAdapter(),
@@ -15,7 +17,7 @@ export class CalendarSyncService {
     }
   ) {}
 
-  // async process(events: CalendarEvent[]) {
-
-  // }
+  async handleEvents(calendarSubscriptionEvents: CalendarSubscriptionEvent[]) {
+    log.debug("handleEvents", { calendarSubscriptionEvents });
+  }
 }

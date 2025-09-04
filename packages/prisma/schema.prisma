@@ -896,6 +896,7 @@ model SelectedCalendar {
   createdAt                DateTime?   @default(now())
   updatedAt                DateTime?   @updatedAt
   // Used to identify a watched calendar channel in Google Calendar
+  // @deprecated("")
   googleChannelId          String?
   googleChannelKind        String?
   googleChannelResourceId  String?
@@ -916,8 +917,6 @@ model SelectedCalendar {
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
-
-  calendarSubscription CalendarSubscription?
 
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
@@ -2524,24 +2523,3 @@ model CalAiPhoneNumber {
   @@index([inboundAgentId])
   @@index([outboundAgentId])
 }
-
-model CalendarSubscription {
-  id                 String           @id @default(uuid())
-  selectedCalendarId String           @unique
-  resourceId         String?
-  resourceUri        String?
-  resource           String?
-  clientState        String?
-  expiration         DateTime?
-  syncCursor         String?
-  backoffUntil       DateTime?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  selectedCalendar   SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
-
-  @@index([syncCursor])
-}
-
-// model CalendarCacheEvent {
-
-// }
