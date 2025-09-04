@@ -12,6 +12,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import { useRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -25,14 +26,6 @@ import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import CustomEnterKeyPlugin from "./plugins/customEnterKeyPlugin";
 import "./stylesEditor.css";
 import type { TextEditorProps } from "./types";
-
-/*
- Default toolbar items:
-  - blockType
-  - bold
-  - italic
-  - link
-*/
 
 const editorConfig = {
   theme: ExampleTheme,
@@ -59,11 +52,30 @@ const editorConfig = {
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   const plainText = props.plainText ?? false;
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleLabelClick = () => {
+    setTimeout(() => {
+      if (editorContainerRef.current) {
+        const contentEditable = editorContainerRef.current.querySelector(".editor-input");
+        if (contentEditable) {
+          (contentEditable as HTMLElement).focus();
+        }
+      }
+    }, 0);
+  };
+
   return (
     <div className="editor rounded-md">
-      {props.label && <label className="mb-1 block text-sm font-medium leading-6">{props.label}</label>}
+      {props.label && (
+        <label className="mb-1 block cursor-pointer text-sm font-medium leading-6" onClick={handleLabelClick}>
+          {props.label}
+        </label>
+      )}
       <LexicalComposer initialConfig={{ ...editorConfig }}>
-        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2 focus-within:ring-offset-0">
+        <div
+          ref={editorContainerRef}
+          className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2 focus-within:ring-offset-0">
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}

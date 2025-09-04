@@ -22,10 +22,10 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-type PasswordFieldTranslations = {
-  showPasswordText?: string;
-  hidePasswordText?: string;
-};
+// type PasswordFieldTranslations = {
+//   showPasswordText?: string;
+//   hidePasswordText?: string;
+// };
 
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
@@ -100,11 +100,12 @@ export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function
 type TextAreaProps = JSX.IntrinsicElements["textarea"];
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
+  const { className, ...otherProps } = props;
   return (
     <textarea
-      {...props}
       ref={ref}
-      className={classNames(inputStyles(), "min-h-[80px] w-full", props.className)}
+      className={classNames(inputStyles(), "min-h-[80px] w-full", className)}
+      {...otherProps}
     />
   );
 });
@@ -132,16 +133,20 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
       ? `${props.name}_placeholder`
       : "",
+    id: providedId,
     ...passThrough
   } = props;
+
+  const finalId = providedId || id;
+
   return (
     <div>
       {!!props.name && (
-        <Label htmlFor={id} {...labelProps}>
+        <Label htmlFor={finalId} {...labelProps}>
           {label}
         </Label>
       )}
-      <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
+      <TextArea ref={ref} id={finalId} placeholder={placeholder} {...passThrough} />
       {methods?.formState?.errors[props.name]?.message && (
         <Alert
           className="mt-1"
