@@ -8,7 +8,8 @@ import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/li
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod/eventtype";
+import type { CompleteEventType } from "@calcom/prisma/zod/eventtype";
+import type { CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod/workflowsoneventtypes";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   const eventType = buildEventType(data as Partial<EventType>);
