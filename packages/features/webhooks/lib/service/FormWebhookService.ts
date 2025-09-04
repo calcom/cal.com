@@ -1,3 +1,4 @@
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/trpc/utils";
 import dayjs from "@calcom/dayjs";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -14,7 +15,7 @@ export class FormWebhookService implements IFormWebhookService {
 
   async emitFormSubmitted(params: {
     form: { id: string; name: string };
-    response: { id: number; data: Record<string, unknown> };
+    response: { id: number; data: FORM_SUBMITTED_WEBHOOK_RESPONSES };
     eventTypeId?: number | null;
     userId?: number | null;
     teamId?: number | null;
@@ -39,7 +40,7 @@ export class FormWebhookService implements IFormWebhookService {
 
   async emitFormSubmittedNoEvent(params: {
     form: { id: string; name: string };
-    response: { id: number; data: Record<string, unknown> };
+    response: { id: number; data: FORM_SUBMITTED_WEBHOOK_RESPONSES };
     userId?: number | null;
     teamId?: number | null;
     orgId?: number | null;
@@ -67,7 +68,7 @@ export class FormWebhookService implements IFormWebhookService {
       name: string;
       teamId?: number | null;
     };
-    responses: Record<string, unknown>;
+    responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     redirect?: Record<string, unknown>;
     teamId?: number | null;
     orgId?: number | null;
