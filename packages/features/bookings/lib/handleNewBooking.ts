@@ -1964,7 +1964,15 @@ async function handler(
         if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
           emailsAndSmsSideEffectsPayload = {
             action: BookingState.BOOKING_CONFIRMED,
-            data: { eventType, eventNameObject, workflows, evt },
+            data: {
+              eventType: {
+                metadata: eventType.metadata,
+                schedulingType: eventType.schedulingType,
+              },
+              eventNameObject,
+              workflows,
+              evt,
+            },
           };
         }
       }
