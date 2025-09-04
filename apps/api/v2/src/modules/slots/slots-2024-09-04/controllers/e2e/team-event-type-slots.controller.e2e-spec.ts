@@ -688,7 +688,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04);
 
-      expect(reserveResponseThree.status).toEqual(400);
+      expect(reserveResponseThree.status).toEqual(403);
       expect(reserveResponseThree.body.status).toEqual(ERROR_STATUS);
 
       await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotOne.reservationUid);
