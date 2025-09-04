@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "שקול להקים ארגון כדי לאחד חיובים, כלי ניהול ואנליטיקה עבור הצוותים שלך.",
   "search_variables": "חפש משתנים",
   "no_variables_found": "לא נמצאו משתנים",
+  "api_key_name_too_long": "השם לא יכול לעלות על {{max}} תווים",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Pentsatu erakunde bat sortzeaz zure taldeen fakturazioa, administrazio-tresnak eta analitika bateratzeko.",
   "search_variables": "Bilatu aldagaiak",
   "no_variables_found": "Ez da aldagairik aurkitu",
+  "api_key_name_too_long": "Izenak ezin ditu {{max}} karaktere baino gehiago izan",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

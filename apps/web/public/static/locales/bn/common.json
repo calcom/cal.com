@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "আপনার দলগুলির মধ্যে বিলিং, অ্যাডমিন টুলস এবং অ্যানালিটিক্স একত্রিত করতে একটি সংগঠন সেট আপ করার কথা বিবেচনা করুন।",
   "search_variables": "ভেরিয়েবল অনুসন্ধান করুন",
   "no_variables_found": "কোন ভেরিয়েবল পাওয়া যায়নি",
+  "api_key_name_too_long": "নাম অবশ্যই {{max}} অক্ষরের বেশি হবে না",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑ুষান্ত"
 }
