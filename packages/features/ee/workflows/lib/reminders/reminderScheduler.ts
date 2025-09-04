@@ -182,6 +182,7 @@ const processWorkflowStep = async (
       hideBranding,
       includeCalendarEvent: step.includeCalendarEvent,
       ...(evt ? { evt } : { formData }),
+      verifiedAt: step.verifiedAt,
     } as const;
 
     await scheduleEmailReminder(emailParams);
