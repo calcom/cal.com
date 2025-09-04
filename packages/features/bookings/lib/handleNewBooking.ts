@@ -25,20 +25,25 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
+import type { CreateRegularBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
+import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
+  cancelNoShowTasksForBooking,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -64,6 +69,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -72,10 +78,17 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
@@ -121,6 +134,7 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import type { IBookingService } from "./interfaces/IBookingService";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -149,10 +163,6 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If rescheduling then increment sequence by 1
   return originalRescheduledBooking.iCalSequence + 1;
 }
-
-type BookingDataSchemaGetter =
-  | typeof getBookingDataSchema
-  | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
@@ -525,6 +535,9 @@ async function handler(
 
   const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
   const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
+  const isNormalBookingOrFirstRecurringSlot = input.bookingData.allRecurringDates
+    ? input.bookingData.isFirstRecurringSlot
+    : true;
 
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
@@ -2225,6 +2238,37 @@ async function handler(
       isDryRun,
     });
 
+    try {
+      const calendarEventForWorkflow = {
+        ...evt,
+        rescheduleReason,
+        metadata,
+        eventType: {
+          slug: eventType.slug,
+          schedulingType: eventType.schedulingType,
+          hosts: eventType.hosts,
+        },
+        bookerUrl,
+      };
+
+      if (isNormalBookingOrFirstRecurringSlot) {
+        await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+          workflows,
+          smsReminderNumber: smsReminderNumber || null,
+          calendarEvent: calendarEventForWorkflow,
+          hideBranding: !!eventType.owner?.hideBranding,
+          seatReferenceUid: evt.attendeeSeatId,
+          isDryRun,
+          triggers: [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED],
+        });
+      }
+    } catch (error) {
+      loggerWithEventDetails.error(
+        "Error while scheduling workflow reminders for booking payment initiated",
+        JSON.stringify({ error })
+      );
+    }
+
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
     const bookingResponse = {
@@ -2257,15 +2301,22 @@ async function handler(
     const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
     const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
-    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
+    const deleteWebhookScheduledTriggerPromises: Promise<unknown>[] = [];
     const scheduleTriggerPromises = [];
 
     if (rescheduleUid && originalRescheduledBooking) {
       //delete all scheduled triggers for meeting ended and meeting started of booking
-      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
-        booking: originalRescheduledBooking,
-        isDryRun,
-      });
+      deleteWebhookScheduledTriggerPromises.push(
+        deleteWebhookScheduledTriggers({
+          booking: originalRescheduledBooking,
+          isDryRun,
+        })
+      );
+      deleteWebhookScheduledTriggerPromises.push(
+        cancelNoShowTasksForBooking({
+          bookingUid: originalRescheduledBooking.uid,
+        })
+      );
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
@@ -2298,12 +2349,20 @@ async function handler(
       }
     }
 
-    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
+    const scheduledTriggerResults = await Promise.allSettled([
+      ...deleteWebhookScheduledTriggerPromises,
+      ...scheduleTriggerPromises,
+    ]);
+    const failures = scheduledTriggerResults.filter((result) => result.status === "rejected");
+
+    if (failures.length > 0) {
       loggerWithEventDetails.error(
         "Error while scheduling or canceling webhook triggers",
-        JSON.stringify({ error })
+        safeStringify({
+          errors: failures.map((f) => f.reason),
+        })
       );
-    });
+    }
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({
@@ -2386,18 +2445,16 @@ async function handler(
   }
 
   try {
-    await scheduleWorkflowReminders({
+    await WorkflowService.scheduleWorkflowsForNewBooking({
       workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
-      isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
-      isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: input.bookingData.allRecurringDates
-        ? input.bookingData.isFirstRecurringSlot
-        : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
+      isConfirmedByDefault,
+      isNormalBookingOrFirstRecurringSlot,
+      isRescheduleEvent: !!rescheduleUid,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -2406,7 +2463,12 @@ async function handler(
   try {
     if (isConfirmedByDefault) {
       await scheduleNoShowTriggers({
-        booking: { startTime: booking.startTime, id: booking.id, location: booking.location },
+        booking: {
+          startTime: booking.startTime,
+          id: booking.id,
+          location: booking.location,
+          uid: booking.uid,
+        },
         triggerForUser,
         organizerUser: { id: organizerUser.id },
         eventTypeId,
@@ -2455,3 +2517,38 @@ async function handler(
 }
 
 export default handler;
+
+export interface IBookingServiceDependencies {
+  cacheService: CacheService;
+  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
+  prismaClient: PrismaClient;
+  bookingRepository: BookingRepository;
+  featuresRepository: FeaturesRepository;
+  checkBookingLimitsService: CheckBookingLimitsService;
+}
+
+/**
+ * Takes care of creating/rescheduling non-recurring, non-instant bookings. Such bookings could be TeamBooking, UserBooking, SeatedUserBooking, SeatedTeamBooking, etc.
+ * We can't name it CoreBookingService because non-instant booking also creates a booking but it is entirely different from the regular booking.
+ * We are open to renaming it to something more descriptive.
+ */
+export class RegularBookingService implements IBookingService {
+  constructor(private readonly deps: IBookingServiceDependencies) {}
+
+  async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
+    // deps to be passed to handler in follow-up PR
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+  }
+
+  async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+  }
+
+  async rescheduleBookingForApiV1(input: {
+    bookingData: CreateRegularBookingData;
+    bookingMeta?: CreateBookingMeta;
+    bookingDataSchemaGetter: BookingDataSchemaGetter;
+  }) {
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, input.bookingDataSchemaGetter);
+  }
+}

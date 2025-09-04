@@ -9,14 +9,13 @@
     "packages/embeds/*",
     "packages/features/*",
     "packages/app-store/*",
-    "packages/app-store/ee/*",
     "packages/platform/*",
     "packages/platform/examples/base",
     "example-apps/*"
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
-    "app-store:build": "yarn app-store-cli build",
+    "app-store:build": "yarn turbo build --filter=@calcom/app-store-cli",
     "app-store:watch": "yarn app-store-cli watch",
     "app-store": "yarn app-store-cli cli",
     "create-app": "yarn app-store create",
@@ -96,6 +95,7 @@
     "c8": "^7.13.0",
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
+    "eslint-plugin-import": "^2.32.0",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
@@ -142,7 +142,7 @@
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
       "prettier --write",
-      "eslint --fix"
+      "eslint --fix --max-warnings=0"
     ],
     "*.json": [
       "prettier --write"

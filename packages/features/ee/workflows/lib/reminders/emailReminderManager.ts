@@ -6,7 +6,7 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -19,6 +19,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
@@ -140,6 +141,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
   if (emailBody) {
+    const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
     const recipientEmail = getWorkflowRecipientEmail({
       action,
       attendeeEmail: attendeeToBeUsedInMail.email,
@@ -162,11 +164,20 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
         recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
-      }`,
+      }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
       cancelReason: evt.cancellationReason,
       rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
-        recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
+        recipientEmail
+          ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
+              isEmailAttendeeAction && seatReferenceUid
+                ? `&seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+                : ""
+            }`
+          : isEmailAttendeeAction && seatReferenceUid
+          ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+          : ""
       }`,
+
       rescheduleReason: evt.rescheduleReason,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
       noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
@@ -175,10 +186,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(evt.attendees[0].timeZone),
     };
 
-    const locale =
-      action === WorkflowActions.EMAIL_ATTENDEE
-        ? attendeeToBeUsedInMail.language?.locale
-        : evt.organizer.language.locale;
+    const locale = isEmailAttendeeAction
+      ? attendeeToBeUsedInMail.language?.locale
+      : evt.organizer.language.locale;
 
     const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
     emailContent.emailSubject = emailSubjectTemplate.text;
@@ -270,7 +280,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
-      sender,
+      sender: evt.hideOrganizerEmail ? SENDER_NAME : sender,
     };
   }
 
@@ -314,11 +324,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   /**
    * @deprecated only needed for SendGrid, use SMTP with tasker instead
    */
-  if (
-    triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-    triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
-  ) {
+  if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
     try {
       const promises = sendTo.map((email) => sendSendgridMail({ ...mailData, to: email }));
       // TODO: Maybe don't await for this?
