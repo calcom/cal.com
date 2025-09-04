@@ -2,6 +2,7 @@ import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
@@ -63,8 +64,9 @@ async function processReschedule({
   );
   const userIsOwnerOfEventType = booking?.eventType?.owner?.id === userId;
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
-  if (booking?.eventType?.disableRescheduling && !isHostOrOwner) {
+  if (booking?.eventType?.disableRescheduling && !isHostOrOwner && !isOrgAdminOrOwner) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,

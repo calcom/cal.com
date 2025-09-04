@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { URLSearchParams } from "url";
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
@@ -146,8 +147,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const userIsOwnerOfEventType = userId !== undefined && booking?.eventType?.owner?.id === userId;
 
   const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, booking?.eventType?.team?.id ?? 0)) : false;
-
-  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType || !!hasTeamOrOrgPermissions;
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
+  
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType || !!hasTeamOrOrgPermissions || isOrgAdminOrOwner;
   if (isDisabledRescheduling && !isHostOrOwner) {
     return {
       redirect: {
@@ -224,7 +226,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     const userIsOwnerOfEventType = booking?.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions) {
+    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions && !isOrgAdminOrOwner) {
       return {
         notFound: true,
       } as {

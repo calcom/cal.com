@@ -1,4 +1,4 @@
-import type { Prisma, WorkflowReminder } from "@prisma/client";
+import type { Prisma, WorkflowReminder, MembershipRole } from "@prisma/client";
 import type { z } from "zod";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -46,7 +46,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
-
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
 type PlatformParams = {
@@ -61,6 +61,7 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
   userId?: number;
+  userOrgRole?: MembershipRole;
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
@@ -87,6 +88,7 @@ async function handler(input: CancelBookingInput) {
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
     userId,
+    userOrgRole,
     platformBookingUrl,
     platformCancelUrl,
     platformClientId,
@@ -124,8 +126,9 @@ async function handler(input: CancelBookingInput) {
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
 
   const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, bookingToDelete.eventType?.team?.id ?? 0)) : false;
+  const isOrgAdminOrOwner = checkAdminOrOwner(userOrgRole);
 
-  if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) {
+  if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions && !isOrgAdminOrOwner) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
@@ -154,7 +157,7 @@ async function handler(input: CancelBookingInput) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions) {
+    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions && !isOrgAdminOrOwner) {
       throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
     }
   }

@@ -15,6 +15,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -175,6 +176,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
   const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, eventType.team?.id ?? 0)) : false;
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
@@ -256,7 +258,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
-      hasTeamOrOrgPermissions,
+      hasTeamOrOrgPermissions: hasTeamOrOrgPermissions || isOrgAdminOrOwner,
       internalNotePresets: internalNotes,
     },
   };

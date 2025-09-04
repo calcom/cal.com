@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
@@ -62,8 +63,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const userId = session?.user?.id;
   const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, eventData.team?.id ?? 0)) : false;
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
-  let isHostOrOwner = (eventData.owner?.id && eventData.owner?.id === userId) || hasTeamOrOrgPermissions;
+  let isHostOrOwner = (eventData.owner?.id && eventData.owner?.id === userId) || hasTeamOrOrgPermissions || isOrgAdminOrOwner;
 
   // We will only check the database if the user is not the owner or has team or org permissions
   if (userId && rescheduleUid && !isHostOrOwner) {
