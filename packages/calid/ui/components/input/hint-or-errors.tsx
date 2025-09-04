@@ -1,7 +1,6 @@
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
-
-import { Icon } from "../icon/Icon";
 
 type hintsOrErrorsProps = {
   hintErrors?: string[];
@@ -14,7 +13,7 @@ type InputErrorProp = {
 };
 
 export const InputError = ({ message }: InputErrorProp) => (
-  <div data-testid="field-error" className="text-error mt-2 flex items-center gap-x-2 text-sm">
+  <div data-testid="field-error" className="text-error mt-1 flex items-center gap-x-2 text-sm">
     <div>
       <Icon name="info" className="h-3 w-3" />
     </div>

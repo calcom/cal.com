@@ -1,17 +1,19 @@
 "use client";
 
 import {
-  Icon,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-  Switch,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Switch } from "@calid/features/ui/components/switch/switch";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@calid/features/ui/components/tooltip";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import React, { useMemo, useState, useEffect } from "react";

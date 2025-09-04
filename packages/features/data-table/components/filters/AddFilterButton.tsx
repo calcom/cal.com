@@ -1,6 +1,14 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Popover, PopoverTrigger, PopoverContent } from "@calid/features/ui/components/popover";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@calid/features/ui/components/tooltip";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
@@ -8,7 +16,6 @@ import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@calcom/ui/components/command";
-import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 

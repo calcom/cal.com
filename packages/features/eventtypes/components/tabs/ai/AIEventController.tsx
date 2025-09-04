@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";

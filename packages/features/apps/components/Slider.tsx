@@ -1,6 +1,9 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import type { Options } from "@glidejs/glide";
 import Glide from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";

@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { useState } from "react";
 
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";

@@ -1,6 +1,9 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
 import React from "react";
 
 import type { EventTypesContentProps } from "../types/event-types";

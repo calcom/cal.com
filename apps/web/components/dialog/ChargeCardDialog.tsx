@@ -6,7 +6,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IRescheduleDialog {

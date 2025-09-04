@@ -25,3 +25,7 @@ export async function revalidateTeamEventTypeCache({
 }) {
   revalidateTag(`event-type:${orgSlug ? `${orgSlug}:` : ""}${teamSlug}:${meetingSlug}`);
 }
+
+export async function revalidateCalIdTeamDataCache({ teamSlug }: { teamSlug: string }) {
+  revalidateTag(`team:${teamSlug}`);
+}

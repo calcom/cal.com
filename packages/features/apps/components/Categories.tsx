@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import Image from "next/image";
 import Link from "next/link";
 

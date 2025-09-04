@@ -3,6 +3,7 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card/blank-card";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
-import { triggerToast } from "@calid/features/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast/toast";
 import {
   Tooltip,
   TooltipContent,
@@ -32,16 +33,15 @@ import React from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
-import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
+import { getTeamUrl } from "../lib/getTeamUrl";
+
 type TeamsListProps = {
-  teams: RouterOutputs["viewer"]["teams"]["list"];
+  teams: RouterOutputs["viewer"]["calidTeams"]["list"];
   teamNameFromInvitation: string | null;
   errorMsgFromInvitation: string | null;
 };
@@ -59,7 +59,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
   const { teams, teamInvitation } = useMemo(() => {
     return (Array.isArray(data) ? data : []).reduce(
       (acc, team) => {
-        if (team.accepted) {
+        if (team.acceptedInvitation) {
           acc.teams.push(team);
         } else {
           acc.teamInvitation.push(team);
@@ -70,19 +70,19 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     );
   }, [data]);
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
+  const deleteTeamMutation = trpc.viewer.calidTeams.delete.useMutation({
     async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.calidTeams.list.invalidate();
       revalidateTeamsList();
-      trackFormbricksAction("team_disbanded");
+      triggerToast("team_disbanded_successfully", "success");
     },
     async onError(err) {
       triggerToast(err.message, "error");
     },
   });
 
-  function teamUrl(slug: string | null, orgSlug: string | null) {
-    const fullUrl = getTeamUrlSync({ orgSlug, teamSlug: slug });
+  function teamUrl(slug: string | null) {
+    const fullUrl = getTeamUrl(slug ?? "");
     return fullUrl.replace(/^https?:\/\//, "");
   }
 
@@ -99,7 +99,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
       return;
     }
     if (teamNameFromInvitation) {
-      triggerToast(t("you_have_been_added_to_team"), "success");
+      triggerToast(t("you_have_been_added_to_team(teamNameFromInvitation)"), "success");
     }
     if (errorMsgFromInvitation) {
       triggerToast(errorMsgFromInvitation, "error");
@@ -108,60 +108,62 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
 
   return (
     <>
-      {teams.length > 0 && (
+      {(teams.length > 0 || teamInvitation.length > 0) && (
         <div className="mb-4 flex justify-end">
           <Button
             color="primary"
             StartIcon="plus"
             data-testid="create-team-btn"
             onClick={() => router.push(`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`)}>
-            {t(`create_new_team`)}
+            {t(`create_a_new_team`)}
           </Button>
         </div>
       )}
       {teamInvitation.length > 0 && (
-        <div className="bg-subtle rounded-md p-2">
-          <span className="text-emphasis font-semibold">{t("pending_invites")}</span>
+        <div className="mb-4">
           <ul className="mt-2 space-y-2">
             {teamInvitation.map((team) => (
-              <li key={team.id} className="flex items-center justify-between rounded-lg border p-4">
+              <li key={team.id} className="flex items-center justify-between rounded-lg border px-4 py-5">
                 <div className="flex items-center">
                   <Avatar
                     size="md"
-                    imageSrc={getPlaceholderAvatar(
-                      team?.logoUrl || team?.parent?.logoUrl,
-                      team?.name as string
-                    )}
+                    imageSrc={getPlaceholderAvatar(team?.logoUrl, team?.name as string)}
                     alt="Team logo"
-                    className="inline-flex justify-center"
+                    className="mr-2 inline-flex justify-center"
                   />
                   <span className="text-default text-md font-semibold">{team.name}</span>
-                  <span className="text-muted block text-xs">
-                    {teamUrl(team?.slug ?? null, team?.parent?.slug ?? null)}
-                  </span>{" "}
+                  <span className="text-muted block text-xs">{teamUrl(team?.slug ?? null)}</span>{" "}
                 </div>
-                <Button
-                  color="primary"
-                  onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}`)}
-                  data-testid={`view-team-invite-${team.id}`}>
-                  {t("view_team")}
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="attention" size="sm">
+                    {t("pending")}
+                  </Badge>
+                  <Button
+                    color="minimal"
+                    variant="icon"
+                    type="button"
+                    StartIcon="external-link"
+                    onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
+                    data-testid={`view-team-invite-${team.id}`}>
+                    {t("view_team")}
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
         </div>
       )}
-      {teams.length === 0 && (
-        <EmptyScreen
+      {teams.length === 0 && teamInvitation.length === 0 && (
+        <BlankCard
           Icon="users"
-          headline={t("create_team_to_get_started")}
-          description={t("create_first_team_and_invite_others")}
+          headline={t("create_a_new_team")}
+          description={t("create_a_new_team_description")}
           buttonRaw={
             <Button
-              color="secondary"
+              color="primary"
               data-testid="create-team-btn"
               onClick={() => router.push(`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`)}>
-              {t(`create_new_team`)}
+              {t(`create_a_new_team`)}
             </Button>
           }
         />
@@ -172,19 +174,16 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
             {teams.map((team) => (
               <li
                 key={team.id}
-                className="border-subtle flex items-center justify-between rounded-md border px-3 py-5">
+                className="border-subtle flex items-center justify-between rounded-md border px-4 py-5">
                 <div className="flex items-center space-x-2">
                   <Avatar
                     size="md"
-                    imageSrc={getPlaceholderAvatar(
-                      team?.logoUrl || team?.parent?.logoUrl,
-                      team?.name as string
-                    )}
+                    imageSrc={getPlaceholderAvatar(team?.logoUrl, team?.name as string)}
                     alt="Team logo"
                     className="inline-flex justify-center"
                   />
                   <span className="text-default text-md font-semibold">{team.name}</span>
-                  <Badge variant="secondary">{teamUrl(team?.slug ?? null, team?.parent?.slug ?? null)}</Badge>
+                  <Badge variant="secondary">{teamUrl(team?.slug ?? null)}</Badge>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="secondary">
@@ -198,8 +197,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                           variant="icon"
                           type="button"
                           StartIcon="external-link"
-                          className="hover:bg-muted rounded-md transition-colors"
-                          onClick={() => previewUrl(teamUrl(team?.slug ?? null, team?.parent?.slug ?? null))}
+                          onClick={() => previewUrl(teamUrl(team?.slug ?? null))}
                         />
                       </TooltipTrigger>
                       <TooltipContent> {t("preview")}</TooltipContent>
@@ -207,12 +205,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                   </TooltipProvider>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        StartIcon="ellipsis"
-                        variant="icon"
-                        color="minimal"
-                        className="hover:bg-muted rounded-md transition-colors"
-                      />
+                      <Button StartIcon="ellipsis" variant="icon" color="minimal" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       {checkAdminOrOwner(team.role) && (
@@ -293,8 +286,8 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <p className="text-subtle mb-4 mt-4 flex w-full items-center gap-2 text-[14px] md:justify-center md:text-center">
-        <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
+      <p className="text-subtle mb-4 mt-2 flex w-full items-center gap-2 text-[14px] md:justify-center md:text-center">
+        <Icon className="hidden sm:block" name="info" /> {t("group_meeting_tip")}
       </p>
     </>
   );

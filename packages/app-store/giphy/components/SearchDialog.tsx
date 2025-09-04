@@ -1,4 +1,4 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 

@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 

@@ -8,7 +8,10 @@ import { trpc } from "@calcom/trpc/react";
 import { MultiEmail } from "@calcom/ui/components/address";
 import { Button, Input } from "@calid/features/ui";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IAddGuestsDialog {

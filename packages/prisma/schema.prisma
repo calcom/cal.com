@@ -210,9 +210,13 @@ model EventType {
 
   workflowInsights WorkflowInsights[]
 
+  calIdTeam   CalIdTeam? @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId Int?
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
+  @@unique([calIdTeamId, slug])
   @@index([userId])
   @@index([teamId])
   @@index([profileId])
@@ -220,6 +224,7 @@ model EventType {
   @@index([secondaryEmailId])
   @@index([parentId])
   @@index([restrictionScheduleId])
+  @@index([calIdTeamId])
 }
 
 model Credential {
@@ -321,9 +326,9 @@ model User {
   password            UserPassword?
   bio                 String?
   avatarUrl           String?
-  timeZone            String               @default("Europe/London")
+  timeZone            String               @default("Asia/Kolkata")
   travelSchedules     TravelSchedule[]
-  weekStart           String               @default("Sunday")
+  weekStart           String               @default("Monday")
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
   endTime             Int                  @default(1440)
@@ -424,6 +429,7 @@ model User {
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
   integrationAccounts            IntegrationAccounts[]
+  calIdTeams                     CalIdMembership[]
 
   @@unique([email])
   @@unique([email, username])
@@ -693,6 +699,8 @@ model VerificationToken {
   team             Team?           @relation(fields: [teamId], references: [id])
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id])
+  calIdTeamId      Int?
+  calIdTeam        CalIdTeam?      @relation(fields: [calIdTeamId], references: [id])
 
   @@unique([identifier, token])
   @@index([token])
@@ -1049,6 +1057,8 @@ model Webhook {
   scheduledTriggers     WebhookScheduledTriggers[]
   time                  Int?
   timeUnit              TimeUnit?
+  calIdTeamId           Int?
+  calIdTeam             CalIdTeam?                 @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
@@ -1540,24 +1550,28 @@ model BookingSeat {
 }
 
 model VerifiedNumber {
-  id          Int    @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   userId      Int?
-  user        User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   teamId      Int?
-  team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team        Team?      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
+  calIdTeamId Int?
+  calIdTeam   CalIdTeam? @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([teamId])
 }
 
 model VerifiedEmail {
-  id     Int    @id @default(autoincrement())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId Int?
-  team   Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  email  String
+  id          Int        @id @default(autoincrement())
+  userId      Int?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      Int?
+  team        Team?      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email       String
+  calIdTeamId Int?
+  calIdTeam   CalIdTeam? @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([teamId])
@@ -2357,6 +2371,7 @@ model InternalNotePreset {
 enum FilterSegmentScope {
   USER
   TEAM
+  CALIDTEAM
 }
 
 model FilterSegment {
@@ -2381,11 +2396,14 @@ model FilterSegment {
   team             Team?                         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId           Int?
   userPreferences  UserFilterSegmentPreference[]
+  calIdTeam        CalIdTeam?                    @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId      Int?
 
   // For user-scoped segments: scope + userId + tableIdentifier
   @@index([scope, userId, tableIdentifier])
   // For team-scoped segments: scope + teamId + tableIdentifier
   @@index([scope, teamId, tableIdentifier])
+  @@index([scope, calIdTeamId, tableIdentifier])
 }
 
 model UserFilterSegmentPreference {
@@ -2473,4 +2491,60 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+model CalIdTeam {
+  id                  Int                 @id @default(autoincrement())
+  name                String
+  slug                String?
+  logoUrl             String?
+  bio                 String?
+  hideTeamBranding    Boolean             @default(false)
+  hideTeamProfileLink Boolean             @default(false)
+  isTeamPrivate       Boolean             @default(false)
+  hideBookATeamMember Boolean             @default(false)
+  members             CalIdMembership[]
+  eventTypes          EventType[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  metadata            Json?
+  theme               String?
+  brandColor          String?
+  darkBrandColor      String?
+  verifiedNumbers     VerifiedNumber[]
+  verifiedEmails      VerifiedEmail[]
+  inviteTokens        VerificationToken[]
+  webhooks            Webhook[]
+  timeFormat          Int?
+  timeZone            String              @default("Asia/Kolkata")
+  weekStart           String              @default("Monday")
+  bookingFrequency    Json?
+  filterSegments      FilterSegment[]
+
+  @@unique([slug])
+}
+
+enum CalIdMembershipRole {
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+model CalIdMembership {
+  id                 Int                 @id @default(autoincrement())
+  calIdTeamId        Int
+  userId             Int
+  acceptedInvitation Boolean             @default(false)
+  role               CalIdMembershipRole
+  calIdTeam          CalIdTeam           @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonation      Boolean             @default(true)
+  createdAt          DateTime?           @default(now())
+  updatedAt          DateTime?           @updatedAt
+
+  @@unique([userId, calIdTeamId])
+  @@index([calIdTeamId])
+  @@index([userId])
+  @@index([acceptedInvitation])
+  @@index([role])
 }

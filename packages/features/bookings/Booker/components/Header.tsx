@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 

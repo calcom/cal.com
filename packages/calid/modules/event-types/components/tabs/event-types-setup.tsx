@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import type { TFunction } from "i18next";
 import { useSession } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";

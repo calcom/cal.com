@@ -3,7 +3,10 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { useState } from "react";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 const tabItems = [

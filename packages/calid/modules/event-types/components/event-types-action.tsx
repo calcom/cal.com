@@ -1,21 +1,18 @@
+import { Button } from "@calid/features/ui/components/button";
 import {
-  Icon,
-  Button,
-  Label,
-  Switch,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   ButtonOrLink,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Label } from "@calid/features/ui/components/label";
+import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { showToast } from "@calcom/ui/components/toast";
 

@@ -1,8 +1,5 @@
-// import { CheckboxField } from "@calcom/ui/components/form";
-import { Checkbox as CheckboxField } from "@calid/features/ui";
-// import { Button } from "@calcom/ui/components/button";
-import { Button } from "@calid/features/ui";
-import * as RadioGroup from "@radix-ui/react-radio-group";
+import { Button } from "@calid/features/ui/components/button";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -14,8 +11,6 @@ import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/z
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Label } from "@calcom/ui/components/form";
-
-import SectionBottomActions from "./SectionBottomActions";
 
 type BookerLayoutSelectorProps = {
   title?: string;
@@ -62,7 +57,11 @@ export const BookerLayoutSelector = ({
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
 
   return (
-    <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6", !isOuterBorder && "border-subtle border-x rounded-b-md border-b pb-4")}>
+    <div
+      className={classNames(
+        isOuterBorder && "border-subtle rounded-lg border p-6",
+        !isOuterBorder && "border-subtle rounded-b-md border-x border-b pb-4"
+      )}>
       <div
         className={classNames(
           isOuterBorder ? "pb-5" : "border-subtle rounded-t-xl border-x border-t px-6 pt-6"
@@ -92,7 +91,12 @@ export const BookerLayoutSelector = ({
               isUserLoading={isUserLoading}
             />
             {!isOuterBorder && (
-              <Button className="ml-6" loading={isLoading} type="submit" disabled={isDisabled} color="primary">
+              <Button
+                className="ml-6"
+                loading={isLoading}
+                type="submit"
+                disabled={isDisabled}
+                color="primary">
                 {t("update")}
               </Button>
             )}
@@ -179,7 +183,7 @@ const BookerLayoutFields = ({
     if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
   };
   return (
-    <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 pt-8 pb-6")}>
+    <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 pb-6 pt-8")}>
       <div
         className={classNames(
           "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",

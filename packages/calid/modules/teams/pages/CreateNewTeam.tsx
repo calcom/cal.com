@@ -1,8 +1,11 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { Form, FormField } from "@calid/features/ui/components/form";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { triggerToast } from "@calid/features/ui/components/toast/toast";
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -13,7 +16,6 @@ import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc/react";
-import { Form, TextField } from "@calcom/ui/components/form";
 
 const querySchema = z.object({
   returnTo: z.string().optional(),
@@ -39,11 +41,6 @@ const CreateNewTeamPage = () => {
   const returnToParam =
     (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/teams") || "/teams";
 
-  const onSuccess = (data: RouterOutputs["viewer"]["teams"]["create"]) => {
-    telemetry.event(flag.telemetryEvent);
-    router.push(data.url);
-  };
-
   const formMethods = useForm<NewTeamFormValues>({
     defaultValues: {
       name: "",
@@ -51,70 +48,73 @@ const CreateNewTeamPage = () => {
     },
   });
 
-  const createTeam = trpc.viewer.teams.create.useMutation({
-    onSuccess,
+  const createTeam = trpc.viewer.calidTeams.create.useMutation({
+    onSuccess: (data: RouterOutputs["viewer"]["calidTeams"]["create"]) => {
+      telemetry.event(flag.telemetryEvent);
+      router.push(data.onboard_members_url);
+    },
     onError: (err) => {
-      if (err.message === "team_url_taken") {
-        formMethods.setError("slug", { type: "custom", message: "URL is taken" });
-      }
+      triggerToast(err.message, "error");
     },
   });
 
   return (
     <>
       <Form
-        form={formMethods}
-        handleSubmit={(values) => {
+        {...formMethods}
+        onSubmit={(values) => {
           if (!createTeam.isPending) {
             createTeam.mutate(values);
           }
         }}>
         <div className="mb-8">
-          <Controller
+          <FormField
             name="name"
             control={formMethods.control}
             rules={{ required: "Team name is required" }}
             render={({ field: { value } }) => (
-              <TextField
-                className="mt-2"
-                placeholder="OneHash Tech Ltd."
-                name="name"
-                label="Team name"
-                defaultValue={value}
-                onChange={(e) => {
-                  const next = e?.target.value;
-                  formMethods.setValue("name", next);
-                  if (formMethods.formState.touchedFields["slug"] === undefined) {
-                    formMethods.setValue("slug", slugify(next));
-                  }
-                }}
-                autoComplete="off"
-                data-testid="team-name"
-              />
+              <>
+                <TextField
+                  name="name"
+                  placeholder="OneHash Tech Ltd."
+                  label="Team name"
+                  value={value}
+                  onChange={(e) => {
+                    const next = e?.target.value;
+                    formMethods.setValue("name", next);
+                    if (formMethods.formState.touchedFields["slug"] === undefined) {
+                      formMethods.setValue("slug", slugify(next));
+                    }
+                  }}
+                  autoComplete="off"
+                  data-testid="team-name"
+                />
+              </>
             )}
           />
         </div>
 
         <div className="mb-8">
-          <Controller
+          <FormField
             name="slug"
             control={formMethods.control}
             rules={{ required: "Team URL is required" }}
             render={({ field: { value } }) => (
-              <TextField
-                name="slug"
-                placeholder="onehash"
-                label="Team URL"
-                value={value}
-                defaultValue={value}
-                onChange={(e) => {
-                  formMethods.setValue("slug", slugify(e?.target.value, true), {
-                    shouldTouch: true,
-                  });
-                  formMethods.clearErrors("slug");
-                }}
-                data-testid="team-slug"
-              />
+              <>
+                <TextField
+                  name="slug"
+                  placeholder="onehash"
+                  label="Team URL"
+                  value={value}
+                  onChange={(e) => {
+                    formMethods.setValue("slug", slugify(e?.target.value, true), {
+                      shouldTouch: true,
+                    });
+                    formMethods.clearErrors("slug");
+                  }}
+                  data-testid="team-slug"
+                />
+              </>
             )}
           />
         </div>

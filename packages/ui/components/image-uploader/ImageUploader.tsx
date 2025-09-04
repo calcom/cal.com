@@ -1,17 +1,11 @@
 "use client";
 
+import { Button, type ButtonProps } from "@calid/features/ui/components/button";
 import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-// import type { ButtonColor, ButtonProps } from "../button";
-// import { Button } from "../button";
-
-
-import type { ButtonColor, ButtonProps } from "@calid/features/ui";
-import { Button } from "@calid/features/ui";
 
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
 import { showToast } from "../toast";
@@ -139,7 +133,7 @@ export default function ImageUploader({
           disabled={disabled}
           size={buttonSize}
           data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
-          className="cursor-pointer py-2 px-2 text-sm">
+          className="cursor-pointer px-2 py-2 text-sm">
           {buttonMsg}
         </Button>
       </DialogTrigger>

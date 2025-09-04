@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Icon } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
@@ -18,7 +19,6 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Icon } from "@calid/features/ui";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";

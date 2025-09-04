@@ -3,7 +3,10 @@
 import { RenderComponentWithSnippet } from "@/app/components/render";
 
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 
 export const BasicExample = () => (
   <RenderComponentWithSnippet>

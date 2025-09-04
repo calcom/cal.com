@@ -1,14 +1,14 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
+  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-  Switch,
-  Button,
-  Icon,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Switch } from "@calid/features/ui/components/switch/switch";
 import React, { useCallback, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -1,10 +1,9 @@
+import { Button } from "@calid/features/ui/components/button";
 import type { FunctionComponent, SVGProps } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-// import { Button } from "@calcom/ui/components/button";
-import { Button } from "@calid/features/ui";
 import {
   Dropdown,
   DropdownItem,

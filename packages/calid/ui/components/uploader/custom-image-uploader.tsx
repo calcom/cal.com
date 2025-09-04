@@ -172,12 +172,12 @@ export default function CustomImageUploader({
     const maxSize = 5 * 1024 * 1024; // 5MB limit
 
     if (file.size > maxSize) {
-      triggerToast("File too large", "error");
+      triggerToast(t("file_too_large"), "error");
       return;
     }
 
     if (!file.type.startsWith("image/")) {
-      triggerToast("Invalid file type", "error");
+      triggerToast(t("file_type_not_supported"), "error");
       return;
     }
 
@@ -199,16 +199,9 @@ export default function CustomImageUploader({
     setIsProcessing(true);
 
     try {
-      // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Get cropped image
       const croppedImage = await getCroppedImg(previewUrl, croppedAreaPixels);
-
-      // Pass the cropped image to the parent component
       onImageChange(croppedImage);
-
-      triggerToast(`${targetType} uploaded successfully`, "success");
 
       // Reset state
       setSelectedFile(null);
@@ -217,11 +210,11 @@ export default function CustomImageUploader({
       setShowCropper(false);
       setOpen(false);
     } catch (error) {
-      triggerToast("Failed to upload image", "error");
+      triggerToast(t("failed_to_upload_image"), "error");
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedFile, previewUrl, croppedAreaPixels, onImageChange, targetType]);
+  }, [selectedFile, previewUrl, croppedAreaPixels, onImageChange]);
 
   const handleCropComplete = useCallback((croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);

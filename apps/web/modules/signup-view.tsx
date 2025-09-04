@@ -43,7 +43,10 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";

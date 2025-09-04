@@ -5,17 +5,20 @@ import ThemeCard from "@calid/features/ui/components/card/theme-card";
 import { Form } from "@calid/features/ui/components/form";
 import { Input } from "@calid/features/ui/components/input/input";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
-import { triggerToast } from "@calid/features/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+
+import SkeletonLoader from "../components/SkeletonLoader";
+import { checkIfMemberAdminorOwner } from "../lib/checkIfMemberAdminorOwner";
 
 const themeFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
@@ -41,12 +44,17 @@ interface TeamAppearanceViewProps {
 
 export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const utils = trpc.useUtils();
 
   // Fetch team data
-  const { data: team, isLoading, error } = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
+  const {
+    data: team,
+    isLoading,
+    error,
+  } = trpc.viewer.calidTeams.get.useQuery({ teamId }, { enabled: !!teamId });
 
-  const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideBranding ?? false);
+  const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideTeamBranding ?? false);
   const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
   const [hideTeamProfileLink, setHideTeamProfileLink] = useState(team?.hideTeamProfileLink ?? false);
 
@@ -75,18 +83,17 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
     reset: resetBrandColors,
   } = brandColorsForm;
 
-  const mutation = trpc.viewer.teams.update.useMutation();
+  const mutation = trpc.viewer.calidTeams.update.useMutation();
 
   // Shared update handler
   const updateTeamSetting = async (payload: Record<string, any>, afterUpdate?: (team: any) => void) => {
     try {
       const updatedTeam = await mutation.mutateAsync({ id: teamId, ...payload });
-      triggerToast(t("your_team_updated_successfully"), "success");
+      triggerToast(t("team_settings_updated_successfully"), "success");
       await utils.viewer.teams.get.invalidate();
       if (updatedTeam?.slug) {
-        await revalidateTeamDataCache({
+        await revalidateCalIdTeamDataCache({
           teamSlug: updatedTeam.slug,
-          orgSlug: team?.parent?.slug ?? null,
         });
       }
       if (afterUpdate) afterUpdate(updatedTeam);
@@ -129,33 +136,23 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
     }
     // Set initial values for settings switches
     if (team) {
-      setHideBrandingValue(team.hideBranding ?? false);
+      setHideBrandingValue(team.hideTeamBranding ?? false);
       setHideBookATeamMember(team.hideBookATeamMember ?? false);
       setHideTeamProfileLink(team.hideTeamProfileLink ?? false);
     }
   }, [team, themeForm, brandColorsForm]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
-      </div>
-    );
+    return <SkeletonLoader />;
   }
 
   if (error || !team) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="mb-4 text-red-600">Failed to load team data</p>
-        </div>
-      </div>
-    );
+    router.push("/teams");
   }
 
   const brandColor = brandColorsForm.watch("brandColor");
   const darkBrandColor = brandColorsForm.watch("darkBrandColor");
-  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+  const isAdmin = team && checkIfMemberAdminorOwner(team.membership.role);
 
   return (
     <>
@@ -166,8 +163,8 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
             <Form {...themeForm} onSubmit={onThemeFormSubmit}>
               <div className="mb-6 flex items-center rounded-md text-sm">
                 <div>
-                  <p className="text-base font-semibold">{t("team_theme_title")}</p>
-                  <p className="text-default text-xs">{t("team_theme_description")}</p>
+                  <p className="text-base font-semibold">{t("team_appearance_theme_title")}</p>
+                  <p className="text-default text-xs">{t("team_appearance_theme_description")}</p>
                 </div>
               </div>
 
@@ -223,13 +220,23 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
                     <Input
                       type="color"
                       value={brandColor}
-                      onChange={(e) => brandColorsForm.setValue("brandColor", e.target.value)}
+                      onChange={(e) =>
+                        brandColorsForm.setValue("brandColor", e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
                       className="h-8 w-8 p-0"
                     />
                     <Input
                       type="text"
                       value={brandColor}
-                      onChange={(e) => brandColorsForm.setValue("brandColor", e.target.value)}
+                      onChange={(e) =>
+                        brandColorsForm.setValue("brandColor", e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
                       placeholder="#007ee5"
                     />
                   </div>
@@ -246,13 +253,23 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
                     <Input
                       type="color"
                       value={darkBrandColor}
-                      onChange={(e) => brandColorsForm.setValue("darkBrandColor", e.target.value)}
+                      onChange={(e) =>
+                        brandColorsForm.setValue("darkBrandColor", e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
                       className="h-8 w-8 p-0"
                     />
                     <Input
                       type="text"
                       value={darkBrandColor}
-                      onChange={(e) => brandColorsForm.setValue("darkBrandColor", e.target.value)}
+                      onChange={(e) =>
+                        brandColorsForm.setValue("darkBrandColor", e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
                       placeholder="#fafafa"
                     />
                   </div>
@@ -278,21 +295,21 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
           {/* Toggle switches */}
           <div className="border-subtle flex flex-col space-y-6 rounded-md border p-4">
             <SettingsSwitch
-              toggleSwitchAtTheEnd
+              toggleSwitchAtTheEnd={true}
               title={t("disable_cal_id_branding", { appName: APP_NAME })}
               disabled={mutation?.isPending}
               description={t("remove_cal_id_branding", { appName: APP_NAME })}
               checked={hideBrandingValue}
               onCheckedChange={async (checked) => {
                 setHideBrandingValue(checked);
-                await updateTeamSetting({ hideBranding: checked });
+                await updateTeamSetting({ hideTeamBranding: checked });
               }}
             />
           </div>
 
           <div className="border-subtle flex flex-col space-y-6 rounded-md border p-4">
             <SettingsSwitch
-              toggleSwitchAtTheEnd
+              toggleSwitchAtTheEnd={true}
               title={t("hide_book_a_team_member")}
               disabled={mutation?.isPending}
               description={t("hide_book_a_team_member_description", { appName: APP_NAME })}
@@ -306,7 +323,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
 
           <div className="border-subtle flex flex-col space-y-6 rounded-md border p-4">
             <SettingsSwitch
-              toggleSwitchAtTheEnd
+              toggleSwitchAtTheEnd={true}
               title={t("hide_team_profile_link")}
               disabled={mutation?.isPending}
               description={t("hide_team_profile_link_description")}

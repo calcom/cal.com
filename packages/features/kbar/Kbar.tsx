@@ -1,4 +1,4 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import type { Action } from "kbar";
 import {
   KBarAnimator,

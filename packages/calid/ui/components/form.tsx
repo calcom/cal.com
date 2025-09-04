@@ -2,8 +2,6 @@ import * as React from "react";
 import type { UseFormReturn, ControllerProps, FieldPath, FieldValues } from "react-hook-form";
 import { Controller, FormProvider, useFormContext } from "react-hook-form";
 
-import classNames from "@calcom/ui/classNames";
-
 // Form wrapper that includes <form> tag and auto handleSubmit
 interface FormProps<TFieldValues extends FieldValues = FieldValues> extends UseFormReturn<TFieldValues> {
   children: React.ReactNode;
@@ -52,10 +50,4 @@ function FormField<
   );
 }
 
-function FormMessage({ className }: { className?: string }) {
-  const { error } = useFormField();
-  if (!error) return null;
-  return <p className={classNames(className, "text-destructive text-sm")}>{error.message?.toString()}</p>;
-}
-
-export { Form, FormField, FormMessage };
+export { Form, FormField };

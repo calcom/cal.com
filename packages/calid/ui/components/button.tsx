@@ -80,8 +80,6 @@ export const buttonClasses = cva(
           // Base colors and border
           "bg-white",
           "text-default",
-          "border",
-          "border-subtle",
           // Hover state
           "enabled:hover:bg-muted",
           "enabled:hover:text-emphasis",
@@ -102,8 +100,6 @@ export const buttonClasses = cva(
 
         minimal: [
           // Base color
-          "text-subtle",
-          "border border-transparent",
           // Hover
           "enabled:hover:bg-subtle",
           "enabled:hover:text-emphasis",
@@ -125,8 +121,6 @@ export const buttonClasses = cva(
 
         destructive: [
           // Base colors
-          "border",
-          "border-default",
           // Hover state
           "dark:hover:text-red-600",
           "hover:border-semantic-error",
@@ -154,8 +148,6 @@ export const buttonClasses = cva(
         destructive_account: [
           // Base colors
           "bg-default",
-          "border",
-          "border-destructive",
           "text-destructive",
           // Hover state
           "hover:bg-red-500",

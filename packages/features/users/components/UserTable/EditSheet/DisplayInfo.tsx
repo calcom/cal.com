@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { useRef, useState } from "react";
 
 import { Badge } from "@calcom/ui/components/badge";

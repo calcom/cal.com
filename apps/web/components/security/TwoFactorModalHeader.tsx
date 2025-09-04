@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 
 const TwoFactorModalHeader = ({ title, description }: { title: string; description: string }) => {
   return (

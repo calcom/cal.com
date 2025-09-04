@@ -1,4 +1,5 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { TextField } from "@calid/features/ui/components/input/input";
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
 import type {
@@ -11,7 +12,6 @@ import type {
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation

@@ -19,7 +19,10 @@ import {
   Checkbox,
   Badge,
 } from "@calid/features/ui";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";

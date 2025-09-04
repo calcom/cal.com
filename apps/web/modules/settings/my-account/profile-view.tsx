@@ -1,7 +1,7 @@
 "use client";
 
-// import { TextField } from "@calcom/ui/components/form";
-import { Button, TextField } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
@@ -34,7 +34,6 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -745,7 +744,7 @@ const ProfileForm = ({
         color="primary"
         className="mt-4"
         type="submit"
-        size='lg'
+        size="lg"
         data-testid="profile-submit-button">
         {t("update")}
       </Button>

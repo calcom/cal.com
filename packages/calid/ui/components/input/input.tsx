@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "../icon/Icon";
 import { Label } from "../label";
 import { HintsOrErrors } from "./hint-or-errors";
-import type { InputProps } from "./types";
+import type { InputProps, InputFieldProps } from "./types";
 
 export const inputStyles = cva(
   [
@@ -60,6 +60,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input {...props} ref={ref} className={cn(inputStyles({ size }), isFullWidth && "w-full", className)} />
   );
 });
+
+type AddonProps = {
+  children: React.ReactNode;
+  className?: string;
+  error?: boolean;
+  onClickAddon?: () => void;
+  size?: "sm" | "md";
+  position?: "start" | "end";
+};
 
 const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
   <div
@@ -213,4 +222,3 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
 export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(props, ref) {
   return <InputField ref={ref} {...props} />;
 });
-

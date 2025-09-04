@@ -1,6 +1,13 @@
 "use client";
 
-import { Icon, Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@calid/features/ui/components/tooltip";
 import React from "react";
 
 import type { EventTypesHeaderProps } from "../types/event-types";

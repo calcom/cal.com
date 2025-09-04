@@ -1,7 +1,10 @@
 "use client";
 
 // import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { Avatar, Button } from "@calid/features/ui";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
 import { revalidateHasTeamPlan } from "app/cache/membership";
