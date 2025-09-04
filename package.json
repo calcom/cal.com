@@ -9,14 +9,13 @@
     "packages/embeds/*",
     "packages/features/*",
     "packages/app-store/*",
-    "packages/app-store/ee/*",
     "packages/platform/*",
     "packages/platform/examples/base",
     "example-apps/*"
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
-    "app-store:build": "yarn app-store-cli build",
+    "app-store:build": "yarn turbo build --filter=@calcom/app-store-cli",
     "app-store:watch": "yarn app-store-cli watch",
     "app-store": "yarn app-store-cli cli",
     "create-app": "yarn app-store create",
@@ -64,7 +63,7 @@
     "start": "turbo run start --filter=\"@calcom/web\"",
     "tdd": "vitest watch",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
-    "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
+    "e2e:app-store": "NEXT_PUBLIC_IS_E2E=1 QUICK=true yarn playwright test --project=@calcom/app-store",
     "e2e:embed": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/embed-core",
     "e2e:embed-react": "QUICK=true yarn playwright test --project=@calcom/embed-react",
     "test-e2e": "yarn db-seed && yarn e2e",
@@ -96,6 +95,7 @@
     "c8": "^7.13.0",
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
+    "eslint-plugin-import": "^2.32.0",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
@@ -115,10 +115,9 @@
     "vitest-mock-extended": "^2.0.2"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.76.0",
+    "@daily-co/daily-js": "^0.83.1",
     "@evyweb/ioctopus": "^1.2.0",
     "@next/third-parties": "^14.2.5",
-    "@unkey/ratelimit": "^2.1.2",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
@@ -143,7 +142,7 @@
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
       "prettier --write",
-      "eslint --fix"
+      "eslint --fix --max-warnings=0"
     ],
     "*.json": [
       "prettier --write"
