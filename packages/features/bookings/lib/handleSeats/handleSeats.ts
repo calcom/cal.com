@@ -113,6 +113,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
           ...evt,
+          uid: seatedBooking.uid,
           rescheduleReason,
           ...{
             metadata,
@@ -124,7 +125,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
           },
         },
         emailAttendeeSendToOverride: bookerEmail,
-        seatReferenceUid: evt.attendeeSeatId,
+        seatReferenceUid: resultBooking?.seatReferenceUid,
         isDryRun,
         isConfirmedByDefault: !evt.requiresConfirmation || true,
         isRescheduleEvent: !!rescheduleUid,
