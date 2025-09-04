@@ -15,7 +15,7 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
+import { CreditType, CreditUsageType } from "@prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
