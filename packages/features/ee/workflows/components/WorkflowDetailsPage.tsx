@@ -106,8 +106,6 @@ export default function WorkflowDetailsPage(props: Props) {
             label = t("email_attendee_action_form");
           } else if (option.value === WorkflowActions.SMS_ATTENDEE) {
             label = t("sms_attendee_action_form");
-          } else if (option.value === WorkflowActions.WHATSAPP_ATTENDEE) {
-            label = t("whatsapp_attendee_action_form");
           }
         }
 
