@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Rozważ utworzenie organizacji, aby zjednoczyć rozliczenia, narzędzia administracyjne i analitykę w swoich zespołach.",
   "search_variables": "Szukaj zmiennych",
   "no_variables_found": "Nie znaleziono zmiennych",
+  "api_key_name_too_long": "Nazwa nie może przekraczać {{max}} znaków",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

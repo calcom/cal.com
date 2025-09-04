@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "考慮建立一個組織，以統一多個團隊的帳單、管理工具和分析。",
   "search_variables": "搜尋變數",
   "no_variables_found": "未找到變數",
+  "api_key_name_too_long": "名稱不得超過 {{max}} 個字元",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

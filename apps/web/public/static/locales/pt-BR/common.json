@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Considere configurar uma organização para unificar faturamento, ferramentas administrativas e análises em suas equipes.",
   "search_variables": "Pesquisar variáveis",
   "no_variables_found": "Nenhuma variável encontrada",
+  "api_key_name_too_long": "O nome não deve exceder {{max}} caracteres",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

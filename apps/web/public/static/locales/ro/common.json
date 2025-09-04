@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Luați în considerare configurarea unei organizații pentru a unifica facturarea, instrumentele de administrare și analizele pentru echipele dvs.",
   "search_variables": "Caută variabile",
   "no_variables_found": "Nu s-au găsit variabile",
+  "api_key_name_too_long": "Numele nu trebuie să depășească {{max}} caractere",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "فكر في إنشاء مؤسسة لتوحيد الفواتير وأدوات الإدارة والتحليلات عبر فرقك.",
   "search_variables": "البحث عن المتغيرات",
   "no_variables_found": "لم يتم العثور على متغيرات",
+  "api_key_name_too_long": "يجب ألا يتجاوز الاسم {{max}} حرفًا",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

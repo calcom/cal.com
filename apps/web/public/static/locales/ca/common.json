@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Considera configurar una organització per unificar la facturació, les eines d'administració i les analítiques dels teus equips.",
   "search_variables": "Cerca variables",
   "no_variables_found": "No s'han trobat variables",
+  "api_key_name_too_long": "El nom no ha de superar els {{max}} caràcters",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
