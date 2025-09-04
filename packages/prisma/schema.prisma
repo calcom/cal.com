@@ -897,12 +897,28 @@ model SelectedCalendar {
   credentialId             Int?
   createdAt                DateTime?   @default(now())
   updatedAt                DateTime?   @updatedAt
-  // Used to identify a watched calendar channel in Google Calendar
+  // @deprecated use channelId instead
   googleChannelId          String?
+  // @deprecated use channelKind instead
   googleChannelKind        String?
+  // @deprecated use channelResourceId instead
   googleChannelResourceId  String?
+  // @deprecated use channelResourceUri instead
   googleChannelResourceUri String?
+  // @deprecated use channelExpiration instead
   googleChannelExpiration  String?
+
+  // Used to identify a watched calendar
+  channelId          String?
+  channelKind        String?
+  channelResourceId  String?
+  channelResourceUri String?
+  channelExpiration  String?
+
+  // Used to calendar cache and sync 
+  syncEnabled  Boolean?
+  cacheEnabled Boolean?
+  syncCursor   String?
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
@@ -928,6 +944,7 @@ model SelectedCalendar {
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  @@index([channelId, channelKind, channelExpiration])
   // Composite indices to optimize calendar-cache queries
   @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
   @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
