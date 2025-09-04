@@ -110,7 +110,13 @@ export default function CreateEventTypeForm({
         )}
         <>
           {isPlatform ? (
-            <TextAreaField {...register("description")} placeholder={t("quick_video_meeting")} />
+            <TextAreaField
+              {...register("description")}
+              label={t("description")}
+              placeholder={t("quick_video_meeting")}
+              name="description"
+              id="description-field"
+            />
           ) : (
             <Editor
               label={t("description")}
