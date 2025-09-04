@@ -10,13 +10,17 @@ export type CalendarSubscriptionResult = {
   expiration?: Date | null;
 };
 
-export type CalendarUnsubscribeResult = {
-  provider: CalendarSubscriptionProvider;
+export type CalendarSubscriptionEventItem = {
+  transparency: "opaque" | "transparent";
+  start: string | null;
+  end: string | null;
+  summary: string | null;
 };
 
 export type CalendarSubscriptionEvent = {
   provider: CalendarSubscriptionProvider;
-  transparency: "opaque" | "transparent";
+  syncToken: string | null;
+  items: CalendarSubscriptionEventItem[];
 };
 
 export interface ICalendarSubscriptionPort {
@@ -31,4 +35,10 @@ export interface ICalendarSubscriptionPort {
    * @param selectedCalendar
    */
   unsubscribe(selectedCalendar: SelectedCalendar): Promise<void>;
+
+  /**
+   * Pulls events from a calendar
+   * @param selectedCalendar
+   */
+  fetchEvents(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent[]>;
 }

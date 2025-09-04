@@ -54,4 +54,24 @@ export class CalendarSubscriptionService {
     }
     await this.deps.calendarSubscriptionPort?.unsubscribe(selectedCalendar);
   }
+
+  async processWebhook(channelId: string) {
+    log.debug("Processing webhook", { channelId });
+    const selectedCalendar = await this.deps.selectedCalendarRepository?.findByChannelId(channelId);
+    if (!selectedCalendar) {
+      log.debug("Selected calendar not found", { channelId });
+      return;
+    }
+
+    if (!selectedCalendar.credentialId) {
+      log.debug("Selected calendar credential not found", { selectedCalendarId: selectedCalendar.id });
+      return;
+    }
+
+    if (selectedCalendar.syncEnabled || selectedCalendar.cacheEnabled) {
+      const calendarSubscriptionEvents = await this.deps.calendarSubscriptionPort?.pullEvents(
+        selectedCalendar
+      );
+    }
+  }
 }

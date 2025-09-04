@@ -913,7 +913,7 @@ model SelectedCalendar {
   // Used to calendar cache and sync 
   syncEnabled  Boolean?
   cacheEnabled Boolean?
-  syncCursor   String?
+  syncToken    String?
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?

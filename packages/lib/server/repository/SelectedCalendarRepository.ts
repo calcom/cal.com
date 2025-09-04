@@ -8,6 +8,10 @@ export class SelectedCalendarRepository {
     return await this.prismaClient.selectedCalendar.findUnique({ where: { id } });
   }
 
+  async findByChannelId(channelId: string) {
+    return await this.prismaClient.selectedCalendar.findFirst({ where: { channelId } });
+  }
+
   async updateById(id: string, data: Prisma.SelectedCalendarUpdateInput) {
     return await this.prismaClient.selectedCalendar.update({
       where: { id },

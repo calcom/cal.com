@@ -1,3 +1,4 @@
+import type { calendar_v3 } from "@googleapis/calendar";
 import { v4 as uuid } from "uuid";
 
 import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
@@ -8,6 +9,8 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 import type {
   ICalendarSubscriptionPort,
   CalendarSubscriptionResult,
+  CalendarSubscriptionEvent,
+  CalendarSubscriptionEventItem,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] });
@@ -22,7 +25,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   }
 
   private async getClient() {
-    return this.auth.getClient();
+    return await this.auth.getClient();
   }
 
   async subscribe(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionResult> {
@@ -69,5 +72,42 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
         log.error("Error unsubscribing from Google Calendar", err);
         throw err;
       });
+  }
+
+  async fetchEvents(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent> {
+    const client = await this.getClient();
+
+    let syncToken = selectedCalendar.syncToken || undefined;
+    let pageToken;
+
+    const events: calendar_v3.Schema$Event[] = [];
+    do {
+      const { data }: { data: calendar_v3.Schema$Events } = await client.events.list({
+        calendarId: selectedCalendar.externalId,
+        syncToken,
+        pageToken,
+        singleEvents: true,
+      });
+
+      syncToken = data.nextSyncToken || syncToken;
+      pageToken = data.nextPageToken ?? null;
+
+      events.push(...(data.items || []));
+    } while (pageToken);
+
+    return {
+      provider: "google",
+      syncToken: syncToken || null,
+      items: this.sanitizeEvents(events),
+    };
+  }
+
+  private sanitizeEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
+    return events.map((event) => ({
+      transparency: event.transparency === "opaque" ? "opaque" : "transparent",
+      start: event.start?.dateTime ?? null,
+      end: event.end?.dateTime ?? null,
+      summary: event.summary ?? null,
+    }));
   }
 }
