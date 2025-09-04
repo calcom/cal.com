@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import React from "react";
 
 import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
@@ -49,6 +50,65 @@ const joinMultipleNames = (names: string[] = []) => {
 
 const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`);
 
+// Extract actual asset references from the components to ensure coupling
+const OG_ASSETS = {
+  // From Wrapper component - background images based on variant
+  backgrounds: {
+    light: "social-bg-light-lines.jpg", // Used by App and Generic
+    dark: "social-bg-dark-lines.jpg", // Used by Meeting
+  },
+  // From various components - logo references
+  logos: {
+    main: LOGO, // "/calcom-logo-white-word.svg" - used by Meeting and App
+    generic: "cal-logo-word-black.svg", // Used by Generic component
+  },
+  // From font loading in the API route - these should match route.tsx
+  fonts: ["cal.ttf", "Inter-Regular.ttf", "Inter-Medium.ttf"],
+  // Layout-specific styling that affects the image output
+  styles: {
+    meeting: {
+      layout: "meeting-v3", // Update when Meeting component structure changes
+      logoWidth: "350px", // From Meeting component
+      avatarSize: "160px", // From Meeting component
+      titleFont: "cal-54px",
+      descFont: "inter-54px",
+      variant: "dark" as const,
+    },
+    app: {
+      layout: "app-v3", // Update when App component structure changes
+      logoWidth: "150px", // From App component
+      iconSize: "172px", // From App component
+      titleFont: "cal-64px-600",
+      descFont: "inter-36px",
+      variant: "light" as const,
+      blurEffect: "enabled",
+    },
+    generic: {
+      layout: "generic-v3", // Update when Generic component structure changes
+      logoWidth: "350px", // From Generic component
+      titleFont: "cal-54px",
+      descFont: "inter-54px",
+      variant: "light" as const,
+    },
+  },
+};
+
+// Generate a version hash based on the actual OG image assets and layout
+const getOgImageVersion = (type: "meeting" | "app" | "generic") => {
+  const style = OG_ASSETS.styles[type];
+  const versionInputs = {
+    layout: style.layout,
+    fonts: OG_ASSETS.fonts,
+    background: OG_ASSETS.backgrounds[style.variant],
+    logo: type === "generic" ? OG_ASSETS.logos.generic : OG_ASSETS.logos.main,
+    styling: style,
+  };
+
+  const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
+  // Use MD5 hash for better collision resistance and consistency
+  return createHash("md5").update(content).digest("hex").substring(0, 8);
+};
+
 /**
  * Test urls:
  * 1. 1 user http://localhost:3000/api/social/og/image?type=meeting&title=super%20long%20event%20title%20for%20testing%20purposes&meetingProfileName=Pro%20Example&meetingImage=http://localhost:3000/pro/avatar.png&names=Pro%20Example&usernames=pro
@@ -73,9 +133,8 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
     params.append("usernames", user.username);
   });
 
-  if (process.env.MEETING_OG_IMAGE_VERSION) {
-    params.set("v", process.env.MEETING_OG_IMAGE_VERSION);
-  }
+  // Use content-based versioning instead of environment variable
+  params.set("v", getOgImageVersion("meeting"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
@@ -93,9 +152,8 @@ export const constructAppImage = ({ name, slug, logoUrl, description }: AppImage
     logoUrl,
   });
 
-  if (process.env.APP_OG_IMAGE_VERSION) {
-    params.set("v", process.env.APP_OG_IMAGE_VERSION);
-  }
+  // Use content-based versioning instead of environment variable
+  params.set("v", getOgImageVersion("app"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
@@ -107,9 +165,8 @@ export const constructGenericImage = ({ title, description }: GenericImageProps)
     description,
   });
 
-  if (process.env.GENERIC_OG_IMAGE_VERSION) {
-    params.set("v", process.env.GENERIC_OG_IMAGE_VERSION);
-  }
+  // Use content-based versioning instead of environment variable
+  params.set("v", getOgImageVersion("generic"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
