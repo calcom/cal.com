@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Розгляньте можливість створення організації для об'єднання оплати, інструментів адміністрування та аналітики у ваших командах.",
   "search_variables": "Пошук змінних",
   "no_variables_found": "Змінних не знайдено",
+  "api_key_name_too_long": "Назва не повинна перевищувати {{max}} символів",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -9,7 +9,10 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import {
+  deleteWebhookScheduledTriggers,
+  cancelNoShowTasksForBooking,
+} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
@@ -517,6 +520,7 @@ async function handler(input: CancelBookingInput) {
     for (const booking of updatedBookings) {
       // delete scheduled webhook triggers of cancelled bookings
       webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+      webhookTriggerPromises.push(cancelNoShowTasksForBooking({ bookingUid: booking.uid }));
 
       //Workflows - cancel all reminders for cancelled bookings
       workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));

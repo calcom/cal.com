@@ -616,6 +616,8 @@ model CreditExpenseLog {
   date            DateTime
   smsSid          String?
   smsSegments     Int?
+  phoneNumber     String?
+  email           String?
   callDuration    Int?
   creditFor       CreditUsageType?
   externalRef     String?          @unique

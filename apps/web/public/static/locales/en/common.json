@@ -3595,5 +3595,6 @@
   "consider_consolidating_multi_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your teams.",
   "search_variables": "Search variables",
   "no_variables_found": "No variables found",
+  "api_key_name_too_long": "Name must not exceed {{max}} characters",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

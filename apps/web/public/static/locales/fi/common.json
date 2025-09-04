@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Harkitse organisaation perustamista yhdistääksesi laskutuksen, hallintatyökalut ja analytiikan tiimiesi kesken.",
   "search_variables": "Etsi muuttujia",
   "no_variables_found": "Muuttujia ei löytynyt",
+  "api_key_name_too_long": "Nimi ei saa ylittää {{max}} merkkiä",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

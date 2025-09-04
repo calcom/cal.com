@@ -3591,5 +3591,6 @@
   "consider_consolidating_multi_team_org": "Overvej at oprette en organisation for at samle fakturering, adminværktøjer og analyser på tværs af dine teams.",
   "search_variables": "Søg i variabler",
   "no_variables_found": "Ingen variable fundet",
+  "api_key_name_too_long": "Navnet må ikke overstige {{max}} tegn",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
