@@ -76,6 +76,23 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
+    startTime?: string;
+    eventType?: {
+      metadata?: {
+        apps?: {
+          stripe?: {
+            cancellationFeeEnabled?: boolean;
+            cancellationFeeTimeValue?: number;
+            cancellationFeeTimeUnit?: "minutes" | "hours" | "days";
+            paymentOption?: string;
+          };
+        };
+      };
+    };
+    payment?: Array<{
+      amount: number;
+      currency: string;
+    }>;
   };
   profile: {
     name: string | null;
@@ -106,18 +123,51 @@ export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const refreshData = useRefreshData();
-  const {
-    booking,
-    allRemainingBookings,
-    seatReferenceUid,
-    bookingCancelledEventProps,
-    currentUserEmail,
-    teamId,
-  } = props;
+  const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
+    props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
+
+  const shouldChargeCancellationFee = () => {
+    if (props.isHost) return false; // Hosts/organizers are exempt
+
+    const metadata = booking?.eventType?.metadata;
+    const cancellationFeeEnabled = metadata?.apps?.stripe?.cancellationFeeEnabled;
+    const paymentOption = metadata?.apps?.stripe?.paymentOption;
+
+    if (!cancellationFeeEnabled || paymentOption !== "HOLD" || !booking?.startTime) {
+      return false;
+    }
+
+    const timeValue = metadata.apps?.stripe?.cancellationFeeTimeValue;
+    const timeUnit = metadata.apps?.stripe?.cancellationFeeTimeUnit;
+
+    if (!timeValue || !timeUnit) {
+      return false;
+    }
+
+    const now = new Date();
+    const startTime = new Date(booking.startTime);
+    const threshold = new Date(startTime);
+
+    switch (timeUnit) {
+      case "minutes":
+        threshold.setMinutes(threshold.getMinutes() - timeValue);
+        break;
+      case "hours":
+        threshold.setHours(threshold.getHours() - timeValue);
+        break;
+      case "days":
+        threshold.setDate(threshold.getDate() - timeValue);
+        break;
+    }
+
+    return now >= threshold;
+  };
+
+  const cancellationFeeWarning = shouldChargeCancellationFee();
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -166,6 +216,24 @@ export default function CancelBooking(props: Props) {
                 }}
               />
             </>
+          )}
+
+          {cancellationFeeWarning && booking?.payment?.[0] && (
+            <div className="mb-4 rounded-md border border-orange-200 bg-orange-50 p-4">
+              <div className="flex">
+                <Icon name="triangle-alert" className="h-5 w-5 text-orange-400" />
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-orange-800">
+                    {t("cancellation_fee_warning_cancel", {
+                      time: booking.eventType?.metadata?.apps?.stripe?.cancellationFeeTimeValue,
+                      unit: t(booking.eventType?.metadata?.apps?.stripe?.cancellationFeeTimeUnit || "hours"),
+                      amount: booking.payment[0].amount / 100,
+                      formatParams: { amount: { currency: booking.payment[0].currency } },
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
 
           <Label>{props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>

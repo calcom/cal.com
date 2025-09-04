@@ -454,6 +454,9 @@ export const EventAdvancedTab = ({
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
+  const cancellationFeeEnabled =
+    formMethods.getValues("metadata")?.apps?.stripe?.cancellationFeeEnabled === true;
+
   const isRecurringEvent = !!formMethods.getValues("recurringEvent");
 
   const isRoundRobinEventType =
@@ -508,7 +511,7 @@ export const EventAdvancedTab = ({
     "allowReschedulingCancelledBookings"
   );
 
-  const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
+  const { isLocked: _isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
     multiplePrivateLinksLocked.disabled = true;
@@ -1019,6 +1022,105 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
+      {noShowFeeEnabled && (
+        <SettingsToggle
+          title={t("cancellation_fee_enabled")}
+          description={t("cancellation_fee_time_setting")}
+          checked={cancellationFeeEnabled}
+          onCheckedChange={(enabled) => {
+            const metadata = formMethods.getValues("metadata") || {};
+            const apps = metadata.apps || {};
+            const stripe = apps.stripe || { price: 0, currency: "usd" };
+            formMethods.setValue(
+              "metadata",
+              {
+                ...metadata,
+                apps: {
+                  ...apps,
+                  stripe: {
+                    ...stripe,
+                    cancellationFeeEnabled: enabled,
+                  },
+                },
+              },
+              { shouldDirty: true }
+            );
+          }}
+          toggleSwitchAtTheEnd={true}
+          switchContainerClassName={classNames(
+            "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+            cancellationFeeEnabled && "rounded-b-none"
+          )}>
+          {cancellationFeeEnabled && (
+            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+              <div className="flex space-x-2">
+                <TextField
+                  type="number"
+                  min="1"
+                  placeholder="1"
+                  value={formMethods.getValues("metadata")?.apps?.stripe?.cancellationFeeTimeValue || ""}
+                  onChange={(e) => {
+                    const metadata = formMethods.getValues("metadata") || {};
+                    const apps = metadata.apps || {};
+                    const stripe = apps.stripe || { price: 0, currency: "usd" };
+                    formMethods.setValue(
+                      "metadata",
+                      {
+                        ...metadata,
+                        apps: {
+                          ...apps,
+                          stripe: {
+                            ...stripe,
+                            cancellationFeeTimeValue: parseInt(e.target.value) || 1,
+                          },
+                        },
+                      },
+                      { shouldDirty: true }
+                    );
+                  }}
+                />
+                <SelectField<{ label: string; value: "minutes" | "hours" | "days" }>
+                  value={(() => {
+                    const timeUnit =
+                      formMethods.getValues("metadata")?.apps?.stripe?.cancellationFeeTimeUnit || "hours";
+                    const options = [
+                      { label: t("minutes"), value: "minutes" as const },
+                      { label: t("hours"), value: "hours" as const },
+                      { label: t("days"), value: "days" as const },
+                    ];
+                    return options.find((option) => option.value === timeUnit);
+                  })()}
+                  options={[
+                    { label: t("minutes"), value: "minutes" as const },
+                    { label: t("hours"), value: "hours" as const },
+                    { label: t("days"), value: "days" as const },
+                  ]}
+                  onChange={(option) => {
+                    if (!option) return;
+                    const metadata = formMethods.getValues("metadata") || {};
+                    const apps = metadata.apps || {};
+                    const stripe = apps.stripe || { price: 0, currency: "usd" };
+                    formMethods.setValue(
+                      "metadata",
+                      {
+                        ...metadata,
+                        apps: {
+                          ...apps,
+                          stripe: {
+                            ...stripe,
+                            cancellationFeeTimeUnit: option.value,
+                          },
+                        },
+                      },
+                      { shouldDirty: true }
+                    );
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </SettingsToggle>
+      )}
       <Controller
         name="hideOrganizerEmail"
         render={({ field: { value, onChange } }) => (

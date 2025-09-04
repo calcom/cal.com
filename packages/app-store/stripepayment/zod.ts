@@ -23,6 +23,9 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     refundPolicy: z.nativeEnum(RefundPolicy).optional(),
     refundDaysCount: z.number().optional(),
     refundCountCalendarDays: z.boolean().optional(),
+    cancellationFeeEnabled: z.boolean().optional(),
+    cancellationFeeTimeValue: z.number().optional(),
+    cancellationFeeTimeUnit: z.enum(["minutes", "hours", "days"]).optional(),
   })
 );
 

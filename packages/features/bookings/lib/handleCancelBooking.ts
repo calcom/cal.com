@@ -47,6 +47,64 @@ import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
+const shouldChargeCancellationFee = (
+  eventType: {
+    hosts?: Array<{ user: { id: number } }>;
+    owner?: { id: number };
+    metadata?: {
+      apps?: {
+        stripe?: {
+          cancellationFeeEnabled?: boolean;
+          paymentOption?: string;
+          cancellationFeeTimeValue?: number;
+          cancellationFeeTimeUnit?: string;
+        };
+      };
+    };
+  },
+  startTime: Date,
+  userId: number,
+  _cancelledBy?: string
+): boolean => {
+  const metadata = eventType?.metadata;
+  const cancellationFeeEnabled = metadata?.apps?.stripe?.cancellationFeeEnabled;
+  const paymentOption = metadata?.apps?.stripe?.paymentOption;
+
+  if (!cancellationFeeEnabled || paymentOption !== "HOLD") {
+    return false;
+  }
+
+  const userIsHost = eventType.hosts?.find((host) => host.user.id === userId);
+  const userIsOwner = eventType.owner?.id === userId;
+  if (userIsHost || userIsOwner) {
+    return false;
+  }
+
+  const timeValue = metadata.apps.stripe.cancellationFeeTimeValue;
+  const timeUnit = metadata.apps.stripe.cancellationFeeTimeUnit;
+
+  if (!timeValue || !timeUnit) {
+    return false;
+  }
+
+  const now = new Date();
+  const threshold = new Date(startTime);
+
+  switch (timeUnit) {
+    case "minutes":
+      threshold.setMinutes(threshold.getMinutes() - timeValue);
+      break;
+    case "hours":
+      threshold.setHours(threshold.getHours() - timeValue);
+      break;
+    case "days":
+      threshold.setDate(threshold.getDate() - timeValue);
+      break;
+  }
+
+  return now >= threshold;
+};
+
 type PlatformParams = {
   platformClientId?: string;
   platformRescheduleUrl?: string;
@@ -194,7 +252,6 @@ async function handler(input: CancelBookingInput) {
 
   const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostsPresent = !!bookingToDelete.eventType?.hosts;
   const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
   for (let index = 0; index < bookingToDelete.attendees.length; index++) {
@@ -332,6 +389,47 @@ async function handler(input: CancelBookingInput) {
     })
   );
   await Promise.all(promises);
+
+  if (
+    shouldChargeCancellationFee(
+      bookingToDelete.eventType,
+      bookingToDelete.startTime,
+      userId || -1,
+      cancelledBy
+    )
+  ) {
+    const payment = bookingToDelete.payment.find((p) => p.paymentOption === "HOLD");
+    if (payment && !payment.success) {
+      try {
+        const { PaymentServiceMap } = await import("@calcom/app-store/payment.services.generated");
+        const { CredentialRepository } = await import("@calcom/lib/server/repository/credential");
+
+        const paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
+          appId: payment.appId,
+          userId: bookingToDelete.userId || 0,
+          teamId: bookingToDelete.eventType?.team?.id || undefined,
+        });
+
+        if (paymentCredential?.app) {
+          const key = paymentCredential.app.dirName;
+          const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
+
+          if (paymentAppImportFn) {
+            const paymentApp = await paymentAppImportFn;
+            if (paymentApp?.PaymentService) {
+              const PaymentService = paymentApp.PaymentService;
+              const paymentInstance = new PaymentService(paymentCredential);
+
+              await paymentInstance.chargeCard(payment, bookingToDelete.id);
+              log.info(`Charged cancellation fee for booking ${bookingToDelete.id}`);
+            }
+          }
+        }
+      } catch (error) {
+        log.error("Failed to charge cancellation fee", safeStringify({ error }));
+      }
+    }
+  }
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
