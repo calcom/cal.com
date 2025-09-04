@@ -292,7 +292,6 @@ jobs:
   required:
     needs:
       [
-        download-context,
         changes,
         lint,
         type-check,
