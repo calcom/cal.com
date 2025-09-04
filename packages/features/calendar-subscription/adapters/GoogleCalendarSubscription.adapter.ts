@@ -58,26 +58,16 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   async unsubscribe(selectedCalendar: SelectedCalendar): Promise<void> {
     log.debug("Attempt to unsubscribe from Google Calendar", { externalId: selectedCalendar.externalId });
 
-    if (!selectedCalendar.calendarSubscription) {
-      log.debug("No calendarSubscription found");
-      return;
-    }
-
     const client = await this.getClient();
     await client.channels
       .stop({
         requestBody: {
-          resourceId: selectedCalendar.calendarSubscription.resourceId,
+          resourceId: selectedCalendar.channelResourceId,
         },
       })
       .catch((err) => {
         log.error("Error unsubscribing from Google Calendar", err);
         throw err;
       });
-  }
-
-  handle(selectedCalendarId: string): Promise<void> {
-    log.debug("Attempt to handle Google Calendar subscription", { selectedCalendarId });
-    // TODO
   }
 }

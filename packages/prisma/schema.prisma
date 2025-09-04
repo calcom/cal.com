@@ -903,6 +903,18 @@ model SelectedCalendar {
   googleChannelResourceUri String?
   googleChannelExpiration  String?
 
+  // Used to identify a watched calendar
+  channelId          String?
+  channelKind        String?
+  channelResourceId  String?
+  channelResourceUri String?
+  channelExpiration  DateTime? @db.Timestamp(3)
+
+  // Used to calendar cache and sync 
+  syncEnabled  Boolean?
+  cacheEnabled Boolean?
+  syncCursor   String?
+
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
 
@@ -917,6 +929,8 @@ model SelectedCalendar {
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+
+  CalendarCacheEvent CalendarCacheEvent[]
 
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
@@ -1727,7 +1741,7 @@ model BookingDenormalized {
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @id @unique
+  id             Int           @unique
   uid            String
   eventTypeId    Int?
   title          String
@@ -2522,4 +2536,45 @@ model CalAiPhoneNumber {
   @@index([teamId])
   @@index([inboundAgentId])
   @@index([outboundAgentId])
+}
+
+model CalendarCacheEvent {
+  id                 String @id @default(uuid())
+  selectedCalendarId String
+
+  // External calendar event data (provider-agnostic)
+  externalEventId String
+  externalEtag    String
+  iCalUID         String?
+  iCalSequence    Int     @default(0)
+
+  // Event details
+  summary     String?
+  description String?
+  location    String?
+  start       DateTime
+  end         DateTime
+  isAllDay    Boolean  @default(false)
+  // Event timezone (from event payload or inferred from calendar)
+  timeZone    String?
+  // Event metadata
+  status      String   @default("confirmed") // confirmed, tentative, cancelled
+  visibility  String   @default("default") // default, public, private
+
+  // Recurring events
+  recurringEventId  String?
+  originalStartTime DateTime?
+
+  // Relations
+  selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  externalCreatedAt DateTime?
+  externalUpdatedAt DateTime?
+
+  @@unique([selectedCalendarId, externalEventId])
+  @@index([start, end, status])
+  @@index([selectedCalendarId, iCalUID])
 }

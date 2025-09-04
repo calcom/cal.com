@@ -16,6 +16,7 @@ export type CalendarUnsubscribeResult = {
 
 export type CalendarSubscriptionEvent = {
   provider: CalendarSubscriptionProvider;
+  transparency: "opaque" | "transparent";
 };
 
 export interface ICalendarSubscriptionPort {
@@ -30,11 +31,4 @@ export interface ICalendarSubscriptionPort {
    * @param selectedCalendar
    */
   unsubscribe(selectedCalendar: SelectedCalendar): Promise<void>;
-
-  /**
-   * Handle webhook events
-   * @param selectedCalendarId
-   *
-   */
-  handle(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent[]>;
 }

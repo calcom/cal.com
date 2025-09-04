@@ -1,23 +1,12 @@
-import type { CalendarSubscriptionRepository } from "calendar-subscription/lib/CalendarSubscriptionRepository";
+import type { CalendarSubscriptionEvent } from "calendar-subscription/lib/CalendarSubscriptionPort.interface";
 
-import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
-
-import { GoogleCalendarSyncAdapter } from "./adapters/google.adapter";
+import logger from "@calcom/lib/logger";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
 
 export class CalendarSyncService {
-  private providers = {
-    google: new GoogleCalendarSyncAdapter(),
-  } as const;
-  constructor(
-    private deps: {
-      selectedCalendarRepository?: SelectedCalendarRepository;
-      calendarSubscriptionRepository?: CalendarSubscriptionRepository;
-    }
-  ) {}
-
-  async handleEvents(calendarSubscriptionEvents: CalendarSubscriptionEvent[]) {
+  async handleEvents(selectedCalendarId: string, calendarSubscriptionEvents: CalendarSubscriptionEvent[]) {
     log.debug("handleEvents", { calendarSubscriptionEvents });
+    // TODO update bookings based on events
   }
 }

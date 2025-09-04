@@ -1,12 +1,15 @@
-import type { CalendarSubscriptionPort } from "calendar-subscription/lib/CalendarSubscriptionPort.interface";
+import logger from "@calcom/lib/logger";
+import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 
-import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
+import type { ICalendarSubscriptionPort } from "../lib/CalendarSubscriptionPort.interface";
+
+const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
 export class CalendarSubscriptionService {
   constructor(
     private deps: {
-      calendarSubscriptionRepository?: ICalendarSubscriptionRepository;
-      calendarSubscriptionPort?: CalendarSubscriptionPort;
+      calendarSubscriptionPort?: ICalendarSubscriptionPort;
+      selectedCalendarRepository?: SelectedCalendarRepository;
     }
   ) {}
 
@@ -16,23 +19,20 @@ export class CalendarSubscriptionService {
    * @returns
    */
   async subscribe(selectedCalendarId: string): Promise<void> {
-    const selectedCalendar = await this.deps.calendarSubscriptionRepository?.findBySelectedCalendarId(
-      selectedCalendarId
-    );
+    log.debug("Attempt to subscribe to Google Calendar", { selectedCalendarId });
 
-    if (selectedCalendar) {
+    const selectedCalendar = await this.deps.selectedCalendarRepository?.findById(selectedCalendarId);
+    if (!selectedCalendar) {
+      log.debug("Selected calendar not found", { selectedCalendarId });
       return;
     }
 
-    const calendarSubscriptionResult = await this.deps.calendarSubscriptionPort?.subscribe(
-      selectedCalendarId
-    );
-
-    await this.deps.calendarSubscriptionRepository?.upsertBySelectedCalendarId(selectedCalendarId, {
-      selectedCalendarId,
-      resourceId: calendarSubscriptionResult?.id,
-      resourceUri: calendarSubscriptionResult?.resourceUri,
-      expiration: calendarSubscriptionResult?.expiration,
+    const calendarSubscriptionResult = await this.deps.calendarSubscriptionPort?.subscribe(selectedCalendar);
+    await this.deps.selectedCalendarRepository?.updateById(selectedCalendarId, {
+      channelId: calendarSubscriptionResult?.resourceId,
+      channelResourceId: calendarSubscriptionResult?.resourceId,
+      channelResourceUri: calendarSubscriptionResult?.resourceUri,
+      channelKind: calendarSubscriptionResult?.provider,
     });
   }
 
@@ -42,17 +42,16 @@ export class CalendarSubscriptionService {
    * @returns
    */
   async unsubscribe(selectedCalendarId: string): Promise<void> {
-    const selectedCalendar = await this.deps.calendarSubscriptionRepository?.findBySelectedCalendarId(
-      selectedCalendarId
-    );
+    log.debug("Attempt to unsubscribe from Google Calendar", { selectedCalendarId });
+    const selectedCalendar = await this.deps.selectedCalendarRepository?.updateById(selectedCalendarId, {
+      syncEnabled: false,
+      cacheEnabled: false,
+    });
 
     if (!selectedCalendar) {
+      log.debug("Selected calendar not found", { selectedCalendarId });
       return;
     }
-    await this.deps.calendarSubscriptionPort?.unsubscribe(selectedCalendarId);
-  }
-
-  async handle(selectedCalendarId: string): Promise<void> {
-    await this.deps.calendarSubscriptionPort?.handle(selectedCalendarId);
+    await this.deps.calendarSubscriptionPort?.unsubscribe(selectedCalendar);
   }
 }

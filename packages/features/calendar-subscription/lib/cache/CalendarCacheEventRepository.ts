@@ -1,13 +1,14 @@
 import type { ICalendarCacheEventRepository } from "calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 
+import type { PrismaClient } from "@calcom/prisma";
+import type { CalendarCacheEvent } from "@calcom/prisma/client";
+
 export class CalendarCacheEventRepository implements ICalendarCacheEventRepository {
-  upsertByChannelId(data: any): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  upsertByCredentialId(data: any): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  upsertBySelectedCalendarId(data: any): Promise<void> {
-    throw new Error("Method not implemented.");
+  constructor(private prismaClient: PrismaClient) {}
+
+  async createMany(events: CalendarCacheEvent[]): Promise<void> {
+    await this.prismaClient.calendarCacheEvent.createMany({
+      data: events,
+    });
   }
 }

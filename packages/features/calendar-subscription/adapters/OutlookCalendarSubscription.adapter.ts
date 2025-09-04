@@ -1,3 +1,5 @@
+import type { SelectedCalendar } from "@calcom/prisma/client";
+
 import type {
   CalendarSubscriptionEvent,
   ICalendarSubscriptionPort,
@@ -5,14 +7,14 @@ import type {
 } from "../lib/CalendarSubscriptionPort.interface";
 
 export class OutlookCalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
-  subscribe(selectedCalendar): Promise<CalendarSubscriptionResult> {
+  async subscribe(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionResult> {
     throw new Error("Method not implemented.");
   }
-  unsubscribe(selectedCalendar): Promise<void> {
+  async unsubscribe(selectedCalendar: SelectedCalendar): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
-  handle(selectedCalendar): Promise<CalendarSubscriptionEvent[]> {
+  async handle(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent[]> {
     throw new Error("Method not implemented.");
   }
 }
