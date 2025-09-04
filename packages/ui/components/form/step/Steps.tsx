@@ -3,7 +3,7 @@ import classNames from "@calcom/ui/classNames";
 type StepWithNav = {
   maxSteps: number;
   currentStep: number;
-  nextStep: () => void;
+  navigateToStep: (step: number) => void;
   disableNavigation?: false;
   stepLabel?: (currentStep: number, maxSteps: number) => string;
 };
@@ -11,7 +11,7 @@ type StepWithNav = {
 type StepWithoutNav = {
   maxSteps: number;
   currentStep: number;
-  nextStep?: undefined;
+  navigateToStep?: undefined;
   disableNavigation: true;
   stepLabel?: (currentStep: number, maxSteps: number) => string;
 };
@@ -23,7 +23,7 @@ const Steps = (props: StepsProps) => {
   const {
     maxSteps,
     currentStep,
-    nextStep,
+    navigateToStep,
     disableNavigation = false,
     stepLabel = (currentStep, totalSteps) => `Step ${currentStep} of ${totalSteps}`,
   } = props;
@@ -35,7 +35,7 @@ const Steps = (props: StepsProps) => {
           return index <= currentStep - 1 ? (
             <div
               key={`step-${index}`}
-              onClick={() => nextStep?.()}
+              onClick={() => navigateToStep?.(index)}
               className={classNames(
                 "bg-inverted h-1 w-full rounded-[1px]",
                 index < currentStep - 1 && !disableNavigation ? "cursor-pointer" : ""
