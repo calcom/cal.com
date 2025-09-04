@@ -182,7 +182,6 @@ export class BookingRepository {
   }
 
   private async _findAllExistingBookingsForEventTypeBetween({
-    // eventTypeId,
     seatedEvent = false,
     startDate,
     endDate,
