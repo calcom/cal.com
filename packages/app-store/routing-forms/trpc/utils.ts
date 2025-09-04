@@ -8,7 +8,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -32,22 +32,6 @@ export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
     value: FormResponse[keyof FormResponse]["value"];
   }
 >;
-
-// Type for form submission events used in workflows
-export type FormSubmissionEvent = {
-  formId: string;
-  formName: string;
-  submitterName?: string;
-  submitterEmail?: string;
-  submittedAt: Date;
-  responses: Record<string, any>;
-  teamName?: string;
-  organizerName: string;
-  hasBooking: boolean;
-  timeZone: string;
-  userId: number;
-  teamId?: number | null;
-};
 
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;

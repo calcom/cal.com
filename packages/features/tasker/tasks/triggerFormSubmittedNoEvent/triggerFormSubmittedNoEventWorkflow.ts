@@ -7,6 +7,8 @@ import { ZWorkflow } from "@calcom/trpc/server/routers/viewer/workflows/getAllAc
 
 import { shouldTriggerFormSubmittedNoEvent } from "./formSubmissionValidation";
 
+const log = logger.getSubLogger({ prefix: ["[tasker] triggerFormSubmittedNoEventWorkflow"] });
+
 export const ZTriggerFormSubmittedNoEventWorkflowPayloadSchema = z.object({
   responseId: z.number(),
   responses: z.any(),
@@ -45,6 +47,6 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
       form: form,
     });
   } catch (error) {
-    logger.error("Error while triggering form submitted no event workflows", JSON.stringify({ error }));
+    log.error("Error while triggering form submitted no event workflows", JSON.stringify({ error }));
   }
 }

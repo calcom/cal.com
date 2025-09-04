@@ -58,6 +58,7 @@ import {
   isSMSOrWhatsappAction,
   isFormTrigger,
   isCalAIAction,
+  hasCalAIAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -97,8 +98,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
     [WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "how_long_after_form_submitted_no_event",
   };
-  if (!triggerMap[trigger]) return null;
-  return t(triggerMap[trigger]!);
+  return triggerMap[trigger] ? t(triggerMap[trigger]) : null;
 };
 
 const CalAIAgentDataSkeleton = () => {
@@ -256,15 +256,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
-  // Check if any workflow step has cal.ai action
-  const hasCalAIAction = () => {
-    const steps = form.getValues("steps") || [];
-    return steps.some((step) => isCalAIAction(step.action));
-  };
-
   // Filter trigger options to hide isFormTrigger actions when cal.ai is part of any workflow step
   const filteredTriggerOptions = triggerOptions.filter((option) => {
-    if (hasCalAIAction() && isFormTrigger(option.value)) {
+    if (hasCalAIAction(form.getValues("steps")) && isFormTrigger(option.value)) {
       return false;
     }
     return true;
@@ -1113,7 +1107,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }))}
                           isOptionDisabled={(option: {
                             label: string;
-                            value: any;
+                            value: string;
                             needsTeamsUpgrade: boolean;
                           }) => option.needsTeamsUpgrade}
                         />
@@ -1344,7 +1338,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
+                      {t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
@@ -1363,7 +1357,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
+                      {t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
@@ -1392,13 +1386,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId}
             agentData={agentData}
             onUpdate={(data) => {
-              updateAgentMutation.mutate({
-                id: stepAgentId!,
-                teamId: teamId,
-                generalPrompt: data.generalPrompt,
-                beginMessage: data.beginMessage,
-                generalTools: data.generalTools,
-              });
+              if (stepAgentId) {
+                updateAgentMutation.mutate({
+                  id: stepAgentId,
+                  teamId: teamId,
+                  generalPrompt: data.generalPrompt,
+                  beginMessage: data.beginMessage,
+                  generalTools: data.generalTools,
+                });
+              }
             }}
             readOnly={props.readOnly}
             teamId={teamId}

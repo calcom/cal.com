@@ -30,12 +30,14 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
           .substring(0, formattedVarToTranslate?.lastIndexOf("_"))
           .toLowerCase()
           .concat("_variable");
+
         translatedVariable = language
           .t(variableName)
           .replace(/ /g, "_")
           .toLocaleUpperCase()
           .concat(formattedVarToTranslate?.substring(formattedVarToTranslate?.lastIndexOf("_")));
       }
+
       translatedText = translatedText.replace(regex, `{${translatedVariable}}`);
     });
   }
@@ -74,5 +76,6 @@ export function translateVariablesToEnglish(text: string, language: { locale: st
       });
     });
   }
+
   return newText;
 }

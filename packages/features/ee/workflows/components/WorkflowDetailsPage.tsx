@@ -16,7 +16,13 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction, isCalAIAction, isFormTrigger, isWhatsappAction } from "../lib/actionHelperFunctions";
+import {
+  isSMSAction,
+  isCalAIAction,
+  isFormTrigger,
+  isWhatsappAction,
+  hasCalAIAction,
+} from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -59,11 +65,6 @@ export default function WorkflowDetailsPage(props: Props) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const hasCalAIAction = () => {
-    const steps = form.getValues("steps") || [];
-    return steps.some((step) => isCalAIAction(step.action));
-  };
-
   const permissions = _permissions || {
     canView: !teamId ? true : !props.readOnly,
     canUpdate: !teamId ? true : !props.readOnly,
@@ -84,7 +85,7 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const transformedActionOptions =
     baseActionOptions
-      ?.filter((option: any) => {
+      ?.filter((option) => {
         if (
           (isFormTrigger(form.getValues("trigger")) &&
             (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
@@ -96,7 +97,7 @@ export default function WorkflowDetailsPage(props: Props) {
         }
         return true;
       })
-      .map((option: any) => {
+      .map((option) => {
         let label = option.label;
 
         // Transform labels for form triggers
@@ -221,7 +222,7 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
-          {!hasCalAIAction() && (
+          {!hasCalAIAction(form.getValues("steps")) && (
             <div className="mt-3">
               <Controller
                 name="selectAll"
