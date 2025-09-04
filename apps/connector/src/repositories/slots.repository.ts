@@ -72,7 +72,7 @@ export class SlotsRepository extends BaseRepository<User> {
 
   async createSelectedSlot(
     userId: number,
-    eventTypeId: number,
+  eventTypeId: number,
     slotUtcStartDate: string,
     slotUtcEndDate: string,
     isSeat: boolean,
@@ -90,4 +90,37 @@ export class SlotsRepository extends BaseRepository<User> {
       },
     });
   }
+
+  async updateSelectedSlot(
+    id: number,
+    userId: number,
+    eventTypeId: number,
+    slotUtcStartDate: string,
+    slotUtcEndDate: string,
+    isSeat: boolean,
+    releaseAtISO: string
+  ) {
+    return this.prisma.selectedSlots.update({
+      where: {
+        id
+      },
+      data: {
+        userId,
+        eventTypeId,
+        slotUtcStartDate,
+        slotUtcEndDate,
+        releaseAt: releaseAtISO,
+        isSeat,
+      },
+    });
+  }
+
+  async getSelectedSlotByUid(uid: string) {
+    return this.prisma.selectedSlots.findFirst({ where: { uid: uid } });
+  }
+
+  async deleteSelectedSlotByUid(uid: string) {
+    return this.prisma.selectedSlots.deleteMany({ where: { uid: uid } });
+  }
 }
+
