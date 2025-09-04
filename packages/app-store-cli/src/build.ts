@@ -8,12 +8,11 @@ import prettier from "prettier";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
-import { parseconfigMetadata } from "@calcom/prisma/zod/configType";
 import type { AppMeta } from "@calcom/types/App";
+import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
-import { ConfigMetadata } from "../../types/config";
 
 const isInWatchMode = process.argv[2] === "--watch";
 
@@ -32,8 +31,6 @@ type App = Partial<AppMeta> & {
   name: string;
   path: string;
 };
-
-
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const metadataOutput = [];
@@ -69,7 +66,6 @@ function generateFiles() {
     }
   });
 
-
   function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
     for (let i = 0; i < appDirs.length; i++) {
       const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
@@ -77,10 +73,13 @@ function generateFiles() {
       let app;
 
       if (fs.existsSync(configPath)) {
-        app = JSON.parse(fs.readFileSync(configPath).toString());
-        const bool: ConfigMetadata = parseconfigMetadata(app);
-        if (!bool) {
-          throw Error("Config.json Validation Error");
+        try {
+          const rawConfig = fs.readFileSync(configPath, "utf8");
+          const parsedConfig = JSON.parse(rawConfig);
+          app = AppMetaSchema.parse(parsedConfig);
+        } catch (error) {
+          const prefix = `Config error in ${path.join(APP_STORE_PATH, appDirs[i].path, "config.json")}`;
+          throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -197,17 +196,9 @@ function generateFiles() {
 
         if (fileToBeImportedExists(app, chosenConfig)) {
           if (!lazyImport) {
-            const keyResult = entryObjectKeyGetter(app, chosenConfig.importName);
-
-            // Check if the result includes a colon (meaning it's a full assignment expression)
-            if (typeof keyResult === "string" && keyResult.includes(":")) {
-              output.push(`${keyResult},`);
-            } else {
-              // Original code for normal key assignment
-              output.push(`"${keyResult}": ${getLocalImportName(app, chosenConfig)},`);
-            }
+            const key = entryObjectKeyGetter(app);
+            output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
           } else {
-            // Existing lazy loading code
             const key = entryObjectKeyGetter(app);
             if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
               output.push(
@@ -225,6 +216,7 @@ function generateFiles() {
 
       output.push(`};`);
     }
+
     function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
       let chosenConfig;
 
@@ -285,7 +277,6 @@ function generateFiles() {
       isBookerApp
     )
   );
-
   schemasOutput.push(
     ...getExportedObject("appDataSchemas", {
       // Import path must have / even for windows and not \
