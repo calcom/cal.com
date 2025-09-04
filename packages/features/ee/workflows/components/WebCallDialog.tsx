@@ -273,10 +273,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       stopDurationTimer();
       if (retellWebClientRef.current && callStatus === "active") {
         try {
-          const stopCallResult = retellWebClientRef.current.stopCall();
-          if (stopCallResult && typeof stopCallResult.catch === "function") {
-            stopCallResult.catch(console.error);
-          }
+          retellWebClientRef.current.stopCall();
         } catch (error) {
           console.error("Error stopping call during cleanup:", error);
         }
