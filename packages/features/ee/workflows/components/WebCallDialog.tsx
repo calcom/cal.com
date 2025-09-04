@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { RetellWebClient } from "retell-client-js-sdk";
 
@@ -34,13 +34,14 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [isMuted, setIsMuted] = useState(false);
-  const [_callDuration, setCallDuration] = useState(0);
+  const [callDuration, setCallDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const retellWebClientRef = useRef<RetellWebClient | null>(null);
   const callStartTimeRef = useRef<Date | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
+  const callStatusRef = useRef<CallStatus>("idle");
   const isEmbed = useIsEmbed();
 
   const createWebCallMutation = trpc.viewer.aiVoiceAgent.createWebCall.useMutation({
@@ -68,9 +69,9 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       retellWebClientRef.current = retellWebClient;
 
       retellWebClient.on("call_started", () => {
-        console.log("📞 Call started - setting up transcript listeners");
-        setCallStatus("active");
         callStartTimeRef.current = new Date();
+        callStatusRef.current = "active";
+        setCallStatus("active");
         startDurationTimer();
       });
 
@@ -137,7 +138,6 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
         accessToken: accessToken,
         sampleRate: 24000,
         emitRawAudioSamples: false,
-        enableUpdate: true,
       });
     } catch (error) {
       console.error("Error starting web call:", error);
@@ -146,14 +146,27 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     }
   };
 
-  const startDurationTimer = () => {
+  const startDurationTimer = useCallback(() => {
+    if (durationIntervalRef.current) {
+      clearInterval(durationIntervalRef.current);
+      durationIntervalRef.current = null;
+    }
+
+    if (!callStartTimeRef.current) {
+      return;
+    }
+
     durationIntervalRef.current = setInterval(() => {
       if (callStartTimeRef.current) {
-        const duration = Math.floor((Date.now() - callStartTimeRef.current.getTime()) / 1000);
-        setCallDuration(duration);
+        const now = Date.now();
+        const startTime = callStartTimeRef.current.getTime();
+        const duration = Math.floor((now - startTime) / 1000);
+        if (duration >= 0) {
+          setCallDuration(duration);
+        }
       }
     }, 1000);
-  };
+  }, []);
 
   const stopDurationTimer = () => {
     if (durationIntervalRef.current) {
@@ -208,7 +221,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     }
   };
 
-  const _formatDuration = (seconds: number) => {
+  const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
@@ -234,9 +247,9 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       case "connecting":
         return t("connecting_to_agent");
       case "active":
-        return t("call_active_duration", { duration: _formatDuration(_callDuration) });
+        return `${t("call_active")} - ${formatDuration(callDuration)}`;
       case "ended":
-        return t("call_ended_duration", { duration: _formatDuration(_callDuration) });
+        return `${t("call_ended")} - ${formatDuration(callDuration)}`;
       case "error":
         return t("call_error");
       default:
@@ -271,8 +284,23 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     };
   }, [callStatus]);
 
+  useEffect(() => {
+    callStatusRef.current = callStatus;
+
+    if (callStatus === "active" && callStartTimeRef.current && !durationIntervalRef.current) {
+      startDurationTimer();
+    }
+  }, [callStatus, startDurationTimer]);
+
+  useEffect(() => {
+    return () => {
+      stopDurationTimer();
+    };
+  }, []);
+
   const resetDialogState = () => {
     setCallStatus("idle");
+    callStatusRef.current = "idle";
     setTranscript([]);
     setIsMuted(false);
     setCallDuration(0);
@@ -280,14 +308,6 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
     callStartTimeRef.current = null;
     stopDurationTimer();
     retellWebClientRef.current = null;
-  };
-
-  const handleClose = () => {
-    if (callStatus === "active") {
-      handleEndCall();
-    }
-    resetDialogState();
-    onOpenChange(false);
   };
 
   return (
@@ -305,7 +325,7 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
       <DialogContent
         enableOverflow
         type="creation"
-        title={t("web_call_test")}
+        title={t("web_call")}
         description={t("test_your_agent_with_web_call")}>
         <div className="flex items-center justify-between rounded-lg border p-3">
           <div className="flex items-center gap-2">
@@ -383,10 +403,6 @@ export function WebCallDialog({ open, onOpenChange, agentId, teamId, form }: Web
         )}
 
         <DialogFooter showDivider className="mt-6">
-          <Button type="button" color="secondary" onClick={handleClose}>
-            {callStatus === "active" ? t("end_and_close") : t("close")}
-          </Button>
-
           <div className="flex gap-2">
             {callStatus === "active" && (
               <Button type="button" color="secondary" onClick={handleToggleMute} variant="icon">
