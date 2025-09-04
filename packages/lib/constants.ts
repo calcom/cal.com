@@ -68,6 +68,9 @@ export const MAX_EVENT_DURATION_MINUTES = 1440;
 /** Minimum duration allowed for an event in minutes */
 export const MIN_EVENT_DURATION_MINUTES = 1;
 
+/** Maximum file size allowed for banner uploads in bytes (5MB) */
+export const MAX_BANNER_SIZE = 5 * 1024 * 1024;
+
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
 export const PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS =
@@ -121,6 +124,7 @@ export const IS_TEAM_BILLING_ENABLED_CLIENT =
   !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
 
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
+export const API_NAME_LENGTH_MAX_LIMIT = 80;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER === "1";
 // Needed for orgs
