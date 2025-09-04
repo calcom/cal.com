@@ -22,12 +22,12 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
+import { getRecurringBookingService } from "@calcom/features/bookings/lib/di/containers/RecurringBookingServiceContainer";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
-
-import { handleNewRecurringBooking } from "../../handleNewRecurringBooking";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -153,10 +153,13 @@ describe("handleNewRecurringBooking", () => {
               };
             });
 
-          // Call handleNewRecurringBooking directly instead of through API
-          const createdBookings = await handleNewRecurringBooking({
+          // Call createRecurringBooking directly instead of through API
+          const recurringBookingService = getRecurringBookingService();
+          const createdBookings = await recurringBookingService.createBooking({
             bookingData: bookingDataArray,
-            userId: -1, // Simulating anonymous user like in the API test
+            bookingMeta: {
+              userId: -1, // Simulating anonymous user like in the API test
+            },
           });
 
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
@@ -370,11 +373,14 @@ describe("handleNewRecurringBooking", () => {
               };
             });
 
+          const recurringBookingService = getRecurringBookingService();
           await expect(
             async () =>
-              await handleNewRecurringBooking({
+              await recurringBookingService.createBooking({
                 bookingData: bookingDataArray,
-                userId: -1,
+                bookingMeta: {
+                  userId: -1,
+                },
               })
           ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
         },
@@ -542,10 +548,13 @@ describe("handleNewRecurringBooking", () => {
             };
           });
 
+        const recurringBookingService = getRecurringBookingService();
         await expect(() =>
-          handleNewRecurringBooking({
+          recurringBookingService.createBooking({
             bookingData: bookingDataArray,
-            userId: -1,
+            bookingMeta: {
+              userId: -1,
+            },
           })
         ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
       });
