@@ -1,18 +1,13 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { TeamBilling } from "@calcom/features/ee/billing/teams";
-import removeMember from "@calcom/features/ee/teams/lib/removeMember";
-import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { TRPCError } from "@trpc/server";
-
-import { WorkflowService } from "../service/workflows";
 import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
@@ -160,7 +155,7 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   });
 }
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -170,11 +165,13 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   isOrganization: true,
   organizationSettings: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
 export class TeamRepository {
-  static async findById({ id }: { id: number }) {
-    const team = await prisma.team.findUnique({
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findById({ id }: { id: number }) {
+    const team = await this.prismaClient.team.findUnique({
       where: {
         id,
       },
@@ -186,14 +183,14 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  static async findAllByParentId({
+  async findAllByParentId({
     parentId,
     select = teamSelect,
   }: {
     parentId: number;
     select?: Prisma.TeamSelect;
   }) {
-    return await prisma.team.findMany({
+    return await this.prismaClient.team.findMany({
       where: {
         parentId,
       },
@@ -201,7 +198,7 @@ export class TeamRepository {
     });
   }
 
-  static async findByIdAndParentId({
+  async findByIdAndParentId({
     id,
     parentId,
     select = teamSelect,
@@ -210,7 +207,7 @@ export class TeamRepository {
     parentId: number;
     select?: Prisma.TeamSelect;
   }) {
-    return await prisma.team.findFirst({
+    return await this.prismaClient.team.findFirst({
       where: {
         id,
         parentId,
@@ -219,14 +216,26 @@ export class TeamRepository {
     });
   }
 
-  static async deleteById({ id }: { id: number }) {
-    try {
-      await WorkflowService.deleteWorkflowRemindersOfRemovedTeam(id);
-    } catch (e) {
-      console.error(e);
-    }
+  async findFirstBySlugAndParentSlug({
+    slug,
+    parentSlug,
+    select = teamSelect,
+  }: {
+    slug: string;
+    parentSlug: string | null;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+      },
+      select,
+    });
+  }
 
-    const deletedTeam = await prisma.$transaction(async (tx) => {
+  async deleteById({ id }: { id: number }) {
+    const deletedTeam = await this.prismaClient.$transaction(async (tx) => {
       await tx.eventType.deleteMany({
         where: {
           teamId: id,
@@ -247,96 +256,14 @@ export class TeamRepository {
         },
       });
 
-      const teamBilling = await TeamBilling.findAndInit(id);
-      await teamBilling.cancel();
       return deletedTeam;
     });
-
-    if (deletedTeam?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
 
     return deletedTeam;
   }
 
-  // TODO: Move errors away from TRPC error to make it more generic
-  static async inviteMemberByToken(token: string, userId: number) {
-    const verificationToken = await prisma.verificationToken.findFirst({
-      where: {
-        token,
-        OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
-      },
-      include: {
-        team: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
-    if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
-
-    try {
-      await prisma.membership.create({
-        data: {
-          createdAt: new Date(),
-          teamId: verificationToken.teamId,
-          userId: userId,
-          role: MembershipRole.MEMBER,
-          accepted: false,
-        },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
-        }
-      } else throw e;
-    }
-
-    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
-    await teamBilling.updateQuantity();
-
-    return verificationToken.team.name;
-  }
-
-  static async publish(teamId: number) {
-    const teamBilling = await TeamBilling.findAndInit(teamId);
-    return teamBilling.publish();
-  }
-
-  static async removeMembers(teamIds: number[], memberIds: number[], isOrg = false) {
-    const deleteMembershipPromises = [];
-
-    for (const memberId of memberIds) {
-      for (const teamId of teamIds) {
-        deleteMembershipPromises.push(
-          // This removeMember function is from @calcom/features/ee/teams/lib/removeMember.ts we should probably move it to this repository.
-          removeMember({
-            teamId,
-            memberId,
-            isOrg,
-          })
-        );
-      }
-    }
-
-    await Promise.all(deleteMembershipPromises);
-
-    const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
-    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
-    await Promise.allSettled(teamBillingPromises);
-  }
-
-  static async findTeamWithMembers(teamId: number) {
-    return await prisma.team.findUnique({
+  async findTeamWithMembers(teamId: number) {
+    return await this.prismaClient.team.findUnique({
       where: { id: teamId },
       select: {
         members: {
@@ -352,8 +279,8 @@ export class TeamRepository {
     });
   }
 
-  static async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
-    const memberships = await prisma.membership.findMany({
+  async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
+    const memberships = await this.prismaClient.membership.findMany({
       where: {
         // Show all the teams this user belongs to regardless of the team being part of the user's org or not
         // We don't want to restrict in the listing here. If we need to restrict a situation where a user is part of the org along with being part of a non-org team, we should do that instead of filtering out from here
@@ -394,14 +321,78 @@ export class TeamRepository {
       }));
   }
 
-  static async findTeamWithOrganizationSettings(teamId: number) {
-    return await prisma.team.findUnique({
+  async findTeamWithOrganizationSettings(teamId: number) {
+    return await this.prismaClient.team.findUnique({
       where: { id: teamId },
       select: {
         parent: {
           select: {
             isOrganization: true,
             organizationSettings: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findParentOrganizationByTeamId(teamId: number) {
+    const team = await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        parent: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    return team?.parent;
+  }
+
+  async findOrganizationSettingsBySlug({ slug }: { slug: string }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        isOrganization: true,
+      },
+      select: {
+        organizationSettings: {
+          select: {
+            adminGetsNoSlotsNotification: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findTeamSlugById({ id }: { id: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        slug: true,
+      },
+    });
+  }
+
+  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        metadata: true,
+        members: {
+          where: {
+            userId,
+            role: {
+              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            },
           },
         },
       },

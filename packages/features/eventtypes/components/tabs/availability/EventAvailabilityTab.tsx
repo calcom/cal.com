@@ -35,7 +35,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
 type AvailabilityTableCustomClassNames = {
   tableContainer?: string;
@@ -259,9 +259,9 @@ const EventTypeScheduleDetails = memo(
             })}
           </ol>
         </div>
-        <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
+        <div className="bg-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
-            <span className="text-default flex items-center justify-center text-sm sm:justify-start">
+            <span className="text-default flex items-center justify-center text-center text-sm sm:justify-start">
               <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
@@ -666,7 +666,7 @@ const TeamMemberSchedule = ({
         {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
         <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
       </div>
-      <div className="flex w-full flex-col pt-2 ">
+      <div className="flex w-full flex-col pt-2">
         {isPending ? (
           <Spinner className="mt-2 h-6 w-6" />
         ) : (
@@ -851,7 +851,7 @@ const UseTeamEventScheduleSettingsToggle = ({
             checked={restrictScheduleForHosts}
             onCheckedChange={toggleRestrictScheduleState}
             title={t("choose_restriction_schedule")}
-            description={t("choose_restriction_schedule_description")}>
+            description={t("restriction_schedule_description")}>
             <EventTypeSchedule
               customClassNames={customClassNames?.userAvailability}
               eventType={eventType}

@@ -1,5 +1,6 @@
 import "@calcom/lib/__mocks__/logger";
 
+import { createHash } from "crypto";
 import type { GetServerSidePropsContext } from "next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,15 +13,23 @@ import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substit
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 
 // Mock dependencies
+vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
-vi.mock("@calcom/lib/server/repository/routingForm");
-vi.mock("@calcom/lib/server/repository/user");
+vi.mock("@calcom/lib/server/repository/PrismaRoutingFormRepository");
+vi.mock("@calcom/lib/server/repository/user", () => {
+  return {
+    UserRepository: vi.fn().mockImplementation(() => ({
+      enrichUserWithItsProfile: vi.fn(),
+    })),
+  };
+});
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
 vi.mock("@calcom/features/routing-forms/lib/isAuthorizedToViewForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
@@ -74,9 +83,19 @@ describe("getRoutedUrl", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     // Provide default mock implementations
-    vi.mocked(orgDomainConfig).mockReturnValue({ currentOrgDomain: null });
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
-    vi.mocked(UserRepository.enrichUserWithItsProfile).mockImplementation(async ({ user }) => user);
+    vi.mocked(orgDomainConfig).mockReturnValue({ currentOrgDomain: null, isValidOrgDomain: false });
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
+
+    const mockEnrichUserWithItsProfile = vi.fn().mockImplementation(async ({ user }) => user);
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+          } as any)
+      );
+    }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
     vi.mocked(findMatchingRoute).mockReturnValue(null);
@@ -110,15 +129,18 @@ describe("getRoutedUrl", () => {
   });
 
   it("should return notFound if form is not found", async () => {
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
     const context = mockContext({});
+
     const result = await getRoutedUrl(context);
     expect(result).toEqual({ notFound: true });
-    expect(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).toHaveBeenCalledWith("form-id");
+    expect(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).toHaveBeenCalledWith("form-id");
   });
 
   it("should return notFound if user is not authorized", async () => {
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(mockForm as never);
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+      mockForm as never
+    );
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(false);
 
     const context = mockContext({});
@@ -133,7 +155,9 @@ describe("getRoutedUrl", () => {
   });
 
   it("should throw an error if no matching route is found", async () => {
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(mockForm as never);
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+      mockForm as never
+    );
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
     vi.mocked(findMatchingRoute).mockReturnValue(null);
 
@@ -147,7 +171,9 @@ describe("getRoutedUrl", () => {
   });
 
   it("should return props with a message for customPageMessage action", async () => {
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(mockForm as never);
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+      mockForm as never
+    );
     const message = "This is a custom message";
     const mockRoute = { id: "route1", action: { type: "customPageMessage", value: message } };
     vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
@@ -176,7 +202,9 @@ describe("getRoutedUrl", () => {
   });
 
   it("should return a redirect for eventTypeRedirectUrl action and substitute variables", async () => {
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(mockForm as never);
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+      mockForm as never
+    );
     const redirectUrl = "test-user/30min/{email}";
     const mockRoute = { id: "route1", action: { type: "eventTypeRedirectUrl", value: redirectUrl } };
     vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
@@ -213,7 +241,9 @@ describe("getRoutedUrl", () => {
   });
 
   it("should return a redirect for externalRedirectUrl action", async () => {
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(mockForm as never);
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+      mockForm as never
+    );
     const redirectUrl = "https://example.com";
     const mockRoute = { id: "route1", action: { type: "externalRedirectUrl", value: redirectUrl } };
     vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
@@ -239,7 +269,9 @@ describe("getRoutedUrl", () => {
   });
 
   it("should call handleResponse with correct response prop obtained from getResponseToStore", async () => {
-    vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(mockForm as never);
+    vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+      mockForm as never
+    );
     const redirectUrl = "test-user/30min";
     const mockRoute = { id: "route1", action: { type: "eventTypeRedirectUrl", value: redirectUrl } };
     vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
@@ -259,9 +291,24 @@ describe("getRoutedUrl", () => {
     );
   });
 
+  it("should throw an error if rate limit is exceeded", async () => {
+    vi.mocked(checkRateLimitAndThrowError).mockRejectedValue(new Error("Rate limit exceeded"));
+    const context = mockContext({ email: "test@cal.com" });
+    const expectedHash = createHash("sha256")
+      .update(JSON.stringify({ email: "test@cal.com" }))
+      .digest("hex");
+
+    await expect(getRoutedUrl(context)).rejects.toThrow("Rate limit exceeded");
+    expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
+      identifier: `form:form-id:hash:${expectedHash}`,
+    });
+  });
+
   describe("Dry Run", () => {
     it("should call handleResponse with isPreview:true", async () => {
-      vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(mockForm as never);
+      vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+        mockForm as never
+      );
       const redirectUrl = "test-user/30min";
       const mockRoute = { id: "route1", action: { type: "eventTypeRedirectUrl", value: redirectUrl } };
       vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);

@@ -1,3 +1,4 @@
+import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from "@nestjs/common";
 import { Request } from "express";
@@ -16,6 +17,7 @@ export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
     const statusCode = exception.getStatus();
     const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
     response.setHeader("X-Request-Id", requestId.toString());
+    const userContext = extractUserContext(request);
     this.logger.error(`Http Exception Filter: ${exception?.message}`, {
       exception,
       body: request.body,
@@ -23,6 +25,7 @@ export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
       url: request.url,
       method: request.method,
       requestId,
+      ...userContext,
     });
 
     response.status(statusCode).json({
