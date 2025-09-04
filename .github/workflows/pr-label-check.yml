@@ -1,0 +1,35 @@
+name: PR Label Check
+on:
+  pull_request_target:
+    types: [labeled]
+    branches:
+      - main
+      - gh-actions-test-branch
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-ready-for-e2e:
+    if: ${{ github.event.label.name == 'ready-for-e2e' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Save PR context
+        run: |
+          printf '{
+            "pr_number": ${{ github.event.pull_request.number }},
+            "pr_sha": "${{ github.event.pull_request.head.sha }}",
+            "action": "${{ github.event.action }}",
+            "label_name": "${{ github.event.label.name }}"
+          }' >> pr-context.json
+      
+      - name: Upload PR context
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-context
+          path: pr-context.json
