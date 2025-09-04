@@ -56,6 +56,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   timeFormat: 12,
   travelSchedules: [],
   locked: false,
+  isPlatformManaged: false,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -93,6 +94,7 @@ const commons = {
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
   hideOrganizerEmail: false,
+  showOptimizedSlots: false,
   id: 0,
   hideCalendarNotes: false,
   hideCalendarEventDetails: false,
@@ -145,6 +147,8 @@ const commons = {
   instantMeetingScheduleId: null,
   instantMeetingParameters: [],
   eventTypeColor: null,
+  hostGroups: [],
+  bookingRequiresAuthentication: false,
 };
 
 export const dynamicEvent = {

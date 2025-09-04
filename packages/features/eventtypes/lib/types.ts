@@ -30,6 +30,7 @@ export type Host = {
   priority: number;
   weight: number;
   scheduleId?: number | null;
+  groupId: string | null;
 };
 export type TeamMember = {
   value: string;
@@ -51,6 +52,7 @@ type EventLocation = {
   hostDefault?: string;
   credentialId?: number;
   teamName?: string;
+  customLabel?: string;
 };
 
 type PhoneCallConfig = {
@@ -144,8 +146,13 @@ export type FormValues = {
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
+  showOptimizedSlots: boolean;
   children: ChildrenEventType[];
   hosts: Host[];
+  hostGroups: {
+    id: string;
+    name: string;
+  }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
@@ -163,15 +170,7 @@ export type FormValues = {
   restrictionScheduleId: number | null;
   useBookerTimezone: boolean;
   restrictionScheduleName: string | null;
-  calVideoSettings?: {
-    disableRecordingForOrganizer?: boolean;
-    disableRecordingForGuests?: boolean;
-    enableAutomaticTranscription?: boolean;
-    enableAutomaticRecordingForOrganizer?: boolean;
-    disableTranscriptionForGuests?: boolean;
-    disableTranscriptionForOrganizer?: boolean;
-    redirectUrlOnExit?: string;
-  };
+  calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
 };
 
@@ -236,5 +235,15 @@ export type FormValidationResult = {
 
 export interface EventTypePlatformWrapperRef {
   validateForm: () => Promise<FormValidationResult>;
-  handleFormSubmit: () => void;
+  handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
+}
+
+export interface CalVideoSettings {
+  disableRecordingForOrganizer?: boolean;
+  disableRecordingForGuests?: boolean;
+  enableAutomaticTranscription?: boolean;
+  enableAutomaticRecordingForOrganizer?: boolean;
+  disableTranscriptionForGuests?: boolean;
+  disableTranscriptionForOrganizer?: boolean;
+  redirectUrlOnExit?: string;
 }

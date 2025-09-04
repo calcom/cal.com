@@ -25,6 +25,7 @@ export type Host = {
   priority: number;
   weight: number;
   scheduleId?: number | null;
+  groupId: string | null;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;

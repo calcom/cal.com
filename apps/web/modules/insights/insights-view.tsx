@@ -7,6 +7,7 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -18,11 +19,13 @@ import {
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
   MostCancelledBookingsTables,
+  MostCompletedTeamMembersTable,
+  LeastCompletedTeamMembersTable,
   PopularEventsTable,
+  RecentNoShowGuestsChart,
   RecentFeedbackTable,
   TimezoneBadge,
 } from "@calcom/features/insights/components/booking";
-import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
@@ -32,7 +35,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider timeZone={timeZone}>
+    <DataTableProvider useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
@@ -82,22 +85,31 @@ function InsightsPageContent() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-          <div className="sm:col-span-2">
-            <PopularEventsTable />
-          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
+          <MostCompletedTeamMembersTable />
+          <LeastCompletedTeamMembersTable />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
           <HighestNoShowHostTable />
+          <div className="sm:col-span-2">
+            <RecentNoShowGuestsChart />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
             <RecentFeedbackTable />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
           </div>
         </div>
 

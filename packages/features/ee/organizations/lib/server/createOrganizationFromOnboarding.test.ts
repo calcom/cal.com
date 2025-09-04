@@ -43,6 +43,17 @@ vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
 
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    },
+  };
+});
+
 const mockOrganizationOnboarding = {
   name: "Test Org",
   slug: "test-org",
@@ -344,6 +355,34 @@ describe("createOrganizationFromOnboarding", () => {
             teamNames: [],
             moveTeams: expect.arrayContaining([expect.objectContaining({ id: 1, newSlug: "sales-team" })]),
           }),
+        })
+      );
+    });
+
+    it("should invite members with isDirectUserAction set to false", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          username: "org-owner",
+          email: "owner@example.com",
+        },
+      });
+
+      // Call createOrganizationFromOnboarding
+      const result = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "sub_123",
+        paymentSubscriptionItemId: "si_123",
+      });
+
+      // Verify inviteMembersWithNoInviterPermissionCheck was called with isDirectUserAction: false
+      expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teamId: result.organization.id,
+          invitations: [
+            { usernameOrEmail: "member1@example.com", role: MembershipRole.MEMBER },
+            { usernameOrEmail: "member2@example.com", role: MembershipRole.MEMBER },
+          ],
+          isDirectUserAction: false,
         })
       );
     });

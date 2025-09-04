@@ -10,6 +10,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
@@ -86,6 +87,7 @@ async function updateBookingLocationInDb({
   evt: Ensure<CalendarEvent, "location">;
   references: PartialReference[];
 }) {
+  const isSeatedEvent = !!evt.seatsPerTimeSlot;
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
@@ -96,27 +98,26 @@ async function updateBookingLocationInDb({
       ...(credentialId && credentialId > 0 ? { credentialId } : {}),
     };
   });
-
-  await prisma.booking.update({
-    where: {
-      id: booking.id,
+  const responses = {
+    ...(typeof booking.responses === "object" && booking.responses),
+    location: {
+      value: evt.location,
+      optionValue: "",
     },
+  };
+
+  const bookingRepository = new BookingRepository(prisma);
+  await bookingRepository.updateLocationById({
+    where: { id: booking.id },
     data: {
       location: evt.location,
       metadata: {
         ...(typeof booking.metadata === "object" && booking.metadata),
         ...bookingMetadataUpdate,
       },
-      references: {
-        create: referencesToCreate,
-      },
-      responses: {
-        ...(typeof booking.responses === "object" && booking.responses),
-        location: {
-          value: evt.location,
-          optionValue: "",
-        },
-      },
+      referencesToCreate,
+      ...(!isSeatedEvent ? { responses } : {}),
+      iCalSequence: (evt.iCalSequence || 0) + 1,
     },
   });
 }
