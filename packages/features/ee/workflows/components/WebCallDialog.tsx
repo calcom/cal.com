@@ -300,10 +300,7 @@ export function WebCallDialog({
       stopDurationTimer();
       if (retellWebClientRef.current && callStatus === "active") {
         try {
-          const result = retellWebClientRef.current.stopCall();
-          if (result && typeof result === "object" && "catch" in result) {
-            result.catch(console.error);
-          }
+          retellWebClientRef.current.stopCall();
         } catch (error) {
           console.error("Error stopping call during cleanup:", error);
         }

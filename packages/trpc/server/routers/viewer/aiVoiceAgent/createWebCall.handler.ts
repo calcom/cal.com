@@ -28,7 +28,7 @@ export const createWebCallHandler = async ({ ctx, input }: CreateWebCallHandlerO
   if (!agent?.providerAgentId) {
     logger.error(`Agent not found or access denied for agentId ${input.agentId}, userId ${ctx.user.id}`);
     throw new TRPCError({
-      code: "UNAUTHORIZED",
+      code: "FORBIDDEN",
       message: "Agent not found or you don't have permission to access this agent",
     });
   }
