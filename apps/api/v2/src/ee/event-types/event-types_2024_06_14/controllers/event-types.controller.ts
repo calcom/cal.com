@@ -21,6 +21,7 @@ import {
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -124,6 +125,7 @@ export class EventTypesController_2024_06_14 {
     description:
       "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.",
   })
+  @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
   @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
