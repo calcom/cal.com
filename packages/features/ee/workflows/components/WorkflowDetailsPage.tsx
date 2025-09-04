@@ -13,12 +13,19 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isCalAIAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
+
+interface WorkflowPermissions {
+  canView: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  readOnly: boolean; // Keep for backward compatibility
+}
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -30,12 +37,35 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  permissions?: WorkflowPermissions;
+  onSaveWorkflow?: () => Promise<void>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
+  const {
+    form,
+    workflowId,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+    permissions: _permissions,
+  } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const hasCalAIAction = () => {
+    const steps = form.getValues("steps") || [];
+    return steps.some((step) => isCalAIAction(step.action));
+  };
+
+  const permissions = _permissions || {
+    canView: !teamId ? true : !props.readOnly,
+    canUpdate: !teamId ? true : !props.readOnly,
+    canDelete: !teamId ? true : !props.readOnly,
+    readOnly: !teamId ? false : props.readOnly,
+  };
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
 
@@ -89,6 +119,7 @@ export default function WorkflowDetailsPage(props: Props) {
       numberVerificationPending: false,
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
+      agentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);

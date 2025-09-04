@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
@@ -74,6 +75,9 @@ export const NavigationItem: React.FC<{
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
 
+  const isTablet = useMediaQuery("(max-width: 1024px)");
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+
   if (!shouldDisplayNavigationItem) return null;
 
   const hasChildren = item.child && item.child.length > 0;
@@ -86,13 +90,55 @@ export const NavigationItem: React.FC<{
   return (
     <Fragment>
       {isParentNavigationItem ? (
-        <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+        <Tooltip
+          side="right"
+          open={isTooltipOpen}
+          content={
+            hasChildren ? (
+              <div className="pointer-events-auto flex flex-col space-y-1 p-1">
+                <span className="text-subtle px-2 text-xs font-semibold uppercase tracking-wide">
+                  {t(item.name)}
+                </span>
+                <div className="flex flex-col">
+                  {item.child?.map((childItem) => {
+                    const childIsCurrent =
+                      typeof childItem.isCurrent === "function"
+                        ? childItem.isCurrent({ isChild: true, item: childItem, pathname })
+                        : defaultIsCurrent({ isChild: true, item: childItem, pathname });
+                    return (
+                      <Link
+                        key={childItem.name}
+                        href={childItem.href}
+                        aria-current={childIsCurrent ? "page" : undefined}
+                        onClick={() => setIsTooltipOpen(false)}
+                        className={classNames(
+                          "group relative block rounded-md px-3 py-1 text-sm font-medium",
+                          childIsCurrent
+                            ? "bg-emphasis text-white"
+                            : "hover:bg-emphasis text-mute hover:text-emphasis"
+                        )}>
+                        {t(childItem.name)}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              t(item.name)
+            )
+          }
+          className="lg:hidden">
           <button
             data-test-id={item.name}
             aria-label={t(item.name)}
             aria-expanded={isExpanded}
             aria-current={current ? "page" : undefined}
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+              if (isTablet && hasChildren) {
+                setIsTooltipOpen(!isTooltipOpen);
+              }
+            }}
             className={classNames(
               "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               "[&[aria-current='page']]:!bg-transparent",

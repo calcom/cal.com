@@ -7,8 +7,8 @@ import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/check
 import {
   DEFAULT_PROMPT_VALUE,
   DEFAULT_BEGIN_MESSAGE,
-} from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+} from "@calcom/features/calAIPhone/promptTemplates";
+import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
   FormValues,
@@ -59,6 +59,7 @@ export const useEventTypeForm = ({
       seatsShowAttendees: eventType.seatsShowAttendees,
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
       lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
+      lockedTimeZone: eventType.lockedTimeZone || null,
       locations: eventType.locations || [],
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
@@ -100,6 +101,7 @@ export const useEventTypeForm = ({
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
+      hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
@@ -143,6 +145,7 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
+      showOptimizedSlots: eventType.showOptimizedSlots ?? false,
     };
   }, [eventType, periodDates]);
 
@@ -329,8 +332,9 @@ export const useEventTypeForm = ({
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
-    const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? values.seatsPerTimeSlot;
-    const finalRecurringEvent = recurringEvent ?? values.recurringEvent;
+    const finalSeatsPerTimeSlot =
+      seatsPerTimeSlot === undefined ? eventType.seatsPerTimeSlot : seatsPerTimeSlot;
+    const finalRecurringEvent = recurringEvent === undefined ? eventType.recurringEvent : recurringEvent;
 
     if (finalSeatsPerTimeSlot && finalRecurringEvent) {
       throw new Error(t("recurring_event_seats_error"));
