@@ -36,6 +36,14 @@ export type ScheduleLabelsType = {
   deleteTime: string;
 };
 
+export type SelectInnerClassNames = {
+  control?: string;
+  singleValue?: string;
+  valueContainer?: string;
+  input?: string;
+  menu?: string;
+};
+
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
   [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
 }[FieldPath<TFieldValues>];
@@ -105,6 +113,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               classNames={{
                 dayRanges: classNames?.dayRanges,
                 timeRangeField: classNames?.timeRangeField,
+                timePicker: classNames?.timePicker,
               }}
             />
             {!disabled && <div className="block">{CopyButton}</div>}
@@ -237,7 +246,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
-  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField">;
+  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField" | "timePicker">;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -260,6 +269,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 <TimeRangeField
                   className={classNames?.timeRangeField}
                   userTimeFormat={userTimeFormat}
+                  timePickerClassNames={classNames?.timePicker}
                   {...field}
                 />
               )}
@@ -335,11 +345,27 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
+  timePickerClassNames,
 }: {
   className?: string;
   disabled?: boolean;
   userTimeFormat: number | null;
+  timePickerClassNames?: {
+    container?: string;
+    value?: string;
+    valueContainer?: string;
+    input?: string;
+    dropdown?: string;
+  };
 } & ControllerRenderProps) => {
+  const innerClassNames: SelectInnerClassNames = {
+    control: timePickerClassNames?.container,
+    singleValue: timePickerClassNames?.value,
+    valueContainer: timePickerClassNames?.valueContainer,
+    input: timePickerClassNames?.input,
+    menu: timePickerClassNames?.dropdown,
+  };
+
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
     <div className={cn("flex flex-row gap-2 sm:gap-3", className)}>
@@ -349,6 +375,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.start}
         menuPlacement="bottom"
+        innerClassNames={innerClassNames}
         onChange={(option) => {
           const newStart = new Date(option?.value as number);
           if (newStart >= new Date(value.end)) {
@@ -367,6 +394,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.end}
         min={value.start}
+        innerClassNames={innerClassNames}
         menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
@@ -388,6 +416,7 @@ const LazySelect = ({
   min?: ConfigType;
   max?: ConfigType;
   userTimeFormat: number | null;
+  innerClassNames?: SelectInnerClassNames;
 }) => {
   // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
   const { options, filter } = useOptions(userTimeFormat);

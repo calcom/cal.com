@@ -15,7 +15,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
-import { SchedulingType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -1429,6 +1429,7 @@ export default function RouteBuilder({
   form,
   appUrl,
   enrichedWithUserProfileForm,
+  permissions,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <>
@@ -1436,6 +1437,7 @@ export default function RouteBuilder({
         form={form}
         appUrl={appUrl}
         enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+        permissions={permissions}
         Page={Page}
       />
       <Toaster position="bottom-right" />

@@ -5,7 +5,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -38,7 +38,6 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
@@ -65,6 +64,7 @@ import {
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 
 type BookingRequest = Request & {
   userId?: number;
@@ -386,7 +386,7 @@ export class BookingsController_2024_04_15 {
       if (bearerToken) {
         if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
           const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const apiKeyHash = sha256Hash(strippedApiKey);
           const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
           return keyData?.userId;
         } else {

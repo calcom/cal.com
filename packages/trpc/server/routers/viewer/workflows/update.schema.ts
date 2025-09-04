@@ -25,6 +25,7 @@ export const ZUpdateInputSchema = z.object({
       sender: z.string().nullable(),
       senderName: z.string().nullable(),
       includeCalendarEvent: z.boolean(),
+      agentId: z.string().nullish(),
     })
     .array(),
   trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),

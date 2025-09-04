@@ -13,6 +13,7 @@ import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { validateBase64Image } from "@calcom/lib/server/imageValidation";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
@@ -40,7 +41,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const { travelSchedules, ...rest } = input;
@@ -151,17 +152,26 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
   }
 
-  // if defined AND a base 64 string, upload and update the avatar URL
-  if (
-    input.avatarUrl &&
-    (input.avatarUrl.startsWith("data:image/png;base64,") ||
-      input.avatarUrl.startsWith("data:image/jpeg;base64,") ||
-      input.avatarUrl.startsWith("data:image/jpg;base64,"))
-  ) {
-    data.avatarUrl = await uploadAvatar({
-      avatar: await resizeBase64Image(input.avatarUrl),
-      userId: user.id,
-    });
+  if (input.avatarUrl) {
+    const validation = validateBase64Image(input.avatarUrl);
+    if (!validation.isValid) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Invalid avatar image: ${validation.error}`,
+      });
+    }
+
+    try {
+      data.avatarUrl = await uploadAvatar({
+        avatar: await resizeBase64Image(input.avatarUrl),
+        userId: user.id,
+      });
+    } catch (error) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: error instanceof Error ? error.message : "Failed to upload avatar",
+      });
+    }
   }
 
   if (input.completedOnboarding) {
