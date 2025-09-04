@@ -72,7 +72,9 @@ describe("POST /api/selected-calendars", () => {
 
       prismaMock.user.findFirstOrThrow.mockResolvedValue({
         id: 444444,
-      } as any);
+      } as {
+        id: number;
+      });
 
       prismaMock.selectedCalendar.create.mockResolvedValue({
         credentialId: 1,
@@ -95,6 +97,14 @@ describe("POST /api/selected-calendars", () => {
         unwatchAttempts: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
+        channelId: null,
+        channelKind: null,
+        channelResourceId: null,
+        channelResourceUri: null,
+        channelExpiration: null,
+        syncEnabled: null,
+        cacheEnabled: null,
+        syncCursor: null,
       });
 
       await handler(req, res);
@@ -140,6 +150,14 @@ describe("POST /api/selected-calendars", () => {
         unwatchAttempts: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
+        channelId: null,
+        channelKind: null,
+        channelResourceId: null,
+        channelResourceUri: null,
+        channelExpiration: null,
+        syncEnabled: null,
+        cacheEnabled: null,
+        syncCursor: null,
       });
 
       await handler(req, res);

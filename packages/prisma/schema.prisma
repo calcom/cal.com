@@ -897,15 +897,10 @@ model SelectedCalendar {
   credentialId             Int?
   createdAt                DateTime?   @default(now())
   updatedAt                DateTime?   @updatedAt
-  // @deprecated use channelId instead
   googleChannelId          String?
-  // @deprecated use channelKind instead
   googleChannelKind        String?
-  // @deprecated use channelResourceId instead
   googleChannelResourceId  String?
-  // @deprecated use channelResourceUri instead
   googleChannelResourceUri String?
-  // @deprecated use channelExpiration instead
   googleChannelExpiration  String?
 
   // Used to identify a watched calendar
