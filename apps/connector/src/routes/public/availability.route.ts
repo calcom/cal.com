@@ -130,6 +130,4 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
 
     return ResponseFormatter.success(reply, data, 'Availability updated');
   })
-
-
 }
