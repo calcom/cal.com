@@ -102,6 +102,10 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
           data: guestsFullDetails,
         },
       },
+      responses: {
+        ...booking.responses,
+        guests: [...(booking.responses?.guests || []), ...uniqueGuests],
+      },
     },
   });
 
