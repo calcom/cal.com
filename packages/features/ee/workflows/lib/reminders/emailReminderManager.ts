@@ -18,10 +18,10 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
+import type { FormSubmissionData } from "./reminderScheduler";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -49,14 +49,7 @@ export type ScheduleReminderArgs = {
   | { evt: BookingInfo; formData?: never }
   | {
       evt?: never;
-      formData: {
-        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-        user: {
-          email: string;
-          timeFormat: number | null;
-          locale: string;
-        };
-      };
+      formData: FormSubmissionData;
     }
 );
 
@@ -84,9 +77,6 @@ type SendEmailReminderParams = {
   uid?: string;
   workflowStepId?: number;
   seatReferenceUid?: string;
-  isMandatoryReminder?: boolean;
-  userId?: number | null;
-  teamId?: number | null;
 };
 
 const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminderParams) => {
@@ -143,7 +133,6 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
-    verifiedAt,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -350,22 +339,12 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     uid,
     workflowStepId,
     seatReferenceUid,
-    isMandatoryReminder,
-    userId,
-    teamId,
   });
 };
 
 const scheduleEmailReminderForForm = async (
   args: scheduleEmailReminderArgs & {
-    formData: {
-      responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-      user: {
-        email: string;
-        timeFormat: number | null;
-        locale: string;
-      };
-    };
+    formData: FormSubmissionData;
   }
 ) => {
   const {
@@ -377,8 +356,6 @@ const scheduleEmailReminderForForm = async (
     emailSubject = "",
     emailBody = "",
     hideBranding,
-    userId,
-    teamId,
   } = args;
 
   const emailContent = {
@@ -414,8 +391,7 @@ const scheduleEmailReminderForForm = async (
     sendTo,
     triggerEvent,
     workflowStepId,
-    userId,
-    teamId,
+    scheduledDate: null, //FORM_SUBMITTED_NO_EVENT is scheduled via tasker; this function runs only when it should trigger
   });
 };
 

@@ -60,7 +60,7 @@ export function getSubmitterEmail(responses: any) {
 /**
  * Check for duplicate form submissions within the last 60 minutes
  */
-async function hasDuplicateSubmission(formId: string, responses: any, responseId?: number): Promise<boolean> {
+async function hasDuplicateSubmission(formId: string, responses: any, responseId: number): Promise<boolean> {
   const submitterEmail = getSubmitterEmail(responses);
 
   if (!submitterEmail) return false;
@@ -77,7 +77,9 @@ async function hasDuplicateSubmission(formId: string, responses: any, responseId
       routedToBookingUid: {
         not: null,
       },
-      ...(responseId && { NOT: { id: responseId } }),
+      NOT: {
+        id: responseId,
+      },
     },
   });
 

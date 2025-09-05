@@ -137,9 +137,9 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
 
   const isNumberVerified = await getIsNumberVerified();
 
-  if (!reminderPhone || !isNumberVerified) {
-    log.warn(`No phone number or not verified`, safeStringify({ reminderPhone, isNumberVerified }));
-    return; // Early return if no valid phone
+  if (!isNumberVerified) {
+    log.warn(`Phone number not verified`, safeStringify({ reminderPhone, isNumberVerified }));
+    return;
   }
 
   if (params.evt) {
@@ -214,11 +214,11 @@ const scheduleSMSReminderForEvt = async (
     }
 
     if (smsMessage.length > 0) {
-      const smsMessageWithoutOptOut = smsMessage;
+      const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
+        smsMessage,
+        evt.organizer.language.locale
+      );
 
-      if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
-        smsMessage = await WorkflowOptOutService.addOptOutMessage(smsMessage, evt.organizer.language.locale);
-      }
       // Allows debugging generated email content without waiting for sendgrid to send emails
       log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
@@ -317,14 +317,14 @@ const scheduleSMSReminderForForm = async (
 ) => {
   const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData } = args;
 
-  let smsMessage = message;
+  const smsMessage = message;
 
   if (smsMessage.length > 0) {
-    const smsMessageWithoutOptOut = smsMessage;
+    const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
+      smsMessage,
+      formData.user.locale
+    );
 
-    if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
-      smsMessage = await WorkflowOptOutService.addOptOutMessage(smsMessage, formData.user.locale);
-    }
     // Allows debugging generated email content without waiting for sendgrid to send emails
     log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 

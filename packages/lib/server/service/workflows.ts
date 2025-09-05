@@ -117,7 +117,6 @@ export class WorkflowService {
       }
     }
 
-    // Get hideBranding using the new function
     const hideBranding = await getHideBranding({
       userId: form.userId,
       teamId: form.teamId ?? undefined,
@@ -139,11 +138,10 @@ export class WorkflowService {
       ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT)
     );
 
-    //create tasker here
     const promisesFormSubmittedNoEvent = workflowsToSchedule.map((workflow) => {
       const timeUnit: timeUnitLowerCase = (workflow.timeUnit?.toLowerCase() as timeUnitLowerCase) ?? "minute";
 
-      const scheduledAt = dayjs() //todo: remove dayjs
+      const scheduledAt = dayjs()
         .add(workflow.time ?? 15, timeUnit)
         .toDate();
 

@@ -27,7 +27,6 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -43,8 +42,6 @@ import type { CalEventResponses } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
 
 import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
-
-const log = logger.getSubLogger({ prefix: ["workflow"] });
 
 export const bookingSelect = {
   userPrimaryEmail: true,
@@ -537,27 +534,21 @@ export async function isAuthorizedToAddActiveOnIds({
       },
     });
 
-    if (routingForm) {
-      // User owns the form directly
-      if (routingForm.userId === userId) {
-        continue;
-      }
+    if (!routingForm) return false;
 
-      // Form belongs to a team that the user is a member of
-      if (routingForm.teamId && routingForm.team) {
-        const isTeamMember = routingForm.team.members.some(
-          (member) => member.userId === userId && member.accepted
-        );
-        if (isTeamMember) {
-          continue;
-        }
-      }
+    // User owns the form directly
+    if (routingForm.userId === userId) {
+      return true;
+    }
 
-      // If we reach here, user doesn't have access to this routing form
-      return false;
-    } else {
-      // Routing form not found
-      return false;
+    // Form belongs to a team that the user is a member of
+    if (routingForm.teamId && routingForm.team) {
+      const isTeamMember = routingForm.team.members.some(
+        (member) => member.userId === userId && member.accepted
+      );
+      if (isTeamMember) {
+        return true;
+      }
     }
   }
 
@@ -1015,7 +1006,6 @@ export async function getAllWorkflowsFromRoutingForm(routingForm: {
   userId: number | null;
   teamId: number | null;
 }) {
-  // Get routing form workflows from WorkflowsOnRoutingForms relation
   const routingFormWorkflows = await prisma.workflow.findMany({
     where: {
       activeOnRoutingForms: {
@@ -1046,8 +1036,6 @@ export async function getAllWorkflowsFromRoutingForm(routingForm: {
   const teamId = routingForm.teamId;
   const userId = routingForm.userId;
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
-  // Convert to the WorkflowType format expected by getAllWorkflows
 
   const allWorkflows = await getAllWorkflows(
     routingFormWorkflows,

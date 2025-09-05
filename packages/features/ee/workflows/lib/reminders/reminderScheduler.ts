@@ -24,6 +24,15 @@ import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
+export type FormSubmissionData = {
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  user: {
+    email: string;
+    timeFormat: number | null;
+    locale: string;
+  };
+};
+
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: {
@@ -40,14 +49,7 @@ type ProcessWorkflowStepParams = (
   | { calendarEvent: ExtendedCalendarEvent; formData?: never }
   | {
       calendarEvent?: never;
-      formData: {
-        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-        user: {
-          email: string;
-          timeFormat: number | null;
-          locale: string;
-        };
-      };
+      formData: FormSubmissionData;
     }
 ) & {
   smsReminderNumber: string | null;
@@ -95,7 +97,7 @@ const processWorkflowStep = async (
     teamId: workflow.teamId,
     seatReferenceUid,
     verifiedAt: step.verifiedAt,
-  } as const;
+  };
 
   if (isSMSAction(step.action)) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -132,7 +134,7 @@ const processWorkflowStep = async (
 
         const schedulingType = evt.eventType.schedulingType;
         const isTeamEvent =
-          schedulingType == SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
         if (isTeamEvent && evt.team?.members) {
           sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
@@ -208,6 +210,7 @@ const processWorkflowStep = async (
       return;
     }
     await scheduleAIPhoneCall({
+      evt,
       triggerEvent: workflow.trigger,
       timeSpan: {
         time: workflow.time,
@@ -218,7 +221,6 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       seatReferenceUid,
       verifiedAt: step.verifiedAt,
-      evt,
     });
   }
 };
@@ -240,15 +242,13 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     if (workflow.steps.length === 0) continue;
 
     for (const step of workflow.steps) {
-      const params = {
+      await processWorkflowStep(workflow, step, {
         emailAttendeeSendToOverride,
         smsReminderNumber,
         hideBranding,
         seatReferenceUid,
         ...(evt ? { calendarEvent: evt } : { formData }),
-      } as const;
-
-      await processWorkflowStep(workflow, step, params);
+      });
     }
   }
 };
