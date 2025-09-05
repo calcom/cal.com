@@ -69,10 +69,10 @@ export const handleNoShowFee = async ({
     throw new Error("User ID is required");
   }
 
-  const attendeesListPromises = [];
+  const attendee = booking.attendees[0];
 
-  for (const attendee of booking.attendees) {
-    const attendeeObject = {
+  const attendeesList = [
+    {
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
@@ -80,12 +80,8 @@ export const handleNoShowFee = async ({
         translate: await getTranslation(attendee.locale ?? "en", "common"),
         locale: attendee.locale ?? "en",
       },
-    };
-
-    attendeesListPromises.push(attendeeObject);
-  }
-
-  const attendeesList = await Promise.all(attendeesListPromises);
+    },
+  ];
 
   const evt: CalendarEvent = {
     type: (booking?.eventType?.title as string) || booking?.title,
