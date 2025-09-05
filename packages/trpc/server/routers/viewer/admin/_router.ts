@@ -6,6 +6,7 @@ import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
+import { teamsRouter } from "./teams/_router";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
@@ -18,7 +19,7 @@ import {
 
 const NAMESPACE = "admin";
 
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+const _namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
@@ -84,4 +85,5 @@ export const adminRouter = router({
       return handler(opts);
     }),
   }),
+  teams: teamsRouter,
 });
