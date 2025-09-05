@@ -2,29 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import type { ComponentProps } from "react";
 
-// Define proper types instead of 'any'
-interface Profile {
-  id: string;
-  name: string;
-}
+import type EventTypesListingView from "~/event-types/views/event-types-listing-view";
 
-interface EventType {
-  id: string;
-  title: string;
-}
-
-interface UserEventGroupsData {
-  profile: Profile;
-  eventTypes: EventType[];
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
+type EventTypesViewProps = ComponentProps<typeof EventTypesListingView>;
 // Dynamic imports for heavy components
 const EventTypes = dynamic(
   () => import("~/event-types/views/event-types-listing-view").then((mod) => mod.default),
@@ -48,9 +30,7 @@ const EventTypesCTA = dynamic(
   }
 );
 
-interface EventTypesClientProps {
-  userEventGroupsData: UserEventGroupsData[];
-  user: User;
+interface EventTypesClientProps extends Pick<EventTypesViewProps, "userEventGroupsData" | "user"> {
   _heading?: string;
   _subtitle?: string;
 }

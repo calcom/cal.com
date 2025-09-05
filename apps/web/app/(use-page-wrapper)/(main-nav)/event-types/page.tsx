@@ -68,8 +68,8 @@ const Page = async ({ searchParams }: PageProps) => {
       <EventTypesClient
         userEventGroupsData={userEventGroupsData}
         user={session.user}
-        heading={t("event_types_page_title")}
-        subtitle={t("event_types_page_subtitle")}
+        _heading={t("event_types_page_title")}
+        _subtitle={t("event_types_page_subtitle")}
       />
     </ShellMainAppDir>
   );

@@ -27,7 +27,7 @@ const BookingsList = dynamic(
 
 interface BookingsClientProps {
   status: BookingStatus;
-  userId?: string;
+  userId?: number;
 }
 
 export function BookingsClient({ status, userId }: BookingsClientProps) {
