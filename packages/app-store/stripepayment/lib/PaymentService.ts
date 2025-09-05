@@ -223,15 +223,6 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Stripe credentials not found");
       }
 
-      const stripeAppKeys = await prisma.app.findFirst({
-        select: {
-          keys: true,
-        },
-        where: {
-          slug: "stripe",
-        },
-      });
-
       const bookingRepository = new BookingRepository(prisma);
       const booking = await bookingRepository.findBookingById(bookingId);
 
@@ -375,8 +366,8 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    const attendeesToEmail = event.attendeeSeatId 
-      ? event.attendees.filter(attendee => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
+    const attendeesToEmail = event.attendeeSeatId
+      ? event.attendees.filter((attendee) => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
       : event.attendees;
 
     await sendAwaitingPaymentEmailAndSMS(
