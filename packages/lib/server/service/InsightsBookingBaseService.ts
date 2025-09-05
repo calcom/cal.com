@@ -659,9 +659,7 @@ export class InsightsBookingBaseService {
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
       GROUP BY
-        DATE("createdAt" AT TIME ZONE ${timeZone}),
-        "timeStatus",
-        "noShowHost"
+        1, 2, 3
     ),
     guest_stats AS (
       SELECT
@@ -673,9 +671,7 @@ export class InsightsBookingBaseService {
       INNER JOIN "Attendee" a ON a."bookingId" = b.id
       WHERE ${baseConditions}
       GROUP BY
-        DATE(b."createdAt" AT TIME ZONE ${timeZone}),
-        b."timeStatus",
-        b."noShowHost"
+        1, 2, 3
     )
     SELECT
       bs."date",
