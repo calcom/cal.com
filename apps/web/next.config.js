@@ -206,8 +206,9 @@ const nextConfig = (phase) => {
       webpackMemoryOptimizations: true,
       webpackBuildWorker: true,
       // Enable SWC minification for faster builds
-      swcMinify: true,
     },
+    swcMinify: true,
+
     // Disable source maps in development for faster builds
     productionBrowserSourceMaps: !isDev,
     /* We already do type check on GH actions */
@@ -246,11 +247,6 @@ const nextConfig = (phase) => {
       },
       lodash: {
         transform: "lodash/{{member}}",
-      },
-      // Add more Cal.com specific optimizations
-      "@calcom/ui": {
-        transform: "@calcom/ui/{{member}}",
-        preventFullImport: true,
       },
     },
     images: {
@@ -498,7 +494,7 @@ const nextConfig = (phase) => {
           ],
         },
         {
-          source: "/api/avatar/:path*",
+          source: "/api/user/avatar",
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
         {

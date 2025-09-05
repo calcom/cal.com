@@ -1,14 +1,22 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+// Create a lightweight session check instead of importing heavy auth libs
+async function checkSession() {
+  try {
+    const _cookies = await cookies();
+    const sessionCookie = _cookies.get("session") || _cookies.get("next-auth.session-token");
+    return !!sessionCookie?.value;
+  } catch {
+    return false;
+  }
+}
 
 const RedirectPage = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  // Simple check - if you need full session data, use the dynamic import version above
+  const hasSession = await checkSession();
 
-  if (!session?.user?.id) {
+  if (!hasSession) {
     redirect("/auth/login");
   }
   redirect("/event-types");

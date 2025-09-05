@@ -1,9 +1,9 @@
-// apps/web/app/(use-page-wrapper)/(main-nav)/event-types/page.tsx
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
+import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -13,8 +13,17 @@ import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-// Import the client component
-import { EventTypesClient } from "./EventTypesClient";
+// Dynamically import the components
+const EventTypes = dynamic(
+  () => import("~/event-types/views/event-types-listing-view").then((mod) => mod.default),
+  {
+    loading: () => <div>Loading event types...</div>,
+  }
+);
+
+const EventTypesCTA = dynamic(() =>
+  import("~/event-types/views/event-types-listing-view").then((mod) => mod.EventTypesCTA)
+);
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -63,14 +72,8 @@ const Page = async ({ searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={null} // We'll handle CTA in the client component
-    >
-      <EventTypesClient
-        userEventGroupsData={userEventGroupsData}
-        user={session.user}
-        _heading={t("event_types_page_title")}
-        _subtitle={t("event_types_page_subtitle")}
-      />
+      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
+      <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
     </ShellMainAppDir>
   );
 };
