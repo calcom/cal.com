@@ -1852,6 +1852,11 @@ checksums:
     require_additional_notes_description: 122b82a7aaa152c0699e515976722d23
     email_address_action: b2781c452a4f0a3f941d3219f4a6034f
     after_event_trigger: c6eee0242d7bf2049809c45c8f83f279
+    booking_rejected_trigger: be181cc910ed632534e2b6568bb7f2db
+    booking_requested_trigger: c5705df48595da5f8de0240d7fb93704
+    booking_payment_initiated_trigger: f3a9f131b7408c8af96ef68a48e071d9
+    booking_paid_trigger: 1b5dea0c7ee29445057f1013abec0a4c
+    booking_no_show_updated_trigger: 9f4554967f8c03d2cd45b9104ee2be7a
     how_long_after: 5869f7636010a4c0afd608b1f369dc49
     how_long_after_hosts_no_show: a1e521c09c91f3c4e016d9900965d3e6
     how_long_after_guests_no_show: 8e1774a854eb638dd78151d6ac314215
@@ -3573,6 +3578,14 @@ checksums:
     webhook_metadata: 695d4f7da261ba76e3be4de495491028
     stats: 5cf8b052c89fa1b05397a956ebec69b2
     booking_status: fe88452fca9d95db1fce15446f545aab
+    unsupported_file_type: 081413e5566bff167caff11f7a1584b6
+    only_image_files_allowed: f2ca528a5c825d23cb1795492012fd2f
+    failed_to_validate_image_file: fb0b149ef0e6c7ec40ec5fc92e9488d4
+    invalid_image_file_format: e379415061b2158591ff3ffa62476a75
+    svg_contains_dangerous_content: a3dd4954ee3d5b9c10da6347ff22daab
+    unrecognized_image_format: 920eee38f2ee187b325ed796eb349003
+    invalid_base64_format: 03a47e4d4eda2c943894bb0d69736ac4
+    empty_image_data: 5418faf33d0af19d1368b9d427da454a
     visit: 654d6dc335d93b0d9ac26f296bbf53cc
     location_custom_label_input_label: 944fd3bbb28cf884e36ba96ed2186c1c
     meeting_link: 892205c2e48aad28d01f62b8ef621560
