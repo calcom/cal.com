@@ -1,10 +1,7 @@
-import type { PaginationQuery } from "@/types";
-import { AvailabilityCreation } from "@/types/availability";
-import { NotFoundError } from "@/utils/error";
+import { AvailabilityCreation } from "@/schema/availability.schema";
 
-import { UserRepository as OldUserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma, User, UserPermissionRole } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 
 import { BaseRepository } from "./base.repository";
 
@@ -14,23 +11,37 @@ export class AvailabilityRepository extends BaseRepository<User> {
   }
 
   async create(body: AvailabilityCreation) {
-    const availability = await this.prisma.availability.create({
-      data: body,
-      include: { Schedule: { select: { userId: true } } },
-    });
+    try {
+      const availability = await this.prisma.availability.create({
+        data: body,
+        include: { Schedule: { select: { userId: true } } },
+      });
 
-    return availability
+      return availability;
+    } catch (error) {
+      this.handleDatabaseError(error, "create availability");
+    }
   }
 
   async delete(id: number) {
-    return await this.prisma.availability.delete({ where: { id } });
+    try {
+      return await this.prisma.availability.delete({ where: { id } });
+    } catch (error) {
+      this.handleDatabaseError(error, "delete availability");
+    }
   }
 
   async update(data: AvailabilityCreation, userId: number, availabilityId: number) {
-    return await this.prisma.availability.update({
-      where: { id: availabilityId },
-      data,
-      include: { Schedule: { select: { userId: true } } },
-    })
+    try {
+      const availability = await this.prisma.availability.update({
+        where: { id: availabilityId },
+        data,
+        include: { Schedule: { select: { userId: true } } },
+      });
+
+      return availability;
+    } catch (error) {
+      this.handleDatabaseError(error, "update availability");
+    }
   }
 }

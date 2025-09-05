@@ -15,16 +15,31 @@ export class AvailabilityService extends BaseService {
   }
 
   async create(body: AvailabilityCreation) {
-    const data = await this.availabilityRepository.create(body);
-    return data;
+    try {
+      const data = await this.availabilityRepository.create(body);
+      return data;
+    } catch (error) {
+      this.logError("create", error);
+      throw error;
+    }
   }
 
   async delete(id: number) {
-    return await this.availabilityRepository.delete(id);
+    try {
+      return await this.availabilityRepository.delete(id);
+    } catch (error) {
+      this.logError("delete", error);
+      throw error;
+    }
   }
 
   async update(body: AvailabilityCreation, userId: number, availabilityId: number) {
-    const data = await this.availabilityRepository.update(body, userId, availabilityId);
-    return data;
+    try {
+      const data = await this.availabilityRepository.update(body, userId, availabilityId);
+      return data;
+    } catch (error) {
+      this.logError("update", error);
+      throw error;
+    }
   }
 }

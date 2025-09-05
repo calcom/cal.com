@@ -2,7 +2,6 @@ import type { PaginationQuery } from "@/types";
 import { DatabaseError } from "@/utils/error";
 
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 
 export abstract class BaseRepository<T extends { id: number | string }> {
   constructor(protected prisma: PrismaClient) {}

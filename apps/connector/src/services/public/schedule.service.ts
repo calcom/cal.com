@@ -21,7 +21,7 @@ export class ScheduleService extends BaseService {
       const data = this.scheduleRepository.findByUserId(userId);
       return data
     } catch (error) {
-      this.logError("getUserById", error);
+      this.logError("findUserById", error);
       throw error;
     }
   }
@@ -30,37 +30,51 @@ export class ScheduleService extends BaseService {
     timeZone?: string,
     name: string
   }, userId: number) {
-    let args: Prisma.ScheduleCreateArgs = { data: { ...body, userId } };
+    try {
+        let args: Prisma.ScheduleCreateArgs = { data: { ...body, userId } };
 
-    // We create default availabilities for the schedule
-    args.data.availability = {
-      createMany: {
-        data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE).map((schedule) => ({
-          days: schedule.days,
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-        })),
-      },
-    };
-    // We include the recently created availability
-    args.include = { availability: true };
-    const data = this.scheduleRepository.createSchedule(args);
-    return data;
+        // We create default availabilities for the schedule
+        args.data.availability = {
+          createMany: {
+            data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE).map((schedule) => ({
+              days: schedule.days,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+            })),
+          },
+        };
+        // We include the recently created availability
+        args.include = { availability: true };
+        const data = this.scheduleRepository.createSchedule(args);
+        return data;
+    } catch (error) {
+      this.logError("create", error);
+      throw error;
+    }
+
   }
 
   async update(body : {
     timeZone?: string,
     name: string
   }, userId: number, scheduleId: number) {
-    const data = this.scheduleRepository.updateSchedule(body, userId, scheduleId);
-    return data;
+    try {
+      const data = this.scheduleRepository.updateSchedule(body, userId, scheduleId);
+      return data;
+    } catch (error) {
+      this.logError("update", error);
+      throw error;
+    }
   }
 
 
   async delete(scheduleId: number) {
-    this.scheduleRepository.detachDefaultScheduleFromUsers(scheduleId);
-    return this.scheduleRepository.deleteSchedule(scheduleId);
+    try {
+      this.scheduleRepository.detachDefaultScheduleFromUsers(scheduleId);
+      return this.scheduleRepository.deleteSchedule(scheduleId);
+    } catch (error) {
+      this.logError("delete", error);
+      throw error;
+    }
   }
-
-
 }

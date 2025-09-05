@@ -1,7 +1,7 @@
 import type { EventTypePaginationQuery } from "@/schema/event-type.schema";
 import { NotFoundError } from "@/utils/error";
 
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, EventType } from "@calcom/prisma/client";
 
 import { BaseRepository } from "./base.repository";
