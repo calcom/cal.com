@@ -1,7 +1,8 @@
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { MembershipRole } from "@prisma/client";
 import { IsString, IsOptional, IsBoolean, IsEnum } from "class-validator";
+
+import { MembershipRole } from "@calcom/platform-libraries";
 
 export class CreateOrganizationUserInput extends CreateUserInput {
   @IsOptional()
