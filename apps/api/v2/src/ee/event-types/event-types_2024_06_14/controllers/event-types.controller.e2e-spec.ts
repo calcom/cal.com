@@ -30,6 +30,7 @@ import {
   NoticeThresholdUnitEnum,
   FrequencyInput,
 } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
 import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
@@ -39,7 +40,6 @@ import {
   NotesDefaultFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { SchedulingType } from "@calcom/prisma/enums";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
