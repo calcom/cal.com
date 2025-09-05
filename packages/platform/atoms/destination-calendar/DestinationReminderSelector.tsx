@@ -21,13 +21,14 @@ export const DestinationReminderSelector = ({
   console.log("Destination Calendar in Reminder Selector:", destinationCalendar);
 
   // Reminder options
-  const memoOptions = useMemo(() => {
-    [
+  const memoOptions = useMemo(
+    () => [
       { label: "Remind 10 minutes before", value: 10 },
       { label: "Remind 30 minutes before", value: 30 },
       { label: "Remind 1 hour before", value: 60 },
-    ];
-  }, []);
+    ],
+    []
+  );
 
   // Selected option state
   const [selectedOption, setSelectedOption] = useState<{
@@ -37,7 +38,7 @@ export const DestinationReminderSelector = ({
 
   useEffect(() => {
     if (destinationCalendar && destinationCalendar.customCalendarReminder) {
-      const defaultOption = options.find(
+      const defaultOption = memoOptions.find(
         (option) => option.value === destinationCalendar.customCalendarReminder
       );
       setSelectedOption(defaultOption || null);
@@ -62,7 +63,7 @@ export const DestinationReminderSelector = ({
       <Select
         name="reminderSelector"
         placeholder={`${t("reminder")}`}
-        options={options}
+        options={memoOptions}
         isSearchable={false}
         className={classNames("border-default my-2 block w-full min-w-0 flex-1 rounded-md text-sm")}
         onChange={(event) => {
@@ -75,7 +76,7 @@ export const DestinationReminderSelector = ({
             defaultReminder: reminderValue,
           });
 
-          setSelectedOption(options.find((option) => option.value === reminderValue) || null);
+          setSelectedOption(memoOptions.find((option) => option.value === reminderValue) || null);
         }}
         value={selectedOption}
         isMulti={false}
