@@ -54,6 +54,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             redirectUrlOnExit: true,
             disableTranscriptionForGuests: true,
             disableTranscriptionForOrganizer: true,
+            enableFlappyBirdGame: true,
           },
         },
       },

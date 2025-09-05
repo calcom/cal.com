@@ -1069,6 +1069,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          enableFlappyBirdGame: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;

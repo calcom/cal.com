@@ -12,10 +12,15 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 
 import LocationSettingsContainer from "./LocationSettingsContainer";
 
-const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
+const CalVideoSettings = ({
+  calVideoSettings,
+}: {
+  calVideoSettings: (CalVideoSettingsType & { redirectUrlOnExit?: string | null }) | null;
+}) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const isPlatform = useIsPlatform();
+
   return (
     <LocationSettingsContainer>
       <Controller
