@@ -456,16 +456,24 @@ async function handler(input: CancelBookingInput) {
     updatedBookings.push(updatedBooking);
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
-      await processPaymentRefund({
-        booking: bookingToDelete,
-        teamId,
-      });
+      try {
+        await processPaymentRefund({
+          booking: bookingToDelete,
+          teamId,
+        });
+      } catch (error) {
+        log.error(`Error processing payment refund for booking ${bookingToDelete.uid}:`, error);
+      }
     } else if (bookingToDelete.payment.some((payment) => payment.paymentOption === "HOLD")) {
-      await processNoShowFeeOnCancellation({
-        booking: bookingToDelete,
-        payments: bookingToDelete.payment,
-        cancelledByUserId: userId,
-      });
+      try {
+        await processNoShowFeeOnCancellation({
+          booking: bookingToDelete,
+          payments: bookingToDelete.payment,
+          cancelledByUserId: userId,
+        });
+      } catch (error) {
+        log.error(`Error processing no-show fee for booking ${bookingToDelete.uid}:`, error);
+      }
     }
   }
 
