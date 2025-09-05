@@ -4,9 +4,9 @@ import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
+import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
-import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
@@ -62,6 +62,7 @@ const _ensureAvailableUsers = async (
   shouldServeCache?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
+  const userAvailabilityService = getUserAvailabilityService();
   const availableUsers: IsFixedAwareUser[] = [];
 
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);
@@ -73,9 +74,12 @@ const _ensureAvailableUsers = async (
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
-  const busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> =
+  const busyTimesService = getBusyTimesService();
+  const busyTimesFromLimitsBookingsAllUsers: Awaited<
+    ReturnType<typeof busyTimesService.getBusyTimesForLimitChecks>
+  > =
     eventType && (bookingLimits || durationLimits)
-      ? await getBusyTimesForLimitChecks({
+      ? await busyTimesService.getBusyTimesForLimitChecks({
           userIds: eventType.users.map((u) => u.id),
           eventTypeId: eventType.id,
           startDate: startDateTimeUtc.format(),
@@ -86,7 +90,7 @@ const _ensureAvailableUsers = async (
         })
       : [];
 
-  const usersAvailability = await getUsersAvailability({
+  const usersAvailability = await userAvailabilityService.getUsersAvailability({
     users: eventType.users,
     query: {
       ...input,
@@ -99,6 +103,7 @@ const _ensureAvailableUsers = async (
       afterEventBuffer: eventType.afterEventBuffer,
       bypassBusyCalendarTimes: false,
       shouldServeCache,
+      withSource: true,
     },
     initialData: {
       eventType,
@@ -210,7 +215,8 @@ const _ensureAvailableUsers = async (
     }
   }
 
-  usersAvailability.forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
+  usersAvailability.forEach((userAvailability, index) => {
+    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = userAvailability;
     const user = eventType.users[index];
 
     loggerWithEventDetails.debug(
@@ -220,7 +226,7 @@ const _ensureAvailableUsers = async (
 
     if (!dateRanges.length) {
       loggerWithEventDetails.error(
-        `User does not have availability at this time.`,
+        `User ${user.id} does not have availability at this time.`,
         piiFreeInputDataForLogging
       );
       return;
@@ -239,7 +245,7 @@ const _ensureAvailableUsers = async (
         eventLength: duration,
       });
       if (!foundConflict) {
-        availableUsers.push(user);
+        availableUsers.push({ ...user, availabilityData: userAvailability });
       }
     } catch (error) {
       loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);
