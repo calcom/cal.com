@@ -9,6 +9,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -222,7 +223,7 @@ export class PaymentService implements IAbstractPaymentService {
     }
   }
 
-  async chargeCard(payment: Payment, _bookingId?: Booking["id"]): Promise<Payment> {
+  async chargeCard(payment: Payment, bookingId: Booking["id"]): Promise<Payment> {
     try {
       if (!this.credentials) {
         throw new Error("Stripe credentials not found");
@@ -236,6 +237,13 @@ export class PaymentService implements IAbstractPaymentService {
           slug: "stripe",
         },
       });
+
+      const bookingRepository = new BookingRepository(prisma);
+      const booking = await bookingRepository.findBookingById(bookingId);
+
+      if (!booking) {
+        throw new Error(`Booking ${bookingId} not found`);
+      }
 
       const paymentObject = payment.data as unknown as StripeSetupIntentData;
 
@@ -270,6 +278,16 @@ export class PaymentService implements IAbstractPaymentService {
         payment_method: setupIntent.payment_method as string,
         off_session: true,
         confirm: true,
+        metadata: this.generateMetadata({
+          bookingId,
+          userId: booking.user?.id,
+          username: booking.user?.username,
+          bookerName: booking.attendees[0].name,
+          bookerEmail: booking.attendees[0].email,
+          bookerPhoneNumber: booking.attendees[0].phoneNumber ?? null,
+          eventTitle: booking.eventType?.title || null,
+          bookingTitle: booking.title,
+        }),
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
@@ -295,7 +313,7 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
+      log.error("Stripe: Could not charge card for payment", bookingId, safeStringify(error));
 
       const errorMappings = {
         "your card was declined": "your_card_was_declined",
