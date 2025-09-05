@@ -1,0 +1,98 @@
+name: Production Build (Consolidated)
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        required: true
+        type: string
+        description: 'Type of build to run (api-v1, api-v2, atoms, docs, web)'
+      needs_database:
+        required: false
+        type: boolean
+        default: false
+        description: 'Whether this build needs a PostgreSQL database service'
+
+env:
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+
+jobs:
+  build:
+    name: Build ${{ inputs.build_type }}
+    permissions:
+      contents: read
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: calendso
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - name: Cache build
+        uses: buildjet/cache@v4
+        id: cache-build
+        env:
+          cache-name: ${{ inputs.build_type }}-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ inputs.build_type == 'api-v1' && hashFiles('apps/api/v1/**.[jt]s', 'apps/api/v1/**.[jt]sx', '!**/node_modules') || inputs.build_type == 'api-v2' && hashFiles('apps/api/v2/**.[jt]s', 'apps/api/v2/**.[jt]sx', '!**/node_modules') || inputs.build_type == 'atoms' && hashFiles('packages/platform/**.[jt]s', 'packages/platform/**.[jt]sx', '!**/node_modules') || inputs.build_type == 'docs' && hashFiles('apps/docs/**', '!**/node_modules') || hashFiles('apps/web/**.[jt]s', 'apps/web/**.[jt]sx', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            **/dist/**
+            **/.next/**
+            **/build/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+      - name: Log Cache Hit
+        if: steps.cache-build.outputs.cache-hit == 'true'
+        run: echo "Cache hit for ${{ inputs.build_type }} build. Skipping build."
+      - name: Run build
+        if: steps.cache-build.outputs.cache-hit != 'true'
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          case "${{ inputs.build_type }}" in
+            "api-v1")
+              yarn workspace @calcom/api-v1 run build
+              ;;
+            "api-v2")
+              yarn workspace @calcom/api-v2 run generate-schemas
+              rm -rf apps/api/v2/node_modules
+              yarn install
+              yarn workspace @calcom/api-v2 run build
+              ;;
+            "atoms")
+              yarn workspace @calcom/platform run build
+              ;;
+            "docs")
+              cd apps/docs
+              if [ -f "mint.json" ]; then
+                npx @mintlify/cli@latest build --yes
+              else
+                echo "mint.json not found, skipping docs build"
+              fi
+              ;;
+            "web")
+              yarn build
+              ;;
+            *)
+              echo "Unknown build type: ${{ inputs.build_type }}"
+              exit 1
+              ;;
+          esac
+        shell: bash

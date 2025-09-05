@@ -122,35 +122,50 @@ jobs:
     name: Production builds
     needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/api-v1-production-build.yml
+    uses: ./.github/workflows/build-consolidated.yml
+    with:
+      build_type: api-v1
+      needs_database: true
     secrets: inherit
 
   build-api-v2:
     name: Production builds
     needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/api-v2-production-build.yml
+    uses: ./.github/workflows/build-consolidated.yml
+    with:
+      build_type: api-v2
+      needs_database: true
     secrets: inherit
 
   build-atoms:
     name: Production builds
     needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/atoms-production-build.yml
+    uses: ./.github/workflows/build-consolidated.yml
+    with:
+      build_type: atoms
+      needs_database: false
     secrets: inherit
 
   build-docs:
     name: Production builds
     needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/docs-build.yml
+    uses: ./.github/workflows/build-consolidated.yml
+    with:
+      build_type: docs
+      needs_database: false
     secrets: inherit
 
   build:
     name: Production builds
     needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/production-build-without-database.yml
+    uses: ./.github/workflows/build-consolidated.yml
+    with:
+      build_type: web
+      needs_database: false
     secrets: inherit
 
   integration-test:
@@ -160,46 +175,71 @@ jobs:
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
-  e2e:
+  e2e-core:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e.yml
+    uses: ./.github/workflows/e2e-consolidated.yml
+    with:
+      test_type: core
+      timeout_minutes: 20
+      runner_spec: buildjet-8vcpu-ubuntu-2204
+      matrix_shards: '[1, 2, 3, 4]'
     secrets: inherit
 
   e2e-api-v2:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-api-v2.yml
+    uses: ./.github/workflows/e2e-consolidated.yml
+    with:
+      test_type: api-v2
+      timeout_minutes: 20
+      runner_spec: buildjet-16vcpu-ubuntu-2204
     secrets: inherit
 
   e2e-app-store:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-app-store.yml
+    uses: ./.github/workflows/e2e-consolidated.yml
+    with:
+      test_type: app-store
+      timeout_minutes: 20
+      runner_spec: buildjet-8vcpu-ubuntu-2204
     secrets: inherit
 
   e2e-embed:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-embed.yml
+    uses: ./.github/workflows/e2e-consolidated.yml
+    with:
+      test_type: embed
+      timeout_minutes: 20
+      runner_spec: buildjet-4vcpu-ubuntu-2204
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-embed-react.yml
+    uses: ./.github/workflows/e2e-consolidated.yml
+    with:
+      test_type: embed-react
+      timeout_minutes: 20
+      runner_spec: buildjet-4vcpu-ubuntu-2204
     secrets: inherit
 
   e2e-atoms:
     name: Tests
     needs: [changes, check-label, build, build-atoms, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-atoms.yml
+    uses: ./.github/workflows/e2e-consolidated.yml
+    with:
+      test_type: atoms
+      timeout_minutes: 20
+      runner_spec: buildjet-4vcpu-ubuntu-2204
     secrets: inherit
 
   analyze:
@@ -211,7 +251,7 @@ jobs:
   merge-reports:
     name: Merge reports
     if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
+    needs: [changes, check-label, e2e-core, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
