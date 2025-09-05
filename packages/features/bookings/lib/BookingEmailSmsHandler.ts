@@ -27,10 +27,11 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
-export const BOOKING_CONFIRMED = "BOOKING_CONFIRMED";
-export const BOOKING_RESCHEDULED = "BOOKING_RESCHEDULED";
-export const BOOKING_REQUESTED = "BOOKING_REQUESTED";
-export type BookingState = typeof BOOKING_CONFIRMED | typeof BOOKING_RESCHEDULED | typeof BOOKING_REQUESTED;
+export const BookingActionMap = {
+  confirmed: "BOOKING_CONFIRMED",
+  rescheduled: "BOOKING_RESCHEDULED",
+  requested: "BOOKING_REQUESTED",
+} as const;
 
 type EmailAndSmsPayload = {
   evt: CalendarEvent;
@@ -68,17 +69,17 @@ type RequestedEmailAndSmsPayload = EmailAndSmsPayload & {
 };
 
 type RescheduledSideEffectsPayload = {
-  action: typeof BOOKING_RESCHEDULED;
+  action: typeof BookingActionMap.rescheduled;
   data: RescheduleEmailAndSmsPayload;
 };
 
 type ConfirmedSideEffectsPayload = {
-  action: typeof BOOKING_CONFIRMED;
+  action: typeof BookingActionMap.confirmed;
   data: ConfirmedEmailAndSmsPayload;
 };
 
 type RequestedSideEffectsPayload = {
-  action: typeof BOOKING_REQUESTED;
+  action: typeof BookingActionMap.requested;
   data: RequestedEmailAndSmsPayload;
 };
 
@@ -100,27 +101,16 @@ export class BookingEmailSmsHandler {
 
   public async send(payload: EmailsAndSmsSideEffectsPayload) {
     const { action, data } = payload;
-    switch (action) {
-      case BOOKING_RESCHEDULED:
-        if (data.eventType.schedulingType === "ROUND_ROBIN") {
-          await this._handleRoundRobinRescheduled(data);
-        } else {
-          await this._handleRescheduled(data);
-        }
-        break;
 
-      case BOOKING_CONFIRMED:
-        await this._handleConfirmed(data);
-        break;
-
-      case BOOKING_REQUESTED:
-        await this._handleRequested(data);
-        break;
-
-      default:
-        this.log.warn("Unknown email/SMS action requested.", { action });
-        break;
+    if (action === BookingActionMap.rescheduled) {
+      if (data.eventType.schedulingType === "ROUND_ROBIN") return this._handleRoundRobinRescheduled(data);
+      return this._handleRescheduled(data);
     }
+
+    if (action === BookingActionMap.confirmed) return this._handleConfirmed(data);
+    if (action === BookingActionMap.requested) return this._handleRequested(data);
+
+    this.log.warn("Unknown email/SMS action requested.", { action });
   }
 
   /**
@@ -309,7 +299,7 @@ export class BookingEmailSmsHandler {
       attendees,
       additionalNotes,
     } = data;
-    if (!attendees || attendees.length === 0) {
+    if (!attendees?.length) {
       this.log.error("Requested action called without attendee details.");
       return;
     }

@@ -92,12 +92,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import {
-  BOOKING_CONFIRMED,
-  BOOKING_RESCHEDULED,
-  BOOKING_REQUESTED,
-  BookingEmailSmsHandler,
-} from "./BookingEmailSmsHandler";
+import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
@@ -1837,9 +1832,9 @@ async function handler(
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
-    if (noEmail !== true && isConfirmedByDefault && !isDryRun) {
+    if (!noEmail && isConfirmedByDefault && !isDryRun) {
       await emailsAndSmsHandler.send({
-        action: BOOKING_RESCHEDULED,
+        action: BookingActionMap.rescheduled,
         data: {
           evt,
           eventType,
@@ -1957,10 +1952,10 @@ async function handler(
           });
         }
       }
-      if (noEmail !== true) {
+      if (!noEmail) {
         if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
           await emailsAndSmsHandler.send({
-            action: BOOKING_CONFIRMED,
+            action: BookingActionMap.confirmed,
             data: {
               eventType: {
                 metadata: eventType.metadata,
@@ -2004,7 +1999,7 @@ async function handler(
     );
     if (!isDryRun) {
       await emailsAndSmsHandler.send({
-        action: BOOKING_REQUESTED,
+        action: BookingActionMap.requested,
         data: { evt, attendees: attendeesList, eventType, additionalNotes },
       });
     }
