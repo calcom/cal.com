@@ -24,6 +24,7 @@ concurrency:
 
 jobs:
   download-context:
+    name: Download PR context from workflow_run event
     runs-on: ubuntu-latest
     outputs:
       pr_number: ${{ steps.get-context.outputs.pr_number }}
