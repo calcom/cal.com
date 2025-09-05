@@ -7,12 +7,12 @@ import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { SchedulingType } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
   HostPriority,
 } from "@calcom/platform-types";
-import { SchedulingType } from "@calcom/prisma/client";
 
 export type TransformedCreateTeamEventTypeInput = Awaited<
   ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>

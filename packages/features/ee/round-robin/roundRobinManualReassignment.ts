@@ -502,8 +502,6 @@ export async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
-        userId: workflow.userId,
-        teamId: workflow.teamId,
       });
     }
 

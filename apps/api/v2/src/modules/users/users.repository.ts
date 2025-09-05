@@ -5,7 +5,7 @@ import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-us
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { Profile, User, Team, Prisma } from "@prisma/client";
 
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/platform-libraries";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;

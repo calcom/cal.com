@@ -12,8 +12,8 @@ import type {
   CalVideoSettings,
 } from "@prisma/client";
 
+import { SchedulingType } from "@calcom/platform-libraries";
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
-import { SchedulingType } from "@calcom/prisma/enums";
 
 type EventTypeRelations = {
   users: User[];

@@ -6,7 +6,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationRolesGuard implements CanActivate {
