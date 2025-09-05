@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
@@ -17,7 +18,6 @@ import { TeamsController } from "@/modules/teams/teams/controllers/teams.control
 import { TeamsService } from "@/modules/teams/teams/services/teams.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, MembershipsModule, RedisModule],

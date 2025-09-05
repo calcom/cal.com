@@ -48,7 +48,8 @@ export const CallToAction = (props: {
         borderRadius: "6px",
         boxSizing: "border-box",
         height: "2.25rem",
-      }}>
+      }}
+    >
       {/* @ts-expect-error shared props between href and button */}
       <El
         style={{
@@ -68,7 +69,8 @@ export const CallToAction = (props: {
           cursor: "pointer",
         }}
         {...restProps}
-        rel="noreferrer">
+        rel="noreferrer"
+      >
         {startIconName && (
           <CallToActionIcon
             style={{

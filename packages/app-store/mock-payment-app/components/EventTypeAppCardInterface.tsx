@@ -1,8 +1,5 @@
-import { usePathname, useSearchParams } from "next/navigation";
-import { useState, useMemo } from "react";
-
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import {
   currencyOptions,
   currencySymbols,
@@ -11,9 +8,10 @@ import {
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
+import { Select, TextField } from "@calcom/ui/components/form";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import type { appDataSchema } from "../zod";
 import { paymentOptions } from "../zod";
@@ -57,7 +55,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
-      description={<>Add a mock payment to your events</>}>
+      description={<>Add a mock payment to your events</>}
+    >
       <>
         {recurringEventDefined ? (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />

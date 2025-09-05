@@ -1,10 +1,9 @@
+import type { ApiResponse } from "@calcom/platform-types";
 import type { AxiosError, AxiosRequestConfig } from "axios";
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import usePrevious from "react-use/lib/usePrevious";
-
-import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 

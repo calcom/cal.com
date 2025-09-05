@@ -1,12 +1,10 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
-
-import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
-
-import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
+import type { Booking, BookingReference, DestinationCalendar, WebhookTriggerEvents } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
 import ical from "node-ical";
 import { expect, vi } from "vitest";
+import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
+import type { CalendarServiceMethodMock, getOrganizer, InputEventType } from "./bookingScenario";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
@@ -15,8 +13,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { AppsStatus } from "@calcom/types/Calendar";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 

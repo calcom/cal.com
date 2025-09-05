@@ -1,8 +1,7 @@
-import { useMemo } from "react";
-
-import { TimezoneSelectComponent as TimezoneSelect } from "@calcom/features/components/timezone-select";
-import type { TimezoneSelectProps } from "@calcom/features/components/timezone-select";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
+import type { TimezoneSelectProps } from "@calcom/features/components/timezone-select";
+import { TimezoneSelectComponent as TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { useMemo } from "react";
 import useGetCityTimezones from "../hooks/useGetCityTimezones";
 import { filterPropsTimezones, formatTimezones } from "../src/lib/timeZones";
 

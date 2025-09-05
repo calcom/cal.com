@@ -1,6 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import prisma from "@calcom/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import config from "../config.json";

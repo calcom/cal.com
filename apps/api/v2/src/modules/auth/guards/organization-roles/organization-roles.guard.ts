@@ -1,12 +1,11 @@
+import { MembershipRole } from "@calcom/platform-libraries";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-
-import { MembershipRole } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationRolesGuard implements CanActivate {

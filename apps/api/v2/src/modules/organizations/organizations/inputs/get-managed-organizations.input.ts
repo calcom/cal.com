@@ -1,7 +1,6 @@
+import { SkipTakePagination } from "@calcom/platform-types";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsString } from "class-validator";
-
-import { SkipTakePagination } from "@calcom/platform-types";
 
 export class GetManagedOrganizationsInput_2024_08_13 extends SkipTakePagination {
   @IsOptional()

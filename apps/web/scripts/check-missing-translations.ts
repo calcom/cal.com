@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, writeFileSync } from "fs";
+import { readdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
 const TEMPLATE_LANGUAGE = "en";

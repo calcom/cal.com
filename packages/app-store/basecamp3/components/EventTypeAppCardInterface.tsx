@@ -1,5 +1,5 @@
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 
 import useIsAppEnabled from "../../_utils/useIsAppEnabled";
@@ -16,7 +16,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(e) => {
         updateEnabled(e);
       }}
-      switchChecked={enabled}>
+      switchChecked={enabled}
+    >
       <EventTypeAppSettingsInterface
         slug={app.slug}
         eventType={eventType}

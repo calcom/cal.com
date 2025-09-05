@@ -28,7 +28,8 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
           count: slugExistsChildrenDialogOpen.length,
         })}
         cancelBtnText={t("go_back")}
-        onConfirm={onConfirm}>
+        onConfirm={onConfirm}
+      >
         <p className="mt-5">
           <ServerTrans
             t={t}

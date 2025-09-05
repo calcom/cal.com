@@ -1,10 +1,9 @@
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { OAuth2Client } from "googleapis-common";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const scopes = [
   "https://www.googleapis.com/auth/admin.directory.user.readonly",

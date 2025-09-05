@@ -1,10 +1,9 @@
 "use client";
 
-import { getColorFormats, copyToClipboard } from "@/lib/colorUtils";
+import { showToast } from "@calcom/ui/components/toast";
 import React from "react";
 import { Toaster } from "react-hot-toast";
-
-import { showToast } from "@calcom/ui/components/toast";
+import { copyToClipboard, getColorFormats } from "@/lib/colorUtils";
 
 interface ColorSwatch {
   name: string;
@@ -37,22 +36,26 @@ const CopyMenu: React.FC<CopyMenuProps> = ({ color, className, onCopy }) => {
       <div className="bg-default space-y-1 rounded-md p-2 shadow-lg">
         <button
           onClick={() => onCopy(formats.hex)}
-          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm">
+          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm"
+        >
           Copy as HEX
         </button>
         <button
           onClick={() => onCopy(formats.rgb)}
-          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm">
+          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm"
+        >
           Copy as RGB
         </button>
         <button
           onClick={() => onCopy(formats.hsl)}
-          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm">
+          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm"
+        >
           Copy as HSL
         </button>
         <button
           onClick={() => onCopy(formats.tailwind)}
-          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm">
+          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm"
+        >
           Copy Tailwind Class
         </button>
       </div>

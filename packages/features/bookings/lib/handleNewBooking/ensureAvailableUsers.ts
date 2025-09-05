@@ -1,7 +1,6 @@
-import type { Logger } from "tslog";
+import type { Dayjs } from "@calcom/dayjs";
 
 import dayjs from "@calcom/dayjs";
-import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
@@ -13,6 +12,7 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
+import type { Logger } from "tslog";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";

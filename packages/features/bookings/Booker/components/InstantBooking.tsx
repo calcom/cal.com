@@ -40,7 +40,8 @@ export const InstantBooking = ({ onConnectNow, event }: IInstantBookingProps) =>
             onConnectNow();
           }}
           size="sm"
-          className="w-full justify-center rounded-lg sm:w-auto">
+          className="w-full justify-center rounded-lg sm:w-auto"
+        >
           {t("connect_now")}
         </Button>
       </div>

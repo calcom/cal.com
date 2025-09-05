@@ -3,7 +3,7 @@ import {
   mockNoTranslations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
-import { beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach } from "vitest";
 
 export function setupAndTeardown() {
   beforeEach(() => {

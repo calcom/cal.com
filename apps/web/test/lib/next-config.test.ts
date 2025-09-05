@@ -1,4 +1,4 @@
-import { it, expect, describe, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { getRegExpThatMatchesAllOrgDomains } from "../../getNextjsOrgRewriteConfig";
 

@@ -1,8 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useReducer, useState } from "react";
-
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
@@ -14,13 +11,15 @@ import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
-  DropdownMenuTrigger,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import { useReducer, useState } from "react";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
@@ -31,14 +30,14 @@ import type {
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import {
-  useAtomsGetInstalledConferencingApps,
   QUERY_KEY as atomsConferencingAppsQueryKey,
+  useAtomsGetInstalledConferencingApps,
 } from "./hooks/useAtomsGetInstalledConferencingApps";
 import { useConnect } from "./hooks/useConnect";
 import { useDeleteCredential } from "./hooks/useDeleteCredential";
 import {
-  useGetDefaultConferencingApp,
   QUERY_KEY as defaultConferencingAppQueryKey,
+  useGetDefaultConferencingApp,
 } from "./hooks/useGetDefaultConferencingApp";
 import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
 
@@ -252,7 +251,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
         title={t("conferencing")}
         description={t("conferencing_description")}
         CTA={<AddConferencingButtonPlatform installedApps={installedIntegrationsQuery.data?.items} />}
-        borderInShellHeader={true}>
+        borderInShellHeader={true}
+      >
         <>
           <div className="bg-default w-full sm:mx-0 xl:mt-0">
             <QueryCell

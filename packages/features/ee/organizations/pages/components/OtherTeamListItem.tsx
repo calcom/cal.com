@@ -5,7 +5,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -100,7 +100,8 @@ export default function OtherTeamListItem(props: Props) {
                     <DropdownItem
                       type="button"
                       href={`/settings/teams/other/${team.id}/profile`}
-                      StartIcon="pencil">
+                      StartIcon="pencil"
+                    >
                       {t("edit_team") as string}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -115,7 +116,8 @@ export default function OtherTeamListItem(props: Props) {
                             ? `${orgBranding.fullDomain}`
                             : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other`
                         }/${team.slug}`}
-                        StartIcon="external-link">
+                        StartIcon="external-link"
+                      >
                         {t("preview_team") as string}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -131,7 +133,8 @@ export default function OtherTeamListItem(props: Props) {
                           className="rounded-t-none"
                           onClick={(e) => {
                             e.stopPropagation();
-                          }}>
+                          }}
+                        >
                           {t("disband_team")}
                         </DropdownItem>
                       </DialogTrigger>
@@ -142,7 +145,8 @@ export default function OtherTeamListItem(props: Props) {
                         isPending={props.isPending}
                         onConfirm={() => {
                           props.onActionSelect("disband");
-                        }}>
+                        }}
+                      >
                         {t("disband_team_confirmation_message")}
                       </ConfirmationDialogContent>
                     </Dialog>

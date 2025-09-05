@@ -1,17 +1,16 @@
-import { Prisma } from "@prisma/client";
-
 import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
-  getRoutedUsersWithContactOwnerAndFixedUsers,
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
+  getRoutedUsersWithContactOwnerAndFixedUsers,
 } from "@calcom/lib/bookings/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { Prisma } from "@prisma/client";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 

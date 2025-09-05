@@ -4,10 +4,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-
+import { MembershipRepository } from "../../../server/repository/membership";
 import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "../../../server/repository/PrismaAttributeToUserRepository";
-import { MembershipRepository } from "../../../server/repository/membership";
 import type { AttributeId } from "../types";
 
 type UserId = number;
@@ -77,43 +76,46 @@ function _prepareAssignmentData({
   assignmentsForTheTeam: AssignmentForTheTeam[];
   attributesOfTheOrg: Attribute[];
 }) {
-  const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce((acc, attributeToUser) => {
-    const userId = attributeToUser.userId;
-    const attributeOption = attributeToUser.attributeOption;
-    const attribute = attributeToUser.attribute;
+  const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce(
+    (acc, attributeToUser) => {
+      const userId = attributeToUser.userId;
+      const attributeOption = attributeToUser.attributeOption;
+      const attribute = attributeToUser.attribute;
 
-    if (!acc[userId]) {
-      acc[userId] = { userId, attributes: {} };
-    }
+      if (!acc[userId]) {
+        acc[userId] = { userId, attributes: {} };
+      }
 
-    const attributes = acc[userId].attributes;
-    const currentAttributeOptionValue = attributes[attribute.id]?.attributeOption;
-    const newAttributeOptionValue = {
-      isGroup: attributeOption.isGroup,
-      value: attributeOption.value,
-      contains: tranformContains({ contains: attributeOption.contains, attribute }),
-    };
-
-    if (currentAttributeOptionValue instanceof Array) {
-      attributes[attribute.id].attributeOption = [...currentAttributeOptionValue, newAttributeOptionValue];
-    } else if (currentAttributeOptionValue) {
-      attributes[attribute.id].attributeOption = [
-        currentAttributeOptionValue,
-        {
-          isGroup: attributeOption.isGroup,
-          value: attributeOption.value,
-          contains: tranformContains({ contains: attributeOption.contains, attribute }),
-        },
-      ];
-    } else {
-      // Set the first value
-      attributes[attribute.id] = {
-        type: attribute.type,
-        attributeOption: newAttributeOptionValue,
+      const attributes = acc[userId].attributes;
+      const currentAttributeOptionValue = attributes[attribute.id]?.attributeOption;
+      const newAttributeOptionValue = {
+        isGroup: attributeOption.isGroup,
+        value: attributeOption.value,
+        contains: tranformContains({ contains: attributeOption.contains, attribute }),
       };
-    }
-    return acc;
-  }, {} as Record<UserId, { userId: UserId; attributes: Record<AttributeId, AttributeOptionValueWithType> }>);
+
+      if (currentAttributeOptionValue instanceof Array) {
+        attributes[attribute.id].attributeOption = [...currentAttributeOptionValue, newAttributeOptionValue];
+      } else if (currentAttributeOptionValue) {
+        attributes[attribute.id].attributeOption = [
+          currentAttributeOptionValue,
+          {
+            isGroup: attributeOption.isGroup,
+            value: attributeOption.value,
+            contains: tranformContains({ contains: attributeOption.contains, attribute }),
+          },
+        ];
+      } else {
+        // Set the first value
+        attributes[attribute.id] = {
+          type: attribute.type,
+          attributeOption: newAttributeOptionValue,
+        };
+      }
+      return acc;
+    },
+    {} as Record<UserId, { userId: UserId; attributes: Record<AttributeId, AttributeOptionValueWithType> }>
+  );
 
   return Object.values(teamMembersThatHaveOptionAssigned);
 
@@ -176,10 +178,13 @@ function _getAttributeOptionFromAttributeOption({
   allAttributesOfTheOrg: FullAttribute[];
   attributeOptionId: AttributeOptionId;
 }) {
-  const matchingOption = allAttributesOfTheOrg.reduce((found, attribute) => {
-    if (found) return found;
-    return attribute.options.find((option) => option.id === attributeOptionId) || null;
-  }, null as null | (typeof allAttributesOfTheOrg)[number]["options"][number]);
+  const matchingOption = allAttributesOfTheOrg.reduce(
+    (found, attribute) => {
+      if (found) return found;
+      return attribute.options.find((option) => option.id === attributeOptionId) || null;
+    },
+    null as null | (typeof allAttributesOfTheOrg)[number]["options"][number]
+  );
   return matchingOption;
 }
 

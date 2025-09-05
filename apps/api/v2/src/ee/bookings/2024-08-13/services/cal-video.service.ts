@@ -1,12 +1,11 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-
 import {
-  getRecordingsOfCalVideoByRoomName,
   getAllTranscriptsAccessLinkFromRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
+  getRecordingsOfCalVideoByRoomName,
 } from "@calcom/platform-libraries/conferencing";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 
 @Injectable()
 export class CalVideoService {

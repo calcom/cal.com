@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -9,6 +7,7 @@ import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@prisma/client";
 
 import { TRPCError } from "@trpc/server";
 

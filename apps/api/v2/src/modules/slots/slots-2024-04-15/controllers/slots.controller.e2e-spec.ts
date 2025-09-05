@@ -1,12 +1,4 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -20,8 +12,15 @@ import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
+import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 const expectedSlotsUTC = {
   slots: {

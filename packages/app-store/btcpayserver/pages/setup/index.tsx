@@ -1,12 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Toaster } from "sonner";
-import { z } from "zod";
-
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -15,6 +6,14 @@ import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Toaster } from "sonner";
+import { z } from "zod";
 
 import KeyField from "../../components/KeyInput";
 import { btcpayCredentialKeysSchema } from "../../lib/btcpayCredentialKeysSchema";
@@ -323,7 +322,8 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
                       className="h-10"
                       color="primary"
                       type="submit"
-                      disabled={loading || validating || !updatable}>
+                      disabled={loading || validating || !updatable}
+                    >
                       {loading ? (
                         <>
                           <Icon name="loader" className="mr-2 animate-spin" />

@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
 import {
   getOrgDomainConfigFromHostname,
   subdomainSuffix,
@@ -10,6 +7,8 @@ import {
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 enum PageType {
   ORG = "ORG",
@@ -144,7 +143,8 @@ export function NotFound({ host }: { host: string }) {
                   href={url}
                   target="_blank"
                   className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse"
-                  rel="noreferrer">
+                  rel="noreferrer"
+                >
                   <div className="flex-shrink-0">
                     <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
                       <Icon name="check" className="h-6 w-6 text-green-500" aria-hidden="true" />
@@ -179,7 +179,8 @@ export function NotFound({ host }: { host: string }) {
                 <li key={linkIdx} className="px-4 py-2">
                   <a
                     href={link.href}
-                    className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
+                    className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse"
+                  >
                     <div className="flex-shrink-0">
                       <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
                         <Icon name={link.icon} className="text-default h-6 w-6" aria-hidden="true" />

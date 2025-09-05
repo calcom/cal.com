@@ -3,10 +3,10 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import {
-  WorkflowTriggerEvents,
-  WorkflowTemplates,
   WorkflowActions,
   WorkflowMethods,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";

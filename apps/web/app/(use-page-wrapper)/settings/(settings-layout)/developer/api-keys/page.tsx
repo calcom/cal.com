@@ -1,13 +1,11 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { APP_NAME } from "@calcom/lib/constants";
+import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { APP_NAME } from "@calcom/lib/constants";
-import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import ApiKeysView from "~/settings/developer/api-keys-view";
 

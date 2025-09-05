@@ -1,6 +1,5 @@
-import type { CalendarCache, Prisma } from "@prisma/client";
-
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
+import type { CalendarCache, Prisma } from "@prisma/client";
 
 export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 

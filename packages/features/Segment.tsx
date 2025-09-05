@@ -1,21 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
-
 import {
-  withRaqbSettingsAndWidgets,
   ConfigFor,
+  withRaqbSettingsAndWidgets,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
 import { buildStateFromQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { trpc, type RouterOutputs } from "@calcom/trpc";
+import { type RouterOutputs, trpc } from "@calcom/trpc";
 import cn from "@calcom/ui/classNames";
+import { useCallback, useState } from "react";
+import type { BuilderProps, ImmutableTree, JsonTree } from "react-awesome-query-builder";
+import { Builder, Utils as QbUtils, Query } from "react-awesome-query-builder";
 
 export type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 export function useAttributes(teamId: number) {
@@ -129,7 +127,8 @@ function MatchingTeamMembers({
     return (
       <div
         className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4"
-        data-testid="segment_loading_state">
+        data-testid="segment_loading_state"
+      >
         <div className="text-emphasis flex items-center text-sm font-medium">
           <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
         </div>

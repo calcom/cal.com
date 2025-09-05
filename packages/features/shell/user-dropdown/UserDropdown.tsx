@@ -1,8 +1,4 @@
-import { signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-
-import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
+import { DESKTOP_APP_LINK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
@@ -19,6 +15,9 @@ import {
 import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
+import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider";
 
@@ -85,12 +84,14 @@ export function UserDropdown({ small }: UserDropdownProps) {
           className={classNames(
             "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
-          )}>
+          )}
+        >
           <span
             className={classNames(
               small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
               "relative flex-shrink-0 rounded-full"
-            )}>
+            )}
+          >
             <Avatar
               size={small ? "xs" : "xsm"}
               imageSrc={user?.avatarUrl ?? user?.avatar}
@@ -108,7 +109,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
             <span className="flex flex-grow items-center gap-2">
               <span className="w-24 flex-shrink-0 text-sm leading-none">
                 <span className="text-emphasis block truncate py-0.5 font-medium leading-normal">
-                  {isPending ? "Loading..." : user?.name ?? "Nameless User"}
+                  {isPending ? "Loading..." : (user?.name ?? "Nameless User")}
                 </span>
               </span>
               <Icon
@@ -128,7 +129,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
             onInteractOutside={() => {
               setMenuOpen(false);
             }}
-            className="group overflow-hidden rounded-md">
+            className="group overflow-hidden rounded-md"
+          >
             <>
               {!isPlatformPages && (
                 <>
@@ -138,7 +140,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                       CustomStartIcon={
                         <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
                       }
-                      href="/settings/my-account/profile">
+                      href="/settings/my-account/profile"
+                    >
                       {t("my_profile")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -148,7 +151,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                       CustomStartIcon={
                         <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
                       }
-                      href="/settings/my-account/general">
+                      href="/settings/my-account/general"
+                    >
                       {t("my_settings")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -158,7 +162,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                       CustomStartIcon={
                         <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
                       }
-                      href="/settings/my-account/out-of-office">
+                      href="/settings/my-account/out-of-office"
+                    >
                       {t("out_of_office")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -176,7 +181,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   type="button"
                   StartIcon="circle-help"
                   aria-hidden="true"
-                  onClick={handleHelpClick}>
+                  onClick={handleHelpClick}
+                >
                   {t("help")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -204,7 +210,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   aria-hidden="true"
                   onClick={() => {
                     signOut({ callbackUrl: "/auth/logout" });
-                  }}>
+                  }}
+                >
                   {t("sign_out")}
                 </DropdownItem>
               </DropdownMenuItem>

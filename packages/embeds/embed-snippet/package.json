@@ -20,9 +20,7 @@
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-snippet' && yarn withEmbedPublishEnv build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "types": "./dist/index.d.ts",
   "devDependencies": {
     "typescript": "^5.9.0-beta",

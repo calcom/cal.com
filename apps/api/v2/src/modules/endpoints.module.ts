@@ -1,3 +1,5 @@
+import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { PlatformEndpointsModule } from "@/ee/platform-endpoints-module";
 import { AtomsModule } from "@/modules/atoms/atoms.module";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -14,8 +16,6 @@ import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsSchedulesModule } from "@/modules/teams/schedules/teams-schedules.module";
 import { TimezoneModule } from "@/modules/timezones/timezones.module";
 import { VerifiedResourcesModule } from "@/modules/verified-resources/verified-resources.module";
-import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
-import { Module } from "@nestjs/common";
 
 import { UsersModule } from "./users/users.module";
 import { WebhooksModule } from "./webhooks/webhooks.module";

@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import slugify from "@calcom/lib/slugify";
+import { z } from "zod";
 
 export const ZCreateInputSchema = z.object({
   name: z.string(),

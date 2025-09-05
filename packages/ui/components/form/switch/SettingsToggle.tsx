@@ -1,7 +1,6 @@
+import classNames from "@calcom/ui/classNames";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ReactNode } from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
 import { Switch } from "./Switch";
@@ -57,12 +56,14 @@ export function SettingsToggle({
                 "border-subtle flex justify-between space-x-3 rounded-lg border px-4 py-6 sm:px-6",
                 checked && children && "rounded-b-none",
                 switchContainerClassName
-              )}>
+              )}
+            >
               <div>
                 <div className="flex items-center gap-x-2" data-testid={`${rest["data-testid"]}-title`}>
                   <Label
                     className={classNames("mt-0.5 text-base font-semibold leading-none", labelClassName)}
-                    htmlFor="">
+                    htmlFor=""
+                  >
                     {title}
                     {LockedIcon}
                   </Label>
@@ -74,7 +75,8 @@ export function SettingsToggle({
                       "text-default -mt-1.5 text-sm leading-normal",
                       descriptionClassName
                     )}
-                    data-testid={`${rest["data-testid"]}-description`}>
+                    data-testid={`${rest["data-testid"]}-description`}
+                  >
                     {description}
                   </p>
                 )}
@@ -105,7 +107,8 @@ export function SettingsToggle({
 
               <div>
                 <Label
-                  className={classNames("text-emphasis text-sm font-semibold leading-none", labelClassName)}>
+                  className={classNames("text-emphasis text-sm font-semibold leading-none", labelClassName)}
+                >
                   {title} {Badge ? Badge : null}
                   {LockedIcon}
                 </Label>

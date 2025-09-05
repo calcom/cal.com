@@ -14,7 +14,7 @@ const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) =>
     const teamBilling = await TeamBilling.findAndInit(teamId);
     await teamBilling.downgrade();
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     // If stripe metadata is missing teamId, we attempt to find by sub ID.
     const team = await TeamBilling.repo.findBySubscriptionId(subscription.id);
     const teamBilling = TeamBilling.init(team);

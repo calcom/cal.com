@@ -1,7 +1,3 @@
-import type { ReactNode } from "react";
-import { useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
 import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEventType";
@@ -10,10 +6,11 @@ import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { ReactNode } from "react";
+import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 export default function CreateEventTypeForm({
   form,
@@ -42,7 +39,8 @@ export default function CreateEventTypeForm({
       form={form}
       handleSubmit={(values) => {
         handleSubmit(values);
-      }}>
+      }}
+    >
       <div className="mt-3 space-y-6 pb-11">
         <TextField
           label={t("title")}
@@ -89,7 +87,8 @@ export default function CreateEventTypeForm({
               addOnLeading={
                 !isPlatform ? (
                   <Tooltip
-                    content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
+                    content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
+                  >
                     <span className="max-w-24 md:max-w-56">
                       {`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
                     </span>

@@ -3,8 +3,8 @@
 //@ts-ignore
 import type { Operators, Types } from "./BasicConfig";
 import BasicConfig from "./BasicConfig";
-import { ConfigFor } from "./types";
 import type { WidgetsWithoutFactory } from "./types";
+import { ConfigFor } from "./types";
 
 function getWidgetsWithoutFactory(_configFor: ConfigFor) {
   const widgetsWithoutFactory: WidgetsWithoutFactory = {

@@ -1,10 +1,9 @@
-import { useSession } from "next-auth/react";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { EventSetupTabProps } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import { EventSetupTab } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { localeOptions } from "@calcom/lib/i18n";
+import { useSession } from "next-auth/react";
 
 const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
   const orgBranding = useOrgBranding();

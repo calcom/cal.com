@@ -1,10 +1,9 @@
-import { Navbar } from "@/components/Navbar";
+import { useBookings } from "@calcom/atoms";
+import dayjs from "@calcom/dayjs";
 import { Inter } from "next/font/google";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
-
-import { useBookings } from "@calcom/atoms";
-import dayjs from "@calcom/dayjs";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,7 +24,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
   return (
     <main
-      className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
+      className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}
+    >
       <Navbar username={props.calUsername} />
       <h1 className="my-4 text-2xl font-semibold">{props.calUsername} Bookings</h1>
       {isLoading && <p>Loading...</p>}
@@ -46,7 +46,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               className="mx-10 my-2 flex w-[80vw] cursor-pointer items-center justify-between overflow-hidden rounded border-[0.8px] border-black py-4"
               onClick={() => {
                 router.push(`/${booking.uid}`);
-              }}>
+              }}
+            >
               <div>
                 <div className="px-6">{`${day}, ${dayjs(booking.start).date()} ${month}`}</div>
                 <div className="px-6">

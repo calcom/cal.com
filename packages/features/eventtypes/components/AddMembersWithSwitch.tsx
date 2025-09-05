@@ -1,26 +1,23 @@
-import { useMemo, type ComponentProps, type Dispatch, type SetStateAction } from "react";
-import { useFormContext } from "react-hook-form";
-import { Controller } from "react-hook-form";
-import type { Options } from "react-select";
-
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
 import { AddMembersWithSwitchWebWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchWebWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { Segment } from "@calcom/features/Segment";
 import type {
   FormValues,
   Host,
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
+import { Segment } from "@calcom/features/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { Label } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, SettingsToggle } from "@calcom/ui/components/form";
+import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { Options } from "react-select";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
-import CheckedTeamSelect from "./CheckedTeamSelect";
 import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
+import CheckedTeamSelect from "./CheckedTeamSelect";
 
 interface IUserToValue {
   id: number | null;
@@ -155,7 +152,8 @@ function MembersSegmentWithToggle({
           checked={assignRRMembersUsingSegment}
           onCheckedChange={(active) => {
             setAssignRRMembersUsingSegment(active);
-          }}>
+          }}
+        >
           {!isPlatform && (
             <Segment
               teamId={teamId}

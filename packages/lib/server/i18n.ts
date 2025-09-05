@@ -1,6 +1,5 @@
-import { createInstance } from "i18next";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { createInstance } from "i18next";
 
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import logger from "../logger";

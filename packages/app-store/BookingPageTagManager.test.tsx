@@ -1,4 +1,4 @@
-import { render, screen, cleanup } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import BookingPageTagManager, { handleEvent } from "./BookingPageTagManager";

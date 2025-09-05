@@ -1,17 +1,13 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
-
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
+import { getQueryParam, updateQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { createBooking, createInstantBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
@@ -23,6 +19,9 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/components/toast";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
@@ -218,8 +217,8 @@ export const useBookings = ({
         const validDuration = event.data?.isDynamic
           ? duration || event.data?.length
           : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-          ? duration
-          : event.data?.length;
+            ? duration
+            : event.data?.length;
 
         if (isRescheduling) {
           sdkActionManager?.fire(
@@ -252,8 +251,8 @@ export const useBookings = ({
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-        ? duration
-        : event.data?.length;
+          ? duration
+          : event.data?.length;
 
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {

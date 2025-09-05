@@ -1,14 +1,16 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-import { DateTime } from "luxon";
-
 import { MINUTES_TO_BOOK } from "@calcom/platform-libraries";
 import { ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
+import { Injectable } from "@nestjs/common";
+import { DateTime } from "luxon";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 @Injectable()
 export class SlotsRepository_2024_04_15 {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async getBookingWithAttendees(bookingUid?: string) {
     return this.dbRead.prisma.booking.findUnique({

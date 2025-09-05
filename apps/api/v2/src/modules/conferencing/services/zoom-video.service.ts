@@ -1,13 +1,17 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { BadRequestException, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
+import { ZOOM, ZOOM_TYPE } from "@calcom/platform-constants";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
-
-import { ZOOM, ZOOM_TYPE } from "@calcom/platform-constants";
+import { AppsRepository } from "@/modules/apps/apps.repository";
+import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 
 import stringify = require("qs-stringify");
 

@@ -1,5 +1,3 @@
-import { useCallback, useMemo, useRef } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -12,6 +10,7 @@ import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/c
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { useCallback, useMemo, useRef } from "react";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "../utils/event";
@@ -217,7 +216,8 @@ export const AvailableTimeSlots = ({
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4",
           `${customClassNames?.availableTimeSlotsContainer}`
-        )}>
+        )}
+      >
         {isLoading && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
         {!isLoading &&

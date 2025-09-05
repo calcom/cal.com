@@ -8,10 +8,10 @@ import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/au
 import { router } from "../../../trpc";
 import {
   DelegationCredentialCreateSchema,
-  DelegationCredentialUpdateSchema,
   DelegationCredentialDeleteSchema,
-  DelegationCredentialToggleEnabledSchema,
   DelegationCredentialGetAffectedMembersForDisableSchema,
+  DelegationCredentialToggleEnabledSchema,
+  DelegationCredentialUpdateSchema,
 } from "./schema";
 
 const checkDelegationCredentialFeature = async ({

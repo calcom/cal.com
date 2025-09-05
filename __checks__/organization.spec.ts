@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Org", () => {
   // Because these pages involve next.config.js rewrites, it's better to test them on production

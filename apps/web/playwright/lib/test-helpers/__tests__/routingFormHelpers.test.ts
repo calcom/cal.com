@@ -1,6 +1,5 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { createRoutingForm } from "../routingFormHelpers";
 

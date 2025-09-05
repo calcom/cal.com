@@ -1,12 +1,10 @@
-import Link from "next/link";
-import { Fragment } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import classNames from "@calcom/ui/classNames";
-
-import { Icon } from "../../icon";
+import Link from "next/link";
+import { Fragment } from "react";
 import type { IconName } from "../../icon";
+import { Icon } from "../../icon";
 
 export type VerticalTabItemProps = {
   name: string;
@@ -68,7 +66,8 @@ const VerticalTabItem = ({
               props.className
             )}
             data-testid={`vertical-tab-${props["data-testid"]}`}
-            aria-current={isCurrent ? "page" : undefined}>
+            aria-current={isCurrent ? "page" : undefined}
+          >
             {props.icon && (
               <Icon
                 name={props.icon}

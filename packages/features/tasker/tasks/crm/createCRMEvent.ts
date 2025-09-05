@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
@@ -7,6 +5,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@prisma/client";
 
 import buildCalendarEvent from "./lib/buildCalendarEvent";
 import { createCRMEventSchema } from "./schema";

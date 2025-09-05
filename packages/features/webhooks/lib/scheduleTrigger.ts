@@ -1,6 +1,3 @@
-import type { Booking, Prisma, Webhook } from "@prisma/client";
-import { v4 } from "uuid";
-
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -13,6 +10,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { Booking, Prisma, Webhook } from "@prisma/client";
+import { v4 } from "uuid";
 
 const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.MEETING_ENDED,

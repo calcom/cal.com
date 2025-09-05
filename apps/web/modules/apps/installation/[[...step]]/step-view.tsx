@@ -1,11 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Toaster } from "sonner";
-import type { z } from "zod";
-
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
@@ -16,21 +10,24 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LocationObject } from "@calcom/lib/location";
 import type { Team } from "@calcom/prisma/client";
-import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { HttpError } from "@lib/core/http/error";
-
 import type { PersonalAccountProps } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
+
+import { HttpError } from "@lib/core/http/error";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Toaster } from "sonner";
+import type { z } from "zod";
 
 import { STEPS } from "~/apps/installation/[[...step]]/constants";
 
@@ -234,7 +231,8 @@ const OnboardingPage = ({
     <div
       key={pathname}
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
-      data-testid="onboarding">
+      data-testid="onboarding"
+    >
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
@@ -285,10 +283,12 @@ const OnboardingPage = ({
                 } catch (err) {
                   console.error(err);
                 }
-              }}>
+              }}
+            >
               <StepHeader
                 title={stepObj.getTitle(appMetadata.name)}
-                subtitle={stepObj.getDescription(appMetadata.name)}>
+                subtitle={stepObj.getDescription(appMetadata.name)}
+              >
                 <Steps maxSteps={maxSteps} currentStep={stepObj.stepNumber} disableNavigation />
               </StepHeader>
               {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (

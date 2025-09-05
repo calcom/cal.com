@@ -1,7 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
+import { createModule } from "@evyweb/ioctopus";
 
 export const selectedSlotsRepositoryModule = createModule();
 selectedSlotsRepositoryModule

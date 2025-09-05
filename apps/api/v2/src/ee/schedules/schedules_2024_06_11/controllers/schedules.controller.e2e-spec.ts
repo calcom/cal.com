@@ -1,10 +1,13 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_11 } from "@calcom/platform-constants";
+import {
+  CreateScheduleInput_2024_06_11,
+  CreateScheduleOutput_2024_06_11,
+  GetScheduleOutput_2024_06_11,
+  GetSchedulesOutput_2024_06_11,
+  ScheduleOutput_2024_06_11,
+  UpdateScheduleInput_2024_06_11,
+  UpdateScheduleOutput_2024_06_11,
+} from "@calcom/platform-types";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -13,17 +16,13 @@ import * as request from "supertest";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_11 } from "@calcom/platform-constants";
-import {
-  CreateScheduleInput_2024_06_11,
-  CreateScheduleOutput_2024_06_11,
-  GetScheduleOutput_2024_06_11,
-  GetSchedulesOutput_2024_06_11,
-  ScheduleOutput_2024_06_11,
-  UpdateScheduleOutput_2024_06_11,
-} from "@calcom/platform-types";
-import { UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Schedules Endpoints", () => {
   describe("User Authentication", () => {

@@ -1,16 +1,13 @@
-import { useMemo } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
+import { Form, Label, Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 type InvitationLinkSettingsModalProps = {
   isOpen: boolean;
@@ -81,7 +78,8 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       onOpenChange={() => {
         props.onExit();
         linkSettingsFormMethods.reset();
-      }}>
+      }}
+    >
       <DialogContent type="creation" title="Invite link settings">
         <Form form={linkSettingsFormMethods} handleSubmit={handleSubmit}>
           <Controller
@@ -107,7 +105,8 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
               color="secondary"
               onClick={() => deleteInviteMutation.mutate({ token: props.token })}
               className="mr-auto"
-              data-testid="copy-invite-link-button">
+              data-testid="copy-invite-link-button"
+            >
               {t("delete")}
             </Button>
             <Button type="button" color="minimal" onClick={props.onExit}>
@@ -117,7 +116,8 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
               type="submit"
               color="primary"
               className="me-2 ms-2"
-              data-testid="invite-new-member-button">
+              data-testid="invite-new-member-button"
+            >
               {t("save")}
             </Button>
           </DialogFooter>

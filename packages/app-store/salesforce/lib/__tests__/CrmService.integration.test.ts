@@ -9,13 +9,13 @@
 import "../../../../../tests/libs/__mocks__/prisma";
 
 import jsforce from "@jsforce/jsforce-node";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import SalesforceCRMService from "../CrmService";
 import { SalesforceRecordEnum } from "../enums";
 import {
-  mockValueOfAccountOwnershipQueryMatchingContact,
   mockValueOfAccountOwnershipQueryMatchingAccountWebsite,
+  mockValueOfAccountOwnershipQueryMatchingContact,
   mockValueOfAccountOwnershipQueryMatchingRelatedContacts,
 } from "../graphql/__tests__/urqlMock";
 import { createSalesforceMock } from "./salesforceMock";

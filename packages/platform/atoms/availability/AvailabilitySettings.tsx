@@ -1,17 +1,5 @@
 "use client";
 
-import type { SetStateAction, Dispatch } from "react";
-import React, {
-  useMemo,
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useCallback,
-} from "react";
-import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -34,20 +22,29 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Form, Label, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
+import { SelectSkeletonLoader, Skeleton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { Dispatch, SetStateAction } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
-import type { AvailabilityFormValues, scheduleClassNames, AvailabilitySettingsFormRef } from "./types";
+import type { AvailabilityFormValues, AvailabilitySettingsFormRef, scheduleClassNames } from "./types";
 
 export type Schedule = {
   id: number;
@@ -166,7 +163,8 @@ const DeleteDialogButton = ({
         onConfirm={() => {
           handleDelete();
           onDeleteConfirmed?.();
-        }}>
+        }}
+      >
         {t("delete_schedule_description")}
       </ConfirmationDialogContent>
     </Dialog>
@@ -256,7 +254,8 @@ const DateOverride = ({
               className={classNames?.button}
               color="secondary"
               StartIcon="plus"
-              data-testid="add-override">
+              data-testid="add-override"
+            >
               {t("add_an_override")}
             </Button>
           }
@@ -274,12 +273,14 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
         open
           ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
           : ""
-      )}>
+      )}
+    >
       <div
         className={classNames(
           "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
           open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-        )}>
+        )}
+      >
         {open ? children : null}
       </div>
     </div>
@@ -429,7 +430,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                     htmlFor="hiddenSwitch"
                     className="mt-2 cursor-pointer self-center pe-2"
                     loadingClassName="me-4"
-                    waitForTranslation={!isPlatform}>
+                    waitForTranslation={!isPlatform}
+                  >
                     {t("set_to_default")}
                   </Skeleton>
                   <Controller
@@ -487,12 +489,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                     openSidebar
                       ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
                       : ""
-                  )}>
+                  )}
+                >
                   <div
                     className={classNames(
                       "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                       openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-                    )}>
+                    )}
+                  >
                     <div className="flex flex-row items-center pt-16">
                       <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                       <p className="-ml-2">{t("availability_settings")}</p>
@@ -530,7 +534,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                             as={Label}
                             htmlFor="hiddenSwitch"
                             className="mt-2 cursor-pointer self-center pr-2 sm:inline"
-                            waitForTranslation={!isPlatform}>
+                            waitForTranslation={!isPlatform}
+                          >
                             {t("set_to_default")}
                           </Skeleton>
                           <Controller
@@ -560,7 +565,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                             as={Label}
                             htmlFor="timeZone-sm-viewport"
                             className="mb-0 inline-block leading-none"
-                            waitForTranslation={!isPlatform}>
+                            waitForTranslation={!isPlatform}
+                          >
                             {t("timezone")}
                           </Skeleton>
                           <Controller
@@ -590,7 +596,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                               <Skeleton
                                 as="h3"
                                 className="mb-0 inline-block text-sm font-medium"
-                                waitForTranslation={!isPlatform}>
+                                waitForTranslation={!isPlatform}
+                              >
                                 {t("something_doesnt_look_right")}
                               </Skeleton>
                               <div className="mt-3 flex">
@@ -598,7 +605,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                                   as={Button}
                                   href="/availability/troubleshoot"
                                   color="secondary"
-                                  waitForTranslation={!isPlatform}>
+                                  waitForTranslation={!isPlatform}
+                                >
                                   {t("launch_troubleshooter")}
                                 </Skeleton>
                               </div>
@@ -617,7 +625,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               className="ml-4 lg:ml-0"
               type="submit"
               form="availability-form"
-              loading={isSaving}>
+              loading={isSaving}
+            >
               {t("save")}
             </Button>
             <Button
@@ -628,7 +637,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               onClick={() => setOpenSidebar(true)}
             />
           </div>
-        }>
+        }
+      >
         <div className="mt-4 w-full md:mt-0">
           <Form
             form={form}
@@ -636,13 +646,15 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             handleSubmit={async (props) => {
               handleSubmit(props);
             }}
-            className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
+            className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}
+          >
             <div className="flex-1 flex-row xl:mr-0">
               <div
                 className={cn(
                   "border-subtle mb-6 rounded-md border",
                   customClassNames?.scheduleClassNames?.scheduleContainer
-                )}>
+                )}
+              >
                 <div>
                   {typeof weekStart === "string" && (
                     <Schedule
@@ -697,7 +709,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                     as={Label}
                     htmlFor="timeZone-lg-viewport"
                     className="mb-0 inline-block leading-none"
-                    waitForTranslation={!isPlatform}>
+                    waitForTranslation={!isPlatform}
+                  >
                     {t("timezone")}
                   </Skeleton>
                   <Controller
@@ -725,7 +738,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       <Skeleton
                         as="h3"
                         className="mb-0 inline-block text-sm font-medium"
-                        waitForTranslation={!isPlatform}>
+                        waitForTranslation={!isPlatform}
+                      >
                         {t("something_doesnt_look_right")}
                       </Skeleton>
                       <div className="mt-3 flex">
@@ -733,7 +747,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           as={Button}
                           href="/availability/troubleshoot"
                           color="secondary"
-                          waitForTranslation={!isPlatform}>
+                          waitForTranslation={!isPlatform}
+                        >
                           {t("launch_troubleshooter")}
                         </Skeleton>
                       </div>

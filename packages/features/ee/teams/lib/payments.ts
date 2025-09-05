@@ -1,6 +1,3 @@
-import type Stripe from "stripe";
-import { z } from "zod";
-
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import stripe from "@calcom/features/ee/payments/server/stripe";
@@ -14,8 +11,9 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import { BillingPeriod } from "@calcom/prisma/zod-utils";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { BillingPeriod, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type Stripe from "stripe";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({

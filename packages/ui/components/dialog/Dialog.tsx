@@ -1,12 +1,11 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ForwardRefExoticComponent, ReactNode } from "react";
 import React from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 
 import type { ButtonProps } from "../button";
 import { Button } from "../button";
@@ -87,7 +86,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             enableOverflow ? "overflow-y-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
-          ref={forwardedRef}>
+          ref={forwardedRef}
+        >
           {type === "creation" && (
             <div>
               <DialogHeader title={title} subtitle={props.description} />
@@ -129,7 +129,8 @@ export function DialogHeader(props: DialogHeaderProps) {
       <h2
         data-testid="dialog-title"
         className="leading-20 text-semibold text-emphasis font-cal mb-1 text-xl"
-        id="modal-title">
+        id="modal-title"
+      >
         {props.title}
       </h2>
       {props.subtitle && (
@@ -154,7 +155,8 @@ export function DialogFooter(props: DialogFooterProps) {
         "bg-muted border-muted bottom-0 -mx-8 mt-10 rounded-b-2xl border",
         props?.noSticky ? "" : "sticky",
         props.className
-      )}>
+      )}
+    >
       {props.showDivider && <div data-testid="divider" className="border-subtle border-t" />}
       <div className={classNames("flex justify-end space-x-2 px-8 py-4 font-sans rtl:space-x-reverse")}>
         {props.children}
@@ -192,7 +194,8 @@ export function DialogClose(
         data-testid={props["data-testid"] || "dialog-rejection"}
         color={props.color || "minimal"}
         className={classNames(props.color === "destructive" && "destructive", className)}
-        {...buttonProps}>
+        {...buttonProps}
+      >
         {props.children ? props.children : t("close")}
       </Button>
     </DialogPrimitive.Close>

@@ -1,7 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
-import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType, type TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { listMembersHandler } from "./listMembers.handler";
 

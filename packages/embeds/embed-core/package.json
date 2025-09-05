@@ -37,9 +37,7 @@
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-core' && yarn withEmbedPublishEnv build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "postcss": {
     "map": false,
     "plugins": {

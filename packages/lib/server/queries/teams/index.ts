@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -10,13 +8,14 @@ import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { _EventTypeModel } from "@calcom/prisma/zod";
 import {
-  EventTypeMetaDataSchema,
   allManagedEventTypeProps,
+  EventTypeMetaDataSchema,
   unlockedManagedEventTypeProps,
 } from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@prisma/client";
 
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
-import { getTeam, getOrg } from "../../repository/team";
+import { getOrg, getTeam } from "../../repository/team";
 import { UserRepository } from "../../repository/user";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;

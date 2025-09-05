@@ -1,13 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-
+import type { PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
-import type { PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import type { ApiResponse } from "@calcom/platform-types";
-
-import http from "../../../lib/http";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useAtomsContext } from "../../../hooks/useAtomsContext";
+import http from "../../../lib/http";
 
 export const QUERY_KEY = "get-public-event";
 export type UsePublicEventReturnType = ReturnType<typeof useAtomGetPublicEvent>;
@@ -20,8 +18,13 @@ type Props = {
   selectedDuration: number | null;
 };
 
-export const useAtomGetPublicEvent = ({ username, eventSlug, isTeamEvent, teamId, selectedDuration }: Props) => {
-
+export const useAtomGetPublicEvent = ({
+  username,
+  eventSlug,
+  isTeamEvent,
+  teamId,
+  selectedDuration,
+}: Props) => {
   const { organizationId } = useAtomsContext();
 
   const isDynamic = useMemo(() => {
@@ -36,17 +39,18 @@ export const useAtomGetPublicEvent = ({ username, eventSlug, isTeamEvent, teamId
       const params: Record<string, any> = {
         isTeamEvent,
         teamId,
-        username: getUsernameList(username ?? "").join("+")
+        username: getUsernameList(username ?? "").join("+"),
       };
-      
+
       // Only include orgId if it's not 0
       if (organizationId !== 0) {
         params.orgId = organizationId;
       }
-      
-      return http?.get<ApiResponse<PublicEventType>>(pathname, {
-        params,
-      })
+
+      return http
+        ?.get<ApiResponse<PublicEventType>>(pathname, {
+          params,
+        })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             if (isDynamic && selectedDuration && res.data.data) {

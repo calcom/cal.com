@@ -7,61 +7,64 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { createWatchlistEntry } from "@calcom/features/watchlist/lib/testUtils";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { resetTestEmails } from "@calcom/lib/testEmails";
 import {
+  BookingStatus,
+  CreationSource,
+  SchedulingType,
+  WatchlistSeverity,
+  WatchlistType,
+} from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
+import {
+  BookingLocations,
   createBookingScenario,
+  getAppleCalendarCredential,
+  getBooker,
   getDate,
   getGoogleCalendarCredential,
-  getAppleCalendarCredential,
-  TestData,
   getOrganizer,
-  getBooker,
   getScenarioData,
-  getZoomAppCredential,
-  mockErrorOnVideoMeetingCreation,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
   getStripeAppCredential,
+  getZoomAppCredential,
   MockError,
-  mockPaymentApp,
-  mockPaymentSuccessWebhookFromStripe,
   mockCalendar,
   mockCalendarToCrashOnCreateEvent,
+  mockCalendarToHaveNoBusySlots,
+  mockErrorOnVideoMeetingCreation,
+  mockPaymentApp,
+  mockPaymentSuccessWebhookFromStripe,
+  mockSuccessfulVideoMeetingCreation,
   mockVideoAppToCrashOnCreateMeeting,
-  BookingLocations,
+  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
-  expectWorkflowToBeTriggered,
-  expectWorkflowToBeNotTriggered,
-  expectSuccessfulBookingCreationEmails,
-  expectBookingToBeInDatabase,
   expectAwaitingPaymentEmails,
-  expectBookingRequestedEmails,
-  expectBookingRequestedWebhookToHaveBeenFired,
   expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingPaymentIntiatedWebhookToHaveBeenFired,
-  expectBrokenIntegrationEmails,
-  expectSuccessfulCalendarEventCreationInCalendar,
-  expectICalUIDAsString,
+  expectBookingRequestedEmails,
+  expectBookingRequestedWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
   expectBookingTrackingToBeInDatabase,
+  expectBrokenIntegrationEmails,
+  expectICalUIDAsString,
+  expectSuccessfulBookingCreationEmails,
+  expectSuccessfulCalendarEventCreationInCalendar,
+  expectWorkflowToBeNotTriggered,
+  expectWorkflowToBeTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 import { testWithAndWithoutOrg } from "@calcom/web/test/utils/bookingScenario/test";
-
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { createWatchlistEntry } from "@calcom/features/watchlist/lib/testUtils";
-import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { resetTestEmails } from "@calcom/lib/testEmails";
-import { CreationSource, WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 

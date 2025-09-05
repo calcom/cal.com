@@ -1,10 +1,9 @@
-import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
-import { KeysDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, ValidateNested } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
+import { KeysDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 
 export class CreateManagedUserData extends KeysDto {
   @ApiProperty({

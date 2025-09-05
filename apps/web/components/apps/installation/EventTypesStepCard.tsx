@@ -1,8 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-import type { FC } from "react";
-import React from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -10,8 +5,11 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ScrollableArea } from "@calcom/ui/components/scrollable";
+import type { Dispatch, FC, SetStateAction } from "react";
+import React from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 
-import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import type { TEventType, TEventTypeGroup, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";
 
 type EventTypesCardProps = {
   userName: string;
@@ -46,7 +44,8 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
     <div
       data-testid={`select-event-type-${id}`}
       className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
-      onClick={() => handleSelect()}>
+      onClick={() => handleSelect()}
+    >
       <input
         id={`${id}`}
         checked={selected}
@@ -159,7 +158,8 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({
         }}
         disabled={
           !eventTypeGroups.some((field) => field.eventTypes.some((eventType) => eventType.selected === true))
-        }>
+        }
+      >
         {t("save")}
       </Button>
 
@@ -171,7 +171,8 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({
             event.preventDefault();
             handleSetUpLater();
           }}
-          className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+          className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium"
+        >
           {t("set_up_later")}
         </Button>
       </div>

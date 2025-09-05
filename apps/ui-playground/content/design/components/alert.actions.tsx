@@ -1,8 +1,7 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Alert } from "@calcom/ui/components/alert";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 const severities = ["neutral", "info", "warning", "error"] as const;
 

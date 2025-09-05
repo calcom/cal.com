@@ -1,8 +1,7 @@
-import { createContext, useContext, createElement } from "react";
-import type z from "zod";
-
 import type { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { createContext, createElement, useContext } from "react";
+import type z from "zod";
 
 /**
  * Organization branding

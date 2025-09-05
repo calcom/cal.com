@@ -1,8 +1,7 @@
+import { APP_NAME, IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import type { TFunction } from "i18next";
 
-import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
-
-import { V2BaseEmailHtml, CallToAction } from "../components";
+import { CallToAction, V2BaseEmailHtml } from "../components";
 
 type TeamInvite = {
   language: TFunction;
@@ -22,7 +21,8 @@ export const OrgAutoInviteEmail = (
         team: props.orgName,
         appName: APP_NAME,
         entity: "organization",
-      })}>
+      })}
+    >
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
         <>
           {props.language("organization_admin_invited_heading", {
@@ -52,7 +52,8 @@ export const OrgAutoInviteEmail = (
           marginBottom: "32px",
           marginTop: "32px",
           lineHeightStep: "24px",
-        }}>
+        }}
+      >
         <>
           {props.language("organization_admin_invited_body", {
             orgName: props.orgName,
@@ -77,7 +78,8 @@ export const OrgAutoInviteEmail = (
             marginBottom: "32px",
             marginTop: "32px",
             lineHeightStep: "24px",
-          }}>
+          }}
+        >
           <>
             {props.language("email_no_user_signoff", {
               appName: APP_NAME,

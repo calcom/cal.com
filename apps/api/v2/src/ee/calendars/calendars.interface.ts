@@ -1,7 +1,6 @@
-import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
-import { Request } from "express";
-
 import { ApiResponse } from "@calcom/platform-types";
+import { Request } from "express";
+import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
 
 export interface CalendarApp {
   save(state: string, code: string, origin: string): Promise<{ url: string }>;

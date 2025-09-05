@@ -1,9 +1,8 @@
+import { i18n } from "@calcom/config/next-i18next.config";
 import { parse } from "accept-language-parser";
 import { lookup } from "bcp-47-match";
 import type { GetTokenParams } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
-
-import { i18n } from "@calcom/config/next-i18next.config";
 
 type ReadonlyHeaders = Awaited<ReturnType<typeof import("next/headers").headers>>;
 type ReadonlyRequestCookies = Awaited<ReturnType<typeof import("next/headers").cookies>>;

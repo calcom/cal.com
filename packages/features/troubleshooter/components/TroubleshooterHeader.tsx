@@ -1,9 +1,8 @@
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { useMemo } from "react";
 
 import { useTroubleshooterStore } from "../store";
 
@@ -69,7 +68,8 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
-              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
+              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}
+            >
               {t("today")}
             </Button>
           )}

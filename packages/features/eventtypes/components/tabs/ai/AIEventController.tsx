@@ -1,27 +1,24 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import { useSession } from "next-auth/react";
-import React, { useState } from "react";
-import { useFormContext, Controller } from "react-hook-form";
-import { z } from "zod";
-
-import PhoneInput from "@calcom/features/components/phone-input";
 import { getTemplateFieldsSchema } from "@calcom/features/calAIPhone/getTemplateFieldsSchema";
 import { templateFieldsMap } from "@calcom/features/calAIPhone/template-fields-map";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
+import PhoneInput from "@calcom/features/components/phone-input";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Label } from "@calcom/ui/components/form";
-import { Divider } from "@calcom/ui/components/divider";
-import { TextField } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Divider } from "@calcom/ui/components/divider";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, SettingsToggle, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import * as RadioGroup from "@radix-ui/react-radio-group";
+import { useSession } from "next-auth/react";
+import React, { useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 type AIEventControllerProps = {
   eventType: EventTypeSetup;
@@ -74,7 +71,8 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
                   });
                   setAIEventState(true);
                 }
-              }}>
+              }}
+            >
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 {aiEventState && <AISettings eventType={eventType} />}
               </div>
@@ -228,14 +226,16 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
               defaultValue={eventType?.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE"}
               onValueChange={(val) => {
                 formMethods.setValue("aiPhoneCallConfig.templateType", val, { shouldDirty: true });
-              }}>
+              }}
+            >
               <div className="flex gap-2">
                 <div className="flex flex-1 rounded-lg border p-4">
                   <RadioGroup.Item
                     id="CHECK_IN_APPOINTMENT"
                     key="CHECK_IN_APPOINTMENT"
                     value="CHECK_IN_APPOINTMENT"
-                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2 ">
+                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2 "
+                  >
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
                   </RadioGroup.Item>
                   <label className="h-full" htmlFor="CHECK_IN_APPOINTMENT">
@@ -248,7 +248,8 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                     id="CUSTOM_TEMPLATE"
                     key="CUSTOM_TEMPLATE"
                     value="CUSTOM_TEMPLATE"
-                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2"
+                  >
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
                   </RadioGroup.Item>
                   <label htmlFor="CUSTOM_TEMPLATE">
@@ -304,7 +305,8 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         <Button
           disabled={createCallMutation.isPending}
           loading={createCallMutation.isPending}
-          onClick={handleSubmit}>
+          onClick={handleSubmit}
+        >
           {t("make_a_call")}
         </Button>
 

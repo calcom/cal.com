@@ -10,7 +10,7 @@ export default function getCalLink(eventType: {
     eventType?.team
       ? `team/${eventType?.team?.slug}`
       : eventType?.owner
-      ? eventType.owner.username
-      : eventType?.users?.[0]?.username
+        ? eventType.owner.username
+        : eventType?.users?.[0]?.username
   }/${eventType?.slug}`;
 }

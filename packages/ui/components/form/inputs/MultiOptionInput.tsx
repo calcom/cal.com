@@ -1,18 +1,17 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import {
-  useFieldArray,
-  useFormContext,
-  type FieldValues,
-  type Path,
-  type PathValue,
-  type ArrayPath,
-} from "react-hook-form";
-import { v4 as uuidv4 } from "uuid";
-
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  type ArrayPath,
+  type FieldValues,
+  type Path,
+  type PathValue,
+  useFieldArray,
+  useFormContext,
+} from "react-hook-form";
+import { v4 as uuidv4 } from "uuid";
 
 export interface Option {
   label: string;
@@ -207,7 +206,8 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
           <li
             key={option.id || `option-${index}`}
             className="group mt-2 flex items-center gap-2"
-            onPaste={(event) => handlePasteInOptionAtIndex(event, index)}>
+            onPaste={(event) => handlePasteInOptionAtIndex(event, index)}
+          >
             {keyValueMode ? (
               // Key-value pair mode
               <div className="flex w-full gap-2">
@@ -238,7 +238,8 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                           type="button"
                           onClick={() => handleRemoveOption(index)}
                           aria-label="Remove option"
-                          disabled={disabled}>
+                          disabled={disabled}
+                        >
                           <Icon name="x" className="h-4 w-4" />
                         </button>
                       ) : null
@@ -264,7 +265,8 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                         type="button"
                         onClick={() => handleRemoveOption(index)}
                         aria-label="Remove option"
-                        disabled={disabled}>
+                        disabled={disabled}
+                      >
                         <Icon name="x" className="h-4 w-4" />
                       </button>
                     ) : null
@@ -281,7 +283,8 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                   className={classNames(
                     "bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 items-center justify-center rounded-t-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible",
                     index === 0 ? "cursor-not-allowed opacity-30" : "cursor-pointer"
-                  )}>
+                  )}
+                >
                   <Icon name="arrow-up" className="h-3 w-3" />
                 </button>
                 <button
@@ -291,7 +294,8 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                   className={classNames(
                     "bg-default text-muted hover:text-emphasis invisible -mt-px flex h-6 w-6 items-center justify-center rounded-b-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible",
                     index === options.length - 1 ? "cursor-not-allowed opacity-30" : "cursor-pointer"
-                  )}>
+                  )}
+                >
                   <Icon name="arrow-down" className="h-3 w-3" />
                 </button>
               </div>
@@ -306,7 +310,8 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
           StartIcon="plus"
           onClick={addOption}
           className="mt-4 border-none"
-          disabled={disabled}>
+          disabled={disabled}
+        >
           {addOptionLabel}
         </Button>
       </div>

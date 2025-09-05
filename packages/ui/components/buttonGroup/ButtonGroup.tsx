@@ -1,6 +1,5 @@
-import React from "react";
-
 import classNames from "@calcom/ui/classNames";
+import React from "react";
 
 type Props = { children: React.ReactNode; combined?: boolean; containerProps?: JSX.IntrinsicElements["div"] };
 
@@ -29,7 +28,8 @@ export function ButtonGroup({ children, combined = false, containerProps }: Prop
           ? "space-x-2 rtl:space-x-reverse"
           : "[&>*:first-child]:rounded-l-[var(--btn-group-radius)] rtl:[&>*:first-child]:rounded-l-none rtl:[&>*:first-child]:rounded-r-[var(--btn-group-radius)] [&>*:last-child]:rounded-r-[var(--btn-group-radius)] rtl:[&>*:last-child]:rounded-l-[var(--btn-group-radius)] rtl:[&>*:last-child]:rounded-r-none [&>*:not(:first-child)]:-ml-[1px] [&>*]:rounded-none [&>*]:border hover:[&>*]:z-[1]",
         containerProps?.className
-      )}>
+      )}
+    >
       {children}
     </div>
   );

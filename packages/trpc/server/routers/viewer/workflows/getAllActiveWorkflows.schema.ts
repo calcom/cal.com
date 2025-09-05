@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import {
   TIME_UNIT,
   WORKFLOW_ACTIONS,
@@ -7,6 +5,7 @@ import {
   WORKFLOW_TRIGGER_EVENTS,
 } from "@calcom/ee/workflows/lib/constants";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 const ZWorkflow = z.object({
   id: z.number(),

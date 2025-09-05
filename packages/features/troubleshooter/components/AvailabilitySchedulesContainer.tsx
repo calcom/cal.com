@@ -17,7 +17,8 @@ function AvailabiltyItem() {
             Connected
           </Badge>
         </div>
-      }>
+      }
+    >
       <div className="flex flex-col gap-3">
         <p className="text-subtle text-sm font-medium leading-none">{t("date_overrides")}</p>
         <Switch label="google@calendar.com" />

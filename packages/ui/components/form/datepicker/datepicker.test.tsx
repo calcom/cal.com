@@ -1,4 +1,4 @@
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { format } from "date-fns";
 import { vi } from "vitest";
 

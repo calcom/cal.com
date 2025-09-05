@@ -1,3 +1,7 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetSchedulesOutput_2024_06_11, SkipTakePagination } from "@calcom/platform-types";
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
@@ -15,11 +19,6 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsUserInOrgTeam } from "@/modules/auth/guards/users/is-user-in-org-team.guard";
 import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
-import { Controller, UseGuards, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetSchedulesOutput_2024_06_11, SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId",

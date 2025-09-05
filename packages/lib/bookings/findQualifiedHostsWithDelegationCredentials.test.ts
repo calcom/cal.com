@@ -1,9 +1,7 @@
-import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
-
-import { vi, it, describe, expect, afterEach } from "vitest";
-import type { Mock } from "vitest";
-
 import { RRResetInterval, SchedulingType } from "@calcom/prisma/enums";
+import type { Mock } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { getQualifiedHostsService } from "../di/containers/QualifiedHosts";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";

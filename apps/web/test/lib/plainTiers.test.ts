@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
-
-import type { Params } from "app/_types";
-import type { NextRequest } from "next/server";
-import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
+import type { Params } from "app/_types";
+import type { NextRequest } from "next/server";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { POST } from "../../app/api/plain-hash/route";
 

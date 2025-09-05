@@ -1,9 +1,8 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const VariantsExample: React.FC = () => (
   <RenderComponentWithSnippet>
@@ -12,7 +11,8 @@ export const VariantsExample: React.FC = () => (
         color="primary"
         onClick={() => {
           showToast("This is a success message", "success");
-        }}>
+        }}
+      >
         Success
       </Button>
 
@@ -20,7 +20,8 @@ export const VariantsExample: React.FC = () => (
         color="minimal"
         onClick={() => {
           showToast("This is a warning message", "warning");
-        }}>
+        }}
+      >
         Warning
       </Button>
 
@@ -28,7 +29,8 @@ export const VariantsExample: React.FC = () => (
         color="destructive"
         onClick={() => {
           showToast("This is an error message", "error");
-        }}>
+        }}
+      >
         Error
       </Button>
     </div>

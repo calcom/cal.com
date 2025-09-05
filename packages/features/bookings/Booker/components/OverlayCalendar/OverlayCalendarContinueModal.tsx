@@ -18,7 +18,8 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
         <DialogContent
           type="creation"
           title={t("overlay_my_calendar")}
-          description={t("overlay_my_calendar_toc")}>
+          description={t("overlay_my_calendar_toc")}
+        >
           <div className="flex flex-col gap-2">
             <Button
               data-testid="overlay-calendar-continue-button"
@@ -26,7 +27,8 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
                 props.onContinue();
               }}
               className="gap w-full items-center justify-center font-semibold"
-              StartIcon="calendar-search">
+              StartIcon="calendar-search"
+            >
               {t("continue_with", { appName: APP_NAME })}
             </Button>
           </div>

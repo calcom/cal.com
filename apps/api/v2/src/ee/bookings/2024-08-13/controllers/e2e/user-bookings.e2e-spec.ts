@@ -1,3 +1,42 @@
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_06_14,
+  VERSION_2024_08_13,
+  X_CAL_CLIENT_ID,
+} from "@calcom/platform-constants";
+import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
+import { EventManager } from "@calcom/platform-libraries/event-types";
+import {
+  BookingOutput_2024_08_13,
+  CancelBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  CreateEventTypeInput_2024_06_14,
+  CreateRecurringBookingInput_2024_08_13,
+  FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE,
+  GetBookingOutput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { EventType, User, Workflow } from "@prisma/client";
+import { advanceTo, clear } from "jest-date-mock";
+import * as request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
+import { WorkflowReminderRepositoryFixture } from "test/fixtures/repository/workflow-reminder.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
@@ -11,48 +50,6 @@ import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { EventType, User, Workflow } from "@prisma/client";
-import { advanceTo, clear } from "jest-date-mock";
-import * as request from "supertest";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { WorkflowReminderRepositoryFixture } from "test/fixtures/repository/workflow-reminder.repository.fixture";
-import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import {
-  CAL_API_VERSION_HEADER,
-  SUCCESS_STATUS,
-  VERSION_2024_06_14,
-  VERSION_2024_08_13,
-  X_CAL_CLIENT_ID,
-} from "@calcom/platform-constants";
-import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
-import { EventManager } from "@calcom/platform-libraries/event-types";
-import {
-  CreateEventTypeInput_2024_06_14,
-  FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE,
-  GetBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
-  MarkAbsentBookingInput_2024_08_13,
-} from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("User bookings", () => {

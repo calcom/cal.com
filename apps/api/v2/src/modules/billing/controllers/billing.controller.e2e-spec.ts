@@ -1,10 +1,4 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { PlatformBilling, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -18,8 +12,13 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { Team, PlatformOAuthClient, PlatformBilling } from "@calcom/prisma/client";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { StripeService } from "@/modules/stripe/stripe.service";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
+import { UserWithProfile } from "@/modules/users/users.repository";
 
 describe("Platform Billing Controller (e2e)", () => {
   let app: INestApplication;
@@ -111,7 +110,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())
@@ -140,7 +139,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
@@ -169,7 +168,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())
@@ -202,7 +201,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())

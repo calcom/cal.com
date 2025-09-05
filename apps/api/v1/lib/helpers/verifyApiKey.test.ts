@@ -1,16 +1,14 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
 import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
 import prisma from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { verifyApiKey } from "./verifyApiKey";
 

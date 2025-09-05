@@ -1,10 +1,9 @@
-import type { Prisma } from "@prisma/client";
-import type { TFunction } from "i18next";
-
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
+import type { AppsStatus, CalEventResponses, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { Prisma } from "@prisma/client";
+import type { TFunction } from "i18next";
 
 export class CalendarEventBuilder {
   private event: Partial<CalendarEvent>;

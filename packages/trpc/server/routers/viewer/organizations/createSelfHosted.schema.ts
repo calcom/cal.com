@@ -1,6 +1,5 @@
-import type { z } from "zod";
-
 import { createOrganizationSchema } from "@calcom/features/ee/organizations/types/schemas";
+import type { z } from "zod";
 
 export const ZCreateSelfHostedInputSchema = createOrganizationSchema;
 

@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { SchedulingType } from "@calcom/prisma/enums";
+import { z } from "zod";
 
 export const filterQuerySchemaStrict = z.object({
   teamIds: z.number().array().optional(),

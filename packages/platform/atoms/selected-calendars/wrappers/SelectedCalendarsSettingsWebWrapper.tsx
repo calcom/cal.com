@@ -1,6 +1,3 @@
-import Link from "next/link";
-import React from "react";
-
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import CredentialActionsDropdown from "@calcom/features/apps/components/CredentialActionsDropdown";
 import AdditionalCalendarSelector from "@calcom/features/calendars/AdditionalCalendarSelector";
@@ -11,6 +8,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
+import Link from "next/link";
+import React from "react";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -77,7 +76,8 @@ const ConnectedCalendarList = ({
                     disableConnectionModification={disableConnectionModification}
                   />
                 </div>
-              }>
+              }
+            >
               <div className="border-subtle border-t">
                 {!fromOnboarding && (
                   <>

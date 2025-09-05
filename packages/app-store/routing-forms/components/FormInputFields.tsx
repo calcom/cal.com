@@ -1,14 +1,13 @@
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
-
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
-import type { SerializableForm, FormResponse } from "../types/types";
+import type { FormResponse, SerializableForm } from "../types/types";
 import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 export type FormInputFieldsProps = {

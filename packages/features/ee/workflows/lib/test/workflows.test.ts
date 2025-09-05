@@ -1,36 +1,33 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import {
-  getOrganizer,
-  getScenarioData,
-  TestData,
-  createBookingScenario,
-  createOrganization,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import {
-  expectSMSWorkflowToBeTriggered,
-  expectSMSWorkflowToBeNotTriggered,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import type { Prisma } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
-import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import {
   BookingStatus,
-  WorkflowMethods,
   TimeUnit,
-  WorkflowTriggerEvents,
   WorkflowActions,
+  WorkflowMethods,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import {
+  bookingSelect,
   deleteRemindersOfActiveOnIds,
   scheduleBookingReminders,
-  bookingSelect,
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+import {
+  createBookingScenario,
+  createOrganization,
+  getOrganizer,
+  getScenarioData,
+  TestData,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import {
+  expectSMSWorkflowToBeNotTriggered,
+  expectSMSWorkflowToBeTriggered,
+} from "@calcom/web/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import type { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
+import { beforeAll, beforeEach, describe, expect, vi } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";

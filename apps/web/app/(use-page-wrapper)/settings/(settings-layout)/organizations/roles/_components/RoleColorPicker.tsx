@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRef, useState } from "react";
 
 export interface RoleColorPickerProps {
   value: string;
@@ -33,7 +32,8 @@ export default function RoleColorPicker({ value, onChange, disabled }: RoleColor
         type="button"
         onClick={handleColorSquareClick}
         disabled={disabled}
-        className="bg-default text-default border-default hover:bg-muted hover:text-emphasis focus:bg-subtle focus-visible:shadow-outline-gray-focused shadow-outline-gray-rested enabled:hover:shadow-outline-gray-hover enabled:active:shadow-outline-gray-active flex h-8 w-8 items-center justify-center gap-2 rounded-[10px] border text-sm transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50">
+        className="bg-default text-default border-default hover:bg-muted hover:text-emphasis focus:bg-subtle focus-visible:shadow-outline-gray-focused shadow-outline-gray-rested enabled:hover:shadow-outline-gray-hover enabled:active:shadow-outline-gray-active flex h-8 w-8 items-center justify-center gap-2 rounded-[10px] border text-sm transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+      >
         <div
           className="h-5 w-5 rounded border shadow-sm"
           style={{ backgroundColor: value }}

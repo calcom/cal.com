@@ -1,6 +1,6 @@
-import type { TeamPermissions, Permission } from "../models/Permission";
-import { CrudAction, CustomAction, Resource, PERMISSION_REGISTRY } from "../types/permission-registry";
-import type { PermissionString, PermissionRegistry } from "../types/permission-registry";
+import type { Permission, TeamPermissions } from "../models/Permission";
+import type { PermissionRegistry, PermissionString } from "../types/permission-registry";
+import { CrudAction, CustomAction, PERMISSION_REGISTRY, Resource } from "../types/permission-registry";
 
 export type ResourceActions<R extends Resource> = keyof PermissionRegistry[R];
 

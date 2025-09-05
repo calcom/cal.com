@@ -1,8 +1,8 @@
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 
 import type {
-  AgentRepositoryInterface,
   AgentData,
+  AgentRepositoryInterface,
   AgentWithDetailsData,
   AgentWithPhoneNumbersData,
 } from "../interfaces/AgentRepositoryInterface";

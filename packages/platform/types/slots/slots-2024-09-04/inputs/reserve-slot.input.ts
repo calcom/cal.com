@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsInt, IsDateString, IsOptional } from "class-validator";
+import { IsDateString, IsInt, IsOptional } from "class-validator";
 
 export class ReserveSlotInput_2024_09_04 {
   @IsInt()

@@ -1,22 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiSuccessResponse, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
-import type { ApiResponse } from "@calcom/platform-types";
+import type { ApiResponse, ApiSuccessResponse, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import { useQuery } from "@tanstack/react-query";
 
 import http from "../../../lib/http";
 import { useAtomsContext } from "../../useAtomsContext";
 
 export const QUERY_KEY = "use-team-event-type";
 
-export const useTeamEventType = (teamId: number | undefined, eventSlug: string, isTeamEvent: boolean | undefined, hostsLimit?: number) => {
+export const useTeamEventType = (
+  teamId: number | undefined,
+  eventSlug: string,
+  isTeamEvent: boolean | undefined,
+  hostsLimit?: number
+) => {
   const { organizationId } = useAtomsContext();
   const requestEventSlug = eventSlug;
 
   let pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
 
   if (!organizationId) {
-    pathname = `/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`
+    pathname = `/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
   }
 
   if (hostsLimit !== undefined) {

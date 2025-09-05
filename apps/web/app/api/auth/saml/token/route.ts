@@ -1,3 +1,6 @@
+import type { OAuthTokenReq } from "@calcom/features/ee/sso/lib/jackson";
+import jackson from "@calcom/features/ee/sso/lib/jackson";
+import logger from "@calcom/lib/logger";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import * as jose from "jose";
@@ -5,10 +8,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import * as dummy from "openid-client";
 import { uuid } from "short-uuid";
-
-import jackson from "@calcom/features/ee/sso/lib/jackson";
-import type { OAuthTokenReq } from "@calcom/features/ee/sso/lib/jackson";
-import logger from "@calcom/lib/logger";
 
 async function handler(req: NextRequest) {
   // Need these imports to fix import errors with jackson

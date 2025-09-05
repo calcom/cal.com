@@ -1,20 +1,19 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
+import { v4 as uuidv4 } from "uuid";
 
 import type {
-  AIPhoneServiceUpdateModelParams,
-  AIPhoneServiceProviderType,
   AIPhoneServiceAgent,
   AIPhoneServiceModel,
+  AIPhoneServiceProviderType,
   AIPhoneServiceTools,
+  AIPhoneServiceUpdateModelParams,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
-import type { RetellAIRepository, Language } from "../types";
+import type { Language, RetellAIRepository } from "../types";
 import { getLlmId } from "../types";
 
 export class AgentService {

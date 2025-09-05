@@ -1,16 +1,15 @@
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { EventType } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
-import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
-import { trpc } from "@calcom/trpc/react";
 
 export type CreateEventTypeFormValues = z.infer<typeof createEventTypeInput>;
 

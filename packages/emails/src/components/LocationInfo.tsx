@@ -1,8 +1,7 @@
-import type { TFunction } from "i18next";
-
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
 
 import { Info } from "./Info";
 
@@ -36,7 +35,8 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             target="_blank"
             title={t("meeting_url")}
             style={{ color: "#101010" }}
-            rel="noreferrer">
+            rel="noreferrer"
+          >
             {providerName || "Link"}
           </a>
         }

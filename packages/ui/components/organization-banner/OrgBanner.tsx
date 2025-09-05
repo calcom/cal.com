@@ -1,6 +1,5 @@
-import Image from "next/image";
-
 import classNames from "@calcom/ui/classNames";
+import Image from "next/image";
 
 type Maybe<T> = T | null | undefined;
 

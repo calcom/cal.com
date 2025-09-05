@@ -45,7 +45,8 @@ export const Info = (props: {
             lineHeight: "24px",
             whiteSpace: "pre-wrap",
             textDecoration: props.lineThrough ? "line-through" : undefined,
-          }}>
+          }}
+        >
           {props.formatted ? <StyledHtmlContent htmlContent={safeDescription} /> : props.description}
         </p>
         {props.extraInfo}

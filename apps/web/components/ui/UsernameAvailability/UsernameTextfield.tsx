@@ -1,10 +1,3 @@
-import classNames from "classnames";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import { useSession } from "next-auth/react";
-import type { RefCallback } from "react";
-import { useEffect, useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -12,12 +5,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
 import type { TRPCClientErrorLike } from "@trpc/client";
+import classNames from "classnames";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
+import { useSession } from "next-auth/react";
+import type { RefCallback } from "react";
+import { useEffect, useState } from "react";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -88,7 +86,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
-          data-testid="update-username-btn">
+          data-testid="update-username-btn"
+        >
           {t("update")}
         </Button>
         <Button
@@ -98,7 +97,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
             }
-          }}>
+          }}
+        >
           {t("cancel")}
         </Button>
       </div>
@@ -172,7 +172,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                   <Tooltip content={currentUsername}>
                     <p
                       className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis break-all"
-                      data-testid="current-username">
+                      data-testid="current-username"
+                    >
                       {currentUsername}
                     </p>
                   </Tooltip>
@@ -196,7 +197,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               type="button"
               loading={updateUsernameMutation.isPending}
               data-testid="save-username"
-              onClick={updateUsername}>
+              onClick={updateUsername}
+            >
               {t("save")}
             </Button>
 

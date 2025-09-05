@@ -2,22 +2,22 @@ import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from 
 import { Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
-  IsInt,
-  IsDateString,
-  IsTimeZone,
-  IsEnum,
-  ValidateNested,
   IsArray,
-  IsString,
-  isEmail,
-  IsOptional,
-  IsUrl,
-  IsObject,
   IsBoolean,
+  IsDateString,
+  IsDefined,
+  IsEnum,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  IsUrl,
+  isEmail,
   Min,
   registerDecorator,
   Validate,
-  IsDefined,
+  ValidateNested,
 } from "class-validator";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
@@ -31,8 +31,8 @@ import {
   BookingInputAttendeePhoneLocation_2024_08_13,
   BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
-  BookingInputPhoneLocation_2024_08_13,
   BookingInputOrganizersDefaultAppLocation_2024_08_13,
+  BookingInputPhoneLocation_2024_08_13,
   ValidateBookingLocation_2024_08_13,
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
+import { useEffect, useState } from "react";
 
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({}) => {
   const [projects, setProjects] = useState();

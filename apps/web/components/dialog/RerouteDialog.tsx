@@ -1,11 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useEffect, useCallback } from "react";
-import type { z } from "zod";
-
 import FormInputFields, {
   FormInputFieldsSkeleton,
 } from "@calcom/app-store/routing-forms/components/FormInputFields";
@@ -20,7 +12,7 @@ import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
+import type { Attendee, EventType, Booking as PrismaBooking, Team, User } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -30,6 +22,12 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useState } from "react";
+import type { z } from "zod";
 
 const enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",
@@ -575,7 +573,8 @@ const NewRoutingManager = ({
               target="_blank"
               href={`${bookerUrl}/${eventTypeSlugToRedirect}`}
               rel="noreferrer"
-              data-testid="test-routing-result">
+              data-testid="test-routing-result"
+            >
               {eventTypeSlugToRedirect}
             </a>
           </span>
@@ -621,14 +620,16 @@ const NewRoutingManager = ({
           <Button
             disabled={shouldDisableCTAs}
             loading={createBookingMutation.isPending}
-            onClick={rescheduleToSameTimeslotOfSameEvent}>
+            onClick={rescheduleToSameTimeslotOfSameEvent}
+          >
             {t("reschedule_with_same_timeslot")}
           </Button>
         ) : (
           <Button
             disabled={shouldDisableCTAs}
             loading={createBookingMutation.isPending || isChosenEventTypeRequestInProgress}
-            onClick={rescheduleToSameTimeslotOfChosenEvent}>
+            onClick={rescheduleToSameTimeslotOfChosenEvent}
+          >
             {t("reschedule_with_same_timeslot_of_new_event")}
           </Button>
         )}
@@ -647,7 +648,8 @@ const NewRoutingManager = ({
           <a
             href="javascript:void(0)"
             className="text-attention underline"
-            onClick={() => reroutingState.value?.reschedulerWindow?.focus()}>
+            onClick={() => reroutingState.value?.reschedulerWindow?.focus()}
+          >
             tab
           </a>
         </span>
@@ -676,7 +678,8 @@ const CurrentRoutingStatus = ({
             target="_blank"
             href={`${bookerUrl}/${fullSlug}`}
             rel="noreferrer"
-            data-testid="test-routing-result">
+            data-testid="test-routing-result"
+          >
             {fullSlug}
           </a>
         </span>
@@ -806,7 +809,8 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
         <Link
           className="text-emphasis text-semibold font-cal mb-4 flex underline"
           href={`/apps/routing-forms/form-edit/${form.id}`}
-          target="_blank">
+          target="_blank"
+        >
           {form.name}
         </Link>
         <FormInputFields
@@ -846,7 +850,8 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
           <Button
             onClick={verifyRoute}
             data-testid="verify-new-route-button"
-            disabled={reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS}>
+            disabled={reroutingState.status === ReroutingStatusEnum.REROUTING_IN_PROGRESS}
+          >
             {t("verify_new_route")}
           </Button>
         </DialogFooter>
@@ -859,7 +864,8 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
           <Button
             onClick={() => {
               setIsOpenDialog(false);
-            }}>
+            }}
+          >
             {t("close")}
           </Button>
         </DialogFooter>

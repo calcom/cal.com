@@ -3,8 +3,8 @@ import {
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
 } from "@calcom/platform-enums";
 import {
-  type CreateEventTypeInput_2024_06_14,
   type BusinessDaysWindow_2024_06_14,
+  type CreateEventTypeInput_2024_06_14,
   type RangeWindow_2024_06_14,
   type TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";

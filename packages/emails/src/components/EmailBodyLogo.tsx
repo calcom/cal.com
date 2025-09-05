@@ -21,7 +21,8 @@ const EmailBodyLogo = () => {
               fontSize: "0px",
               padding: "0px",
               textAlign: "center",
-            }}>
+            }}
+          >
             <CommentIE
               html={`<table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td style="vertical-align:top;width:600px;" >`}
             />
@@ -34,7 +35,8 @@ const EmailBodyLogo = () => {
                 display: "inline-block",
                 verticalAlign: "top",
                 width: "100%",
-              }}>
+              }}
+            >
               <Row border="0" style={{ verticalAlign: "top" }} width="100%">
                 <td
                   align="center"
@@ -43,7 +45,8 @@ const EmailBodyLogo = () => {
                     padding: "10px 25px",
                     paddingTop: "32px",
                     wordBreak: "break-word",
-                  }}>
+                  }}
+                >
                   <Row border="0" style={{ borderCollapse: "collapse", borderSpacing: "0px" }}>
                     <td style={{ width: "89px" }}>
                       <a href={WEBAPP_URL} target="_blank" rel="noreferrer">

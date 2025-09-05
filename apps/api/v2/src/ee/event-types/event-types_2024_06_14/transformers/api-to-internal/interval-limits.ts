@@ -1,7 +1,7 @@
 import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-enums";
 import {
-  type CreateEventTypeInput_2024_06_14,
   type BookingLimitsKeyOutputType_2024_06_14,
+  type CreateEventTypeInput_2024_06_14,
   type TransformBookingLimitsSchema_2024_06_14,
 } from "@calcom/platform-types";
 

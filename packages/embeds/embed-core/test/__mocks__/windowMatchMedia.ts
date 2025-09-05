@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 
 let __matchMediaFakeQuery: string[] = [];
 // Mock matchMedia - Not Provided by JSDOM

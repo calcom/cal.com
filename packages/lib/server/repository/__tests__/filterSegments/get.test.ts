@@ -1,9 +1,7 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it } from "vitest";
-
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import { describe, expect, it } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { FilterSegmentRepository } from "../../filterSegment";
 import { type TListFilterSegmentsInputSchema } from "../../filterSegment.type";

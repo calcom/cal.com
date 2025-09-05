@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 
-import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
+import { type TeamBilling, type TeamBillingInput, TeamBillingPublishResponseStatus } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["StubTeamBilling"] });
 

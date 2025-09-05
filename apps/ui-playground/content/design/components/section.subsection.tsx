@@ -1,10 +1,9 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { Input, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const SubSectionExample = () => {
   const [isMainOpen, setIsMainOpen] = useState(true);
@@ -17,7 +16,8 @@ export const SubSectionExample = () => {
         <Section.Header
           icon="calendar"
           title="Section with Subsections"
-          description="This section contains nested subsections">
+          description="This section contains nested subsections"
+        >
           <Switch size="sm" checked={isMainOpen} onCheckedChange={setIsMainOpen} />
         </Section.Header>
         {isMainOpen && (

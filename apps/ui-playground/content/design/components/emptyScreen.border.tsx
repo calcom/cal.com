@@ -1,8 +1,7 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const BorderExample: React.FC = () => (
   <RenderComponentWithSnippet>

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsDate, IsInt, IsString, IsObject } from "class-validator";
+import { IsDate, IsInt, IsObject, IsString } from "class-validator";
 
 export class RoutingFormResponseResponseOutput {
   @ApiProperty()

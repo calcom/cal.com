@@ -1,14 +1,11 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { TeamService } from "./teamService";
 

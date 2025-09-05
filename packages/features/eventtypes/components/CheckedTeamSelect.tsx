@@ -1,9 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Options, Props } from "react-select";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
@@ -14,6 +10,9 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
+import type { Options, Props } from "react-select";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
@@ -104,7 +103,8 @@ export const CheckedTeamSelect = ({
           valueFromGroup.length >= 1 && "border-subtle border",
           customClassNames?.selectedHostList?.container
         )}
-        ref={animationRef}>
+        ref={animationRef}
+      >
         {valueFromGroup.map((option, index) => (
           <>
             <li
@@ -112,7 +112,8 @@ export const CheckedTeamSelect = ({
               className={classNames(
                 `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
                 customClassNames?.selectedHostList?.listItem?.container
-              )}>
+              )}
+            >
               {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
               {isPlatform && (
                 <Icon
@@ -127,7 +128,8 @@ export const CheckedTeamSelect = ({
                 className={classNames(
                   "text-emphasis my-auto ms-3 text-sm",
                   customClassNames?.selectedHostList?.listItem?.name
-                )}>
+                )}
+              >
                 {option.label}
               </p>
               <div className="ml-auto flex items-center">
@@ -144,7 +146,8 @@ export const CheckedTeamSelect = ({
                           "mr-6 h-2 p-0 text-sm hover:bg-transparent",
                           getPriorityTextAndColor(option.priority).color,
                           customClassNames?.selectedHostList?.listItem?.changePriorityButton
-                        )}>
+                        )}
+                      >
                         {t(getPriorityTextAndColor(option.priority).text)}
                       </Button>
                     </Tooltip>
@@ -158,7 +161,8 @@ export const CheckedTeamSelect = ({
                         onClick={() => {
                           setWeightDialogOpen(true);
                           setCurrentOption(option);
-                        }}>
+                        }}
+                      >
                         {option.weight ?? 100}%
                       </Button>
                     ) : (

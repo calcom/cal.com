@@ -1,15 +1,14 @@
+import { OutOfOfficeEntry } from "@calcom/prisma/client";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import {
   CreateOutOfOfficeEntryDto,
-  UpdateOutOfOfficeEntryDto,
-  OutOfOfficeReason,
   GetOutOfOfficeEntryFiltersDTO,
+  OutOfOfficeReason,
   SortOrder,
+  UpdateOutOfOfficeEntryDto,
 } from "@/modules/ooo/inputs/ooo.input";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-
-import { OutOfOfficeEntry } from "@calcom/prisma/client";
 
 const OOO_REASON_ID_TO_REASON = {
   1: OutOfOfficeReason["UNSPECIFIED"],

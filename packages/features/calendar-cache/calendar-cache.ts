@@ -22,9 +22,8 @@ export class CalendarCache {
   }
   static async init(calendar: Calendar | null): Promise<ICalendarCacheRepository> {
     const featureRepo = new FeaturesRepository(prisma);
-    const isCalendarCacheEnabledGlobally = await featureRepo.checkIfFeatureIsEnabledGlobally(
-      "calendar-cache"
-    );
+    const isCalendarCacheEnabledGlobally =
+      await featureRepo.checkIfFeatureIsEnabledGlobally("calendar-cache");
     if (isCalendarCacheEnabledGlobally) return new CalendarCacheRepository(calendar);
     return new CalendarCacheRepositoryMock();
   }

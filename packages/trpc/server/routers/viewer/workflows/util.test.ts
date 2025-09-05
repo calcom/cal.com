@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { isAuthorized } from "./util";
 
@@ -17,7 +16,7 @@ describe("isAuthorized", () => {
       () =>
         ({
           checkPermission: mockCheckPermission,
-        } as any)
+        }) as any
     );
   });
 

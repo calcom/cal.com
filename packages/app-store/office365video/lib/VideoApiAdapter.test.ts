@@ -1,6 +1,5 @@
+import { describe, expect, test, vi } from "vitest";
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
-
-import { expect, test, vi, describe } from "vitest";
 
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { internalServerErrorResponse, successResponse } from "../../_utils/testUtils";

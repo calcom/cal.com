@@ -1,10 +1,9 @@
-import type { TFunction } from "i18next";
-
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
 
 const emailReminderTemplate = ({
   isEditingMode,

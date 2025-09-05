@@ -1,9 +1,8 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Badge } from "@calcom/ui/components/badge";
 import { NavigationItem } from "@calcom/ui/components/navigation";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const ItemsExample: React.FC = () => (
   <RenderComponentWithSnippet>

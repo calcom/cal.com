@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { isCurrentlyAvailable } from "./getPublicEvent";
 

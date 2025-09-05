@@ -1,19 +1,18 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useMemo } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Input, SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useMemo } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];
@@ -117,7 +116,8 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
-              )}>
+              )}
+            >
               <div className="border-subtle border border-y-0 p-6">
                 <div className="flex flex-col space-y-4" ref={animateRef}>
                   {fields.map((field, index) => (
@@ -140,7 +140,8 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                           color="destructive"
                           variant="icon"
                           onClick={() => remove(index)}
-                          disabled={fields.length === 1}>
+                          disabled={fields.length === 1}
+                        >
                           <Icon name="trash" className="h-4 w-5" />
                         </Button>
                       </div>
@@ -167,7 +168,8 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                   color="minimal"
                   StartIcon="plus"
                   onClick={addNewPreset}
-                  className="mt-4">
+                  className="mt-4"
+                >
                   {t("add_preset")}
                 </Button>
               </div>

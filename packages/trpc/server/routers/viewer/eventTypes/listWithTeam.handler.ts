@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
 import db from "@calcom/prisma";
+import { Prisma } from "@prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -23,9 +22,10 @@ export const listWithTeamHandler = async ({ ctx }: ListWithTeamOptions) => {
     INNER JOIN "public"."Membership" AS "t2" ON "t2"."teamId" = "j1"."id"
     WHERE "t2"."userId" = ${userId} AND "t2"."accepted" = true`;
 
-  const result = await db.$queryRaw<
-    { id: number; teamId: number | null; title: string; slug: string; teamName: string | null }[]
-  >(query);
+  const result =
+    await db.$queryRaw<
+      { id: number; teamId: number | null; title: string; slug: string; teamName: string | null }[]
+    >(query);
 
   return result.map((row) => ({
     id: row.id,

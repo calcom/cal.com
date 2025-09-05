@@ -1,13 +1,12 @@
-import type { EventType as PrismaEventType } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import { availabilityUserSelect, prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
+import type { EventType as PrismaEventType } from "@prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -51,7 +50,7 @@ type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number |
 type HostWithLegacySelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
   THost,
-  TUser
+  TUser,
 > = THost & {
   user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
 };
@@ -75,7 +74,7 @@ function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: num
 
 function usersWithSelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
-  TUser extends { selectedCalendars: TSelectedCalendar[] }
+  TUser extends { selectedCalendars: TSelectedCalendar[] },
 >(users: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>[]) {
   return users.map((user) => withSelectedCalendars(user));
 }

@@ -1,6 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
-import { uuid } from "short-uuid";
 
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -15,10 +13,12 @@ import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { cloneDeep } from "lodash";
+import { uuid } from "short-uuid";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
-import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
+import type { HandleSeatsResultBooking, NewSeatedBookingObject, SeatedBooking } from "../types";
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,

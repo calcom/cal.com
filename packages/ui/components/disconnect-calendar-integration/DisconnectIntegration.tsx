@@ -36,7 +36,8 @@ export const DisconnectIntegrationComponent = ({
             size="base"
             variant={trashIcon && !label ? "icon" : "button"}
             disabled={isGlobal || disabled}
-            {...buttonProps}>
+            {...buttonProps}
+          >
             {label}
           </Button>
         </DialogTrigger>
@@ -44,7 +45,8 @@ export const DisconnectIntegrationComponent = ({
           variety="danger"
           title={t("remove_app")}
           confirmBtnText={t("yes_remove_app")}
-          onConfirm={onDeletionConfirmation}>
+          onConfirm={onDeletionConfirmation}
+        >
           <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
         </ConfirmationDialogContent>
       </Dialog>

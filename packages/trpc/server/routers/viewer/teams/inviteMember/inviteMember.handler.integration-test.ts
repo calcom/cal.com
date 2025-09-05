@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-
 import { prisma } from "@calcom/prisma";
-import type { Team, User, Membership, Profile } from "@calcom/prisma/client";
+import type { Membership, Profile, Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import inviteMemberHandler, { inviteMembersWithNoInviterPermissionCheck } from "./inviteMember.handler";
 

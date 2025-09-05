@@ -3,8 +3,10 @@ import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
+import {
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey,
+  getDelegationCredentialOrFindRegularCredential,
+} from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -13,8 +15,8 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { updateMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { BookingToDelete } from "../../handleCancelBooking";

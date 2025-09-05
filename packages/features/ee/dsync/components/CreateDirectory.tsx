@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form, TextField, SelectField } from "@calcom/ui/components/form";
+import { Form, SelectField, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { directoryProviders } from "../lib/directoryProviders";
 
@@ -54,7 +53,8 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
                 ...values,
                 organizationId: orgId,
               });
-            }}>
+            }}
+          >
             <div className="mb-5 mt-1">
               <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
                 {t("directory_sync_configure")}
@@ -104,7 +104,8 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
                 onClick={() => {
                   setOpenModal(false);
                 }}
-                tabIndex={-1}>
+                tabIndex={-1}
+              >
                 {t("cancel")}
               </Button>
               <Button type="submit" loading={form.formState.isSubmitting || mutation.isPending}>

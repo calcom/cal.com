@@ -1,3 +1,16 @@
+import type { scheduleClassNames } from "@calcom/atoms/availability/types";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
+import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { weekdayNames } from "@calcom/lib/weekday";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { TimeRange } from "@calcom/types/schedule";
+import cn from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
+import { CheckboxField, Select, Switch } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ArrayPath,
@@ -11,22 +24,6 @@ import type {
 } from "react-hook-form";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { createFilter, type GroupBase, type Props } from "react-select";
-
-import type { scheduleClassNames } from "@calcom/atoms/availability/types";
-import type { ConfigType } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
-import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { weekdayNames } from "@calcom/lib/weekday";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { TimeRange } from "@calcom/types/schedule";
-import cn from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
 
@@ -76,13 +73,15 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
         "flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:gap-6 sm:px-0",
         classNames?.scheduleDay
       )}
-      data-testid={weekday}>
+      data-testid={weekday}
+    >
       {/* Label & switch container */}
       <div
         className={cn(
           "flex h-[36px] items-center justify-between sm:w-32",
           classNames?.labelAndSwitchContainer
-        )}>
+        )}
+      >
         <div>
           <label className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
@@ -170,7 +169,7 @@ const CopyButton = ({
 
 const Schedule = <
   TFieldValues extends FieldValues,
-  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>
+  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>,
 >(props: {
   name: TPath;
   control: Control<TFieldValues>;
@@ -187,7 +186,7 @@ const Schedule = <
 
 export const ScheduleComponent = <
   TFieldValues extends FieldValues,
-  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>
+  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>,
 >({
   name,
   control,
@@ -670,7 +669,8 @@ const CopyTimes = ({
             if (ref) {
               itteratablesByKeyRef.current.push(ref as HTMLButtonElement);
             }
-          }}>
+          }}
+        >
           {t("cancel")}
         </Button>
         <Button
@@ -680,7 +680,8 @@ const CopyTimes = ({
             if (ref) {
               itteratablesByKeyRef.current.push(ref as HTMLButtonElement);
             }
-          }}>
+          }}
+        >
           {t("apply")}
         </Button>
       </div>

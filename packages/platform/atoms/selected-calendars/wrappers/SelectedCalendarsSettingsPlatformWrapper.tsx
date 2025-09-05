@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
@@ -14,6 +12,7 @@ import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
+import { useState } from "react";
 
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
@@ -93,7 +92,8 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                     className={cn(
                       "px-6 py-4 text-base leading-5",
                       classNamesObject?.noSelectedCalendarsMessage
-                    )}>
+                    )}
+                  >
                     No connected calendars found.
                   </h1>
                 </SelectedCalendarsSettings>
@@ -109,7 +109,8 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                 />
                 <List
                   noBorderTreatment
-                  className={classNamesObject?.selectedCalendarsListClassNames?.container || "p-6 pt-2"}>
+                  className={classNamesObject?.selectedCalendarsListClassNames?.container || "p-6 pt-2"}
+                >
                   {data.connectedCalendars.map((connectedCalendar) => {
                     if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
                       return (
@@ -146,19 +147,22 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                 />
                               )}
                             </div>
-                          }>
+                          }
+                        >
                           <div
                             className={cn(
                               "border-subtle border-t",
                               classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.body
                                 ?.container
-                            )}>
+                            )}
+                          >
                             <p
                               className={cn(
                                 "text-subtle px-5 pt-4 text-sm",
                                 classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.body
                                   ?.description
-                              )}>
+                              )}
+                            >
                               {t("toggle_calendars_conflict")}
                             </p>
                             <ul className="space-y-4 px-5 py-4">
@@ -362,7 +366,8 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boole
       destination={props.destination}
       {...props}
       isChecked={checkedInternal}
-      isLoading={isAddingSelectedCalendar || isRemovingSelectedCalendar}>
+      isLoading={isAddingSelectedCalendar || isRemovingSelectedCalendar}
+    >
       <Switch
         checked={checkedInternal}
         id={externalId}

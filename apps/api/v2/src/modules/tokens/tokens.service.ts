@@ -1,5 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { Logger } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as jwt from "jsonwebtoken";
 

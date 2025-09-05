@@ -1,17 +1,16 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import Link from "next/link";
 import { useState } from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import type { BadgeProps } from "../badge";
 import { Badge } from "../badge";
 import { Button } from "../button";
-import { Dropdown, DropdownMenuTrigger, DropdownMenuContent, DropdownItem } from "../dropdown";
+import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "../dropdown";
 import { Input } from "../form/inputs/TextField";
-import { Icon } from "../icon";
 import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
 
@@ -77,7 +76,8 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
               e.preventDefault();
               action.onClick();
             }}
-            color={action.color}>
+            color={action.color}
+          >
             {action.label}
           </DropdownItem>
         ))}
@@ -132,7 +132,8 @@ export default function FormCard({
           <button
             type="button"
             className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
-            onClick={() => moveUp?.fn()}>
+            onClick={() => moveUp?.fn()}
+          >
             <Icon name="arrow-up" />
           </button>
         ) : null}
@@ -140,7 +141,8 @@ export default function FormCard({
           <button
             type="button"
             className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
-            onClick={() => moveDown?.fn()}>
+            onClick={() => moveDown?.fn()}
+          >
             <Icon name="arrow-down" />
           </button>
         ) : null}

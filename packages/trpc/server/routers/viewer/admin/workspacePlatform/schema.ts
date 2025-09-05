@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 export const workspacePlatformCreateSchema = z.object({
   slug: z.string().min(1),

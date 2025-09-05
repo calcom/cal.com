@@ -1,6 +1,9 @@
 import logger from "@calcom/lib/logger";
-import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type {
+  AttributesQueryValue,
+  dynamicFieldValueOperands,
+  dynamicFieldValueOperandsResponse,
+} from "@calcom/lib/raqb/types";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 
 import { caseInsensitive } from "./utils";

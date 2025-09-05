@@ -1,3 +1,21 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -13,8 +31,7 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsWebhookInOrg } from "@/modules/auth/guards/organizations/is-webhook-in-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooks.service";
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
   TeamWebhookOutputDto as OrgWebhookOutputDto,
   TeamWebhookOutputResponseDto as OrgWebhookOutputResponseDto,
@@ -23,25 +40,6 @@ import {
 import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Delete,
-  Patch,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/webhooks",

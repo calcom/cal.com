@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,6 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
+import { useEffect, useState } from "react";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
@@ -46,7 +45,8 @@ const CreateNewOutOfOfficeEntry = ({
         StartIcon="plus"
         onClick={() => setOpenModal(true)}
         data-testid={rest["data-testid"]}
-        disabled={selectedTab === OutOfOfficeTab.TEAM && !hasTeamOOOAdminAccess}>
+        disabled={selectedTab === OutOfOfficeTab.TEAM && !hasTeamOOOAdminAccess}
+      >
         {t("add")}
       </Button>
       {openModal && (

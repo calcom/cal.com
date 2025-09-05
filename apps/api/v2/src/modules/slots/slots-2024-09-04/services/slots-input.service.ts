@@ -1,3 +1,15 @@
+import { dynamicEvent } from "@calcom/platform-libraries";
+import {
+  ById_2024_09_04_type,
+  ByTeamSlugAndEventTypeSlug_2024_09_04,
+  ByTeamSlugAndEventTypeSlug_2024_09_04_type,
+  ByUsernameAndEventTypeSlug_2024_09_04,
+  ByUsernameAndEventTypeSlug_2024_09_04_type,
+  GetSlotsInput_2024_09_04,
+  GetSlotsInputWithRouting_2024_09_04,
+} from "@calcom/platform-types";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { DateTime } from "luxon";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
@@ -5,19 +17,6 @@ import { OrganizationsUsersRepository } from "@/modules/organizations/users/inde
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { DateTime } from "luxon";
-
-import { dynamicEvent } from "@calcom/platform-libraries";
-import {
-  ByUsernameAndEventTypeSlug_2024_09_04,
-  ByTeamSlugAndEventTypeSlug_2024_09_04,
-  GetSlotsInput_2024_09_04,
-  GetSlotsInputWithRouting_2024_09_04,
-  ById_2024_09_04_type,
-  ByUsernameAndEventTypeSlug_2024_09_04_type,
-  ByTeamSlugAndEventTypeSlug_2024_09_04_type,
-} from "@calcom/platform-types";
 
 export type InternalGetSlotsQuery = {
   isTeamEvent: boolean;

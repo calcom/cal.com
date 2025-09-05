@@ -1,6 +1,5 @@
-import type { Prisma } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
+import type { Prisma } from "@prisma/client";
 
 import { parseRecurringEvent } from "./isRecurringEvent";
 import { getTranslation } from "./server/i18n";
@@ -107,8 +106,8 @@ export const buildCalEventFromBooking = async ({
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,

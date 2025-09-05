@@ -1,11 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { WorkflowStep } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,11 +17,16 @@ import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { WorkflowStep } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction, isCalAIAction } from "../lib/actionHelperFunctions";
+import { isCalAIAction, isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
@@ -358,7 +357,8 @@ function WorkflowPage({
           form={form}
           handleSubmit={async (values) => {
             await validateAndSubmitWorkflow(values);
-          }}>
+          }}
+        >
           <ShellMain
             backPath="/workflows"
             title={workflow && workflow.name ? workflow.name : "Untitled"}
@@ -389,7 +389,8 @@ function WorkflowPage({
                   )}
                 </div>
               )
-            }>
+            }
+          >
             {!isError ? (
               <>
                 {isAllDataLoaded && user ? (

@@ -4,9 +4,7 @@
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
-  "files": [
-    "components.ts"
-  ],
+  "files": ["components.ts"],
   "scripts": {
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",

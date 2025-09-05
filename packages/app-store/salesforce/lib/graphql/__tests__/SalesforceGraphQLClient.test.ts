@@ -1,10 +1,10 @@
-import { describe, it, vi, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SalesforceRecordEnum } from "../../enums";
 import { SalesforceGraphQLClient } from "../SalesforceGraphQLClient";
 import {
-  mockValueOfAccountOwnershipQueryMatchingContact,
   mockValueOfAccountOwnershipQueryMatchingAccountWebsite,
+  mockValueOfAccountOwnershipQueryMatchingContact,
   mockValueOfAccountOwnershipQueryMatchingRelatedContacts,
 } from "./urqlMock";
 

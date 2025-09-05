@@ -1,3 +1,7 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button as CalButton } from "@calcom/ui/components/button";
+import { TextArea, TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
 import type {
@@ -7,12 +11,6 @@ import type {
   FieldProps,
   ProviderProps,
 } from "react-awesome-query-builder";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation
@@ -26,7 +24,7 @@ export type CommonProps<
     | {
         value: string;
         optionValue: string;
-      }
+      },
 > = {
   placeholder?: string;
   readOnly?: boolean;
@@ -48,17 +46,17 @@ export type SelectLikeComponentProps<
     | {
         value: string;
         optionValue: string;
-      } = string
+      } = string,
 > = {
   options: {
     label: string;
     value: TVal extends (infer P)[]
       ? P
       : TVal extends {
-          value: string;
-        }
-      ? TVal["value"]
-      : TVal;
+            value: string;
+          }
+        ? TVal["value"]
+        : TVal;
   }[];
 } & CommonProps<TVal>;
 
@@ -256,7 +254,8 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
       type="button"
       color="minimal"
       disabled={readonly}
-      onClick={onClick}>
+      onClick={onClick}
+    >
       {label}
     </CalButton>
   );

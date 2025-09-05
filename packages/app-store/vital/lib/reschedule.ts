@@ -1,6 +1,3 @@
-import type { Booking, BookingReference, User } from "@prisma/client";
-import type { TFunction } from "i18next";
-
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
@@ -12,6 +9,8 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
+import type { Booking, BookingReference, User } from "@prisma/client";
+import type { TFunction } from "i18next";
 
 import { getCalendar } from "../../_utils/getCalendar";
 

@@ -1,11 +1,10 @@
-import type { GetServerSidePropsContext } from "next";
-import type { ParsedUrlQuery } from "querystring";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-
 import * as constants from "@calcom/lib/constants";
 import { RedirectType } from "@calcom/prisma/enums";
+import type { GetServerSidePropsContext } from "next";
+import type { ParsedUrlQuery } from "querystring";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { handleOrgRedirect, getRedirectWithOriginAndSearchString } from "./handleOrgRedirect";
+import { getRedirectWithOriginAndSearchString, handleOrgRedirect } from "./handleOrgRedirect";
 
 // Mock prisma for all tests
 const prismaMock = vi.hoisted(() => ({
@@ -29,7 +28,7 @@ const createTestContext = (overrides?: {
       },
     },
     query: overrides?.query || {},
-  } as unknown as GetServerSidePropsContext);
+  }) as unknown as GetServerSidePropsContext;
 
 const createTestRedirectParams = (overrides?: {
   slugs?: string[];

@@ -1,13 +1,11 @@
-import type { Prisma, SelectedCalendar } from "@prisma/client";
-
 import { DailyLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { Prisma, SelectedCalendar } from "@prisma/client";
 
 type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars"> & {
   allSelectedCalendars: SelectedCalendar[];

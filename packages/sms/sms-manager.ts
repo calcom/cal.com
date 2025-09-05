@@ -32,8 +32,8 @@ const handleSendingSMS = async ({
       identifier: teamId
         ? `handleSendingSMS:team:${teamId}`
         : organizerUserId
-        ? `handleSendingSMS:user:${organizerUserId}`
-        : `handleSendingSMS:user:${piiHasher.hash(reminderPhone)}`,
+          ? `handleSendingSMS:user:${organizerUserId}`
+          : `handleSendingSMS:user:${piiHasher.hash(reminderPhone)}`,
       rateLimitingType: "sms",
     });
 

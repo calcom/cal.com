@@ -7,7 +7,8 @@ export const Spinner = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
       id="Layer_1"
       data-name="Layer 1"
       viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         className="fill-default"
         d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"

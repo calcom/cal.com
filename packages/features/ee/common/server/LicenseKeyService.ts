@@ -1,5 +1,3 @@
-import * as cache from "memory-cache";
-
 import {
   getDeploymentKey,
   getDeploymentSignatureToken,
@@ -7,8 +5,9 @@ import {
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
+import * as cache from "memory-cache";
 
-import { generateNonce, createSignature } from "./private-api-utils";
+import { createSignature, generateNonce } from "./private-api-utils";
 
 export enum UsageEvent {
   BOOKING = "booking",

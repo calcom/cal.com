@@ -1,9 +1,3 @@
-import type { DestinationCalendar, BookingReference } from "@prisma/client";
-// eslint-disable-next-line no-restricted-imports
-import { cloneDeep, merge } from "lodash";
-import { v5 as uuidv5 } from "uuid";
-import type { z } from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
@@ -15,16 +9,16 @@ import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import {
+  getPiiFreeCalendarEvent,
+  getPiiFreeCredential,
   getPiiFreeDestinationCalendar,
   getPiiFreeUser,
-  getPiiFreeCredential,
-  getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
-import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
@@ -34,11 +28,16 @@ import type {
   PartialBooking,
   PartialReference,
 } from "@calcom/types/EventManager";
+import type { BookingReference, DestinationCalendar } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import { cloneDeep, merge } from "lodash";
+import { v5 as uuidv5 } from "uuid";
+import type { z } from "zod";
 
-import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
+import { createEvent, deleteEvent, updateEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
 import { isDelegationCredential } from "./delegationCredential/clientAndServer";
-import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
+import { createMeeting, deleteMeeting, updateMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
@@ -393,7 +392,7 @@ export default class EventManager {
 
       return {
         type: result.type,
-        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        uid: createdEventObj ? createdEventObj.id : (result.createdEvent?.id?.toString() ?? ""),
         thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,

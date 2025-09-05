@@ -1,10 +1,9 @@
+import { Button } from "@calcom/ui/components/button";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
-
-import { Button } from "@calcom/ui/components/button";
 
 import { AttributeForm } from "../AttributesForm";
 

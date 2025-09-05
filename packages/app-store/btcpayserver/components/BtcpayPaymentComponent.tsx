@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import z from "zod";
-
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -12,6 +9,8 @@ import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Spinner } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useEffect, useState } from "react";
+import z from "zod";
 
 interface IPaymentComponentProps {
   payment: {
@@ -70,7 +69,8 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
           color="secondary"
           onClick={() => copyToClipboard(checkoutUrl)}
           className="text-subtle rounded-md"
-          StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
+          StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+        >
           Copy Payment Link
         </Button>
 

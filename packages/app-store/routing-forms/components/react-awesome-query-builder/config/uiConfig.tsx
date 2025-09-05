@@ -1,16 +1,14 @@
+import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 import type { ChangeEvent } from "react";
 import type {
-  Settings,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
+  Settings,
   WidgetProps,
 } from "react-awesome-query-builder";
 
-import { EmailField as EmailWidget } from "@calcom/ui/components/form";
-
 import widgetsComponents from "../widgets";
-import type { Widgets, WidgetsWithoutFactory } from "./types";
-import type { ConfigFor } from "./types";
+import type { ConfigFor, Widgets, WidgetsWithoutFactory } from "./types";
 
 export { ConfigFor } from "./types";
 

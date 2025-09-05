@@ -1,6 +1,5 @@
-import type { TFunction } from "i18next";
-
 import ServerTrans from "@calcom/lib/components/ServerTrans";
+import type { TFunction } from "i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -27,7 +26,8 @@ export const OrganizationAdminNoSlotsEmail = (
           fontWeight: 600,
           fontSize: "32px",
           lineHeight: "38px",
-        }}>
+        }}
+      >
         <>{props.language("org_admin_no_slots|heading", { name: props.user })}</>
       </p>
       <p style={{ fontWeight: 400, fontSize: "16px", lineHeight: "24px" }}>

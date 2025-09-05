@@ -2,9 +2,8 @@ import { cva } from "class-variance-authority";
 import classNames from "classnames";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
-
-import { Icon } from "../icon";
 import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 export const alertStyles = cva("rounded-[10px] p-3", {
   variants: {

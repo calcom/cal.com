@@ -1,16 +1,14 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { EmailField } from "@calcom/ui/components/form";
+import AuthContainer from "@components/ui/AuthContainer";
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
 import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { EmailField } from "@calcom/ui/components/form";
-
-import AuthContainer from "@components/ui/AuthContainer";
 
 export type PageProps = {
   csrfToken?: string;
@@ -99,7 +97,8 @@ export default function ForgotPassword(props: PageProps) {
             </Link>
           </>
         )
-      }>
+      }
+    >
       {success && <Success />}
       {!success && (
         <>
@@ -115,7 +114,8 @@ export default function ForgotPassword(props: PageProps) {
                 "--cal-brand-text": "Black",
                 "--cal-brand-subtle": "#9CA3AF",
               } as CSSProperties
-            }>
+            }
+          >
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <EmailField
               onChange={handleChange}
@@ -132,7 +132,8 @@ export default function ForgotPassword(props: PageProps) {
                 color="primary"
                 disabled={loading}
                 aria-label={t("request_password_reset")}
-                loading={loading}>
+                loading={loading}
+              >
                 {t("request_password_reset")}
               </Button>
             </div>

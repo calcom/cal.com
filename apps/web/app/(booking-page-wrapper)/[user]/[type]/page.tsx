@@ -1,15 +1,12 @@
-import { CustomI18nProvider } from "app/CustomI18nProvider";
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
-import { headers, cookies } from "next/headers";
-
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
-
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
-
 import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+import type { PageProps } from "app/_types";
+import { generateMeetingMetadata } from "app/_utils";
+import { CustomI18nProvider } from "app/CustomI18nProvider";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 
 import type { PageProps as LegacyPageProps } from "~/users/views/users-type-public-view";
 import LegacyPage from "~/users/views/users-type-public-view";

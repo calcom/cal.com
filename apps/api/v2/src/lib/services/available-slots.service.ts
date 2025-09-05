@@ -1,3 +1,5 @@
+import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
+import { Injectable } from "@nestjs/common";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
@@ -13,9 +15,6 @@ import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.s
 import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
 import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable } from "@nestjs/common";
-
-import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
 
 import { UserAvailabilityService } from "./user-availability.service";
 

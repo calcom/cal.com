@@ -1,9 +1,8 @@
-import type { Prisma } from "@prisma/client";
-
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+import type { Prisma } from "@prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TListLocalInputSchema } from "./listLocal.schema";
@@ -69,10 +68,13 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
     // it is important to avoid string to string comparisons as much as we can
     if (keysSchema !== undefined) {
       // TODO: Why don't we parse with schema here? Not doing it makes default() not work in schema.
-      Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
-        keys[key as string] = "";
-        return keysObject;
-      }, {} as Record<string, string>);
+      Object.values(keysSchema.keyof()._def.values).reduce(
+        (keysObject, key) => {
+          keys[key as string] = "";
+          return keysObject;
+        },
+        {} as Record<string, string>
+      );
     }
 
     return {

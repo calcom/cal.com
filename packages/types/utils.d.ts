@@ -11,10 +11,10 @@ export type ValuesType<T extends ReadonlyArray<unknown> | ArrayLike<unknown> | R
   T extends ReadonlyArray<unknown>
     ? T[number]
     : T extends ArrayLike<unknown>
-    ? T[number]
-    : T extends object
-    ? T[keyof T]
-    : never;
+      ? T[number]
+      : T extends object
+        ? T[keyof T]
+        : never;
 
 declare const brand: unique symbol;
 export type Brand<T, TBrand> = T & { [brand]: TBrand };

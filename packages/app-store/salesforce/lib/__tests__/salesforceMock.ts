@@ -1,8 +1,7 @@
-import { parseQuery, composeQuery } from "@jetstreamapp/soql-parser-js";
-import { vi } from "vitest";
-
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { composeQuery, parseQuery } from "@jetstreamapp/soql-parser-js";
+import { vi } from "vitest";
 
 type Contact = {
   Id?: string;

@@ -1,6 +1,3 @@
-import type { Prisma } from "@prisma/client";
-import type { Logger } from "tslog";
-
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { getQualifiedHostsService } from "@calcom/lib/di/containers/QualifiedHosts";
@@ -11,11 +8,12 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
-import { userSelect } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import prisma, { userSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { Prisma } from "@prisma/client";
+import type { Logger } from "tslog";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";

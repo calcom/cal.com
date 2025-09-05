@@ -1,5 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -14,8 +13,8 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
-  scheduleEmailReminder,
   deleteScheduledEmailReminder,
+  scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -33,6 +32,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { cloneDeep } from "lodash";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
@@ -241,7 +241,7 @@ export const roundRobinManualReassignment = async ({
     hasOrganizerChanged,
   });
 
-  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
+  const organizer = hasOrganizerChanged ? newUser : (booking.user ?? newUser);
 
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
 

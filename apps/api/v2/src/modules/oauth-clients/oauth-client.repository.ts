@@ -1,11 +1,14 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { PlatformOAuthClient, Prisma } from "@prisma/client";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 @Injectable()
 export class OAuthClientRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async createOAuthClient(
     organizationId: number,

@@ -1,9 +1,8 @@
-import { componentSource } from "@/app/source";
+import { IconSprites } from "@calcom/ui/components/icon";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { DocsLayout } from "fumadocs-ui/layouts/notebook";
 import type { ReactNode } from "react";
-
-import { IconSprites } from "@calcom/ui/components/icon";
+import { componentSource } from "@/app/source";
 
 import { baseOptions } from "../layout.config";
 

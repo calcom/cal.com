@@ -1,8 +1,7 @@
+import type { RouterOutputs } from "@calcom/trpc";
 import { render, screen } from "@testing-library/react";
 import type { CredentialOwner } from "types";
 import { vi } from "vitest";
-
-import type { RouterOutputs } from "@calcom/trpc";
 
 import { DynamicComponent } from "./DynamicComponent";
 import { EventTypeAppCard } from "./EventTypeAppCardInterface";

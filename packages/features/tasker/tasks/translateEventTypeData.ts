@@ -1,9 +1,8 @@
-import { z } from "zod";
-
 import { locales as i18nLocales } from "@calcom/lib/i18n";
 import logger from "@calcom/lib/logger";
 import { EventTypeTranslationRepository } from "@calcom/lib/server/repository/eventTypeTranslation";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { z } from "zod";
 
 export const ZTranslateEventDataPayloadSchema = z.object({
   eventTypeId: z.number(),

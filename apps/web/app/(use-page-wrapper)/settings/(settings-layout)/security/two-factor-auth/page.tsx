@@ -1,7 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import TwoFactorAuthView from "~/settings/security/two-factor-auth-view";
 
@@ -20,7 +18,8 @@ const Page = async () => {
     <SettingsHeader
       title={t("2fa")}
       description={t("set_up_two_factor_authentication")}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <TwoFactorAuthView />
     </SettingsHeader>
   );

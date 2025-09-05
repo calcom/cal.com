@@ -1,11 +1,10 @@
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent } from "@calcom/ui/components/dialog";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   const message = "/o";
@@ -90,7 +89,8 @@ export const RedirectToInstantMeetingModal = ({
                 onClick={() => {
                   onGoBack();
                 }}
-                color="primary">
+                color="primary"
+              >
                 {t("schedule_instead")}
               </Button>
             </div>

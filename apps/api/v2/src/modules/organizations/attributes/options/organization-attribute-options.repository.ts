@@ -1,11 +1,10 @@
+import { slugify } from "@calcom/platform-libraries";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-
-import { slugify } from "@calcom/platform-libraries";
 
 import { GetOrganizationAttributeAssignedOptionsProp } from "./services/organization-attributes-option.service";
 
@@ -146,18 +145,23 @@ export class OrganizationAttributeOptionRepository {
         opt.assignedUsers.flatMap((assignedUser) => assignedUser.member.userId)
       );
       // reduce remove options that are not assigned alongside assignedOptionIds filter
-      return options.reduce((acc, opt) => {
-        if (opt.assignedUsers.some((assignedUser) => matchingUserIds.includes(assignedUser.member.userId))) {
-          return [
-            ...acc,
-            {
-              ...opt,
-              assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
-            },
-          ];
-        }
-        return acc;
-      }, [] as typeof options);
+      return options.reduce(
+        (acc, opt) => {
+          if (
+            opt.assignedUsers.some((assignedUser) => matchingUserIds.includes(assignedUser.member.userId))
+          ) {
+            return [
+              ...acc,
+              {
+                ...opt,
+                assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
+              },
+            ];
+          }
+          return acc;
+        },
+        [] as typeof options
+      );
     }
 
     return options.map((opt) => {

@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import type { UpdateAppCredentialsOptions } from "@calcom/trpc/server/routers/viewer/apps/updateAppCredentials.handler";
+import { z } from "zod";
 
 import Paypal from "./Paypal";
 

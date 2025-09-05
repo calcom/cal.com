@@ -1,7 +1,7 @@
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { Process, Processor } from "@nestjs/bull";
 import { Logger } from "@nestjs/common";
 import { Job } from "bull";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 
 export const DEFAULT_CALENDARS_JOB = "default_calendars_job";
 export const CALENDARS_QUEUE = "calendars";

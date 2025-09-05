@@ -1,4 +1,4 @@
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
+import type { Fields, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { withReporting } from "@calcom/lib/sentryWrapper";

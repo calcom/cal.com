@@ -1,9 +1,8 @@
+import prisma from "@calcom/prisma";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect } from "vitest";
-
-import prisma from "@calcom/prisma";
+import { describe, expect, it } from "vitest";
 
 import handler from "../../../../pages/api/bookings/[id]/_patch";
 

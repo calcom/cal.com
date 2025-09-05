@@ -1,9 +1,8 @@
-import type { Table } from "@tanstack/react-table";
-import { describe, it, expect, vi } from "vitest";
-
 import type { UserTableUser } from "@calcom/features/users/components/UserTable/types";
 import { generateCsvRawForMembersTable, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { Table } from "@tanstack/react-table";
+import { describe, expect, it, vi } from "vitest";
 
 function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   return {

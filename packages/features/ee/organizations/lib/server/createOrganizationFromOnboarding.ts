@@ -1,5 +1,3 @@
-import type { TFunction } from "i18next";
-
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
@@ -9,8 +7,7 @@ import {
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
-import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -21,18 +18,17 @@ import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Team, User } from "@calcom/prisma/client";
-import type { OrganizationOnboarding } from "@calcom/prisma/client";
-import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
+import type { OrganizationOnboarding, Prisma, Team, User } from "@calcom/prisma/client";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import {
-  userMetadata,
   orgOnboardingInvitedMembersSchema,
   orgOnboardingTeamsSchema,
+  teamMetadataStrictSchema,
+  userMetadata,
 } from "@calcom/prisma/zod-utils";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
+import type { TFunction } from "i18next";
 
 // Onboarding can only be done from webapp currently and so we consider the source for User as WEBAPP
 const creationSource = CreationSource.WEBAPP;

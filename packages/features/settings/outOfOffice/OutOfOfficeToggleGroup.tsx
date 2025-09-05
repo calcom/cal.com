@@ -1,11 +1,10 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useCallback } from "react";
-
 import { useCompatSearchParams } from "@calcom/embed-core/src/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback } from "react";
 
 export enum OutOfOfficeTab {
   MINE = "mine",

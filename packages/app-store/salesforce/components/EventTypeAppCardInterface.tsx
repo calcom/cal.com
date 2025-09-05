@@ -1,20 +1,18 @@
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { InputField, Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { SalesforceRecordEnum } from "../lib/enums";
 import type { appDataSchema } from "../zod";
@@ -79,7 +77,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         <Section.SubSectionHeader
           icon="at-sign"
           title={t("salesforce_create_new_contact_under_account")}
-          labelFor="create-new-contact-under-account">
+          labelFor="create-new-contact-under-account"
+        >
           <Switch
             size="sm"
             labelOnLeading
@@ -102,14 +101,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         updateEnabled(e);
       }}
       switchChecked={enabled}
-      hideSettingsIcon>
+      hideSettingsIcon
+    >
       <Section.Content>
         <Section.SubSection>
           <Section.SubSectionHeader
             icon="zap"
             title={t("salesforce_add_attendees_as")}
             justify="start"
-            labelFor="add-attendees-as">
+            labelFor="add-attendees-as"
+          >
             <Select
               size="sm"
               id="add-attendees-as"
@@ -130,7 +131,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Section.SubSectionHeader
             icon="user-plus"
             title={t("salesforce_ignore_guests")}
-            labelFor="ignore-guests">
+            labelFor="ignore-guests"
+          >
             <Switch
               size="sm"
               labelOnLeading
@@ -147,7 +149,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Section.SubSectionHeader
               icon="user-plus"
               title={t("skip_contact_creation", { appName: "Salesforce" })}
-              labelFor="skip-contact-creation">
+              labelFor="skip-contact-creation"
+            >
               <Switch
                 size="sm"
                 labelOnLeading
@@ -166,7 +169,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <Section.SubSectionHeader
                 icon="user-plus"
                 title={t("salesforce_create_event_on_contact")}
-                labelFor="create-event-on-contact">
+                labelFor="create-event-on-contact"
+              >
                 <Switch
                   size="sm"
                   labelOnLeading
@@ -187,7 +191,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <Section.SubSectionHeader
                 icon="user-plus"
                 title={t("salesforce_if_account_does_not_exist")}
-                labelFor="create-lead-if-account-null">
+                labelFor="create-lead-if-account-null"
+              >
                 <Switch
                   size="sm"
                   labelOnLeading
@@ -301,7 +306,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       newOnBookingWriteToEventObjectField.value.trim(),
                   });
                   setNewOnBookingWriteToEventObjectField({ field: "", value: "" });
-                }}>
+                }}
+              >
                 {t("add_new_field")}
               </Button>
             </Section.SubSectionContent>
@@ -325,7 +331,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Section.SubSectionHeader
             icon="user-plus"
             title={t("salesforce_change_record_owner_on_booking")}
-            labelFor="change-record-owner-on-booking">
+            labelFor="change-record-owner-on-booking"
+          >
             <Switch
               size="sm"
               labelOnLeading
@@ -340,7 +347,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <div>
                 <Label
                   htmlFor="on-booking-change-record-owner-name"
-                  className="text-subtle text-sm font-medium">
+                  className="text-subtle text-sm font-medium"
+                >
                   {t("salesforce_owner_name_to_change")}
                 </Label>
                 <InputField
@@ -360,7 +368,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               <Section.SubSectionHeader
                 icon="users"
                 title={t("salesforce_book_directly_with_attendee_owner")}
-                labelFor="book-directly-with-attendee-owner">
+                labelFor="book-directly-with-attendee-owner"
+              >
                 <Switch
                   size="sm"
                   id="book-directly-witha-attendee-owner"
@@ -379,7 +388,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   <div>
                     <Label
                       htmlFor="round-robin-skip-check-record-on"
-                      className="text-subtle text-sm font-medium">
+                      className="text-subtle text-sm font-medium"
+                    >
                       {t("salesforce_check_owner_of")}
                     </Label>
                     <Select
@@ -406,7 +416,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       <Section.SubSectionHeader
                         icon="users"
                         title={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
-                        labelFor="round-robin-skip-fallback-to-lead-owner">
+                        labelFor="round-robin-skip-fallback-to-lead-owner"
+                      >
                         <Switch
                           id="round-robin-skip-fallback-to-lead-owner"
                           size="sm"
@@ -422,7 +433,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     <Section.SubSectionHeader
                       icon="users"
                       title={t("salesforce_if_free_email_domain_skip_owner_check")}
-                      labelFor="if-free-email-domain-skip-owner-check">
+                      labelFor="if-free-email-domain-skip-owner-check"
+                    >
                       <Switch
                         id="if-free-email-domain-skip-owner-check"
                         size="sm"
@@ -457,7 +469,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Section.SubSectionHeader
             icon="calendar"
             title="Send no show attendee data to event object"
-            labelFor="send-no-show-attendee-data">
+            labelFor="send-no-show-attendee-data"
+          >
             <Switch
               id="send-no-show-attendee-data"
               size="sm"
@@ -471,7 +484,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
               <Label
                 htmlFor="send-no-show-attendee-data-field-name"
-                className="text-subtle text-sm font-medium">
+                className="text-subtle text-sm font-medium"
+              >
                 Field name to check (must be checkbox data type)
               </Label>
               <InputField

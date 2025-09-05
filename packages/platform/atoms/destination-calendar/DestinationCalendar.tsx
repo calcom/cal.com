@@ -26,7 +26,8 @@ export const DestinationCalendarSettings = (
       className={cn(
         "border-subtle mb-6 mt-8 rounded-lg border",
         props?.classNames || props?.classNamesObject?.container
-      )}>
+      )}
+    >
       <DestinationCalendarSettingsHeading classNames={props.classNamesObject?.header} />
       <div className="border-t">
         <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">

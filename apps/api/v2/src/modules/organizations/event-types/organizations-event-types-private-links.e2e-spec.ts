@@ -1,13 +1,5 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { CreatePrivateLinkInput } from "@calcom/platform-types";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -18,9 +10,16 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { CreatePrivateLinkInput } from "@calcom/platform-types";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations / Teams / Event Types / Private Links Endpoints", () => {
   let app: INestApplication;

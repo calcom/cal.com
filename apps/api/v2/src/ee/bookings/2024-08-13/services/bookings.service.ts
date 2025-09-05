@@ -1,3 +1,45 @@
+import {
+  confirmBookingHandler,
+  getAllUserBookings,
+  getCalendarLinks,
+  getTranslation,
+  handleCancelBooking,
+  handleInstantMeeting,
+  handleMarkNoShow,
+  handleNewBooking,
+  handleNewRecurringBooking,
+  roundRobinManualReassignment,
+  roundRobinReassignment,
+} from "@calcom/platform-libraries";
+import {
+  BookingOutput_2024_08_13,
+  CancelBookingInput,
+  CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  GetBookingsInput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  MarkAbsentBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput,
+} from "@calcom/platform-types";
+import { PrismaClient } from "@calcom/prisma";
+import { EventType, Team, User } from "@calcom/prisma/client";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Request } from "express";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
@@ -21,49 +63,6 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
-import { Request } from "express";
-import { DateTime } from "luxon";
-import { z } from "zod";
-
-import {
-  handleNewRecurringBooking,
-  getTranslation,
-  getAllUserBookings,
-  handleInstantMeeting,
-  handleCancelBooking,
-  roundRobinReassignment,
-  roundRobinManualReassignment,
-  handleMarkNoShow,
-  confirmBookingHandler,
-  getCalendarLinks,
-} from "@calcom/platform-libraries";
-import { handleNewBooking } from "@calcom/platform-libraries";
-import {
-  CreateBookingInput_2024_08_13,
-  CreateBookingInput,
-  CreateRecurringBookingInput_2024_08_13,
-  GetBookingsInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
-  MarkAbsentBookingInput_2024_08_13,
-  ReassignToUserBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
-  RescheduleBookingInput,
-  CancelBookingInput,
-} from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];

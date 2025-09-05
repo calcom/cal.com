@@ -2,7 +2,7 @@
  * Ensures that contains has no non-existent sub-options
  */
 export function getOptionsWithValidContains<
-  T extends { id?: string; value: string; contains?: string[]; isGroup?: boolean }
+  T extends { id?: string; value: string; contains?: string[]; isGroup?: boolean },
 >(options: T[]): T[] {
   return options
     .filter((obj, index, self) => index === self.findIndex((t) => t.value === obj.value))

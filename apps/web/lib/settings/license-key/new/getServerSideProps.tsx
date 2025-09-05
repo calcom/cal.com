@@ -1,7 +1,6 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 import { getOptions } from "@calcom/feature-auth/lib/next-auth-options";
+import type { GetServerSidePropsContext } from "next";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerSession({

@@ -69,7 +69,8 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
                 const updatedValue = [...value];
                 updatedValue.push("");
                 setValue(updatedValue);
-              }}>
+              }}
+            >
               {t("add_another")}
             </Button>
           )}
@@ -89,7 +90,8 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
             updatedValue.push("");
             setValue(updatedValue);
           }}
-          className="mr-auto">
+          className="mr-auto"
+        >
           {label}
         </Button>
       )}

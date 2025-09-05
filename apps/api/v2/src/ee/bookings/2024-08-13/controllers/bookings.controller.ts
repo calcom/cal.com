@@ -1,3 +1,49 @@
+import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CancelBookingInput,
+  CancelBookingInput_2024_08_13,
+  CancelBookingInputPipe,
+  CancelSeatedBookingInput_2024_08_13,
+  CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateBookingInputPipe,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  DeclineBookingInput_2024_08_13,
+  GetBookingOutput_2024_08_13,
+  GetBookingRecordingsOutput,
+  GetBookingsInput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetBookingTranscriptsOutput,
+  MarkAbsentBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
+  RescheduleBookingInput,
+  RescheduleBookingInput_2024_08_13,
+  RescheduleBookingInputPipe,
+  RescheduleSeatedBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiBody,
+  ApiExtraModels,
+  ApiHeader,
+  ApiOperation,
+  ApiTags as DocsTags,
+  getSchemaPath,
+} from "@nestjs/swagger";
+import { Request } from "express";
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
@@ -10,7 +56,7 @@ import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/out
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
-import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import {
@@ -24,55 +70,6 @@ import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/op
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Post,
-  Logger,
-  Body,
-  UseGuards,
-  Req,
-  Get,
-  Param,
-  Query,
-  HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
-import {
-  ApiOperation,
-  ApiTags as DocsTags,
-  ApiHeader,
-  getSchemaPath,
-  ApiBody,
-  ApiExtraModels,
-} from "@nestjs/swagger";
-import { Request } from "express";
-
-import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  CancelBookingInput,
-  CancelBookingInput_2024_08_13,
-  CancelBookingInputPipe,
-  CancelSeatedBookingInput_2024_08_13,
-  GetBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  RescheduleBookingInput,
-  RescheduleBookingInput_2024_08_13,
-  RescheduleBookingInputPipe,
-  RescheduleSeatedBookingInput_2024_08_13,
-  GetBookingRecordingsOutput,
-  GetBookingTranscriptsOutput,
-} from "@calcom/platform-types";
-import {
-  CreateBookingInputPipe,
-  CreateBookingInput,
-  GetBookingsInput_2024_08_13,
-  ReassignToUserBookingInput_2024_08_13,
-  MarkAbsentBookingInput_2024_08_13,
-  CreateBookingInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-  DeclineBookingInput_2024_08_13,
-} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/bookings",

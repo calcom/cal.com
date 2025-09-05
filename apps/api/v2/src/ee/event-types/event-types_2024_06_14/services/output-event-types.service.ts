@@ -1,37 +1,36 @@
 import {
-  transformLocationsInternalToApi,
-  transformBookingFieldsInternalToApi,
-  InternalLocationSchema,
-  SystemField,
-  CustomField,
-  transformIntervalLimitsInternalToApi,
-  transformFutureBookingLimitsInternalToApi,
-  transformRecurrenceInternalToApi,
-  transformBookerLayoutsInternalToApi,
-  transformRequiresConfirmationInternalToApi,
-  transformEventTypeColorsInternalToApi,
-  transformSeatsInternalToApi,
-  InternalLocation,
-  BookingFieldSchema,
-} from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { Injectable } from "@nestjs/common";
-import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@prisma/client";
-
-import {
-  userMetadata,
+  getBookingFieldsWithSystemFields,
   parseBookingLimit,
   parseRecurringEvent,
-  getBookingFieldsWithSystemFields,
+  userMetadata,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
 import {
-  TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
-  NoticeThresholdTransformedSchema,
   EventTypeOutput_2024_06_14,
-  OutputUnknownLocation_2024_06_14,
+  NoticeThresholdTransformedSchema,
   OutputUnknownBookingField_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";
+import { Injectable } from "@nestjs/common";
+import type { CalVideoSettings, DestinationCalendar, EventType, Schedule, User } from "@prisma/client";
+import {
+  BookingFieldSchema,
+  CustomField,
+  InternalLocation,
+  InternalLocationSchema,
+  SystemField,
+  transformBookerLayoutsInternalToApi,
+  transformBookingFieldsInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformLocationsInternalToApi,
+  transformRecurrenceInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformSeatsInternalToApi,
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
 
 type EventTypeRelations = {
   users: User[];

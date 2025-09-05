@@ -35,7 +35,7 @@ import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPre
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
 const NAMESPACE = "teams";
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+const _namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerTeamsRouter = router({
   // Retrieves team by id

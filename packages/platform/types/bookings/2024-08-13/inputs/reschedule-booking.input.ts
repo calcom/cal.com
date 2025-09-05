@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsDateString, IsOptional, IsString, Validate, isEmail } from "class-validator";
+import { IsDateString, IsOptional, IsString, isEmail, Validate } from "class-validator";
 
 export const RESCHEDULED_BY_DOCS = `Email of the person who is rescheduling the booking - only needed when rescheduling a booking that requires a confirmation.
 If event type owner email is provided then rescheduled booking will be automatically confirmed. If attendee email or no email is passed then the event type

@@ -1,8 +1,3 @@
-import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSideProps } from "next";
-import { encode } from "querystring";
-import type { z } from "zod";
-
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -18,8 +13,11 @@ import { type EventType, type User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { EmbedProps } from "app/WithEmbedSSR";
+import type { GetServerSideProps } from "next";
+import { encode } from "querystring";
+import type { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {

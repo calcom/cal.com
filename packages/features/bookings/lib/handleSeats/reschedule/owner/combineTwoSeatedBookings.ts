@@ -1,6 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
-import { uuid } from "short-uuid";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/lib/EventManager";
@@ -8,11 +6,13 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { cloneDeep } from "lodash";
+import { uuid } from "short-uuid";
 
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
-import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
+import type { NewTimeSlotBooking, RescheduleSeatedBookingObject, SeatedBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,

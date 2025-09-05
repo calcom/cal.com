@@ -1,8 +1,7 @@
-import { PrismockClient } from "prismock";
-import { beforeEach, vi } from "vitest";
-
 import logger from "@calcom/lib/logger";
 import * as selects from "@calcom/prisma/selects";
+import { PrismockClient } from "prismock";
+import { beforeEach, vi } from "vitest";
 
 vi.mock("@calcom/prisma", () => ({
   default: prisma,

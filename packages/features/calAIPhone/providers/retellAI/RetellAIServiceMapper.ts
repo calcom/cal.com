@@ -4,21 +4,21 @@
  */
 import type {
   AIPhoneServiceConfiguration,
-  AIPhoneServiceUpdateModelParams,
-  AIPhoneServiceTools,
   AIPhoneServiceProviderType,
+  AIPhoneServiceTools,
+  AIPhoneServiceUpdateModelParams,
 } from "../../interfaces/AIPhoneService.interface";
 import type { AgentWithDetailsData } from "../interfaces/AgentRepositoryInterface";
 import type {
-  RetellLLMGeneralTools,
-  UpdateLLMRequest,
-  CreateLLMRequest,
   CreateAgentRequest,
-  UpdateAgentRequest,
-  RetellAgentWithDetails,
+  CreateLLMRequest,
   Language,
   RetellAgent,
+  RetellAgentWithDetails,
   RetellLLM,
+  RetellLLMGeneralTools,
+  UpdateAgentRequest,
+  UpdateLLMRequest,
 } from "./types";
 
 export class RetellAIServiceMapper {

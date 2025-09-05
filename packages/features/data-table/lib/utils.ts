@@ -1,18 +1,18 @@
 import type {
-  SingleSelectFilterValue,
-  MultiSelectFilterValue,
-  TextFilterValue,
-  FilterValue,
-  NumberFilterValue,
   DateRangeFilterValue,
   FacetedValue,
+  FilterValue,
+  MultiSelectFilterValue,
+  NumberFilterValue,
+  SingleSelectFilterValue,
+  TextFilterValue,
 } from "./types";
 import {
+  ZDateRangeFilterValue,
+  ZMultiSelectFilterValue,
   ZNumberFilterValue,
   ZSingleSelectFilterValue,
-  ZMultiSelectFilterValue,
   ZTextFilterValue,
-  ZDateRangeFilterValue,
 } from "./types";
 
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {

@@ -1,7 +1,6 @@
+import classNames from "@calcom/ui/classNames";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-
-import classNames from "@calcom/ui/classNames";
 
 const progressBarStyles = cva("h-2 rounded-full", {
   variants: {

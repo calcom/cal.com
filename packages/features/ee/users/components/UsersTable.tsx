@@ -1,8 +1,3 @@
-import { keepPreviousData } from "@tanstack/react-query";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -12,15 +7,19 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -178,7 +177,8 @@ function UsersTableBare() {
         style={{
           height: "calc(100vh - 30vh)",
           overflow: "auto",
-        }}>
+        }}
+      >
         <Table>
           <Header>
             <ColumnTitle widthClassNames="w-auto">User</ColumnTitle>
@@ -320,7 +320,8 @@ function UsersTableBare() {
                 await signIn("impersonation-auth", { redirect: false, username: selectedUser });
                 setShowImpersonateModal(false);
                 router.replace("/settings/my-account/profile");
-              }}>
+              }}
+            >
               <DialogFooter showDivider className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button color="primary" type="submit">
@@ -352,7 +353,8 @@ const DeleteUserDialog = ({
         confirmBtnText="Delete"
         cancelBtnText="Cancel"
         variety="danger"
-        onConfirm={onConfirm}>
+        onConfirm={onConfirm}
+      >
         <p>Are you sure you want to delete this user?</p>
       </ConfirmationDialogContent>
     </Dialog>

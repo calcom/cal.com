@@ -1,7 +1,6 @@
-import React, { Suspense } from "react";
-
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
+import React, { Suspense } from "react";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -29,7 +28,8 @@ export default function Header({
           "border-subtle mx-auto block justify-between sm:flex",
           borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           borderInShellHeader === undefined && "mb-8 border-b pb-8"
-        )}>
+        )}
+      >
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex w-full items-center">
             {backButton && (

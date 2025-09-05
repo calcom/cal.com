@@ -2,7 +2,7 @@
 
 import { useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
-import { ZMultiSelectFilterValue, ColumnFilterType } from "../../lib/types";
+import { ColumnFilterType, ZMultiSelectFilterValue } from "../../lib/types";
 import { BaseSelectFilterOptions } from "./BaseSelectFilterOptions";
 
 export type MultiSelectFilterOptionsProps = {

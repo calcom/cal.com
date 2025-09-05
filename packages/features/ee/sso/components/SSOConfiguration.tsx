@@ -5,7 +5,7 @@ import SAMLConnection from "@calcom/features/ee/sso/components/SAMLConnection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 const SkeletonLoader = () => {
   return (

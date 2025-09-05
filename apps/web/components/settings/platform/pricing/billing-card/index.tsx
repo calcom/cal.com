@@ -51,7 +51,8 @@ export const PlatformBillingCard = ({
           <Button
             loading={isLoading}
             onClick={handleSubscribe}
-            className="flex w-[100%] items-center justify-center">
+            className="flex w-[100%] items-center justify-center"
+          >
             {pricing !== undefined ? t("subscribe") : t("schedule_a_time")}
           </Button>
         </div>

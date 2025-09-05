@@ -1,9 +1,8 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { NavigationItem } from "@calcom/ui";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const SidebarExample: React.FC = () => {
   const [isDeelExpanded, setIsDeelExpanded] = useState(true);

@@ -32,7 +32,8 @@ export default function PlatformPlans() {
           </h1>
         }
         withoutMain={false}
-        SidebarContainer={<></>}>
+        SidebarContainer={<></>}
+      >
         <PlatformPricing teamId={userOrgId} teamPlan={userBillingData?.plan.toLocaleLowerCase()} />
       </Shell>
     </div>

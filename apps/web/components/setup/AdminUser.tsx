@@ -1,17 +1,16 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import classNames from "classnames";
-import { signIn } from "next-auth/react";
-import React from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { EmailField, Label, TextField, PasswordField } from "@calcom/ui/components/form";
+import { EmailField, Label, PasswordField, TextField } from "@calcom/ui/components/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import classNames from "classnames";
+import { signIn } from "next-auth/react";
+import React from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
   const { t } = useLocale();
@@ -24,7 +23,8 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
         onSubmit={(e) => {
           e.preventDefault();
           props.onSuccess();
-        }}>
+        }}
+      >
         <EmptyScreen
           Icon="user-check"
           headline={t("admin_user_created")}
@@ -198,7 +198,8 @@ export const AdminUser = (props: {
             type="submit"
             color="primary"
             loading={formMethods.formState.isSubmitting}
-            disabled={!formMethods.formState.isValid || formMethods.formState.isSubmitting}>
+            disabled={!formMethods.formState.isValid || formMethods.formState.isSubmitting}
+          >
             {t("next")}
           </Button>
         </div>

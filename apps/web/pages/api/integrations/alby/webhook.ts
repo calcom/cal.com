@@ -1,1 +1,1 @@
-export { default, config } from "@calcom/app-store/alby/api/webhook";
+export { config, default } from "@calcom/app-store/alby/api/webhook";

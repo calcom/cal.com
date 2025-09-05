@@ -72,7 +72,8 @@ export const KPICard = ({
             content={t("from_to_date_period", {
               startDate: previousDateRange.startDate,
               endDate: previousDateRange.endDate,
-            })}>
+            })}
+          >
             <small className="text-default relative top-px cursor-pointer text-xs">
               {t("from_last_period")}
             </small>

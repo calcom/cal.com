@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
+import { z } from "zod";
 
 const paymentOptionSchema = z.object({
   label: z.string(),

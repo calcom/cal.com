@@ -1,5 +1,8 @@
 export class RoleManagementError extends Error {
-  constructor(message: string, public readonly code: RoleManagementErrorCode) {
+  constructor(
+    message: string,
+    public readonly code: RoleManagementErrorCode
+  ) {
     super(message);
     this.name = "RoleManagementError";
   }

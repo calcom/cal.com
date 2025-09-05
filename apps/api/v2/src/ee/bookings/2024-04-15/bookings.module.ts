@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { BookingsController_2024_04_15 } from "@/ee/bookings/2024-04-15/controllers/bookings.controller";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
@@ -19,7 +20,6 @@ import { SelectedCalendarsRepository } from "@/modules/selected-calendars/select
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [

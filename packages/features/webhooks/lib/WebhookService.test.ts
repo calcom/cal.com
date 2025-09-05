@@ -1,10 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import { WebhookService } from "./WebhookService";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GetWebhooksReturnType } from "./getWebhooks";
 import getWebhooks from "./getWebhooks";
+import { WebhookService } from "./WebhookService";
 
 vi.mock("./getWebhooks");
 vi.mock("./sendOrSchedulePayload");

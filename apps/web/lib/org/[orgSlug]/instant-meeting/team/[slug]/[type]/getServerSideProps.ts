@@ -1,14 +1,12 @@
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),

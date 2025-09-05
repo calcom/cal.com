@@ -3,27 +3,26 @@
  * Covers scenarios where events need to be deleted from original hosts and
  * credential handling during organizer changes.
  */
+
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
-  getDate,
   createBookingScenario,
-  getScenarioData,
-  getMockBookingAttendee,
-  TestData,
-  getOrganizer,
+  getDate,
   getGoogleCalendarCredential,
+  getMockBookingAttendee,
+  getOrganizer,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
+  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
 import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 
 describe("roundRobinReassignment test", () => {
   setupAndTeardown();

@@ -1,8 +1,7 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { DelegationCredentialRepository } from "../delegationCredential";
 import { OrganizationRepository } from "../organization";

@@ -1,6 +1,5 @@
-import { describe, expect, it, beforeAll, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { DateRange } from "./date-ranges";
 import getSlots from "./slots";

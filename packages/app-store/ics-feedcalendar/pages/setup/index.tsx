@@ -1,14 +1,12 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 export default function ICSFeedSetup() {
   const { t } = useLocale();
@@ -57,7 +55,8 @@ export default function ICSFeedSetup() {
                   } else {
                     router.push(json.url);
                   }
-                }}>
+                }}
+              >
                 <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
                   {urls.map((url, i) => (
                     <div key={i} className="flex w-full items-center gap-2">
@@ -77,7 +76,8 @@ export default function ICSFeedSetup() {
                         <button
                           type="button"
                           className="mb-2 h-min text-sm"
-                          onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}>
+                          onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}
+                        >
                           <Icon name="trash" size={16} />
                         </button>
                       ) : null}
@@ -90,7 +90,8 @@ export default function ICSFeedSetup() {
                   type="button"
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
-                  }}>
+                  }}
+                >
                   {t("add")} <Icon className="inline" name="plus" size={16} />
                 </button>
 
@@ -104,7 +105,8 @@ export default function ICSFeedSetup() {
                           href={errorActionUrl}
                           color="secondary"
                           target="_blank"
-                          className="ml-5 w-32 !p-5">
+                          className="ml-5 w-32 !p-5"
+                        >
                           Go to Admin
                         </Button>
                       ) : undefined

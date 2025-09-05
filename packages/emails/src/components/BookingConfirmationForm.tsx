@@ -23,7 +23,8 @@ export const BookingConfirmationForm = (props: { action: string; children: React
           boxSizing: "border-box",
           height: "2.25rem",
           width: "100%",
-        }}>
+        }}
+      >
         <label
           style={{
             color: "#3e3e3e",
@@ -34,7 +35,8 @@ export const BookingConfirmationForm = (props: { action: string; children: React
             textAlign: "left",
             whiteSpace: "pre-wrap",
             display: "block",
-          }}>
+          }}
+        >
           Reason for rejection &nbsp;
           <small>(Optional)</small>
         </label>

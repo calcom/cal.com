@@ -1,9 +1,8 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";

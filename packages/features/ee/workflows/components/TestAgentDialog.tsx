@@ -1,6 +1,3 @@
-import { useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +7,8 @@ import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "../pages/workflow";
 
@@ -63,7 +62,8 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId, form }: T
       <DialogContent
         type="creation"
         title={t("test_cal_ai_agent")}
-        description={t("make_test_call_to_verify_configuration")}>
+        description={t("make_test_call_to_verify_configuration")}
+      >
         <div>
           <Label className="mb-1 block text-sm font-medium">{t("call_to")}:</Label>
           <PhoneInput
@@ -81,7 +81,8 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId, form }: T
             type="button"
             onClick={handleTestCall}
             loading={testCallMutation.isPending}
-            disabled={!testPhoneNumber}>
+            disabled={!testPhoneNumber}
+          >
             <Icon name="phone" className="mr-2 h-4 w-4" />
             {t("make_test_call")}
           </Button>

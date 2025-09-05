@@ -1,9 +1,9 @@
 import type { FilterSegmentOutput, SegmentIdentifier } from "@calcom/features/data-table/lib/types";
 import {
   ZActiveFilters,
-  ZSortingState,
   ZColumnSizing,
   ZColumnVisibility,
+  ZSortingState,
 } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
 import type { UserFilterSegmentPreference } from "@calcom/prisma/client";
@@ -131,8 +131,8 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
     const preferredSegmentId = preference?.segmentId
       ? { id: preference.segmentId, type: "user" as const }
       : preference?.systemSegmentId
-      ? { id: preference.systemSegmentId, type: "system" as const }
-      : null;
+        ? { id: preference.systemSegmentId, type: "system" as const }
+        : null;
 
     return {
       segments: parsedSegments,

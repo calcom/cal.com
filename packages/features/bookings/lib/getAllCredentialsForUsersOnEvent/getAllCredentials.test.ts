@@ -1,13 +1,11 @@
-import {
-  createCredentials,
-  addTeamsToDb,
-  addEventTypesToDb,
-  addUsersToDb,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-
-import { describe, test, expect, vi } from "vitest";
-
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import {
+  addEventTypesToDb,
+  addTeamsToDb,
+  addUsersToDb,
+  createCredentials,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { describe, expect, test, vi } from "vitest";
 
 vi.mock("@calcom/lib/server/repository/user", () => {
   return {
@@ -29,7 +27,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
         () =>
           ({
             enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-          } as any)
+          }) as any
       );
     }
 
@@ -84,7 +82,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
               () =>
                 ({
                   enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
+                }) as any
             );
           }
 
@@ -168,7 +166,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
               () =>
                 ({
                   enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
+                }) as any
             );
           }
 
@@ -245,7 +243,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
               () =>
                 ({
                   enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
+                }) as any
             );
           }
 
@@ -350,7 +348,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
               () =>
                 ({
                   enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
+                }) as any
             );
           }
 
@@ -673,7 +671,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
               () =>
                 ({
                   enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
+                }) as any
             );
           }
 

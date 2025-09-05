@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import {
@@ -27,6 +25,7 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { Prisma } from "@prisma/client";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";

@@ -1,16 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { WizardLayout } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
+import { useRouter } from "next/navigation";
 
 export const CreateTeamEventType = () => {
   const searchParams = useCompatSearchParams();
@@ -33,7 +32,8 @@ export const CreateTeamEventType = () => {
         type="submit"
         color="primary"
         className="w-full justify-center"
-        disabled={isPending}>
+        disabled={isPending}
+      >
         {t("finish")}
       </Button>
     );
@@ -77,7 +77,8 @@ export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
       maxSteps={3}
       isOptionalCallback={() => {
         router.push(`/settings/teams/${teamId}/profile`);
-      }}>
+      }}
+    >
       {children}
     </WizardLayout>
   );

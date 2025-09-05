@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
+
+import { getEventLocationType } from "@calcom/app-store/locations";
 import type { TFunction } from "i18next";
 import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { z } from "zod";
-
-import { getEventLocationType } from "@calcom/app-store/locations";
 
 export const locationsResolver = (t: TFunction) => {
   return z

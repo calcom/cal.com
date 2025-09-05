@@ -1,33 +1,34 @@
+import { SchedulingType } from "@calcom/platform-enums";
 import {
+  ApiExtraModels,
   ApiProperty as DocsProperty,
   ApiPropertyOptional as DocsPropertyOptional,
   getSchemaPath,
-  ApiExtraModels,
 } from "@nestjs/swagger";
-import { Type, Transform, Expose } from "class-transformer";
+import { Expose, Transform, Type } from "class-transformer";
 import {
-  IsString,
-  IsInt,
-  IsBoolean,
-  IsOptional,
-  Min,
-  IsUrl,
-  IsEnum,
-  IsArray,
-  ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Min,
+  ValidateNested,
 } from "class-validator";
 
-import { SchedulingType } from "@calcom/platform-enums";
-
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
+import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import {
   AddressFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
@@ -40,11 +41,9 @@ import {
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
-  LocationDefaultFieldInput_2024_06_14,
   UrlFieldInput_2024_06_14,
+  ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
-import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
-import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
 import { BaseBookingLimitsCount_2024_06_14, ValidateBookingLimitsCount } from "./booking-limits-count.input";
 import type { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
@@ -64,19 +63,19 @@ import { BaseConfirmationPolicy_2024_06_14, ValidateConfirmationPolicy } from ".
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
+import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import {
   InputAddressLocation_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
-  InputOrganizersDefaultApp_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputIntegrationLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
+  InputOrganizersDefaultApp_2024_06_14,
   InputPhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
   ValidateTeamLocations_2024_06_14,
 } from "./locations.input";
-import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
 

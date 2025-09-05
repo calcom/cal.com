@@ -1,11 +1,8 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
 

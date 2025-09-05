@@ -1,7 +1,6 @@
+import dayjs from "@calcom/dayjs";
 import { useRef } from "react";
 import { shallow } from "zustand/shallow";
-
-import dayjs from "@calcom/dayjs";
 
 import { useCalendarStore } from "../../state/store";
 import { Event } from "./Event";
@@ -119,7 +118,8 @@ export function EventList({ day }: Props) {
                 width: `${width}%`,
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
-              }}>
+              }}
+            >
               <Event event={event} eventDuration={eventDuration} onEventClick={eventOnClick} />
             </div>
           );

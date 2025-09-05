@@ -1,7 +1,6 @@
-import { beforeEach, vi, expect } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
-
 import type { MembershipRole } from "@calcom/prisma/enums";
+import { beforeEach, expect, vi } from "vitest";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 
 import type * as inviteMemberUtils from "../utils";
 

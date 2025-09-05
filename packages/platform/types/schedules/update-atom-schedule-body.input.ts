@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsString, IsOptional, IsBoolean, ValidateNested, IsArray, IsDate } from "class-validator";
+import { IsArray, IsBoolean, IsDate, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class ScheduleTimeRangeDto {
   @Type(() => Date)

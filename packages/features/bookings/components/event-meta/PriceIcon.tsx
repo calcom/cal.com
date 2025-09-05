@@ -1,5 +1,4 @@
-import { Icon } from "@calcom/ui/components/icon";
-import { SatSymbol } from "@calcom/ui/components/icon";
+import { Icon, SatSymbol } from "@calcom/ui/components/icon";
 
 export function PriceIcon(props: { currency: string; className?: string }) {
   const { className, currency } = props;

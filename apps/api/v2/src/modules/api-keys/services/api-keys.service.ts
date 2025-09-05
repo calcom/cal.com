@@ -1,14 +1,13 @@
+import { createApiKeyHandler } from "@calcom/platform-libraries";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { DateTime } from "luxon";
 import { sha256Hash, stripApiKey } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { CreateApiKeyInput } from "@/modules/api-keys/inputs/create-api-key.input";
 import { RefreshApiKeyInput } from "@/modules/api-keys/inputs/refresh-api-key.input";
 import { ApiAuthGuardRequest } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { DateTime } from "luxon";
-
-import { createApiKeyHandler } from "@calcom/platform-libraries";
 
 @Injectable()
 export class ApiKeysService {

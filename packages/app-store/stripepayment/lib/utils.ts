@@ -1,9 +1,9 @@
 // @NOTE: should we remove this? It's just a wrapper of env vars
 import {
-  PREMIUM_PLAN_PRODUCT_ID,
-  STRIPE_TEAM_MONTHLY_PRICE_ID,
   PREMIUM_MONTHLY_PLAN_PRICE,
+  PREMIUM_PLAN_PRODUCT_ID,
   STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID,
+  STRIPE_TEAM_MONTHLY_PRICE_ID,
 } from "./constants";
 
 export const getPremiumMonthlyPlanPriceId = (): string => {

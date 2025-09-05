@@ -1,18 +1,17 @@
-import { extractUserContext } from "@/lib/extract-user-context";
-import { filterReqHeaders } from "@/lib/filterReqHeaders";
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
-import { Request } from "express";
-
 import { ERROR_STATUS } from "@calcom/platform-constants";
 import {
-  CalendarAppError,
-  CalendarAppDelegationCredentialInvalidGrantError,
-  CalendarAppDelegationCredentialError,
-  CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,
+  CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialError,
+  CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialNotSetupError,
+  CalendarAppError,
 } from "@calcom/platform-libraries/app-store";
 import { Response } from "@calcom/platform-types";
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
+import { Request } from "express";
+import { extractUserContext } from "@/lib/extract-user-context";
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 
 type CalendarError =
   | CalendarAppError

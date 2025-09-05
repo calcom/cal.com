@@ -1,10 +1,5 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/InviteLinkSettingsModal";
@@ -23,6 +18,10 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
@@ -119,7 +118,8 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
               color="minimal"
               loading={isFetchingNextPage}
               disabled={!hasNextPage}
-              onClick={() => fetchNextPage()}>
+              onClick={() => fetchNextPage()}
+            >
               {hasNextPage ? t("load_more_results") : t("no_more_results")}
             </Button>
           </div>
@@ -129,7 +129,8 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
           data-testid="new-member-button"
           StartIcon="plus"
           onClick={() => setMemberInviteModal(true)}
-          className={classNames("w-full justify-center", totalFetched > 0 && "mt-6")}>
+          className={classNames("w-full justify-center", totalFetched > 0 && "mt-6")}
+        >
           {isOrg ? t("add_org_members") : t("add_team_member")}
         </Button>
       </div>
@@ -175,7 +176,8 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
             uri = `/settings/organizations/${teamId}/add-teams`;
           }
           router.push(uri);
-        }}>
+        }}
+      >
         {t("continue")}
       </Button>
     </>
@@ -227,7 +229,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         "flex items-center justify-between p-6 text-sm",
         index !== 0 && "border-subtle border-t"
       )}
-      data-testid="pending-member-item">
+      data-testid="pending-member-item"
+    >
       <div className="mr-4 flex max-w-full space-x-2 overflow-hidden rtl:space-x-reverse">
         <UserAvatar size="mdLg" user={member} />
         <div className="max-w-full overflow-hidden">

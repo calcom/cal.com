@@ -1,9 +1,8 @@
 "use client";
 
+import { CALCOM_VERSION, COMPANY_NAME, IS_CALCOM, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-import { CALCOM_VERSION, COMPANY_NAME, IS_CALCOM, IS_SELF_HOSTED } from "@calcom/lib/constants";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const vercelCommitHash = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA;
@@ -32,7 +31,8 @@ export default function Credits() {
             <Link
               href={`https://github.com/calcom/cal.com/commit/${vercelCommitHash}`}
               target="_blank"
-              className="hover:underline">
+              className="hover:underline"
+            >
               {commitHash}
             </Link>
           ) : (

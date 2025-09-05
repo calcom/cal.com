@@ -1,6 +1,3 @@
-import Stripe from "stripe";
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
@@ -8,6 +5,8 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
+import Stripe from "stripe";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CreditService as OriginalCreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";

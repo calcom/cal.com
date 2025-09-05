@@ -1,7 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsEnum, IsOptional, IsBoolean } from "class-validator";
-
 import { FrequencyInput } from "@calcom/platform-enums";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsBoolean, IsEnum, IsInt, IsOptional } from "class-validator";
 
 export type TransformRecurringEventSchema_2024_06_14 = {
   interval: number;

@@ -1,16 +1,14 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
-
 import { routingFormsComponents } from "@calcom/app-store/routing-forms/pages/app-routing.client-config";
 import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
-
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import type { PageProps as ServerPageProps } from "app/_types";
+import { _generateMetadata } from "app/_utils";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 
 const normalizePages = (pages: string[] | string | undefined) => {
-  const normalizedPages = Array.isArray(pages) ? pages : pages?.split("/") ?? [];
+  const normalizedPages = Array.isArray(pages) ? pages : (pages?.split("/") ?? []);
   return normalizedPages[0];
 };
 

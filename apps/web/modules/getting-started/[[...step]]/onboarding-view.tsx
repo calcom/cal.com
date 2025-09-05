@@ -1,12 +1,5 @@
 "use client";
 
-import type { TFunction } from "i18next";
-import { signOut } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useTransition } from "react";
-import { Toaster } from "sonner";
-import { z } from "zod";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -16,12 +9,17 @@ import { Button } from "@calcom/ui/components/button";
 import { StepCard } from "@calcom/ui/components/card";
 import { Steps } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
+import type { TFunction } from "i18next";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { Suspense, useTransition } from "react";
+import { Toaster } from "sonner";
+import { z } from "zod";
 
 const INITIAL_STEP = "user-settings";
 const BASE_STEPS = [
@@ -150,7 +148,8 @@ const OnboardingPage = (props: PageProps) => {
         "[--cal-brand-accent:#FFFFFF] dark:[--cal-brand-accent:#000000]"
       )}
       data-testid="onboarding"
-      key={pathname}>
+      key={pathname}
+    >
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
@@ -197,7 +196,8 @@ const OnboardingPage = (props: PageProps) => {
                     event.preventDefault();
                     goToNextStep();
                   }}
-                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium"
+                >
                   {headers[currentStepIndex]?.skipText}
                 </Button>
               </div>
@@ -208,7 +208,8 @@ const OnboardingPage = (props: PageProps) => {
               color="minimal"
               data-testid="sign-out"
               onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-              className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+              className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium"
+            >
               {t("sign_out")}
             </Button>
           </div>

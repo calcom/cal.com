@@ -3,22 +3,20 @@
  *
  * It mocks a lot of things that are untested and integration tests make more sense for this handler
  */
-import { scenarios as checkRateLimitAndThrowErrorScenarios } from "../../../../../../../tests/libs/__mocks__/checkRateLimitAndThrowError";
-import { mock as getTranslationMock } from "../../../../../../../tests/libs/__mocks__/getTranslation";
-import {
-  inviteMemberutilsScenarios as inviteMemberUtilsScenarios,
-  default as inviteMemberUtilsMock,
-} from "./__mocks__/inviteMemberUtils";
+
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { Profile } from "@calcom/prisma/client";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
 
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { scenarios as checkRateLimitAndThrowErrorScenarios } from "../../../../../../../tests/libs/__mocks__/checkRateLimitAndThrowError";
+import { mock as getTranslationMock } from "../../../../../../../tests/libs/__mocks__/getTranslation";
 import type { TrpcSessionUser } from "../../../../types";
+import {
+  default as inviteMemberUtilsMock,
+  inviteMemberutilsScenarios as inviteMemberUtilsScenarios,
+} from "./__mocks__/inviteMemberUtils";
 import inviteMemberHandler from "./inviteMember.handler";
 import { INVITE_STATUS } from "./utils";
 

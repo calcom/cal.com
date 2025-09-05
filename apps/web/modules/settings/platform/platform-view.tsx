@@ -1,20 +1,17 @@
 "use client";
 
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
-import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-
 import { HelpCards } from "@components/settings/platform/dashboard/HelpCards";
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
+import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
+import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
@@ -72,7 +69,8 @@ export default function Platform() {
             title={t("platform")}
             description={t("platform_description")}
             withoutMain={false}
-            isPlatformUser={true}>
+            isPlatformUser={true}
+          >
             <HelpCards />
             <OAuthClientsList oauthClients={data} isDeleting={isDeleting} handleDelete={handleDelete} />
           </Shell>
@@ -88,7 +86,8 @@ export default function Platform() {
         // hence we pass isPlatformUser boolean as prop
         isPlatformUser={true}
         withoutMain={false}
-        SidebarContainer={<></>}>
+        SidebarContainer={<></>}
+      >
         <NoPlatformPlan />
       </Shell>
     </div>

@@ -1,21 +1,13 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback, useEffect } from "react";
-import React from "react";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import {
   BookerStoreProvider,
-  useInitializeBookerStoreContext,
   useBookerStoreContext,
+  useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
@@ -28,10 +20,14 @@ import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;

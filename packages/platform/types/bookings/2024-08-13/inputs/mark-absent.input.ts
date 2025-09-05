@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsOptional, IsBoolean, IsEmail, IsArray, ArrayMinSize, ValidateNested } from "class-validator";
+import { ArrayMinSize, IsArray, IsBoolean, IsEmail, IsOptional, ValidateNested } from "class-validator";
 
 class MarkAbsentAttendee {
   @IsEmail()

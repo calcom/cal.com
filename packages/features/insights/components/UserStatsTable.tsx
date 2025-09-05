@@ -32,7 +32,8 @@ export const UserStatsTable = ({ data }: { data: UserStatsData }) => {
           <ChartCardItem
             key={item.userId || `user-${Math.random()}`}
             count={Number.isInteger(item.count) ? item.count : item.count.toFixed(1)}
-            className="py-3">
+            className="py-3"
+          >
             <div className="flex items-center">
               <Avatar
                 alt={item.user.name || ""}

@@ -1,11 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
+import { useSession } from "next-auth/react";
 
 export const AdminOnboardingHandover = () => {
   const { t } = useLocale();
@@ -27,7 +26,8 @@ export const AdminOnboardingHandover = () => {
         <div className="mt-2 flex items-center gap-2">
           <code
             data-testid="onboarding-url"
-            className="bg-default text-default flex w-full items-center truncate rounded-md px-3 py-2 font-mono text-sm">
+            className="bg-default text-default flex w-full items-center truncate rounded-md px-3 py-2 font-mono text-sm"
+          >
             {onboardingUrl}
           </code>
           <Button

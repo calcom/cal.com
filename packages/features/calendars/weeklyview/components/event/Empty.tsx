@@ -1,12 +1,10 @@
-import { useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/ui/classNames";
-
-import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
+import { useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import { useBookerTime } from "../../../../bookings/Booker/components/hooks/useBookerTime";
+import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
 import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
 import type { GridCellToDateProps } from "../../utils";
@@ -102,7 +100,8 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
       <CustomCell
         timeSlot={dayjs(firstSlot?.start).tz(slots.timezone)}
         topOffsetMinutes={slots.slots[0]?.topOffsetMinutes}
-        startEndTimeDuration={startEndTimeDuration}>
+        startEndTimeDuration={startEndTimeDuration}
+      >
         <OutOfOfficeInSlots
           fromUser={firstSlot?.fromUser}
           toUser={firstSlot?.toUser}
@@ -164,7 +163,8 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       }}
       onClick={() => {
         onEmptyCellClick && onEmptyCellClick(timeSlot.toDate());
-      }}>
+      }}
+    >
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
           className={classNames(
@@ -178,7 +178,8 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
             // @TODO: This used to be 90% as per Sean's work. I think this was needed when
             // multiple events are stacked next to each other. We might need to add this back later.
             width: "calc(100% - 2px)",
-          }}>
+          }}
+        >
           <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
@@ -201,7 +202,8 @@ function CustomCell({
       style={{
         top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
         overflow: "visible",
-      }}>
+      }}
+    >
       <div
         className={classNames(
           "dark:border-emphasis bg-default dark:bg-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
@@ -209,7 +211,8 @@ function CustomCell({
         style={{
           height: `calc(${startEndTimeDuration}*var(--one-minute-height) - 2px)`,
           width: "calc(100% - 2px)",
-        }}>
+        }}
+      >
         {children}
       </div>
     </div>

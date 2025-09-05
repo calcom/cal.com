@@ -1,12 +1,11 @@
-import { expect } from "@playwright/test";
-
 import { MembershipRole } from "@calcom/prisma/enums";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
-  confirmReschedule,
   confirmBooking,
+  confirmReschedule,
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,

@@ -1,7 +1,3 @@
-import type { BaseSyntheticEvent } from "react";
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
@@ -10,8 +6,10 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Form, PasswordField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
 import TwoFactor from "@components/auth/TwoFactor";
+import type { BaseSyntheticEvent } from "react";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 
@@ -171,7 +169,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
       <DialogContent
         title={step === SetupStep.DisplayBackupCodes ? t("backup_codes") : t("enable_2fa")}
         description={setupDescriptions[step]}
-        type="creation">
+        type="creation"
+      >
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">
@@ -228,7 +227,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 onClick={() => {
                   onCancel();
                   resetState();
-                }}>
+                }}
+              >
                 {t("cancel")}
               </Button>
             ) : null}
@@ -238,7 +238,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 className="me-2 ms-2"
                 onClick={handleSetup}
                 loading={isSubmitting}
-                disabled={password.length === 0 || isSubmitting}>
+                disabled={password.length === 0 || isSubmitting}
+              >
                 {t("continue")}
               </Button>
             </WithStep>
@@ -247,7 +248,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 type="submit"
                 data-testid="goto-otp-screen"
                 className="me-2 ms-2"
-                onClick={() => setStep(SetupStep.EnterTotpCode)}>
+                onClick={() => setStep(SetupStep.EnterTotpCode)}
+              >
                 {t("continue")}
               </Button>
             </WithStep>
@@ -257,7 +259,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 className="me-2 ms-2"
                 data-testid="enable-2fa"
                 loading={isSubmitting}
-                disabled={isSubmitting}>
+                disabled={isSubmitting}
+              >
                 {t("enable")}
               </Button>
             </WithStep>
@@ -270,7 +273,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                     e.preventDefault();
                     resetState();
                     onEnable();
-                  }}>
+                  }}
+                >
                   {t("close")}
                 </Button>
                 <Button
@@ -280,7 +284,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                     e.preventDefault();
                     navigator.clipboard.writeText(backupCodes.map(formatBackupCode).join("\n"));
                     showToast(t("backup_codes_copied"), "success");
-                  }}>
+                  }}
+                >
                   {t("copy")}
                 </Button>
                 <a download="cal-backup-codes.txt" href={backupCodesUrl}>

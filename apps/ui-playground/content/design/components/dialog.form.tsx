@@ -1,11 +1,10 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { TextAreaField } from "@calcom/ui/components/form";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const FormExample: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -38,7 +37,8 @@ export const FormExample: React.FC = () => {
                 onClick={() => {
                   setOpen(false);
                   setFormInput("");
-                }}>
+                }}
+              >
                 Submit Feedback
               </Button>
             </DialogFooter>

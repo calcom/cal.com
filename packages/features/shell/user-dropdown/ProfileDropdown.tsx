@@ -1,11 +1,8 @@
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { trpc } from "@calcom/trpc";
-import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import {
   Dropdown,
   DropdownItem,
@@ -15,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
@@ -48,7 +47,8 @@ export function ProfileDropdown() {
           data-testid="user-dropdown-trigger-button"
           className={classNames(
             "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full px-2 py-1.5 text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded"
-          )}>
+          )}
+        >
           <span className="flex w-full flex-grow items-center justify-around gap-2 text-sm font-medium leading-none">
             <Avatar alt={currentOption.label || ""} size="xsm" />
             <span className="block w-20 overflow-hidden overflow-ellipsis whitespace-nowrap">
@@ -69,7 +69,8 @@ export function ProfileDropdown() {
           onInteractOutside={() => {
             setMenuOpen(false);
           }}
-          className="min-w-56 hariom group overflow-hidden rounded-md">
+          className="min-w-56 hariom group overflow-hidden rounded-md"
+        >
           <DropdownMenuItem className="p-3 uppercase">
             <span>Switch to</span>
           </DropdownMenuItem>
@@ -87,10 +88,12 @@ export function ProfileDropdown() {
                     refreshData();
                   });
                 }}
-                className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}>
+                className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}
+              >
                 <DropdownItem
                   type="button"
-                  childrenClassName={classNames("flex w-full justify-between items-center")}>
+                  childrenClassName={classNames("flex w-full justify-between items-center")}
+                >
                   <span>
                     <Avatar alt={option.label || ""} size="xsm" />
                     <span className="ml-2">{option.label}</span>

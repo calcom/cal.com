@@ -1,7 +1,6 @@
-import { beforeEach, vi, expect } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
-
 import type * as payments from "@calcom/features/ee/teams/lib/payments";
+import { beforeEach, expect, vi } from "vitest";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 
 vi.mock("@calcom/features/ee/teams/lib/payments", () => paymentsMock);
 

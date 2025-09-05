@@ -1,7 +1,4 @@
 // page can be a server component
-import type { GetServerSidePropsContext } from "next";
-import { URLSearchParams } from "url";
-import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFullName } from "@calcom/features/form-builder/utils";
@@ -12,6 +9,9 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { GetServerSidePropsContext } from "next";
+import { URLSearchParams } from "url";
+import { z } from "zod";
 
 const querySchema = z.object({
   uid: z.string(),

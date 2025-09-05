@@ -1,18 +1,5 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
-import { VerifyEmailInput } from "@/modules/verified-resources/inputs/verify-email.input";
-import {
-  TeamVerifiedEmailOutput,
-  TeamVerifiedEmailsOutput,
-} from "@/modules/verified-resources/outputs/verified-email.output";
-import {
-  TeamVerifiedPhoneOutput,
-  TeamVerifiedPhonesOutput,
-} from "@/modules/verified-resources/outputs/verified-phone.output";
+import { AttendeeVerifyEmail } from "@calcom/platform-libraries/emails";
+import { Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -28,9 +15,21 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { VerifiedResourcesRepositoryFixtures } from "test/fixtures/repository/verified-resources.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { AttendeeVerifyEmail } from "@calcom/platform-libraries/emails";
-import { Team } from "@calcom/prisma/client";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
+import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
+import { VerifyEmailInput } from "@/modules/verified-resources/inputs/verify-email.input";
+import {
+  TeamVerifiedEmailOutput,
+  TeamVerifiedEmailsOutput,
+} from "@/modules/verified-resources/outputs/verified-email.output";
+import {
+  TeamVerifiedPhoneOutput,
+  TeamVerifiedPhonesOutput,
+} from "@/modules/verified-resources/outputs/verified-phone.output";
 
 jest.spyOn(totp, "generate").mockImplementation(function () {
   return "1234";

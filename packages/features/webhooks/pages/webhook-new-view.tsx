@@ -1,16 +1,15 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
@@ -80,7 +79,8 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       title={t("add_webhook")}
       description={t("add_webhook_description", { appName: APP_NAME })}
       borderInShellHeader={true}
-      backButton={true}>
+      backButton={true}
+    >
       <WebhookForm
         noRoutingFormTriggers={false}
         onSubmit={onCreateWebhook}

@@ -2572,6 +2572,97 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@biomejs/biome@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/biome@npm:2.2.3"
+  dependencies:
+    "@biomejs/cli-darwin-arm64": 2.2.3
+    "@biomejs/cli-darwin-x64": 2.2.3
+    "@biomejs/cli-linux-arm64": 2.2.3
+    "@biomejs/cli-linux-arm64-musl": 2.2.3
+    "@biomejs/cli-linux-x64": 2.2.3
+    "@biomejs/cli-linux-x64-musl": 2.2.3
+    "@biomejs/cli-win32-arm64": 2.2.3
+    "@biomejs/cli-win32-x64": 2.2.3
+  dependenciesMeta:
+    "@biomejs/cli-darwin-arm64":
+      optional: true
+    "@biomejs/cli-darwin-x64":
+      optional: true
+    "@biomejs/cli-linux-arm64":
+      optional: true
+    "@biomejs/cli-linux-arm64-musl":
+      optional: true
+    "@biomejs/cli-linux-x64":
+      optional: true
+    "@biomejs/cli-linux-x64-musl":
+      optional: true
+    "@biomejs/cli-win32-arm64":
+      optional: true
+    "@biomejs/cli-win32-x64":
+      optional: true
+  bin:
+    biome: bin/biome
+  checksum: 162950dccf1a4aa5a9fdf095ebee4c5579f0e803fbdc43a35cf8466c7b471d4ddf6dd8d4e9085e3ffb952cdc8f8e80b52e36647dcb0c79f6352c780a3eca1f03
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-darwin-arm64@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-darwin-arm64@npm:2.2.3"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-darwin-x64@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-darwin-x64@npm:2.2.3"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-linux-arm64-musl@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-linux-arm64-musl@npm:2.2.3"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-linux-arm64@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-linux-arm64@npm:2.2.3"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-linux-x64-musl@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-linux-x64-musl@npm:2.2.3"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-linux-x64@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-linux-x64@npm:2.2.3"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-win32-arm64@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-win32-arm64@npm:2.2.3"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@biomejs/cli-win32-x64@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@biomejs/cli-win32-x64@npm:2.2.3"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@boxyhq/error-code-mnemonic@npm:0.1.1":
   version: 0.1.1
   resolution: "@boxyhq/error-code-mnemonic@npm:0.1.1"
@@ -2708,7 +2799,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.343"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.344"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3767,13 +3858,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.343":
-  version: 0.0.343
-  resolution: "@calcom/platform-libraries@npm:0.0.343"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.344":
+  version: 0.0.344
+  resolution: "@calcom/platform-libraries@npm:0.0.344"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 332910a95336b720999e24c6eaf1e7780a507347e4610dbbeff023d69edc2a47f83f4c3014763fbcd23bb92a34d9a61c83d400c71d4501466b5b5f36add4173d
+  checksum: 01cd33527ac8690f74ecdd407ce0f6e131aff826999fc98d3b4c3ff347a5bf0d935266a69876d40a3265bc9eb63222eb4bb050ca043ac412c89f24c48d674667
   languageName: node
   linkType: hard
 
@@ -22709,6 +22800,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "calcom-monorepo@workspace:."
   dependencies:
+    "@biomejs/biome": ^2.2.3
     "@changesets/changelog-github": ^0.5.1
     "@changesets/cli": 2.29.4
     "@daily-co/daily-js": ^0.83.1

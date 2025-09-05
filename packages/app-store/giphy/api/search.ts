@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { z, ZodError } from "zod";
-
 import prisma from "@calcom/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { ZodError, z } from "zod";
 
 import { GiphyManager } from "../lib";
 

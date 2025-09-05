@@ -3,18 +3,18 @@ import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type {
-  TCreateRetellLLMSchema,
-  TGetRetellLLMSchema,
   TCreatePhoneCallSchema,
+  TCreatePhoneSchema,
+  TCreateRetellLLMSchema,
   TemplateType,
   TGetPhoneNumberSchema,
-  TCreatePhoneSchema,
+  TGetRetellLLMSchema,
 } from "./zod-utils";
 import {
-  ZGetRetellLLMSchema,
   ZCreatePhoneSchema,
   ZCreateRetellLLMSchema,
   ZGetPhoneNumberSchema,
+  ZGetRetellLLMSchema,
 } from "./zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["retellAIService: "] });
@@ -123,7 +123,10 @@ class GetRetellLLMCommand implements Command<TGetRetellLLMSchema> {
 }
 
 class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
-  constructor(private props: initProps, private llmId: string) {}
+  constructor(
+    private props: initProps,
+    private llmId: string
+  ) {}
 
   async execute(): Promise<TGetRetellLLMSchema> {
     try {
@@ -167,7 +170,10 @@ export const validatePhoneNumber = (phoneNumber: string) => {
 };
 
 class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
-  constructor(private props: initProps, private numberToCall: string) {}
+  constructor(
+    private props: initProps,
+    private numberToCall: string
+  ) {}
 
   async execute(): Promise<TCreatePhoneSchema> {
     try {

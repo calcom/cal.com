@@ -2,8 +2,8 @@
 
 import { ChartCard } from "@calcom/features/insights/components/ChartCard";
 import {
-  RoutingFunnelContent,
   legend,
+  RoutingFunnelContent,
 } from "@calcom/features/insights/components/routing/RoutingFunnelContent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -75,7 +75,8 @@ export default function RoutingFunnelPlayground() {
             onClick: () => {
               alert("hello!");
             },
-          }}>
+          }}
+        >
           <RoutingFunnelContent data={sampleRoutingFunnelData} />
         </ChartCard>
       </div>

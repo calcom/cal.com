@@ -11,9 +11,9 @@ import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
   workspacePlatformCreateSchema,
+  workspacePlatformToggleEnabledSchema,
   workspacePlatformUpdateSchema,
   workspacePlatformUpdateServiceAccountSchema,
-  workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
 
 const NAMESPACE = "admin";

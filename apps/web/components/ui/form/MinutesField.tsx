@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import type { InputHTMLAttributes, ReactNode } from "react";
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: ReactNode;

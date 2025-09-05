@@ -1,6 +1,5 @@
-import { expect, it } from "vitest";
-
 import { availabilityAsString } from "@calcom/lib/availability";
+import { expect, it } from "vitest";
 
 it("correctly handles 1 day", async () => {
   const availability = {

@@ -1,6 +1,5 @@
-import type { CSSProperties } from "react";
-
 import { BASE_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import type { CSSProperties } from "react";
 
 import EmailCommonDivider from "./EmailCommonDivider";
 import Row from "./Row";
@@ -34,14 +33,16 @@ const EmailSchedulingBodyHeader = (props: { headerType: BodyHeadType; headStyles
   return (
     <>
       <EmailCommonDivider
-        headStyles={{ padding: "30px 30px 0 30px", borderTop: "1px solid #E1E1E1", ...props.headStyles }}>
+        headStyles={{ padding: "30px 30px 0 30px", borderTop: "1px solid #E1E1E1", ...props.headStyles }}
+      >
         <td
           align="center"
           style={{
             fontSize: "0px",
             padding: "10px 25px",
             wordBreak: "break-word",
-          }}>
+          }}
+        >
           <Row border="0" role="presentation" style={{ borderCollapse: "collapse", borderSpacing: "0px" }}>
             <td style={{ width: 64 }}>
               <img

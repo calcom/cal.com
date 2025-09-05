@@ -14,9 +14,7 @@
     "generate": "ts-node --transpile-only src/build.ts",
     "post-install": "yarn build"
   },
-  "files": [
-    "dist/cli.js"
-  ],
+  "files": ["dist/cli.js"],
   "dependencies": {
     "@calcom/lib": "*",
     "ink": "^3.2.0",

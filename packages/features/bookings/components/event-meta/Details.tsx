@@ -1,13 +1,11 @@
-import React, { Fragment } from "react";
-
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
-import { type IconName } from "@calcom/ui/components/icon";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
+import React, { Fragment } from "react";
 
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
@@ -89,7 +87,8 @@ export const EventMetaBlock = ({
         highlight ? "text-emphasis" : "text-text",
         className
       )}
-      {...rest}>
+      {...rest}
+    >
       {iconUrl ? (
         <img
           src={iconUrl}
@@ -186,7 +185,8 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
                     className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0 rtl:ml-2"
                     currency={event.currency}
                   />
-                }>
+                }
+              >
                 <Price
                   price={paymentAppData.price}
                   currency={event.currency}

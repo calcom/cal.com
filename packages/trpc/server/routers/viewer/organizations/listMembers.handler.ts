@@ -1,7 +1,7 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
-import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType, type TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CustomAction, Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";

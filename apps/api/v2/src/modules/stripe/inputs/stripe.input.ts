@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class StripeConnectQueryParamsInputDto {
   @IsString()

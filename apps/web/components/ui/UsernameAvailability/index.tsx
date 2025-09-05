@@ -1,17 +1,14 @@
-import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
-import type { RefCallback, ReactNode } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBSITE_URL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-
 import type { TRPCClientErrorLike } from "@trpc/client";
+import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import type { ReactNode, RefCallback } from "react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;

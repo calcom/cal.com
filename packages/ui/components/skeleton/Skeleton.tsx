@@ -1,7 +1,6 @@
-import React from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import React from "react";
 
 type SkeletonBaseProps = {
   className?: string;
@@ -31,8 +30,8 @@ type SkeletonProps<T> = {
 } & (T extends React.FC<infer P>
   ? P
   : T extends keyof JSX.IntrinsicElements
-  ? JSX.IntrinsicElements[T]
-  : never);
+    ? JSX.IntrinsicElements[T]
+    : never);
 
 const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   as,
@@ -60,7 +59,8 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
           : "",
         className
       )}
-      {...rest}>
+      {...rest}
+    >
       {children}
     </Component>
   );
@@ -102,7 +102,8 @@ const SelectSkeletonLoader: React.FC<SkeletonLoaderProps> = ({ className }) => {
       className={classNames(
         "border-subtle group flex w-full items-center justify-between rounded-sm border px-[10px] py-3",
         className
-      )}>
+      )}
+    >
       <div className="flex-grow truncate text-sm">
         <div className="flex justify-between">
           <SkeletonText className="h-4 w-32" />

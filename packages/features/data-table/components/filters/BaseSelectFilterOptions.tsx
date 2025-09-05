@@ -1,26 +1,25 @@
 "use client";
 
-import { useMemo } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
-  CommandInput,
-  CommandList,
   CommandEmpty,
-  CommandItem,
-  CommandSeparator,
   CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
 } from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
+import { useMemo } from "react";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type {
+  FilterableColumn as _FilterableColumn,
   ColumnFilterType,
   FacetedValue,
-  FilterableColumn as _FilterableColumn,
   FilterValueSchema,
 } from "../../lib/types";
 
@@ -37,7 +36,7 @@ type FilterValue<T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SING
 >;
 
 export type BaseSelectFilterOptionsProps<
-  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
+  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT,
 > = {
   column: FilterableSelectColumn<T>;
   filterValueSchema: FilterValueSchema<T>;
@@ -88,7 +87,7 @@ function getSectionedOptions(options: FacetedValue[]) {
 }
 
 export function BaseSelectFilterOptions<
-  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
+  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT,
 >({
   column,
   filterValueSchema,
@@ -139,12 +138,14 @@ export function BaseSelectFilterOptions<
               )}
               <CommandItem
                 key={optionValue}
-                onSelect={() => onOptionSelect(column, filterValue, optionValue)}>
+                onSelect={() => onOptionSelect(column, filterValue, optionValue)}
+              >
                 <div
                   className={classNames(
                     "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                     isOptionSelected(filterValue, optionValue) ? "bg-primary" : "opacity-50"
-                  )}>
+                  )}
+                >
                   {isOptionSelected(filterValue, optionValue) && (
                     <Icon name="check" className="text-primary-foreground h-4 w-4" />
                   )}
@@ -161,7 +162,8 @@ export function BaseSelectFilterOptions<
           onSelect={() => {
             removeFilter(column.id);
           }}
-          className={classNames("w-full justify-center text-center", buttonClasses({ color: "secondary" }))}>
+          className={classNames("w-full justify-center text-center", buttonClasses({ color: "secondary" }))}
+        >
           {t("clear")}
         </CommandItem>
       </CommandGroup>

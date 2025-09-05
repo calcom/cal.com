@@ -1,7 +1,7 @@
 import type { DialogProps as ControlledDialogProps } from "@calcom/features/components/controlled-dialog";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 
 export function AccountDialog(
   props: ControlledDialogProps & {
@@ -13,7 +13,8 @@ export function AccountDialog(
       <DialogContent
         type="creation"
         title="Connecting with MS Teams requires a work/school Microsoft account."
-        description="If you continue with a personal account you will receive an error">
+        description="If you continue with a personal account you will receive an error"
+      >
         <DialogFooter showDivider className="mt-6">
           <>
             <DialogClose
@@ -22,7 +23,8 @@ export function AccountDialog(
               tabIndex={-1}
               onClick={() => {
                 props.onOpenChange?.(false);
-              }}>
+              }}
+            >
               Cancel
             </DialogClose>
 

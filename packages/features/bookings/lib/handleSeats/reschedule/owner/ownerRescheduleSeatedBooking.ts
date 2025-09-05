@@ -3,10 +3,10 @@ import type EventManager from "@calcom/lib/EventManager";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type {
-  NewTimeSlotBooking,
-  SeatedBooking,
-  RescheduleSeatedBookingObject,
   HandleSeatsResultBooking,
+  NewTimeSlotBooking,
+  RescheduleSeatedBookingObject,
+  SeatedBooking,
 } from "../../types";
 import combineTwoSeatedBookings from "./combineTwoSeatedBookings";
 import moveSeatedBookingToNewTimeSlot from "./moveSeatedBookingToNewTimeSlot";

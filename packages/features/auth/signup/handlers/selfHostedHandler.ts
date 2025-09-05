@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
@@ -12,6 +10,7 @@ import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUse
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import { NextResponse } from "next/server";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { prefillAvatar } from "../utils/prefillAvatar";

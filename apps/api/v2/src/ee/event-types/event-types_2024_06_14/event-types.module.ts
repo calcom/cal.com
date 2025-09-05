@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesController_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/controllers/event-types.controller";
@@ -15,7 +16,6 @@ import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-c
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule],

@@ -1,7 +1,6 @@
-import { describe, expect, test } from "vitest";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { describe, expect, test } from "vitest";
 
 import { HttpError } from "../http-error";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";

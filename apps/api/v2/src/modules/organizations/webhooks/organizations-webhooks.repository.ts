@@ -1,9 +1,8 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { Webhook } from "@calcom/prisma/client";
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
-
-import { Webhook } from "@calcom/prisma/client";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 type WebhookInputData = Pick<
   Webhook,
@@ -11,7 +10,10 @@ type WebhookInputData = Pick<
 >;
 @Injectable()
 export class OrganizationsWebhooksRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async findWebhookByUrl(organizationId: number, subscriberUrl: string) {
     return this.dbRead.prisma.webhook.findFirst({

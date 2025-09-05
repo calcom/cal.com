@@ -1,14 +1,12 @@
-import type { TFunction } from "i18next";
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { InputField } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { InputField, SettingsToggle } from "@calcom/ui/components/form";
+import type { TFunction } from "i18next";
+import { useState } from "react";
 
 export type EmailNotificationToggleCustomClassNames = SettingsToggleClassNames & {
   confirmationDialog?: {
@@ -52,16 +50,19 @@ export const DisableAllEmailsSetting = ({
         <DialogContent
           title={title}
           Icon="circle-alert"
-          className={customClassNames?.confirmationDialog?.container}>
+          className={customClassNames?.confirmationDialog?.container}
+        >
           <p
-            className={classNames("text-default text-sm", customClassNames?.confirmationDialog?.description)}>
+            className={classNames("text-default text-sm", customClassNames?.confirmationDialog?.description)}
+          >
             <ServerTrans t={t} i18nKey="disable_attendees_emails_description" values={{ recipient }} />
           </p>
           <p
             className={classNames(
               "text-default mb-1 mt-2 text-sm",
               customClassNames?.confirmationDialog?.confirmInput?.label
-            )}>
+            )}
+          >
             {t("type_confirm_to_continue")}
           </p>
           <InputField
@@ -78,7 +79,8 @@ export const DisableAllEmailsSetting = ({
                 onCheckedChange(true);
                 setDialogOpen(false);
               }}
-              className={customClassNames?.confirmationDialog?.dialogFooter?.confirmButton}>
+              className={customClassNames?.confirmationDialog?.dialogFooter?.confirmButton}
+            >
               {t("disable_email")}
             </Button>
           </DialogFooter>

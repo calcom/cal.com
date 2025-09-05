@@ -1,13 +1,13 @@
 import {
-  CalendarEventStatus,
   CalendarEventResponseStatus,
+  CalendarEventStatus,
 } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 
 import {
   createGoogleCalendarEventFixture,
   googleEventWithConferenceData,
-  googleEventWithLocationOnly,
   googleEventWithHangoutLink,
+  googleEventWithLocationOnly,
 } from "./__fixtures__/google-calendar-event.fixture";
 import {
   GoogleCalendarEventOutputPipe,

@@ -56,7 +56,8 @@ export const EmptyState = ({
         data-testid={buttonDataTestId}
         StartIcon={buttonStartIcon}
         onClick={buttonOnClick}
-        className={buttonClassName}>
+        className={buttonClassName}
+      >
         {buttonText}
       </Button>
     </div>

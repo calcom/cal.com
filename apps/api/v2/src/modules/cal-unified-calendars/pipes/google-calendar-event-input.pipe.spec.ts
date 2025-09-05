@@ -1,8 +1,11 @@
 import {
-  UpdateUnifiedCalendarEventInput,
   UpdateDateTimeWithZone,
+  UpdateUnifiedCalendarEventInput,
 } from "../inputs/update-unified-calendar-event.input";
-import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event.output";
+import {
+  CalendarEventResponseStatus,
+  CalendarEventStatus,
+} from "../outputs/get-unified-calendar-event.output";
 import { GoogleCalendarEventResponse } from "./get-calendar-event-details-output-pipe";
 import { GoogleCalendarEventInputPipe } from "./google-calendar-event-input-pipe";
 

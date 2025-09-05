@@ -1,14 +1,16 @@
-import type { Prisma } from "@prisma/client";
-// eslint-disable-next-line no-restricted-imports
-import type { DeepMockProxy } from "vitest-mock-extended";
-
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { _EventTypeModel } from "@calcom/prisma/zod";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
+import {
+  allManagedEventTypeProps,
+  eventTypeMetaDataSchemaWithTypedApps,
+  unlockedManagedEventTypeProps,
+} from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import type { DeepMockProxy } from "vitest-mock-extended";
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
@@ -217,8 +219,8 @@ export default async function handleChildrenEventTypes({
             key === "afterBufferTime"
               ? "afterEventBuffer"
               : key === "beforeBufferTime"
-              ? "beforeEventBuffer"
-              : key;
+                ? "beforeEventBuffer"
+                : key;
           // @ts-expect-error Element implicitly has any type
           acc[filteredKey] = true;
           return acc;

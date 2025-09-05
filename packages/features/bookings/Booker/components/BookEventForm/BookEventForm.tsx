@@ -1,8 +1,3 @@
-import type { TFunction } from "i18next";
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import type { FieldError } from "react-hook-form";
-
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -16,6 +11,10 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
+import type { TFunction } from "i18next";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import type { FieldError } from "react-hook-form";
 
 import { formatEventFromTime } from "../../utils/dates";
 import { useBookerTime } from "../hooks/useBookerTime";
@@ -122,7 +121,8 @@ export const BookEventForm = ({
         }}
         form={bookingForm}
         handleSubmit={onSubmit}
-        noValidate>
+        noValidate
+      >
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}
@@ -162,7 +162,8 @@ export const BookEventForm = ({
                       key="please-select-a-new-time-button"
                       type="button"
                       className="underline"
-                      onClick={onCancel}>
+                      onClick={onCancel}
+                    >
                       Please select a new time
                     </button>,
                   ]}
@@ -182,14 +183,16 @@ export const BookEventForm = ({
                   className="text-emphasis hover:underline"
                   key="terms"
                   href={`${WEBSITE_TERMS_URL}`}
-                  target="_blank">
+                  target="_blank"
+                >
                   Terms
                 </Link>,
                 <Link
                   className="text-emphasis hover:underline"
                   key="privacy"
                   href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-                  target="_blank">
+                  target="_blank"
+                >
                   Privacy Policy.
                 </Link>,
               ]}
@@ -204,7 +207,8 @@ export const BookEventForm = ({
               className="text-emphasis hover:underline"
               key="terms"
               href={`${WEBSITE_TERMS_URL}`}
-              target="_blank">
+              target="_blank"
+            >
               {t("terms")}
             </Link>{" "}
             {t("and")}{" "}
@@ -212,7 +216,8 @@ export const BookEventForm = ({
               className="text-emphasis hover:underline"
               key="privacy"
               href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-              target="_blank">
+              target="_blank"
+            >
               {t("privacy_policy")}
             </Link>
             .
@@ -231,7 +236,8 @@ export const BookEventForm = ({
                   type="button"
                   onClick={onCancel}
                   data-testid="back"
-                  className={classNames?.backButton}>
+                  className={classNames?.backButton}
+                >
                   {t("back")}
                 </Button>
               )}
@@ -250,14 +256,15 @@ export const BookEventForm = ({
                 className={classNames?.confirmButton}
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
-                }>
+                }
+              >
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
-                  ? isPaidEvent
-                    ? t("pay_and_book")
-                    : t("confirm")
-                  : t("verify_email_button")}
+                    ? isPaidEvent
+                      ? t("pay_and_book")
+                      : t("confirm")
+                    : t("verify_email_button")}
               </Button>
             </>
           )}

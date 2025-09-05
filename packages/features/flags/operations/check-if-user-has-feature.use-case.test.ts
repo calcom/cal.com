@@ -1,6 +1,5 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
-
 import { expect, it } from "vitest";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { checkIfUserHasFeatureUseCase } from "./check-if-user-has-feature.use-case";
 

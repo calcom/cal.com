@@ -1,7 +1,6 @@
-import type { TFunction } from "i18next";
-
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import type { TFunction } from "i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -19,7 +18,8 @@ export const SlugReplacementEmail = (
     <BaseEmailHtml
       subject={t("email_subject_slug_replacement", { slug: slug })}
       headerType="teamCircle"
-      title={t("event_replaced_notice")}>
+      title={t("event_replaced_notice")}
+    >
       <>
         <p style={{ fontWeight: 400, lineHeight: "24px", display: "inline-block" }}>
           <ServerTrans t={t} i18nKey="hi_user_name" values={{ name }} />
@@ -33,7 +33,8 @@ export const SlugReplacementEmail = (
           role="presentation"
           border={0}
           style={{ verticalAlign: "top", marginTop: "25px" }}
-          width="100%">
+          width="100%"
+        >
           <tbody>
             <tr>
               <td align="center">

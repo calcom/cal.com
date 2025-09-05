@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
@@ -24,13 +22,14 @@ import { prisma } from "@calcom/prisma";
 import {
   BookingStatus,
   MembershipRole,
+  UserPermissionRole,
   WebhookTriggerEvents,
   WorkflowTriggerEvents,
-  UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { Prisma } from "@prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -229,8 +228,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     eventTypeId: booking.eventType?.id,

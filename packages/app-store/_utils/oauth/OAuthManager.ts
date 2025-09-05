@@ -10,11 +10,11 @@
  *
  * For a recommended usage example, see Zoom VideoApiAdapter.ts
  */
-import type { z } from "zod";
 
 import { CREDENTIAL_SYNC_ENDPOINT } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { z } from "zod";
 
 import type { AxiosLikeResponseToFetchResponse } from "./AxiosLikeResponseToFetchResponse";
 import type { OAuth2TokenResponseInDbWhenExistsSchema, OAuth2UniversalSchema } from "./universalSchema";

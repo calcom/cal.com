@@ -1,8 +1,6 @@
-import { useCallback, useState } from "react";
-
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
+import { type EventLocationType, getLocationFromApp } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
@@ -28,6 +26,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
+import { useCallback, useState } from "react";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
@@ -118,7 +117,8 @@ export const AppList = ({
                               },
                             });
                           }
-                        }}>
+                        }}
+                      >
                         {t("set_as_default")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -140,7 +140,8 @@ export const AppList = ({
               </Dropdown>
             </div>
           ) : null
-        }>
+        }
+      >
         <AppSettings slug={item.slug} />
       </AppListCard>
     );
@@ -231,7 +232,8 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, app, teamId)}
           disabled={isGlobal || isDelegationCredential({ credentialId })}
-          StartIcon="trash">
+          StartIcon="trash"
+        >
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   LexicalTypeaheadMenuPlugin,
@@ -11,10 +13,7 @@ import { TextNode } from "lexical";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-
-import { VariableNode, $createVariableNode } from "../nodes/VariableNode";
+import { $createVariableNode, VariableNode } from "../nodes/VariableNode";
 
 function $findAndTransformVariable(node: TextNode): null | TextNode {
   const text = node.getTextContent();
@@ -126,7 +125,8 @@ export default function AddVariablesPlugin({ variables }: AddVariablesPluginProp
                 className={classNames(
                   "shadow-dropdown bg-default border-subtle mt-5 w-64 overflow-hidden rounded-md border",
                   "typeahead-popover" // class required by Lexical
-                )}>
+                )}
+              >
                 <ul className="max-h-64 list-none overflow-y-scroll md:max-h-80">
                   {options.map((option, index) => (
                     <li
@@ -143,7 +143,8 @@ export default function AddVariablesPlugin({ variables }: AddVariablesPluginProp
                       }}
                       onMouseEnter={() => {
                         setHighlightedIndex(index);
-                      }}>
+                      }}
+                    >
                       <p className="text-sm font-semibold">
                         {`{${t(`${option.name}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                       </p>

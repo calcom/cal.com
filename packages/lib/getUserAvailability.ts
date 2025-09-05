@@ -1,14 +1,3 @@
-import type {
-  Booking,
-  Prisma,
-  OutOfOfficeEntry,
-  OutOfOfficeReason,
-  User,
-  EventType as PrismaEventType,
-} from "@prisma/client";
-import * as Sentry from "@sentry/nextjs";
-import { z } from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -35,6 +24,16 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
+import type {
+  Booking,
+  OutOfOfficeEntry,
+  OutOfOfficeReason,
+  Prisma,
+  EventType as PrismaEventType,
+  User,
+} from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
+import { z } from "zod";
 
 import { getBusyTimesService } from "./di/containers/BusyTimes";
 import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "./intervalLimits/utils/getPeriodStartDatesBetween";
@@ -358,8 +357,8 @@ export class UserAvailabilityService {
     const potentialSchedule = eventType?.schedule
       ? eventType.schedule
       : hostSchedule
-      ? hostSchedule
-      : userSchedule;
+        ? hostSchedule
+        : userSchedule;
 
     // if no schedules set by or for a user, use fallbackSchedule
     const schedule = potentialSchedule ?? fallbackSchedule;

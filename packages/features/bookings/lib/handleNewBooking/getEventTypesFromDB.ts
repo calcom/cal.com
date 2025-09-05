@@ -8,8 +8,8 @@ import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
-  EventTypeMetaDataSchema,
   customInputSchema,
+  EventTypeMetaDataSchema,
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 

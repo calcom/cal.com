@@ -1,7 +1,3 @@
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import dayjs from "@calcom/dayjs";
 import { isSupportedTimeZone } from "@calcom/lib/dayjs";
 import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
@@ -9,9 +5,11 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
-
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 // Apply plugins
 dayjs.extend(utc);

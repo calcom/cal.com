@@ -1,9 +1,8 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../../button";
 import { Steps } from "../../form/step";
@@ -83,7 +82,8 @@ export function WizardForm({
           className={classNames(
             "bg-default border-subtle max-w-3xl rounded-2xl border px-4 py-3 sm:p-4 ",
             currentStepData.contentClassname
-          )}>
+          )}
+        >
           {typeof currentStepData.content === "function"
             ? currentStepData.content(setCurrentStepisPending, {
                 onNext: nextStep,
@@ -108,7 +108,8 @@ export function WizardForm({
               color="primary"
               form={`wizard-step-${currentStep}`}
               disabled={currentStepData.isEnabled === false}
-              className="relative ml-2">
+              className="relative ml-2"
+            >
               {isLastStep ? finishLabel : nextLabel}
             </Button>
           </div>

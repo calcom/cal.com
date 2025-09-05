@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../../interfaces/TransactionInterface";
-import type { RetellAIRepository, RetellAgent, RetellLLM, RetellPhoneNumber, RetellCall } from "../types";
+import type { RetellAgent, RetellAIRepository, RetellCall, RetellLLM, RetellPhoneNumber } from "../types";
 
 /**
  * Shared testing utilities and mock factories for service tests
@@ -192,14 +192,20 @@ export const setupRateLimitMocks = () => {
 
 // Test Error Classes
 export class TestError extends Error {
-  constructor(message: string, public code?: string) {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
     super(message);
     this.name = "TestError";
   }
 }
 
 export class TestRetellAPIError extends Error {
-  constructor(message: string, public statusCode: number = 500) {
+  constructor(
+    message: string,
+    public statusCode: number = 500
+  ) {
     super(message);
     this.name = "TestRetellAPIError";
   }

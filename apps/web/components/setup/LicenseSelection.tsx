@@ -1,5 +1,11 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
@@ -7,13 +13,6 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, FormProvider, useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 type LicenseSelectionFormValues = {
   licenseKey: string;
@@ -109,19 +108,22 @@ const LicenseSelection = (
         } else {
           handleSubmit();
         }
-      }}>
+      }}
+    >
       <RadioGroup.Root
         defaultValue={initialValue}
         value={value}
         aria-label={t("choose_a_license")}
         className="grid grid-rows-2 gap-4 md:grid-cols-2 md:grid-rows-1"
-        onValueChange={(value) => handleRadioChange(value as LicenseOption)}>
+        onValueChange={(value) => handleRadioChange(value as LicenseOption)}
+      >
         <RadioGroup.Item value="FREE" className="h-full">
           <div
             className={classNames(
               "bg-default h-full cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
               value === "FREE" && "ring-2 ring-black"
-            )}>
+            )}
+          >
             <h2 className="font-cal text-emphasis text-xl">{t("agplv3_license")}</h2>
             <p className="font-medium text-green-800">{t("free_license_fee")}</p>
             <p className="text-subtle">{t("forever_open_and_free")}</p>
@@ -138,7 +140,8 @@ const LicenseSelection = (
             className={classNames(
               "bg-default h-full cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
               value === "EXISTING" && "ring-2 ring-black"
-            )}>
+            )}
+          >
             <h2 className="font-cal text-emphasis text-xl">{t("enter_license_key")}</h2>
             <p className="font-medium text-green-800">{t("enter_existing_license")}</p>
             <p className="text-subtle">{t("enter_your_license_key")}</p>
@@ -148,7 +151,8 @@ const LicenseSelection = (
                 href="https://go.cal.com/self-hosted"
                 target="_blank"
                 rel="noreferrer noopener"
-                className="text-blue-600 hover:underline">
+                className="text-blue-600 hover:underline"
+              >
                 {t("purchase_license")}
               </Link>
             </p>
@@ -239,7 +243,8 @@ const LicenseSelection = (
             disabled={
               value === "EXISTING" &&
               (!formMethods.formState.isValid || checkLicenseLoading || mutation.isPending)
-            }>
+            }
+          >
             {t("save_license_key")}
           </Button>
         ) : (

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, IsString, ValidateNested, IsArray } from "class-validator";
+import { IsArray, IsBoolean, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 
 class EventTypeModel_2024_04_15 {
   @IsInt()

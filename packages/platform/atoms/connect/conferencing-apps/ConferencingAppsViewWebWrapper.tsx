@@ -1,17 +1,16 @@
 "use client";
 
-import { useReducer } from "react";
-
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { useReducer } from "react";
 
 export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
@@ -30,7 +29,8 @@ export const SkeletonLoader = () => {
       title={t("conferencing")}
       description={t("conferencing_description")}
       CTA={<AddConferencingButton />}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <SkeletonContainer>
         <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
           <SkeletonText className="h-8 w-full" />
@@ -119,7 +119,8 @@ export const InstalledConferencingApps = ({
           <Button
             color="secondary"
             data-testid="connect-conferencing-apps"
-            href="/apps/categories/conferencing">
+            href="/apps/categories/conferencing"
+          >
             {t("connect_conference_apps")}
           </Button>
         }
@@ -226,7 +227,8 @@ export const ConferencingAppsViewWebWrapper = ({
       title={t("conferencing")}
       description={t("conferencing_description")}
       CTA={<AddConferencingButton />}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <>
         <div className="bg-default w-full sm:mx-0 xl:mt-0">
           <InstalledConferencingApps

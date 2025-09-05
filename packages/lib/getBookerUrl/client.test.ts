@@ -1,4 +1,4 @@
-import { describe, it, vi, expect } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getTeamUrlSync } from "./client";
 import * as getBookerBaseUrlSyncExport from "./getBookerBaseUrlSync";

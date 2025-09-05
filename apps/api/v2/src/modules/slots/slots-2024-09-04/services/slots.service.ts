@@ -1,16 +1,10 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { AvailableSlotsService } from "@/lib/services/available-slots.service";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { MembershipsService } from "@/modules/memberships/services/memberships.service";
-import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
+import { SlotFormat } from "@calcom/platform-enums";
 import {
-  SlotsInputService_2024_09_04,
-  InternalGetSlotsQuery,
-  InternalGetSlotsQueryWithRouting,
-} from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
-import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
-import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
+  GetSlotsInput_2024_09_04,
+  GetSlotsInputWithRouting_2024_09_04,
+  ReserveSlotInput_2024_09_04,
+} from "@calcom/platform-types";
+import { EventType } from "@calcom/prisma/client";
 import {
   BadRequestException,
   ForbiddenException,
@@ -21,14 +15,19 @@ import {
 } from "@nestjs/common";
 import { DateTime } from "luxon";
 import { z } from "zod";
-
-import { SlotFormat } from "@calcom/platform-enums";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { MembershipsService } from "@/modules/memberships/services/memberships.service";
+import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import {
-  GetSlotsInput_2024_09_04,
-  GetSlotsInputWithRouting_2024_09_04,
-  ReserveSlotInput_2024_09_04,
-} from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+  InternalGetSlotsQuery,
+  InternalGetSlotsQueryWithRouting,
+  SlotsInputService_2024_09_04,
+} from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
+import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
+import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 
 const eventTypeMetadataSchema = z
   .object({

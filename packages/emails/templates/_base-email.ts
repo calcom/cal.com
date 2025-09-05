@@ -1,6 +1,3 @@
-import { decodeHTML } from "entities";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -8,6 +5,8 @@ import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import { setTestEmail } from "@calcom/lib/testEmails";
 import { prisma } from "@calcom/prisma";
+import { decodeHTML } from "entities";
+import { z } from "zod";
 
 import { sanitizeDisplayName } from "../lib/sanitizeDisplayName";
 

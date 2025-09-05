@@ -1,16 +1,7 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import classNames from "classnames";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-
-import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -23,15 +14,20 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmailField, PasswordField } from "@calcom/ui/components/form";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
+import classNames from "classnames";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface LoginValues {
   email: string;
@@ -117,7 +113,8 @@ export default function Login({
           setErrorMessage(null);
         }}
         StartIcon="arrow-left"
-        color="minimal">
+        color="minimal"
+      >
         {t("go_back")}
       </Button>
       {!twoFactorLostAccess ? (
@@ -128,7 +125,8 @@ export default function Login({
             methods.setValue("totpCode", "");
           }}
           StartIcon="lock"
-          color="minimal">
+          color="minimal"
+        >
           {t("lost_access")}
         </Button>
       ) : null}
@@ -140,7 +138,8 @@ export default function Login({
       onClick={() => {
         window.location.replace("/");
       }}
-      color="minimal">
+      color="minimal"
+    >
       {t("cancel")}
     </Button>
   );
@@ -191,9 +190,10 @@ export default function Login({
               ? TwoFactorFooter
               : ExternalTotpFooter
             : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
-            ? LoginFooter
-            : null
-        }>
+              ? LoginFooter
+              : null
+        }
+      >
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
@@ -211,7 +211,8 @@ export default function Login({
                       await signIn("google", {
                         callbackUrl,
                       });
-                    }}>
+                    }}
+                  >
                     <span>{t("signin_with_google")}</span>
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
@@ -266,7 +267,8 @@ export default function Login({
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
-                      className="text-default text-sm font-medium">
+                      className="text-default text-sm font-medium"
+                    >
                       {t("forgot")}
                     </Link>
                   </div>
@@ -280,7 +282,8 @@ export default function Login({
                 type="submit"
                 color="secondary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center">
+                className="w-full justify-center"
+              >
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
                 {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-gray-600" />}
               </Button>

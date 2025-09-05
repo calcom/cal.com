@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useId } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -10,10 +7,12 @@ import { Badge } from "@calcom/ui/components/badge";
 import {
   HoverCard,
   HoverCardContent,
-  HoverCardTrigger,
   HoverCardPortal,
+  HoverCardTrigger,
 } from "@calcom/ui/components/hover-card";
 import { Icon } from "@calcom/ui/components/icon";
+import Link from "next/link";
+import { useId } from "react";
 
 import type { RoutingFormTableRow } from "../lib/types";
 import { BookingStatusBadge } from "./BookingStatusBadge";
@@ -51,7 +50,8 @@ export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId:
                       e.preventDefault();
                       e.stopPropagation();
                       copyToClipboard(row.bookingUserEmail ?? "");
-                    }}>
+                    }}
+                  >
                     <Icon name="copy" />
                   </button>
                 </p>

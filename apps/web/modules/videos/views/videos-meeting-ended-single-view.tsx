@@ -4,8 +4,8 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
@@ -26,7 +26,8 @@ export default function MeetingUnavailable(props: PageProps) {
                 className="bg-default inline-block transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="modal-headline">
+                aria-labelledby="modal-headline"
+              >
                 <div>
                   <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                     <Icon name="x" className="h-6 w-6 text-red-600" />

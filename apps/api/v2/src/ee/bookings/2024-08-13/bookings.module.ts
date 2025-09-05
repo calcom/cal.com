@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
@@ -6,8 +7,8 @@ import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bo
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
-import { OutputBookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output-booking-references.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { OutputBookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output-booking-references.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
@@ -37,7 +38,6 @@ import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [

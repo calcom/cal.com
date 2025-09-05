@@ -7,13 +7,13 @@ import { vi } from "vitest";
 
 import { FormBuilder } from "./FormBuilder";
 import {
-  mockProps,
-  verifier,
-  setMockIntersectionObserver,
-  setMockMatchMedia,
-  pageObject,
   expectScenario,
   getLocationBookingField,
+  mockProps,
+  pageObject,
+  setMockIntersectionObserver,
+  setMockMatchMedia,
+  verifier,
 } from "./testUtils";
 
 vi.mock("@formkit/auto-animate/react", () => ({

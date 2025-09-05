@@ -1,3 +1,6 @@
+import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { DateTime } from "luxon";
 import { TokenExpiredException } from "@/modules/auth/guards/api-auth/token-expired.exception";
 import {
   KeysDto,
@@ -6,10 +9,6 @@ import {
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import { DateTime } from "luxon";
-
-import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
 
 @Injectable()
 export class OAuthFlowService {

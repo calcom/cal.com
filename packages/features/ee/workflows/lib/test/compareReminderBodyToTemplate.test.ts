@@ -1,10 +1,9 @@
-import { createInstance } from "i18next";
-import { vi, expect, test, describe } from "vitest";
-
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import en from "@calcom/web/public/static/locales/en/common.json";
+import { createInstance } from "i18next";
+import { describe, expect, test, vi } from "vitest";
 
 import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";

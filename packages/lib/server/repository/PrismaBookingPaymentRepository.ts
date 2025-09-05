@@ -2,9 +2,9 @@ import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
 import type {
-  IBookingPaymentRepository,
   BookingPaymentWithCredentials,
   CreatePaymentData,
+  IBookingPaymentRepository,
 } from "./BookingPaymentRepository.interface";
 
 export class PrismaBookingPaymentRepository implements IBookingPaymentRepository {

@@ -1,6 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import prisma from "@calcom/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import type { PaymentResponse } from "~/lib/types";

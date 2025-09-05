@@ -1,10 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
-import type { SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-import { ZodError } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -13,24 +6,29 @@ import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { ToggleGroup } from "@calcom/ui/components/form";
 import {
-  Switch,
   CheckboxField,
-  SelectField,
   Form,
   Input,
   InputField,
   Label,
+  SelectField,
+  Switch,
+  ToggleGroup,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { fieldTypesConfigMap } from "./fieldTypes";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useState } from "react";
+import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import type { z } from "zod";
+import { ZodError } from "zod";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
+import { fieldTypesConfigMap } from "./fieldTypes";
+import { excludeOrRequireEmailSchema, type fieldsSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -248,28 +246,33 @@ export const FormBuilder = function FormBuilder({
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
             }
-            const groupedBySourceLabel = sources.reduce((groupBy, source) => {
-              const item = groupBy[source.label] || [];
-              if (source.type === "user" || source.type === "default") {
+            const groupedBySourceLabel = sources.reduce(
+              (groupBy, source) => {
+                const item = groupBy[source.label] || [];
+                if (source.type === "user" || source.type === "default") {
+                  return groupBy;
+                }
+                item.push(source);
+                groupBy[source.label] = item;
                 return groupBy;
-              }
-              item.push(source);
-              groupBy[source.label] = item;
-              return groupBy;
-            }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
+              },
+              {} as Record<string, NonNullable<(typeof field)["sources"]>>
+            );
 
             return (
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center justify-between p-4 transition">
+                className="hover:bg-muted group relative flex items-center justify-between p-4 transition"
+              >
                 {!disabled && (
                   <>
                     {index >= 1 && (
                       <button
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                        onClick={() => swap(index, index - 1)}>
+                        onClick={() => swap(index, index - 1)}
+                      >
                         <Icon name="arrow-up" className="h-5 w-5" />
                       </button>
                     )}
@@ -277,7 +280,8 @@ export const FormBuilder = function FormBuilder({
                       <button
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                        onClick={() => swap(index, index + 1)}>
+                        onClick={() => swap(index, index + 1)}
+                      >
                         <Icon name="arrow-down" className="h-5 w-5" />
                       </button>
                     )}
@@ -339,7 +343,8 @@ export const FormBuilder = function FormBuilder({
                       color="secondary"
                       onClick={() => {
                         editField(index, field);
-                      }}>
+                      }}
+                    >
                       {t("edit")}
                     </Button>
                   </div>
@@ -354,7 +359,8 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon="plus">
+            StartIcon="plus"
+          >
             {addFieldLabel}
           </Button>
         )}
@@ -486,7 +492,8 @@ function Options({
               value.push({ label: "", value: "" });
               onChange(value);
             }}
-            StartIcon="plus">
+            StartIcon="plus"
+          >
             Add an Option
           </Button>
         )}
@@ -908,7 +915,8 @@ function VariantFields({
       <ul
         className={classNames(
           !isSimpleVariant ? "border-subtle divide-subtle mt-2 divide-y rounded-md border" : ""
-        )}>
+        )}
+      >
         {variantFields.map((f, index) => {
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =

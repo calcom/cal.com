@@ -1,7 +1,7 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
-  ZStripeCheckoutSessionInputSchema,
   type TStripeCheckoutSessionInputSchema,
+  ZStripeCheckoutSessionInputSchema,
 } from "@calcom/trpc/server/routers/publicViewer/stripeCheckoutSession.schema";
 
 export class StripeService {

@@ -1,7 +1,7 @@
-export { useShouldShowArrows, AllApps } from "./AllApps";
+export { AllApps, useShouldShowArrows } from "./AllApps";
 export { AppCard } from "./AppCard";
-export { Slider } from "./Slider";
-export { SkeletonLoader } from "./SkeletonLoader";
+export { AppStoreCategories } from "./Categories";
 export { PopularAppsSlider } from "./PopularAppsSlider";
 export { RecentAppsSlider } from "./RecentAppsSlider";
-export { AppStoreCategories } from "./Categories";
+export { SkeletonLoader } from "./SkeletonLoader";
+export { Slider } from "./Slider";

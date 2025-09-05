@@ -1,8 +1,7 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import LocationSelect from "@calcom/features/form/components/LocationSelect";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { vi } from "vitest";
-
-import LocationSelect from "@calcom/features/form/components/LocationSelect";
 
 import { QueryCell } from "../../../lib/QueryCell";
 import { EditLocationDialog } from "../EditLocationDialog";
@@ -169,7 +168,8 @@ describe("EditLocationDialog", () => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .find((opt: any) => opt.value === e.target.value);
               onChange(selectedOption);
-            }}>
+            }}
+          >
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {options.map((group: any) => (
               <optgroup key={group.value} label={group.label}>

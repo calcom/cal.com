@@ -30,7 +30,8 @@ function Stepper<T extends DefaultStep>(props: {
                   href={props.disableSteps ? "#" : `${href}?step=${index + 1}`}
                   shallow
                   replace
-                  legacyBehavior>
+                  legacyBehavior
+                >
                   {index + 1 < props.step ? (
                     <a className="hover:bg-inverted block h-2.5 w-2.5 rounded-full bg-gray-600">
                       <span className="sr-only">{mapStep.title}</span>

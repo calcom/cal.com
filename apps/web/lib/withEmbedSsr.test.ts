@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
-import type { Redirect } from "next";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse, Redirect } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, it } from "vitest";
 

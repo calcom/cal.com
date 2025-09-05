@@ -4,16 +4,16 @@ import { Badge } from "../badge/Badge";
 import { Button } from "../button/Button";
 import {
   Command,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
+  CommandList,
   CommandSeparator,
 } from "../command/Command";
 import type { IconName } from "../icon/Icon";
 import { Icon } from "../icon/Icon";
-import { Popover, PopoverTrigger, PopoverContent } from "../popover/Popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover/Popover";
 
 export interface FilterOption {
   value: string | number;
@@ -72,12 +72,14 @@ export function FilterSelect({
                     onSelect={() => {
                       onChange(isSelected ? null : option.value);
                     }}
-                    data-testId={`${testId}-group-option-${index}`}>
+                    data-testId={`${testId}-group-option-${index}`}
+                  >
                     <div
                       className={classNames(
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
-                      )}>
+                      )}
+                    >
                       <Icon name="check" className="h-4 w-4" />
                     </div>
                     {option.icon}

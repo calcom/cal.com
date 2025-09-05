@@ -1,13 +1,13 @@
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { Permission, PermissionPattern, PermissionValidationResult } from "../domain/models/Permission";
 import type {
-  PermissionString,
-  Resource,
   CrudAction,
   CustomAction,
   PermissionDetails,
+  PermissionString,
+  Resource,
 } from "../domain/types/permission-registry";
-import { PERMISSION_REGISTRY, filterResourceConfig } from "../domain/types/permission-registry";
+import { filterResourceConfig, PERMISSION_REGISTRY } from "../domain/types/permission-registry";
 
 // Helper function to check if an object is PermissionDetails
 const isPermissionDetails = (obj: any): obj is PermissionDetails => {

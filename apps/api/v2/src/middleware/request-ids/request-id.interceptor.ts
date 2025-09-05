@@ -1,7 +1,7 @@
-import { extractUserContext } from "@/lib/extract-user-context";
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Logger } from "@nestjs/common";
+import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
 import { Request, Response } from "express";
 import { tap } from "rxjs/operators";
+import { extractUserContext } from "@/lib/extract-user-context";
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {

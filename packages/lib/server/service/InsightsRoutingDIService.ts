@@ -2,8 +2,8 @@ import type { readonlyPrisma } from "@calcom/prisma";
 
 import {
   InsightsRoutingBaseService,
-  type InsightsRoutingServicePublicOptions,
   type InsightsRoutingServiceFilterOptions,
+  type InsightsRoutingServicePublicOptions,
 } from "./InsightsRoutingBaseService";
 
 export interface IInsightsRoutingService {

@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect, useRef, useMemo } from "react";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -10,8 +7,7 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { buttonClasses } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import {
@@ -24,6 +20,8 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   useTeamMembersWithSegment,
@@ -89,7 +87,8 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
         ) : (
           <button
             className="text-emphasis hover:bg-subtle decoration-emphasis flex h-7 items-center rounded-sm px-2 text-sm underline underline-offset-4"
-            onClick={() => setIsEditing(true)}>
+            onClick={() => setIsEditing(true)}
+          >
             {member.weight ?? 100}%
           </button>
         )}
@@ -255,7 +254,8 @@ export const EditWeightsForAllTeamMembers = ({
         className="-ml-2 -mt-2 mb-2 w-fit"
         onClick={() => {
           setIsOpen(true);
-        }}>
+        }}
+      >
         {t("edit_team_member_weights")}
       </Button>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -272,7 +272,8 @@ export const EditWeightsForAllTeamMembers = ({
                       key="weights_description"
                       className="underline underline-offset-2"
                       target="_blank"
-                      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
+                      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights"
+                    >
                       Learn more
                     </Link>,
                   ]}
@@ -313,7 +314,8 @@ export const EditWeightsForAllTeamMembers = ({
                 <div className="mt-4">
                   <button
                     className="flex w-full items-center justify-between rounded-md border bg-red-50 p-3 text-sm text-red-900"
-                    onClick={() => setIsErrorsExpanded(!isErrorsExpanded)}>
+                    onClick={() => setIsErrorsExpanded(!isErrorsExpanded)}
+                  >
                     <div className="flex items-center space-x-2">
                       <Icon name="info" className="h-4 w-4" />
                       <span>{t("csv_upload_errors", { count: uploadErrors.length })}</span>
@@ -325,7 +327,8 @@ export const EditWeightsForAllTeamMembers = ({
                       {uploadErrors.map((error, index) => (
                         <div
                           key={index}
-                          className="rounded-md border border-red-100 bg-red-50 p-3 text-sm text-red-900">
+                          className="rounded-md border border-red-100 bg-red-50 p-3 text-sm text-red-900"
+                        >
                           <strong>{error.email}:</strong> {error.error}
                         </div>
                       ))}
@@ -343,7 +346,8 @@ export const EditWeightsForAllTeamMembers = ({
                     // Restore to default weights from the original value
                     setLocalWeights(localWeightsInitialValues);
                     setSearchQuery("");
-                  }}>
+                  }}
+                >
                   {t("cancel")}
                 </Button>
               </SheetClose>

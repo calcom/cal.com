@@ -1,6 +1,5 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { createModule } from "@evyweb/ioctopus";
 
 import { prisma, readonlyPrisma } from "./index";
 

@@ -1,6 +1,5 @@
-import type { TFunction } from "i18next";
-
 import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import type { TFunction } from "i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -38,7 +37,8 @@ export const ForgotPasswordEmail = (
               href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
               style={{ color: "#3E3E3E" }}
               target="_blank"
-              rel="noreferrer">
+              rel="noreferrer"
+            >
               <>{props.language("contact_our_support_team")}</>
             </a>
           </>

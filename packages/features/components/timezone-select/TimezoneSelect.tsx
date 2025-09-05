@@ -1,15 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
-import BaseSelect from "react-timezone-select";
-
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
+import { addTimezonesToDropdown, filterBySearchText, handleOptionLabel } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
+import { useMemo, useState } from "react";
+import type { ITimezone, ITimezoneOption, Props as SelectProps } from "react-timezone-select";
+import BaseSelect from "react-timezone-select";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
@@ -175,8 +174,8 @@ export function TimezoneSelectComponent({
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2"
-              : "h-9 py-0 px-3",
+                ? "h-7 px-2"
+                : "h-9 py-0 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             timezoneClassNames?.control && timezoneClassNames.control(state)

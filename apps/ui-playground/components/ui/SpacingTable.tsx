@@ -22,7 +22,8 @@ export const SpacingTable: React.FC<SpacingTableProps> = ({ tokens }) => {
           {tokens.map((token, index) => (
             <div
               key={index}
-              className="border-subtle bg-default group relative overflow-hidden rounded-lg border">
+              className="border-subtle bg-default group relative overflow-hidden rounded-lg border"
+            >
               <div className="flex items-center gap-4 p-4">
                 <div className="w-[100px] space-y-1">
                   <p className="text-emphasis text-sm font-medium">

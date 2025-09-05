@@ -1,3 +1,15 @@
+import { APPLE_CALENDAR_ID, APPLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { Credential, PlatformOAuthClient, Team, User } from "@prisma/client";
+import * as request from "supertest";
+import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
@@ -7,20 +19,6 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { SelectedCalendarOutputResponseDto } from "@/modules/selected-calendars/outputs/selected-calendars.output";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
-import * as request from "supertest";
-import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
-
-import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

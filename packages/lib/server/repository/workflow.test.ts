@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { WorkflowRepository } from "./workflow";
 

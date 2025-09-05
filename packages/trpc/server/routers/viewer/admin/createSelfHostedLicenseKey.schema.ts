@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { emailSchema } from "@calcom/lib/emailSchema";
+import { z } from "zod";
 
 const BillingType = z.enum(["PER_BOOKING", "PER_USER"]);
 const BillingPeriod = z.enum(["MONTHLY", "ANNUALLY"]);

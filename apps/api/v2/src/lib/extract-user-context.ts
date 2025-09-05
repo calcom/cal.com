@@ -1,6 +1,5 @@
-import { Request } from "express";
-
 import { Team } from "@calcom/prisma/client";
+import { Request } from "express";
 
 import { ApiAuthGuardUser } from "../modules/auth/strategies/api-auth/api-auth.strategy";
 

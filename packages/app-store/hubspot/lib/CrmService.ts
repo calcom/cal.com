@@ -1,11 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as hubspot from "@hubspot/api-client";
-import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
-import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
-import type {
-  SimplePublicObject,
-  SimplePublicObjectInput,
-} from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -15,7 +8,14 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
+import type { Contact, ContactCreateInput, CRM, CrmEvent } from "@calcom/types/CrmService";
+import * as hubspot from "@hubspot/api-client";
+import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
+import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
+import type {
+  SimplePublicObject,
+  SimplePublicObjectInput,
+} from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";

@@ -1,8 +1,7 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { WorkflowMethods } from "@calcom/prisma/enums";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import * as twilioProvider from "./providers/twilioProvider";

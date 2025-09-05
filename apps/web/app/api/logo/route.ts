@@ -1,9 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { cookies, headers } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   ANDROID_CHROME_ICON_192,
@@ -18,8 +12,12 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[api/logo]"] });
 

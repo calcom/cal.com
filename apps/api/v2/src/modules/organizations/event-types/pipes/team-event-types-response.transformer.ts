@@ -1,9 +1,10 @@
-import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/output.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
+import { TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import { Injectable, PipeTransform } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
-
-import { TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import {
+  DatabaseTeamEventType,
+  OutputOrganizationsEventTypesService,
+} from "@/modules/organizations/event-types/services/output.service";
 
 @Injectable()
 export class OutputTeamEventTypesResponsePipe implements PipeTransform {

@@ -1,15 +1,13 @@
 "use client";
 
-import classNames from "classnames";
-import type { FormEvent } from "react";
-import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
 import type { InputFieldProps } from "@calcom/ui/components/form";
+import { Input, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+import classNames from "classnames";
+import type { FormEvent } from "react";
+import React, { forwardRef, useCallback, useEffect, useId, useState } from "react";
 
 type AddonProps = {
   children: React.ReactNode;
@@ -23,12 +21,14 @@ const Addon = ({ children, className, error }: AddonProps) => (
     className={classNames(
       "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3 transition disabled:hover:cursor-not-allowed",
       className
-    )}>
+    )}
+  >
     <div
       className={classNames(
         "min-h-9 flex flex-col justify-center text-sm leading-7",
         error ? "text-error" : "text-default"
-      )}>
+      )}
+    >
       <span
         className="flex max-w-2xl overflow-y-auto whitespace-nowrap"
         style={{
@@ -36,7 +36,8 @@ const Addon = ({ children, className, error }: AddonProps) => (
           scrollbarWidth: "none",
           overflow: "-ms-scroll-chaining",
           msOverflowStyle: "-ms-autohiding-scrollbar",
-        }}>
+        }}
+      >
         {children}
       </span>
     </div>
@@ -117,7 +118,8 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
           htmlFor={id}
           loadingClassName="w-16"
           {...labelProps}
-          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
+          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}
+        >
           {label}
           {showAsteriskIndicator && !readOnly && passThrough.required ? (
             <span className="text-default ml-1 font-medium">*</span>
@@ -128,7 +130,8 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
 
       <div
         dir="ltr"
-        className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2">
+        className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2"
+      >
         {addOnLeading && (
           <Addon className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
             {addOnLeading}
@@ -170,7 +173,8 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
             className="text-emphasis h-9"
             tabIndex={-1}
             type="button"
-            onClick={() => toggleIsPasswordVisible()}>
+            onClick={() => toggleIsPasswordVisible()}
+          >
             {isPasswordVisible ? (
               <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
             ) : (

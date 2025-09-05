@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsOptional, IsArray, ArrayMinSize, IsString, IsNumber } from "class-validator";
+import { ArrayMinSize, IsArray, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class GetAssignedAttributeOptions {
   @ApiPropertyOptional({ type: Number, description: "Number of responses to skip" })

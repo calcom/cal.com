@@ -1,3 +1,5 @@
+import { BullModule } from "@nestjs/bull";
+import { Module } from "@nestjs/common";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BillingProcessor } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
@@ -11,8 +13,6 @@ import { OrganizationsModule } from "@/modules/organizations/organizations.modul
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { BullModule } from "@nestjs/bull";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [

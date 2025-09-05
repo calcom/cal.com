@@ -1,8 +1,7 @@
-import type { Table } from "@tanstack/react-table";
-import { useCallback } from "react";
-
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
 import { trpc } from "@calcom/trpc/react";
+import type { Table } from "@tanstack/react-table";
+import { useCallback } from "react";
 
 import { useEventTypes } from "./useEventTypes";
 

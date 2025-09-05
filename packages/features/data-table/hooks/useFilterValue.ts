@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import type { z } from "zod";
 
-import type { FilterValueSchema, ColumnFilterType, ZFilterValue } from "../lib/types";
+import type { ColumnFilterType, FilterValueSchema, ZFilterValue } from "../lib/types";
 import { useDataTable } from "./useDataTable";
 
 export function useFilterValue<
   T extends ColumnFilterType,
-  TSchema extends FilterValueSchema<T> | typeof ZFilterValue
+  TSchema extends FilterValueSchema<T> | typeof ZFilterValue,
 >(columnId: string, schema: TSchema) {
   const { activeFilters } = useDataTable();
   return useMemo(() => {

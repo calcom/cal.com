@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { Fragment } from "react";
-
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
@@ -18,6 +15,8 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import Link from "next/link";
+import { Fragment } from "react";
 
 export function ScheduleListItem({
   schedule,
@@ -47,7 +46,8 @@ export function ScheduleListItem({
           <Link
             href={`/availability/${schedule.id}`}
             className="flex-grow truncate text-sm"
-            title={schedule.name}>
+            title={schedule.name}
+          >
             <div className="space-x-2 rtl:space-x-reverse">
               <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
@@ -103,7 +103,8 @@ export function ScheduleListItem({
                       scheduleId: schedule.id,
                       isDefault: true,
                     });
-                  }}>
+                  }}
+                >
                   {t("set_as_default")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -117,7 +118,8 @@ export function ScheduleListItem({
                   duplicateFunction({
                     scheduleId: schedule.id,
                   });
-                }}>
+                }}
+              >
                 {t("duplicate")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -136,7 +138,8 @@ export function ScheduleListItem({
                       scheduleId: schedule.id,
                     });
                   }
-                }}>
+                }}
+              >
                 {t("delete")}
               </DropdownItem>
             </DropdownMenuItem>

@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -10,6 +8,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import { z } from "zod";
 
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";

@@ -1,7 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
-  "files": { "ignoreUnknown": false },
+  "files": { "ignoreUnknown": true },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
@@ -44,14 +44,9 @@
       "correctness": {
         "noEmptyPattern": "off",
         "noUnusedImports": "error",
-        "noUnusedVariables": {
-          "level": "warn",
-          "options": {
-            "ignoreRestSiblings": true
-          }
-        }
+        "noUnusedVariables": "off"
       },
-      "security": { "noDangerouslySetInnerHtml": "warn" },
+      "security": { "noDangerouslySetInnerHtml": "off" },
       "style": {
         "noRestrictedImports": "error",
         "useBlockStatements": "off",
@@ -59,7 +54,7 @@
       }
     },
     "includes": [
-      "**",
+      "**/*.{js,jsx,ts,tsx,json}",
       "!**/node_modules/**",
       "!**/dist/**",
       "!**/build/**",
@@ -67,14 +62,19 @@
       "!**/.turbo/**",
       "!**/.next/**",
       "!**/public/**",
-      "!apps/api/v2/dist",
-      "!packages/platform/**/dist/*",
-      "!packages/prisma/zod",
-      "!apps/web/public/embed",
+      "!**/.yarn/**",
+      "!apps/api/v2/dist/**",
+      "!packages/platform/**/dist/**",
+      "!packages/prisma/zod/**",
+      "!apps/web/public/embed/**",
       "!packages/ui/components/icon/dynamicIconImports.tsx",
-      "!apps/ui-playground/**/*",
+      "!apps/ui-playground/**",
       "!**/*.min.css",
-      "!**/*.min.js"
+      "!**/*.min.js",
+      "!**/*.generated.js",
+      "!**/chunks/**",
+      "!packages/platform/atoms/globals.min.css",
+      "!**/storybook-static/**"
     ]
   },
   "javascript": {

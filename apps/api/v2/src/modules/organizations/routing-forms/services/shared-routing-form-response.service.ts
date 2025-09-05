@@ -1,19 +1,18 @@
+import { getRoutedUrl } from "@calcom/platform-libraries";
+import { ById_2024_09_04_type } from "@calcom/platform-types";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
+import { Request } from "express";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { CreateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/create-routing-form-response.input";
 import { CreateRoutingFormResponseOutputData } from "@/modules/organizations/routing-forms/outputs/create-routing-form-response.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import {
-  Injectable,
-  BadRequestException,
-  InternalServerErrorException,
-  NotFoundException,
-} from "@nestjs/common";
-import { Request } from "express";
-
-import { getRoutedUrl } from "@calcom/platform-libraries";
-import { ById_2024_09_04_type } from "@calcom/platform-types";
 
 @Injectable()
 export class SharedRoutingFormResponseService {

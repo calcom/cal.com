@@ -1,49 +1,46 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import {
-  createBookingScenario,
-  getDate,
-  getGoogleCalendarCredential,
-  getGoogleMeetCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
-  mockCalendarToCrashOnUpdateEvent,
-  BookingLocations,
-  getMockBookingReference,
-  getMockBookingAttendee,
-  getMockFailingAppStatus,
-  getMockPassingAppStatus,
-  getDefaultBookingFields,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import {
-  expectWorkflowToBeTriggered,
-  expectBookingToBeInDatabase,
-  expectBookingRescheduledWebhookToHaveBeenFired,
-  expectSuccessfulBookingRescheduledEmails,
-  expectSuccessfulCalendarEventUpdationInCalendar,
-  expectSuccessfulVideoMeetingUpdationInCalendar,
-  expectBookingInDBToBeRescheduledFromTo,
-  expectBookingRequestedEmails,
-  expectBookingRequestedWebhookToHaveBeenFired,
-  expectSuccessfulCalendarEventDeletionInCalendar,
-  expectSuccessfulVideoMeetingDeletionInCalendar,
-  expectSuccessfulRoundRobinReschedulingEmails,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, expect, beforeEach } from "vitest";
-
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+import {
+  BookingLocations,
+  createBookingScenario,
+  getBooker,
+  getDate,
+  getDefaultBookingFields,
+  getGoogleCalendarCredential,
+  getGoogleMeetCredential,
+  getMockBookingAttendee,
+  getMockBookingReference,
+  getMockFailingAppStatus,
+  getMockPassingAppStatus,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToCrashOnUpdateEvent,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import {
+  expectBookingInDBToBeRescheduledFromTo,
+  expectBookingRequestedEmails,
+  expectBookingRequestedWebhookToHaveBeenFired,
+  expectBookingRescheduledWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
+  expectSuccessfulBookingRescheduledEmails,
+  expectSuccessfulCalendarEventDeletionInCalendar,
+  expectSuccessfulCalendarEventUpdationInCalendar,
+  expectSuccessfulRoundRobinReschedulingEmails,
+  expectSuccessfulVideoMeetingDeletionInCalendar,
+  expectSuccessfulVideoMeetingUpdationInCalendar,
+  expectWorkflowToBeTriggered,
+} from "@calcom/web/test/utils/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { beforeEach, describe, expect } from "vitest";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;

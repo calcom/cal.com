@@ -42,7 +42,7 @@ const _ensureNoConflictingNonDelegatedConnectedCalendar = <
     integration: { slug: string };
     primary?: { email?: string | null | undefined } | undefined;
     delegationCredentialId?: string | null | undefined;
-  }
+  },
 >({
   connectedCalendars,
   loggedInUser,

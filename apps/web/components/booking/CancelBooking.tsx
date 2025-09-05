@@ -1,7 +1,5 @@
 "use client";
 
-import { useCallback, useState } from "react";
-
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
@@ -10,8 +8,9 @@ import { shouldChargeNoShowCancellationFee } from "@calcom/lib/payment/shouldCha
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
-import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
+import { CheckboxField, Label, Select, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { useCallback, useState } from "react";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -252,7 +251,8 @@ export default function CancelBooking(props: Props) {
               <Button
                 className="ml-auto"
                 color="secondary"
-                onClick={() => props.setIsCancellationMode(false)}>
+                onClick={() => props.setIsCancellationMode(false)}
+              >
                 {t("nevermind")}
               </Button>
               <Button
@@ -304,7 +304,8 @@ export default function CancelBooking(props: Props) {
                     );
                   }
                 }}
-                loading={loading}>
+                loading={loading}
+              >
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>
             </div>

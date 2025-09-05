@@ -1,14 +1,7 @@
-import type { Webhook } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { useFormContext, Controller } from "react-hook-form";
-import { components } from "react-select";
-import type { OptionProps, SingleValueProps } from "react-select";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { EventTypeSetup, FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
+import type { AvailabilityOption, EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
@@ -22,11 +15,14 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, Select, SettingsToggle, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import type { Webhook } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
@@ -143,7 +139,8 @@ export default function InstantEventController({
                       formMethods.setValue("isInstantEvent", true, { shouldDirty: true });
                       setInstantEventState(true);
                     }
-                  }}>
+                  }}
+                >
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                     {instantEventState && (
                       <div className="flex flex-col gap-2">
@@ -219,7 +216,8 @@ export default function InstantEventController({
                               formMethods.setValue("instantMeetingParameters", newParameters, {
                                 shouldDirty: true,
                               });
-                            }}>
+                            }}
+                          >
                             {t("add_parameter")}
                           </Button>
                         </div>
@@ -333,7 +331,8 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
         color="secondary"
         data-testid="new_webhook"
         StartIcon="plus"
-        onClick={() => setCreateModalOpen(true)}>
+        onClick={() => setCreateModalOpen(true)}
+      >
         {t("new_webhook")}
       </Button>
     );
@@ -398,7 +397,8 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
             <DialogContent
               enableOverflow
               title={t("create_webhook")}
-              description={t("create_webhook_team_event_type")}>
+              description={t("create_webhook_team_event_type")}
+            >
               <WebhookForm
                 noRoutingFormTriggers={true}
                 onSubmit={onCreateWebhook}

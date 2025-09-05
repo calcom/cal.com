@@ -1,7 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsInt, IsOptional, Min, Max } from "class-validator";
-
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/platform-constants";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsBoolean, IsInt, IsOptional, Max, Min } from "class-validator";
 
 // Class representing the seat options
 export class Seats_2024_06_14 {

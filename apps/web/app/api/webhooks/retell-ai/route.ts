@@ -1,14 +1,13 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { Retell } from "retell-sdk";
-import { z } from "zod";
-
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import { CreditUsageType } from "@calcom/prisma/enums";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { Retell } from "retell-sdk";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
 

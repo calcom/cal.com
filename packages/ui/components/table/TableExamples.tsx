@@ -1,14 +1,14 @@
 import { Table } from "./Table";
 import { TableActions } from "./TableActions";
 import {
-  Table as TableNew,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
+  TableCaption,
   TableCell,
   TableFooter,
-  TableCaption,
+  TableHead,
+  TableHeader,
+  Table as TableNew,
+  TableRow,
 } from "./TableNew";
 
 export const TableNewExampleComponent = () => (

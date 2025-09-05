@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsNumber, Min, Max, IsOptional } from "class-validator";
+import { IsNumber, IsOptional, Max, Min } from "class-validator";
 
 export class Pagination {
   @ApiPropertyOptional({ description: "The number of items to return", example: 10 })

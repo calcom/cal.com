@@ -1,25 +1,33 @@
-import { TRPC_ERROR_CODE, TRPC_ERROR_MAP, TRPCErrorCode } from "@/filters/trpc-exception.filter";
-import { AvailableSlotsService } from "@/lib/services/available-slots.service";
-import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import { SlotsWorkerService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-worker.service";
-import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
-import { Query, Body, Controller, Get, Delete, Post, Req, Res, BadRequestException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
-import { Response as ExpressResponse, Request as ExpressRequest } from "express";
-
 import {
   SUCCESS_STATUS,
-  VERSION_2024_06_14,
   VERSION_2024_04_15,
   VERSION_2024_06_11,
+  VERSION_2024_06_14,
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
 import { TRPCError } from "@calcom/platform-libraries";
-import { RemoveSelectedSlotInput_2024_04_15, ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
-import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform-types";
+import {
+  ApiResponse,
+  GetAvailableSlotsInput_2024_04_15,
+  RemoveSelectedSlotInput_2024_04_15,
+  ReserveSlotInput_2024_04_15,
+} from "@calcom/platform-types";
+import { BadRequestException, Body, Controller, Delete, Get, Post, Query, Req, Res } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiExcludeController as DocsExcludeController,
+  ApiTags as DocsTags,
+} from "@nestjs/swagger";
+import { Request as ExpressRequest, Response as ExpressResponse } from "express";
+import { TRPC_ERROR_CODE, TRPC_ERROR_MAP, TRPCErrorCode } from "@/filters/trpc-exception.filter";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
+import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
+import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
+import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
+import { SlotsWorkerService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-worker.service";
 
 @Controller({
   path: "/v2/slots",

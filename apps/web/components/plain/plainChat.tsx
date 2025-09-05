@@ -1,11 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
-import { useEffect, useState, useCallback, useMemo } from "react";
-
-import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
+import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import PlainContactForm from "./PlainContactForm";
 
@@ -278,7 +277,7 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
             init: () => {},
             open: () => {
               setIsOpen(true);
-            }
+            },
           };
         }
         return () => window.removeEventListener("resize", checkScreenSize);

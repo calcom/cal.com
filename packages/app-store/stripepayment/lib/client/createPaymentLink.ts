@@ -1,6 +1,5 @@
-import { stringify } from "querystring";
-
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import { stringify } from "querystring";
 
 export type Maybe<T> = T | undefined | null;
 

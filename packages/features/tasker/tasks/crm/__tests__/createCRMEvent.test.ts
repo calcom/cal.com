@@ -1,9 +1,7 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import { createCRMEvent } from "../createCRMEvent";
 

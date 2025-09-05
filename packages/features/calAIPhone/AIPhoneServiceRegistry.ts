@@ -1,10 +1,10 @@
 import { ensureAIPhoneServiceRegistryInitialized } from "./initializeRegistry";
-import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 import type {
   AIPhoneServiceProvider,
-  AIPhoneServiceProviderFactory,
   AIPhoneServiceProviderConfig,
+  AIPhoneServiceProviderFactory,
 } from "./interfaces/AIPhoneService.interface";
+import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 
 /**
  * Configuration for the registry

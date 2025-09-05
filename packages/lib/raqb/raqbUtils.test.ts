@@ -1,11 +1,10 @@
-import { expect, describe, it, vi } from "vitest";
-
 import type { AttributesQueryValue, RaqbChild } from "@calcom/lib/raqb/types";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
+import { describe, expect, it, vi } from "vitest";
 
-import { getValueOfAttributeOption, acrossQueryValueCompatiblity } from "./raqbUtils";
+import { acrossQueryValueCompatiblity, getValueOfAttributeOption } from "./raqbUtils";
 
 const { resolveQueryValue } = acrossQueryValueCompatiblity;
 
@@ -93,7 +92,7 @@ const createComplexQueryValue = ({
   }>;
 }): AttributesQueryValue => {
   const children1: Record<string, RaqbChild> = {};
-  
+
   rules.forEach((rule) => {
     children1[rule.ruleId] = createQueryValueRule({
       type: "rule",

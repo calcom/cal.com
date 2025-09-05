@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { prisma } from "@calcom/prisma";
+import { z } from "zod";
 
 const huddle01AppKeySchema = z.object({
   identityToken: z.string(),

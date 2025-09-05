@@ -1,8 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -16,9 +13,11 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface AppCardProps {
   app: App;
@@ -124,7 +123,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           display: "-webkit-box",
           WebkitBoxOrient: "vertical",
           WebkitLineClamp: "3",
-        }}>
+        }}
+      >
         {app.description}
       </p>
 
@@ -133,7 +133,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           color="secondary"
           className="flex w-32 flex-grow justify-center"
           href={`/apps/${app.slug}`}
-          data-testid={`app-store-app-card-${app.slug}`}>
+          data-testid={`app-store-app-card-${app.slug}`}
+        >
           {t("details")}
         </Button>
         {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
@@ -215,7 +216,8 @@ const InstallAppButtonChild = ({
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon="external-link"
         {...props}
-        size="base">
+        size="base"
+      >
         {t("visit")}
       </Button>
     );
@@ -229,7 +231,8 @@ const InstallAppButtonChild = ({
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon="plus"
         data-testid="install-app-button"
-        {...props}>
+        {...props}
+      >
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
       </Button>
     );
@@ -242,7 +245,8 @@ const InstallAppButtonChild = ({
       StartIcon="plus"
       data-testid="install-app-button"
       {...props}
-      size="base">
+      size="base"
+    >
       {t("install")}
     </Button>
   );

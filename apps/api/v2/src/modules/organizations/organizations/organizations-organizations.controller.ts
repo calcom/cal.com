@@ -1,3 +1,20 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { X_CAL_CLIENT_ID_HEADER, X_CAL_SECRET_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
@@ -17,24 +34,6 @@ import { CreateManagedOrganizationOutput } from "@/modules/organizations/organiz
 import { GetManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/get-managed-organization.output";
 import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
 import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managed-organizations.service";
-import {
-  Controller,
-  UseGuards,
-  Param,
-  ParseIntPipe,
-  Post,
-  Body,
-  Get,
-  Patch,
-  HttpCode,
-  HttpStatus,
-  Delete,
-  Query,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 const SCALE = "SCALE";
 
@@ -151,9 +150,8 @@ export class OrganizationsOrganizationsController {
   async deleteOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number
   ): Promise<GetManagedOrganizationOutput> {
-    const organization = await this.managedOrganizationsService.deleteManagedOrganization(
-      managedOrganizationId
-    );
+    const organization =
+      await this.managedOrganizationsService.deleteManagedOrganization(managedOrganizationId);
     return {
       status: SUCCESS_STATUS,
       data: organization,

@@ -1,10 +1,9 @@
 import "@calcom/lib/__mocks__/logger";
 
-import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
-
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { _onFormSubmission } from "./utils";
 

@@ -5,10 +5,10 @@ import type {
   AttendeeDefinedLocation,
   AttendeePhoneLocation,
   OrganizerAddressLocation,
+  OrganizerConferencingSchema,
   OrganizerIntegrationLocation,
   OrganizerLinkLocation,
   OrganizerPhoneLocation,
-  OrganizerConferencingSchema,
 } from "../internal/locations";
 
 export const apiToInternalintegrationsMapping = {

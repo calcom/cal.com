@@ -1,11 +1,11 @@
 "use client";
 
-import type { Header, Table, ColumnSizingState } from "@tanstack/react-table";
+import type { ColumnSizingState, Header, Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
-import { useCallback, useEffect, useRef, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import { useDebouncedWidth, useDataTable } from ".";
+import { useDataTable, useDebouncedWidth } from ".";
 
 type UseColumnResizingProps<TData> = {
   enabled: boolean;

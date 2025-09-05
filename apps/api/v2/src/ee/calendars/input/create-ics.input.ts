@@ -1,13 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   ArrayNotEmpty,
+  IsArray,
   IsBoolean,
+  IsNotEmpty,
   IsOptional,
   Validate,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from "class-validator";
-import { IsNotEmpty, IsArray } from "class-validator";
 
 // Custom constraint to validate ICS URLs
 @ValidatorConstraint({ async: false })

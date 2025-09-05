@@ -1,17 +1,14 @@
-import prismaMock from "../../../../../../../../tests/libs/__mocks__/prismaMock";
-
+import { buildBooking } from "@calcom/lib/test/builder";
+import {
+  getDownloadLinkOfCalVideoByRecordingId,
+  getRecordingsOfCalVideoByRoomName,
+} from "@calcom/lib/videoClient";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, afterEach } from "vitest";
-
-import { buildBooking } from "@calcom/lib/test/builder";
-import {
-  getRecordingsOfCalVideoByRoomName,
-  getDownloadLinkOfCalVideoByRecordingId,
-} from "@calcom/lib/videoClient";
-
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
+import prismaMock from "../../../../../../../../tests/libs/__mocks__/prismaMock";
 
 import authMiddleware from "../../../../../pages/api/bookings/[id]/_auth-middleware";
 import handler from "../../../../../pages/api/bookings/[id]/recordings/_get";

@@ -1,11 +1,10 @@
-import type { Logger } from "tslog";
-
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventType } from "@calcom/prisma/client";
+import type { Logger } from "tslog";
 
 type ValidateBookingTimeEventType = Pick<
   EventType,
@@ -39,7 +38,7 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
         bookerUtcOffset: getUTCOffsetByTimezone(reqBodyTimeZone) ?? 0,
-        eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
+        eventUtcOffset: eventTimeZone ? (getUTCOffsetByTimezone(eventTimeZone) ?? 0) : 0,
       },
       eventType.minimumBookingNotice
     );

@@ -1,10 +1,8 @@
-import { useRouter } from "next/navigation";
-
 import type { PlatformOAuthClientDto } from "@calcom/platform-types";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
 import { OAuthClientCard } from "@components/settings/platform/oauth-clients/OAuthClientCard";
+import { useRouter } from "next/navigation";
 
 type OAuthClientsListProps = {
   oauthClients: PlatformOAuthClientDto[];
@@ -78,7 +76,8 @@ const NewOAuthClientButton = ({ redirectLink, label }: { redirectLink: string; l
         router.push(redirectLink);
       }}
       color="secondary"
-      StartIcon="plus">
+      StartIcon="plus"
+    >
       {!!label ? label : "Add"}
     </Button>
   );

@@ -56,7 +56,8 @@ export const BookerEmbed = (
         organizationId={organizationId}
         options={{
           apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
-        }}>
+        }}
+      >
         <BookerPlatformWrapper
           {...(Boolean(routingTeamId)
             ? {
@@ -97,7 +98,8 @@ export const BookerEmbed = (
         organizationId={props?.organizationId}
         options={{
           apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
-        }}>
+        }}
+      >
         <BookerPlatformWrapper {...props} />
       </CalProvider>
     );

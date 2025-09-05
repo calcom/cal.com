@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
@@ -13,6 +11,7 @@ import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enum
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { Prisma } from "@prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
 

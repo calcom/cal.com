@@ -1,10 +1,15 @@
-import type { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
-
-import { IS_PRODUCTION, WEBSITE_URL, SINGLE_ORG_SLUG } from "@calcom/lib/constants";
-import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  ALLOWED_HOSTNAMES,
+  IS_PRODUCTION,
+  RESERVED_SUBDOMAINS,
+  SINGLE_ORG_SLUG,
+  WEBAPP_URL,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
+import type { Prisma } from "@prisma/client";
+import type { IncomingMessage } from "http";
 
 const log = logger.getSubLogger({
   prefix: ["orgDomains.ts"],

@@ -5,30 +5,27 @@
  * see: https://github.com/calcom/cal.com/pull/10480
  *      https://github.com/calcom/cal.com/pull/10968
  */
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
+import { BookingStatus, PeriodType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
-  TestData,
+  BookingLocations,
   createBookingScenario,
   getBooker,
   getDate,
+  getGoogleCalendarCredential,
   getNextMonthNotStartingOnWeekStart,
   getOrganizer,
   getScenarioData,
-  getGoogleCalendarCredential,
-  BookingLocations,
-  mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
 import { describe, expect, vi } from "vitest";
-
-import { PeriodType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;

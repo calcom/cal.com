@@ -1,6 +1,6 @@
+import { Controller, Get, VERSION_NEUTRAL, Version } from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { getEnv } from "@/env";
-import { Controller, Get, Version, VERSION_NEUTRAL } from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 @Controller()
 export class AppController {

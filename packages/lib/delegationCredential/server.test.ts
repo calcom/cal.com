@@ -1,7 +1,3 @@
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
@@ -9,15 +5,17 @@ import { DelegationCredentialRepository } from "@calcom/lib/server/repository/de
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { SMSLockState } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildAllCredentials,
-  getDelegationCredentialOrRegularCredential,
-  enrichUsersWithDelegationCredentials,
   enrichHostsWithDelegationCredentials,
-  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
+  enrichUsersWithDelegationCredentials,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
+  getDelegationCredentialOrRegularCredential,
 } from "./server";
 
 // Mock OrganizationRepository

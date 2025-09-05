@@ -1,8 +1,3 @@
-import type { DestinationCalendar, User } from "@prisma/client";
-// eslint-disable-next-line no-restricted-imports
-import short, { uuid } from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
-
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
@@ -14,12 +9,15 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
-import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
-import type { CreateRegularBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
+import type {
+  BookingDataSchemaGetter,
+  CreateBookingMeta,
+  CreateRegularBookingData,
+} from "@calcom/features/bookings/lib/dto/types";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -28,15 +26,14 @@ import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
-  deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
+  deleteWebhookScheduledTriggers,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
@@ -46,6 +43,7 @@ import {
 import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
 import { getCacheService } from "@calcom/lib/di/containers/Cache";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -71,11 +69,11 @@ import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import {
   BookingStatus,
+  CreationSource,
   SchedulingType,
   WebhookTriggerEvents,
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
@@ -85,11 +83,15 @@ import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer
 import type {
   AdditionalInformation,
   AppsStatus,
-  CalendarEvent,
   CalEventResponses,
+  CalendarEvent,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
+import type { DestinationCalendar, User } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import short, { uuid } from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
@@ -99,8 +101,8 @@ import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
-import { createBooking } from "./handleNewBooking/createBooking";
 import type { Booking } from "./handleNewBooking/createBooking";
+import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
@@ -113,8 +115,8 @@ import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
+import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
@@ -1029,7 +1031,7 @@ async function handler(
 
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
-    ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
+    ? (users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0])
     : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
@@ -1178,8 +1180,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-    ? [organizerUser.destinationCalendar]
-    : null;
+      ? [organizerUser.destinationCalendar]
+      : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1780,7 +1782,7 @@ async function handler(
 
           const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
             ? googleCalResult.updatedEvent[0]?.hangoutLink
-            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+            : (googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink);
 
           if (googleHangoutLink) {
             results.push({
@@ -1810,7 +1812,7 @@ async function handler(
         }
         const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
           ? results[0]?.updatedEvent[0]
-          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+          : (results[0]?.updatedEvent ?? results[0]?.createdEvent);
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;

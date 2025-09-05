@@ -1,30 +1,28 @@
+import { resetTestSMS } from "@calcom/lib/testSMS";
+import { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
-  createBookingScenario,
-  getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
   BookingLocations,
-  getDate,
-  Timezones,
+  createBookingScenario,
   createOrganization,
+  getBooker,
+  getDate,
+  getGoogleCalendarCredential,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+  Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
-  expectWorkflowToBeTriggered,
-  expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
+  expectSMSWorkflowToBeTriggered,
+  expectWorkflowToBeTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, beforeEach, vi } from "vitest";
-
-import { resetTestSMS } from "@calcom/lib/testSMS";
-import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { beforeEach, describe, vi } from "vitest";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");

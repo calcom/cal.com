@@ -1,9 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-
 import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useSession } from "next-auth/react";
 
 import SSOConfiguration from "../components/SSOConfiguration";
 

@@ -1,3 +1,20 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -15,9 +32,9 @@ import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { IsUserOOO } from "@/modules/ooo/guards/is-user-ooo";
 import {
   CreateOutOfOfficeEntryDto,
-  UpdateOutOfOfficeEntryDto,
-  GetOutOfOfficeEntryFiltersDTO,
   GetOrgUsersOutOfOfficeEntryFiltersDTO,
+  GetOutOfOfficeEntryFiltersDTO,
+  UpdateOutOfOfficeEntryDto,
 } from "@/modules/ooo/inputs/ooo.input";
 import {
   UserOooOutputDto,
@@ -26,24 +43,6 @@ import {
 } from "@/modules/ooo/outputs/ooo.output";
 import { UserOOOService } from "@/modules/ooo/services/ooo.service";
 import { OrgUsersOOOService } from "@/modules/organizations/users/ooo/services/organization-users-ooo.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  ParseIntPipe,
-  Body,
-  UseInterceptors,
-  Query,
-} from "@nestjs/common";
-import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/organizations/:orgId",

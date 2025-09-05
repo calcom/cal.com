@@ -1,8 +1,7 @@
-import type { DestinationCalendar } from "@prisma/client";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { DestinationCalendar } from "@prisma/client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import EventManager from "./EventManager";
 

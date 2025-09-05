@@ -1,4 +1,4 @@
-import type { Route, AttributeRoutingConfig } from "../types/types";
+import type { AttributeRoutingConfig, Route } from "../types/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function DynamicAppComponent<T extends Record<string, React.ComponentType<any>>>(props: {

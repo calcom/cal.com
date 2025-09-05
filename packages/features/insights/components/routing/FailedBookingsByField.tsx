@@ -1,20 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Rectangle,
-} from "recharts";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui/components/form";
+import { useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Rectangle,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
@@ -104,7 +103,8 @@ function FormCard({ formName, fields }: FormCardProps) {
                   left: 20,
                   bottom: 5,
                 }}
-                barCategoryGap="10%">
+                barCategoryGap="10%"
+              >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" className="text-xs" axisLine={false} tickLine={false} />
                 <YAxis dataKey="name" type="category" className="text-xs" axisLine={false} tickLine={false} />

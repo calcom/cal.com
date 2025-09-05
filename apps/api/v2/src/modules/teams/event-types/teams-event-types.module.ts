@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
@@ -13,7 +14,6 @@ import { TeamsEventTypesService } from "@/modules/teams/event-types/services/tea
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [

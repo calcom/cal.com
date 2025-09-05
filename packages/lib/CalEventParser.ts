@@ -1,8 +1,7 @@
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
@@ -436,5 +435,5 @@ export const getVideoCallUrlFromCalEvent = (
 };
 
 export const getVideoCallPassword = (calEvent: CalendarEvent): string => {
-  return isDailyVideoCall(calEvent) ? "" : calEvent?.videoCallData?.password ?? "";
+  return isDailyVideoCall(calEvent) ? "" : (calEvent?.videoCallData?.password ?? "");
 };

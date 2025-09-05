@@ -1,6 +1,3 @@
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
-
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
@@ -10,11 +7,13 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import type { GetAccessLinkResponseSchema, GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
 const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 

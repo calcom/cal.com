@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
@@ -8,12 +6,12 @@ import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { Prisma } from "@calcom/prisma/client";
-import { WorkflowMethods } from "@calcom/prisma/enums";
+import { MembershipRole, WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
 import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
+import { z } from "zod";
 
 import logger from "../../logger";
 

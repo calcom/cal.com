@@ -1,7 +1,6 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
 
 export async function GET() {
   const token = randomBytes(32).toString("hex");

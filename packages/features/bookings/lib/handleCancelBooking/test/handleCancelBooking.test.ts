@@ -1,26 +1,24 @@
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   BookingLocations,
   createBookingScenario,
   getBooker,
+  getDate,
   getGoogleCalendarCredential,
   getOrganizer,
   getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockSuccessfulVideoMeetingCreation,
   TestData,
-  getDate,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectBookingCancelledWebhookToHaveBeenFired,
   expectWorkflowToBeTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
 import { describe, expect, vi } from "vitest";
-
-import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 
 vi.mock("@calcom/lib/payment/processPaymentRefund", () => ({
   processPaymentRefund: vi.fn(),

@@ -1,15 +1,3 @@
-import { calendar_v3 } from "@googleapis/calendar";
-import type { Membership, Team, UserPermissionRole } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
-import { OAuth2Client } from "googleapis-common";
-import type { AuthOptions, Session, User } from "next-auth";
-import type { JWT } from "next-auth/jwt";
-import { encode } from "next-auth/jwt";
-import type { Provider } from "next-auth/providers";
-import CredentialsProvider from "next-auth/providers/credentials";
-import EmailProvider from "next-auth/providers/email";
-import GoogleProvider from "next-auth/providers/google";
-
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
@@ -19,12 +7,14 @@ import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizat
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
+  ENABLE_PROFILE_SWITCHER,
   GOOGLE_CALENDAR_SCOPES,
   GOOGLE_OAUTH_SCOPES,
   HOSTED_CAL_FEATURES,
   IS_CALCOM,
+  IS_TEAM_BILLING_ENABLED,
+  WEBAPP_URL,
 } from "@calcom/lib/constants";
-import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
@@ -39,13 +29,23 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource, IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+import { calendar_v3 } from "@googleapis/calendar";
+import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
+import { OAuth2Client } from "googleapis-common";
+import type { AuthOptions, Session, User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import { encode } from "next-auth/jwt";
+import type { Provider } from "next-auth/providers";
+import CredentialsProvider from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
 
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
-import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
+import { ErrorCode } from "./ErrorCode";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";

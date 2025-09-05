@@ -1,6 +1,3 @@
-import { useEffect } from "react";
-import { shallow } from "zustand/shallow";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -15,6 +12,8 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useEffect } from "react";
+import { shallow } from "zustand/shallow";
 
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
 
@@ -98,17 +97,18 @@ const Day = ({
         active
           ? "bg-brand-default text-brand"
           : !disabled
-          ? `${
-              !customClassName?.dayActive
-                ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassName.dayActive}`
-            }`
-          : `${customClassName ? "" : " text-mute"}`
+            ? `${
+                !customClassName?.dayActive
+                  ? "hover:border-brand-default text-emphasis bg-emphasis"
+                  : `hover:border-brand-default ${customClassName.dayActive}`
+              }`
+            : `${customClassName ? "" : " text-mute"}`
       )}
       data-testid="day"
       data-disabled={disabled}
       disabled={disabled}
-      {...props}>
+      {...props}
+    >
       {away && <span data-testid="away-emoji">{emoji}</span>}
       {!away && date.date()}
       {date.isToday() && (
@@ -116,7 +116,8 @@ const Day = ({
           className={classNames(
             "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
             active && "bg-brand-accent"
-          )}>
+          )}
+        >
           <span className="sr-only">{t("today")}</span>
         </span>
       )}
@@ -142,7 +143,8 @@ const Day = ({
             fontSize: "10px",
             lineHeight: "13px",
             padding: disabled ? "0 3px" : "3px 3px 3px 4px",
-          }}>
+          }}
+        >
           {date.format("MMM")}
         </div>
       )}
@@ -324,7 +326,8 @@ const Days = ({
             <button
               className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
               key={`e-${idx}`}
-              disabled>
+              disabled
+            >
               <SkeletonText className="h-8 w-9" />
             </button>
           ) : (
@@ -420,7 +423,8 @@ const DatePicker = ({
           {browsingDate ? (
             <time dateTime={browsingDate.format("YYYY-MM")} data-testid="selected-month-label">
               <strong
-                className={classNames(`text-emphasis font-semibold`, customClassNames?.datePickerTitle)}>
+                className={classNames(`text-emphasis font-semibold`, customClassNames?.datePickerTitle)}
+              >
                 {month}
               </strong>{" "}
               <span className={classNames(`text-subtle font-medium`, customClassNames?.datePickerTitle)}>
@@ -470,7 +474,8 @@ const DatePicker = ({
             className={classNames(
               `text-emphasis my-4 text-xs font-medium uppercase tracking-widest`,
               customClassNames?.datePickerDays
-            )}>
+            )}
+          >
             {weekDay}
           </div>
         ))}

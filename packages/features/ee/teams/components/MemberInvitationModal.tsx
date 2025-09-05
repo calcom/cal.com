@@ -1,8 +1,3 @@
-import { useSession } from "next-auth/react";
-import type { FormEvent } from "react";
-import { useMemo, useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -10,23 +5,21 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { ToggleGroup } from "@calcom/ui/components/form";
+import { Form, Label, Select, TextAreaField, TextField, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { useSession } from "next-auth/react";
+import type { FormEvent } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -199,7 +192,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       onOpenChange={() => {
         props.onExit();
         newMemberFormMethods.reset();
-      }}>
+      }}
+    >
       <DialogContent
         enableOverflow
         type="creation"
@@ -218,7 +212,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               />
             </span>
           ) : null
-        }>
+        }
+      >
         <div className="sm:max-h-9">
           <Label className="sr-only" htmlFor="role">
             {t("import_mode")}
@@ -324,7 +319,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   StartIcon="paperclip"
-                  className="mt-3 justify-center stroke-2">
+                  className="mt-3 justify-center stroke-2"
+                >
                   {t("upload_csv_file")}
                 </Button>
                 <input
@@ -391,7 +387,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     props.onSettingsOpen && props.onSettingsOpen();
                     newMemberFormMethods.reset();
                   }}
-                  data-testid="edit-invite-link-button">
+                  data-testid="edit-invite-link-button"
+                >
                   {t("edit_invite_link")}
                 </Button>
               </div>
@@ -437,7 +434,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
                   StartIcon="link"
-                  data-testid="copy-invite-link-button">
+                  data-testid="copy-invite-link-button"
+                >
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
@@ -448,7 +446,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               onClick={() => {
                 props.onExit();
                 resetFields();
-              }}>
+              }}
+            >
               {t("cancel")}
             </Button>
             <Button
@@ -458,7 +457,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               type="submit"
               color="primary"
               className="me-2 ms-2"
-              data-testid="invite-new-member-button">
+              data-testid="invite-new-member-button"
+            >
               {t("send_invite")}
             </Button>
           </DialogFooter>

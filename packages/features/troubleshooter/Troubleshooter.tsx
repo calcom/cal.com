@@ -30,7 +30,8 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
           isMobile
             ? "[--troublehooster-meta-width:0px]"
             : "[--troublehooster-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
-        )}>
+        )}
+      >
         <div
           style={{
             display: "grid",
@@ -46,7 +47,8 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
           }}
           className={classNames(
             "bg-default dark:bg-muted text-default flex min-h-full w-full flex-col items-center sm:transition-[width] sm:duration-300"
-          )}>
+          )}
+        >
           <div className="bg-default dark:bg-muted sticky top-0 z-10 [grid-area:header]">
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
           </div>

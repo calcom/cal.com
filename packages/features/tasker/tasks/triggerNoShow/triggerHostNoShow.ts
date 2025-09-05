@@ -2,7 +2,7 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { Booking, Host } from "./common";
-import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
+import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
 
 const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTheCall: Host[]) => {
   try {

@@ -1,15 +1,20 @@
 "use client";
 
-import { Dispatch, SetStateAction, useState } from "react";
-
 import { Button } from "@calcom/ui/components/button";
-import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
+import { type FileData, FileUploader } from "@calcom/ui/components/file-uploader";
 import { Label, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
+import { Dispatch, SetStateAction, useState } from "react";
 
-const PlainContactForm = ({ open, setIsOpen }: { open: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
+const PlainContactForm = ({
+  open,
+  setIsOpen,
+}: {
+  open: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -142,14 +147,16 @@ const PlainContactForm = ({ open, setIsOpen }: { open: boolean, setIsOpen: Dispa
         <PopoverTrigger asChild className="enabled:hover:bg-subtle bg-subtle shadow-none">
           <Button
             onClick={() => setIsOpen(true)}
-            className="bg-subtle text-emphasis flex h-12 w-12 items-center justify-center rounded-full border-none">
+            className="bg-subtle text-emphasis flex h-12 w-12 items-center justify-center rounded-full border-none"
+          >
             <Icon name="message-circle" className="h-6 w-6" />
           </Button>
         </PopoverTrigger>
 
         <PopoverContent
           style={{ maxWidth: "450px", maxHeight: "650px" }}
-          className="!bg-muted no-scrollbar mb-2 mr-8 w-[450px] overflow-hidden overflow-y-scroll px-6 py-4">
+          className="!bg-muted no-scrollbar mb-2 mr-8 w-[450px] overflow-hidden overflow-y-scroll px-6 py-4"
+        >
           <div className="flex w-full justify-between">
             <p className="mb-5 text-lg font-semibold">Contact support</p>
             <Button
@@ -208,7 +215,8 @@ const PlainContactForm = ({ open, setIsOpen }: { open: boolean, setIsOpen: Dispa
                     variant="button"
                     type="submit"
                     disabled={isSubmitting || isUploadingImage}
-                    className="w-full">
+                    className="w-full"
+                  >
                     <div className="flex w-full justify-center">
                       {isSubmitting ? (
                         <div className="flex items-center">

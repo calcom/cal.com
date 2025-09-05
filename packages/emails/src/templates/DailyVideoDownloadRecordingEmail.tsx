@@ -1,8 +1,7 @@
+import { APP_NAME, COMPANY_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { TFunction } from "i18next";
 
-import { WEBAPP_URL, APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
-
-import { V2BaseEmailHtml, CallToAction } from "../components";
+import { CallToAction, V2BaseEmailHtml } from "../components";
 
 interface DailyVideoDownloadRecordingEmailProps {
   language: TFunction;
@@ -21,7 +20,8 @@ export const DailyVideoDownloadRecordingEmail = (
       subject={props.language("download_your_recording", {
         title: props.title,
         date: props.date,
-      })}>
+      })}
+    >
       <div style={{ width: "89px", marginBottom: "35px" }}>
         <a href={WEBAPP_URL} target="_blank" rel="noreferrer">
           <img
@@ -48,7 +48,8 @@ export const DailyVideoDownloadRecordingEmail = (
           lineHeight: "38.5px",
           marginBottom: "40px",
           color: "black",
-        }}>
+        }}
+      >
         <>{props.language("download_your_recording")}</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
@@ -63,7 +64,8 @@ export const DailyVideoDownloadRecordingEmail = (
           backgroundColor: "#F3F4F6",
           padding: "32px",
           marginBottom: "40px",
-        }}>
+        }}
+      >
         <p
           style={{
             fontSize: "18px",
@@ -71,7 +73,8 @@ export const DailyVideoDownloadRecordingEmail = (
             fontWeight: 600,
             marginBottom: "8px",
             color: "black",
-          }}>
+          }}
+        >
           <>{props.title}</>
         </p>
         <p
@@ -81,7 +84,8 @@ export const DailyVideoDownloadRecordingEmail = (
             marginBottom: "24px",
             marginTop: "0px",
             color: "black",
-          }}>
+          }}
+        >
           {props.date}
         </p>
         <CallToAction label={props.language("download_recording")} href={props.downloadLink} />

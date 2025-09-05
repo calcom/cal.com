@@ -1,7 +1,6 @@
+import classNames from "@calcom/ui/classNames";
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
 import type { ReactNode } from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import { Tooltip } from "../../tooltip/Tooltip";
 
@@ -62,7 +61,8 @@ export const ToggleGroup = ({
           props.className,
           isFullWidth && "w-full",
           customClassNames
-        )}>
+        )}
+      >
         {options.map((option) => (
           <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
             <RadixToggleGroup.Item
@@ -75,13 +75,15 @@ export const ToggleGroup = ({
                   ? "text-gray-400 hover:cursor-not-allowed"
                   : "text-default [&[aria-checked='false']]:hover:text-emphasis",
                 isFullWidth && "w-full"
-              )}>
+              )}
+            >
               <div
                 className={classNames(
                   "flex items-center gap-1",
                   orientation === "horizontal" && "justify-center",
                   orientation === "vertical" && "justify-start"
-                )}>
+                )}
+              >
                 {option.iconLeft && <span className="flex h-4 w-4 items-center">{option.iconLeft}</span>}
                 {option.label}
               </div>

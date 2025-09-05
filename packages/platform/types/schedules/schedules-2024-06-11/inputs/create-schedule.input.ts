@@ -1,15 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
+  IsArray,
   IsBoolean,
+  IsIn,
+  IsISO8601,
   IsOptional,
   IsString,
-  ValidateNested,
-  IsArray,
-  Matches,
-  IsISO8601,
   IsTimeZone,
-  IsIn,
+  Matches,
+  ValidateNested,
 } from "class-validator";
 
 import type { WeekDay } from "../constants";

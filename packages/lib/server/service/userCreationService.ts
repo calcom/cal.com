@@ -2,7 +2,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
+import type { CreationSource, IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";

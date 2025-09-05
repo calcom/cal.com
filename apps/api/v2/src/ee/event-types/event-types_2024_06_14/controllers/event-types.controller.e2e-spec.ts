@@ -1,34 +1,10 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Schedule, EventType } from "@prisma/client";
-import * as request from "supertest";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
 import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookerLayoutsInputEnum_2024_06_14,
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
   ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
   FrequencyInput,
+  NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
 import { SchedulingType } from "@calcom/platform-libraries";
 import {
@@ -40,6 +16,29 @@ import {
   NotesDefaultFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { EventType, PlatformOAuthClient, Schedule, Team, User } from "@prisma/client";
+import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;

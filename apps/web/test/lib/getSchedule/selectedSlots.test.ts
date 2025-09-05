@@ -1,19 +1,17 @@
-import {
-  getGoogleCalendarCredential,
-  createBookingScenario,
-  Timezones,
-  TestData,
-  mockCalendarToHaveNoBusySlots,
-  type ScenarioData,
-} from "../../utils/bookingScenario/bookingScenario";
-
-import type { IncomingMessage } from "http";
-import { describe, test, beforeEach, vi } from "vitest";
-import type { z } from "zod";
-
 import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
 import { prisma } from "@calcom/prisma";
-import type { getScheduleSchema, GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
+import type { GetScheduleOptions, getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
+import type { IncomingMessage } from "http";
+import { beforeEach, describe, test, vi } from "vitest";
+import type { z } from "zod";
+import {
+  createBookingScenario,
+  getGoogleCalendarCredential,
+  mockCalendarToHaveNoBusySlots,
+  type ScenarioData,
+  TestData,
+  Timezones,
+} from "../../utils/bookingScenario/bookingScenario";
 
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";

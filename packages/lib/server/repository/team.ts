@@ -1,12 +1,11 @@
-import type { Prisma } from "@prisma/client";
-import type { z } from "zod";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
 import { getParsedTeam } from "./teamUtils";
 

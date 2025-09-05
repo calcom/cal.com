@@ -1,3 +1,6 @@
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import type { Prisma } from "@calcom/prisma/client";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
@@ -8,10 +11,6 @@ import { createServer } from "http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
-
-import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { CreateUsersFixture } from "../fixtures/users";

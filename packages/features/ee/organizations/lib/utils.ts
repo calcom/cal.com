@@ -3,6 +3,6 @@ export function extractDomainFromEmail(email: string) {
   try {
     const match = email.match(/^(?:.*?:\/\/)?.*?(?<root>[\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
     out = (match && match.groups?.root) ?? "";
-  } catch (ignore) {}
+  } catch (_ignore) {}
   return out.split(".")[0];
 }

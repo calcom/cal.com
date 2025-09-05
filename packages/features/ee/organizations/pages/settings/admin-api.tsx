@@ -47,7 +47,8 @@ export const AdminAPIView = () => {
                 </Button>
               </ButtonGroup>
             </div>
-          }>
+          }
+        >
           <>Create Org</>
         </UpgradeTip>
       </div>

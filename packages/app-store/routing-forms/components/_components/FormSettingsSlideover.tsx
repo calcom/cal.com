@@ -1,17 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { useRef } from "react";
-import { Controller } from "react-hook-form";
-import type { UseFormReturn } from "react-hook-form";
-
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Switch, TextAreaField, TextField } from "@calcom/ui/components/form";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@calcom/ui/components/sheet";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
+import Link from "next/link";
+import { useRef } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
 import type { RoutingFormWithResponseCount } from "../../types/types";
 import { TeamMemberSelect } from "./TeamMemberSelect";
@@ -67,7 +66,8 @@ export const FormSettingsSlideover = ({
         } else {
           onOpenChange(open);
         }
-      }}>
+      }}
+    >
       <SheetContent className="flex flex-col">
         <SheetHeader>
           <SheetTitle>{t("form_settings")}</SheetTitle>
@@ -118,7 +118,8 @@ export const FormSettingsSlideover = ({
                     <div className="flex items-center gap-2">
                       <label
                         htmlFor="emailOwnerOnSubmission"
-                        className="text-default text-sm font-medium leading-none">
+                        className="text-default text-sm font-medium leading-none"
+                      >
                         {t("routing_forms_send_email_owner")}
                       </label>
                       <Switch
@@ -186,7 +187,8 @@ export const FormSettingsSlideover = ({
                 color="minimal"
                 href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
                   user?.email ?? ""
-                )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(form.id)}`}>
+                )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(form.id)}`}
+              >
                 {t("need_help")}
               </Button>
             )}

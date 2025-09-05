@@ -1,9 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
 import { Button } from "@calcom/ui/components/button";
@@ -11,6 +7,9 @@ import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
@@ -90,7 +89,8 @@ const Actions = ({
               variant="icon"
               onClick={() => {
                 setIsTestPreviewOpen(!isTestPreviewOpen);
-              }}>
+              }}
+            >
               {t("preview")}
             </Button>
           </Tooltip>
@@ -113,7 +113,8 @@ const Actions = ({
               type="button"
               rel="noreferrer"
               action="preview"
-              StartIcon="external-link">
+              StartIcon="external-link"
+            >
               {t("view_form")}
             </FormAction>
             <FormAction
@@ -122,7 +123,8 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button"
-              StartIcon="calendar">
+              StartIcon="calendar"
+            >
               {t("routing_incomplete_booking_tab")}
             </FormAction>
             <FormAction
@@ -131,7 +133,8 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button"
-              StartIcon="link">
+              StartIcon="link"
+            >
               {t("copy_link_to_form")}
             </FormAction>
             <FormAction
@@ -141,7 +144,8 @@ const Actions = ({
               color="minimal"
               type="button"
               data-testid="download-responses"
-              StartIcon="download">
+              StartIcon="download"
+            >
               {t("download_responses")}
             </FormAction>
             {form?.id && (
@@ -152,7 +156,8 @@ const Actions = ({
                 color="minimal"
                 type="button"
                 data-testid="view-responses"
-                StartIcon="eye">
+                StartIcon="eye"
+              >
                 {t("view_responses")}
               </FormAction>
             )}
@@ -162,7 +167,8 @@ const Actions = ({
               color="minimal"
               type="button"
               className="w-full"
-              StartIcon="code">
+              StartIcon="code"
+            >
               {t("embed")}
             </FormAction>
             <DropdownMenuSeparator className="hidden sm:block" />
@@ -173,7 +179,8 @@ const Actions = ({
               type="button"
               color="destructive"
               disabled={!permissions.canDelete}
-              StartIcon="trash">
+              StartIcon="trash"
+            >
               {t("delete")}
             </FormAction>
             <div className="block sm:hidden">
@@ -192,7 +199,8 @@ const Actions = ({
             loading={isSaving}
             disabled={!permissions.canEdit}
             type="submit"
-            color="primary">
+            color="primary"
+          >
             {t("save")}
           </Button>
         </div>
@@ -290,7 +298,8 @@ export function Header({
             <div className="group flex items-center gap-1">
               <span
                 className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
-                onClick={() => setIsEditing(true)}>
+                onClick={() => setIsEditing(true)}
+              >
                 {watchedName || "Loading..."}
               </span>
               <Button
@@ -299,7 +308,8 @@ export function Header({
                 onClick={() => setIsEditing(true)}
                 CustomStartIcon={
                   <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
-                }>
+                }
+              >
                 <span className="sr-only">Edit</span>
               </Button>
             </div>

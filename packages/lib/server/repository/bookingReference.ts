@@ -1,7 +1,6 @@
-import type { Prisma } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
+import type { Prisma } from "@prisma/client";
 
 const bookingReferenceSelect = {
   id: true,

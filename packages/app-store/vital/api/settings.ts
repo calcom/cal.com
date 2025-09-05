@@ -1,7 +1,6 @@
+import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { JSONObject } from "superjson/dist/types";
-
-import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET" && req.session && req.session.user.id) {

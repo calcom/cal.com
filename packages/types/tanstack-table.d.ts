@@ -3,7 +3,7 @@ import "@tanstack/react-table";
 import type { ColumnFilterMeta } from "@calcom/features/data-table/lib/types";
 
 declare module "@tanstack/table-core" {
-  interface ColumnMeta<TData extends RowData, TValue> {
+  interface ColumnMeta<_TData extends RowData, _TValue> {
     filter?: ColumnFilterMeta;
 
     // `autoWidth` can make the column size dynamic,

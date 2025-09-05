@@ -1,3 +1,22 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import { Request } from "express";
+import { stringify } from "querystring";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -19,26 +38,6 @@ import { StripeService } from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Get,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Param,
-  Headers,
-  Req,
-  ParseIntPipe,
-  Redirect,
-  BadRequestException,
-} from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { Request } from "express";
-import { stringify } from "querystring";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;

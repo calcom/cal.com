@@ -1,11 +1,10 @@
-import type { MouseEventHandler } from "react";
-import { useContext } from "react";
-import { useStore } from "zustand";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import classNames from "@calcom/ui/classNames";
+import type { MouseEventHandler } from "react";
+import { useContext } from "react";
+import { useStore } from "zustand";
 
 import { DAY_CELL_WIDTH } from "../constants";
 import { TBContext } from "../store";
@@ -126,7 +125,8 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
               className={classNames(
                 "border-subtle overflow-hidden rounded-lg border-2",
                 i !== 0 && "ml-[-4px]" // border-2 adds 4px to the width, and offsets the alignment
-              )}>
+              )}
+            >
               <div className="flex flex-none">
                 {day.map((h) => {
                   const hours = Math.floor(h); // Whole number part
@@ -192,7 +192,8 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       style={{
                         width: `${DAY_CELL_WIDTH}px`,
                         backgroundImage: rangeGradients.backgroundGradient,
-                      }}>
+                      }}
+                    >
                       {hours ? (
                         <div title={hourSet.format("DD/MM HH:mm")}>
                           <div className="flex flex-col text-center text-xs font-bold leading-3 ">
@@ -210,7 +211,8 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                                   className={classNames(
                                     "hidden dark:block",
                                     rangeOverlap ? "bg-clip-text text-transparent" : ""
-                                  )}>
+                                  )}
+                                >
                                   <TimeLabel />
                                 </span>
                               </>

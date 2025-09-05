@@ -1,12 +1,11 @@
-import type { EventType } from "@prisma/client";
-import { useRouter } from "next/navigation";
-
 import dayjs from "@calcom/dayjs";
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
+import type { EventType } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 import { getSafe } from "./getSafe";
 

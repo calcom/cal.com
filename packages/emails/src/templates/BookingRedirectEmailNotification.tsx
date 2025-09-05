@@ -19,14 +19,16 @@ export const BookingRedirectEmailNotification = (
           update: "booking_redirect_updated_email_title",
           cancel: "booking_redirect_cancelled_email_title",
         }[props.action]
-      )}>
+      )}
+    >
       <p
         style={{
           color: "black",
           fontSize: "16px",
           lineHeight: "24px",
           fontWeight: "400",
-        }}>
+        }}
+      >
         {props.language(
           {
             add: "booking_redirect_email_description",

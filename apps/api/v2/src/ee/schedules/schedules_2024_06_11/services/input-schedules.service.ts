@@ -1,7 +1,10 @@
+import {
+  CreateScheduleInput_2024_06_11,
+  ScheduleAvailabilityInput_2024_06_11,
+  ScheduleOverrideInput_2024_06_11,
+  WeekDay,
+} from "@calcom/platform-types";
 import { Injectable } from "@nestjs/common";
-
-import { CreateScheduleInput_2024_06_11, ScheduleAvailabilityInput_2024_06_11 } from "@calcom/platform-types";
-import { ScheduleOverrideInput_2024_06_11, WeekDay } from "@calcom/platform-types";
 
 @Injectable()
 export class InputSchedulesService_2024_06_11 {

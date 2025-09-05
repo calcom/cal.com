@@ -1,11 +1,10 @@
-import { Navbar } from "@/components/Navbar";
-import { Inter } from "next/font/google";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import { useRouter } from "next/router";
-
 import { useBooking, useCancelBooking } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
 import { Icon } from "@calcom/ui/components/icon";
+import { Inter } from "next/font/google";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter } from "next/router";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,14 +29,16 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
     return (
       <main
-        className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
+        className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}
+      >
         <Navbar username={props.calUsername} />
         {isLoading && <p>Loading...</p>}
         {!isLoading && booking && (
           <div
             data-testid="booking-success-page"
             key={booking.id}
-            className="my-10 w-[440px] overflow-hidden rounded-md border-[0.7px] border-black px-10 py-5">
+            className="my-10 w-[440px] overflow-hidden rounded-md border-[0.7px] border-black px-10 py-5"
+          >
             {booking.status === "accepted" ? (
               <div className="mx-2 my-4 flex flex-col items-center justify-center text-center">
                 <Icon
@@ -74,7 +75,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     <p
                       style={{
                         textDecoration: booking.status === "accepted" ? "normal" : "line-through",
-                      }}>
+                      }}
+                    >
                       {`${day}, ${month} ${dateToday}, ${year}`}
                     </p>
                   </div>
@@ -82,7 +84,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     <p
                       style={{
                         textDecoration: booking.status === "accepted" ? "normal" : "line-through",
-                      }}>
+                      }}
+                    >
                       {`${startTime}`} - {`${endTime}`}
                     </p>
                   </div>
@@ -145,7 +148,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                         router.push(
                           `/booking?rescheduleUid=${booking?.uid}&eventTypeSlug=${booking?.eventType.slug}&rescheduledBy=${props.calEmail}`
                         );
-                      }}>
+                      }}
+                    >
                       Reschedule
                     </button>{" "}
                     or{" "}
@@ -158,7 +162,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                           cancellationReason: "User request",
                           allRemainingBookings: true,
                         });
-                      }}>
+                      }}
+                    >
                       Cancel
                     </button>
                   </p>

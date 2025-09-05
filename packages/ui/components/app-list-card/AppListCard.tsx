@@ -1,11 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CredentialOwner } from "@calcom/types/CredentialOwner";
 import classNames from "@calcom/ui/classNames";
+import type { ReactNode } from "react";
 
 import { Avatar } from "../avatar/Avatar";
 import { Badge } from "../badge/Badge";
@@ -64,7 +63,8 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
       className={classNames(
         highlight && "dark:bg-muted bg-yellow-100",
         className || classNameObject?.container
-      )}>
+      )}
+    >
       <div className="flex items-start gap-x-3 px-4 py-4 sm:px-6">
         {logo ? (
           <img
@@ -76,7 +76,8 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
         <div className="flex min-w-0 grow flex-col gap-y-1">
           <div className="flex items-center gap-x-2">
             <h3
-              className={classNames("text-emphasis truncate text-sm font-semibold", classNameObject?.title)}>
+              className={classNames("text-emphasis truncate text-sm font-semibold", classNameObject?.title)}
+            >
               {title}
             </h3>
             <div className="flex flex-shrink-0 items-center gap-x-2">
@@ -86,7 +87,8 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
           </div>
           <ListItemText
             component="p"
-            className={classNames("whitespace-normal break-words", classNameObject?.description)}>
+            className={classNames("whitespace-normal break-words", classNameObject?.description)}
+          >
             {description}
           </ListItemText>
           {invalidCredential && (

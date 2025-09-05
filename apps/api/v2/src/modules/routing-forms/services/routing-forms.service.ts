@@ -1,10 +1,9 @@
-import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Request } from "express";
-
 import { getRoutedUrl } from "@calcom/platform-libraries";
 import { ById_2024_09_04_type, GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { Request } from "express";
+import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 
 @Injectable()
 export class RoutingFormsService {

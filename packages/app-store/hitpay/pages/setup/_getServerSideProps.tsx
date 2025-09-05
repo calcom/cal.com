@@ -1,7 +1,6 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
+import type { GetServerSidePropsContext } from "next";
 
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
 import type { IHitPaySetupProps } from "./index";

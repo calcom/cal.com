@@ -1,11 +1,10 @@
+import { CreationSource } from "@calcom/platform-libraries";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import type { Prisma, Profile, Team, User } from "@prisma/client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { Injectable, NotFoundException } from "@nestjs/common";
-import type { Profile, User, Team, Prisma } from "@prisma/client";
-
-import { CreationSource } from "@calcom/platform-libraries";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -14,7 +13,10 @@ export type UserWithProfile = User & {
 
 @Injectable()
 export class UsersRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async create(
     user: CreateManagedUserInput,

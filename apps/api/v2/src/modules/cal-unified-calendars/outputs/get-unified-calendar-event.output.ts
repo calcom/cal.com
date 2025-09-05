@@ -1,8 +1,7 @@
+import { CALENDARS, ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-validator";
-
-import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export enum CalendarEventStatus {
   ACCEPTED = "accepted",
@@ -281,7 +280,6 @@ export class CalendarEventAttendee {
   })
   optional?: boolean;
 
-
   @IsOptional()
   @ApiPropertyOptional({
     nullable: true,
@@ -414,7 +412,8 @@ export class UnifiedCalendarEventOutput {
   @ApiPropertyOptional({
     type: calendarEventOwner,
     nullable: true,
-    description: "The calendar account that owns this event. This is the primary calendar where the event is stored and cannot be modified without appropriate permissions. Changing this would require moving the event to a different calendar",
+    description:
+      "The calendar account that owns this event. This is the primary calendar where the event is stored and cannot be modified without appropriate permissions. Changing this would require moving the event to a different calendar",
   })
   calendarEventOwner?: calendarEventOwner;
 

@@ -1,10 +1,9 @@
 "use client";
 
-import { cva } from "class-variance-authority";
-import React, { forwardRef, useId, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { cva } from "class-variance-authority";
+import React, { forwardRef, useId, useState } from "react";
 
 import { Icon } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
@@ -81,12 +80,14 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
       "flex flex-shrink-0 items-center justify-center whitespace-nowrap",
       onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
       className
-    )}>
+    )}
+  >
     <span
       className={classNames(
         "text-sm font-medium leading-none",
         error ? "text-error" : "text-muted peer-disabled:opacity-50"
-      )}>
+      )}
+    >
       {children}
     </span>
   </div>
@@ -133,7 +134,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
+          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}
+        >
           {label}
           {showAsteriskIndicator && !readOnly && passThrough.required ? (
             <span className="text-default ml-1 font-medium">*</span>
@@ -150,7 +152,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
             "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
-          )}>
+          )}
+        >
           {addOnLeading && (
             <Addon size={size ?? "md"} position="start" className={classNames(addOnClassname)}>
               {addOnLeading}
@@ -185,7 +188,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               size={size ?? "md"}
               position="end"
               onClickAddon={onClickAddon}
-              className={classNames(addOnClassname)}>
+              className={classNames(addOnClassname)}
+            >
               {addOnSuffix}
             </Addon>
           )}

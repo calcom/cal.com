@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;

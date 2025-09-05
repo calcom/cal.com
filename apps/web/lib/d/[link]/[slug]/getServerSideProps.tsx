@@ -1,10 +1,6 @@
-import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
@@ -14,9 +10,11 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
-
 import { getRedirectWithOriginAndSearchString } from "@lib/handleOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "app/WithEmbedSSR";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 

@@ -1,7 +1,6 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import type { GetServerSidePropsContext } from "next";
 
 import { btcpayCredentialKeysSchema } from "../../lib/btcpayCredentialKeysSchema";
 import type { IBTCPaySetupProps } from "./index";

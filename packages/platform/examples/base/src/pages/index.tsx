@@ -1,7 +1,6 @@
-import { Navbar } from "@/components/Navbar";
-import { Inter, Poppins } from "next/font/google";
-
 import { Connect, StripeConnect } from "@calcom/atoms";
+import { Inter, Poppins } from "next/font/google";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
@@ -11,7 +10,8 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
     <main className={`flex min-h-screen flex-col ${inter.className} items-center justify-center`}>
       <Navbar username={props.calUsername} />
       <div
-        className={` h-[100vh] w-full items-center justify-center gap-y-3  font-mono lg:flex ${inter.className} gap-16 `}>
+        className={` h-[100vh] w-full items-center justify-center gap-y-3  font-mono lg:flex ${inter.className} gap-16 `}
+      >
         <div className="ml-32">
           <h1 className={`${poppins.className} w-[100%] pb-3 text-7xl font-bold`}>
             The all in one Scheduling marketplace

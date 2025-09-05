@@ -1,7 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { ICheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
+import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "../tokens";
 

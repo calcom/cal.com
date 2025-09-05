@@ -1,17 +1,19 @@
+import ServerTrans from "@calcom/lib/components/ServerTrans";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import {
+  type BookerLayoutSettings,
+  BookerLayouts,
+  bookerLayoutOptions,
+  defaultBookerLayoutSettings,
+} from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { CheckboxField, Label } from "@calcom/ui/components/form";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-
-import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
 
 import SectionBottomActions from "./SectionBottomActions";
 
@@ -182,7 +184,8 @@ const BookerLayoutFields = ({
           "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
           disableFields && "pointer-events-none opacity-40",
           disableFields && isUserLoading && "animate-pulse"
-        )}>
+        )}
+      >
         {bookerLayoutOptions.map((layout) => (
           <div className="w-full" key={layout}>
             <label>
@@ -208,19 +211,22 @@ const BookerLayoutFields = ({
           "transition-opacity",
           disableFields && "pointer-events-none opacity-40",
           disableFields && isUserLoading && "animate-pulse"
-        )}>
+        )}
+      >
         <Label>{t("bookerlayout_default_title")}</Label>
         <RadioGroup.Root
           key={defaultLayout}
           className="border-subtle flex w-full gap-2 rounded-md border p-1"
           defaultValue={defaultLayout}
-          onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>
+          onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}
+        >
           {bookerLayoutOptions.map((layout) => (
             <RadioGroup.Item
               className="aria-checked:bg-emphasis hover:[&:not(:disabled)]:bg-subtle focus:[&:not(:disabled)]:bg-subtle w-full rounded-[4px] p-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               disabled={toggleValues[layout] === false}
               key={layout}
-              value={layout}>
+              value={layout}
+            >
               {t(`bookerlayout_${layout}`)}
               <RadioGroup.Indicator />
             </RadioGroup.Item>
@@ -237,14 +243,16 @@ const BookerLayoutFields = ({
                 key="appearance-link"
                 target="_blank"
                 href="/settings/my-account/appearance"
-                className="underline">
+                className="underline"
+              >
                 Appearance
               </Link>,
               <Button
                 key="override-button"
                 onClick={onOverrideSettings}
                 color="minimal"
-                className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
+                className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent"
+              >
                 Override
               </Button>,
             ]}

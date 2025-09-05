@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import { bulkDeleteUsersHandler } from "./bulkDeleteUsers.handler";

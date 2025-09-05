@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -14,6 +12,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { useEffect, useState } from "react";
 
 export const apiKeyModalRef = {
   current: null as null | ((show: boolean) => void),
@@ -31,7 +30,8 @@ export const NewApiKeyButton = () => {
       onClick={() => {
         apiKeyModalRef.current?.(true);
         apiKeyToEditRef.current?.(undefined);
-      }}>
+      }}
+    >
       {t("add")}
     </Button>
   );
@@ -63,7 +63,8 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
       title={t("api_keys")}
       description={t("create_first_api_key_description", { appName: APP_NAME })}
       CTA={<NewApiKeyButton />}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <LicenseRequired>
         <div>
           {data?.length ? (

@@ -1,3 +1,20 @@
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
+import {
+  ApiSuccessResponse,
+  CreateEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
@@ -15,24 +32,6 @@ import {
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
-import * as request from "supertest";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import {
-  ApiSuccessResponse,
-  CreateEventTypeInput_2024_06_14,
-  EventTypeOutput_2024_06_14,
-} from "@calcom/platform-types";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 

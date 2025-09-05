@@ -1,8 +1,7 @@
+import dayjs from "@calcom/dayjs";
 import { describe, expect, it } from "vitest";
 
-import dayjs from "@calcom/dayjs";
-
-import { getTimeView, getDateRanges, formatPeriod } from "../insightsDateUtils";
+import { formatPeriod, getDateRanges, getTimeView } from "../insightsDateUtils";
 
 describe("EventsInsights", () => {
   describe("getDateRanges", () => {

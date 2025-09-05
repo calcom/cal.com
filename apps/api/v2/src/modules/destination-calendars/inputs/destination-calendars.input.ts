@@ -1,12 +1,11 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
-import { IsString, IsEnum, IsOptional } from "class-validator";
-
 import {
   APPLE_CALENDAR_TYPE,
   GOOGLE_CALENDAR_TYPE,
   OFFICE_365_CALENDAR_TYPE,
 } from "@calcom/platform-constants";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Expose } from "class-transformer";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class DestinationCalendarsInputBodyDto {
   @IsString()

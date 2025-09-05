@@ -1,13 +1,12 @@
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { validPassword } from "@calcom/features/auth/lib/validPassword";
+import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { validPassword } from "@calcom/features/auth/lib/validPassword";
-import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
 
 const passwordResetRequestSchema = z.object({
   password: z.string().refine(validPassword, () => ({

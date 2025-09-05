@@ -1,8 +1,7 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { Prisma } from "@calcom/prisma/client";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { OrganizationRepository } from "./organization";
 

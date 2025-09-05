@@ -2,9 +2,9 @@
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
-import type { UserListTableProps } from "@calcom/features/users/components/UserTable/UserListTable";
 import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
+import type { UserListTableProps } from "@calcom/features/users/components/UserTable/UserListTable";
+import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export const MembersView = (props: UserListTableProps & { permissions?: MemberPermissions }) => {

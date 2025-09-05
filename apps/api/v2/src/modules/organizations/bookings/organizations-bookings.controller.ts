@@ -1,10 +1,14 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@calcom/platform-types";
+import { Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
-  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
-  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
   OPTIONAL_API_KEY_HEADER,
   OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -15,11 +19,6 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/bookings",

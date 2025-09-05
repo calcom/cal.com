@@ -1,11 +1,10 @@
-import type { Mock } from "vitest";
-import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
-
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import prisma from "@calcom/prisma";
 import { RRResetInterval } from "@calcom/prisma/enums";
+import type { Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
+import { errorCodes, filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
 const luckyUserService = getLuckyUserService();
 

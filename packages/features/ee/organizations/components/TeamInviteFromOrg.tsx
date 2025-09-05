@@ -1,10 +1,9 @@
+import type { RouterOutputs } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { TextField } from "@calcom/ui/components/form";
 import type { PropsWithChildren } from "react";
 import { useState } from "react";
-
-import type { RouterOutputs } from "@calcom/trpc";
-import { TextField } from "@calcom/ui/components/form";
-import { Avatar } from "@calcom/ui/components/avatar";
-import classNames from "@calcom/ui/classNames";
 
 type TeamInviteFromOrgProps = PropsWithChildren<{
   selectedEmails?: string | string[];
@@ -72,12 +71,14 @@ function UserToInviteItem({
       className={classNames(
         "flex cursor-pointer items-center rounded-md px-2 py-1 transition",
         isSelected ? "bg-emphasis" : "hover:bg-subtle "
-      )}>
+      )}
+    >
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         <Avatar size="sm" alt="Users avatar" asChild imageSrc={member.user.avatarUrl} />
         <label
           htmlFor={`${member.user.id}`}
-          className="text-emphasis cursor-pointer text-sm font-medium leading-none">
+          className="text-emphasis cursor-pointer text-sm font-medium leading-none"
+        >
           {member.user.name || member.user.email || "Nameless User"}
         </label>
       </div>

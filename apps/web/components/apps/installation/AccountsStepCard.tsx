@@ -1,12 +1,11 @@
-import type { FC } from "react";
-import React, { useState } from "react";
-
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { StepCard } from "@calcom/ui/components/card";
+import type { FC } from "react";
+import React, { useState } from "react";
 
 import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
 
@@ -52,7 +51,8 @@ const AccountSelector: FC<AccountSelectorProps> = ({
           setSelected(true);
           onClick();
         }
-      }}>
+      }}
+    >
       <Avatar
         alt={avatar || ""}
         imageSrc={getPlaceholderAvatar(avatar, name)} // if no image, use default avatar

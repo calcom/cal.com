@@ -1,19 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import {
-  DEFAULT_PROMPT_VALUE,
-  DEFAULT_BEGIN_MESSAGE,
-} from "@calcom/features/calAIPhone/promptTemplates";
+import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
-  FormValues,
   EventTypeSetupProps,
   EventTypeUpdateInput,
+  FormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import { validateCustomEventName } from "@calcom/lib/event";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
@@ -21,6 +13,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
 

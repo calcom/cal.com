@@ -1,14 +1,12 @@
 // Import mocked functions
+
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { get as edgeConfigGet } from "@vercel/edge-config";
 import { NextRequest } from "next/server";
 import type { Mock } from "vitest";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
-
-import { checkPostMethod } from "./middleware";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // We'll test the wrapped middleware as it would be used in production
-import middleware from "./middleware";
+import middleware, { checkPostMethod } from "./middleware";
 
 // Mock dependencies at module level
 vi.mock("@vercel/edge-config", () => ({

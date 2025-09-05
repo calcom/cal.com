@@ -1,9 +1,8 @@
 "use client";
 
+import { Button } from "@calcom/ui/components/button";
 import { RenderComponentWithSnippet } from "@/app/components/render";
 import { Row } from "@/app/components/row";
-
-import { Button } from "@calcom/ui/components/button";
 
 const variants = ["button", "icon"] as const;
 const colors = ["primary", "secondary", "minimal", "destructive"] as const;
@@ -26,7 +25,8 @@ export const VariantExample: React.FC = () => (
                         variant={variant}
                         color={color}
                         size={size}
-                        StartIcon={variant === "icon" ? "plus" : undefined}>
+                        StartIcon={variant === "icon" ? "plus" : undefined}
+                      >
                         {variant !== "icon" && `Label`}
                       </Button>
                       <span className="text-subtle text-xs">{size}</span>

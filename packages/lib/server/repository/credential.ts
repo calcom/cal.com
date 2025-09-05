@@ -1,9 +1,7 @@
-import type { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { credentialForCalendarServiceSelect, safeCredentialSelect } from "@calcom/prisma/selects/credential";
+import type { Prisma } from "@prisma/client";
 
 import { buildNonDelegationCredential } from "../../delegationCredential/server";
 

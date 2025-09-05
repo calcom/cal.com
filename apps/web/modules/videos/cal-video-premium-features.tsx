@@ -1,7 +1,6 @@
 import type { DailyCall } from "@daily-co/daily-js";
-import { useTranscription, useRecording } from "@daily-co/daily-react";
-import { useDaily, useDailyEvent } from "@daily-co/daily-react";
-import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
+import { useDaily, useDailyEvent, useRecording, useTranscription } from "@daily-co/daily-react";
+import React, { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { BUTTONS } from "./button-states";
 
@@ -233,7 +232,8 @@ export const CalVideoPremiumFeatures = ({
         backgroundColor: "rgba(0,0,0,0.6)",
       }}
       ref={transcriptRef}
-      className="flex max-h-full justify-center overflow-x-hidden overflow-y-scroll p-2 text-center text-white">
+      className="flex max-h-full justify-center overflow-x-hidden overflow-y-scroll p-2 text-center text-white"
+    >
       {transcript
         ? transcript.split("\n").map((line, i) => (
             <Fragment key={`transcript-${i}`}>

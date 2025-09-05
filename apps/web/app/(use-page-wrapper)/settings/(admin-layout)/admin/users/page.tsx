@@ -1,8 +1,7 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
 import UsersListingView from "@calcom/features/ee/users/pages/users-listing-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Button } from "@calcom/ui/components/button";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -25,7 +24,8 @@ const Page = async () => {
           {/* <Button disabled>Import users</Button> */}
           <Button href="/settings/admin/users/add">Add user</Button>
         </div>
-      }>
+      }
+    >
       <UsersListingView />
     </SettingsHeader>
   );

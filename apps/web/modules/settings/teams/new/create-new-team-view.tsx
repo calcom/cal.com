@@ -1,9 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import React from "react";
-import { z } from "zod";
-
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -12,6 +8,9 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { WizardLayout } from "@calcom/ui/components/layout";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { z } from "zod";
 
 const querySchema = z.object({
   returnTo: z.string().optional(),

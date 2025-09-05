@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Message } from "./embed";
-import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
-import { runAsap, isBookerReady, isLinkReady, recordResponseIfQueued } from "./embed-iframe/lib/utils";
+import { EMBED_IFRAME_STATE, embedStore } from "./embed-iframe/lib/embedStore";
+import { isBookerReady, isLinkReady, recordResponseIfQueued, runAsap } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
-  UiConfig,
-  EmbedNonStylesConfig,
   BookerLayouts,
-  EmbedStyles,
   EmbedBookerState,
-  SlotsQuery,
+  EmbedNonStylesConfig,
+  EmbedStyles,
   PrefillAndIframeAttrsConfig,
   SetStyles,
+  SlotsQuery,
   setNonStylesConfig,
+  UiConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 

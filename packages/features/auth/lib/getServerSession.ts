@@ -1,8 +1,3 @@
-import { LRUCache } from "lru-cache";
-import type { GetServerSidePropsContext, NextApiRequest } from "next";
-import type { AuthOptions, Session } from "next-auth";
-import { getToken } from "next-auth/jwt";
-
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
@@ -10,6 +5,10 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { LRUCache } from "lru-cache";
+import type { GetServerSidePropsContext, NextApiRequest } from "next";
+import type { AuthOptions, Session } from "next-auth";
+import { getToken } from "next-auth/jwt";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**

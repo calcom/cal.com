@@ -1,20 +1,23 @@
-import { Prisma } from "@prisma/client";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
-import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import type {
+  ColumnFilterType,
+  FilterValue,
+  TextFilterValue,
+  TypedColumnFilter,
+} from "@calcom/features/data-table/lib/types";
 import {
   isMultiSelectFilterValue,
-  isTextFilterValue,
   isNumberFilterValue,
   isSingleSelectFilterValue,
+  isTextFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
@@ -570,20 +573,26 @@ export class InsightsRoutingBaseService {
     const median = statsQuery[Math.floor(statsQuery.length / 2)]?.total_bookings || 0;
 
     // Create a map of user performance indicators
-    const userPerformance = statsQuery.reduce((acc, stat) => {
-      acc[stat.userId] = {
-        total: stat.total_bookings,
-        performance:
-          stat.total_bookings > average
-            ? "above_average"
-            : stat.total_bookings === median
-            ? "median"
-            : stat.total_bookings < average
-            ? "below_average"
-            : "at_average",
-      };
-      return acc;
-    }, {} as Record<number, { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }>);
+    const userPerformance = statsQuery.reduce(
+      (acc, stat) => {
+        acc[stat.userId] = {
+          total: stat.total_bookings,
+          performance:
+            stat.total_bookings > average
+              ? "above_average"
+              : stat.total_bookings === median
+                ? "median"
+                : stat.total_bookings < average
+                  ? "below_average"
+                  : "at_average",
+        };
+        return acc;
+      },
+      {} as Record<
+        number,
+        { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }
+      >
+    );
 
     return {
       users: {
@@ -682,10 +691,13 @@ export class InsightsRoutingBaseService {
     // Extract specific filters from columnFilters
     // Convert columnFilters array to object for easier access
     const filtersMap =
-      columnFilters.reduce((acc, filter) => {
-        acc[filter.id] = filter;
-        return acc;
-      }, {} as Record<string, TypedColumnFilter<ColumnFilterType>>) || {};
+      columnFilters.reduce(
+        (acc, filter) => {
+          acc[filter.id] = filter;
+          return acc;
+        },
+        {} as Record<string, TypedColumnFilter<ColumnFilterType>>
+      ) || {};
 
     // Extract booking status order filter
     const bookingStatusOrder = filtersMap["bookingStatusOrder"];
@@ -998,18 +1010,21 @@ export class InsightsRoutingBaseService {
     `;
 
     // First group by form and field
-    const groupedByFormAndField = result.reduce((acc, curr) => {
-      const formKey = curr.formName;
-      acc[formKey] = acc[formKey] || {};
-      const labelKey = curr.fieldLabel;
-      acc[formKey][labelKey] = acc[formKey][labelKey] || [];
-      acc[formKey][labelKey].push({
-        optionId: curr.optionId,
-        count: curr.count,
-        optionLabel: curr.optionLabel,
-      });
-      return acc;
-    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
+    const groupedByFormAndField = result.reduce(
+      (acc, curr) => {
+        const formKey = curr.formName;
+        acc[formKey] = acc[formKey] || {};
+        const labelKey = curr.fieldLabel;
+        acc[formKey][labelKey] = acc[formKey][labelKey] || [];
+        acc[formKey][labelKey].push({
+          optionId: curr.optionId,
+          count: curr.count,
+          optionLabel: curr.optionLabel,
+        });
+        return acc;
+      },
+      {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>
+    );
 
     // NOTE: totalCount represents the sum of all response counts across all fields and options for a form
     // For example, if a form has 2 fields with 2 options each:
@@ -1027,10 +1042,13 @@ export class InsightsRoutingBaseService {
       .sort((a, b) => b.totalCount - a.totalCount);
 
     // Convert back to original format
-    const sortedGroupedByFormAndField = sortedEntries.reduce((acc, { formName, fields }) => {
-      acc[formName] = fields;
-      return acc;
-    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
+    const sortedGroupedByFormAndField = sortedEntries.reduce(
+      (acc, { formName, fields }) => {
+        acc[formName] = fields;
+        return acc;
+      },
+      {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>
+    );
 
     return sortedGroupedByFormAndField;
   }

@@ -1,4 +1,4 @@
-import type { Resource, CrudAction, CustomAction } from "../types/permission-registry";
+import type { CrudAction, CustomAction, Resource } from "../types/permission-registry";
 
 export interface Permission {
   resource: Resource;

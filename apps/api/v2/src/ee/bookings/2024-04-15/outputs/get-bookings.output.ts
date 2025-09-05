@@ -1,20 +1,19 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
-  IsString,
-  IsEnum,
-  IsInt,
-  IsBoolean,
-  IsUrl,
-  IsOptional,
-  IsObject,
-  ValidateNested,
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEmail,
+  IsEnum,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUrl,
+  ValidateNested,
 } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 const Status = {
   CANCELLED: "CANCELLED",

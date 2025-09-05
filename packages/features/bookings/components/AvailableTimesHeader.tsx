@@ -1,5 +1,3 @@
-import { shallow } from "zustand/shallow";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -7,6 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { shallow } from "zustand/shallow";
 
 import { TimeFormatToggle } from "./TimeFormatToggle";
 
@@ -39,17 +38,20 @@ export const AvailableTimesHeader = ({
         `dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium`,
         "bg-default before:bg-default",
         customClassNames?.availableTimeSlotsHeaderContainer
-      )}>
+      )}
+    >
       <span
         className={classNames(
           isColumnView && "w-full text-center",
           isColumnView ? "text-subtle text-xs uppercase" : "text-emphasis font-semibold"
-        )}>
+        )}
+      >
         <span
           className={classNames(
             isToday && !customClassNames?.availableTimeSlotsTitle && "!text-default",
             customClassNames?.availableTimeSlotsTitle
-          )}>
+          )}
+        >
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>
         <span
@@ -59,7 +61,8 @@ export const AvailableTimesHeader = ({
             isMonthView
               ? `text-default text-sm ${customClassNames?.availableTimeSlotsTitle}`
               : `text-xs ${customClassNames?.availableTimeSlotsTitle}`
-          )}>
+          )}
+        >
           {date.format("DD")}
           {availableMonth && `, ${availableMonth}`}
         </span>

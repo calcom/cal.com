@@ -1,7 +1,6 @@
+import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import * as crypto from "crypto";
 import { z } from "zod";
-
-import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";

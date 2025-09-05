@@ -1,9 +1,9 @@
 import {
-  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableNew,
   TableRow,
 } from "@calcom/ui/components/table";
 
@@ -17,10 +17,12 @@ export function DataTableSkeleton({ columns, rows = 10, columnWidths = [] }: Dat
   return (
     <div
       className="grid h-[75dvh]"
-      style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
+      style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}
+    >
       <div
         className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
-        style={{ gridArea: "body" }}>
+        style={{ gridArea: "body" }}
+      >
         <TableNew>
           <TableHeader className="bg-subtle sticky top-0 z-10">
             <TableRow>

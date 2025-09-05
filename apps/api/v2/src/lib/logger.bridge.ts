@@ -109,7 +109,7 @@ export class Logger {
         // Attempt to stringify non-string arguments
         try {
           return JSON.stringify(arg);
-        } catch (e) {
+        } catch (_e) {
           return "[Unserializable Object]";
         }
       })

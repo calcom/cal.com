@@ -1,5 +1,5 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 
 @Injectable()
 export class RoutingFormsRepository {

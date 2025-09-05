@@ -1,6 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { _generateMetadata } from "app/_utils";
 
 import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/create-new-view";
 

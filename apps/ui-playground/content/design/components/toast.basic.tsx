@@ -1,10 +1,9 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { Button } from "@calcom/ui/components/button";
-import { ErrorToast, showToast, SuccessToast, WarningToast } from "@calcom/ui/components/toast";
+import { ErrorToast, SuccessToast, showToast, WarningToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const BasicExample: React.FC = () => (
   <RenderComponentWithSnippet>
@@ -12,21 +11,24 @@ export const BasicExample: React.FC = () => (
       <Button
         onClick={() => {
           showToast("This is a basic toast message", "success");
-        }}>
+        }}
+      >
         Show Toast
       </Button>
 
       <Button
         onClick={() => {
           showToast("This toast will disappear in 2 seconds", "success", { duration: 2000 });
-        }}>
+        }}
+      >
         Custom Duration
       </Button>
 
       <Button
         onClick={() => {
           showToast("This toast will persist until dismissed", "success", { duration: Infinity });
-        }}>
+        }}
+      >
         Persistent Toast
       </Button>
     </div>

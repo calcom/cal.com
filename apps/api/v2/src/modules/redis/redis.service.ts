@@ -1,7 +1,7 @@
-import { AppConfig } from "@/config/type";
-import { Injectable, OnModuleDestroy, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Redis } from "ioredis";
+import { AppConfig } from "@/config/type";
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {

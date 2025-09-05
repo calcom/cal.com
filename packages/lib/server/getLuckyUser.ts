@@ -1,6 +1,4 @@
-import type { Prisma, User } from "@prisma/client";
-
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
+import type { Fields, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
@@ -8,17 +6,17 @@ import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
-import type { Booking } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-import { RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { Prisma, User } from "@prisma/client";
 
 import { mergeOverlappingRanges } from "../date-ranges";
 
@@ -368,7 +366,7 @@ export class LuckyUserService implements ILuckyUserService {
   private filterUsersBasedOnWeights<
     T extends PartialUser & {
       weight?: number | null;
-    }
+    },
   >({
     availableUsers,
     bookingsOfAvailableUsersOfInterval,
@@ -491,7 +489,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(
     allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
     attributesQueryValueChild: Record<
@@ -688,15 +686,18 @@ export class LuckyUserService implements ILuckyUserService {
       )
     );
 
-    return usersBusyTimesQuery.reduce((usersBusyTime, userBusyTimeQuery, index) => {
-      if (userBusyTimeQuery.success) {
-        usersBusyTime.push({
-          userId: usersWithCredentials[index].id,
-          busyTimes: userBusyTimeQuery.data,
-        });
-      }
-      return usersBusyTime;
-    }, [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]);
+    return usersBusyTimesQuery.reduce(
+      (usersBusyTime, userBusyTimeQuery, index) => {
+        if (userBusyTimeQuery.success) {
+          usersBusyTime.push({
+            userId: usersWithCredentials[index].id,
+            busyTimes: userBusyTimeQuery.data,
+          });
+        }
+        return usersBusyTime;
+      },
+      [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]
+    );
   }
 
   private async getBookingsOfInterval({
@@ -731,7 +732,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(getLuckyUserParams: GetLuckyUserParams<T>): Promise<FetchedData> {
     const startTime = performance.now();
 
@@ -758,9 +759,8 @@ export class LuckyUserService implements ILuckyUserService {
       );
     })();
 
-    const { attributeWeights, virtualQueuesData } = await this.prepareQueuesAndAttributesData(
-      getLuckyUserParams
-    );
+    const { attributeWeights, virtualQueuesData } =
+      await this.prepareQueuesAndAttributesData(getLuckyUserParams);
 
     const interval =
       eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
@@ -912,7 +912,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(getLuckyUserParams: GetLuckyUserParams<T>) {
     const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
 
@@ -928,7 +928,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
     const {
       eventType,

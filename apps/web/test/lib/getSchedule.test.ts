@@ -1,24 +1,21 @@
-import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
-
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
+import { type BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { describe, test, vi } from "vitest";
+import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
 import {
+  createBookingScenario,
+  createCredentials,
+  createOrganization,
   getDate,
   getGoogleCalendarCredential,
-  createBookingScenario,
-  createOrganization,
   getOrganizer,
   getScenarioData,
-  Timezones,
-  TestData,
-  createCredentials,
   mockCrmApp,
+  TestData,
+  Timezones,
 } from "../utils/bookingScenario/bookingScenario";
-
-import { describe, vi, test } from "vitest";
-
-import dayjs from "@calcom/dayjs";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
-import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
 
 import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";

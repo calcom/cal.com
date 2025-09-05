@@ -1,14 +1,12 @@
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { plain, upsertPlainCustomer } from "@lib/plain/plain";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const contactFormSchema = z.object({
   message: z.string().min(1, "Message is required"),

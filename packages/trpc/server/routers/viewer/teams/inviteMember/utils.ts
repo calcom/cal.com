@@ -1,6 +1,3 @@
-import { randomBytes } from "crypto";
-import type { TFunction } from "i18next";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -11,21 +8,20 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin, updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
-import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
-import type { Profile as ProfileType } from "@calcom/prisma/client";
+import type { Membership, OrganizationSettings, Profile as ProfileType, Team } from "@calcom/prisma/client";
+import { Prisma, type UserPassword, type User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
+import { randomBytes } from "crypto";
+import type { TFunction } from "i18next";
 
 import { isEmail } from "../util";
 import type { TeamWithParent } from "./types";

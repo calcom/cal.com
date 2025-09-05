@@ -1,7 +1,7 @@
 import type {
   CreateEventTypeInput_2024_06_14,
-  SeatOptionsTransformedSchema,
   SeatOptionsDisabledSchema,
+  SeatOptionsTransformedSchema,
 } from "@calcom/platform-types";
 
 export function transformSeatsApiToInternal(

@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -9,6 +7,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
@@ -250,7 +249,8 @@ const DeleteOrgDialog = ({
         confirmBtnText={t("delete")}
         cancelBtnText={t("cancel")}
         variety="danger"
-        onConfirm={onConfirm}>
+        onConfirm={onConfirm}
+      >
         <ul className="ml-4 mt-5 list-disc space-y-2">
           <li>{t("admin_delete_organization_description_1")}</li>
           <li>{t("admin_delete_organization_description_2")}</li>

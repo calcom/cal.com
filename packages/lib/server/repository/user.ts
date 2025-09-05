@@ -1,17 +1,16 @@
-import type { z } from "zod";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { availabilityUserSelect } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
+import { availabilityUserSelect } from "@calcom/prisma";
 import type { Prisma, User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
+import type { z } from "zod";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
 import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
@@ -423,7 +422,7 @@ export class UserRepository {
       id: number;
       username: string | null;
       [key: string]: any;
-    }
+    },
   >({
     user,
   }: {
@@ -559,7 +558,7 @@ export class UserRepository {
             username: string | null;
             id: number;
           };
-        }
+        },
   >(entity: T) {
     if ("profile" in entity) {
       const { profile, ...entityWithoutProfile } = entity;

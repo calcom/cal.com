@@ -1,11 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
-import { useEffect, useRef, useState } from "react";
-import { Toaster } from "sonner";
-import { v4 as uuidv4 } from "uuid";
-
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -18,6 +12,11 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
+import { useRouter } from "next/navigation";
+import type { FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Toaster } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 import FormInputFields from "../../components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
@@ -25,7 +24,7 @@ import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
-import type { NonRouterRoute, FormResponse } from "../../types/types";
+import type { FormResponse, NonRouterRoute } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
@@ -196,7 +195,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                         className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
                         loading={responseMutation.isPending}
                         type="submit"
-                        color="primary">
+                        color="primary"
+                      >
                         {t("continue")}
                       </Button>
                     </div>

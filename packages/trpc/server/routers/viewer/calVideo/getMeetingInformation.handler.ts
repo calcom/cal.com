@@ -35,7 +35,7 @@ export const getMeetingInformationHandler = async ({ ctx: _ctx, input }: GetMeet
     }
     const res = await videoApiAdapter.getMeetingInformation(roomName);
     return res;
-  } catch (err) {
+  } catch (_err) {
     throw new TRPCError({
       code: "BAD_REQUEST",
     });

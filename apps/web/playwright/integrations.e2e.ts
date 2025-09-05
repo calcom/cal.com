@@ -1,11 +1,10 @@
+import { prisma } from "@calcom/prisma";
 import type { Page, Route } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { DefaultBodyType } from "msw";
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { v4 as uuidv4 } from "uuid";
-
-import { prisma } from "@calcom/prisma";
 
 import { test, todo } from "./lib/fixtures";
 import { submitAndWaitForJsonResponse } from "./lib/testUtils";

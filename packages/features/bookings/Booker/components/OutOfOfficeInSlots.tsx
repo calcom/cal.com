@@ -1,11 +1,10 @@
-import { useRouter } from "next/navigation";
-
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { useRouter } from "next/navigation";
 
 interface IOutOfOfficeInSlotsProps {
   date: string;
@@ -31,7 +30,8 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
         className={classNames(
           "flex h-full flex-col items-center justify-start rounded-md border bg-white px-4 py-4 font-normal dark:bg-transparent",
           borderDashed && "border-dashed"
-        )}>
+        )}
+      >
         <div className="bg-emphasis flex h-14 w-14 flex-col items-center justify-center rounded-full">
           <span className="m-auto text-center text-lg">{emoji}</span>
         </div>
@@ -69,7 +69,8 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
                   layout ? `&layout=${layout}` : ""
                 }`
               );
-            }}>
+            }}
+          >
             <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
               {t("ooo_slots_book_with", { displayName: toUser.displayName })}
             </span>

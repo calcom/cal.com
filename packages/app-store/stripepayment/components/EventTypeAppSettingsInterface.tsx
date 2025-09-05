@@ -1,19 +1,16 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import { useState, useEffect } from "react";
-
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { CheckboxField, Select, TextField } from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
+import * as RadioGroup from "@radix-ui/react-radio-group";
+import { useEffect, useState } from "react";
 
 import {
-  convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
+  convertToSmallestCurrencyUnit,
 } from "../../_utils/payments/currencyConversions";
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
@@ -178,14 +175,16 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                     setAppData("refundDaysCount", undefined);
                     setAppData("refundCountCalendarDays", undefined);
                   }
-                }}>
+                }}
+              >
                 <RadioField className="w-fit" value={RefundPolicy.ALWAYS} label={t("always")} id="always" />
                 <RadioField className="w-fit" value={RefundPolicy.NEVER} label={t("never")} id="never" />
                 <div className={classNames("text-default mb-2 flex flex-wrap items-center text-sm")}>
                   <RadioGroup.Item
                     className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2"
                     value="days"
-                    id="days">
+                    id="days"
+                  >
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
                   </RadioGroup.Item>
                   <div className="flex items-center">

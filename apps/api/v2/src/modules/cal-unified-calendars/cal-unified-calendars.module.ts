@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
@@ -11,7 +12,6 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [TokensModule],

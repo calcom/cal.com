@@ -1,13 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
+import { useRouter } from "next/navigation";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";

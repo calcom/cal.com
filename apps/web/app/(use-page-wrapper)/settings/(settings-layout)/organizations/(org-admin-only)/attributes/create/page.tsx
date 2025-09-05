@@ -1,6 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-
 import OrgAttributesCreatePage from "@calcom/ee/organizations/pages/settings/attributes/attributes-create-view";
+import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

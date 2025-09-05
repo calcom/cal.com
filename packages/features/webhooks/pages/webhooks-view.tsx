@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -11,8 +9,9 @@ import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhoo
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { useRouter } from "next/navigation";
 
-import { WebhookListItem, CreateNewWebhookButton } from "../components";
+import { CreateNewWebhookButton, WebhookListItem } from "../components";
 
 type Props = {
   data: RouterOutputs["viewer"]["webhook"]["getByViewer"];
@@ -46,7 +45,8 @@ const WebhooksList = ({
       title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
       CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
-      borderInShellHeader={false}>
+      borderInShellHeader={false}
+    >
       {!!webhookGroups.length ? (
         <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (

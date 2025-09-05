@@ -1,9 +1,7 @@
-import { captureException } from "@sentry/nextjs";
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-
+import { captureException } from "@sentry/nextjs";
 import type { TRPCError } from "@trpc/server";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 type OnErrorOptions = {
   error: TRPCError;

@@ -1,10 +1,7 @@
-import { randomBytes, createHash } from "crypto";
-import { totp } from "otplib";
-
 import {
+  sendChangeOfEmailVerificationLink,
   sendEmailVerificationCode,
   sendEmailVerificationLink,
-  sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/email-manager";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
@@ -12,8 +9,10 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
+import { prisma } from "@calcom/prisma";
+import { createHash, randomBytes } from "crypto";
+import { totp } from "otplib";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 

@@ -1,8 +1,7 @@
-import { cva } from "class-variance-authority";
-
 import dayjs from "@calcom/dayjs";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { cva } from "class-variance-authority";
 
 import type { CalendarEvent } from "../../types/events";
 
@@ -79,12 +78,14 @@ export function Event({
           eventDuration > 30 && "flex-col py-1",
           options?.className
         )}
-        style={styles}>
+        style={styles}
+      >
         <div
           className={classNames(
             "flex w-full gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
             eventDuration <= 30 && "items-center"
-          )}>
+          )}
+        >
           <span>{event.title}</span>
           {eventDuration <= 30 && !event.options?.hideTime && (
             <p className="text-subtle w-full whitespace-nowrap text-left text-[10px] leading-none">

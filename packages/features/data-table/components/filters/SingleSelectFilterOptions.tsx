@@ -2,7 +2,7 @@
 
 import { useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
-import { ZSingleSelectFilterValue, ColumnFilterType } from "../../lib/types";
+import { ColumnFilterType, ZSingleSelectFilterValue } from "../../lib/types";
 import { BaseSelectFilterOptions } from "./BaseSelectFilterOptions";
 
 export type SingleSelectFilterOptionsProps = {

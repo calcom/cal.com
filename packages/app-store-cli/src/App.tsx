@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import { FC } from "react";
 import { SupportedCommands } from "src/types";
 
 import Create from "./commandViews/Create";

@@ -1,12 +1,5 @@
 "use client";
 
-import type { EventType, Payment } from "@prisma/client";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
-import { useRouter } from "next/navigation";
-import type { SyntheticEvent } from "react";
-import { useEffect, useState } from "react";
-
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -15,6 +8,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PaymentOption } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import { CheckboxField } from "@calcom/ui/components/form";
+import type { EventType, Payment } from "@prisma/client";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
+import { useRouter } from "next/navigation";
+import type { SyntheticEvent } from "react";
+import { useEffect, useState } from "react";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -101,7 +100,8 @@ export const PaymentFormComponent = (
           onClick={() => {
             setIsCanceling(true);
             props.onCancel();
-          }}>
+          }}
+        >
           <span id="button-text">{t("cancel")}</span>
         </Button>
         <Button
@@ -109,7 +109,8 @@ export const PaymentFormComponent = (
           disabled={disableButtons}
           loading={state.status === "processing"}
           id="submit"
-          color="secondary">
+          color="secondary"
+        >
           <span id="button-text">
             {state.status === "processing" ? (
               <div className="spinner" id="spinner" />
@@ -254,7 +255,8 @@ export default function PaymentComponent(props: Props) {
         appearance: {
           theme,
         },
-      }}>
+      }}
+    >
       <PaymentForm {...props} />
     </Elements>
   );

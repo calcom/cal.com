@@ -1,7 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -10,6 +6,9 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
+import { z } from "zod";
 
 interface IAddGuestsDialog {
   isOpenDialog: boolean;
@@ -91,7 +90,8 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
               setIsOpenDialog(false);
             }}
             type="button"
-            color="secondary">
+            color="secondary"
+          >
             {t("cancel")}
           </Button>
           <Button data-testid="add_members" loading={addGuestsMutation.isPending} onClick={handleAdd}>

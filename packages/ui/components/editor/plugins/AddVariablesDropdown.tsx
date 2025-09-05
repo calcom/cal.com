@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useMemo, useState } from "react";
 
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Icon } from "../../icon";
@@ -32,7 +31,8 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
     <Dropdown
       onOpenChange={(open) => {
         if (!open) setQuery("");
-      }}>
+      }}
+    >
       <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-muted pt-[6px]">
         <div className="items-center">
           {props.isTextEditor ? (
@@ -88,7 +88,8 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                     onClick={() => {
                       props.addVariable(t(`${variable}_variable`));
                       setQuery("");
-                    }}>
+                    }}
+                  >
                     <div className="flex flex-col space-y-1">
                       <div className="text-default font-mono text-sm">
                         {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}

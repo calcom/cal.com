@@ -1,26 +1,23 @@
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import {
-  getBooker,
-  TestData,
-  getOrganizer,
-  createBookingScenario,
-  Timezones,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
   BookingLocations,
+  createBookingScenario,
+  getBooker,
   getDate,
-  getMockBookingAttendee,
   getGoogleCalendarCredential,
+  getMockBookingAttendee,
+  getOrganizer,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+  Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, test, vi, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { describe, expect, test, vi } from "vitest";
 
 describe("Round Robin handleNewBooking", () => {
   setupAndTeardown();

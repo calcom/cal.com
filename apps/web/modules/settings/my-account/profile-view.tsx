@@ -1,19 +1,9 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
-// eslint-disable-next-line no-restricted-imports
-import { get, pick } from "lodash";
-import { signOut, useSession } from "next-auth/react";
-import type { BaseSyntheticEvent } from "react";
-import React, { useRef, useState } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
@@ -28,23 +18,27 @@ import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter, DialogTrigger } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, Label, PasswordField, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
-
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
 import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { TRPCClientErrorLike } from "@trpc/client";
+import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
+// eslint-disable-next-line no-restricted-imports
+import { get, pick } from "lodash";
+import { signOut, useSession } from "next-auth/react";
+import type { BaseSyntheticEvent } from "react";
+import React, { useRef, useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface DeleteAccountValues {
   totpCode: string;
@@ -254,7 +248,8 @@ const ProfileView = ({ user }: Props) => {
     <SettingsHeader
       title={t("profile")}
       description={t("profile_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -318,7 +313,8 @@ const ProfileView = ({ user }: Props) => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <>
             <div className="mb-10">
               <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
@@ -348,7 +344,8 @@ const ProfileView = ({ user }: Props) => {
                 color="primary"
                 data-testid="delete-account-confirm"
                 onClick={(e) => onConfirmButton(e)}
-                loading={deleteMeMutation.isPending}>
+                loading={deleteMeMutation.isPending}
+              >
                 {t("delete_my_account")}
               </Button>
             </DialogFooter>
@@ -362,7 +359,8 @@ const ProfileView = ({ user }: Props) => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
@@ -395,7 +393,8 @@ const ProfileView = ({ user }: Props) => {
               data-testid="profile-update-email-submit-button"
               color="primary"
               loading={confirmPasswordMutation.isPending}
-              onClick={(e) => onConfirmPassword(e)}>
+              onClick={(e) => onConfirmPassword(e)}
+            >
               {t("confirm")}
             </Button>
             <DialogClose />
@@ -408,7 +407,8 @@ const ProfileView = ({ user }: Props) => {
           title={t("create_account_password")}
           description={t("create_account_password_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <DialogFooter>
             <DialogClose />
           </DialogFooter>
@@ -420,14 +420,16 @@ const ProfileView = ({ user }: Props) => {
           title={t("disconnect_account")}
           description={t("disconnect_account_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <DialogFooter>
             <Button
               color="primary"
               onClick={() => {
                 unlinkConnectedAccountMutation.mutate();
                 setShowAccountDisconnectWarning(false);
-              }}>
+              }}
+            >
               {t("confirm")}
             </Button>
             <DialogClose />
@@ -626,7 +628,8 @@ const ProfileForm = ({
                           color="destructive"
                           onClick={() => {
                             onChange(null);
-                          }}>
+                          }}
+                        >
                           {t("remove")}
                         </Button>
                       )}
@@ -651,7 +654,8 @@ const ProfileForm = ({
             <div
               className={
                 secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
-              }>
+              }
+            >
               {secondaryEmailFields.map((field, index) => (
                 <CustomEmailTextField
                   key={field.itemId}
@@ -678,7 +682,8 @@ const ProfileForm = ({
               StartIcon="plus"
               className="mt-2"
               onClick={() => handleAddSecondaryEmail()}
-              data-testid="add-secondary-email">
+              data-testid="add-secondary-email"
+            >
               {t("add_email")}
             </Button>
           </div>
@@ -744,7 +749,8 @@ const ProfileForm = ({
           disabled={isDisabled}
           color="primary"
           type="submit"
-          data-testid="profile-submit-button">
+          data-testid="profile-submit-button"
+        >
           {t("update")}
         </Button>
       </SectionBottomActions>

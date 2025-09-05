@@ -1,12 +1,11 @@
+import classNames from "@calcom/ui/classNames";
 import type { GroupBase, InputProps, Props } from "react-select";
 import ReactSelect, { components } from "react-select";
-
-import classNames from "@calcom/ui/classNames";
 
 export type SelectProps<
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 > = Props<Option, IsMulti, Group>;
 
 export const InputComponent = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
@@ -25,7 +24,7 @@ export const InputComponent = <Option, IsMulti extends boolean, Group extends Gr
 function Select<
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
   return (
     <ReactSelect
@@ -66,7 +65,7 @@ export default Select;
 export function UnstyledSelect<
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 >({ ...props }: SelectProps<Option, IsMulti, Group>) {
   return (
     <ReactSelect

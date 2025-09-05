@@ -1,13 +1,12 @@
+import classNames from "@calcom/ui/classNames";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { forwardRef } from "react";
 
-import classNames from "@calcom/ui/classNames";
-
 import type { ButtonColor } from "../button";
-import { Icon } from "../icon";
 import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
@@ -43,7 +42,8 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
           "w-[220px]",
           props.className
         )}
-        ref={forwardedRef}>
+        ref={forwardedRef}
+      >
         {children}
       </DropdownMenuPrimitive.Content>
     );
@@ -82,7 +82,8 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
         checked={checked}
         onCheckedChange={onCheckedChange}
         ref={forwardedRef}
-        className="hover:text-emphasis text-default hover:bg-subtle flex flex-1 items-center space-x-2 px-3 py-2 hover:outline-none hover:ring-0 disabled:cursor-not-allowed">
+        className="hover:text-emphasis text-default hover:bg-subtle flex flex-1 items-center space-x-2 px-3 py-2 hover:outline-none hover:ring-0 disabled:cursor-not-allowed"
+      >
         <div className="w-full">{children}</div>
         {!checked && (
           <input
@@ -168,7 +169,8 @@ export const DropdownItem = (props: DropdownItemProps) => {
         "hover:text-emphasis text-default inline-flex w-full items-center space-x-1 rounded-lg  p-2 disabled:cursor-not-allowed",
         color === "destructive" ? "hover:bg-error hover:text-error text-error" : "hover:bg-subtle",
         props.className
-      )}>
+      )}
+    >
       <>
         {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4" />)}
         <div className={classNames("w-fit text-sm font-medium leading-none", childrenClassName)}>

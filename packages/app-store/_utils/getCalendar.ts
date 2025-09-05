@@ -15,7 +15,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 /**
  * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
  */
-const isCalendarService = (x: unknown): x is CalendarApp =>
+const _isCalendarService = (x: unknown): x is CalendarApp =>
   !!x &&
   typeof x === "object" &&
   "lib" in x &&

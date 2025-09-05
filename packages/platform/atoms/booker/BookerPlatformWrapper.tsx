@@ -1,16 +1,10 @@
-import { useQueryClient } from "@tanstack/react-query";
-// eslint-disable-next-line no-restricted-imports
-import debounce from "lodash/debounce";
-import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import {
-  BookerStoreProvider,
-  useInitializeBookerStoreContext,
-  useBookerStoreContext,
   BookerStoreContext,
+  BookerStoreProvider,
+  useBookerStoreContext,
+  useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
@@ -23,13 +17,18 @@ import { getUsernameList } from "@calcom/lib/defaultEvents";
 import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { useQueryClient } from "@tanstack/react-query";
+// eslint-disable-next-line no-restricted-imports
+import debounce from "lodash/debounce";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { shallow } from "zustand/shallow";
 
 import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
 import {
-  useGetBookingForReschedule,
   QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+  useGetBookingForReschedule,
 } from "../hooks/bookings/useGetBookingForReschedule";
 import { useHandleBookEvent } from "../hooks/bookings/useHandleBookEvent";
 import { useAtomGetPublicEvent } from "../hooks/event-types/public/useAtomGetPublicEvent";

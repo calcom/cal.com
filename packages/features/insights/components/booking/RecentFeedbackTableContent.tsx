@@ -18,7 +18,8 @@ export const RecentFeedbackTableContent = ({ data }: { data: FeedbackData }) => 
         data.map((item) => (
           <div
             key={item.userId}
-            className="border-subtle flex items-center justify-between border-b px-4 py-3 last:border-b-0">
+            className="border-subtle flex items-center justify-between border-b px-4 py-3 last:border-b-0"
+          >
             <div className="flex items-center">
               <Avatar
                 alt={item.user.name || ""}

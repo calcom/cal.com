@@ -1,27 +1,22 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { MINIMUM_NUMBER_OF_ORG_SEATS, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { CreationSource } from "@calcom/prisma/enums";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, Label, TextField, ToggleGroup } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { useRouter } from "next/navigation";
+import type { SessionContextValue } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "../lib/onboardingStore";
 
@@ -127,7 +122,8 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
             setServerErrorMessage(null);
             intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
           }
-        }}>
+        }}
+      >
         <div>
           {serverErrorMessage && (
             <div className="mb-4">
@@ -316,7 +312,8 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                 <RadioArea.Item
                   className={classNames("bg-default w-full text-sm opacity-70")}
                   value="TEAMS"
-                  disabled>
+                  disabled
+                >
                   <strong className="mb-1 block">{t("teams")}</strong>
                   <p>{t("your_current_plan")}</p>
                 </RadioArea.Item>
@@ -342,7 +339,8 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
             EndIcon="arrow-right"
             type="submit"
             form="createOrg"
-            className="w-full justify-center">
+            className="w-full justify-center"
+          >
             {t("continue")}
           </Button>
         </div>

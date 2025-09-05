@@ -1,12 +1,10 @@
-import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
-import { captureException } from "@sentry/nextjs";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+import { performance } from "@calcom/lib/server/perfObserver";
+import { captureException, wrapApiHandlerWithSentry } from "@sentry/nextjs";
 import type { Params } from "app/_types";
 import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { performance } from "@calcom/lib/server/perfObserver";
 
 type Handler<T extends NextResponse | Response = NextResponse> = (
   req: NextRequest,

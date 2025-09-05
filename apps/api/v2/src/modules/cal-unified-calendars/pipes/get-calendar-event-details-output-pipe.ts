@@ -1,10 +1,10 @@
+import { Injectable, PipeTransform } from "@nestjs/common";
 import {
   CalendarEventResponseStatus,
   CalendarEventStatus,
   DateTimeWithZone,
   UnifiedCalendarEventOutput,
 } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
-import { PipeTransform, Injectable } from "@nestjs/common";
 
 export interface GoogleCalendarEventResponse {
   kind: string;
@@ -95,21 +95,21 @@ export class GoogleCalendarEventOutputPipe
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
       calendarEvent.attendees = googleEvent.attendees.map((attendee) => {
-          return {
-            email: attendee.email,
-            name: attendee.displayName,
-            responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
-            host: attendee.organizer,
-            self: attendee.self,
-            optional: attendee.optional,
-          };
-        });
+        return {
+          email: attendee.email,
+          name: attendee.displayName,
+          responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
+          host: attendee.organizer,
+          self: attendee.self,
+          optional: attendee.optional,
+        };
+      });
     }
 
     calendarEvent.status = this.transformEventStatus(googleEvent.status);
 
-    calendarEvent.calendarEventOwner = googleEvent.organizer 
-    calendarEvent.hosts = this.transformHosts(googleEvent) 
+    calendarEvent.calendarEventOwner = googleEvent.organizer;
+    calendarEvent.hosts = this.transformHosts(googleEvent);
 
     calendarEvent.source = "google";
 

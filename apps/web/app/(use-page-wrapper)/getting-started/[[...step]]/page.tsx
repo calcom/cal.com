@@ -1,16 +1,14 @@
-import { createRouterCaller } from "app/_trpc/context";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { createRouterCaller } from "app/_trpc/context";
+import type { PageProps as ServerPageProps } from "app/_types";
+import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import Page from "~/getting-started/[[...step]]/onboarding-view";
 

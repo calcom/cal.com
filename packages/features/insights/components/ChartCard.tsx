@@ -1,10 +1,9 @@
 "use client";
 
-import { Fragment, useMemo, type ReactNode } from "react";
-
 import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Fragment, type ReactNode, useMemo } from "react";
 
 type PanelCardProps = React.ComponentProps<typeof PanelCard>;
 
@@ -44,7 +43,8 @@ export function ChartCard({
         ) : (
           legendComponent
         )
-      }>
+      }
+    >
       {panelCardProps.children}
     </PanelCard>
   );
@@ -64,7 +64,8 @@ export function ChartCardItem({
       className={classNames(
         "text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0",
         className
-      )}>
+      )}
+    >
       <div className="grow text-sm font-medium">{children}</div>
       {count !== undefined && <div className="text-sm font-medium">{count}</div>}
     </div>
@@ -103,14 +104,16 @@ function Legend({
               aria-pressed={isClickable ? isEnabled : undefined}
               aria-label={`Toggle ${item.label}`}
               disabled={!isClickable}
-              onClick={isClickable ? () => onItemToggle?.(item.label) : undefined}>
+              onClick={isClickable ? () => onItemToggle?.(item.label) : undefined}
+            >
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
               <Tooltip content={item.label}>
                 <span
                   className={classNames(
                     "text-default truncate py-0.5 text-sm font-medium leading-none",
                     size === "sm" ? "w-16" : ""
-                  )}>
+                  )}
+                >
                   {item.label}
                 </span>
               </Tooltip>

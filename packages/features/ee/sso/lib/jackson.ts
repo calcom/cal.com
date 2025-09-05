@@ -1,11 +1,11 @@
 import type {
   IConnectionAPIController,
+  IDirectorySyncController,
   IOAuthController,
   ISPSSOConfig,
   JacksonOption,
-  IDirectorySyncController,
-  OAuthTokenReq,
   OAuthReq,
+  OAuthTokenReq,
   SAMLResponsePayload,
 } from "@boxyhq/saml-jackson";
 

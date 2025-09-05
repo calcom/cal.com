@@ -1,9 +1,8 @@
-import { z } from "zod";
-
 import {
   bookingCreateBodySchemaForApi,
   bookingCreateSchemaLegacyPropsForApi,
 } from "@calcom/prisma/zod/custom/booking";
+import { z } from "zod";
 
 import type { getBookingFieldsWithSystemFields } from "./getBookingFields";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";

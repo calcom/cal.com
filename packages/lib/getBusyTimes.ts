@@ -1,6 +1,3 @@
-import type { Booking, EventType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import { subtract } from "@calcom/lib/date-ranges";
@@ -17,6 +14,7 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { Booking, EventType, Prisma } from "@prisma/client";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
 

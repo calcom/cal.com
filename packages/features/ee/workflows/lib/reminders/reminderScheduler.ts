@@ -1,9 +1,9 @@
 import {
   isAttendeeAction,
+  isCalAIAction,
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
-  isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
@@ -13,14 +13,18 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  SchedulingType,
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
-import { scheduleSMSReminder } from "./smsReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
+import { scheduleSMSReminder } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {

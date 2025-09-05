@@ -1,11 +1,3 @@
-import type { TFunction } from "i18next";
-import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { ComponentProps, Dispatch, SetStateAction } from "react";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
-import type { Options } from "react-select";
-import { v4 as uuidv4 } from "uuid";
-
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AddMembersWithSwitch, {
   mapUserToValue,
@@ -15,24 +7,29 @@ import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/e
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
-  FormValues,
-  TeamMember,
   EventTypeSetupProps,
+  FormValues,
   Host,
   SelectClassNames,
   SettingsToggleClassNames,
+  TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { TFunction } from "i18next";
+import Link from "next/link";
+import type { ComponentProps, Dispatch, SetStateAction } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
+import type { Options } from "react-select";
+import { v4 as uuidv4 } from "uuid";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 import WeightDescription from "../../WeightDescription";
@@ -129,7 +126,8 @@ const FixedHostHelper = ({ t }: { t: TFunction }) => (
         key="fixed_host_helper"
         className="underline underline-offset-2"
         target="_blank"
-        href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
+        href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts"
+      >
         Learn more
       </Link>,
     ]}
@@ -206,7 +204,8 @@ const FixedHosts = ({
             className={classNames(
               "border-subtle mt-5 rounded-t-md border p-6 pb-5",
               customClassNames?.container
-            )}>
+            )}
+          >
             <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
               {t("fixed_hosts")}
             </Label>
@@ -214,7 +213,8 @@ const FixedHosts = ({
               className={classNames(
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
-              )}>
+              )}
+            >
               <FixedHostHelper t={t} />
             </p>
           </div>
@@ -246,7 +246,8 @@ const FixedHosts = ({
           descriptionClassName={classNames("text-sm text-subtle", customClassNames?.description)}
           switchContainerClassName={customClassNames?.container}
           onCheckedChange={handleFixedHostsToggle}
-          childrenClassName={classNames("lg:ml-0", customClassNames?.children)}>
+          childrenClassName={classNames("lg:ml-0", customClassNames?.children)}
+        >
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
               data-testid="fixed-hosts-select"
@@ -463,10 +464,8 @@ const RoundRobinHosts = ({
   return (
     <div className={classNames("rounded-lg")}>
       <div
-        className={classNames(
-          "border-subtle mt-5 rounded-t-md border p-6 pb-5",
-          customClassNames?.container
-        )}>
+        className={classNames("border-subtle mt-5 rounded-t-md border p-6 pb-5", customClassNames?.container)}
+      >
         <div className="flex items-center justify-between">
           <div>
             <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
@@ -476,7 +475,8 @@ const RoundRobinHosts = ({
               className={classNames(
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
-              )}>
+              )}
+            >
               {hostGroups?.length > 0 ? t("round_robin_groups_helper") : t("round_robin_helper")}
             </p>
           </div>
@@ -497,7 +497,8 @@ const RoundRobinHosts = ({
                 switchContainerClassName={customClassNames?.enableWeights?.container}
                 labelClassName={customClassNames?.enableWeights?.label}
                 descriptionClassName={customClassNames?.enableWeights?.description}
-                onCheckedChange={(active) => handleWeightsEnabledChange(active, onChange)}>
+                onCheckedChange={(active) => handleWeightsEnabledChange(active, onChange)}
+              >
                 <EditWeightsForAllTeamMembers
                   teamMembers={teamMembers}
                   value={value}
@@ -537,7 +538,8 @@ const RoundRobinHosts = ({
                     <button
                       type="button"
                       onClick={() => handleRemoveGroup(group.id)}
-                      className="text-subtle hover:text-default rounded p-1">
+                      className="text-subtle hover:text-default rounded p-1"
+                    >
                       <Icon name="x" className="h-4 w-4" />
                     </button>
                   </div>
@@ -575,7 +577,8 @@ const ChildrenEventTypes = ({
       className={classNames(
         "border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6",
         customClassNames?.container
-      )}>
+      )}
+    >
       <div className="flex flex-col gap-4">
         <AssignAllTeamMembers
           assignAllTeamMembers={assignAllTeamMembers}
@@ -817,17 +820,20 @@ export const EventTeamAssignmentTab = ({
             className={classNames(
               "border-subtle flex flex-col rounded-md",
               customClassNames?.assignmentType?.container
-            )}>
+            )}
+          >
             <div className="border-subtle rounded-t-md border p-6 pb-5">
               <Label
-                className={classNames("mb-1 text-sm font-semibold", customClassNames?.assignmentType?.label)}>
+                className={classNames("mb-1 text-sm font-semibold", customClassNames?.assignmentType?.label)}
+              >
                 {t("assignment")}
               </Label>
               <p
                 className={classNames(
                   "text-subtle max-w-full break-words text-sm leading-tight",
                   customClassNames?.assignmentType?.description
-                )}>
+                )}
+              >
                 {t("assignment_description")}
               </p>
             </div>
@@ -835,7 +841,8 @@ export const EventTeamAssignmentTab = ({
               className={classNames(
                 "border-subtle rounded-b-md border border-t-0 p-6",
                 customClassNames?.assignmentType?.schedulingTypeSelect?.container
-              )}>
+              )}
+            >
               <Label className={customClassNames?.assignmentType?.schedulingTypeSelect?.label}>
                 {t("scheduling_type")}
               </Label>
@@ -870,12 +877,14 @@ export const EventTeamAssignmentTab = ({
                   render={({ field: { value, onChange } }) => (
                     <RadioArea.Group
                       onValueChange={(val) => handleMaxLeadThresholdChange(val, onChange)}
-                      className="mt-1 flex flex-col gap-4">
+                      className="mt-1 flex flex-col gap-4"
+                    >
                       <RadioArea.Item
                         value="maximizeAvailability"
                         checked={value === null}
                         className="w-full text-sm"
-                        classNames={{ container: "w-full" }}>
+                        classNames={{ container: "w-full" }}
+                      >
                         <strong className="mb-1 block">
                           {t("rr_distribution_method_availability_title")}
                         </strong>
@@ -892,14 +901,16 @@ export const EventTeamAssignmentTab = ({
                             )
                               ? t("rr_load_balancing_disabled")
                               : t("rr_load_balancing_disabled_with_groups")
-                          }>
+                          }
+                        >
                           <div className="w-full">
                             <RadioArea.Item
                               value="loadBalancing"
                               checked={value !== null}
                               className="text-sm"
                               disabled={true}
-                              classNames={{ container: "w-full" }}>
+                              classNames={{ container: "w-full" }}
+                            >
                               <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
                               <p>{t("rr_distribution_method_balanced_description")}</p>
                             </RadioArea.Item>
@@ -911,7 +922,8 @@ export const EventTeamAssignmentTab = ({
                             value="loadBalancing"
                             checked={value !== null}
                             className="text-sm"
-                            classNames={{ container: "w-full" }}>
+                            classNames={{ container: "w-full" }}
+                          >
                             <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
                             <p>{t("rr_distribution_method_balanced_description")}</p>
                           </RadioArea.Item>

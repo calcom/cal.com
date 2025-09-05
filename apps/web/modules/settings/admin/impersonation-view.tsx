@@ -1,13 +1,12 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { useRef, useEffect } from "react";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextField } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect, useRef } from "react";
 
 const ImpersonationView = () => {
   const { t } = useLocale();
@@ -36,7 +35,8 @@ const ImpersonationView = () => {
           username: enteredUsername,
           callbackUrl: `${WEBAPP_URL}/event-types`,
         });
-      }}>
+      }}
+    >
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         <TextField
           containerClassName="w-full [&_input:-webkit-autofill]:!shadow-[0_0_0_1000px_white_inset]"

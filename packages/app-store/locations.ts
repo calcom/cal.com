@@ -1,13 +1,13 @@
 /**
  * TODO: Consolidate this file with BookingLocationService and add tests
  */
-import type { TFunction } from "i18next";
-import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
+import type { TFunction } from "i18next";
+import { z } from "zod";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
 import {
@@ -478,8 +478,8 @@ export const getTranslatedLocation = (
   const translatedLocation = location.type.startsWith("integrations:")
     ? eventLocationType.label
     : translateAbleKeys.includes(locationKey)
-    ? t(locationKey)
-    : locationKey;
+      ? t(locationKey)
+      : locationKey;
 
   return translatedLocation;
 };

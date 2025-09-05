@@ -1,30 +1,29 @@
-import { z } from "zod";
-
 import type {
-  OutputBookingField_2024_06_14,
-  SplitNameDefaultFieldOutput_2024_06_14,
-  NameDefaultFieldOutput_2024_06_14,
-  EmailDefaultFieldOutput_2024_06_14,
-  PhoneDefaultFieldOutput_2024_06_14,
-  LocationDefaultFieldOutput_2024_06_14,
-  RescheduleReasonDefaultFieldOutput_2024_06_14,
-  TitleDefaultFieldOutput_2024_06_14,
-  NotesDefaultFieldOutput_2024_06_14,
-  GuestsDefaultFieldOutput_2024_06_14,
-  OutputUnknownBookingField_2024_06_14,
   AddressFieldOutput_2024_06_14,
   BooleanFieldOutput_2024_06_14,
   CheckboxGroupFieldOutput_2024_06_14,
+  EmailDefaultFieldOutput_2024_06_14,
+  GuestsDefaultFieldOutput_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
   MultiEmailFieldOutput_2024_06_14,
   MultiSelectFieldOutput_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  NotesDefaultFieldOutput_2024_06_14,
   NumberFieldOutput_2024_06_14,
+  OutputBookingField_2024_06_14,
+  OutputUnknownBookingField_2024_06_14,
+  PhoneDefaultFieldOutput_2024_06_14,
   PhoneFieldOutput_2024_06_14,
   RadioGroupFieldOutput_2024_06_14,
+  RescheduleReasonDefaultFieldOutput_2024_06_14,
   SelectFieldOutput_2024_06_14,
+  SplitNameDefaultFieldOutput_2024_06_14,
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
+  TitleDefaultFieldOutput_2024_06_14,
   UrlFieldOutput_2024_06_14,
 } from "@calcom/platform-types";
+import { z } from "zod";
 
 export function transformBookingFieldsInternalToApi(
   databaseBookingFields: (SystemField | CustomField)[]

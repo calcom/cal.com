@@ -1,10 +1,9 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import * as React from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../../button";
 import { Calendar } from "./Calendar";
@@ -65,7 +64,7 @@ export function DatePickerWithRange({
     }
   }
 
-  const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
+  const fromDate = allowPastDates && minDate === null ? undefined : (minDate ?? new Date());
 
   const calendar = (
     <Calendar
@@ -94,7 +93,8 @@ export function DatePickerWithRange({
             data-testid="date-range"
             color="secondary"
             EndIcon="calendar"
-            className={classNames("justify-between text-left font-normal", !dates && "text-subtle")}>
+            className={classNames("justify-between text-left font-normal", !dates && "text-subtle")}
+          >
             {dates?.startDate ? (
               dates?.endDate ? (
                 <>
@@ -113,7 +113,8 @@ export function DatePickerWithRange({
           align="start"
           sideOffset={4}
           side={strictlyBottom ? "bottom" : undefined}
-          avoidCollisions={!strictlyBottom}>
+          avoidCollisions={!strictlyBottom}
+        >
           {calendar}
         </Popover.Content>
       </Popover.Root>

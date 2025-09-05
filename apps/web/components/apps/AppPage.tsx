@@ -1,8 +1,3 @@
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type { IframeHTMLAttributes } from "react";
-import React, { useEffect, useState } from "react";
-
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
@@ -21,6 +16,10 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { IframeHTMLAttributes } from "react";
+import React, { useEffect, useState } from "react";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
@@ -198,7 +197,8 @@ export const AppPage = ({
           className="mt-2"
           StartIcon="external-link"
           loading={isLoading}
-          disabled={isLoading}>
+          disabled={isLoading}
+        >
           {t("visit")}
         </Button>
       );
@@ -295,7 +295,8 @@ export const AppPage = ({
               typeof descriptionItem === "object" ? (
                 <div
                   key={`iframe-${index}`}
-                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center overflow-hidden rounded-md last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
+                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center overflow-hidden rounded-md last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full"
+                >
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
@@ -316,7 +317,8 @@ export const AppPage = ({
         className={classNames(
           "sticky top-0 -mt-4 max-w-xl basis-2/5 pb-12 text-sm lg:pb-0",
           hasDescriptionItems && "lg:ml-8"
-        )}>
+        )}
+      >
         <div className="mb-8 flex pt-4">
           <header>
             <div className="mb-4 flex items-center">
@@ -330,7 +332,8 @@ export const AppPage = ({
             <h2 className="text-default text-sm font-medium">
               <Link
                 href={`categories/${categories[0]}`}
-                className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
+                className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize"
+              >
                 {categories[0]}
               </Link>{" "}
               {paid && (
@@ -409,7 +412,8 @@ export const AppPage = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-emphasis text-sm font-normal no-underline hover:underline"
-                href={docs}>
+                href={docs}
+              >
                 <Icon name="book-open" className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
                 {t("documentation")}
               </a>
@@ -421,7 +425,8 @@ export const AppPage = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
-                href={website}>
+                href={website}
+              >
                 <Icon name="external-link" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {website.replace("https://", "")}
               </a>
@@ -433,7 +438,8 @@ export const AppPage = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
-                href={`mailto:${email}`}>
+                href={`mailto:${email}`}
+              >
                 <Icon name="mail" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}
@@ -446,7 +452,8 @@ export const AppPage = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
-                href={tos}>
+                href={tos}
+              >
                 <Icon name="file" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("terms_of_service")}
               </a>
@@ -458,7 +465,8 @@ export const AppPage = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
-                href={privacy}>
+                href={privacy}
+              >
                 <Icon name="shield" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>

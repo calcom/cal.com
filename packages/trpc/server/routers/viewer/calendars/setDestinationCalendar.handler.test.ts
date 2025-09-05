@@ -1,21 +1,17 @@
-import prisma from "../../../../../../tests/libs/__mocks__/prisma";
-
+import { getConnectedCalendars } from "@calcom/lib/CalendarManager";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import {
   createBookingScenario,
-  TestData,
+  createDelegationCredential,
+  createOrganization,
   getOrganizer,
   getScenarioData,
-  createOrganization,
-  createDelegationCredential,
+  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, it, vi, expect } from "vitest";
-
-import { getConnectedCalendars } from "@calcom/lib/CalendarManager";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
+import { describe, expect, it, vi } from "vitest";
+import prisma from "../../../../../../tests/libs/__mocks__/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import { setDestinationCalendarHandler } from "./setDestinationCalendar.handler";

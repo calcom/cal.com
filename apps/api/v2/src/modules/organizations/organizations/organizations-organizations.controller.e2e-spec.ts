@@ -1,20 +1,20 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { getEnv } from "@/env";
-import { sha256Hash, stripApiKey } from "@/lib/api-key";
-import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
-import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
-import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
-import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
-import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
-import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
 import {
-  ManagedOrganizationWithApiKeyOutput,
-  ManagedOrganizationOutput,
-} from "@/modules/organizations/organizations/outputs/managed-organization.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+  APPS_READ,
+  APPS_WRITE,
+  BOOKING_READ,
+  BOOKING_WRITE,
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  PROFILE_READ,
+  PROFILE_WRITE,
+  SCHEDULE_READ,
+  SCHEDULE_WRITE,
+  SUCCESS_STATUS,
+  X_CAL_SECRET_KEY,
+} from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
+import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
+import { Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -32,24 +32,23 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { getEnv } from "@/env";
+import { sha256Hash, stripApiKey } from "@/lib/api-key";
+import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
+import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
+import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
+import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
+import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
 import {
-  APPS_READ,
-  APPS_WRITE,
-  BOOKING_READ,
-  BOOKING_WRITE,
-  EVENT_TYPE_READ,
-  EVENT_TYPE_WRITE,
-  PROFILE_READ,
-  PROFILE_WRITE,
-  SCHEDULE_READ,
-  SCHEDULE_WRITE,
-  X_CAL_SECRET_KEY,
-} from "@calcom/platform-constants";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+  ManagedOrganizationOutput,
+  ManagedOrganizationWithApiKeyOutput,
+} from "@/modules/organizations/organizations/outputs/managed-organization.output";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Organizations Endpoints", () => {
   let app: INestApplication;

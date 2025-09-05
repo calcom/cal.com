@@ -1,13 +1,11 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 
 export default function CalDavCalendarSetup() {
   const { t } = useLocale();
@@ -59,7 +57,8 @@ export default function CalDavCalendarSetup() {
                   } else {
                     router.push(json.url);
                   }
-                }}>
+                }}
+              >
                 <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
                   <TextField
                     required
@@ -95,7 +94,8 @@ export default function CalDavCalendarSetup() {
                           href={errorActionUrl}
                           color="secondary"
                           target="_blank"
-                          className="ml-5 w-32 !p-5">
+                          className="ml-5 w-32 !p-5"
+                        >
                           Go to Admin
                         </Button>
                       ) : undefined

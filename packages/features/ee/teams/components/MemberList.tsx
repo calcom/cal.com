@@ -1,31 +1,16 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
-import classNames from "classnames";
-import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
-import { useQueryState, parseAsBoolean } from "nuqs";
-import { useMemo, useReducer, useRef, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
-  DataTableProvider,
-  DataTableToolbar,
+  convertFacetedValuesToMap,
   DataTableFilters,
-  DataTableWrapper,
+  DataTableProvider,
   DataTableSelectionBar,
+  DataTableToolbar,
+  DataTableWrapper,
+  useColumnFilters,
   useDataTable,
   useFetchMoreOnBottomReached,
-  useColumnFilters,
-  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
@@ -40,23 +25,36 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
-  DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  type ColumnDef,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import classNames from "classnames";
+import { signIn, useSession } from "next-auth/react";
+import { parseAsBoolean, useQueryState } from "nuqs";
+import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
@@ -355,7 +353,8 @@ function MemberListContent(props: Props) {
                 </div>
                 <div
                   data-testid={accepted ? "member-email" : `email-${email.replace("@", "")}-pending`}
-                  className="text-subtle mt-1 text-sm leading-none">
+                  className="text-subtle mt-1 text-sm leading-none"
+                >
                   {email}
                 </div>
               </div>
@@ -386,7 +385,8 @@ function MemberListContent(props: Props) {
                   className="text-xs"
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
-                  }}>
+                  }}
+                >
                   Pending
                 </Badge>
               )}
@@ -395,7 +395,8 @@ function MemberListContent(props: Props) {
                 variant={role === "MEMBER" ? "gray" : "blue"}
                 onClick={() => {
                   table.getColumn("role")?.setFilterValue([roleIdentifier]);
-                }}>
+                }}
+              >
                 {roleName}
               </Badge>
             </div>
@@ -508,7 +509,8 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="pencil">
+                                  StartIcon="pencil"
+                                >
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -527,7 +529,8 @@ function MemberListContent(props: Props) {
                                         },
                                       })
                                     }
-                                    StartIcon="lock">
+                                    StartIcon="lock"
+                                  >
                                     {t("impersonate")}
                                   </DropdownItem>
                                 </DropdownMenuItem>
@@ -545,7 +548,8 @@ function MemberListContent(props: Props) {
                                       language: i18n.language,
                                     });
                                   }}
-                                  StartIcon="send">
+                                  StartIcon="send"
+                                >
                                   {t("resend_invitation")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -564,7 +568,8 @@ function MemberListContent(props: Props) {
                                     })
                                   }
                                   color="destructive"
-                                  StartIcon="user-x">
+                                  StartIcon="user-x"
+                                >
                                   {t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -587,7 +592,8 @@ function MemberListContent(props: Props) {
                               href={!user.accepted ? undefined : `/${user.username}`}
                               target="_blank"
                               type="button"
-                              StartIcon="external-link">
+                              StartIcon="external-link"
+                            >
                               {t("view_public_page")}
                             </DropdownItem>
                           </DropdownMenuItem>
@@ -605,7 +611,8 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="pencil">
+                                  StartIcon="pencil"
+                                >
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -622,7 +629,8 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="user-x">
+                                  StartIcon="user-x"
+                                >
                                   {t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -723,12 +731,14 @@ function MemberListContent(props: Props) {
                 color="primary"
                 StartIcon="plus"
                 onClick={() => props.setShowMemberInvitationModal(true)}
-                data-testid="new-member-button">
+                data-testid="new-member-button"
+              >
                 {t("add")}
               </DataTableToolbar.CTA>
             )}
           </>
-        }>
+        }
+      >
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
@@ -743,7 +753,8 @@ function MemberListContent(props: Props) {
               <DataTableSelectionBar.Button
                 color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                icon="handshake">
+                icon="handshake"
+              >
                 {t("group_meeting")}
               </DataTableSelectionBar.Button>
             )}
@@ -765,12 +776,14 @@ function MemberListContent(props: Props) {
             dispatch({
               type: "CLOSE_MODAL",
             })
-          }>
+          }
+        >
           <ConfirmationDialogContent
             variety="danger"
             title={t("remove_member")}
             confirmBtnText={t("confirm_remove_member")}
-            onConfirm={removeMember}>
+            onConfirm={removeMember}
+          >
             {t("remove_member_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
@@ -783,7 +796,8 @@ function MemberListContent(props: Props) {
             dispatch({
               type: "CLOSE_MODAL",
             })
-          }>
+          }
+        >
           <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
             <form
               onSubmit={async (e) => {
@@ -795,7 +809,8 @@ function MemberListContent(props: Props) {
                 dispatch({
                   type: "CLOSE_MODAL",
                 });
-              }}>
+              }}
+            >
               <DialogFooter showDivider className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button color="primary" type="submit">
@@ -813,7 +828,8 @@ function MemberListContent(props: Props) {
             dispatch({
               type: "CLOSE_MODAL",
             });
-          }}>
+          }}
+        >
           <DialogContent type="creation" size="md">
             <TeamAvailabilityModal team={props.team} member={state.teamAvailability.user} />
           </DialogContent>

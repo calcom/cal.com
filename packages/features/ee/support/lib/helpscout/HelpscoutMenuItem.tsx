@@ -1,7 +1,6 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 interface HelpscoutMenuItemProps {
   onHelpItemSelect: () => void;
@@ -27,7 +26,8 @@ export default function HelpscoutMenuItem(props: HelpscoutMenuItemProps) {
     <>
       <button
         onClick={handleClick}
-        className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition">
+        className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition"
+      >
         {t("contact_support")}
       </button>
 

@@ -1,7 +1,6 @@
-import type { TFunction, i18n } from "i18next";
-import { useTranslation } from "react-i18next";
-
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
+import type { i18n, TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 
 type useLocaleReturnType = {
   i18n: i18n;

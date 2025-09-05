@@ -1,9 +1,9 @@
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../components";
@@ -73,7 +73,8 @@ export default function OmniInstallAppButton({
             color="secondary"
             className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
             StartIcon="plus"
-            {...props}>
+            {...props}
+          >
             {t("add")}
           </Button>
         );

@@ -1,10 +1,9 @@
+// Import WorkerOptions type
+import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as path from "path";
 import { Worker } from "worker_threads";
-
-// Import WorkerOptions type
-import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import { TimeSlots } from "./slots-output.service";
 

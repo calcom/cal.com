@@ -1,6 +1,5 @@
-import type { TFunction } from "i18next";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import type { TFunction } from "i18next";
 
 import { CallToAction, V2BaseEmailHtml } from "../components";
 import type { BaseScheduledEmail } from "./BaseScheduledEmail";
@@ -36,7 +35,8 @@ export const CreditBalanceLowWarningEmail = (
             fontWeight: "500",
             lineHeight: "24px",
             color: "#000",
-          }}>
+          }}
+        >
           {user.t("current_credit_balance", { balance })}
         </p>
         <div style={{ textAlign: "center", marginTop: "24px" }}>

@@ -1,11 +1,10 @@
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 
@@ -22,7 +21,8 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden"
+      >
         <Link href="/event-types">
           <Logo />
         </Link>

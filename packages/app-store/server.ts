@@ -1,6 +1,3 @@
-import type { Prisma } from "@prisma/client";
-import type { TFunction } from "i18next";
-
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import {
@@ -10,6 +7,8 @@ import {
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { Prisma } from "@prisma/client";
+import type { TFunction } from "i18next";
 
 import { defaultLocations } from "./locations";
 

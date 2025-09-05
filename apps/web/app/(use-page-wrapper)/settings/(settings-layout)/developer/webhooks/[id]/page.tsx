@@ -1,10 +1,9 @@
-import type { PageProps } from "app/_types";
-import { getTranslate, _generateMetadata } from "app/_utils";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { EditWebhookView } from "@calcom/features/webhooks/pages/webhook-edit-view";
 import { APP_NAME } from "@calcom/lib/constants";
 import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
+import type { PageProps } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -27,7 +26,8 @@ const Page = async ({ params: _params }: PageProps) => {
       title={t("edit_webhook")}
       description={t("add_webhook_description", { appName: APP_NAME })}
       borderInShellHeader={true}
-      backButton>
+      backButton
+    >
       <EditWebhookView webhook={webhook} />
     </SettingsHeader>
   );

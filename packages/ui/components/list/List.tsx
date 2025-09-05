@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { createElement } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import Link from "next/link";
+import { createElement } from "react";
 
 import { Badge } from "../badge";
 
@@ -24,7 +23,8 @@ export function List(props: ListProps) {
         !props.noBorderTreatment &&
           "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
         props.className
-      )}>
+      )}
+    >
       {props.children}
     </ul>
   );
@@ -96,14 +96,16 @@ export function ListLinkItem(props: ListLinkItemProps) {
         "group flex w-full items-center justify-between p-5 pb-4",
         className,
         disabled ? "hover:bg-muted" : ""
-      )}>
+      )}
+    >
       <Link
         passHref
         href={href}
         className={classNames(
           "text-default flex-grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
-        )}>
+        )}
+      >
         <div className="flex items-center">
           <h1 className="text-sm font-semibold leading-none">{heading}</h1>
           {readOnly && (

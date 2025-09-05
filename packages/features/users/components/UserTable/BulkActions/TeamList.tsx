@@ -1,7 +1,3 @@
-import type { Table } from "@tanstack/react-table";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -18,6 +14,9 @@ import {
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
+import type { Table } from "@tanstack/react-table";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import type { UserTableUser } from "../types";
 
@@ -121,13 +120,15 @@ export function TeamListBulkAction({ table }: Props) {
                               removeValue(selectedValues, setSelectedValues, option.id);
                             }
                           }
-                        }}>
+                        }}
+                      >
                         <span>{option.name}</span>
                         <div
                           className={classNames(
                             "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
                             isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
-                          )}>
+                          )}
+                        >
                           <Icon name="check" className={classNames("h-4 w-4")} />
                         </div>
                       </CommandItem>
@@ -156,7 +157,8 @@ export function TeamListBulkAction({ table }: Props) {
                     isOrg: true,
                   });
                 }
-              }}>
+              }}
+            >
               {t("apply")}
             </Button>
           </div>

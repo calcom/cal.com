@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { describe, expect, test, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { GET } from "../route";
 

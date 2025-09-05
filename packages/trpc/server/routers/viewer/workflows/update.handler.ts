@@ -7,8 +7,7 @@ import logger from "@calcom/lib/logger";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import { PhoneNumberSubscriptionStatus, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -16,18 +15,18 @@ import { TRPCError } from "@trpc/server";
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
+  deleteRemindersOfActiveOnIds,
+  getEmailTemplateText,
   getSender,
   isAuthorized,
-  upsertSmsReminderFieldForEventTypes,
-  deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
-  scheduleWorkflowNotifications,
-  verifyEmailSender,
-  removeSmsReminderFieldForEventTypes,
   isStepEdited,
-  getEmailTemplateText,
-  upsertAIAgentCallPhoneNumberFieldForEventTypes,
   removeAIAgentCallPhoneNumberFieldForEventTypes,
+  removeSmsReminderFieldForEventTypes,
+  scheduleWorkflowNotifications,
+  upsertAIAgentCallPhoneNumberFieldForEventTypes,
+  upsertSmsReminderFieldForEventTypes,
+  verifyEmailSender,
 } from "./util";
 
 type UpdateOptions = {

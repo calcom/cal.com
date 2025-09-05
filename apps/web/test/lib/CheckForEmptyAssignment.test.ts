@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
+import { describe, expect, it } from "vitest";
 
 describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return true if managed event type has no assigned users", () => {

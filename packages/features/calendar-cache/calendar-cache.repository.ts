@@ -1,11 +1,10 @@
-import type { Prisma } from "@prisma/client";
-
 import { uniqueBy } from "@calcom/lib/array";
 import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
+import type { Prisma } from "@prisma/client";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
 

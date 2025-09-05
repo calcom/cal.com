@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,6 +6,7 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { Alert } from "@calcom/ui/components/alert";
 import { Input } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useEffect, useState } from "react";
 
 import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 
@@ -53,9 +52,8 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
         ))}
         {recurringStrings.length > 5 && (
           <Tooltip
-            content={recurringStrings.slice(5).map((timeFormatted, key) => (
-              <p key={key}>{timeFormatted}</p>
-            ))}>
+            content={recurringStrings.slice(5).map((timeFormatted, key) => <p key={key}>{timeFormatted}</p>)}
+          >
             <p className=" text-sm">+ {t("plus_more", { count: recurringStrings.length - 5 })}</p>
           </Tooltip>
         )}

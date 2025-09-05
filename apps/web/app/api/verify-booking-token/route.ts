@@ -1,20 +1,17 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseRequestData } from "app/api/parseRequestData";
-import { headers, cookies } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import { TRPCError } from "@trpc/server";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 enum DirectAction {
   ACCEPT = "accept",

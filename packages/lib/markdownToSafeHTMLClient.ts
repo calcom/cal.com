@@ -1,6 +1,5 @@
-import DOMPurify from "dompurify";
-
 import { md } from "@calcom/lib/markdownIt";
+import DOMPurify from "dompurify";
 
 if (typeof window == "undefined") {
   console.warn(

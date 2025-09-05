@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 
 import { UnstyledSelect } from "../../address/Select";
 import { InputField } from "./TextField";

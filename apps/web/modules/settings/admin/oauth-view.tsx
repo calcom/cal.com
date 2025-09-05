@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 type FormValues = {
   name: string;
@@ -49,7 +47,8 @@ export default function OAuthView() {
               redirectUri: values.redirectUri,
               logo: values.logo,
             });
-          }}>
+          }}
+        >
           <div className="">
             <TextField
               {...oAuthForm.register("name")}
@@ -109,7 +108,8 @@ export default function OAuthView() {
                 }}
                 type="button"
                 className="rounded-l-none text-base"
-                StartIcon="clipboard">
+                StartIcon="clipboard"
+              >
                 {t("copy")}
               </Button>
             </Tooltip>
@@ -131,7 +131,8 @@ export default function OAuthView() {
                     }}
                     type="button"
                     className="rounded-l-none text-base"
-                    StartIcon="clipboard">
+                    StartIcon="clipboard"
+                  >
                     {t("copy")}
                   </Button>
                 </Tooltip>
@@ -147,7 +148,8 @@ export default function OAuthView() {
               setLogo("");
               oAuthForm.reset();
             }}
-            className="mt-5">
+            className="mt-5"
+          >
             {t("add_new_client")}
           </Button>
         </div>

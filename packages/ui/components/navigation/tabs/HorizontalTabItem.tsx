@@ -1,12 +1,11 @@
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import classNames from "@calcom/ui/classNames";
+import Link from "next/link";
 
 import { Avatar } from "../../avatar";
-import { Icon } from "../../icon";
 import type { IconName } from "../../icon";
+import { Icon } from "../../icon";
 
 export type HorizontalTabItemProps = {
   name: string;
@@ -57,7 +56,8 @@ const HorizontalTabItem = function ({
       )}
       target={props.target ? props.target : undefined}
       data-testid={`horizontal-tab-${props["data-testid"]}`}
-      aria-current={isCurrent ? "page" : undefined}>
+      aria-current={isCurrent ? "page" : undefined}
+    >
       {props.icon && (
         <Icon
           name={props.icon}

@@ -1,14 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Link from "next/link";
-import type { ReactNode } from "react";
-
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
 import type { NonRouterRoute } from "../../types/types";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
@@ -51,9 +50,8 @@ export const TeamMember = ({ name, email, score }: { name: string | null; email:
       <Badge variant="gray">{email}</Badge>
     </div>
     <span
-      className={`font-medium ${
-        score > 0 ? "text-green-600" : score < 0 ? "text-red-600" : "text-gray-600"
-      }`}>
+      className={`font-medium ${score > 0 ? "text-green-600" : score < 0 ? "text-red-600" : "text-gray-600"}`}
+    >
       {score > 0 ? "+" : ""}
       {score}
     </span>
@@ -84,7 +82,8 @@ export const ResultsView = ({
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.2 }}
-        className="space-y-4">
+        className="space-y-4"
+      >
         <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
           <div className="flex items-center gap-2 px-2 py-1">
             <div className="border-subtle rounded-lg border p-1">
@@ -158,7 +157,8 @@ export const ResultsView = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
-      className="space-y-4">
+      className="space-y-4"
+    >
       {chosenRoute.action.type === "externalRedirectUrl" && (
         <ResultsSection title={chosenRoute.name ?? "External Redirect"} icon="zap">
           <div className="flex items-center gap-2">
@@ -167,7 +167,8 @@ export const ResultsView = ({
             </div>
             <span
               data-testid="test-routing-result"
-              className="text-emphasis text-sm font-medium leading-none">
+              className="text-emphasis text-sm font-medium leading-none"
+            >
               {chosenRoute.action.value}
             </span>
           </div>
@@ -182,7 +183,8 @@ export const ResultsView = ({
             </div>
             <span
               data-testid="test-routing-result"
-              className="text-emphasis text-sm font-medium leading-none">
+              className="text-emphasis text-sm font-medium leading-none"
+            >
               {chosenRoute.action.value}
             </span>
           </div>
@@ -197,7 +199,8 @@ export const ResultsView = ({
             </div>
             <span
               data-testid="test-routing-result"
-              className="text-emphasis text-sm font-medium leading-none">
+              className="text-emphasis text-sm font-medium leading-none"
+            >
               {chosenRoute.action.value}
             </span>
           </div>
@@ -224,7 +227,8 @@ export const ResultsView = ({
                   </div>
                   <Badge
                     data-testid="attribute-logic-matched"
-                    variant={membersMatchResult.checkedFallback ? "error" : "success"}>
+                    variant={membersMatchResult.checkedFallback ? "error" : "success"}
+                  >
                     {membersMatchResult.checkedFallback ? "No" : "Yes"}
                   </Badge>
                 </div>
@@ -237,7 +241,8 @@ export const ResultsView = ({
                   </div>
                   <Badge
                     data-testid="attribute-logic-fallback-matched"
-                    variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
+                    variant={membersMatchResult.checkedFallback ? "success" : "gray"}
+                  >
                     {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
                   </Badge>
                 </div>
@@ -273,14 +278,16 @@ export const ResultsView = ({
                             key="routing_insights"
                             className="underline underline-offset-2"
                             target="_blank"
-                            href="/insights/router-position">
+                            href="/insights/router-position"
+                          >
                             Routing Insights
                           </Link>,
                         ]}
                       />
                     </span>
                   </div>
-                }>
+                }
+              >
                 <div className="divide-subtle divide-y">
                   {membersMatchResult.teamMembersMatchingAttributeLogic.map((member, index) => (
                     <TeamMember

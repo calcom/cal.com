@@ -1,9 +1,8 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const RawButtonExample: React.FC = () => (
   <RenderComponentWithSnippet>

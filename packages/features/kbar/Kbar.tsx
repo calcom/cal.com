@@ -1,3 +1,10 @@
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isMac } from "@calcom/lib/isMac";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { Action } from "kbar";
 import {
   KBarAnimator,
@@ -12,14 +19,6 @@ import {
 } from "kbar";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { isMac } from "@calcom/lib/isMac";
-import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { MintlifyChat } from "../mintlify-chat/MintlifyChat";
 
@@ -299,7 +298,8 @@ export const KBarTrigger = () => {
         <button
           color="minimal"
           onClick={query.toggle}
-          className="text-default hover:bg-subtle todesktop:hover:!bg-transparent lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md px-3 py-2 text-sm font-medium transition lg:px-2">
+          className="text-default hover:bg-subtle todesktop:hover:!bg-transparent lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md px-3 py-2 text-sm font-medium transition lg:px-2"
+        >
           <Icon name="search" className="h-4 w-4 flex-shrink-0 text-inherit" />
         </button>
       </Tooltip>
@@ -316,7 +316,8 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
         return (
           <kbd
             key={shortcut}
-            className="bg-default hover:bg-subtle text-emphasis rounded-sm border px-2 py-1 transition">
+            className="bg-default hover:bg-subtle text-emphasis rounded-sm border px-2 py-1 transition"
+          >
             {shortcut}
           </kbd>
         );
@@ -343,7 +344,8 @@ function RenderResults() {
               borderLeft: active ? "2px solid var(--cal-border)" : "2px solid transparent",
               color: "var(--cal-text)",
             }}
-            className="flex items-center justify-between px-4 py-2.5 text-sm transition hover:cursor-pointer">
+            className="flex items-center justify-between px-4 py-2.5 text-sm transition hover:cursor-pointer"
+          >
             <span>{t(item.name)}</span>
             <DisplayShortcuts shortcuts={item.shortcut} />
           </div>

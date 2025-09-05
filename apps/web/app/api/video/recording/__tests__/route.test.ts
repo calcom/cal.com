@@ -1,8 +1,7 @@
-import { NextResponse } from "next/server";
-import { describe, expect, test, vi, afterEach } from "vitest";
-
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
 import { verifyVideoToken } from "@calcom/lib/videoTokens";
+import { NextResponse } from "next/server";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { GET } from "../route";
 

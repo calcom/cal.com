@@ -1,3 +1,17 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { handleNewBooking } from "@calcom/platform-libraries";
+import { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { User } from "@prisma/client";
+import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
@@ -10,21 +24,6 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { handleNewBooking } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints 2024-04-15", () => {
   describe("User Authenticated", () => {

@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -7,6 +5,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { Prisma } from "@prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 

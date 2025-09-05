@@ -1,24 +1,23 @@
+import { dynamicEvent } from "@calcom/platform-libraries";
+import {
+  createEventType,
+  EventTypesPublic,
+  getEventTypesPublic,
+  updateEventType,
+} from "@calcom/platform-libraries/event-types";
+import { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
+import { EventType } from "@calcom/prisma/client";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
-import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { CustomField, SystemField } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-
-import { dynamicEvent } from "@calcom/platform-libraries";
-import {
-  createEventType,
-  updateEventType,
-  getEventTypesPublic,
-  EventTypesPublic,
-} from "@calcom/platform-libraries/event-types";
-import { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class EventTypesService_2024_06_14 {

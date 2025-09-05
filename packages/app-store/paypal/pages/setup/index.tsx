@@ -1,7 +1,3 @@
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Toaster } from "sonner";
-
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -9,6 +5,9 @@ import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Toaster } from "sonner";
 
 export default function PayPalSetup() {
   const [newClientId, setNewClientId] = useState("");
@@ -76,7 +75,8 @@ export default function PayPalSetup() {
                         secret_key: newSecretKey,
                       },
                     });
-                  }}>
+                  }}
+                >
                   {t("save")}
                 </Button>
               </div>
@@ -101,7 +101,8 @@ export default function PayPalSetup() {
               <a
                 className="text-orange-600 underline"
                 target="_blank"
-                href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret">
+                href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret"
+              >
                 Link to Paypal developer API REST Setup Guide:
                 https://developer.paypal.com/api/rest/#link-getclientidandclientsecret
               </a>
@@ -120,7 +121,8 @@ export default function PayPalSetup() {
                   <a
                     target="_blank"
                     href="https://developer.paypal.com/dashboard/applications/live"
-                    className="text-orange-600 underline">
+                    className="text-orange-600 underline"
+                  >
                     {t("here")}
                   </a>
                   .
@@ -132,7 +134,8 @@ export default function PayPalSetup() {
                   Go back to{" "}
                   <a
                     className="text-orange-600 underline"
-                    href="https://developer.paypal.com/dashboard/applications/live">
+                    href="https://developer.paypal.com/dashboard/applications/live"
+                  >
                     dashboard
                   </a>
                   , click on new app created.

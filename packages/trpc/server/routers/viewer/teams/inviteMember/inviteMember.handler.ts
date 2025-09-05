@@ -1,5 +1,3 @@
-import { type TFunction } from "i18next";
-
 import { TeamBilling } from "@calcom/ee/billing/teams";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -8,11 +6,11 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
+import { type TFunction } from "i18next";
 
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
@@ -49,18 +47,21 @@ function getOrgConnectionInfoGroupedByUsernameOrEmail({
   team: Pick<TeamWithParent, "parentId" | "id">;
   isOrg: boolean;
 }) {
-  return uniqueInvitations.reduce((acc, invitation) => {
-    return {
-      ...acc,
-      [invitation.usernameOrEmail]: getOrgConnectionInfo({
-        orgVerified: orgState.orgVerified,
-        orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
-        email: invitation.usernameOrEmail,
-        team,
-        isOrg: isOrg,
-      }),
-    };
-  }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
+  return uniqueInvitations.reduce(
+    (acc, invitation) => {
+      return {
+        ...acc,
+        [invitation.usernameOrEmail]: getOrgConnectionInfo({
+          orgVerified: orgState.orgVerified,
+          orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
+          email: invitation.usernameOrEmail,
+          team,
+          isOrg: isOrg,
+        }),
+      };
+    },
+    {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>
+  );
 }
 
 function getInvitationsForNewUsers({

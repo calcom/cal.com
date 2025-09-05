@@ -7,8 +7,8 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
-  DropdownMenuContent,
   DropdownItem,
+  DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 
@@ -142,7 +142,8 @@ function RoleItem({
           ? "hover:bg-subtle cursor-pointer"
           : ""
       )}
-      onClick={onClick}>
+      onClick={onClick}
+    >
       <div className="flex w-full items-center gap-3 truncate">
         {/* Icon */}
         <div className="flex items-center justify-center">

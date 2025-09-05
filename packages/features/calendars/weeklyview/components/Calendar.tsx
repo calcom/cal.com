@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo, useRef } from "react";
-
 import classNames from "@calcom/ui/classNames";
+import React, { useEffect, useMemo, useRef } from "react";
 
 import { useBookerTime } from "../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
-import { DateValues } from "./DateValues";
 import { CurrentTime } from "./currentTime";
+import { DateValues } from "./DateValues";
 import { AvailableCellsForDay, EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
@@ -56,15 +55,18 @@ export function Calendar(props: CalendarComponentProps) {
             "--one-minute-height": `calc(${hourSize}px/60)`,
             "--gridDefaultSize": `${hourSize}px`,
           } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
-        }>
+        }
+      >
         {hideHeader !== true && <SchedulerHeading />}
         {props.isPending && <Spinner />}
         <div
           ref={container}
-          className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">
+          className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col"
+        >
           <div
             style={{ width: "165%" }}
-            className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
+            className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full"
+          >
             <DateValues containerNavRef={containerNav} days={days} />
             <div className="relative flex flex-auto">
               <CurrentTime />
@@ -75,7 +77,8 @@ export function Calendar(props: CalendarComponentProps) {
                   backgroundColor: "var(--disabled-gradient-background)",
                   background:
                     "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
-                }}>
+                }}
+              >
                 <HorizontalLines
                   hours={hours}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
@@ -85,7 +88,8 @@ export function Calendar(props: CalendarComponentProps) {
 
                 <SchedulerColumns
                   offsetHeight={containerOffset.current?.offsetHeight}
-                  gridStopsPerDay={numberOfGridStopsPerDay}>
+                  gridStopsPerDay={numberOfGridStopsPerDay}
+                >
                   {/*Loop over events per day  */}
                   {days.map((day, i) => {
                     return (
@@ -101,7 +105,8 @@ export function Calendar(props: CalendarComponentProps) {
                 <SchedulerColumns
                   ref={schedulerGrid}
                   offsetHeight={containerOffset.current?.offsetHeight}
-                  gridStopsPerDay={numberOfGridStopsPerDay}>
+                  gridStopsPerDay={numberOfGridStopsPerDay}
+                >
                   <>
                     {[...Array(days.length)].map((_, i) => (
                       <li
@@ -109,7 +114,8 @@ export function Calendar(props: CalendarComponentProps) {
                         key={i}
                         style={{
                           gridRow: `1 / span ${numberOfGridStopsPerDay}`,
-                        }}>
+                        }}
+                      >
                         {/* While startDate < endDate:  */}
                         {availableTimeslots ? (
                           <AvailableCellsForDay

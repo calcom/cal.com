@@ -1,7 +1,6 @@
-import { vi, beforeEach } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
-
 import type * as organization from "@calcom/lib/server/repository/organization";
+import { beforeEach, vi } from "vitest";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 
 vi.mock("@calcom/lib/server/repository/organization", () => organizationMock);
 type OrganizationModule = typeof organization;

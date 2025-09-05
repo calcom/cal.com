@@ -1,15 +1,15 @@
-import type { Params } from "app/_types";
-import { NextResponse, type NextRequest } from "next/server";
-import { describe, expect, it, vi } from "vitest";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
-
 import { TRPCError } from "@trpc/server";
+import type { Params } from "app/_types";
+import { type NextRequest, NextResponse } from "next/server";
+import { describe, expect, it, vi } from "vitest";
 
 import { defaultResponderForAppDir } from "./defaultResponderForAppDir";
 
+class MockNextRequest {}
+
 vi.mock("next/server", () => ({
-  NextRequest: class MockNextRequest {},
+  NextRequest: MockNextRequest,
   NextResponse: {
     json: vi.fn((body, init) => ({
       json: vi.fn().mockResolvedValue(body),

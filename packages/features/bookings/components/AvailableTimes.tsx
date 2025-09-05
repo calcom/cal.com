@@ -1,13 +1,10 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
-import * as HoverCard from "@radix-ui/react-hover-card";
-import { AnimatePresence, m } from "framer-motion";
-import { useMemo } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
+import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -18,6 +15,9 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import * as HoverCard from "@radix-ui/react-hover-card";
+import { AnimatePresence, m } from "framer-motion";
+import { useMemo } from "react";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { getQueryParam } from "../Booker/utils/query-param";
@@ -173,7 +173,8 @@ const SlotItem = ({
             selectedSlots?.includes(slot.time) && "border-brand-default",
             `${customClassNames}`
           )}
-          color="secondary">
+          color="secondary"
+        >
           <div className="flex items-center gap-2">
             {!hasTimeSlots && overlayCalendarToggled && (
               <span
@@ -229,7 +230,8 @@ const SlotItem = ({
                     loadingStates?.creatingRecurringBooking ||
                     isVerificationCodeSending ||
                     loadingStates?.creatingInstantBooking
-                  }>
+                  }
+                >
                   {(() => {
                     if (layout === "column_view") return "";
                     if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
@@ -283,7 +285,8 @@ export const AvailableTimes = ({
         {!slots.length && (
           <div
             data-testId="no-slots-available"
-            className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
+            className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent"
+          >
             <Icon name="calendar-x-2" className="text-muted mb-2 h-4 w-4" />
             <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}

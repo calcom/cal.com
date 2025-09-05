@@ -1,9 +1,9 @@
+export { default as Loader } from "./Loader";
 export {
+  SelectSkeletonLoader,
   Skeleton,
   SkeletonAvatar,
-  SkeletonText,
   SkeletonButton,
   SkeletonContainer,
-  SelectSkeletonLoader,
+  SkeletonText,
 } from "./Skeleton";
-export { default as Loader } from "./Loader";

@@ -1,11 +1,10 @@
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
+import Link from "next/link";
 
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
@@ -29,7 +28,8 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   return (
     <Link
       key={member.id}
-      href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
+      href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}
+    >
       <div className="bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
         <UserAvatar noOrganizationIndicator size="md" user={member} />
         <section className="mt-2 line-clamp-4 w-full space-y-1">
@@ -61,7 +61,8 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   return (
     <section
       data-testid="team-members-container"
-      className="flex flex-col flex-wrap justify-center gap-5 sm:flex-row">
+      className="flex flex-col flex-wrap justify-center gap-5 sm:flex-row"
+    >
       {members.map((member) => {
         return member.username !== null && <Member key={member.id} member={member} teamName={teamName} />;
       })}

@@ -1,11 +1,10 @@
+import { LuckyUserService as BaseLuckyUserService } from "@calcom/platform-libraries/bookings";
+import { Injectable } from "@nestjs/common";
 import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { Injectable } from "@nestjs/common";
-
-import { LuckyUserService as BaseLuckyUserService } from "@calcom/platform-libraries/bookings";
 
 @Injectable()
 export class LuckyUserService extends BaseLuckyUserService {

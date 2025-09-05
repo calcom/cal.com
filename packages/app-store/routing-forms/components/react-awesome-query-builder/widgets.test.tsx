@@ -34,7 +34,8 @@ vi.mock("next/dynamic", () => ({
               label: option.text,
             }));
             onChange(isMulti ? selectedOptions : selectedOptions[0]);
-          }}>
+          }}
+        >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

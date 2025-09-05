@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getTimeMin, getTimeMax } from "./datesForCache";
+import { getTimeMax, getTimeMin } from "./datesForCache";
 
 describe("getTimeMin", () => {
   // Tested on multiple dates

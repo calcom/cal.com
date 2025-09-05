@@ -1,8 +1,7 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Input } from "@calcom/ui/components/form";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 const types = ["text", "email", "password", "number", "tel", "url", "search"] as const;
 const sizes = ["sm", "md"] as const;
@@ -24,12 +23,12 @@ export const TypesExample: React.FC = () => (
                       type === "email"
                         ? "example@cal.com"
                         : type === "url"
-                        ? "https://cal.com"
-                        : type === "number"
-                        ? "42"
-                        : type === "tel"
-                        ? "+1234567890"
-                        : ""
+                          ? "https://cal.com"
+                          : type === "number"
+                            ? "42"
+                            : type === "tel"
+                              ? "+1234567890"
+                              : ""
                     }
                     size={size}
                     isFullWidth={false}

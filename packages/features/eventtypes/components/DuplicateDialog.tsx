@@ -1,9 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -16,12 +10,16 @@ import turndown from "@calcom/lib/turndownService";
 import { EventTypeDuplicateInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const querySchema = z.object({
   title: z.string().min(1),
@@ -110,13 +108,15 @@ const DuplicateDialog = () => {
   return (
     <Dialog
       name="duplicate"
-      clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
+      clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}
+    >
       <DialogContent type="creation" className="overflow-y-auto" title={t("duplicate_event_type")}>
         <Form
           form={form}
           handleSubmit={(values) => {
             duplicateMutation.mutate(values);
-          }}>
+          }}
+        >
           <div className="-mt-2 space-y-5">
             <TextField
               label={t("title")}
@@ -151,7 +151,7 @@ const DuplicateDialog = () => {
                   </>
                 }
                 {...register("slug")}
-                 onChange={(e) => {
+                onChange={(e) => {
                   form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
                 }}
               />

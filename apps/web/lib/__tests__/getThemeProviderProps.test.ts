@@ -1,10 +1,7 @@
+import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { describe, expect, it } from "vitest";
-
-import { EmbedTheme } from "@calcom/features/embed/lib/constants";
-
-import { getThemeProviderProps } from "../getThemeProviderProps";
-import { getUniqueIdentifierForBookingPage } from "../getThemeProviderProps";
+import { getThemeProviderProps, getUniqueIdentifierForBookingPage } from "../getThemeProviderProps";
 
 describe("getThemeProviderProps", () => {
   const fnArg = {

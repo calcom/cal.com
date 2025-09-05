@@ -1,11 +1,10 @@
-import { useRouter } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { useRouter } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface InfoLostWarningDialog {
   isOpenInfoLostDialog: boolean;
@@ -25,14 +24,16 @@ const InfoLostWarningDialog = (props: InfoLostWarningDialog) => {
       <DialogContent
         title={t("leave_without_saving")}
         description={`${t("leave_without_saving_description")}`}
-        Icon="circle-alert">
+        Icon="circle-alert"
+      >
         <DialogFooter className="mt-6">
           <Button
             onClick={() => {
               setIsOpenInfoLostDialog(false);
             }}
             color="minimal"
-            disabled={isSubmitting}>
+            disabled={isSubmitting}
+          >
             {t("go_back")}
           </Button>
           <Button
@@ -42,7 +43,8 @@ const InfoLostWarningDialog = (props: InfoLostWarningDialog) => {
               setIsOpenInfoLostDialog(false);
               router.replace(goToRoute);
             }}
-            loading={isSubmitting}>
+            loading={isSubmitting}
+          >
             {t("save_changes")}
           </Button>
         </DialogFooter>

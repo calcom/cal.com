@@ -2,7 +2,6 @@
  * These e2e tests only aim to cover standard cases
  * Edge cases are currently handled in integration tests only
  */
-import { expect } from "@playwright/test";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -11,6 +10,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { entries } from "@calcom/prisma/zod-utils";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import {
@@ -378,12 +378,15 @@ test.describe("Duration limits", () => {
     const slug = "duration-limit-multiple";
 
     // multiply all booking limits by EVENT_LENGTH
-    const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
-      return {
-        ...limits,
-        [limitKey]: bookingLimit * EVENT_LENGTH,
-      };
-    }, {} as Record<keyof IntervalLimit, number>);
+    const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce(
+      (limits, [limitKey, bookingLimit]) => {
+        return {
+          ...limits,
+          [limitKey]: bookingLimit * EVENT_LENGTH,
+        };
+      },
+      {} as Record<keyof IntervalLimit, number>
+    );
 
     const user = await createUserWithLimits({
       users,

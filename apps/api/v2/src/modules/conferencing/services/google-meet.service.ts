@@ -1,9 +1,7 @@
+import { GOOGLE_CALENDAR_TYPE, GOOGLE_MEET_TYPE } from "@calcom/platform-constants";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { BadRequestException, Logger } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
-import { GOOGLE_CALENDAR_TYPE, GOOGLE_MEET_TYPE } from "@calcom/platform-constants";
 
 @Injectable()
 export class GoogleMeetService {

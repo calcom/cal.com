@@ -1,12 +1,10 @@
-import { fakeDeviceMatchesMediaQuery } from "../test/__mocks__/windowMatchMedia";
-
 import type { AllPossibleLayouts, EmbedPageType } from "src/types";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import type { Mock } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { fakeDeviceMatchesMediaQuery } from "../test/__mocks__/windowMatchMedia";
+import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
 import { EmbedElement } from "./EmbedElement";
 import inlineHTML from "./Inline/inlineHtml";
-import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
 import { getColorSchemeDarkQuery } from "./ui-utils";
 
 (function defineEmbedTestElement() {

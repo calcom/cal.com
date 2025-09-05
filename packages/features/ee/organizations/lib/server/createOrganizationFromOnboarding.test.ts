@@ -2,9 +2,6 @@
  * Goal is to e2e test createOrganizationFromOnboarding except inviteMembersWithNoInviterPermissionCheck, createTeamsHandler and createDomain
  * Those are either already tested or should be tested out separately
  */
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import * as constants from "@calcom/lib/constants";
@@ -13,6 +10,8 @@ import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { createOrganizationFromOnboarding } from "./createOrganizationFromOnboarding";
 

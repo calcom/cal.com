@@ -1,6 +1,3 @@
-import { useRouter } from "next/navigation";
-import React from "react";
-
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
@@ -8,6 +5,8 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import React from "react";
 
 type OAuthClientCardProps = {
   name: string;
@@ -86,7 +85,8 @@ export const OAuthClientCard = ({
       className={classNames(
         "flex w-full justify-between px-4 py-4 sm:px-6",
         lastItem ? "" : "border-subtle border-b"
-      )}>
+      )}
+    >
       <div className="flex flex-col gap-2">
         <div className="flex gap-1">
           <p className="font-semibold">
@@ -185,14 +185,16 @@ export const OAuthClientCard = ({
           color="primary"
           loading={isLoading}
           disabled={isLoading}
-          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit/webhooks`)}>
+          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit/webhooks`)}
+        >
           Webhooks
         </Button>
         <Button
           color="secondary"
           loading={isLoading}
           disabled={isLoading}
-          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}>
+          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}
+        >
           Edit
         </Button>
         <Button color="destructive" loading={isLoading} disabled={isLoading} onClick={() => onDelete(id)}>

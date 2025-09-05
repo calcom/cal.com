@@ -1,7 +1,6 @@
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import type { IncomingMessage } from "http";
 import { z } from "zod";
-
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 const isValidDateString = (val: string) => !isNaN(Date.parse(val));
 

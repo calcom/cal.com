@@ -1,8 +1,9 @@
 /**
  * @fileoverview This file is an example file and tells how to use floating popup button in a React application. This is also used by playwright e2e
  */
-import { useEffect } from "react";
+
 import * as React from "react";
+import { useEffect } from "react";
 import ReactDom from "react-dom";
 
 import { getCalApi } from "./src/index";

@@ -1,9 +1,8 @@
-import type { Prisma } from "@prisma/client";
-import type { z } from "zod";
-
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
 type BookingSelect = {
   description: true;
@@ -95,7 +94,7 @@ export const getBookingWithResponses = <
     select: BookingSelect & {
       responses: true;
     };
-  }>
+  }>,
 >(
   booking: T
 ) => {

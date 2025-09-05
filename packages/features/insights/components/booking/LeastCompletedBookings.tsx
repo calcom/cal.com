@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useChangeTimeZoneWithPreservedLocalTime } from "@calcom/features/data-table/hooks/useChangeTimeZoneWithPreservedLocalTime";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import { useMemo } from "react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";

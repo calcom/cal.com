@@ -1,9 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type z from "zod";
-
-import { WhenToWriteToRecord, SalesforceFieldType } from "@calcom/app-store/salesforce/lib/enums";
+import { SalesforceFieldType, WhenToWriteToRecord } from "@calcom/app-store/salesforce/lib/enums";
 import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } from "@calcom/app-store/salesforce/zod";
 import { routingFormIncompleteBookingDataSchema as salesforceRoutingFormIncompleteBookingDataSchema } from "@calcom/app-store/salesforce/zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,15 +8,13 @@ import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
-import { Switch } from "@calcom/ui/components/form";
-import { InputField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
+import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-import SingleForm from "../../components/SingleForm";
+import { useEffect, useState } from "react";
+import type z from "zod";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
+import SingleForm from "../../components/SingleForm";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
@@ -88,8 +83,8 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
 
       setSelectedCredential(
         credentialOptions
-          ? credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
-              selectedCredential
+          ? (credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
+              selectedCredential)
           : selectedCredential
       );
     }
@@ -157,7 +152,8 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                       <div
                         className="mt-2 grid gap-4"
                         style={{ gridTemplateColumns: "repeat(5, 1fr)" }}
-                        key={key}>
+                        key={key}
+                      >
                         <div className="w-full">
                           <InputField value={key} readOnly />
                         </div>
@@ -286,7 +282,8 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                       value: "",
                       whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
                     });
-                  }}>
+                  }}
+                >
                   {t("add_new_field")}
                 </Button>
               </div>
@@ -306,7 +303,8 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                   enabled: salesforceActionEnabled,
                   credentialId: selectedCredential?.value ?? data?.credentials[0].id,
                 });
-              }}>
+              }}
+            >
               {t("save")}
             </Button>
           </div>

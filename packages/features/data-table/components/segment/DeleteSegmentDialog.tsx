@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useDataTable } from "../../hooks";
@@ -43,14 +43,16 @@ export function DeleteSegmentDialog({
         if (!open) {
           onClose();
         }
-      }}>
+      }}
+    >
       <ConfirmationDialogContent
         variety="danger"
         title={t("delete_segment")}
         confirmBtnText={t("delete")}
         cancelBtnText={t("cancel")}
         isPending={isPending}
-        onConfirm={handleDelete}>
+        onConfirm={handleDelete}
+      >
         <p className="mt-5">{t("delete_segment_confirmation")}</p>
       </ConfirmationDialogContent>
     </Dialog>

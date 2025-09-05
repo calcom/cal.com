@@ -1,3 +1,25 @@
+import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import {
+  ApiSuccessResponse,
+  CreateTeamEventTypeInput_2024_06_14,
+  Host,
+  OrgTeamOutputDto,
+  TeamEventTypeOutput_2024_06_14,
+  UpdateTeamEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
@@ -13,29 +35,6 @@ import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/member
 import { OrgTeamMembershipOutputResponseDto } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
-import * as request from "supertest";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import {
-  ApiSuccessResponse,
-  CreateTeamEventTypeInput_2024_06_14,
-  Host,
-  OrgTeamOutputDto,
-  TeamEventTypeOutput_2024_06_14,
-  UpdateTeamEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 

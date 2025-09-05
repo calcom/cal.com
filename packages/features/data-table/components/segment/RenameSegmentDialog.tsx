@@ -1,11 +1,10 @@
-import { useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useForm } from "react-hook-form";
 
 import type { FilterSegmentOutput } from "../../lib/types";
 
@@ -66,7 +65,8 @@ export function RenameSegmentDialog({
         if (!open) {
           onClose();
         }
-      }}>
+      }}
+    >
       <DialogContent>
         <DialogHeader title={t("rename_segment")} />
         <Form form={form} handleSubmit={handleSubmit}>

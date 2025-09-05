@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { APP_STORE_PATH, TEMPLATES_PATH, IS_WINDOWS_PLATFORM } from "./constants";
+import { APP_STORE_PATH, IS_WINDOWS_PLATFORM, TEMPLATES_PATH } from "./constants";
 import execSync from "./utils/execSync";
 
 const slugify = (str: string) => {

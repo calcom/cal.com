@@ -1,12 +1,5 @@
-import { CustomI18nProvider } from "app/CustomI18nProvider";
-import type { PageProps, Params } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
-import { headers, cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingForReschedule, type GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { type GetBookingType, getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import type { TeamData } from "@calcom/features/ee/teams/lib/getTeamData";
@@ -14,13 +7,18 @@ import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
-
 import { buildLegacyCtx, buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { PageProps, Params } from "app/_types";
+import { generateMeetingMetadata } from "app/_utils";
+import { CustomI18nProvider } from "app/CustomI18nProvider";
+import { cookies, headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+import { z } from "zod";
 
 import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
 
-import { getCachedTeamData, getEnrichedEventType, getCRMData, shouldUseApiV2ForTeamSlots } from "./queries";
+import { getCachedTeamData, getCRMData, getEnrichedEventType, shouldUseApiV2ForTeamSlots } from "./queries";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),

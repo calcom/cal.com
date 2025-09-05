@@ -1,10 +1,9 @@
-import type { TFunction } from "i18next";
-import { default as cloneDeep } from "lodash/cloneDeep";
-
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
+import { default as cloneDeep } from "lodash/cloneDeep";
 
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
@@ -63,8 +62,8 @@ ${this.t(
   title
     ? title
     : this.calEvent.recurringEvent?.count
-    ? "your_event_has_been_scheduled_recurring"
-    : "your_event_has_been_scheduled"
+      ? "your_event_has_been_scheduled_recurring"
+      : "your_event_has_been_scheduled"
 )}
 ${this.t(subtitle)}
 

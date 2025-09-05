@@ -18,7 +18,8 @@ export const OrganizerPaymentRefundFailedEmail = (
             user: props.calEvent.attendees[0].name,
           })}
         </>
-      }>
+      }
+    >
       <RefundInformation {...props} />
     </BaseEmailHtml>
   );
@@ -43,7 +44,8 @@ function RefundInformation(props: React.ComponentProps<typeof OrganizerPaymentRe
                 lineHeight: "24px",
                 textAlign: "center",
                 color: "#494949",
-              }}>
+              }}
+            >
               {t("error_message", { errorMessage: paymentInfo.reason }).toString()}
             </div>
           </td>
@@ -60,7 +62,8 @@ function RefundInformation(props: React.ComponentProps<typeof OrganizerPaymentRe
                 lineHeight: "24px",
                 textAlign: "center",
                 color: "#494949",
-              }}>
+              }}
+            >
               Payment {paymentInfo.id}
             </div>
           </td>

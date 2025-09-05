@@ -28,7 +28,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -36,27 +36,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { AddVariablesDropdown } from "@calcom/ui/components/editor";
-import { Editor } from "@calcom/ui/components/editor";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { EmailField } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
+import { AddVariablesDropdown, Editor } from "@calcom/ui/components/editor";
+import {
+  CheckboxField,
+  EmailField,
+  Input,
+  Label,
+  Select,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import {
-  isSMSAction,
-  isWhatsappAction,
   getTemplateBodyForAction,
-  shouldScheduleEmailReminder,
-  isSMSOrWhatsappAction,
   isCalAIAction,
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+  shouldScheduleEmailReminder,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -557,7 +558,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   setReload(!reload);
                                 }
                               }
-                            }}>
+                            }}
+                          >
                             {t("delete")}
                           </DropdownItem>
                         </DropdownMenuItem>
@@ -708,7 +710,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }
                       }}
-                      loading={createAgentMutation.isPending}>
+                      loading={createAgentMutation.isPending}
+                    >
                       {t("set_up")}
                     </Button>
                   </div>
@@ -742,7 +745,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <Button
                           color="secondary"
                           onClick={() => setIsTestAgentDialogOpen(true)}
-                          disabled={props.readOnly || !arePhoneNumbersActive.length}>
+                          disabled={props.readOnly || !arePhoneNumbersActive.length}
+                        >
                           <Icon name="phone" className="mr-2 h-4 w-4" />
                           {t("test_agent")}
                         </Button>
@@ -756,7 +760,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               activeTab: "phoneNumber",
                             }));
                           }}
-                          disabled={props.readOnly}>
+                          disabled={props.readOnly}
+                        >
                           {t("connect_phone_number")}
                         </Button>
                       )}
@@ -775,7 +780,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             <DropdownItem
                               type="button"
                               StartIcon="pencil"
-                              onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "prompt" })}>
+                              onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "prompt" })}
+                            >
                               {t("edit")}
                             </DropdownItem>
                           </DropdownMenuItem>
@@ -820,7 +826,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         sendVerificationCodeMutation.mutate({
                           phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
                         })
-                      }>
+                      }
+                    >
                       {t("send_code")}
                     </Button>
                   </div>
@@ -859,7 +866,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 code: verificationCode,
                                 teamId,
                               });
-                            }}>
+                            }}
+                          >
                             {t("verify")}
                           </Button>
                         </div>
@@ -975,7 +983,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             email,
                             isVerifyingEmail: true,
                           });
-                        }}>
+                        }}
+                      >
                         {t("send_code")}
                       </Button>
                     </div>
@@ -1015,7 +1024,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   email: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
                                   teamId,
                                 });
-                              }}>
+                              }}
+                            >
                               {t("verify")}
                             </Button>
                           </div>
@@ -1453,7 +1463,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     });
                   }
                 }}
-                loading={unsubscribePhoneNumberMutation.isPending}>
+                loading={unsubscribePhoneNumberMutation.isPending}
+              >
                 {t("unsubscribe")}
               </Button>
             </DialogFooter>
@@ -1533,7 +1544,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     setReload(!reload);
                   }
                   setIsDeleteStepDialogOpen(false);
-                }}>
+                }}
+              >
                 {t("delete")}
               </Button>
             </DialogFooter>

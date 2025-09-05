@@ -1,6 +1,5 @@
-import { stringify } from "querystring";
-
 import type { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { stringify } from "querystring";
 
 export const getAppOnboardingUrl = ({
   slug,

@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -10,9 +7,10 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
@@ -62,7 +60,8 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
         disabled={createTeamMutation.isPending}
         color="secondary"
         onClick={onCancel}
-        className="w-full justify-center">
+        className="w-full justify-center"
+      >
         {t("cancel")}
       </Button>
       <Button
@@ -71,7 +70,8 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
         EndIcon="arrow-right"
         type="submit"
         className="w-full justify-center"
-        data-testid="continue-button">
+        data-testid="continue-button"
+      >
         {t(submitLabel)}
       </Button>
     </>
@@ -86,7 +86,8 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
             setServerErrorMessage(null);
             createTeamMutation.mutate(v);
           }
-        }}>
+        }}
+      >
         <div className="mb-8">
           {serverErrorMessage && (
             <div className="mb-4">

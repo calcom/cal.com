@@ -1,3 +1,20 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { UpdateEventTypeReturn } from "@calcom/platform-libraries/event-types";
+import { PublicEventType } from "@calcom/platform-libraries/event-types";
+import { ApiResponse } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Query,
+  UseGuards,
+  VERSION_NEUTRAL,
+  Version,
+} from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
@@ -16,24 +33,6 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  UseGuards,
-  Version,
-  VERSION_NEUTRAL,
-  Patch,
-  Body,
-  Query,
-} from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { UpdateEventTypeReturn } from "@calcom/platform-libraries/event-types";
-import { PublicEventType } from "@calcom/platform-libraries/event-types";
-import { ApiResponse } from "@calcom/platform-types";
 
 /*
 Event-types endpoints for atoms, split from AtomsController for clarity and maintainability.

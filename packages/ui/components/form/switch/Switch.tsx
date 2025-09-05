@@ -1,10 +1,9 @@
+import cx from "@calcom/ui/classNames";
 import { useId } from "@radix-ui/react-id";
 import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
 import type { ReactNode } from "react";
 import React from "react";
-
-import cx from "@calcom/ui/classNames";
 
 import { Tooltip } from "../../tooltip";
 
@@ -50,7 +49,8 @@ export const Switch = (
           labelOnLeading && "flex-row-reverse",
           padding && "hover:bg-subtle rounded-md p-1.5",
           classNames?.container
-        )}>
+        )}
+      >
         {LockedIcon && <div className="mr-2">{LockedIcon}</div>}
         <PrimitiveSwitch.Root
           {...primitiveProps}
@@ -60,7 +60,8 @@ export const Switch = (
             "focus:ring-brand-default data-[state=checked]:bg-brand-default dark:data-[state=checked]:bg-brand-emphasis data-[state=unchecked]:bg-emphasis peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-inner transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             size === "sm" ? "h-4 w-7" : "h-6 w-11",
             classNames?.container
-          )}>
+          )}
+        >
           <PrimitiveSwitch.Thumb
             className={cx(
               "bg-default data-[state=checked]:bg-brand-accent shadow-switch-thumb pointer-events-none block rounded-full shadow-lg ring-0 transition-transform",
@@ -79,7 +80,8 @@ export const Switch = (
               size === "sm" ? "m-1 text-xs" : "ml-2 mt-1 text-sm",
               primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
               labelOnLeading && "flex-1"
-            )}>
+            )}
+          >
             {label}
           </Label.Root>
         )}

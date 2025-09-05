@@ -9,7 +9,7 @@ export function isOriginAllowed(origin: string, allowedOrigins: string[]): boole
 
 function wildcardToRegex(pattern: string): RegExp {
   const escaped = escapeRegex(pattern);
-  const regexPattern = "^" + escaped.replace(/\\\*/g, ".*") + "$";
+  const regexPattern = `^${escaped.replace(/\\\*/g, ".*")}$`;
   return new RegExp(regexPattern);
 }
 

@@ -1,16 +1,14 @@
-import { useState, useEffect } from "react";
-
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
+import { Select, TextField } from "@calcom/ui/components/form";
+import { useEffect, useState } from "react";
 
 import {
-  convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
+  convertToSmallestCurrencyUnit,
 } from "../lib/currencyConversions";
-import { paymentOptions, currencyOptions } from "./constants";
+import { currencyOptions, paymentOptions } from "./constants";
 
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   getAppData,

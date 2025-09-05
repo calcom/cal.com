@@ -1,7 +1,6 @@
-import type { TFunction } from "i18next";
-
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import type { TFunction } from "i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -24,7 +23,8 @@ const dnsTable = (type: string, name: string, value: string, t: TFunction) => (
       borderCollapse: "separate",
       border: "solid black 1px",
     }}
-    width="100%">
+    width="100%"
+  >
     <tbody>
       <thead>
         <tr
@@ -33,11 +33,13 @@ const dnsTable = (type: string, name: string, value: string, t: TFunction) => (
             color: "white",
             fontSize: "14px",
             lineHeight: "24px",
-          }}>
+          }}
+        >
           <td
             align="center"
             width="33%"
-            style={{ borderTopLeftRadius: "5px", borderRight: "1px solid white" }}>
+            style={{ borderTopLeftRadius: "5px", borderRight: "1px solid white" }}
+          >
             {t("type")}
           </td>
           <td align="center" width="33%" style={{ borderRight: "1px solid white" }}>
@@ -78,13 +80,15 @@ export const AdminOrganizationNotificationEmail = ({
           href={`${WEBAPP_URL}/settings/admin/organizations`}
           endIconName="white-arrow-right"
         />
-      }>
+      }
+    >
       <p
         style={{
           fontWeight: 600,
           fontSize: "24px",
           lineHeight: "38px",
-        }}>
+        }}
+      >
         <>{language("admin_org_notification_email_title")}</>
       </p>
       <p style={{ fontWeight: 400 }}>

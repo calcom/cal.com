@@ -1,4 +1,4 @@
-import type { EventTypeColorsTransformedSchema, EventTypeColor_2024_06_14 } from "@calcom/platform-types";
+import type { EventTypeColor_2024_06_14, EventTypeColorsTransformedSchema } from "@calcom/platform-types";
 
 export function transformEventTypeColorsInternalToApi(
   transformedColors: EventTypeColorsTransformedSchema

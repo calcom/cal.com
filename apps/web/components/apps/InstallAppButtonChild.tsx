@@ -27,7 +27,8 @@ export const InstallAppButtonChild = ({
         {...props}
         disabled={shouldDisableInstallation}
         color="primary"
-        size="base">
+        size="base"
+      >
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
       </Button>
     );
@@ -39,7 +40,8 @@ export const InstallAppButtonChild = ({
       {...props}
       disabled={shouldDisableInstallation}
       color="primary"
-      size="base">
+      size="base"
+    >
       {multiInstall ? t("install_another") : t("install_app")}
     </Button>
   );

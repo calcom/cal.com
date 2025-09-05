@@ -18,7 +18,7 @@ import {
   isDelegationCredential,
 } from "./clientAndServer";
 
-export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./clientAndServer";
+export { buildNonDelegationCredential, buildNonDelegationCredentials } from "./clientAndServer";
 
 const GOOGLE_WORKSPACE_SLUG = "google";
 const OFFICE365_WORKSPACE_SLUG = "office365";
@@ -382,26 +382,29 @@ export const buildAllCredentials = ({
     ...buildNonDelegationCredentials(nonDelegationCredentials),
   ];
 
-  const uniqueAllCredentials = allCredentials.reduce((acc, credential) => {
-    if (!credential.delegatedToId) {
-      // Regular credential go as is
-      acc.push(credential);
+  const uniqueAllCredentials = allCredentials.reduce(
+    (acc, credential) => {
+      if (!credential.delegatedToId) {
+        // Regular credential go as is
+        acc.push(credential);
+        return acc;
+      }
+      const existingDelegationCredential = acc.find(
+        (c) => c.delegatedToId === credential.delegatedToId && c.appId === credential.appId
+      );
+      if (!existingDelegationCredential) {
+        acc.push(credential);
+      }
       return acc;
-    }
-    const existingDelegationCredential = acc.find(
-      (c) => c.delegatedToId === credential.delegatedToId && c.appId === credential.appId
-    );
-    if (!existingDelegationCredential) {
-      acc.push(credential);
-    }
-    return acc;
-  }, [] as typeof allCredentials);
+    },
+    [] as typeof allCredentials
+  );
 
   return uniqueAllCredentials;
 };
 
 export async function enrichUsersWithDelegationCredentials<
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({ orgId, users }: { orgId: number | null; users: TUser[] }) {
   const delegationCredentialsMap = await _getDelegationCredentialsMapPerUser({
     organizationId: orgId,
@@ -425,7 +428,7 @@ export async function enrichUsersWithDelegationCredentials<
 
 export const enrichHostsWithDelegationCredentials = async <
   THost extends Host<TUser>,
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({
   orgId,
   hosts,
@@ -466,7 +469,7 @@ export const enrichHostsWithDelegationCredentials = async <
 };
 
 export const enrichUserWithDelegationCredentialsIncludeServiceAccountKey = async <
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({
   user,
 }: {
@@ -486,7 +489,7 @@ export const enrichUserWithDelegationCredentialsIncludeServiceAccountKey = async
 };
 
 export const enrichUserWithDelegationCredentials = async <
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({
   user,
 }: {
@@ -502,7 +505,7 @@ export const enrichUserWithDelegationCredentials = async <
 };
 
 export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgId<
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({ user }: { user: TUser }) {
   const { credentials, ...restUser } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user,
@@ -517,7 +520,7 @@ export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgI
  * Either get Delegation credential from delegationCredentials or find regular credential from Credential table
  */
 export async function getDelegationCredentialOrFindRegularCredential<
-  TDelegationCredential extends { delegatedToId?: string | null }
+  TDelegationCredential extends { delegatedToId?: string | null },
 >({
   id,
   delegationCredentials,
@@ -531,17 +534,17 @@ export async function getDelegationCredentialOrFindRegularCredential<
   return id.delegationCredentialId
     ? delegationCredentials.find((cred) => cred.delegatedToId === id.delegationCredentialId)
     : id.credentialId
-    ? await CredentialRepository.findCredentialForCalendarServiceById({
-        id: id.credentialId,
-      })
-    : null;
+      ? await CredentialRepository.findCredentialForCalendarServiceById({
+          id: id.credentialId,
+        })
+      : null;
 }
 
 /**
  * Utility function to find a credential from a list of credentials, supporting both regular and DelegationCredential credentials
  */
 export function getDelegationCredentialOrRegularCredential<
-  TCredential extends { delegatedToId?: string | null; id: number }
+  TCredential extends { delegatedToId?: string | null; id: number },
 >({
   credentials,
   id,

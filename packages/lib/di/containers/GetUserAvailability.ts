@@ -1,8 +1,7 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { redisModule } from "@calcom/features/redis/di/redisModule";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
+import { createContainer } from "@evyweb/ioctopus";
 
 import type { UserAvailabilityService } from "../../getUserAvailability";
 import { bookingRepositoryModule } from "../modules/Booking";

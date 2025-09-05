@@ -41,7 +41,8 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
             {badgeText}
           </Badge>
         </div>
-      }>
+      }
+    >
       <div className="[&>*]:text-emphasis flex flex-col gap-3">
         {props.calendars?.map((calendar) => {
           return <Switch key={calendar.name} checked={calendar.active} label={calendar.name} disabled />;
@@ -69,7 +70,8 @@ function EmptyCalendarToggleItem() {
             {t("unavailable")}
           </Badge>
         </div>
-      }>
+      }
+    >
       <div className="flex flex-col gap-3">
         <Button color="secondary" className="justify-center gap-2" href="/apps/categories/calendar">
           {t("install_calendar")}

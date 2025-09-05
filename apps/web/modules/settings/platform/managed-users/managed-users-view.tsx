@@ -1,15 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
 import Shell from "@calcom/features/shell/Shell";
 import { PlatformManagedUsersTable } from "@calcom/features/users/components/UserTable/PlatformManagedUsersTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
+import { Label, Select } from "@calcom/ui/components/form";
 import { Skeleton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
+import { useMemo, useState } from "react";
 
 type OAuthClientOption = { label: string; value: string };
 
@@ -77,7 +74,8 @@ const ManagedUsersView = () => {
       title={t("managed_users")}
       description={t("managed_users_description")}
       withoutMain={false}
-      isPlatformUser={true}>
+      isPlatformUser={true}
+    >
       <Skeleton as={Label} loadingClassName="w-16" title={t("select_oAuth_client")}>
         {t("select_oAuth_client")}
       </Skeleton>

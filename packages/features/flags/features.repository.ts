@@ -1,7 +1,6 @@
+import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
-
-import type { PrismaClient } from "@calcom/prisma";
 
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";

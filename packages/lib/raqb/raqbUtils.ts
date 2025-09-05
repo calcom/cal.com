@@ -1,17 +1,15 @@
-import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder";
-import { Utils as QbUtils } from "react-awesome-query-builder";
-
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
-  AttributeOptionValueWithType,
-  AttributeOptionValue,
   Attribute,
+  AttributeOptionValue,
+  AttributeOptionValueWithType,
 } from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
+import type { Config, JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
+import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import { resolveQueryValue } from "./resolveQueryValue";
 import { caseInsensitive } from "./utils";

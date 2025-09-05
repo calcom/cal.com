@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getCalendarCredentials, deduplicateCredentialsBasedOnSelectedCalendars } from "./CalendarManager";
+import { deduplicateCredentialsBasedOnSelectedCalendars, getCalendarCredentials } from "./CalendarManager";
 
 function buildCredential(data: {
   type: string;

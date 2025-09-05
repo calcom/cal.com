@@ -1,12 +1,11 @@
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { useId } from "@radix-ui/react-id";
 import type { ReactElement, ReactNode, Ref } from "react";
 import React, { forwardRef } from "react";
 import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { FormProvider, useFormContext } from "react-hook-form";
-
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 
 import { Alert } from "../alert";
 import { showToast } from "../toast";
@@ -102,14 +101,13 @@ export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function 
   return <InputField ref={ref} {...props} />;
 });
 
-export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
-  props,
-  ref
-) {
-  return (
-    <InputField data-testid="password" type="password" placeholder="•••••••••••••" ref={ref} {...props} />
-  );
-});
+export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(
+  function PasswordField(props, ref) {
+    return (
+      <InputField data-testid="password" type="password" placeholder="•••••••••••••" ref={ref} {...props} />
+    );
+  }
+);
 
 export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
   return (
@@ -160,39 +158,38 @@ type TextAreaFieldProps = {
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
-export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextField(
-  props,
-  ref
-) {
-  const id = useId();
-  const { t } = useLocale();
-  const methods = useFormContext();
-  const {
-    label = t(props.name as string),
-    labelProps,
-    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
-      ? t(`${props.name}_placeholder`)
-      : "",
-    ...passThrough
-  } = props;
-  return (
-    <div>
-      {!!props.name && (
-        <Label htmlFor={id} {...labelProps}>
-          {label}
-        </Label>
-      )}
-      <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name]?.message && (
-        <Alert
-          className="mt-1"
-          severity="error"
-          message={<>{methods.formState.errors[props.name]?.message}</>}
-        />
-      )}
-    </div>
-  );
-});
+export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
+  function TextField(props, ref) {
+    const id = useId();
+    const { t } = useLocale();
+    const methods = useFormContext();
+    const {
+      label = t(props.name as string),
+      labelProps,
+      placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+        ? t(`${props.name}_placeholder`)
+        : "",
+      ...passThrough
+    } = props;
+    return (
+      <div>
+        {!!props.name && (
+          <Label htmlFor={id} {...labelProps}>
+            {label}
+          </Label>
+        )}
+        <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
+        {methods?.formState?.errors[props.name]?.message && (
+          <Alert
+            className="mt-1"
+            severity="error"
+            message={<>{methods.formState.errors[props.name]?.message}</>}
+          />
+        )}
+      </div>
+    );
+  }
+);
 
 type FormProps<T extends object> = { form: UseFormReturn<T>; handleSubmit: SubmitHandler<T> } & Omit<
   JSX.IntrinsicElements["form"],
@@ -216,7 +213,8 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
               showToast(`${getErrorFromUnknown(err).message}`, "error");
             });
         }}
-        {...passThrough}>
+        {...passThrough}
+      >
         {
           /* @see https://react-hook-form.com/advanced-usage/#SmartFormComponent */
           React.Children.map(props.children, (child) => {
@@ -257,7 +255,8 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   return (
     <div
       {...props}
-      className={classNames("bg-default border-default space-y-2 rounded-sm border p-2", props.className)}>
+      className={classNames("bg-default border-default space-y-2 rounded-sm border p-2", props.className)}
+    >
       {props.children}
     </div>
   );

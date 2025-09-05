@@ -1,3 +1,7 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Body, Controller, Put, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -9,11 +13,6 @@ import {
 } from "@/modules/destination-calendars/outputs/destination-calendars.output";
 import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destination-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Body, Controller, Put, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/destination-calendars",

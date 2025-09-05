@@ -1,12 +1,12 @@
 import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
-import type { EmbedThemeConfig, AllPossibleLayouts, BookerLayouts, EmbedPageType } from "./types";
+import type { AllPossibleLayouts, BookerLayouts, EmbedPageType, EmbedThemeConfig } from "./types";
 import {
+  addDarkColorSchemeChangeListener,
+  getMaxHeightForModal,
   getThemeClassForEmbed,
   getTrueLayout,
   isThemePreferenceProvided,
   removeDarkColorSchemeChangeListener,
-  addDarkColorSchemeChangeListener,
-  getMaxHeightForModal,
 } from "./ui-utils";
 
 type ShadowRootWithStyle = ShadowRoot & {

@@ -1,17 +1,16 @@
-import { Navbar } from "@/components/Navbar";
-import { Inter } from "next/font/google";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import { useRouter } from "next/router";
-import { useState, useRef, useCallback } from "react";
-
 import type { EventSettingsFromRef } from "@calcom/atoms";
 import {
+  CreateEventType,
+  EventTypeSettings,
   useEventTypes,
   useTeamEventTypes,
   useTeams,
-  EventTypeSettings,
-  CreateEventType,
 } from "@calcom/atoms";
+import { Inter } from "next/font/google";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter } from "next/router";
+import { useCallback, useRef, useState } from "react";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,7 +52,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
   return (
     <main
-      className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
+      className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}
+    >
       <Navbar username={props.calUsername} />
       <div>
         <h1 className="mx-10 my-4 text-2xl font-semibold">
@@ -79,7 +79,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       setIsTeamEvent(false);
                     }}
                     className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
-                    key={event.id}>
+                    key={event.id}
+                  >
                     <h1 className="text-lg font-semibold">{event.title}</h1>
                     <p>{`/${event.slug}`}</p>
                     <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
@@ -108,7 +109,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       setIsTeamEvent(true);
                     }}
                     className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
-                    key={event.id}>
+                    key={event.id}
+                  >
                     <h1 className="text-lg font-semibold">{event.title}</h1>
                     <p>{`/${event.slug}`}</p>
                     <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
@@ -773,12 +775,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <div className="mt-4 flex justify-center gap-4">
               <button
                 onClick={handleValidate}
-                className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+                className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+              >
                 Validate Form
               </button>
               <button
                 onClick={handleSubmit}
-                className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600">
+                className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+              >
                 Submit Form
               </button>
             </div>

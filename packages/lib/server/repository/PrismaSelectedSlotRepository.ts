@@ -1,8 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
-import type { ISelectedSlotRepository } from "./ISelectedSlotRepository";
-import type { TimeSlot } from "./ISelectedSlotRepository";
+import type { ISelectedSlotRepository, TimeSlot } from "./ISelectedSlotRepository";
 
 export class PrismaSelectedSlotRepository implements ISelectedSlotRepository {
   constructor(private prismaClient: PrismaClient) {}

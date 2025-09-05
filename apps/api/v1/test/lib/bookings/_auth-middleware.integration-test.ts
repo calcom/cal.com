@@ -1,11 +1,10 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect, test } from "vitest";
-
-import { MembershipRole } from "@calcom/prisma/enums";
+import { describe, expect, it, test } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import authMiddleware from "../../../pages/api/bookings/[id]/_auth-middleware";
 

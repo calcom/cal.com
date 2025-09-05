@@ -1,9 +1,3 @@
-import { Prisma } from "@prisma/client";
-import { randomBytes } from "crypto";
-import type { NextApiRequest } from "next";
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
-
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
@@ -26,6 +20,11 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { createInstantMeetingWithCalVideo } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { Prisma } from "@prisma/client";
+import { randomBytes } from "crypto";
+import type { NextApiRequest } from "next";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
 import { subscriptionSchema } from "./schema";
 
@@ -200,16 +199,19 @@ async function _handler(bookingData: CreateInstantBookingData) {
     },
   ];
 
-  const guests = (reqBody.guests || []).reduce((guestArray, guest) => {
-    guestArray.push({
-      email: guest,
-      name: "",
-      timeZone: attendeeTimezone,
-      locale: "en",
-      phoneNumber: null,
-    });
-    return guestArray;
-  }, [] as typeof invitee);
+  const guests = (reqBody.guests || []).reduce(
+    (guestArray, guest) => {
+      guestArray.push({
+        email: guest,
+        name: "",
+        timeZone: attendeeTimezone,
+        locale: "en",
+        phoneNumber: null,
+      });
+      return guestArray;
+    },
+    [] as typeof invitee
+  );
 
   const attendeesList = [...invitee, ...guests];
   const calVideoMeeting = await createInstantMeetingWithCalVideo(dayjs.utc(reqBody.end).toISOString());

@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import dayjs from "@calcom/dayjs";
+import { describe, expect, it } from "vitest";
 
 import { getRollingWindowEndDate } from "./isOutOfBounds";
 

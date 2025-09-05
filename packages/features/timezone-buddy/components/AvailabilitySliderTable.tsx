@@ -1,13 +1,8 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
-import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import dayjs from "@calcom/dayjs";
-import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import { useDataTable } from "@calcom/features/data-table/hooks";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
@@ -19,6 +14,10 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { keepPreviousData } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { createTimezoneBuddyStore, TBContext } from "../store";
@@ -61,7 +60,8 @@ function UpgradeTeamTip() {
             </Button>
           </ButtonGroup>
         </div>
-      }>
+      }
+    >
       <></>
     </UpgradeTip>
   );
@@ -237,7 +237,8 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
     <TBContext.Provider
       value={createTimezoneBuddyStore({
         browsingDate: browsingDate.toDate(),
-      })}>
+      })}
+    >
       <>
         <CellHighlightContainer>
           <DataTable
@@ -250,7 +251,8 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
               }
             }}
             isPending={isPending}
-            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+            onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
+          >
             <DataTableToolbar.Root>
               <DataTableToolbar.SearchBar />
             </DataTableToolbar.Root>

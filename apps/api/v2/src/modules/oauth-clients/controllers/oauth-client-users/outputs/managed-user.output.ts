@@ -1,7 +1,7 @@
-import { Locales } from "@/lib/enums/locales";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
 import { IsEnum, IsObject, IsOptional, IsUrl } from "class-validator";
+import { Locales } from "@/lib/enums/locales";
 
 export class ManagedUserOutput {
   @ApiProperty({ example: 1 })

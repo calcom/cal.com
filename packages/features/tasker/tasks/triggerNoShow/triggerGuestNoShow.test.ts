@@ -1,21 +1,17 @@
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import dayjs from "@calcom/dayjs";
+import { BookingStatus, TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import {
   createBookingScenario,
   getDate,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
   getScenarioData,
+  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, vi, test, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import dayjs from "@calcom/dayjs";
-import { TimeUnit } from "@calcom/prisma/enums";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { describe, expect, test, vi } from "vitest";
 
 import { calculateMaxStartTime } from "./common";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";

@@ -9,8 +9,8 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import {
   getTeamOrThrow,
-  sendSignupToOrganizationEmail,
   sendExistingUserTeamInviteEmails,
+  sendSignupToOrganizationEmail,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";

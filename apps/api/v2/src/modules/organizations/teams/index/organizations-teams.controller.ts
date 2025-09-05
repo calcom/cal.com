@@ -1,3 +1,22 @@
+import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { OrgTeamOutputDto, SkipTakePagination } from "@calcom/platform-types";
+import { Team } from "@calcom/prisma/client";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import { Request } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -25,27 +44,6 @@ import {
 } from "@/modules/organizations/teams/index/outputs/organization-team.output";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Delete,
-  Patch,
-  Post,
-  Body,
-  Req,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { Request } from "express";
-
-import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { OrgTeamOutputDto } from "@calcom/platform-types";
-import { SkipTakePagination } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams",

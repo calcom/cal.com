@@ -1,17 +1,16 @@
-import { expect } from "@playwright/test";
-
 import { MembershipRole } from "@calcom/prisma/enums";
+import { expect } from "@playwright/test";
 
 import {
   applySelectFilter,
-  createFilterSegment,
-  selectSegment,
-  deleteSegment,
-  listSegments,
   clearFilters,
-  openSegmentSubmenu,
-  locateSelectedSegmentName,
+  createFilterSegment,
+  deleteSegment,
   getByTableColumnText,
+  listSegments,
+  locateSelectedSegmentName,
+  openSegmentSubmenu,
+  selectSegment,
 } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 

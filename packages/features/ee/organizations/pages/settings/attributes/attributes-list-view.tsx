@@ -1,8 +1,5 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -11,15 +8,17 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
   DropdownItem,
+  DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
@@ -107,7 +106,8 @@ function AttributeItem({
                   <DropdownItem
                     type="button"
                     StartIcon="pencil"
-                    href={`/settings/organizations/attributes/${attribute.id}/edit`}>
+                    href={`/settings/organizations/attributes/${attribute.id}/edit`}
+                  >
                     {t("edit")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -119,7 +119,8 @@ function AttributeItem({
                     StartIcon="trash-2"
                     color="destructive"
                     className="rounded-t-none"
-                    onClick={() => setAttributeToDelete(attribute)}>
+                    onClick={() => setAttributeToDelete(attribute)}
+                  >
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -171,7 +172,8 @@ function OrganizationAttributesPage({
                 className="w-fit"
                 StartIcon="plus"
                 color="minimal"
-                href="/settings/organizations/attributes/create">
+                href="/settings/organizations/attributes/create"
+              >
                 {t("add")}
               </Button>
             )}
@@ -193,7 +195,8 @@ function OrganizationAttributesPage({
                 className="mt-8"
                 StartIcon="plus"
                 color="secondary"
-                href="/settings/organizations/attributes/create">
+                href="/settings/organizations/attributes/create"
+              >
                 {t("new_attribute")}
               </Button>
             )}

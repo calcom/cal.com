@@ -1,16 +1,13 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import React from "react";
-import { Toaster } from "sonner";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { showToast } from "@calcom/ui/components/toast";
-
 import type { getServerSideProps } from "@server/lib/auth/verify-email-change/getServerSideProps";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import React, { useEffect } from "react";
+import { Toaster } from "sonner";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 

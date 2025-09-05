@@ -7,7 +7,7 @@ export const applyTheme = function () {
         try {
           // eslint-disable-next-line @calcom/eslint/avoid-web-storage
           return localStorage.getItem(key);
-        } catch (e) {
+        } catch (_e) {
           return null;
         }
       },
@@ -15,7 +15,7 @@ export const applyTheme = function () {
         try {
           // eslint-disable-next-line @calcom/eslint/avoid-web-storage
           return localStorage.key(index);
-        } catch (e) {
+        } catch (_e) {
           return null;
         }
       },
@@ -23,7 +23,7 @@ export const applyTheme = function () {
         try {
           // eslint-disable-next-line @calcom/eslint/avoid-web-storage
           return localStorage.length;
-        } catch (e) {
+        } catch (_e) {
           return 0;
         }
       },

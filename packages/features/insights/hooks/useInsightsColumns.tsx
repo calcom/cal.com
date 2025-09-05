@@ -1,9 +1,3 @@
-import { createColumnHelper } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
-import startCase from "lodash/startCase";
-import { useMemo } from "react";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -12,6 +6,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
+import { createColumnHelper } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
+import { useMemo } from "react";
+import { z } from "zod";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -20,9 +19,9 @@ import { ResponseValueCell } from "../components/ResponseValueCell";
 import type { HeaderRow, RoutingFormTableRow } from "../lib/types";
 import {
   ZResponseMultipleValues,
+  ZResponseNumericValue,
   ZResponseSingleValue,
   ZResponseTextValue,
-  ZResponseNumericValue,
 } from "../lib/types";
 
 export const useInsightsColumns = ({
@@ -166,18 +165,21 @@ export const useInsightsColumns = ({
         const filterType = isSingleSelect
           ? ColumnFilterType.SINGLE_SELECT
           : isNumber
-          ? ColumnFilterType.NUMBER
-          : isText
-          ? ColumnFilterType.TEXT
-          : ColumnFilterType.MULTI_SELECT;
+            ? ColumnFilterType.NUMBER
+            : isText
+              ? ColumnFilterType.TEXT
+              : ColumnFilterType.MULTI_SELECT;
 
         const optionMap =
-          fieldHeader.options?.reduce((acc, option) => {
-            if (option.id) {
-              acc[option.id] = option.label;
-            }
-            return acc;
-          }, {} as Record<string, string>) ?? {};
+          fieldHeader.options?.reduce(
+            (acc, option) => {
+              if (option.id) {
+                acc[option.id] = option.label;
+              }
+              return acc;
+            },
+            {} as Record<string, string>
+          ) ?? {};
 
         return columnHelper.accessor((row) => row.fields.find((field) => field.fieldId === fieldHeader.id), {
           id: fieldHeader.id,
@@ -354,7 +356,8 @@ function CopyButton({ label, value }: { label: string; value: string }) {
       title={value}
       onClick={() => {
         copyToClipboard(value);
-      }}>
+      }}
+    >
       {!isCopied && (
         <>
           <span className="truncate">{label}</span>

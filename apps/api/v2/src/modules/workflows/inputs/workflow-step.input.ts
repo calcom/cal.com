@@ -1,8 +1,7 @@
+import { WorkflowActions, WorkflowTemplates } from "@calcom/platform-libraries";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsBoolean, IsString, ValidateNested, IsIn } from "class-validator";
-
-import { WorkflowActions, WorkflowTemplates } from "@calcom/platform-libraries";
+import { IsBoolean, IsIn, IsNumber, IsString, ValidateNested } from "class-validator";
 
 export const EMAIL_HOST = "email_host";
 export const EMAIL_ATTENDEE = "email_attendee";

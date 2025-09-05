@@ -1,5 +1,3 @@
-export type { RouterInputs, RouterOutputs } from "./trpc";
-
-export { trpc, transformer } from "./trpc";
-
 export { ENDPOINTS } from "./shared";
+export type { RouterInputs, RouterOutputs } from "./trpc";
+export { transformer, trpc } from "./trpc";

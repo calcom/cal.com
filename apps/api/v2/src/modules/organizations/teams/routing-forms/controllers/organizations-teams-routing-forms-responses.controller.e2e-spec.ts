@@ -1,10 +1,5 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { GetRoutingFormResponsesOutput } from "@/modules/organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -18,9 +13,13 @@ import { RoutingFormsRepositoryFixture } from "test/fixtures/repository/routing-
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { Team } from "@calcom/prisma/client";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { GetRoutingFormResponsesOutput } from "@/modules/organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Teams Routing Forms Responses", () => {
   let app: INestApplication;

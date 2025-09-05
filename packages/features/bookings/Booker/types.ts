@@ -1,5 +1,3 @@
-import type React from "react";
-
 import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
@@ -11,6 +9,7 @@ import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Bo
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type React from "react";
 
 import type { GetBookingType } from "../lib/get-booking";
 

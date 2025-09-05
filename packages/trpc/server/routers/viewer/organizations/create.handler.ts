@@ -1,13 +1,11 @@
-import { lookup } from "dns";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import {
-  RESERVED_SUBDOMAINS,
-  ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
+  ORG_SELF_SERVE_ENABLED,
+  RESERVED_SUBDOMAINS,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
@@ -16,12 +14,12 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
+import { lookup } from "dns";
 
 import type { TrpcSessionUser } from "../../../types";
-import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
+import { BillingPeriod } from "./create.schema";
 
 /**
  * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.

@@ -1,12 +1,11 @@
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { UserPermissionRole } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-import { WEBAPP_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 
 enum BillingPeriod {
   MONTHLY = "MONTHLY",

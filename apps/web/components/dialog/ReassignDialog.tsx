@@ -1,10 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -14,15 +7,21 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
-import { TextAreaField, Form, Label, Input } from "@calcom/ui/components/form";
+import { Form, Input, Label, TextAreaField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 enum ReassignType {
   ROUND_ROBIN = "round_robin",
@@ -177,11 +176,13 @@ export const ReassignDialog = ({
         open={isOpenDialog}
         onOpenChange={(open) => {
           setIsOpenDialog(open);
-        }}>
+        }}
+      >
         <DialogContent
           title={t("reassign_round_robin_host")}
           description={t("reassign_to_another_rr_host")}
-          enableOverflow>
+          enableOverflow
+        >
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
               onValueChange={(val) => {
@@ -189,13 +190,15 @@ export const ReassignDialog = ({
                 form.setValue("reassignType", reassignType);
               }}
               defaultValue={bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.ROUND_ROBIN}
-              className="mt-1 flex flex-col gap-4">
+              className="mt-1 flex flex-col gap-4"
+            >
               {!bookingFromRoutingForm ? (
                 <RadioArea.Item
                   value={ReassignType.ROUND_ROBIN}
                   className="w-full text-sm"
                   classNames={{ container: "w-full" }}
-                  disabled={bookingFromRoutingForm}>
+                  disabled={bookingFromRoutingForm}
+                >
                   <strong className="mb-1 block">{t("round_robin")}</strong>
                   <p>{t("round_robin_reassign_description")}</p>
                 </RadioArea.Item>
@@ -203,7 +206,8 @@ export const ReassignDialog = ({
               <RadioArea.Item
                 value={ReassignType.TEAM_MEMBER}
                 className="text-sm"
-                classNames={{ container: "w-full" }}>
+                classNames={{ container: "w-full" }}
+              >
                 <strong className="mb-1 block">{t("team_member_round_robin_reassign")}</strong>
                 <p>{t("team_member_round_robin_reassign_description")}</p>
               </RadioArea.Item>
@@ -234,7 +238,8 @@ export const ReassignDialog = ({
                         className={classNames(
                           "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring focus:ring-2",
                           watchedTeamMemberId === member.value && "bg-subtle"
-                        )}>
+                        )}
+                      >
                         <div className="flex flex-1 items-center space-x-3">
                           <input
                             type="radio"
@@ -262,7 +267,8 @@ export const ReassignDialog = ({
                         color="minimal"
                         loading={isFetchingNextPage}
                         disabled={!hasNextPage}
-                        onClick={() => fetchNextPage()}>
+                        onClick={() => fetchNextPage()}
+                      >
                         {hasNextPage ? t("load_more_results") : t("no_more_results")}
                       </Button>
                     </div>
@@ -275,7 +281,8 @@ export const ReassignDialog = ({
               <Button
                 type="submit"
                 data-testid="rejection-confirm"
-                loading={roundRobinReassignMutation.isPending || roundRobinManualReassignMutation.isPending}>
+                loading={roundRobinReassignMutation.isPending || roundRobinManualReassignMutation.isPending}
+              >
                 {t("reassign")}
               </Button>
             </DialogFooter>
@@ -285,7 +292,8 @@ export const ReassignDialog = ({
 
       <Dialog
         open={confirmationModal?.show}
-        onOpenChange={(open) => setConfirmationModal({ ...confirmationModal, show: open })}>
+        onOpenChange={(open) => setConfirmationModal({ ...confirmationModal, show: open })}
+      >
         <ConfirmationDialogContent
           variety={confirmationModal?.membersStatus === "unavailable" ? "warning" : "success"}
           title={
@@ -309,7 +317,8 @@ export const ReassignDialog = ({
               show: false,
               membersStatus: null,
             });
-          }}>
+          }}
+        >
           <p className="mb-4">
             {confirmationModal?.membersStatus === "unavailable"
               ? t("reassign_unavailable_team_member_description")

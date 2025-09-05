@@ -1,13 +1,12 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import type {
-  InsightsBookingServicePublicOptions,
-  InsightsBookingServiceFilterOptions,
   InsightsBookingBaseService,
+  InsightsBookingServiceFilterOptions,
+  InsightsBookingServicePublicOptions,
 } from "@calcom/lib/server/service/InsightsBookingBaseService";
 import type { InsightsBookingService } from "@calcom/lib/server/service/InsightsBookingDIService";
 import { prismaModule } from "@calcom/prisma/prisma.module";
+import { createContainer } from "@evyweb/ioctopus";
 
 import { insightsBookingModule } from "../modules/InsightsBooking";
 

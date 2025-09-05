@@ -1,5 +1,5 @@
-import { componentSource } from "@/app/source";
 import { createSearchAPI } from "fumadocs-core/search/server";
+import { componentSource } from "@/app/source";
 
 const indexes = [componentSource].flatMap((src) =>
   src.getPages().map((page) => ({

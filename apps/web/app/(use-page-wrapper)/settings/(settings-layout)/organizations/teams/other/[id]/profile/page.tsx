@@ -1,7 +1,6 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
 import LegacyPage from "@calcom/features/ee/organizations/pages/settings/other-team-profile-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(

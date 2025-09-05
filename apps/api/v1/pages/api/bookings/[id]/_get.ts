@@ -1,9 +1,8 @@
-import type { NextApiRequest } from "next";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import type { NextApiRequest } from "next";
 
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";
@@ -97,8 +96,8 @@ export async function getHandler(req: NextApiRequest) {
   const expand = Array.isArray(queryFilterForExpand)
     ? queryFilterForExpand
     : queryFilterForExpand
-    ? [queryFilterForExpand]
-    : [];
+      ? [queryFilterForExpand]
+      : [];
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {

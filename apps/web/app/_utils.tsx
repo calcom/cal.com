@@ -1,16 +1,14 @@
-import { type TFunction } from "i18next";
-import { cookies, headers } from "next/headers";
-
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
-import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
-import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, IS_CALCOM, SEO_IMG_OGIMG, WEBAPP_URL } from "@calcom/lib/constants";
 import { getCalcomUrl } from "@calcom/lib/getCalcomUrl";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
+import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
+import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { truncateOnWord } from "@calcom/lib/text";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { type TFunction } from "i18next";
+import { cookies, headers } from "next/headers";
 
 export const getTranslate = async () => {
   const locale = await getLocale(buildLegacyRequest(await headers(), await cookies()));

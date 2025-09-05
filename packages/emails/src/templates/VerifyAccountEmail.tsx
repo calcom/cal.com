@@ -1,6 +1,5 @@
-import type { TFunction } from "i18next";
-
 import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import type { TFunction } from "i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -23,7 +22,8 @@ export const VerifyAccountEmail = (
           fontWeight: 600,
           fontSize: "32px",
           lineHeight: "38px",
-        }}>
+        }}
+      >
         <>{props.language("verify_email_email_header")}</>
       </p>
       <p style={{ fontWeight: 400 }}>
@@ -49,7 +49,8 @@ export const VerifyAccountEmail = (
               href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
               style={{ color: "#3E3E3E" }}
               target="_blank"
-              rel="noreferrer">
+              rel="noreferrer"
+            >
               <>{props.language("the_calcom_team", { companyName: SENDER_NAME })}</>
             </a>
           </>

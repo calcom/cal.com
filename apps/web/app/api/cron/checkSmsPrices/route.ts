@@ -1,13 +1,12 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-
 import dayjs from "@calcom/dayjs";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 async function postHandler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");

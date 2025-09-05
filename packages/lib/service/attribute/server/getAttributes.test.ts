@@ -1,12 +1,10 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach } from "vitest";
-
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it } from "vitest";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { Attribute } from "./getAttributes";
-import { getAttributesForTeam, getAttributesAssignmentData, getUsersAttributes } from "./getAttributes";
+import { getAttributesAssignmentData, getAttributesForTeam, getUsersAttributes } from "./getAttributes";
 
 // Helper functions to create test data
 async function createMockAttribute({

@@ -1,3 +1,31 @@
+import {
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  SUCCESS_STATUS,
+  VERSION_2024_06_14,
+} from "@calcom/platform-constants";
+import {
+  CreateEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+  GetEventTypesQuery_2024_06_14,
+  UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
@@ -13,35 +41,6 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  Post,
-  Body,
-  NotFoundException,
-  Patch,
-  HttpCode,
-  HttpStatus,
-  Delete,
-  Query,
-  ParseIntPipe,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import {
-  EVENT_TYPE_READ,
-  EVENT_TYPE_WRITE,
-  SUCCESS_STATUS,
-  VERSION_2024_06_14,
-} from "@calcom/platform-constants";
-import {
-  UpdateEventTypeInput_2024_06_14,
-  GetEventTypesQuery_2024_06_14,
-  CreateEventTypeInput_2024_06_14,
-  EventTypeOutput_2024_06_14,
-} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/event-types",

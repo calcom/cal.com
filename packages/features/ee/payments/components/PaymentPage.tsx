@@ -1,10 +1,5 @@
 "use client";
 
-import classNames from "classnames";
-import dynamic from "next/dynamic";
-import type { FC } from "react";
-import { useEffect, useState } from "react";
-
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -17,6 +12,10 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
+import classNames from "classnames";
+import dynamic from "next/dynamic";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -112,7 +111,8 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 )}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="modal-headline">
+                aria-labelledby="modal-headline"
+              >
                 <div>
                   <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                     <PayIcon currency={paymentAppData.currency} className="h-8 w-8 text-green-600" />

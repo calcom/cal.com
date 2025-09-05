@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../../../types/ical.d.ts"/>
-import ICAL from "ical.js";
 
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type {
   Calendar,
-  IntegrationCalendar,
-  EventBusyDate,
   CalendarEvent,
+  EventBusyDate,
+  IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import ICAL from "ical.js";
 
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
@@ -198,7 +198,7 @@ export default class ICSFeedCalendarService implements Calendar {
             console.error("No timezone found");
           }
         }
-        
+
         let vtimezone = null;
         if (tzid) {
           const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");

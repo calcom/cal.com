@@ -1,6 +1,6 @@
+import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
 
 // It ensures that we work on userLevel calendars only
 const ensureUserLevelWhere = {
@@ -12,7 +12,10 @@ export const MULTIPLE_SELECTED_CALENDARS_FOUND = "Multiple SelecteCalendars foun
 
 @Injectable()
 export class SelectedCalendarsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async upsertSelectedCalendar(
     externalId: string,

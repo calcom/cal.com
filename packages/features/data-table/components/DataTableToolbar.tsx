@@ -1,14 +1,12 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
-import { forwardRef, useEffect } from "react";
-import type { ComponentPropsWithoutRef } from "react";
-import { useState, type Ref, type ChangeEvent } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button, type ButtonProps } from "@calcom/ui/components/button";
 import { Input } from "@calcom/ui/components/form";
+import type { Table } from "@tanstack/react-table";
+import type { ComponentPropsWithoutRef } from "react";
+import { type ChangeEvent, forwardRef, type Ref, useEffect, useState } from "react";
 
 import { useColumnFilters, useDataTable } from "../hooks";
 
@@ -24,7 +22,8 @@ const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTabl
     <div
       ref={ref}
       className={classNames("grid w-full items-center gap-2 py-4", className)}
-      style={{ gridArea: "header" }}>
+      style={{ gridArea: "header" }}
+    >
       {children}
     </div>
   );
@@ -82,7 +81,8 @@ function ClearFiltersButtonComponent<TData>(
       color="minimal"
       EndIcon="x"
       onClick={() => table.resetColumnFilters()}
-      className="h-8 px-2 lg:px-3">
+      className="h-8 px-2 lg:px-3"
+    >
       {t("clear")}
     </Button>
   );

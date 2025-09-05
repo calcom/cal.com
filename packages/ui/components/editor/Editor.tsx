@@ -1,3 +1,4 @@
+import classNames from "@calcom/ui/classNames";
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
@@ -13,16 +14,14 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 
-import classNames from "@calcom/ui/classNames";
-
 import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";
 import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
+import CustomEnterKeyPlugin from "./plugins/customEnterKeyPlugin";
 import EditablePlugin from "./plugins/EditablePlugin";
 import PlainTextPlugin from "./plugins/PlainTextPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
-import CustomEnterKeyPlugin from "./plugins/customEnterKeyPlugin";
 import "./stylesEditor.css";
 import type { TextEditorProps } from "./types";
 
@@ -77,7 +76,8 @@ export const Editor = (props: TextEditorProps) => {
           />
           <div
             className={classNames("editor-inner scroll-bar overflow-x-hidden", !editable && "!bg-subtle")}
-            style={{ height: props.height, maxHeight: props.maxHeight }}>
+            style={{ height: props.height, maxHeight: props.maxHeight }}
+          >
             <RichTextPlugin
               contentEditable={
                 <ContentEditable

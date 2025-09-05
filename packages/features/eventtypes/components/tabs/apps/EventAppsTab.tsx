@@ -1,11 +1,8 @@
-import Link from "next/link";
-import { useFormContext } from "react-hook-form";
-
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import useAppsData from "@calcom/lib/hooks/useAppsData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,6 +11,8 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Section } from "@calcom/ui/components/section";
+import Link from "next/link";
+import { useFormContext } from "react-hook-form";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];

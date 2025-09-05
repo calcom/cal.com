@@ -1,10 +1,10 @@
 "use client";
 
-import { createContext, useContext, useRef, type ReactNode, useEffect } from "react";
-import { useStore } from "zustand";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import type { StoreApi } from "zustand";
+import { useStore } from "zustand";
 
-import { createBookerStore, type BookerStore, type StoreInitializeType } from "./store";
+import { type BookerStore, createBookerStore, type StoreInitializeType } from "./store";
 
 export const BookerStoreContext = createContext<StoreApi<BookerStore> | null>(null);
 

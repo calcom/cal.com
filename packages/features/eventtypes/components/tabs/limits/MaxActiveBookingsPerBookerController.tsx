@@ -1,11 +1,9 @@
-import { useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { TextField, CheckboxField } from "@calcom/ui/components/form";
+import { CheckboxField, SettingsToggle, TextField } from "@calcom/ui/components/form";
+import { useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 
 type maxActiveBookingsPerBookerLockedProps = {
   disabled: boolean;
@@ -57,7 +55,8 @@ export default function MaxActiveBookingsPerBookerController({
                 onChange(null);
               }
               setMaxActiveBookingsPerBookerToggle((state) => !state);
-            }}>
+            }}
+          >
             <div className="border-subtle rounded-b-lg border border-t-0 p-6">
               <TextField
                 required

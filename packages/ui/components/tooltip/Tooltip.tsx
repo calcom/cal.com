@@ -1,9 +1,8 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import React from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 export function Tooltip({
   children,
@@ -34,7 +33,8 @@ export function Tooltip({
         props.className && `${props.className}`
       )}
       side={side}
-      align="center">
+      align="center"
+    >
       {content}
     </TooltipPrimitive.Content>
   );
@@ -44,7 +44,8 @@ export function Tooltip({
       delayDuration={delayDuration || 50}
       open={open}
       defaultOpen={defaultOpen}
-      onOpenChange={onOpenChange}>
+      onOpenChange={onOpenChange}
+    >
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>{Content}</TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>

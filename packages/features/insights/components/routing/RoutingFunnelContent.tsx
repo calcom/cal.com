@@ -1,8 +1,7 @@
 "use client";
 
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface RoutingFunnelData {
   name: string;

@@ -1,8 +1,19 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
+import {
+  BookerLayoutsInputEnum_2024_06_14,
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+} from "@calcom/platform-enums";
+import {
+  ApiSuccessResponse,
+  CreateTeamEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+  Host,
+  TeamEventTypeOutput_2024_06_14,
+  UpdateTeamEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import { Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -16,23 +27,11 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookerLayoutsInputEnum_2024_06_14,
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-} from "@calcom/platform-enums";
-import {
-  ApiSuccessResponse,
-  CreateTeamEventTypeInput_2024_06_14,
-  EventTypeOutput_2024_06_14,
-  Host,
-  TeamEventTypeOutput_2024_06_14,
-  UpdateTeamEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Event Types Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

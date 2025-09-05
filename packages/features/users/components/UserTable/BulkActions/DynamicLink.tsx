@@ -1,9 +1,8 @@
-import type { Table } from "@tanstack/react-table";
-import { useQueryState, parseAsBoolean } from "nuqs";
-
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import type { Table } from "@tanstack/react-table";
+import { parseAsBoolean, useQueryState } from "nuqs";
 
 export function DynamicLink<T extends { username: string | null }>({
   table,
@@ -41,7 +40,8 @@ export function DynamicLink<T extends { username: string | null }>({
               StartIcon={isCopied ? "check" : "copy"}
               size="sm"
               onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}
-              color="secondary">
+              color="secondary"
+            >
               <span className="sr-only">{!isCopied ? t("copy") : t("copied")}</span>
             </Button>
             <Button
@@ -50,7 +50,8 @@ export function DynamicLink<T extends { username: string | null }>({
               size="sm"
               href={dynamicLinkOfSelectedUsers}
               target="_blank"
-              rel="noopener noreferrer">
+              rel="noopener noreferrer"
+            >
               Open
             </Button>
           </div>

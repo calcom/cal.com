@@ -1,7 +1,7 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
 
-import { HashedLinkRepository, type HashedLinkInputType } from "../repository/hashedLinkRepository";
+import { type HashedLinkInputType, HashedLinkRepository } from "../repository/hashedLinkRepository";
 import { MembershipService } from "./membershipService";
 
 type NormalizedLink = {

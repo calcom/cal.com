@@ -1,5 +1,3 @@
-import type { App_RoutingForms_Form, User } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -9,9 +7,8 @@ import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
-
-import type { SerializableField, OrderedResponses } from "../types/types";
-import type { FormResponse, SerializableForm } from "../types/types";
+import type { App_RoutingForms_Form, User } from "@prisma/client";
+import type { FormResponse, OrderedResponses, SerializableField, SerializableForm } from "../types/types";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
@@ -150,10 +147,13 @@ export async function _onFormSubmission(
       },
       rootData: {
         // Send responses unwrapped at root level for backwards compatibility
-        ...Object.entries(fieldResponsesByIdentifier).reduce((acc, [key, value]) => {
-          acc[key] = value.value;
-          return acc;
-        }, {} as Record<string, FormResponse[keyof FormResponse]["value"]>),
+        ...Object.entries(fieldResponsesByIdentifier).reduce(
+          (acc, [key, value]) => {
+            acc[key] = value.value;
+            return acc;
+          },
+          {} as Record<string, FormResponse[keyof FormResponse]["value"]>
+        ),
       },
     }).catch((e) => {
       console.error(`Error executing routing form webhook`, webhook, e);

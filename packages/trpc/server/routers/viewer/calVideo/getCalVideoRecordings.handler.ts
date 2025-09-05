@@ -18,7 +18,7 @@ export const getCalVideoRecordingsHandler = async ({ ctx: _ctx, input }: GetCalV
   try {
     const res = await getRecordingsOfCalVideoByRoomName(roomName);
     return res;
-  } catch (err) {
+  } catch (_err) {
     throw new TRPCError({
       code: "BAD_REQUEST",
     });

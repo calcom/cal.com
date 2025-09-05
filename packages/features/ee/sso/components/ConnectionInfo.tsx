@@ -4,7 +4,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -56,7 +56,8 @@ export default function ConnectionInfo({
             <DialogTrigger asChild>
               <Button
                 color="destructive"
-                data-testid={`delete-${connectionType === "OIDC" ? "oidc" : "saml"}-sso-connection`}>
+                data-testid={`delete-${connectionType === "OIDC" ? "oidc" : "saml"}-sso-connection`}
+              >
                 {t("delete_sso_configuration", { connectionType })}
               </Button>
             </DialogTrigger>
@@ -65,7 +66,8 @@ export default function ConnectionInfo({
             variety="danger"
             title={t("delete_sso_configuration", { connectionType })}
             confirmBtnText={t("delete_sso_configuration_confirmation", { connectionType })}
-            onConfirm={deleteConnection}>
+            onConfirm={deleteConnection}
+          >
             {t("delete_sso_configuration_confirmation_description", { appName: APP_NAME, connectionType })}
           </ConfirmationDialogContent>
         </Dialog>
@@ -99,7 +101,8 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
                 showToast(t("sso_saml_acsurl_copied"), "success");
               }}
               type="button"
-              className="rounded-l-none py-[19px] text-base ">
+              className="rounded-l-none py-[19px] text-base "
+            >
               <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
@@ -121,7 +124,8 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
                 showToast(t("sso_saml_entityid_copied"), "success");
               }}
               type="button"
-              className="rounded-l-none py-[19px] text-base ">
+              className="rounded-l-none py-[19px] text-base "
+            >
               <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
@@ -157,7 +161,8 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
                 showToast(t("sso_oidc_callback_copied"), "success");
               }}
               type="button"
-              className="rounded-l-none py-[19px] text-base ">
+              className="rounded-l-none py-[19px] text-base "
+            >
               <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>

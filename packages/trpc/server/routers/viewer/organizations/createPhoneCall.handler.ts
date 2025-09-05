@@ -1,9 +1,8 @@
-import type { z } from "zod";
-
 import type { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import type { z } from "zod";
 
 type CreatePhoneCallProps = {
   ctx: {

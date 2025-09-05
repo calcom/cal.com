@@ -1,12 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import type { ComponentProps } from "react";
-import React, { useEffect } from "react";
-
 import type Shell from "@calcom/features/shell/Shell";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
+import { usePathname, useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
+import React, { useEffect } from "react";
 
 export type AdminLayoutProps = {
   children: React.ReactNode;

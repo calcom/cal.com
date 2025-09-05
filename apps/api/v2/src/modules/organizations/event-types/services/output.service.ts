@@ -1,19 +1,18 @@
+import { SchedulingType } from "@calcom/platform-libraries";
+import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
+import { Injectable } from "@nestjs/common";
+import type {
+  CalVideoSettings,
+  DestinationCalendar,
+  EventType,
+  Host,
+  Schedule,
+  Team,
+  User,
+} from "@prisma/client";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
-import type {
-  Team,
-  EventType,
-  User,
-  Schedule,
-  Host,
-  DestinationCalendar,
-  CalVideoSettings,
-} from "@prisma/client";
-
-import { SchedulingType } from "@calcom/platform-libraries";
-import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
 type EventTypeRelations = {
   users: User[];

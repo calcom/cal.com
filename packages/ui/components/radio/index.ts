@@ -1,4 +1,3 @@
-export * as RadioAreaGroup from "./RadioAreaGroup";
 export {
   Group as RadioGroup,
   Indicator as RadioIndicator,
@@ -7,3 +6,4 @@ export {
   RadioField,
   Root,
 } from "./Radio";
+export * as RadioAreaGroup from "./RadioAreaGroup";

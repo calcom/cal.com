@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsDate, IsOptional, IsArray, IsBoolean, IsInt, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsDate, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 
 class AvailabilityModel {
   @IsInt()

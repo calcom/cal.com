@@ -1,13 +1,11 @@
+import { IdentityProvider } from "@calcom/prisma/enums";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import AuthContainer from "@components/ui/AuthContainer";
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 import { z } from "zod";
-
-import { IdentityProvider } from "@calcom/prisma/enums";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
-
-import AuthContainer from "@components/ui/AuthContainer";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -42,10 +40,10 @@ const ServerPage = async ({ searchParams }: PageProps) => {
         provider === IdentityProvider.GOOGLE
           ? "Google"
           : provider === IdentityProvider.CAL
-          ? "Email and Password"
-          : provider === IdentityProvider.SAML
-          ? "SAML (like Okta)"
-          : "your original login method";
+            ? "Email and Password"
+            : provider === IdentityProvider.SAML
+              ? "SAML (like Okta)"
+              : "your original login method";
       return t("account_managed_by_identity_provider_error", { provider: providerName });
     }
     return t("error_during_login") + (error ? ` Error code: ${error}` : "");

@@ -1,10 +1,9 @@
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { platform } from "@todesktop/client-core";
 import type { IncomingMessage } from "http";
 import { dir } from "i18next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
-
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { applyTheme, applyToDesktopClass } from "./../lib/pages/document/_applyThemeForDocument";
 
@@ -50,7 +49,8 @@ class MyDocument extends Document<Props> {
       <Html
         lang={newLocale}
         dir={newDir}
-        style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
+        style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
+      >
         <Head>
           <script
             id="newLocale"
@@ -94,7 +94,8 @@ class MyDocument extends Document<Props> {
                   visibility: "hidden",
                 }
               : {}
-          }>
+          }
+        >
           <Main />
           <NextScript />
         </body>

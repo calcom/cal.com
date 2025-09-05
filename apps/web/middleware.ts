@@ -1,11 +1,9 @@
+import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
+import { getCspHeader, getCspNonce } from "@lib/csp";
 import { get } from "@vercel/edge-config";
-import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
-
-import { getCspHeader, getCspNonce } from "@lib/csp";
+import { collectEvents } from "next-collect/server";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {

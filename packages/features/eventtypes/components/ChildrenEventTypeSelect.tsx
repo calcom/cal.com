@@ -1,19 +1,17 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Props } from "react-select";
-
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { Badge } from "@calcom/ui/components/badge";
-import { Select } from "@calcom/ui/components/form";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import classNames from "@calcom/ui/classNames";
-import { Switch } from "@calcom/ui/components/form";
+import { Select, Switch } from "@calcom/ui/components/form";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { Props } from "react-select";
 
 export type ChildrenEventType = {
   value: string;
@@ -89,14 +87,16 @@ export const ChildrenEventTypeSelect = ({
           value.length >= 1 && "border",
           customClassNames?.selectedChildrenList?.container
         )}
-        ref={animationRef}>
+        ref={animationRef}
+      >
         {value.map((children, index) => (
           <li key={index}>
             <div
               className={classNames(
                 "flex flex-row items-center gap-3 p-3",
                 customClassNames?.selectedChildrenList?.listItem?.container
-              )}>
+              )}
+            >
               <Avatar
                 size="mdLg"
                 className={classNames(
@@ -112,30 +112,35 @@ export const ChildrenEventTypeSelect = ({
                     className={classNames(
                       "text text-sm font-semibold leading-none",
                       customClassNames?.selectedChildrenList?.listItem?.name
-                    )}>
+                    )}
+                  >
                     {children.owner.name || children.owner.email}
                     <div
                       className={classNames(
                         "flex flex-row gap-1",
                         customClassNames?.selectedChildrenList?.listItem?.badgeContainer
-                      )}>
+                      )}
+                    >
                       {children.owner.membership === MembershipRole.OWNER ? (
                         <Badge
                           variant="gray"
-                          className={customClassNames?.selectedChildrenList?.listItem?.ownerBadge}>
+                          className={customClassNames?.selectedChildrenList?.listItem?.ownerBadge}
+                        >
                           {t("owner")}
                         </Badge>
                       ) : (
                         <Badge
                           variant="gray"
-                          className={customClassNames?.selectedChildrenList?.listItem?.memberBadge}>
+                          className={customClassNames?.selectedChildrenList?.listItem?.memberBadge}
+                        >
                           {t("member")}
                         </Badge>
                       )}
                       {children.hidden && (
                         <Badge
                           variant="gray"
-                          className={customClassNames?.selectedChildrenList?.listItem?.hiddenBadge}>
+                          className={customClassNames?.selectedChildrenList?.listItem?.hiddenBadge}
+                        >
                           {t("hidden")}
                         </Badge>
                       )}
@@ -146,7 +151,8 @@ export const ChildrenEventTypeSelect = ({
                       className={classNames(
                         "text-subtle font-normal leading-normal",
                         customClassNames?.selectedChildrenList?.listItem?.eventLink
-                      )}>
+                      )}
+                    >
                       {`/${children.owner.username}/${children.slug}`}
                     </small>
                   )}
@@ -154,7 +160,8 @@ export const ChildrenEventTypeSelect = ({
                 <div className={classNames("flex flex-row items-center gap-2")}>
                   <Tooltip
                     className={customClassNames?.selectedChildrenList?.listItem?.showOnProfileTooltip}
-                    content={t("show_eventtype_on_profile")}>
+                    content={t("show_eventtype_on_profile")}
+                  >
                     <div className="self-center rounded-md p-2">
                       <Switch
                         name="Hidden"
@@ -172,7 +179,8 @@ export const ChildrenEventTypeSelect = ({
                     {children.created && children.owner.username && (
                       <Tooltip
                         className={customClassNames?.selectedChildrenList?.listItem?.previewEventTypeTooltip}
-                        content={t("preview")}>
+                        content={t("preview")}
+                      >
                         <Button
                           data-testid="preview-button"
                           color="secondary"
@@ -188,7 +196,8 @@ export const ChildrenEventTypeSelect = ({
                     )}
                     <Tooltip
                       className={customClassNames?.selectedChildrenList?.listItem?.deleteEventTypeTooltip}
-                      content={t("delete")}>
+                      content={t("delete")}
+                    >
                       <Button
                         color="secondary"
                         target="_blank"

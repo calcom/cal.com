@@ -1,17 +1,17 @@
 import logger from "@calcom/lib/logger";
 
 import type {
-  AIPhoneServiceUpdateModelParams,
-  AIPhoneServiceProviderType,
   AIPhoneServiceModel,
+  AIPhoneServiceProviderType,
+  AIPhoneServiceUpdateModelParams,
 } from "../../../interfaces/AIPhoneService.interface";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../../promptTemplates";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type {
-  RetellAIRepository,
-  AIConfigurationSetup,
   AIConfigurationDeletion,
+  AIConfigurationSetup,
   DeletionResult,
+  RetellAIRepository,
 } from "../types";
 
 export class AIConfigurationService {

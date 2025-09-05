@@ -1,3 +1,7 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Body, Controller, Delete, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -7,16 +11,11 @@ import {
   SelectedCalendarsQueryParamsInputDto,
 } from "@/modules/selected-calendars/inputs/selected-calendars.input";
 import {
-  SelectedCalendarOutputResponseDto,
   SelectedCalendarOutputDto,
+  SelectedCalendarOutputResponseDto,
 } from "@/modules/selected-calendars/outputs/selected-calendars.output";
 import { SelectedCalendarsService } from "@/modules/selected-calendars/services/selected-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Body, Controller, Post, UseGuards, Delete, Query } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/selected-calendars",

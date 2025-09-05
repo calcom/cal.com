@@ -1,6 +1,3 @@
-import type { SyntheticEvent } from "react";
-import { useMemo, useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -8,6 +5,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
+import type { SyntheticEvent } from "react";
+import { useMemo, useState } from "react";
 
 import type { User } from "./MemberList";
 
@@ -160,7 +159,8 @@ export default function MemberChangeRoleModal(props: {
             <div className="text-center sm:text-left">
               <h3
                 className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
-                id="modal-title">
+                id="modal-title"
+              >
                 {t("change_member_role")}
               </h3>
             </div>

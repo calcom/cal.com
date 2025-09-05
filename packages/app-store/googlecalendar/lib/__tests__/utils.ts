@@ -1,8 +1,7 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-import { MOCK_JWT_TOKEN, setLastCreatedJWT } from "../__mocks__/googleapis";
-
 import { JWT } from "googleapis-common";
 import { vi } from "vitest";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import { MOCK_JWT_TOKEN, setLastCreatedJWT } from "../__mocks__/googleapis";
 import "vitest-fetch-mock";
 
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";

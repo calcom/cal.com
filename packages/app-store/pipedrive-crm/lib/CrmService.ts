@@ -7,7 +7,7 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService";
+import type { Contact, ContactCreateInput, CRM } from "@calcom/types/CrmService";
 
 import appConfig from "../config.json";
 

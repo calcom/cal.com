@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
-
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
+import { describe, expect, it } from "vitest";
 
 import { buildDryRunBooking } from "../../handleNewBooking";
 

@@ -1,16 +1,16 @@
-import type { AppConfig } from "@/config/type";
-import { getEnv } from "@/env";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import {
+  OperationObject,
   PathItemObject,
   PathsObject,
-  OperationObject,
   TagObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import type { AppConfig } from "@/config/type";
+import { getEnv } from "@/env";
 import "dotenv/config";
 import * as fs from "fs";
 import { Server } from "http";

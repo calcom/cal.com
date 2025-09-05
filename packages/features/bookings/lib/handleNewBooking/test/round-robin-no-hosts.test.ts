@@ -1,22 +1,20 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getBooker,
+  getDate,
+  getGoogleCalendarCredential,
   getOrganizer,
   getScenarioData,
   mockCalendar,
   TestData,
   Timezones,
-  getDate,
-  getGoogleCalendarCredential,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
 import { describe, expect } from "vitest";
-
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 
 const timeout = process.env.CI ? 5000 : 20000;
 

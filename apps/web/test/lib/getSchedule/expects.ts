@@ -1,7 +1,6 @@
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { diff } from "jest-diff";
 import { expect } from "vitest";
-
-import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 export const expectedSlotsForSchedule = {
   IstWorkHours: {

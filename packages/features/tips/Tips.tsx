@@ -1,10 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
-import shuffle from "lodash/shuffle";
-import { useState, memo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Card } from "@calcom/ui/components/card";
+import shuffle from "lodash/shuffle";
+import { memo, useState } from "react";
 
 export const tips = [
   {
@@ -191,7 +191,8 @@ function Tips() {
       /* ref={animationRef} */
       style={{
         gridTemplateColumns: "1fr",
-      }}>
+      }}
+    >
       {list.map((tip) => {
         const isTopTip = baseOriginalList.indexOf(tip) === 0;
         return (
@@ -201,14 +202,16 @@ function Tips() {
               gridRowStart: 1,
               gridColumnStart: 1,
             }}
-            key={tip.id}>
+            key={tip.id}
+          >
             <div
               className="relative"
               style={{
                 transform: `scale(${1 - baseOriginalList.indexOf(tip) / 20})`,
                 top: -baseOriginalList.indexOf(tip) * 10,
                 opacity: `${1 - baseOriginalList.indexOf(tip) / 7}`,
-              }}>
+              }}
+            >
               <Card
                 variant="SidebarCard"
                 thumbnailUrl={tip.thumbnailUrl}

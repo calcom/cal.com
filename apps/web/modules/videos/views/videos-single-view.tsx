@@ -1,15 +1,12 @@
 "use client";
 
-import type { DailyCall } from "@daily-co/daily-js";
-import DailyIframe from "@daily-co/daily-js";
-import { DailyProvider } from "@daily-co/daily-react";
-import { useDailyEvent } from "@daily-co/daily-react";
-import { useState, useEffect, useRef } from "react";
-
 import dayjs from "@calcom/dayjs";
-import { WEBSITE_URL } from "@calcom/lib/constants";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
+import {
+  RECORDING_DEFAULT_ICON,
+  TRANSCRIPTION_STOPPED_ICON,
+  WEBAPP_URL,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -18,8 +15,11 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
-
+import type { DailyCall } from "@daily-co/daily-js";
+import DailyIframe from "@daily-co/daily-js";
+import { DailyProvider, useDailyEvent } from "@daily-co/daily-react";
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
+import { useEffect, useRef, useState } from "react";
 
 import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
@@ -116,7 +116,8 @@ export default function JoinCall(props: PageProps) {
     <DailyProvider callObject={daily}>
       <div
         className="mx-auto hidden sm:block"
-        style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
+        style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}
+      >
         <CalVideoPremiumFeatures
           showRecordingButton={showRecordingButton}
           enableAutomaticRecordingForOrganizer={enableAutomaticRecordingForOrganizer}
@@ -239,7 +240,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
-        className="bg-black text-white sm:max-w-[480px]">
+        className="bg-black text-white sm:max-w-[480px]"
+      >
         <div className="pb-8">
           <div className="space-y-8">
             <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
@@ -264,7 +266,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
                 className="mt-4 w-full justify-center"
                 onClick={() =>
                   (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
-                }>
+                }
+              >
                 <Icon name="external-link" className="mr-2 h-4 w-4" />
                 {t("log_in_to_cal_com")}
               </Button>
@@ -302,7 +305,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
         className={classNames(
           "no-scrollbar fixed left-0 top-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-[232px]"
-        )}>
+        )}
+      >
         <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
@@ -354,7 +358,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <button
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
-            onClick={() => setOpen(!open)}>
+            onClick={() => setOpen(!open)}
+          >
             <Icon
               name="chevron-right"
               aria-hidden

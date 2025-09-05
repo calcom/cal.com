@@ -1,10 +1,8 @@
-import { GetUserOutput } from "@/modules/users/outputs/get-users.output";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsEnum, IsInt, IsString, ValidateNested, IsArray } from "class-validator";
-
-import { ERROR_STATUS } from "@calcom/platform-constants";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { IsArray, IsEnum, IsInt, IsString, ValidateNested } from "class-validator";
+import { GetUserOutput } from "@/modules/users/outputs/get-users.output";
 
 export class ProfileOutput {
   @IsInt()

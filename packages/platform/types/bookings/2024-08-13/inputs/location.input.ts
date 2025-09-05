@@ -1,8 +1,15 @@
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsIn, IsPhoneNumber, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+import {
+  IsIn,
+  IsPhoneNumber,
+  IsString,
+  MinLength,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
 
 export const inputLocations = [
   "address",

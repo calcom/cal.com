@@ -1,10 +1,9 @@
-import type { NextApiRequest } from "next";
-import { stringify } from "querystring";
-
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import type { NextApiRequest } from "next";
+import { stringify } from "querystring";
 
 import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";

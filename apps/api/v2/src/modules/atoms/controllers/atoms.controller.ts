@@ -1,3 +1,15 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+  VERSION_NEUTRAL,
+  Version,
+} from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { FindTeamMembersMatchingAttributeQueryDto } from "@/modules/atoms/inputs/find-team-members-matching-attribute.input";
 import { AttributesAtomsService } from "@/modules/atoms/services/attributes-atom.service";
@@ -5,19 +17,6 @@ import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  UseGuards,
-  Version,
-  VERSION_NEUTRAL,
-  Query,
-} from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 import { FindTeamMembersMatchingAttributeResponseDto } from "../outputs/find-team-members-matching-attribute.output";
 

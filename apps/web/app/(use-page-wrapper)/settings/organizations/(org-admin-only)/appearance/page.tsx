@@ -1,6 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-
 import Page from "@calcom/features/ee/organizations/pages/settings/appearance";
+import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

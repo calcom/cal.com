@@ -1,21 +1,18 @@
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
-  TestData,
   createBookingScenario,
   getBooker,
+  getGoogleCalendarCredential,
   getOrganizer,
   getScenarioData,
-  getGoogleCalendarCredential,
+  TestData,
   Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 // TODO: we should rename this - it doesnt get a mockRequestDataForBooking - it just gets mock booking data.
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, expect, vi, beforeAll } from "vitest";
-
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { beforeAll, describe, expect, vi } from "vitest";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;

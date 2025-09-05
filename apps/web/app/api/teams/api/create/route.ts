@@ -1,14 +1,13 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import type Stripe from "stripe";
-import { z } from "zod";
-
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { _MembershipModel as Membership, _TeamModel as Team } from "@calcom/prisma/zod";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type Stripe from "stripe";
+import { z } from "zod";
 
 const querySchema = z.object({
   session_id: z.string().min(1),

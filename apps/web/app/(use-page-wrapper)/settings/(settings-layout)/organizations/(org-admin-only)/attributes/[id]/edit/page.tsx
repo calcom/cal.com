@@ -1,6 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-
 import OrgAttributesEditPage from "@calcom/ee/organizations/pages/settings/attributes/attributes-edit-view";
+import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(

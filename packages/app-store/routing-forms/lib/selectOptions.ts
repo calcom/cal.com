@@ -56,7 +56,7 @@ export function getUIOptionsForSelect(field: Field) {
   return options.map((option) => {
     // We prefer option.id as that doesn't change when we change the option text/label.
     // Fallback to option.label for fields saved in DB in old format which didn't have `options`
-    const value = shouldUseLabelAsValue ? option.label : option.id ?? option.label;
+    const value = shouldUseLabelAsValue ? option.label : (option.id ?? option.label);
     return {
       value,
       title: option.label,

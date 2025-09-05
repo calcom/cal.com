@@ -1,14 +1,11 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import type { getServerSideProps } from "@server/lib/auth/sso/direct/getServerSideProps";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect } from "react";
 
 // This page is used to initiate the SAML authentication flow by redirecting to the SAML provider.
 // Accessible only on self-hosted Cal.com instances.

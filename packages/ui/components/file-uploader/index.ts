@@ -1,2 +1,2 @@
-export { default as FileUploader } from "./FileUploader";
 export type { FileData } from "./FileUploader";
+export { default as FileUploader } from "./FileUploader";

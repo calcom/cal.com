@@ -1,8 +1,6 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-
 import SAMLSSO from "@calcom/features/ee/sso/page/user-sso-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -20,7 +18,8 @@ const Page = async () => {
     <SettingsHeader
       title={t("sso_configuration")}
       description={t("sso_configuration_description")}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <SAMLSSO />
     </SettingsHeader>
   );

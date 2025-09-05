@@ -1,4 +1,4 @@
-import { startSpan, captureException } from "@sentry/nextjs";
+import { captureException, startSpan } from "@sentry/nextjs";
 
 import { redactSensitiveData } from "./redactSensitiveData";
 

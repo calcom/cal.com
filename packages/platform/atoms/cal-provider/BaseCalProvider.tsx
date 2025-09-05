@@ -1,8 +1,3 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { ReactNode } from "react";
-import { useState } from "react";
-import { useCallback } from "react";
-
 import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
 import { IconSprites } from "@calcom/ui/components/icon";
 import deTranslations from "@calcom/web/public/static/locales/de/common.json";
@@ -12,6 +7,9 @@ import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
 import itTranslations from "@calcom/web/public/static/locales/it/common.json";
 import nlTranslations from "@calcom/web/public/static/locales/nl/common.json";
 import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import type { ReactNode } from "react";
+import { useCallback, useState } from "react";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useMe } from "../hooks/useMe";
@@ -22,16 +20,16 @@ import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
 import type {
-  translationKeys,
   CalProviderLanguagesType,
-  enTranslationKeys,
-  frTranslationKeys,
-  ptBrTranslationKeys,
   deTranslationKeys,
+  enTranslationKeys,
   esTranslationKeys,
+  frTranslationKeys,
+  i18nProps,
   itTranslationKeys,
   nlTranslationKeys,
-  i18nProps,
+  ptBrTranslationKeys,
+  translationKeys,
 } from "./languages";
 import { EN } from "./languages";
 
@@ -174,7 +172,8 @@ export function BaseCalProvider({
         userId: me?.data.id,
         isEmbed,
         ...translations,
-      }}>
+      }}
+    >
       <TooltipProvider>{children}</TooltipProvider>
       <Toaster />
       <IconSprites />
@@ -193,7 +192,8 @@ export function BaseCalProvider({
         ...translations,
         organizationId: 0,
         isEmbed: false,
-      }}>
+      }}
+    >
       <>
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />

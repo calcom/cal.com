@@ -1,6 +1,6 @@
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -21,7 +21,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         setShowGifSelection(e);
       }}
       switchChecked={showGifSelection}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+    >
       <EventTypeAppSettingsInterface
         eventType={eventType}
         slug={app.slug}

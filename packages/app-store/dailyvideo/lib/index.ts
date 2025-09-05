@@ -1,2 +1,5 @@
-export { default as VideoApiAdapter } from "./VideoApiAdapter";
-export { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "./VideoApiAdapter";
+export {
+  default as VideoApiAdapter,
+  getBatchProcessorJobAccessLink,
+  getRoomNameFromRecordingId,
+} from "./VideoApiAdapter";

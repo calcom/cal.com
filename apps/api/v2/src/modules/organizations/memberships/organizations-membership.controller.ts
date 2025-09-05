@@ -1,3 +1,20 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -20,24 +37,6 @@ import { GetAllOrgMemberships } from "@/modules/organizations/memberships/output
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Delete,
-  Patch,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",

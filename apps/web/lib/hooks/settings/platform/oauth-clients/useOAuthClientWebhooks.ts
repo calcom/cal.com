@@ -1,7 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-
 import type { ApiSuccessResponse } from "@calcom/platform-types";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 type Input = {
   active: boolean;

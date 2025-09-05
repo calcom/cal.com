@@ -1,7 +1,3 @@
-import type { Prisma } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
-import queue from "queue";
-
 import dayjs from "@calcom/dayjs";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -9,6 +5,9 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { Prisma } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
+import queue from "queue";
 
 import { Reschedule } from "../lib";
 import { initVitalClient, vitalEnv } from "../lib/client";

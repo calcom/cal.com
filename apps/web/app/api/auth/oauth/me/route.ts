@@ -1,8 +1,7 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
 import isAuthorized from "@calcom/features/auth/lib/oAuthAuthorization";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 async function handler(req: NextRequest) {
   const requiredScopes = ["READ_PROFILE"];

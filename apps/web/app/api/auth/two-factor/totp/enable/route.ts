@@ -1,16 +1,14 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseRequestData } from "app/api/parseRequestData";
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 async function postHandler(req: NextRequest) {
   const body = await parseRequestData(req);

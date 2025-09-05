@@ -1,3 +1,32 @@
+import type { TeamQuery } from "@calcom/platform-libraries";
+import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
+import type {
+  App,
+  CredentialDataWithTeamName,
+  CredentialOwner,
+  CredentialPayload,
+  LocationOption,
+  TDependencyData,
+} from "@calcom/platform-libraries/app-store";
+import {
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  getAppFromSlug,
+  getEnabledAppsFromCredentials,
+} from "@calcom/platform-libraries/app-store";
+import {
+  bulkUpdateEventsToDefaultLocation,
+  bulkUpdateTeamEventsToDefaultLocation,
+  EventTypeMetaDataSchema,
+  getBulkTeamEventTypes,
+  getBulkUserEventTypes,
+  getEventTypeById,
+  getPublicEvent,
+  type PublicEventType,
+  TUpdateEventTypeInputSchema,
+  updateEventType,
+} from "@calcom/platform-libraries/event-types";
+import { PrismaClient } from "@calcom/prisma";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
@@ -9,34 +38,6 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from "@nestjs/common";
-
-import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
-import type { TeamQuery } from "@calcom/platform-libraries";
-import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/platform-libraries/app-store";
-import { getEnabledAppsFromCredentials, getAppFromSlug } from "@calcom/platform-libraries/app-store";
-import type {
-  App,
-  TDependencyData,
-  CredentialOwner,
-  CredentialPayload,
-  CredentialDataWithTeamName,
-  LocationOption,
-} from "@calcom/platform-libraries/app-store";
-import { type PublicEventType, getPublicEvent } from "@calcom/platform-libraries/event-types";
-import {
-  getEventTypeById,
-  bulkUpdateEventsToDefaultLocation,
-  bulkUpdateTeamEventsToDefaultLocation,
-  getBulkUserEventTypes,
-  getBulkTeamEventTypes,
-} from "@calcom/platform-libraries/event-types";
-import {
-  updateEventType,
-  TUpdateEventTypeInputSchema,
-  EventTypeMetaDataSchema,
-} from "@calcom/platform-libraries/event-types";
-import { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;

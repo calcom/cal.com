@@ -1,11 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";

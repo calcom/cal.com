@@ -1,14 +1,13 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Form, Select, Input } from "@calcom/ui/components/form";
+import { Form, Input, Select } from "@calcom/ui/components/form";
+import { Controller, useForm } from "react-hook-form";
 
-import { useFilterValue, useDataTable } from "../../hooks";
+import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
-import { ZTextFilterValue, ColumnFilterType } from "../../lib/types";
+import { ColumnFilterType, ZTextFilterValue } from "../../lib/types";
 import { useTextFilterOperatorOptions } from "./utils";
 
 export type TextFilterOptionsProps = {
@@ -44,7 +43,8 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
               },
             });
           }
-        }}>
+        }}
+      >
         <div>
           <Controller
             name="operatorOption"
@@ -80,14 +80,16 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
               type="button"
               color="secondary"
               disabled={form.formState.isSubmitting}
-              onClick={() => removeFilter(column.id)}>
+              onClick={() => removeFilter(column.id)}
+            >
               {t("clear")}
             </Button>
             <Button
               type="submit"
               color="primary"
               loading={form.formState.isSubmitting}
-              disabled={form.formState.isSubmitting}>
+              disabled={form.formState.isSubmitting}
+            >
               {t("apply")}
             </Button>
           </div>

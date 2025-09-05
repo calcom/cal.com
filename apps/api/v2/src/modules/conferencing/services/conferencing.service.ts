@@ -1,29 +1,30 @@
+import {
+  CAL_VIDEO,
+  CONFERENCING_APPS,
+  GOOGLE_MEET,
+  OFFICE_365_VIDEO,
+  ZOOM,
+} from "@calcom/platform-constants";
+import { userMetadata } from "@calcom/platform-libraries";
+import {
+  getApps,
+  getUsersCredentialsIncludeServiceAccountKey,
+  handleDeleteCredential,
+} from "@calcom/platform-libraries/app-store";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  BadRequestException,
-  InternalServerErrorException,
-  Logger,
-  UnauthorizedException,
-} from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
-import {
-  CONFERENCING_APPS,
-  CAL_VIDEO,
-  GOOGLE_MEET,
-  ZOOM,
-  OFFICE_365_VIDEO,
-} from "@calcom/platform-constants";
-import { userMetadata } from "@calcom/platform-libraries";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
-import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class ConferencingService {

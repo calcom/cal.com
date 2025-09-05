@@ -1,8 +1,3 @@
-import type { InferGetServerSidePropsType } from "next";
-import Link from "next/link";
-import { useState } from "react";
-import { Toaster } from "sonner";
-
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,6 +6,10 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { InferGetServerSidePropsType } from "next";
+import Link from "next/link";
+import { useState } from "react";
+import { Toaster } from "sonner";
 
 import type { getServerSideProps } from "./_getServerSideProps";
 
@@ -101,7 +100,8 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
                             <Button
                               color="secondary"
                               onClick={() => generateApiKey(team.id)}
-                              className="mb-4 mt-2">
+                              className="mb-4 mt-2"
+                            >
                               {t("generate_api_key")}
                             </Button>
                           ) : (
@@ -123,7 +123,8 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
                       <a
                         key="make-invite-link"
                         href={inviteLink}
-                        className="ml-1 mr-1 text-orange-600 underline">
+                        className="ml-1 mr-1 text-orange-600 underline"
+                      >
                         Make Invite Link
                       </a>,
                     ]}
@@ -164,7 +165,8 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
               showToast(t("api_key_copied"), "success");
             }}
             type="button"
-            className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
+            className="mt-4 text-base sm:mt-0 sm:rounded-l-none"
+          >
             <Icon name="clipboard" className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
             {t("copy")}
           </Button>

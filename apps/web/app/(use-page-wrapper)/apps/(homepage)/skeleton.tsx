@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
@@ -14,7 +14,8 @@ export function AppHomePageSkeleton() {
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       headerClassName="sm:hidden lg:block hidden"
-      isAdmin={false}>
+      isAdmin={false}
+    >
       <SkeletonContainer>
         <div className="flex flex-col gap-y-8">
           {/* Featured Categories section */}
@@ -33,7 +34,8 @@ export function AppHomePageSkeleton() {
                 .map((_, i) => (
                   <div
                     key={`category-${i}`}
-                    className="bg-subtle flex h-48 flex-col items-center justify-center rounded-md p-4">
+                    className="bg-subtle flex h-48 flex-col items-center justify-center rounded-md p-4"
+                  >
                     <div className="mb-3 h-14 w-14 rounded-full bg-gray-200" /> {/* Icon placeholder */}
                     <SkeletonText className="h-5 w-24 text-center" /> {/* Category name */}
                     <SkeletonText className="mt-1 h-4 w-16 text-center" /> {/* Apps count */}

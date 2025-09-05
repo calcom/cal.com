@@ -1,8 +1,7 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
+import { useState } from "react";
 
 export default function AppSettings() {
   const { t } = useLocale();
@@ -20,7 +19,8 @@ export default function AppSettings() {
         }}
       />
       <Button
-        href={`webcal://weather-in-calendar.com/cal/weather-cal.php?city=${location}&units=${unit}&temperature=day`}>
+        href={`webcal://weather-in-calendar.com/cal/weather-cal.php?city=${location}&units=${unit}&temperature=day`}
+      >
         {t("add_to_calendar")}
       </Button>
     </div>

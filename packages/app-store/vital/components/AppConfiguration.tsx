@@ -1,8 +1,8 @@
-import { useEffect, useState, useMemo } from "react";
+import { Button } from "@calcom/ui/components/button";
 
 import { Select } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { useEffect, useMemo, useState } from "react";
 
 export interface IAppConfigurationProps {
   credentialIds: number[];
@@ -163,7 +163,8 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
             setSaveLoading(false);
           }}
           loading={saveLoading}
-          disabled={disabledSaveButton}>
+          disabled={disabledSaveButton}
+        >
           Save configuration
         </Button>
       </div>

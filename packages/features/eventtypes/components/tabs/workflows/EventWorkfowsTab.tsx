@@ -1,8 +1,3 @@
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEventWorkflowsTab";
@@ -24,6 +19,10 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
@@ -117,7 +116,8 @@ const WorkflowListItem = (props: ItemProps) => {
             className={classNames(
               "text-emphasis mb-1 w-full truncate text-base font-medium leading-4 md:max-w-max",
               workflow.name && isActive ? "text-emphasis" : "text-subtle"
-            )}>
+            )}
+          >
             {workflow.name
               ? workflow.name
               : `Untitled (${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
@@ -129,7 +129,8 @@ const WorkflowListItem = (props: ItemProps) => {
               className={classNames(
                 " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
                 isActive ? "text-default" : "text-muted"
-              )}>
+              )}
+            >
               <span className="mr-1">{t("to")}:</span>
               {Array.from(sendTo).map((sendToPerson, index) => {
                 return <span key={index}>{`${index ? ", " : ""}${sendToPerson}`}</span>;
@@ -152,10 +153,11 @@ const WorkflowListItem = (props: ItemProps) => {
               workflow.readOnly && props.isChildrenManagedEventType
                 ? "locked_by_team_admin"
                 : isActive
-                ? "turn_off"
-                : "turn_on"
+                  ? "turn_off"
+                  : "turn_on"
             ) as string
-          }>
+          }
+        >
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
             {workflow.readOnly && props.isChildrenManagedEventType && (
               <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
@@ -206,7 +208,7 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
+          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : (dataWf?.readOnly ?? false),
         } as WorkflowType;
       });
 
@@ -298,7 +300,8 @@ function EventWorkflowsTab(props: Props) {
                     target="_blank"
                     color="secondary"
                     onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                    loading={createMutation.isPending}>
+                    loading={createMutation.isPending}
+                  >
                     {t("create_workflow")}
                   </Button>
                 }

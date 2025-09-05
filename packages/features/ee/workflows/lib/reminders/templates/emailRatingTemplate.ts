@@ -1,9 +1,8 @@
-import type { TFunction } from "i18next";
-
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
 
 const emailRatingTemplate = ({
   isEditingMode,

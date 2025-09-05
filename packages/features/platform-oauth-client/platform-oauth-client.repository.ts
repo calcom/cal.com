@@ -1,6 +1,5 @@
-import { captureException } from "@sentry/nextjs";
-
 import prisma from "@calcom/prisma";
+import { captureException } from "@sentry/nextjs";
 
 import type { IPlatformOAuthClientRepository } from "./platform-oauth-client.repository.interface";
 

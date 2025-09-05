@@ -1,3 +1,23 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -12,27 +32,6 @@ import { GetTeamMembershipsOutput } from "@/modules/teams/memberships/outputs/ge
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { UpdateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/update-team-membership.output";
 import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Delete,
-  Patch,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-  Logger,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/teams/:teamId/memberships",

@@ -1,8 +1,7 @@
+import { ERROR_STATUS, GOOGLE_MEET_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsString, ValidateNested, IsEnum, IsNumber, IsOptional, IsBoolean } from "class-validator";
-
-import { ERROR_STATUS, GOOGLE_MEET_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class ConferencingAppsOutputDto {
   @Expose()

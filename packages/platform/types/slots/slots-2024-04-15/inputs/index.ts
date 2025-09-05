@@ -1,21 +1,20 @@
-import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
+import { SlotFormat } from "@calcom/platform-enums";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import type { ValidationArguments, ValidatorConstraintInterface } from "class-validator";
 import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsEnum,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
   Min,
-  IsEnum,
-  ValidatorConstraint,
   Validate,
+  ValidatorConstraint,
 } from "class-validator";
-
-import { SlotFormat } from "@calcom/platform-enums";
 
 @ValidatorConstraint({ name: "routingFormResponseIdValidator", async: false })
 class RoutingFormResponseIdValidator implements ValidatorConstraintInterface {

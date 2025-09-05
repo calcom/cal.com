@@ -1,7 +1,7 @@
 "use client";
 
 import Shell from "@calcom/features/shell/Shell";
-import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 export function AvailabilityScheduleSkeleton() {
   return (
@@ -57,7 +57,8 @@ export function AvailabilityScheduleSkeleton() {
                       .map((_, i) => (
                         <div
                           key={i}
-                          className="flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:gap-6 sm:px-0">
+                          className="flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:gap-6 sm:px-0"
+                        >
                           {/* Day toggle and name */}
                           <div className="flex h-[36px] items-center justify-between sm:w-32">
                             <div>

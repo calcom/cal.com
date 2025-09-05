@@ -21,7 +21,7 @@ export const enrichFormWithMigrationData = <
       } | null;
       metadata?: unknown;
     } | null;
-  }
+  },
 >(
   form: T
 ) => {

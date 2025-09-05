@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from "./Dialog";
@@ -46,7 +46,8 @@ describe("Dialog", () => {
         type={props.type}
         title={props.title}
         preventCloseOnOutsideClick={props.preventCloseOnOutsideClick}
-        enableOverflow={props.enableOverflow}>
+        enableOverflow={props.enableOverflow}
+      >
         <div className="flex flex-row space-x-4">
           <DialogHeader title={props.title} subtitle={props.subtitle} />
           <p>{content}</p>

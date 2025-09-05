@@ -1,8 +1,7 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 import { BookingRepository } from "./booking";
 

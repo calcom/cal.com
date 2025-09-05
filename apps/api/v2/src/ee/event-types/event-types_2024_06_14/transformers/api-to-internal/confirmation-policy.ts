@@ -1,8 +1,8 @@
 import { ConfirmationPolicyEnum } from "@calcom/platform-enums";
 import type {
   ConfirmationPolicyTransformedSchema,
-  NoticeThresholdTransformedSchema,
   CreateEventTypeInput_2024_06_14,
+  NoticeThresholdTransformedSchema,
 } from "@calcom/platform-types";
 
 export function transformConfirmationPolicyApiToInternal(

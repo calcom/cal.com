@@ -1,10 +1,8 @@
-import { createHash } from "crypto";
-
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
+import { createHash } from "crypto";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TSetPasswordSchema } from "./setPassword.schema";

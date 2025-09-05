@@ -1,9 +1,8 @@
 "use client";
 
+import { showToast } from "@calcom/ui/components/toast";
 import React from "react";
 import { Toaster } from "react-hot-toast";
-
-import { showToast } from "@calcom/ui/components/toast";
 
 interface BorderRadiusToken {
   name: string;
@@ -46,7 +45,8 @@ export const BorderRadiusTable: React.FC<BorderRadiusTableProps> = () => {
           <div
             key={token.name}
             onClick={() => handleCopy(token.className)}
-            className="border-subtle bg-default hover:bg-subtle group relative cursor-pointer overflow-hidden rounded-lg border p-4">
+            className="border-subtle bg-default hover:bg-subtle group relative cursor-pointer overflow-hidden rounded-lg border p-4"
+          >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>

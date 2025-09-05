@@ -1,5 +1,3 @@
-import type { TFunction } from "i18next";
-
 import dayjs from "@calcom/dayjs";
 import {
   sendCreditBalanceLimitReachedEmails,
@@ -16,6 +14,7 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -336,7 +335,20 @@ export class CreditService {
     tx: PrismaTransaction;
     externalRef?: string;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, phoneNumber, email, tx } = props;
+    const {
+      credits,
+      creditType,
+      bookingUid,
+      smsSid,
+      teamId,
+      userId,
+      smsSegments,
+      callDuration,
+      creditFor,
+      phoneNumber,
+      email,
+      tx,
+    } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 

@@ -1,13 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import type { FC } from "react";
-import { useReducer, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
@@ -20,19 +12,24 @@ import { trpc } from "@calcom/trpc/react";
 import cs from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Form, Switch, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { List } from "@calcom/ui/components/list";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
+import type { FC } from "react";
+import { useReducer, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 
@@ -118,7 +115,8 @@ const IntegrationContainer = ({
           variety="danger"
           onConfirm={() => {
             enableAppMutation.mutate({ slug: app.slug, enabled: !app.enabled });
-          }}>
+          }}
+        >
           {t("disable_app_description")}
         </ConfirmationDialogContent>
       </Dialog>
@@ -165,7 +163,8 @@ const AdminAppsList = ({
         e.preventDefault();
         onSubmit();
         nav?.onNext();
-      }}>
+      }}
+    >
       <AppCategoryNavigation
         baseURL={baseURL}
         useQueryParam={useQueryParam}
@@ -173,7 +172,8 @@ const AdminAppsList = ({
           root: className,
           verticalTabsItem: classNames?.verticalTabsItem,
           container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
-        }}>
+        }}
+      >
         <AdminAppsListContainer />
       </AppCategoryNavigation>
       <div className="flex justify-end gap-2 px-4 py-4">
@@ -236,7 +236,8 @@ const EditKeysModal: FC<{
                 fromEnabled,
               })
             }
-            className="px-4 pb-4">
+            className="px-4 pb-4"
+          >
             {Object.keys(keys).map((key) => (
               <Controller
                 name={key}

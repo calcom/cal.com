@@ -1,3 +1,19 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
@@ -26,23 +42,6 @@ import {
   TeamVerifiedPhonesOutput,
 } from "@/modules/verified-resources/outputs/verified-phone.output";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/verified-resources",

@@ -1,9 +1,8 @@
-import { Navbar } from "@/components/Navbar";
-import { Inter } from "next/font/google";
-import { useRef, useCallback } from "react";
-
 import type { AvailabilitySettingsFormRef } from "@calcom/atoms";
 import { AvailabilitySettings } from "@calcom/atoms";
+import { Inter } from "next/font/google";
+import { useCallback, useRef } from "react";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,12 +38,14 @@ export default function Availability(props: { calUsername: string; calEmail: str
         <div className="mx-10 mb-4 flex flex-col gap-4">
           <button
             onClick={handleValidate}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
             Validate Form
           </button>
           <button
             onClick={handleSubmit}
-            className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
             Submit Form
           </button>
         </div>

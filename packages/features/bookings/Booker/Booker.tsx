@@ -1,9 +1,3 @@
-import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import { useEffect, useMemo, useRef } from "react";
-import StickyBox from "react-sticky-box";
-import { Toaster } from "sonner";
-import { shallow } from "zustand/shallow";
-
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
@@ -16,12 +10,20 @@ import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hook
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
-import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
-import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
+import {
+  CLOUDFLARE_SITE_ID,
+  CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
+  PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM,
+} from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
+import { AnimatePresence, LazyMotion, m } from "framer-motion";
+import { useEffect, useMemo, useRef } from "react";
+import StickyBox from "react-sticky-box";
+import { Toaster } from "sonner";
+import { shallow } from "zustand/shallow";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -32,13 +34,13 @@ import { DryRunMessage } from "./components/DryRunMessage";
 import { EventMeta } from "./components/EventMeta";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -125,8 +127,8 @@ const BookerComponent = ({
     nonEmptyScheduleDays.length < extraDays
       ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
       : nonEmptyScheduleDays.length === extraDays
-      ? totalWeekDays
-      : 0;
+        ? totalWeekDays
+        : 0;
   // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
   if (nonEmptyScheduleDays.length !== 0)
@@ -266,7 +268,8 @@ const BookerComponent = ({
           confirmButton: customClassNames?.confirmStep?.confirmButton,
           backButton: customClassNames?.confirmStep?.backButton,
         }}
-        isPlatform={isPlatform}>
+        isPlatform={isPlatform}
+      >
         <>
           {!isPlatform && (
             <RedirectToInstantMeetingModal
@@ -340,7 +343,8 @@ const BookerComponent = ({
           layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 ",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
-        )}>
+        )}
+      >
         <div
           ref={animationScope}
           data-testid="booker-container"
@@ -353,7 +357,8 @@ const BookerComponent = ({
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
             !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
             `${customClassNames?.bookerContainer}`
-          )}>
+          )}
+        >
           <AnimatePresence>
             {!isInstantMeeting && (
               <BookerSection
@@ -362,7 +367,8 @@ const BookerComponent = ({
                   layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                     "bg-default dark:bg-muted sticky top-0 z-10"
-                )}>
+                )}
+              >
                 {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
                   <></>
                 ) : (
@@ -401,7 +407,8 @@ const BookerComponent = ({
             <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]"
+              >
                 {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
@@ -425,7 +432,8 @@ const BookerComponent = ({
                     isPrivateLink={!!hashedLink}
                     locale={userLocale}
                     timeZones={timeZones}
-                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
+                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                  >
                     {eventMetaChildren}
                   </EventMeta>
                 )}
@@ -450,7 +458,8 @@ const BookerComponent = ({
               area="main"
               className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
-              visible={bookerState === "booking" && !shouldShowFormInDialog}>
+              visible={bookerState === "booking" && !shouldShowFormInDialog}
+            >
               {EventBooker}
             </BookerSection>
 
@@ -460,7 +469,8 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]"
+            >
               <DatePicker
                 classNames={customClassNames?.datePickerCustomClassNames}
                 event={event}
@@ -476,7 +486,8 @@ const BookerComponent = ({
               area="main"
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
-              {...fadeInLeft}>
+              {...fadeInLeft}
+            >
               <LargeCalendar
                 extraDays={extraDays}
                 schedule={schedule.data}
@@ -498,7 +509,8 @@ const BookerComponent = ({
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}
-              {...fadeInLeft}>
+              {...fadeInLeft}
+            >
               <AvailableTimeSlots
                 onAvailableTimeSlotSelect={onAvailableTimeSlotSelect}
                 customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
@@ -540,7 +552,8 @@ const BookerComponent = ({
                 "animate-fade-in-up  z-40 my-2 opacity-0",
                 layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
               )}
-              style={{ animationDelay: "1s" }}>
+              style={{ animationDelay: "1s" }}
+            >
               <InstantBooking
                 event={event.data}
                 onConnectNow={() => {
@@ -568,7 +581,8 @@ const BookerComponent = ({
               "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
               hasDarkBackground ? "dark" : "",
               layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-            )}>
+            )}
+          >
             <PoweredBy logoOnly hasValidLicense={hasValidLicense} />
           </m.span>
         )}
@@ -593,7 +607,8 @@ const BookerComponent = ({
       </>
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
-        visible={bookerState === "booking" && shouldShowFormInDialog}>
+        visible={bookerState === "booking" && shouldShowFormInDialog}
+      >
         {EventBooker}
       </BookFormAsModal>
       <Toaster position="bottom-right" />
