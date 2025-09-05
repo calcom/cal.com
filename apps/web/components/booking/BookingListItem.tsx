@@ -134,10 +134,20 @@ function BookingListItem(booking: BookingItemProps) {
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
 
+  // Hide team member emails when hideOrganizerEmail is enabled for COLLECTIVE/ROUND_ROBIN events
+  const teamMemberEmails = new Set(booking.eventType?.team?.members?.map((m) => m.email) || []);
+  const shouldHideTeamEmails =
+    booking.eventType?.hideOrganizerEmail &&
+    (booking.eventType?.schedulingType === "COLLECTIVE" ||
+      booking.eventType?.schedulingType === "ROUND_ROBIN");
+
   const attendeeList = booking.attendees.map((attendee) => {
+    const isTeamMember = teamMemberEmails.has(attendee.email);
+    const hideAttendeeEmail = shouldHideTeamEmails && isTeamMember;
+
     return {
       name: attendee.name,
-      email: attendee.email,
+      email: hideAttendeeEmail ? "" : attendee.email,
       id: attendee.id,
       noShow: attendee.noShow || false,
       phoneNumber: attendee.phoneNumber,
@@ -338,7 +348,9 @@ function BookingListItem(booking: BookingItemProps) {
     const urlSearchParams = new URLSearchParams({
       allRemainingBookings: isTabRecurring.toString(),
     });
-    if (booking.attendees?.[0]?.email) urlSearchParams.set("email", booking.attendees[0].email);
+
+    // Use the first attendee's email from attendeeList (already has email hidden if needed)
+    if (attendeeList?.[0]?.email) urlSearchParams.set("email", attendeeList[0].email);
     return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
   };
 
@@ -510,7 +522,7 @@ function BookingListItem(booking: BookingItemProps) {
                       userTimezone={userTimeZone}
                       startTime={booking.startTime}
                       endTime={booking.endTime}
-                      attendees={booking.attendees}
+                      attendees={attendeeList}
                     />
                   </div>
                   {!isPending && (
@@ -560,7 +572,7 @@ function BookingListItem(booking: BookingItemProps) {
                       userTimezone={userTimeZone}
                       startTime={booking.startTime}
                       endTime={booking.endTime}
-                      attendees={booking.attendees}
+                      attendees={attendeeList}
                     />
                   </div>
                 </div>
@@ -615,13 +627,14 @@ function BookingListItem(booking: BookingItemProps) {
                     &quot;{booking.description}&quot;
                   </div>
                 )}
-                {booking.attendees.length !== 0 && (
+                {attendeeList.length !== 0 && (
                   <DisplayAttendees
                     attendees={attendeeList}
                     user={booking.user}
                     currentEmail={userEmail}
                     bookingUid={booking.uid}
                     isBookingInPast={isBookingInPast}
+                    shouldHideTeamEmails={shouldHideTeamEmails}
                   />
                 )}
                 {isCancelled && booking.rescheduled && (
@@ -1166,7 +1179,13 @@ const NoShowAttendeesDialog = ({
   );
 };
 
-const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
+const GroupedGuests = ({
+  guests,
+  shouldHideTeamEmails,
+}: {
+  guests: AttendeeProps[];
+  shouldHideTeamEmails: boolean;
+}) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
@@ -1197,7 +1216,9 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
                 e.preventDefault();
                 setSelectedEmail(guest.email);
               }}>
-              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
+              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>
+                {shouldHideTeamEmails ? guest.name : guest.email}
+              </span>
             </DropdownItem>
           </DropdownMenuItem>
         ))}
@@ -1236,12 +1257,14 @@ const DisplayAttendees = ({
   currentEmail,
   bookingUid,
   isBookingInPast,
+  shouldHideTeamEmails,
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
   currentEmail?: string | null;
   bookingUid: string;
   isBookingInPast: boolean;
+  shouldHideTeamEmails: boolean;
 }) => {
   const { t } = useLocale();
   attendees.sort((a, b) => a.id - b.id);
@@ -1264,7 +1287,7 @@ const DisplayAttendees = ({
               {isBookingInPast ? (
                 <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />
               ) : (
-                <GroupedGuests guests={attendees} />
+                <GroupedGuests guests={attendees} shouldHideTeamEmails={shouldHideTeamEmails} />
               )}
             </Tooltip>
           ) : (

@@ -49,20 +49,17 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
               email={shouldHideTeamEmails ? "" : member?.email}
             />
           ))}
-          {props.calEvent.attendees.map((attendee) => {
-            // If attendee is also a team member and shouldHideTeamEmails, hide their email
-            const isTeamMember = teamMemberEmails.has(attendee.email);
-            const hideAttendeeEmail = shouldHideTeamEmails && isTeamMember;
-            return (
+          {props.calEvent.attendees
+            .filter((attendee) => !shouldHideTeamEmails || !teamMemberEmails.has(attendee.email))
+            .map((attendee) => (
               <PersonInfo
                 key={attendee.id || attendee.name}
                 name={attendee.name}
                 role={t("guest")}
-                email={hideAttendeeEmail ? "" : attendee.email}
+                email={attendee.email}
                 phoneNumber={attendee.phoneNumber ?? undefined}
               />
-            );
-          })}
+            ))}
         </>
       }
       withSpacer
