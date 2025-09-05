@@ -115,9 +115,39 @@ yarn workspace @calcom/api-v2 build
 yarn workspace @calcom/api-v2 start
 ```
 
-## Vercel
+## One Click Deployments
 
-As Cal.com is written in Next.js, Vercel is the perfect platform to host this on (Vercel built Next.js). You can simply follow the [instructions provided by Vercel to get started](https://vercel.com/docs/concepts/get-started). All you do is fork your own version of the repository, click new on Vercel and select the repository. It'll pretty much do the rest for you. The one thing you will need to do is set the environment variables (the .env file). As you can't create a .env file on Vercel, you can go into the settings and manually add each variable. Use the .env.example file for reference as to what you should add. You can learn more about [setting environment variables on Vercel here](https://vercel.com/docs/concepts/projects/environment-variables).
+### Azure
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https://raw.githubusercontent.com/calcom/docker/main/azuredeploy.json" target="_blank">
+  <img src="https://aka.ms/deploytoazurebutton" noZoom alt="Deploy to Azure"/>
+</a>
+
+## Elestio
+
+<a href="https://elest.io/open-source/cal.com" target="_blank">
+  <img src="/images/deploy-elestio.png" noZoom alt="Deploy on Elestio" />
+</a>
+
+### GCP
+<a href="https://deploy.cloud.run/?git_repo=https://github.com/calcom/docker" target="_blank">
+  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/run_on_google_cloud.max-300x300.png" noZoom alt="Deploy on Google Cloud" />
+</a>
+
+### Railway
+<a href="https://railway.com/new/template/calcom" target="_blank">
+  <img src="/images/deploy-railway.svg" noZoom alt="Deploy on Railway" />
+</a>
+
+### Render
+<a href="https://render.com/deploy?repo=https://github.com/calcom/docker" target="_blank">
+    <img src="/images/deploy-render.svg" alt="Deploy on Render" noZoom />
+</a>
+
+### Vercel
+<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F" target="_blank">
+  <img src="https://vercel.com/button" noZoom alt="Deploy with Vercel" />
+</a>
 
 ## Other environments
 
@@ -126,5 +156,5 @@ Cal.com effectively is just a Next.js application, so any possible solution you 
 That's it. Your new self hosted Cal.com instance should now be up and running.
 
 <Card href="/self-hosting/deployments" title="Deployments" icon="rocket">
-    For more details on specific deployment instructions for AWS, Azure, etc.
+    For more details on specific deployment instructions for AWS, Azure, Railway, etc.
 </Card>

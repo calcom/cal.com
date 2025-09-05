@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "Kada testirate ovaj radni tok, imajte na umu da imejlovi i SMS-ovi mogu da budu zakazani najmanje 1 sat unapred",
   "insights_no_data_found_for_filter": "Nisu pronađeni podaci za izabrani filter ili izabrane datume.",
   "acknowledge_booking_no_show_fee": "Jasno mi je da će mi biti naplaćena naknada za izostanak putem kartice u iznosu od {{amount, currency}} ukoliko ne prisustvujem ovom događaju.",
+  "days": "dana",
   "card_details": "Informacije o kartici",
   "something_went_wrong_on_our_end": "Nešto je pošlo naopako na našoj strani. Kontaktirajte naš tim za podršku, i odmah ćemo to popraviti za vas.",
   "please_provide_following_text_to_suppport": "Prilikom kontaktiranja sa korisničkom službom, dostavite sledeći tekst kako bi vam bolje pomogli",
@@ -3602,5 +3603,9 @@
   "search_variables": "Pretraži promenljive",
   "no_variables_found": "Nisu pronađene promenljive",
   "api_key_name_too_long": "Ime ne sme biti duže od {{max}} karaktera",
+  "auto_charge_for_last_minute_cancellation": "Auto naplata naknade za nedolazak kod otkazivanja u poslednjem trenutku",
+  "before_scheduled_start_time": "Pre zakazanog vremena početka",
+  "cancel_booking_acknowledge_no_show_fee": "Potvrđujem da ću otkazivanjem rezervacije unutar {{timeValue}} {{timeUnit}} od vremena početka biti zadužen/a naknadom za nedolazak u iznosu od {{amount, currency}}",
+  "contact_organizer": "Ako imate bilo kakvih pitanja, molimo kontaktirajte organizatora.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "Pri testovaní tohto pracovného postupu majte na pamäti, že e-maily a SMS môžu byť naplánované iba minimálne 1 hodinu vopred.",
   "insights_no_data_found_for_filter": "Pre vybraný filter alebo vybrané dátumy neboli nájdené žiadne údaje.",
   "acknowledge_booking_no_show_fee": "Potvrdzujem, že ak sa nezúčastním tejto udalosti, bude na moju kartu uplatnený poplatok za neúčasť vo výške {{amount, currency}}.",
+  "days": "dni",
   "card_details": "Podrobnosti o karte",
   "something_went_wrong_on_our_end": "Na našej strane sa niečo pokazilo. Kontaktujte náš tím podpory a my to pre vás okamžite opravíme.",
   "please_provide_following_text_to_suppport": "Pri kontakte s podporou prosím poskytnite nasledujúci text, aby sme vám mohli lepšie pomôcť",
@@ -3602,5 +3603,9 @@
   "search_variables": "Vyhľadať premenné",
   "no_variables_found": "Neboli nájdené žiadne premenné",
   "api_key_name_too_long": "Názov nesmie presiahnuť {{max}} znakov",
+  "auto_charge_for_last_minute_cancellation": "Automaticky účtovať poplatok za neúčasť pri zrušení na poslednú chvíľu",
+  "before_scheduled_start_time": "Pred plánovaným časom začiatku",
+  "cancel_booking_acknowledge_no_show_fee": "Beriem na vedomie, že zrušením rezervácie v rámci {{timeValue}} {{timeUnit}} pred začiatkom mi bude účtovaný poplatok za neúčasť vo výške {{amount, currency}}",
+  "contact_organizer": "Ak máte akékoľvek otázky, kontaktujte organizátora.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
