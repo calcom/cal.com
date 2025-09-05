@@ -6,18 +6,20 @@ on:
     branches:
       - main
       - gh-actions-test-branch
-  workflow_call:
+  workflow_dispatch:
     inputs:
       pr_number:
         required: true
         type: number
+        description: 'PR number'
       pr_ref:
         required: true
         type: string
+        description: 'PR head ref'
       pr_sha:
         required: true
         type: string
-  workflow_dispatch:
+        description: 'PR head SHA'
 
 permissions:
   actions: write
