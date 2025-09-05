@@ -1,3 +1,4 @@
+// apps/web/app/(use-page-wrapper)/(main-nav)/bookings/[status]/page.tsx
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
@@ -10,7 +11,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
-import BookingsList from "~/bookings/views/bookings-listing-view";
+
+import { BookingsClient } from "./BookingsClient";
 
 const querySchema = z.object({
   status: z.enum(validStatuses),
@@ -33,9 +35,12 @@ const Page = async ({ params }: PageProps) => {
   const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
+  // Keep userId as string - no need to convert to number
+  const userId = session?.user?.id;
+
   return (
     <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
-      <BookingsList status={parsed.data.status} userId={session?.user?.id} />
+      <BookingsClient status={parsed.data.status} userId={userId} />
     </ShellMainAppDir>
   );
 };

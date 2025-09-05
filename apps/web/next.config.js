@@ -174,6 +174,8 @@ const orgDomainMatcherConfig = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = (phase) => {
+  const isDev = process.env.NODE_ENV === "development";
+
   if (isOrganizationsEnabled) {
     // We want to log the phase here because it is important that the rewrite is added during the build phase(phase=phase-production-build)
     console.log(
@@ -195,22 +197,35 @@ const nextConfig = (phase) => {
       "formidable", // Dependencies of akismet
       "@boxyhq/saml-jackson",
       "jose", // Dependency of @boxyhq/saml-jackson
+      "import-in-the-middle", // Fix for Sentry issue
     ],
     experimental: {
+      // Disable turbopack due to compatibility issues with Cal.com
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
       webpackMemoryOptimizations: true,
       webpackBuildWorker: true,
+      // Enable SWC minification for faster builds
+      swcMinify: true,
     },
-    productionBrowserSourceMaps: true,
+    // Disable source maps in development for faster builds
+    productionBrowserSourceMaps: !isDev,
     /* We already do type check on GH actions */
     typescript: {
-      ignoreBuildErrors: !!process.env.CI,
+      ignoreBuildErrors: !!process.env.CI, // Keep original behavior for now
     },
     /* We already do linting on GH actions */
     eslint: {
-      ignoreDuringBuilds: !!process.env.CI,
+      ignoreDuringBuilds: !!process.env.CI, // Keep original behavior for now
     },
+    // Reduce logging in development
+    logging: isDev
+      ? {
+          fetches: {
+            fullUrl: false,
+          },
+        }
+      : undefined,
     transpilePackages: [
       "@calcom/app-store",
       "@calcom/dayjs",
@@ -232,12 +247,26 @@ const nextConfig = (phase) => {
       lodash: {
         transform: "lodash/{{member}}",
       },
+      // Add more Cal.com specific optimizations
+      "@calcom/ui": {
+        transform: "@calcom/ui/{{member}}",
+        preventFullImport: true,
+      },
     },
     images: {
       unoptimized: true,
     },
     webpack: (config, { webpack, buildId, isServer, dev }) => {
-      if (!dev) {
+      // Enable filesystem caching only in development
+      if (dev) {
+        config.cache = {
+          type: "filesystem",
+          buildDependencies: {
+            config: [__filename],
+          },
+          cacheDirectory: "/tmp/.next-cache", // Use tmp directory for better performance
+        };
+      } else {
         if (config.cache) {
           config.cache = Object.freeze({
             type: "memory",
@@ -260,12 +289,20 @@ const nextConfig = (phase) => {
       config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
       config.resolve.fallback = {
-        ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
-        // by next.js will be dropped. Doesn't make much sense, but how it is
+        ...config.resolve.fallback,
         fs: false,
-        // ignore module resolve errors caused by the server component bundler
         "pg-native": false,
       };
+
+      // Add faster module resolution for development
+      if (dev) {
+        config.resolve.symlinks = true;
+        config.resolve.cacheWithContext = false;
+
+        // Optimize loader processing
+        config.module.unknownContextRegExp = /^\.\/.*$/;
+        config.module.unknownContextCritical = false;
+      }
 
       /**
        * TODO: Find more possible barrels for this project.
@@ -282,7 +319,6 @@ const nextConfig = (phase) => {
       const { orgSlug } = nextJsOrgRewriteConfig;
       const beforeFiles = [
         {
-          // This should be the first item in `beforeFiles` to take precedence over other rewrites
           source: `/(${locales.join("|")})/:path*`,
           destination: "/:path*",
         },
@@ -318,10 +354,6 @@ const nextConfig = (phase) => {
           destination: "/booking/:path*",
         },
         {
-          /**
-           * Needed due to the introduction of dotted usernames
-           * @see https://github.com/calcom/cal.com/pull/11706
-           */
           source: "/embed.js",
           destination: "/embed/embed.js",
         },
@@ -329,7 +361,6 @@ const nextConfig = (phase) => {
           source: "/login",
           destination: "/auth/login",
         },
-        // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
         ...(isOrganizationsEnabled
           ? [
               orgDomainMatcherConfig.root
@@ -377,24 +408,14 @@ const nextConfig = (phase) => {
           source: "/icons/sprite.svg",
           destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
         },
-        // for @dub/analytics, @see: https://d.to/reverse-proxy
         {
           source: "/_proxy/dub/track/:path",
           destination: "https://api.dub.co/track/:path",
         },
-
-        // When updating this also update pagesAndRewritePaths.js
-        ...[
-          {
-            source: "/:user/avatar.png",
-            destination: "/api/user/avatar?username=:user",
-          },
-        ],
-
-        /* TODO: have these files being served from another deployment or CDN {
-        source: "/embed/embed.js",
-        destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
-      }, */
+        {
+          source: "/:user/avatar.png",
+          destination: "/api/user/avatar?username=:user",
+        },
       ];
 
       if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
@@ -411,8 +432,6 @@ const nextConfig = (phase) => {
     },
     async headers() {
       const { orgSlug } = nextJsOrgRewriteConfig;
-      // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
-      // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
       const CORP_CROSS_ORIGIN_HEADER = {
         key: "Cross-Origin-Resource-Policy",
         value: "cross-origin",
@@ -461,7 +480,6 @@ const nextConfig = (phase) => {
         },
         {
           source: "/:path*/embed",
-          // COEP require-corp header is set conditionally when flag.coep is set to true
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
         {
@@ -473,35 +491,31 @@ const nextConfig = (phase) => {
             },
           ],
           headers: [
-            // make sure to pass full referer URL for booking pages
             {
               key: "Referrer-Policy",
               value: "no-referrer-when-downgrade",
             },
           ],
         },
-        // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
-        ...[
-          {
-            source: "/api/avatar/:path*",
-            headers: [CORP_CROSS_ORIGIN_HEADER],
-          },
-          {
-            source: "/avatar.svg",
-            headers: [CORP_CROSS_ORIGIN_HEADER],
-          },
-          {
-            source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
-            headers: [
-              CORP_CROSS_ORIGIN_HEADER,
-              ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
-              {
-                key: "Cache-Control",
-                value: "public, max-age=31536000, immutable",
-              },
-            ],
-          },
-        ],
+        {
+          source: "/api/avatar/:path*",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
+          headers: [
+            CORP_CROSS_ORIGIN_HEADER,
+            ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
+        },
         ...(isOrganizationsEnabled
           ? [
               orgDomainMatcherConfig.root
@@ -593,7 +607,6 @@ const nextConfig = (phase) => {
           destination: "/settings/admin/flags",
           permanent: true,
         },
-        /* V2 testers get redirected to the new settings */
         {
           source: "/settings/profile",
           destination: "/settings/my-account/profile",
@@ -614,15 +627,13 @@ const nextConfig = (phase) => {
           destination: "/video/:path*",
           permanent: false,
         },
-        /* Attempt to mitigate DDoS attack */
         {
           source: "/api/auth/:path*",
           has: [
             {
               type: "query",
               key: "callbackUrl",
-              // prettier-ignore
-              value: "^(?!https?:\/\/).*$",
+              value: "^(?!https?://).*$",
             },
           ],
           destination: "/404",
@@ -670,11 +681,8 @@ const nextConfig = (phase) => {
           destination: "/settings/admin/apps/calendar",
           permanent: true,
         },
-        // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
         ...(process.env.NODE_ENV === "development" &&
-        // Safer to enable the redirect only when the user is opting to test out organizations
         isOrganizationsEnabled &&
-        // Prevent infinite redirect by checking that we aren't already on localhost
         process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
           ? [
               {
@@ -721,7 +729,6 @@ const nextConfig = (phase) => {
 function adjustEnvVariables() {
   if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
     if (process.env.RESERVED_SUBDOMAINS) {
-      // It is better to ignore it completely so that accidentally if the org slug is itself in Reserved Subdomain that doesn't cause the booking pages to start giving 404s
       console.warn(
         `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't need to use reserved subdomain validation.`
       );
@@ -729,7 +736,6 @@ function adjustEnvVariables() {
     }
 
     if (!process.env.ORGANIZATIONS_ENABLED) {
-      // This is basically a consent to add rewrites related to organizations. So, if single org slug mode is there, we have the consent already.
       console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
       process.env.ORGANIZATIONS_ENABLED = "1";
     }

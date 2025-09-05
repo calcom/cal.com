@@ -1,3 +1,4 @@
+// apps/web/app/(use-page-wrapper)/(main-nav)/event-types/page.tsx
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
@@ -12,7 +13,8 @@ import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
+// Import the client component
+import { EventTypesClient } from "./EventTypesClient";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -61,8 +63,14 @@ const Page = async ({ searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
-      <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
+      CTA={null} // We'll handle CTA in the client component
+    >
+      <EventTypesClient
+        userEventGroupsData={userEventGroupsData}
+        user={session.user}
+        heading={t("event_types_page_title")}
+        subtitle={t("event_types_page_subtitle")}
+      />
     </ShellMainAppDir>
   );
 };
