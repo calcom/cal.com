@@ -7,6 +7,7 @@ import { RefundPolicy } from "@calcom/lib/payment/types";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
 
@@ -16,6 +17,7 @@ import {
 } from "../../_utils/payments/currencyConversions";
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
+import { autoChargeNoShowFeeTimeUnitEnum } from "../zod";
 
 type Option = { value: string; label: string };
 
@@ -38,6 +40,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const requirePayment = getAppData("enabled");
   const getSelectedOption = () =>
     options.find((opt) => opt.value === (getAppData("refundCountCalendarDays") === true ? 1 : 0));
+  const autoChargeNoShowFeeIfCancelled = getAppData("autoChargeNoShowFeeIfCancelled");
+  const autoChargeNoShowFeeTimeUnit = getAppData("autoChargeNoShowFeeTimeUnit");
+  const autoChargeNoShowFeeTimeValue = getAppData("autoChargeNoShowFeeTimeValue");
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -71,6 +76,11 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const options = [
     { value: 0, label: t("business_days") },
     { value: 1, label: t("calendar_days") },
+  ];
+  const autoChangeTimeUnitOptions = [
+    { value: autoChargeNoShowFeeTimeUnitEnum.enum.minutes, label: t("minutes") },
+    { value: autoChargeNoShowFeeTimeUnitEnum.enum.hours, label: t("hours") },
+    { value: autoChargeNoShowFeeTimeUnitEnum.enum.days, label: t("days") },
   ];
   return (
     <>
@@ -151,11 +161,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               isDisabled={seatsEnabled || disabled}
             />
           </div>
-
           {seatsEnabled && paymentOption === "HOLD" && (
             <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
           )}
-
           {paymentOption !== "HOLD" && (
             <div className="mt-4 w-full">
               <label className="text-default mb-1 block text-sm font-medium">{t("refund_policy")}</label>
@@ -208,6 +216,54 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                   </div>
                 </div>
               </RadioGroup.Root>
+            </div>
+          )}
+          {paymentOption === "HOLD" && (
+            <div className="mt-4">
+              <div>
+                <CheckboxField
+                  checked={autoChargeNoShowFeeIfCancelled}
+                  onChange={(e) => setAppData("autoChargeNoShowFeeIfCancelled", e.target.checked)}
+                  description={t("auto_charge_for_last_minute_cancellation")}
+                />
+              </div>
+              {autoChargeNoShowFeeIfCancelled && (
+                <div>
+                  <div className="mt-2 flex items-center">
+                    <TextField
+                      labelSrOnly
+                      type="number"
+                      className={classNames(
+                        "border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                      )}
+                      placeholder="2"
+                      disabled={disabled}
+                      min={0}
+                      defaultValue={autoChargeNoShowFeeTimeValue}
+                      required={autoChargeNoShowFeeIfCancelled}
+                      value={autoChargeNoShowFeeTimeValue ?? ""}
+                      onChange={(e) =>
+                        setAppData("autoChargeNoShowFeeTimeValue", parseInt(e.currentTarget.value))
+                      }
+                    />
+                    <Select
+                      options={autoChangeTimeUnitOptions}
+                      isSearchable={false}
+                      isDisabled={disabled}
+                      onChange={(option) => setAppData("autoChargeNoShowFeeTimeUnit", option?.value)}
+                      value={
+                        autoChangeTimeUnitOptions.find((opt) => opt.value === autoChargeNoShowFeeTimeUnit) ||
+                        autoChangeTimeUnitOptions[0]
+                      }
+                      defaultValue={
+                        autoChangeTimeUnitOptions.find((opt) => opt.value === autoChargeNoShowFeeTimeUnit) ||
+                        autoChangeTimeUnitOptions[0]
+                      }
+                    />
+                    <span className="me-2 ms-2">{t("before_scheduled_start_time")}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>

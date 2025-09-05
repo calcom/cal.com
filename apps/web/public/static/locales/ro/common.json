@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "La testarea acestui flux de lucru, țineți cont de faptul că e-mailurile și SMS-urile pot fi programate doar cu cel puțin o oră în prealabil",
   "insights_no_data_found_for_filter": "Nu s-au găsit date pentru filtrul selectat sau pentru datele selectate.",
   "acknowledge_booking_no_show_fee": "Dacă nu particip la acest eveniment, accept să mi se perceapă de pe card o taxă de neprezentare în valoare de {{amount, currency}}.",
+  "days": "zile",
   "card_details": "Detalii card",
   "something_went_wrong_on_our_end": "Ceva nu a funcționat corect din partea noastră. Contactează echipa noastră de suport și vom rezolva problema imediat pentru tine.",
   "please_provide_following_text_to_suppport": "Furnizați următorul text atunci când contactați echipa de asistență pentru a vă putea ajuta mai bine",
@@ -3602,5 +3603,9 @@
   "search_variables": "Caută variabile",
   "no_variables_found": "Nu s-au găsit variabile",
   "api_key_name_too_long": "Numele nu trebuie să depășească {{max}} caractere",
+  "auto_charge_for_last_minute_cancellation": "Taxare automată a taxei de neprezentare pentru anulările de ultim moment",
+  "before_scheduled_start_time": "Înainte de ora programată de început",
+  "cancel_booking_acknowledge_no_show_fee": "Recunosc că, anulând rezervarea cu {{timeValue}} {{timeUnit}} înainte de ora de început, voi fi taxat cu taxa de neprezentare de {{amount, currency}}",
+  "contact_organizer": "Dacă aveți întrebări, vă rugăm să contactați organizatorul.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
