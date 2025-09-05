@@ -24,6 +24,7 @@ const initialData: AppFlags = {
   "restriction-schedule": false,
   "team-booking-page-cache": false,
   "cal-ai-voice-agents": false,
+  "tiered-support-chat": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
