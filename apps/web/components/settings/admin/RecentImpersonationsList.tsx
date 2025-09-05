@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,11 +15,7 @@ interface RecentImpersonationsListProps {
 
 export default function RecentImpersonationsList({ onImpersonate }: RecentImpersonationsListProps) {
   const { t } = useLocale();
-  const [recentImpersonations, setRecentImpersonations] = useState<RecentImpersonation[]>([]);
-
-  useEffect(() => {
-    setRecentImpersonations(getRecentImpersonations());
-  }, []);
+  const [recentImpersonations] = useState<RecentImpersonation[]>(() => getRecentImpersonations());
 
   const handleQuickImpersonate = (username: string) => {
     if (onImpersonate) {
