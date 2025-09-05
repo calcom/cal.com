@@ -214,9 +214,9 @@ export class CalendarsService {
   }
 
   async getCalendarCache(userId: number) {
-    const cachedResult = (await this.redisService.get(
+    const cachedResult = await this.redisService.get<ConnectedDestinationCalendars>(
       REDIS_CALENDARS_CACHE_KEY(userId)
-    )) as ConnectedDestinationCalendars;
+    );
     return cachedResult;
   }
 
