@@ -1,6 +1,9 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";

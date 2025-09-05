@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { Logo } from "@calid/features/ui/components/logo";
@@ -274,7 +275,7 @@ const TeamRolesNavItem = ({
 };
 
 const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: teams } = trpc.viewer.calidTeams.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
@@ -312,15 +313,13 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
               aria-current={isActive ? "page" : undefined}
               href={href}>
               <div className="flex items-center text-sm">
-                {!team.parentId && (
-                  <img
-                    src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                    className="h-4 w-4 rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
-                    alt={team.name || "Team logo"}
-                  />
-                )}
+                <img
+                  src={getPlaceholderAvatar(team.logoUrl, team.name)}
+                  className="h-4 w-4 rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
+                  alt={team.name || "Team logo"}
+                />
                 <p className="w-full truncate leading-normal">{team.name}</p>
-                {!team.accepted && (
+                {!team.acceptedInvitation && (
                   <Badge className="ms-3" variant="secondary">
                     Inv.
                   </Badge>

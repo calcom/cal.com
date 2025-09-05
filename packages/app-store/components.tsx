@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import Link from "next/link";
 
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";

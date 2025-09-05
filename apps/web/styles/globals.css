@@ -157,7 +157,7 @@
   --cal-text-info: hsla(225, 57%, 33%, 1); /* #253985 - interactive text/icons */
   --cal-text-success: hsla(144, 34%, 24%, 1); /* #285231 */
   --cal-text-attention: hsla(16, 62%, 28%, 1); /* Keeping existing attention text */
-  --cal-text-error: hsla(0, 63%, 31%, 1); /* Keeping existing error text */
+  --cal-text-error: hsla(0, 84%, 60%, 1); /* Keeping existing error text */
 
   /* Brand */
   --cal-brand: hsla(221, 39%, 11%, 1); /* Keeping existing brand color */

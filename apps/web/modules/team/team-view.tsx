@@ -1,6 +1,9 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { Button } from "@calid/features/ui";
 // This route is reachable by
 // 1. /team/[slug]

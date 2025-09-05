@@ -1,5 +1,7 @@
 // UI components and utilities
-import { Alert, AlertTitle, AlertDescription, Button, Icon } from "@calid/features/ui";
+import { Alert } from "@calid/features/ui/components/alert";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import Link from "next/link";
 import React, { useMemo } from "react";
 import { useFormContext } from "react-hook-form";

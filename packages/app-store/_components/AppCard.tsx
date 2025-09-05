@@ -1,4 +1,6 @@
-import { Icon } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Switch } from "@calid/features/ui/components/switch/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
@@ -7,8 +9,6 @@ import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 
 import type { CredentialOwner } from "../types";

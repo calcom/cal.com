@@ -1,20 +1,17 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogContent, DialogHeader } from "@calid/features/ui/components/dialog";
+import { Input } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
+import { RadioGroup, RadioGroupItem } from "@calid/features/ui/components/radio-group";
 import {
-  Button,
-  Input,
-  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  RadioGroup,
-  RadioGroupItem,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/select";
 import React, { useState } from "react";
 
 interface CreateWorkflowModalProps {

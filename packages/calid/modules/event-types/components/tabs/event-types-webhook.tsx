@@ -1,24 +1,22 @@
 "use client";
 
+import { Alert } from "@calid/features/ui/components/alert";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog } from "@calid/features/ui/components/dialog";
+import { DialogContent } from "@calid/features/ui/components/dialog";
 import {
-  Icon,
-  Switch,
-  Alert,
-  AlertTitle,
-  AlertDescription,
-  Badge,
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  Dialog,
-  DialogContent,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
+import { TooltipTrigger } from "@calid/features/ui/components/tooltip";
+import { TooltipContent } from "@calid/features/ui/components/tooltip";
 import type { Webhook } from "@prisma/client";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";

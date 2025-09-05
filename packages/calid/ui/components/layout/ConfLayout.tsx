@@ -32,10 +32,10 @@ export const ConfLayout: React.FC<ConfLayoutProps> = ({
   const { t, isLocaleReady } = useLocale();
 
   useEffect(() => {
-    // Read from document to mirror existing pages that set title/description
-    const title = window.document.title;
-    const subtitle = window.document.querySelector('meta[name="description"]')?.getAttribute("content") || "";
-    setMeta({ title, subtitle });
+    setMeta({
+      title: window.document.title,
+      subtitle: window.document.querySelector('meta[name="description"]')?.getAttribute("content") || "",
+    });
   }, [pathname]);
 
   return (

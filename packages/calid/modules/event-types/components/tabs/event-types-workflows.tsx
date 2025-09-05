@@ -3,18 +3,11 @@ import SkeletonLoader from "@calid/features/modules/workflows/components/event_w
 import type { WorkflowType } from "@calid/features/modules/workflows/config/types";
 import { getActionIcon } from "@calid/features/modules/workflows/utils/getActionicon";
 // UI components
-import {
-  Icon,
-  Switch,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  Alert,
-  AlertTitle,
-  AlertDescription,
-  Badge,
-  Button,
-} from "@calid/features/ui";
+import { Alert } from "@calid/features/ui/components/alert";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Switch } from "@calid/features/ui/components/switch/switch";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
 import Link from "next/link";
@@ -379,7 +372,7 @@ const WorkflowListItem = React.memo(
             <div className="flex-none">
               <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
                 <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
-                  <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
+                  <div className="hidden sm:block ltr:mr-2 rtl:ml-2">{t("edit")}</div>
                 </Button>
               </Link>
             </div>

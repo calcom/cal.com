@@ -1,6 +1,12 @@
-import type { IconName } from "@calid/features/ui";
-import { Icon, Button } from "@calid/features/ui";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import React, { useState, useMemo, useEffect } from "react";
 
 import type { IconParams } from "./event-type-card-icon";

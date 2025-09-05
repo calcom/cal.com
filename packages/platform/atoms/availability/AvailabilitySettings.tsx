@@ -1,7 +1,10 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { Button } from "@calid/features/ui/components/button";
 import { VerticalDivider } from "@calid/features/ui/components/divider";
 import { Switch } from "@calid/features/ui/components/switch";

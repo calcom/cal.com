@@ -1,4 +1,4 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";

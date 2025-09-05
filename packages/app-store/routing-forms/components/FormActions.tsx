@@ -1,12 +1,10 @@
-import { /* Switch, */ Button, Input, Textarea } from "@calid/features/ui";
-import type { ButtonProps } from "@calid/features/ui";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  // DialogClose, // ConfirmationDialogContent,
-} from "@calid/features/ui";
-import { configDotenv } from "dotenv";
+import { type ButtonProps } from "@calid/features/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Input } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
+import { Switch } from "@calid/features/ui/components/switch/switch";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, createContext, forwardRef, useContext, useState } from "react";
@@ -26,22 +24,16 @@ import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 // import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button as ButtonCalcom } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
-import { TeamSelectionDialog } from "./TeamsSelectionDialog.tsx";
 
 type FormField = {
   identifier?: string;
@@ -139,7 +131,7 @@ function NewFormDialog({
               <div className="text-emphasis mb-1 text-sm font-semibold" data-testid="description-label">
                 {t("description")}
               </div>
-              <Textarea
+              <TextArea
                 id="description"
                 {...register("description")}
                 data-testid="description"

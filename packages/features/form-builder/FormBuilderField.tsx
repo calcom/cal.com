@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { ErrorMessage } from "@hookform/error-message";
 import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";

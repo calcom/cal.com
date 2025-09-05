@@ -1,7 +1,7 @@
 "use client";
 
-// import { TextField } from "@calcom/ui/components/form";
-import { Button, TextField } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports

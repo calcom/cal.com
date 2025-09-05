@@ -1,16 +1,10 @@
-import {
-  Button,
-  Label,
-  Switch,
-  CustomSelect,
-  Collapsible,
-  CollapsibleContent,
-  Icon,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { CustomSelect } from "@calid/features/ui/components/custom-select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Label } from "@calid/features/ui/components/label";
+import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import React, { useState, useRef, forwardRef, useEffect, useCallback } from "react";
 

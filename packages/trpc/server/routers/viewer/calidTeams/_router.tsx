@@ -1,0 +1,73 @@
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
+import { ZCreateCalidTeamSchema } from "./create.schema";
+import { ZDeleteCalidTeamSchema } from "./delete.schema";
+import { ZGetCalidTeamSchema } from "./get.schema";
+import { ZGetMemberSchema } from "./getMember.schema";
+import { ZInviteMemberSchema } from "./inviteMember.schema";
+import { ZListMembersSchema } from "./listMembers.schema";
+import { ZRemoveMemberSchema } from "./removeMember.schema";
+import { ZUpdateCalidTeamSchema } from "./update.schema";
+import { ZUpdateMemberSchema } from "./updateMember.schema";
+
+export const calIdTeamsRouter = router({
+  // Create a new calidTeam
+  create: authedProcedure.input(ZCreateCalidTeamSchema).mutation(async ({ ctx, input }) => {
+    const { createCalidTeamHandler } = await import("./create.handler");
+    return createCalidTeamHandler({ ctx, input });
+  }),
+
+  // Get a specific calidTeam by ID
+  get: authedProcedure.input(ZGetCalidTeamSchema).query(async ({ ctx, input }) => {
+    const { getCalidTeamHandler } = await import("./get.handler");
+    return getCalidTeamHandler({ ctx, input });
+  }),
+
+  // List all calidTeams the user has access to
+  list: authedProcedure.query(async ({ ctx }) => {
+    const { listCalidTeamsHandler } = await import("./list.handler");
+    return listCalidTeamsHandler({ ctx });
+  }),
+
+  // Update a calidTeam
+  update: authedProcedure.input(ZUpdateCalidTeamSchema).mutation(async ({ ctx, input }) => {
+    const { updateCalidTeamHandler } = await import("./update.handler");
+    return updateCalidTeamHandler({ ctx, input });
+  }),
+
+  // Delete a calidTeam
+  delete: authedProcedure.input(ZDeleteCalidTeamSchema).mutation(async ({ ctx, input }) => {
+    const { deleteCalidTeamHandler } = await import("./delete.handler");
+    return deleteCalidTeamHandler({ ctx, input });
+  }),
+
+  // Invite a member to a calidTeam
+  inviteMember: authedProcedure.input(ZInviteMemberSchema).mutation(async ({ ctx, input }) => {
+    const { inviteMemberHandler } = await import("./inviteMember.handler");
+    return inviteMemberHandler({ ctx, input });
+  }),
+
+  // Remove a member from a calidTeam
+  removeMember: authedProcedure.input(ZRemoveMemberSchema).mutation(async ({ ctx, input }) => {
+    const { removeMemberHandler } = await import("./removeMember.handler");
+    return removeMemberHandler({ ctx, input });
+  }),
+
+  // Get member
+  getMember: authedProcedure.input(ZGetMemberSchema).query(async ({ ctx, input }) => {
+    const { getMemberHandler } = await import("./getMember.handler");
+    return getMemberHandler({ ctx, input });
+  }),
+
+  // Update a member
+  updateMember: authedProcedure.input(ZUpdateMemberSchema).mutation(async ({ ctx, input }) => {
+    const { updateMemberHandler } = await import("./updateMember.handler");
+    return updateMemberHandler({ ctx, input });
+  }),
+
+  // List members
+  listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
+    const { listMembersHandler } = await import("./listMembers.handler");
+    return listMembersHandler({ ctx, input });
+  }),
+});

@@ -1,5 +1,4 @@
-// import { Badge } from "@calcom/ui/components/badge";
-import { Badge } from "@calid/features/ui";
+import { Badge } from "@calid/features/ui/components/badge";
 import type { Prisma } from "@prisma/client";
 import { useMemo } from "react";
 import type { z } from "zod";

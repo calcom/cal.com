@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -8,8 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-  Button,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/dialog";
 import { useRouter } from "next/navigation";
 import React from "react";
 

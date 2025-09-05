@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import type { GroupBase, Props, ValueContainerProps } from "react-select";
 import { components } from "react-select";
 

@@ -17,6 +17,7 @@ import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
 import { calVideoRouter } from "./calVideo/_router";
 import { calendarsRouter } from "./calendars/_router";
+import { calIdTeamsRouter } from "./calidTeams/_router";
 import { credentialsRouter } from "./credentials/_router";
 import { creditsRouter } from "./credits/_router";
 import { delegationCredentialRouter } from "./delegationCredential/_router";
@@ -84,4 +85,5 @@ export const viewerRouter = router({
   credits: creditsRouter,
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
+  calidTeams: calIdTeamsRouter,
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -8,16 +9,16 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-  Button,
-  Input,
-  Label,
-  RadioGroup,
-  RadioGroupItem,
+} from "@calid/features/ui/components/dialog";
+import { Input } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
+import { RadioGroup, RadioGroupItem } from "@calid/features/ui/components/radio-group";
+import {
   Tooltip,
+  TooltipProvider,
   TooltipTrigger,
   TooltipContent,
-  TooltipProvider,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/tooltip";
 import React from "react";
 
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
@@ -115,7 +116,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="max-w-32 inline-flex items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
+                    <span className="inline-flex max-w-32 items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
                       /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}/
                     </span>
                   </TooltipTrigger>

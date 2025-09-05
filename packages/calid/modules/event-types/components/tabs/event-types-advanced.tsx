@@ -4,25 +4,21 @@ import {
   canDisableOrganizerNotifications,
 } from "@calid/features/modules/workflows/utils/notificationDisableCheck";
 // UI components
-import {
-  Alert,
-  AlertTitle,
-  AlertDescription,
-  Badge,
-  Button,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Checkbox,
-  RadioGroup,
-  RadioGroupItem,
-  Label,
-  Input,
-  Icon,
-  Switch,
-} from "@calid/features/ui";
+import { Alert } from "@calid/features/ui/components/alert";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Checkbox } from "@calid/features/ui/components/checkbox";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Input } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
+import { RadioGroup } from "@calid/features/ui/components/radio-group";
+import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
+import { Select } from "@calid/features/ui/components/select";
+import { SelectTrigger } from "@calid/features/ui/components/select";
+import { SelectValue } from "@calid/features/ui/components/select";
+import { SelectContent } from "@calid/features/ui/components/select";
+import { SelectItem } from "@calid/features/ui/components/select";
+import { Switch } from "@calid/features/ui/components/switch/switch";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
 import React, { useState, useCallback, useMemo, Suspense } from "react";

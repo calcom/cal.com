@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import React from "react";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";

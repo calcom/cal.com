@@ -1,5 +1,6 @@
 "use client";
 
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import {
@@ -11,8 +12,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import { Form, FormField, FormMessage } from "@calid/features/ui/components/form";
-import { Input } from "@calid/features/ui/components/input/input";
+import { Form, FormField } from "@calid/features/ui/components/form";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast/toast";
 import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,13 +22,14 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
+
+import SkeletonLoader from "../components/SkeletonLoader";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -64,25 +66,28 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
       name: "",
       slug: "",
       bio: "",
-      logo: "",
+      logo: null,
     },
   });
 
   const isDisabled = form.formState.isSubmitting;
 
-  // Fetch team data
-  const { data: team, isLoading, error } = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
+  const {
+    data: team,
+    isLoading,
+    error,
+  } = trpc.viewer.calidTeams.get.useQuery({ teamId }, { enabled: !!teamId });
 
   // Update team mutation
-  const updateTeamMutation = trpc.viewer.teams.update.useMutation({
+  const updateTeamMutation = trpc.viewer.calidTeams.update.useMutation({
     onSuccess: async (data) => {
-      await utils.viewer.teams.get.invalidate({ teamId });
-      await utils.viewer.teams.list.invalidate();
-      triggerToast(t("your_team_updated_successfully"), "success");
+      await utils.viewer.calidTeams.get.invalidate({ teamId });
+      await utils.viewer.calidTeams.list.invalidate();
+      triggerToast(t("team_settings_updated_successfully"), "success");
 
       // Reset form with new data
       form.reset({
-        id: team?.id || 0,
+        id: data?.id || 0,
         name: data?.name || "",
         slug: data?.slug || "",
         bio: data?.bio || "",
@@ -94,11 +99,10 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
     },
   });
 
-  // Disband team mutation
-  const disbandTeamMutation = trpc.viewer.teams.delete.useMutation({
+  const disbandTeamMutation = trpc.viewer.calidTeams.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.teams.list.invalidate();
-      triggerToast("Team profile updated successfully", "success");
+      triggerToast("team_disbanded_successfully", "success");
       router.push("/teams");
     },
     onError: (error) => {
@@ -106,11 +110,10 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
     },
   });
 
-  // Leave team mutation
-  const leaveTeamMutation = trpc.viewer.teams.leave.useMutation({
+  const leaveTeamMutation = trpc.viewer.calidTeams.leave.useMutation({
     onSuccess: async () => {
       await utils.viewer.teams.list.invalidate();
-      triggerToast("Team profile updated successfully", "success");
+      triggerToast("team_settings_updated_successfully", "success");
       router.push("/teams");
     },
     onError: (error) => {
@@ -118,7 +121,6 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
     },
   });
 
-  // Initialize form with team data
   useEffect(() => {
     if (team) {
       form.reset({
@@ -129,23 +131,19 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
         logo: team.logoUrl || "",
       });
     }
+    console.log(team);
   }, [team, form]);
 
-  // Handle team disbanding
   const disbandTeam = () => {
     if (!team) return;
-
     disbandTeamMutation.mutate({ teamId: team.id });
   };
 
-  // Handle leaving team
   const leaveTeam = () => {
     if (!team) return;
-
     leaveTeamMutation.mutate({ teamId: team.id });
   };
 
-  // Handle form submission
   const onSubmit = (data: TeamProfileFormData) => {
     if (!team) return;
 
@@ -159,21 +157,11 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
-      </div>
-    );
+    return <SkeletonLoader />;
   }
 
   if (error || !team) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="mb-4 text-red-600">Failed to load team data</p>
-        </div>
-      </div>
-    );
+    router.push("/teams");
   }
 
   return (
@@ -181,7 +169,6 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
       <div className="border-subtle space-y-6 rounded-md border p-4">
         <Form {...form} onSubmit={onSubmit}>
           <div className="space-y-6">
-            {/* Profile Picture */}
             <FormField
               control={form.control}
               name="logo"
@@ -196,7 +183,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                         <Avatar
                           alt={form.getValues("name")}
                           data-testid="profile-upload-logo"
-                          imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
+                          imageSrc={getDefaultAvatar(value, form.getValues("name"))}
                           size="lg"
                         />
                       </div>
@@ -206,7 +193,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                             targetId="avatar-upload"
                             buttonText={t("upload_logo")}
                             onImageChange={onChange}
-                            currentImageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
+                            currentImageSrc={getDefaultAvatar(value, form.getValues("name"))}
                             targetType="logo"
                             buttonColor="secondary"
                             testIdentifier="logo"
@@ -217,73 +204,60 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                             </Button>
                           )}
                         </div>
-                        <FormMessage className="text-sm text-red-600" />
                       </div>
                     </div>
                   </div>
                 );
               }}
             />
-
-            {/* Team Name */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t("team_name")}</Label>
-                  <Input
-                    id="name"
-                    placeholder="Enter team name"
-                    {...field}
-                    className={form.formState.errors.name ? "border-red-500" : ""}
+                <>
+                  <TextField
+                    name="name"
+                    label={t("team_profile_team_name")}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
-                  <FormMessage />
-                </div>
+                </>
               )}
             />
-
-            {/* URL Slug */}
             <FormField
               control={form.control}
               name="slug"
               render={({ field }) => (
-                <div className="space-y-2">
-                  <Label htmlFor="slug">{t("team_url")}</Label>
-                  <Input
-                    id="slug"
-                    placeholder="team-name"
-                    {...field}
-                    className={form.formState.errors.slug ? "border-red-500" : ""}
+                <>
+                  <TextField
+                    name="slug"
+                    label={t("team_profile_team_url")}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
-                  <FormMessage />
-                </div>
+                </>
               )}
             />
-
-            {/* About */}
             <FormField
               control={form.control}
               name="bio"
               render={({ field }) => (
                 <div className="space-y-2">
-                  <Label>{t("bio")}</Label>
+                  <Label>{t("team_profile_bio")}</Label>
                   <Editor
-                    getText={() => md.render(field.value || "")}
-                    setText={(value: string) => field.onChange(turndown(value))}
+                    getText={() => md.render(form.getValues("bio") || "")}
+                    setText={(value: string) => {
+                      form.setValue("bio", turndown(value), { shouldDirty: true });
+                    }}
                     excludedToolbarItems={["blockType"]}
                     disableLists
                     firstRender={firstRender}
                     setFirstRender={setFirstRender}
                     height="100px"
-                    placeholder={t("team_description")}
                   />
-                  <FormMessage />
                 </div>
               )}
             />
-
-            {/* Submit Button */}
             <Button
               color="primary"
               type="submit"
@@ -296,23 +270,29 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
       </div>
       <div className="border-subtle rounded-md border p-4">
         <div className="mb-4">
-          <Label className="text-destructive mb-0 text-base font-semibold">{t("danger_zone")}</Label>
+          <Label className="text-destructive mb-0 text-base font-semibold">
+            {t("team_profile_danger_zone")}
+          </Label>
           {team?.membership.role === "OWNER" && (
-            <p className="text-subtle text-sm">{t("team_deletion_cannot_be_undone")}</p>
+            <p className="text-subtle text-sm">{t("team_profile_disband_team_cannot_be_undone")}</p>
           )}
         </div>
         {team?.membership.role === "OWNER" ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button color="destructive" StartIcon="trash-2" data-testid="disband-team-button">
-                {t("disband_team")}
+              <Button
+                color="destructive"
+                className="border-border border"
+                StartIcon="trash-2"
+                data-testid="disband-team-button">
+                {t("team_profile_disband_team")}
               </Button>
             </DialogTrigger>
 
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t("disband_team")}</DialogTitle>
-                <DialogDescription>{t("disband_team_confirmation_message")}</DialogDescription>
+                <DialogTitle>{t("team_profile_disband_team")}</DialogTitle>
+                <DialogDescription>{t("team_profile_disband_team_confirmation_message")}</DialogDescription>
               </DialogHeader>
 
               <DialogFooter>
@@ -324,7 +304,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                   onClick={() => {
                     disbandTeam();
                   }}>
-                  {t("confirm_disband_team")}
+                  {t("team_profile_confirm_disband_team")}
                 </Button>
               </DialogFooter>
             </DialogContent>

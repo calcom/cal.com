@@ -1,6 +1,9 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -10,7 +13,6 @@ import { FilterResults } from "@calcom/features/filters/components/FilterResults
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
@@ -51,7 +53,6 @@ function NewFormButton({ setSelectTeamDialogState }: { setSelectTeamDialogState:
 
 export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const { t } = useLocale();
-  const { hasPaidPlan } = useHasPaidPlan();
   const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const utils = trpc.useUtils();

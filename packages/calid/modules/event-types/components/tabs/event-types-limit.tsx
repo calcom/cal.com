@@ -1,15 +1,11 @@
-import {
-  Icon,
-  Button,
-  Calendar,
-  CustomSelect,
-  Switch,
-  RadioGroup,
-  RadioGroupItem,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Calendar } from "@calid/features/ui/components/calendar";
+import { CustomSelect } from "@calid/features/ui/components/custom-select";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
+import { RadioGroup } from "@calid/features/ui/components/radio-group";
+import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
+import { Switch } from "@calid/features/ui/components/switch/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { TFunction } from "i18next";
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";

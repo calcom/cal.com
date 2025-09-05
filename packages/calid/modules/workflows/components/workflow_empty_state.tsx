@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Icon } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

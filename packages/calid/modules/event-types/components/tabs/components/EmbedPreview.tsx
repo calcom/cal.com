@@ -1,4 +1,3 @@
-// packages/calid/modules/event-types/components/tabs/components/EmbedPreview.tsx
 import { Eye } from "lucide-react";
 import React from "react";
 

@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";

@@ -1,6 +1,9 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Card } from "@calcom/ui/components/card";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 
 import { helpCards } from "@lib/settings/platform/utils";
 

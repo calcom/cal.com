@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import classNames from "classnames";
 import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";

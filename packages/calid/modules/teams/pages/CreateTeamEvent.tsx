@@ -1,7 +1,9 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { toast } from "@calid/features/ui/components/toast/use-toast";
+import { Form } from "@calid/features/ui/components/form";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { triggerToast } from "@calid/features/ui/components/toast/toast";
 import { useRouter } from "next/navigation";
 import { Controller } from "react-hook-form";
 
@@ -11,7 +13,6 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Select } from "@calcom/ui/components/form";
-import { Form, TextField } from "@calcom/ui/form";
 
 type SchedulingOption = { value: SchedulingType; label: string };
 
@@ -23,11 +24,11 @@ const CreateTeamEvent = () => {
   const teamId = Number(params.id);
 
   const onSuccess = () => {
-    router.push(`/settings/teams/${teamId}`);
+    router.push(`/settings/teams/${teamId}/profile`);
   };
 
   const onError = (message: string) => {
-    toast({ title: t("error"), description: message, variant: "destructive" });
+    triggerToast(message, "error");
   };
 
   const {

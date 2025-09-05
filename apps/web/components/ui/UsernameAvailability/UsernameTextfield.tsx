@@ -1,5 +1,4 @@
-// import { TextField } from "@calcom/ui/components/form";
-import { TextField } from "@calid/features/ui";
+import { TextField } from "@calid/features/ui/components/input/input";
 import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";

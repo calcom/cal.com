@@ -1,7 +1,7 @@
 import * as z from "zod"
 import * as imports from "../zod-utils"
 import { WebhookTriggerEvents, TimeUnit } from "@prisma/client"
-import { CompleteUser, UserModel, CompleteTeam, TeamModel, CompleteEventType, EventTypeModel, CompletePlatformOAuthClient, PlatformOAuthClientModel, CompleteApp, AppModel, CompleteWebhookScheduledTriggers, WebhookScheduledTriggersModel } from "./index"
+import { CompleteUser, UserModel, CompleteTeam, TeamModel, CompleteEventType, EventTypeModel, CompletePlatformOAuthClient, PlatformOAuthClientModel, CompleteApp, AppModel, CompleteWebhookScheduledTriggers, WebhookScheduledTriggersModel, CompleteCalIdTeam, CalIdTeamModel } from "./index"
 
 export const _WebhookModel = z.object({
   id: z.string(),
@@ -19,6 +19,7 @@ export const _WebhookModel = z.object({
   platform: z.boolean(),
   time: z.number().int().nullish(),
   timeUnit: z.nativeEnum(TimeUnit).nullish(),
+  calIdTeamId: z.number().int().nullish(),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
@@ -28,6 +29,7 @@ export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
   platformOAuthClient?: CompletePlatformOAuthClient | null
   app?: CompleteApp | null
   scheduledTriggers: CompleteWebhookScheduledTriggers[]
+  calIdTeam?: CompleteCalIdTeam | null
 }
 
 /**
@@ -42,4 +44,5 @@ export const WebhookModel: z.ZodSchema<CompleteWebhook> = z.lazy(() => _WebhookM
   platformOAuthClient: PlatformOAuthClientModel.nullish(),
   app: AppModel.nullish(),
   scheduledTriggers: WebhookScheduledTriggersModel.array(),
+  calIdTeam: CalIdTeamModel.nullish(),
 }))

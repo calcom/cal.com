@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import React, { Fragment } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";

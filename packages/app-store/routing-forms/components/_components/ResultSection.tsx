@@ -1,6 +1,9 @@
 "use client";
 
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { ReactNode } from "react";

@@ -1,5 +1,5 @@
-import CreateTeamEvent from "@calid/features/teams/CreateTeamEvent";
-import CreateTeamWrapper from "@calid/features/teams/CreateTeamWrapper";
+import CreateTeamWrapper from "@calid/features/modules/teams/components/CreateTeamWrapper";
+import CreateTeamEvent from "@calid/features/modules/teams/pages/CreateTeamEvent";
 import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>

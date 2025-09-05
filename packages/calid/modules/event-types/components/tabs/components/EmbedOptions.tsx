@@ -1,5 +1,4 @@
-// packages/calid/modules/event-types/components/tabs/components/EmbedOptions.tsx
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React, { useState } from "react";
 import { components } from "react-select";

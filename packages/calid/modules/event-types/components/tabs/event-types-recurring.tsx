@@ -1,4 +1,7 @@
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import React, { useState, useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 

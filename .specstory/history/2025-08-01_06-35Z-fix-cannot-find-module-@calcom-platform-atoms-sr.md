@@ -38,3 +38,15 @@ _**Assistant**_
 
 ---
 
+_**User**_
+
+@workspace /explain Property 'calIdTeam' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: { $allModels: { aggregate: () => <T, A>(this: T, args: Exact<A, Args<T, "aggregate"> & PrismaCacheStrategy>) => AcceleratePromise<...>; ... 6 more ...; groupBy: () => <T_7, A_7>(this: T_7, args: Exact<...>) => AcceleratePromise<...>; }; ... 99 mo...'.
+
+---
+
+_**Assistant**_
+
+
+
+---
+

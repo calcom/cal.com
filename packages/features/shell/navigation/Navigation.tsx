@@ -1,4 +1,11 @@
-import { Button, Icon, Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipProvider,
+  TooltipContent,
+} from "@calid/features/ui/components/tooltip";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 

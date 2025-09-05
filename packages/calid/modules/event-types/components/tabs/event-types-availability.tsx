@@ -1,4 +1,7 @@
-import { Icon, Button, CustomSelect, Label } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { CustomSelect } from "@calid/features/ui/components/custom-select";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Label } from "@calid/features/ui/components/label";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
@@ -26,10 +29,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
-// ============================================================================
-// TYPES
-// ============================================================================
 
 export type GetAllSchedulesByUserIdQueryType =
   | typeof trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery

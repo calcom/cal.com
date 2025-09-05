@@ -24,7 +24,7 @@ export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; a
       isHeader: false,
     },
     update: {
-    data: processedData,
+      data: processedData,
       objectKey,
     },
   });

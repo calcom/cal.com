@@ -1,6 +1,7 @@
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
-import { triggerToast } from "@calid/features/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast/toast";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

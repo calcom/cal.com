@@ -1,5 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
-import { Icon } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+
+
+
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
