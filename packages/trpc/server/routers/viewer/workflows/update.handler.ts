@@ -10,7 +10,6 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
-import { WorkflowReminderService } from "@calcom/lib/server/service/workflows/WorkflowReminderService";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
@@ -49,8 +48,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
     id,
     name,
-    activeOnEventTypeIds = [],
-    activeOnRoutingFormIds = [],
+    activeOnEventTypeIds,
+    activeOnRoutingFormIds,
     steps,
     trigger,
     time,
@@ -114,7 +113,71 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let oldActiveOnIds: number[] = [];
 
-  if (isFormTrigger(trigger)) {
+  if (isOrg) {
+    // activeOn are team ids
+    if (userWorkflow.isActiveOnAll) {
+      oldActiveOnIds = (
+        await ctx.prisma.team.findMany({
+          where: {
+            parent: {
+              id: userWorkflow.teamId ?? 0,
+            },
+          },
+          select: {
+            id: true,
+          },
+        })
+      ).map((team) => team.id);
+    } else {
+      oldActiveOnIds = (
+        await ctx.prisma.workflowsOnTeams.findMany({
+          where: {
+            workflowId: id,
+          },
+          select: {
+            teamId: true,
+          },
+        })
+      ).map((teamRel) => teamRel.teamId);
+    }
+
+    newActiveOn = activeOnEventTypeIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
+
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
+      newEventTypeIds: newActiveOn,
+      newRoutingFormIds: [], // No routing form IDs for team workflows
+      isOrg,
+      teamId: userWorkflow?.teamId,
+      userId: userWorkflow?.userId,
+    });
+
+    if (!isAuthorizedToAddIds) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOnEventTypeIds.includes(teamId));
+
+    await deleteRemindersOfActiveOnIds({
+      removedActiveOnIds,
+      workflowSteps: userWorkflow.steps,
+      isOrg,
+      activeOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)),
+    });
+
+    //update active on
+    await ctx.prisma.workflowsOnTeams.deleteMany({
+      where: {
+        workflowId: id,
+      },
+    });
+
+    await ctx.prisma.workflowsOnTeams.createMany({
+      data: activeOnEventTypeIds.map((teamId) => ({
+        workflowId: id,
+        teamId,
+      })),
+    });
+  } else if (isFormTrigger(trigger)) {
     const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
     const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
 
@@ -135,7 +198,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // activeOnRoutingFormIds are routing form ids
     const routingFormIds = activeOnRoutingFormIds;
 
-    // todo: fix this for routing forms
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
       newEventTypeIds: [], // No event type IDs for form triggers
       newRoutingFormIds: routingFormIds,
@@ -162,7 +224,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         routingFormId,
       })),
     });
-  } else if (!isOrg) {
+  } else {
     const activeOnEventTypes = await ctx.prisma.eventType.findMany({
       where: {
         id: {
@@ -260,91 +322,31 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         eventTypeId,
       })),
     });
-  } else {
-    //todo: important org workflows need to be fixed
-    // todo: I think this doesn't work for form triggers, I won't reach this code
-    // activeOn are team ids
-    if (userWorkflow.isActiveOnAll) {
-      oldActiveOnIds = (
-        await ctx.prisma.team.findMany({
-          where: {
-            parent: {
-              id: userWorkflow.teamId ?? 0,
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-      ).map((team) => team.id);
-    } else {
-      oldActiveOnIds = (
-        await ctx.prisma.workflowsOnTeams.findMany({
-          where: {
-            workflowId: id,
-          },
-          select: {
-            teamId: true,
-          },
-        })
-      ).map((teamRel) => teamRel.teamId);
-    }
-
-    newActiveOn = activeOnEventTypeIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
-
-    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
-      newEventTypeIds: newActiveOn,
-      newRoutingFormIds: [], // No routing form IDs for team workflows
-      isOrg,
-      teamId: userWorkflow?.teamId,
-      userId: userWorkflow?.userId,
-    });
-
-    if (!isAuthorizedToAddIds) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOnEventTypeIds.includes(teamId));
-
-    await deleteRemindersOfActiveOnIds({
-      removedActiveOnIds,
-      workflowSteps: userWorkflow.steps,
-      isOrg,
-      activeOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)),
-    });
-
-    //update active on
-    await ctx.prisma.workflowsOnTeams.deleteMany({
-      where: {
-        workflowId: id,
-      },
-    });
-
-    await ctx.prisma.workflowsOnTeams.createMany({
-      data: activeOnEventTypeIds.map((teamId) => ({
-        workflowId: id,
-        teamId,
-      })),
-    });
   }
 
-  // Only schedule reminders for event-based triggers, not form triggers
-  const reminderService = new WorkflowReminderService(ctx.prisma);
-
   if (userWorkflow.trigger !== trigger || userWorkflow.time !== time || userWorkflow.timeUnit !== timeUnit) {
-    // If trigger changed, update all reminders
-    await reminderService.updateRemindersOnChangedTrigger({
-      oldActiveOnIds,
-      newActiveOnIds: activeOnWithChildren,
-      steps: userWorkflow.steps,
-      newTrigger: trigger,
-      oldTrigger: userWorkflow.trigger,
-      time,
-      timeUnit,
-      userId: user.id,
-      teamId: userWorkflow.teamId,
-      isOrg,
-    });
+    if (!isFormTrigger(userWorkflow.trigger)) {
+      // Delete all existing reminders before rescheduling
+      await deleteRemindersOfActiveOnIds({
+        removedActiveOnIds: oldActiveOnIds,
+        workflowSteps: userWorkflow.steps,
+        isOrg,
+      });
+    }
+
+    if (!isFormTrigger(trigger)) {
+      // Schedule new reminders for all activeOn
+      await scheduleWorkflowNotifications({
+        activeOn: activeOnWithChildren, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
+        isOrg,
+        workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+        time,
+        timeUnit,
+        trigger,
+        userId: user.id,
+        teamId: userWorkflow.teamId,
+      });
+    }
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
     await scheduleWorkflowNotifications({

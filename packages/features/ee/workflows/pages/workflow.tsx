@@ -27,7 +27,12 @@ import { showToast } from "@calcom/ui/components/toast";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction, isCalAIAction, isFormTrigger } from "../lib/actionHelperFunctions";
+import {
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isCalAIAction,
+  isFormTrigger,
+} from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
@@ -328,28 +333,25 @@ function WorkflowPage({
     });
 
     if (!isEmpty && isVerified) {
-      let activeOnEventTypeIds: number[] = [];
+      let activeOnEventTypeAndTeamIds: number[] = [];
       let activeOnRoutingFormIds: string[] = [];
-      if (values.activeOn) {
-        if (isFormTrigger(values.trigger)) {
-          // For form triggers, activeOn contains routing form IDs (strings)
-          activeOnRoutingFormIds = values.activeOn
-            .filter((option) => option.value !== "all")
-            .map((option) => option.value);
-        } else {
-          // For event triggers, activeOn contains event type IDs (numbers)
-          activeOnEventTypeIds = values.activeOn
-            .filter((option) => option.value !== "all")
-            .map((option) => {
-              return parseInt(option.value, 10);
-            });
-        }
+      if (isOrg || !isFormTrigger(values.trigger)) {
+        activeOnEventTypeAndTeamIds = values.activeOn
+          .filter((option) => option.value !== "all")
+          .map((option) => {
+            return parseInt(option.value, 10);
+          });
+      } else {
+        // Form triggers, activeOn contains routing form IDs (strings)
+        activeOnRoutingFormIds = values.activeOn
+          .filter((option) => option.value !== "all")
+          .map((option) => option.value);
       }
 
       await updateMutation.mutateAsync({
         id: workflowId,
         name: values.name,
-        activeOnEventTypeIds,
+        activeOnEventTypeIds: activeOnEventTypeAndTeamIds,
         activeOnRoutingFormIds,
         steps: values.steps,
         trigger: values.trigger,
@@ -406,12 +408,12 @@ function WorkflowPage({
                     {workflow && workflow.name ? workflow.name : "untitled"}
                   </div>
                   {workflow && workflow.team && (
-                    <Badge className="mt-1 ml-4" variant="gray">
+                    <Badge className="ml-4 mt-1" variant="gray">
                       {workflow.team.name}
                     </Badge>
                   )}
                   {readOnly && (
-                    <Badge className="mt-1 ml-4" variant="gray">
+                    <Badge className="ml-4 mt-1" variant="gray">
                       {t("readonly")}
                     </Badge>
                   )}
