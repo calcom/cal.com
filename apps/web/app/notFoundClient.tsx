@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

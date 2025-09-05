@@ -1,5 +1,6 @@
 "use client";
 
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
@@ -18,21 +19,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { triggerToast } from "@calid/features/ui/components/toast/toast";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@calid/features/ui/components/tooltip";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import React from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
@@ -123,16 +117,18 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
         <div className="mb-4">
           <ul className="mt-2 space-y-2">
             {teamInvitation.map((team) => (
-              <li key={team.id} className="flex items-center justify-between rounded-lg border px-4 py-5">
-                <div className="flex items-center">
+              <li key={team.id} className="flex items-center justify-between rounded-lg border p-4">
+                <div className="flex items-center space-x-2">
                   <Avatar
                     size="md"
-                    imageSrc={getPlaceholderAvatar(team?.logoUrl, team?.name as string)}
+                    shape="square"
+                    imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
                     alt="Team logo"
-                    className="mr-2 inline-flex justify-center"
                   />
                   <span className="text-default text-md font-semibold">{team.name}</span>
-                  <span className="text-muted block text-xs">{teamUrl(team?.slug ?? null)}</span>{" "}
+                  <Badge variant="secondary" isPublicUrl={true}>
+                    {teamUrl(team?.slug ?? null)}
+                  </Badge>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="attention" size="sm">
@@ -174,35 +170,23 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
             {teams.map((team) => (
               <li
                 key={team.id}
-                className="border-subtle flex items-center justify-between rounded-md border px-4 py-5">
-                <div className="flex items-center space-x-2">
+                className="border-subtle flex items-center justify-between rounded-md border p-4">
+                <div className="flex flex-row items-center space-x-2">
                   <Avatar
                     size="md"
-                    imageSrc={getPlaceholderAvatar(team?.logoUrl, team?.name as string)}
+                    shape="square"
+                    imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
                     alt="Team logo"
-                    className="inline-flex justify-center"
                   />
                   <span className="text-default text-md font-semibold">{team.name}</span>
-                  <Badge variant="secondary">{teamUrl(team?.slug ?? null)}</Badge>
+                  <Badge variant="secondary" isPublicUrl={true}>
+                    {teamUrl(team?.slug ?? null)}
+                  </Badge>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="secondary">
                     {team.role.charAt(0).toUpperCase() + team.role.slice(1).toLowerCase()}
                   </Badge>
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          color="minimal"
-                          variant="icon"
-                          type="button"
-                          StartIcon="external-link"
-                          onClick={() => previewUrl(teamUrl(team?.slug ?? null))}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent> {t("preview")}</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button StartIcon="ellipsis" variant="icon" color="minimal" />

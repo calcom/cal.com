@@ -6,7 +6,7 @@ import { getActionIcon } from "@calid/features/modules/workflows/utils/getAction
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";

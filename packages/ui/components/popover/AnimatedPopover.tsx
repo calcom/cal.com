@@ -1,5 +1,5 @@
 import { buttonClasses } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import * as Popover from "@radix-ui/react-popover";
 import React from "react";

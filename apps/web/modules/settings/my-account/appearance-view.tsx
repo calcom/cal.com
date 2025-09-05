@@ -1,7 +1,7 @@
 "use client";
 
 // import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

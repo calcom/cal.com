@@ -1,5 +1,5 @@
 import { cn } from "@calid/features/lib/cn";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

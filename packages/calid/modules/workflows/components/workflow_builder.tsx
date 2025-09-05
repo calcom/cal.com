@@ -19,7 +19,7 @@ import {
   Checkbox,
   Badge,
 } from "@calid/features/ui";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

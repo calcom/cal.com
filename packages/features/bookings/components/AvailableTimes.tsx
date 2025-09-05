@@ -1,5 +1,5 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

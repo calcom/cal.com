@@ -1,4 +1,4 @@
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";

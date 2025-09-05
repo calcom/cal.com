@@ -17,7 +17,7 @@ import {
 //   DropdownMenuSeparator,
 //   ButtonOrLink,
 // } from "@calid/features/ui/components/dropdown-menu";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
