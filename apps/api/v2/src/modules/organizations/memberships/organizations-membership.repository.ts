@@ -4,6 +4,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable } from "@nestjs/common";
 
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { UpdateOrgMembershipDto } from "./inputs/update-organization-membership.input";
@@ -64,7 +65,7 @@ export class OrganizationsMembershipRepository {
   }
 
   async deleteOrgMembership(organizationId: number, membershipId: number) {
-    return this.dbWrite.prisma.membership.delete({
+    const result = await this.dbWrite.prisma.membership.delete({
       where: {
         id: membershipId,
         teamId: organizationId,
@@ -76,10 +77,13 @@ export class OrganizationsMembershipRepository {
         },
       },
     });
+
+    await UserPlanUtils.updateUserPlan(result.userId);
+    return result;
   }
 
   async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
-    return this.dbWrite.prisma.membership.upsert({
+    const result = await this.dbWrite.prisma.membership.upsert({
       create: { ...data, teamId: organizationId },
       update: { role: data.role, accepted: data.accepted, disableImpersonation: data.disableImpersonation },
       where: { userId_teamId: { userId: data.userId, teamId: organizationId } },
@@ -90,9 +94,12 @@ export class OrganizationsMembershipRepository {
         },
       },
     });
+
+    await UserPlanUtils.updateUserPlan(data.userId);
+    return result;
   }
   async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
-    return this.dbWrite.prisma.membership.update({
+    const result = await this.dbWrite.prisma.membership.update({
       data: { ...data },
       where: { id: membershipId, teamId: organizationId },
       include: {
@@ -102,6 +109,9 @@ export class OrganizationsMembershipRepository {
         },
       },
     });
+
+    await UserPlanUtils.updateUserPlan(result.userId);
+    return result;
   }
 
   async findOrgMembershipsPaginated(organizationId: number, skip: number, take: number) {

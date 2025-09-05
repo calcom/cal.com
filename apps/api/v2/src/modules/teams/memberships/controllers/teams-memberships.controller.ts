@@ -30,6 +30,7 @@ import {
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
 import { SkipTakePagination } from "@calcom/platform-types";
@@ -60,6 +61,11 @@ export class TeamsMembershipsController {
         await updateNewTeamMemberEventTypes(body.userId, teamId);
       } catch (err) {
         this.logger.error("Could not update new team member eventTypes", err);
+      }
+      try {
+        await UserPlanUtils.updateUserPlan(body.userId);
+      } catch (err) {
+        this.logger.error("Could not update user plan", err);
       }
     }
     return {
@@ -130,6 +136,11 @@ export class TeamsMembershipsController {
         this.logger.error("Could not update new team member eventTypes", err);
       }
     }
+    try {
+      await UserPlanUtils.updateUserPlan(updatedMembership.userId);
+    } catch (err) {
+      this.logger.error("Could not update user plan", err);
+    }
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
@@ -145,6 +156,12 @@ export class TeamsMembershipsController {
     @Param("membershipId", ParseIntPipe) membershipId: number
   ): Promise<DeleteTeamMembershipOutput> {
     const membership = await this.teamsMembershipsService.deleteTeamMembership(teamId, membershipId);
+
+    try {
+      await UserPlanUtils.updateUserPlan(membership.userId);
+    } catch (err) {
+      this.logger.error("Could not update user plan", err);
+    }
 
     return {
       status: SUCCESS_STATUS,

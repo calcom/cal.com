@@ -1,5 +1,6 @@
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import { prisma } from "@calcom/prisma";
 import type { Team, User, OrganizationSettings } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -85,6 +86,9 @@ export const createOrUpdateMemberships = async ({
       });
     }
     await updateNewTeamMemberEventTypes(user.id, team.id);
+
+    await UserPlanUtils.updateUserPlan(user.id);
+
     return { membership, orgMembership };
   });
 };

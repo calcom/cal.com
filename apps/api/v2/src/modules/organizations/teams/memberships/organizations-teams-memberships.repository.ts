@@ -5,6 +5,8 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable } from "@nestjs/common";
 
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
+
 @Injectable()
 export class OrganizationsTeamsMembershipsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -36,7 +38,7 @@ export class OrganizationsTeamsMembershipsRepository {
     });
   }
   async deleteOrgTeamMembershipById(organizationId: number, teamId: number, membershipId: number) {
-    return this.dbWrite.prisma.membership.delete({
+    const result = await this.dbWrite.prisma.membership.delete({
       where: {
         id: membershipId,
         teamId: teamId,
@@ -46,6 +48,9 @@ export class OrganizationsTeamsMembershipsRepository {
       },
       include: { user: { select: MembershipUserSelect } },
     });
+
+    await UserPlanUtils.updateUserPlan(result.userId);
+    return result;
   }
 
   async updateOrgTeamMembershipById(
@@ -54,7 +59,7 @@ export class OrganizationsTeamsMembershipsRepository {
     membershipId: number,
     data: UpdateOrgTeamMembershipDto
   ) {
-    return this.dbWrite.prisma.membership.update({
+    const result = await this.dbWrite.prisma.membership.update({
       data: { ...data },
       where: {
         id: membershipId,
@@ -65,10 +70,13 @@ export class OrganizationsTeamsMembershipsRepository {
       },
       include: { user: { select: MembershipUserSelect } },
     });
+
+    await UserPlanUtils.updateUserPlan(result.userId);
+    return result;
   }
 
   async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
-    return this.dbWrite.prisma.membership.create({
+    const result = await this.dbWrite.prisma.membership.create({
       data: {
         createdAt: new Date(),
         ...data,
@@ -76,5 +84,8 @@ export class OrganizationsTeamsMembershipsRepository {
       },
       include: { user: { select: MembershipUserSelect } },
     });
+
+    await UserPlanUtils.updateUserPlan(data.userId);
+    return result;
   }
 }

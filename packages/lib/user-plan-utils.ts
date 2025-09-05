@@ -19,14 +19,16 @@ export class UserPlanUtils {
 
   static async userHasPlatformPlan(userId: number): Promise<boolean> {
     const userPlan = await this.getUserPlan(userId);
-    return userPlan
-      ? [
-          UserPlan.PLATFORM_STARTER,
-          UserPlan.PLATFORM_ESSENTIALS,
-          UserPlan.PLATFORM_SCALE,
-          UserPlan.PLATFORM_ENTERPRISE,
-        ].includes(userPlan)
-      : false;
+    if (!userPlan) return false;
+
+    const platformPlans: UserPlan[] = [
+      UserPlan.PLATFORM_STARTER,
+      UserPlan.PLATFORM_ESSENTIALS,
+      UserPlan.PLATFORM_SCALE,
+      UserPlan.PLATFORM_ENTERPRISE,
+    ];
+
+    return platformPlans.includes(userPlan);
   }
 
   static async updateUserPlan(userId: number): Promise<UserPlan | null> {
