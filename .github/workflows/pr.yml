@@ -19,7 +19,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || (github.event.workflow_run && github.event.workflow_run.pull_requests && github.event.workflow_run.pull_requests[0].number) || github.run_id }}
   cancel-in-progress: true
 
 jobs:
