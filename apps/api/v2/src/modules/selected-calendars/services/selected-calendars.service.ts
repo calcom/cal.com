@@ -50,6 +50,8 @@ export class SelectedCalendarsService {
       credentialId
     );
 
+    await this.calendarsService.deleteCalendarCache(user.id);
+
     return userSelectedCalendar;
   }
 
@@ -122,7 +124,7 @@ export class SelectedCalendarsService {
         externalId,
         delegationCredentialId
       );
-
+      await this.calendarsService.deleteCalendarCache(user.id);
       return removedCalendarEntry;
     } catch (error) {
       if (error instanceof Error) {

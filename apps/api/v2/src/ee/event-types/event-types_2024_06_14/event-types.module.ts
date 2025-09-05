@@ -11,6 +11,7 @@ import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-calendars.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -18,7 +19,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule],
+  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule, RedisModule],
   providers: [
     EventTypesRepository_2024_06_14,
     EventTypesService_2024_06_14,
