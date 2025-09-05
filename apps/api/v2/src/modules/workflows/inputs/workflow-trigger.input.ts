@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsIn, IsNumber, IsString, ValidateNested } from "class-validator";
 
-import { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { TimeUnit, WorkflowTriggerEvents } from "@calcom/platform-libraries";
 
 export const BEFORE_EVENT = "beforeEvent";
 export const EVENT_CANCELLED = "eventCancelled";
