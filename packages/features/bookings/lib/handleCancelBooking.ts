@@ -23,6 +23,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
+import { processNoShowFeeOnCancellation } from "@calcom/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -194,7 +195,6 @@ async function handler(input: CancelBookingInput) {
 
   const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostsPresent = !!bookingToDelete.eventType?.hosts;
   const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
   for (let index = 0; index < bookingToDelete.attendees.length; index++) {
@@ -455,10 +455,16 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    if (!!bookingToDelete.payment.length) {
+    if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       await processPaymentRefund({
         booking: bookingToDelete,
         teamId,
+      });
+    } else if (bookingToDelete.payment.some((payment) => payment.paymentOption === "HOLD")) {
+      await processNoShowFeeOnCancellation({
+        booking: bookingToDelete,
+        payments: bookingToDelete.payment,
+        cancelledByUserId: userId,
       });
     }
   }
