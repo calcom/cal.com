@@ -8,27 +8,56 @@ import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.sch
 type CalendarsRouterHandlerCache = {
   connectedCalendars?: typeof import("./connectedCalendars.handler").connectedCalendarsHandler;
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
+  deleteCache?: typeof import("./deleteCache.handler").deleteCacheHandler;
+  setDestinationReminder?: typeof import("./setDestinationReminder.handler").setDestinationReminderHandler;
 };
+
+const handlerCache: CalendarsRouterHandlerCache = {};
 
 export const calendarsRouter = router({
   connectedCalendars: authedProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
-    const { connectedCalendarsHandler } = await import("./connectedCalendars.handler");
-
-    return connectedCalendarsHandler({ ctx, input });
+    if (!handlerCache.connectedCalendars) {
+      const { connectedCalendarsHandler } = await import("./connectedCalendars.handler");
+      handlerCache.connectedCalendars = connectedCalendarsHandler;
+    }
+    return handlerCache.connectedCalendars({ ctx, input });
   }),
 
   setDestinationCalendar: authedProcedure
     .input(ZSetDestinationCalendarInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { setDestinationCalendarHandler } = await import("./setDestinationCalendar.handler");
-
-      return setDestinationCalendarHandler({ ctx, input });
+      if (!handlerCache.setDestinationCalendar) {
+        const { setDestinationCalendarHandler } = await import("./setDestinationCalendar.handler");
+        handlerCache.setDestinationCalendar = setDestinationCalendarHandler;
+      }
+      return handlerCache.setDestinationCalendarHandler({ ctx, input });
     }),
 
   deleteCache: authedProcedure
     .input(z.object({ credentialId: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const { deleteCacheHandler } = await import("./deleteCache.handler");
-      return deleteCacheHandler({ ctx, input });
+      if (!handlerCache.deleteCache) {
+        const { deleteCacheHandler } = await import("./deleteCache.handler");
+        handlerCache.deleteCache = deleteCacheHandler;
+      }
+      return handlerCache.deleteCacheHandler({ ctx, input });
+    }),
+
+  setDestinationReminder: authedProcedure
+    .input(
+      z.object({
+        credentialId: z.number(),
+        integration: z.string(),
+        externalId: z.string(),
+        defaultReminder: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!handlerCache.setDestinationReminder) {
+        const { setDestinationReminderHandler } = await import("./setDestinationReminder.handler");
+        handlerCache.setDestinationReminder = setDestinationReminderHandler;
+      }
+
+      return handlerCache.setDestinationReminderHandler({ ctx, input });
     }),
 });
