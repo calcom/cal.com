@@ -649,7 +649,6 @@ describe("handleNewBooking", () => {
                 },
                 {
                   type: appStoreMetadata.googlecalendar.type,
-                  // A reference is still created in case of event creation failure, with nullish values. Not sure what's the purpose for this.
                   uid: "ORIGINAL_BOOKING_UID",
                   meetingId: "ORIGINAL_MEETING_ID",
                   meetingPassword: "ORIGINAL_MEETING_PASSWORD",
