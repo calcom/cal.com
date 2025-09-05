@@ -9,29 +9,17 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  actions: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  trigger-pr-workflow:
+  call-pr-update:
     if: ${{ github.event.label.name == 'ready-for-e2e' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger PR workflow via workflow_dispatch
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'pr.yml',
-              ref: '${{ github.event.pull_request.head.ref }}',
-              inputs: {
-                pr_number: '${{ github.event.pull_request.number }}',
-                pr_ref: '${{ github.event.pull_request.head.ref }}',
-                pr_sha: '${{ github.event.pull_request.head.sha }}'
-              }
-            });
+    uses: ./.github/workflows/pr.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      pr_ref: ${{ github.event.pull_request.head.ref }}
+      pr_sha: ${{ github.event.pull_request.head.sha }}
+    secrets: inherit
