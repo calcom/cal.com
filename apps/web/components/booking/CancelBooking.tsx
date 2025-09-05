@@ -107,7 +107,7 @@ type Props = {
   };
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
-  eventTypeMetadata?: any;
+  eventTypeMetadata?: Record<string, unknown> | null;
 };
 
 export default function CancelBooking(props: Props) {
