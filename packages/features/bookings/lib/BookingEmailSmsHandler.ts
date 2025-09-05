@@ -319,13 +319,17 @@ export class BookingEmailSmsHandler {
       isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
     }
 
-    await this._sendScheduledEmailsAndSMS(
-      { ...evt, additionalInformation, additionalNotes, customInputs },
-      eventNameObject,
-      isHostConfirmationEmailsDisabled,
-      isAttendeeConfirmationEmailDisabled,
-      metadata
-    );
+    try {
+      await this._sendScheduledEmailsAndSMS(
+        { ...evt, additionalInformation, additionalNotes, customInputs },
+        eventNameObject,
+        isHostConfirmationEmailsDisabled,
+        isAttendeeConfirmationEmailDisabled,
+        metadata
+      );
+    } catch (err) {
+      this.log.error("Failed to send scheduled event related emails", err);
+    }
   }
 
   /**
@@ -349,7 +353,11 @@ export class BookingEmailSmsHandler {
 
     const eventWithNotes = { ...evt, additionalNotes };
 
-    await this._sendOrganizerRequestEmail(eventWithNotes, metadata);
-    await this._sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata);
+    try {
+      await this._sendOrganizerRequestEmail(eventWithNotes, metadata);
+      await this._sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata);
+    } catch (err) {
+      this.log.error("Failed to send requested event related emails", err);
+    }
   }
 }
