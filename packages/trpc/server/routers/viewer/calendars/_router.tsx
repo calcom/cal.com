@@ -30,7 +30,7 @@ export const calendarsRouter = router({
         const { setDestinationCalendarHandler } = await import("./setDestinationCalendar.handler");
         handlerCache.setDestinationCalendar = setDestinationCalendarHandler;
       }
-      return handlerCache.setDestinationCalendarHandler({ ctx, input });
+      return handlerCache.setDestinationCalendar({ ctx, input });
     }),
 
   deleteCache: authedProcedure
@@ -40,7 +40,7 @@ export const calendarsRouter = router({
         const { deleteCacheHandler } = await import("./deleteCache.handler");
         handlerCache.deleteCache = deleteCacheHandler;
       }
-      return handlerCache.deleteCacheHandler({ ctx, input });
+      return handlerCache.deleteCache({ ctx, input });
     }),
 
   setDestinationReminder: authedProcedure
@@ -58,6 +58,6 @@ export const calendarsRouter = router({
         handlerCache.setDestinationReminder = setDestinationReminderHandler;
       }
 
-      return handlerCache.setDestinationReminderHandler({ ctx, input });
+      return handlerCache.setDestinationReminder({ ctx, input });
     }),
 });

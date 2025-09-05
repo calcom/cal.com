@@ -19,7 +19,7 @@ export const setDestinationReminderHandler = async ({ ctx, input }: SetDestinati
       externalId,
     },
     data: {
-      defaultReminder,
+      customCalendarReminder: defaultReminder,
     },
   });
 
