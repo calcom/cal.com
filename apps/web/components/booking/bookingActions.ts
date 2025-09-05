@@ -210,7 +210,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
     case "reschedule_request":
       return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
     case "cancel":
-      return isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed);
+      return isDisabledCancelling || isBookingInPast;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "meeting_session_details":

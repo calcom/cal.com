@@ -9,6 +9,7 @@ import prettier from "prettier";
 //@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
 import type { AppMeta } from "@calcom/types/App";
+import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
@@ -72,7 +73,14 @@ function generateFiles() {
       let app;
 
       if (fs.existsSync(configPath)) {
-        app = JSON.parse(fs.readFileSync(configPath).toString());
+        try {
+          const rawConfig = fs.readFileSync(configPath, "utf8");
+          const parsedConfig = JSON.parse(rawConfig);
+          app = AppMetaSchema.parse(parsedConfig);
+        } catch (error) {
+          const prefix = `Config error in ${path.join(APP_STORE_PATH, appDirs[i].path, "config.json")}`;
+          throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
+        }
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         app = require(metadataPath).metadata;
