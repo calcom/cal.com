@@ -51,11 +51,11 @@
     "embed-tests": "turbo run embed-tests",
     "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
     "env-check:common": "dotenv-checker --schema .env.example --env .env",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "npx @biomejs/biome format --write .",
     "heroku-postbuild": "turbo run @calcom/web#build",
-    "lint:fix": "turbo run lint:fix",
-    "lint:report": "turbo run lint:report",
-    "lint": "turbo run lint",
+    "lint:fix": "npx @biomejs/biome check --write .",
+    "lint:report": "npx @biomejs/biome check --reporter=github .",
+    "lint": "npx @biomejs/biome check .",
     "postinstall": "husky install && turbo run post-install",
     "pre-commit": "lint-staged",
     "predev": "echo 'Checking env files'",
@@ -84,6 +84,7 @@
     "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.3",
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "2.29.4",
     "@jetstreamapp/soql-parser-js": "^6.1.0",
@@ -140,16 +141,8 @@
     "@prisma/client@5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch"
   },
   "lint-staged": {
-    "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
-      "prettier --write",
-      "eslint --fix --max-warnings=0"
-    ],
-    "*.json": [
-      "prettier --write"
-    ],
-    "packages/prisma/schema.prisma": [
-      "prisma format"
-    ]
+    "(apps|packages)/**/*.{js,ts,jsx,tsx,json}": ["npx @biomejs/biome check --write --no-errors-on-unmatched"],
+    "packages/prisma/schema.prisma": ["prisma format"]
   },
   "engines": {
     "npm": ">=7.0.0",

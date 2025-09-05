@@ -1,0 +1,106 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
+  "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
+  "files": { "ignoreUnknown": false },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 110,
+    "attributePosition": "auto",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "expand": "auto",
+    "useEditorconfig": true,
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/public",
+      "!**/*.lock",
+      "!**/*.log",
+      "!**/.gitignore",
+      "!**/.npmignore",
+      "!**/.prettierignore",
+      "!**/.DS_Store",
+      "!**/.eslintignore",
+      "!packages/prisma/zod",
+      "!packages/prisma/enums",
+      "!apps/web/public/embed",
+      "!apps/api/v2/swagger/documentation.json",
+      "!packages/ui/components/icon/dynamicIconImports.tsx"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "a11y": { "useAriaPropsSupportedByRole": "off" },
+      "correctness": {
+        "noEmptyPattern": "off",
+        "noUnusedImports": "error",
+        "noUnusedVariables": "warn"
+      },
+      "security": { "noDangerouslySetInnerHtml": "error" },
+      "style": {
+        "noRestrictedImports": "error",
+        "useBlockStatements": "off",
+        "useTemplate": "error"
+      }
+    },
+    "includes": [
+      "**",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/coverage/**",
+      "**/.turbo/**",
+      "**",
+      "!**/node_modules",
+      "!apps/api/v2/dist",
+      "!packages/platform/**/dist/*",
+      "!packages/prisma/zod",
+      "!apps/web/public/embed",
+      "!packages/ui/components/icon/dynamicIconImports.tsx"
+    ]
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "bracketSameLine": false,
+      "quoteStyle": "double",
+      "attributePosition": "auto",
+      "bracketSpacing": true
+    }
+  },
+  "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "overrides": [
+    {
+      "includes": ["packages/lib/**/*.{ts,tsx,js,jsx}", "packages/prisma/**/*.{ts,tsx,js,jsx}"],
+      "linter": { "rules": { "style": { "noRestrictedImports": "warn" } } }
+    },
+    { "includes": ["*.ts", "*.tsx"], "linter": { "rules": {} } },
+    {
+      "includes": ["**/playwright/**/*.{js,jsx}"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUndeclaredVariables": "off",
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    },
+    { "includes": ["apps/website/lib/utils/wordlist/wordlist.ts"] }
+  ],
+  "assist": {
+    "enabled": true,
+    "actions": { "source": { "organizeImports": "on" } }
+  }
+}
