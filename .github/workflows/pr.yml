@@ -6,20 +6,18 @@ on:
     branches:
       - main
       - gh-actions-test-branch
-  workflow_dispatch:
+  workflow_call:
     inputs:
       pr_number:
         required: true
         type: number
-        description: 'PR number'
       pr_ref:
         required: true
         type: string
-        description: 'PR head ref'
       pr_sha:
         required: true
         type: string
-        description: 'PR head SHA'
+  workflow_dispatch:
 
 permissions:
   actions: write
@@ -31,54 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  download-context:
-    name: Download PR context from workflow_run event
-    runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.get-context.outputs.pr_number }}
-      pr_sha: ${{ steps.get-context.outputs.pr_sha }}
-    steps:
-      - name: Download PR context
-        if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.payload.workflow_run.id,
-            });
-            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "pr-context"
-            })[0];
-            let download = await github.rest.actions.downloadArtifact({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              artifact_id: matchArtifact.id,
-              archive_format: 'zip',
-            });
-            let fs = require('fs');
-            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr-context.zip`, Buffer.from(download.data));
-
-      - name: Extract context
-        if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-        run: unzip pr-context.zip
-
-      - name: Parse context
-        if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-        id: get-context
-        uses: actions/github-script@v7
-        with:
-          script: |
-            let fs = require('fs');
-            let data = fs.readFileSync('./pr-context.json');
-            let context = JSON.parse(data);
-            core.setOutput('pr_number', context.pr_number);
-            core.setOutput('pr_sha', context.pr_sha);
-
   changes:
-    needs: [download-context]
-    if: ${{ always() && (github.event_name != 'workflow_run' || needs.download-context.result == 'success') }}
     name: Detect changes
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
