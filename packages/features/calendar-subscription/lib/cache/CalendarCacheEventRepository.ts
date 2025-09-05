@@ -11,4 +11,12 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
       data: events,
     });
   }
+
+  async deleteAllBySelectedCalendarId(selectedCalendarId: string): Promise<void> {
+    await this.prismaClient.calendarCacheEvent.deleteMany({
+      where: {
+        selectedCalendarId,
+      },
+    });
+  }
 }

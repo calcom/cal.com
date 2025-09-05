@@ -104,10 +104,16 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
 
   private sanitizeEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
     return events.map((event) => ({
+      id: event.id,
+      kind: event.kind,
+      iCalUID: event.iCalUID,
+      status: event.status,
+      start: event.start?.dateTime,
+      end: event.end?.dateTime,
+      summary: event.summary,
+      description: event.description,
+      // used to update cache only
       transparency: event.transparency === "opaque" ? "opaque" : "transparent",
-      start: event.start?.dateTime ?? null,
-      end: event.end?.dateTime ?? null,
-      summary: event.summary ?? null,
     }));
   }
 }

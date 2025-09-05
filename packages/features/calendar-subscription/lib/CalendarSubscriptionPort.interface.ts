@@ -11,17 +11,28 @@ export type CalendarSubscriptionResult = {
 };
 
 export type CalendarSubscriptionEventItem = {
-  transparency: "opaque" | "transparent";
-  start: string | null;
-  end: string | null;
-  summary: string | null;
+  transparency?: "opaque" | "transparent" | null;
+  start?: string | null;
+  end?: string | null;
+  summary?: string | null;
+  description?: string | null;
+  iCalUID?: string | null;
+  id?: string | null;
+  kind?: string | null;
+  status?: string | null;
 };
 
 export type CalendarSubscriptionEvent = {
   provider: CalendarSubscriptionProvider;
-  syncToken: string | null;
-  items: CalendarSubscriptionEventItem[];
-};
+} & (
+  | {
+      syncToken: string | null;
+      items?: CalendarSubscriptionEventItem[];
+    }
+  | {
+      syncError: string | null;
+    }
+);
 
 export interface ICalendarSubscriptionPort {
   /**
@@ -40,5 +51,5 @@ export interface ICalendarSubscriptionPort {
    * Pulls events from a calendar
    * @param selectedCalendar
    */
-  fetchEvents(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent[]>;
+  fetchEvents(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent>;
 }

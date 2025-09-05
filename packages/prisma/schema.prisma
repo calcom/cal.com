@@ -911,9 +911,10 @@ model SelectedCalendar {
   channelExpiration  DateTime? @db.Timestamp(3)
 
   // Used to calendar cache and sync 
-  syncEnabled  Boolean?
-  cacheEnabled Boolean?
-  syncToken    String?
+  lastSyncToken   String?
+  lastSyncedAt    DateTime?
+  lastSyncErrorAt DateTime?
+  syncErrorCount  Int       @default(0)
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
@@ -930,7 +931,7 @@ model SelectedCalendar {
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
 
-  CalendarCacheEvent CalendarCacheEvent[]
+  calendarCacheEvents CalendarCacheEvent[]
 
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
