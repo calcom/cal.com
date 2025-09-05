@@ -3,33 +3,43 @@ import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import type { z } from "zod";
 
-import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import { shouldTriggerFormSubmittedNoEvent } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import type { ZTriggerFormSubmittedNoEventWorkflowPayloadSchema } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow";
 import { triggerFormSubmittedNoEventWorkflow } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates, TimeUnit } from "@calcom/prisma/enums";
 
-// Mock the scheduleWorkflowReminders function
-vi.mock("@calcom/ee/workflows/lib/reminders/reminderScheduler", () => ({
-  scheduleWorkflowReminders: vi.fn(() => Promise.resolve()),
+// Mock the WorkflowService
+vi.mock("@calcom/lib/server/service/workflows", () => ({
+  WorkflowService: {
+    scheduleFormWorkflows: vi.fn(() => Promise.resolve()),
+  },
+}));
+
+// Mock the form submission validation
+vi.mock("./formSubmissionValidation", () => ({
+  shouldTriggerFormSubmittedNoEvent: vi.fn(() => Promise.resolve(true)),
 }));
 
 // Mock the logger
 vi.mock("@calcom/lib/logger", () => ({
   default: {
+    getSubLogger: vi.fn(() => ({ error: vi.fn() })),
     error: vi.fn(),
   },
 }));
 
-const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
+const mockScheduleFormWorkflows = vi.mocked(WorkflowService.scheduleFormWorkflows);
+const mockShouldTriggerFormSubmittedNoEvent = vi.mocked(shouldTriggerFormSubmittedNoEvent);
 
 type WorkflowPayload = z.infer<typeof ZTriggerFormSubmittedNoEventWorkflowPayloadSchema>;
 
 function expectFormSubmittedNoEventWorkflowToBeCalled(payload: WorkflowPayload) {
-  expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith({
+  expect(mockScheduleFormWorkflows).toHaveBeenCalledWith({
     workflows: [payload.workflow],
-    smsReminderNumber: null,
-    calendarEvent: null,
-    hideBranding: false,
+    responses: payload.responses,
+    responseId: payload.responseId,
+    form: payload.form,
   });
 }
 
@@ -43,7 +53,17 @@ describe("Form submitted, no event booked workflow trigger", () => {
   it(`should trigger workflow when form was submitted but no booking was made`, async () => {
     const payload: WorkflowPayload = {
       responseId: 1,
-      formId: "1234",
+      form: {
+        id: "1234",
+        userId: 1,
+        teamId: null,
+        fields: [{ type: "text", identifier: "Test field 1" }],
+        user: {
+          email: "test@example.com",
+          timeFormat: 12,
+          locale: "en",
+        },
+      },
       responses: {
         "Test field 1": {
           value: "Test input 1",
@@ -88,7 +108,17 @@ describe("Form submitted, no event booked workflow trigger", () => {
   it(`should not trigger workflow when form was submitted and also booking was made after`, async () => {
     const payload: WorkflowPayload = {
       responseId: 2,
-      formId: "6789",
+      form: {
+        id: "6789",
+        userId: 2,
+        teamId: null,
+        fields: [{ type: "text", identifier: "Test field 2" }],
+        user: {
+          email: "test2@example.com",
+          timeFormat: 24,
+          locale: "en",
+        },
+      },
       responses: {
         "Test field 2": {
           value: "Test input 2",
@@ -122,12 +152,12 @@ describe("Form submitted, no event booked workflow trigger", () => {
     };
     const payloadString = JSON.stringify(payload);
 
-    // Mock that a booking exists
-    prismaMock.booking.findFirst.mockResolvedValue({ id: 5 });
+    // Mock that validation should not trigger (booking exists)
+    mockShouldTriggerFormSubmittedNoEvent.mockResolvedValue(false);
 
     await triggerFormSubmittedNoEventWorkflow(payloadString);
 
-    // Should not call scheduleWorkflowReminders when booking exists
-    expect(mockScheduleWorkflowReminders).not.toHaveBeenCalled();
+    // Should not call scheduleFormWorkflows when validation fails
+    expect(mockScheduleFormWorkflows).not.toHaveBeenCalled();
   });
 });
