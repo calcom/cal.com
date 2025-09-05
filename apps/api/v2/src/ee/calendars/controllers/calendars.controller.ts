@@ -9,7 +9,7 @@ import {
   DeletedCalendarCredentialsOutputDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
-import { CalendarsService, REDIS_CALENDARS_CACHE_KEY } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
@@ -309,7 +309,7 @@ export class CalendarsController {
       credentialId
     );
 
-    this.redisService.del(REDIS_CALENDARS_CACHE_KEY(user.id));
+    this.calendarsService.deleteCalendarCache(user.id);
 
     return {
       status: SUCCESS_STATUS,
