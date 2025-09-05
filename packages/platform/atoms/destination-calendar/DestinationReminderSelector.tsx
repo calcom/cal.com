@@ -18,8 +18,6 @@ export const DestinationReminderSelector = ({
 }: DestinationReminderSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
 
-  console.log("Destination Calendar in Reminder Selector:", destinationCalendar);
-
   // Reminder options
   const memoOptions = useMemo(
     () => [
