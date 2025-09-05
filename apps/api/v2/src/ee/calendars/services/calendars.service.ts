@@ -210,7 +210,7 @@ export class CalendarsService {
   }
 
   async deleteCalendarCache(userId: number) {
-    this.redisService.del(REDIS_CALENDARS_CACHE_KEY(userId));
+    await this.redisService.del(REDIS_CALENDARS_CACHE_KEY(userId));
   }
 
   async getCalendarCache(userId: number) {
