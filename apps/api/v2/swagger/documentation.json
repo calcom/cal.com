@@ -9132,6 +9132,8 @@
           {
             "name": "credentialId",
             "in": "query",
+            "description": "The ID of the user's calendar credential used to access the calendar. Retrieve this from your connected calendar credentials via the `/v2/credentials` endpoint.",
+            "example": 135,
             "required": true,
             "schema": {
               "type": "number"
@@ -9140,6 +9142,8 @@
           {
             "name": "externalId",
             "in": "query",
+            "description": "The external calendar identifier from the calendar provider (e.g., email address for Google Calendar). This is returned when listing connected calendars.",
+            "example": "user@gmail.com",
             "required": true,
             "schema": {
               "type": "string"
@@ -22554,7 +22558,12 @@
               "afterEvent",
               "rescheduleEvent",
               "afterHostsCalVideoNoShow",
-              "afterGuestsCalVideoNoShow"
+              "afterGuestsCalVideoNoShow",
+              "bookingRejected",
+              "bookingRequested",
+              "bookingPaymentInitiated",
+              "bookingPaid",
+              "bookingNoShowUpdated"
             ]
           },
           "offset": {
@@ -22916,6 +22925,71 @@
             "enum": [
               "rescheduleEvent"
             ],
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnNoShowUpdateTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingNoShowUpdated",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnRejectedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingRejected",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnRequestedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingRequested",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnPaymentInitiatedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingPaymentInitiated",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnPaidTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingPaid",
             "description": "Trigger type for the workflow"
           }
         },
@@ -23642,6 +23716,21 @@
               },
               {
                 "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRejectedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRequestedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaidTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaymentInitiatedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnNoShowUpdateTriggerDto"
               }
             ]
           },
@@ -24298,6 +24387,21 @@
               },
               {
                 "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRejectedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRequestedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaidTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaymentInitiatedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnNoShowUpdateTriggerDto"
               }
             ]
           },

@@ -1,5 +1,5 @@
-import { LingoDotDevEngine } from "@lingo.dev/_sdk";
 import type { LocaleCode } from "@lingo.dev/_spec";
+import { LingoDotDevEngine } from "lingo.dev/sdk";
 
 import { LINGO_DOT_DEV_API_KEY } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -52,6 +52,7 @@ export class LingoDotDevService {
   ): Promise<string[]> {
     try {
       const result = await this.engine.batchLocalizeText(text, {
+        // TODO: LocaleCode is hacky, use our locale mapping instead.
         sourceLocale: sourceLocale as LocaleCode,
         targetLocales: targetLocales as LocaleCode[],
       });
