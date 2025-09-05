@@ -165,9 +165,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
-    // if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
-    //   throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
-    // }
+    if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
+      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+    }
 
     const handler = webhookHandlers[event.type];
     if (handler) {
