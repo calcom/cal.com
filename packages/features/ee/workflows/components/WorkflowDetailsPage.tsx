@@ -1,4 +1,4 @@
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -12,20 +12,15 @@ import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { trpc } from "@calcom/trpc/react";
 
-import { isSMSAction, isCalAIAction } from "../lib/actionHelperFunctions";
+import { isCalAIAction, isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
+import { createUseQueries } from "@calcom/trpc/react/shared";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
-
-interface WorkflowPermissions {
-  canView: boolean;
-  canUpdate: boolean;
-  canDelete: boolean;
-  readOnly: boolean; // Keep for backward compatibility
-}
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -37,7 +32,6 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
-  permissions?: WorkflowPermissions;
   onSaveWorkflow?: () => Promise<void>;
 }
 
@@ -50,24 +44,12 @@ export default function WorkflowDetailsPage(props: Props) {
     teamId,
     isOrg,
     allOptions,
-    permissions: _permissions,
   } = props;
   const { t } = useLocale();
-  const router = useRouter();
-
-  const hasCalAIAction = () => {
-    const steps = form.getValues("steps") || [];
-    return steps.some((step) => isCalAIAction(step.action));
-  };
-
-  const permissions = _permissions || {
-    canView: !teamId ? true : !props.readOnly,
-    canUpdate: !teamId ? true : !props.readOnly,
-    canDelete: !teamId ? true : !props.readOnly,
-    readOnly: !teamId ? false : props.readOnly,
-  };
+  createUseQueries
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
+  const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false)
 
   const [reload, setReload] = useState(false);
 
@@ -84,6 +66,8 @@ export default function WorkflowDetailsPage(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeId]);
 
+  const steps = form.getValues("steps") || [];
+
   const addAction = (
     action: WorkflowActions,
     sendTo?: string,
@@ -95,8 +79,8 @@ export default function WorkflowDetailsPage(props: Props) {
     const id =
       steps?.length > 0
         ? steps.sort((a, b) => {
-            return a.id - b.id;
-          })[0].id - 1
+          return a.id - b.id;
+        })[0].id - 1
         : 0;
 
     const step = {
@@ -105,8 +89,8 @@ export default function WorkflowDetailsPage(props: Props) {
       stepNumber:
         steps && steps.length > 0
           ? steps.sort((a, b) => {
-              return a.stepNumber - b.stepNumber;
-            })[steps.length - 1].stepNumber + 1
+            return a.stepNumber - b.stepNumber;
+          })[steps.length - 1].stepNumber + 1
           : 1,
       sendTo: sendTo || null,
       workflowId: workflowId,
@@ -125,11 +109,32 @@ export default function WorkflowDetailsPage(props: Props) {
     form.setValue("steps", steps);
   };
 
+  const agentQueriesTrpc = trpc.useQueries((t) =>
+    steps.map((step, index) => {
+      const watchedAgentId = form.watch(`steps.${index}.agentId`);
+      const agentId = step?.agentId ?? watchedAgentId ?? null;
+
+      return t.viewer.aiVoiceAgent.get(
+        { id: agentId ?? "" },
+        { enabled: !!agentId }
+      );
+    })
+  );
+
   return (
     <>
-      <div className="space-y-6">
-        <FormCard label={`1. ${t("trigger")}`}>
-          <FormCardBody>
+      <div>
+        <FormCard
+          className="border-muted mb-0"
+          collapsible={false}
+          label={(
+            <div className="flex items-center gap-2 pt-1 pb-2">
+              <div className="rounded-lg ml-1 border border-subtle p-1 text-subtle">
+                <Icon name="zap" size="16" />
+              </div>
+              <div className="text-sm leading-none font-medium">{t("trigger")}</div>
+            </div>)}>
+          <FormCardBody className="border-muted">
             <WorkflowStepContainer
               form={form}
               user={props.user}
@@ -137,78 +142,100 @@ export default function WorkflowDetailsPage(props: Props) {
               readOnly={props.readOnly}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
-              isOrg={isOrg}
+              isOrganization={isOrg}
               allOptions={allOptions}
+              onSaveWorkflow={props.onSaveWorkflow}
             />
           </FormCardBody>
         </FormCard>
 
-        <div className="flex justify-center">
-          <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
-        </div>
+        <div className="w-2 border-l h-3 ml-7 !mt-0"></div>
         {form.getValues("steps") && (
-          <div className="space-y-4">
+          <div className="">
             {form.getValues("steps")?.map((step, index) => {
+              const agentData = agentQueriesTrpc[index]?.data;
+              const isAgentLoading = agentQueriesTrpc[index]?.isPending;
+
               return (
-                <FormCard
-                  key={step.id}
-                  label={`${index + 2}. ${t("action")} ${index + 1}`}
-                  deleteField={
-                    !props.readOnly && (form.getValues("steps")?.length || 0) > 1
-                      ? {
+                <div key={index}>
+                  <FormCard
+                    key={step.id}
+                    className="bg-muted border-muted mb-0"
+                    collapsible={false}
+                    label={(
+                      <div className="flex items-center gap-2 pt-1 pb-2">
+                        <div className="rounded-lg border border-subtle p-1 text-subtle">
+                          <Icon name="arrow-right" size="16" />
+                        </div>
+                        <div className="text-sm leading-none font-medium">{t("action")}</div>
+                      </div>)}
+                    deleteField={
+                      !props.readOnly && (form.getValues("steps")?.length || 0) > 1
+                        ? {
                           check: () => true,
                           fn: () => {
-                            const steps = form.getValues("steps");
-                            const updatedSteps = steps
-                              ?.filter((currStep) => currStep.id !== step.id)
-                              .map((s) => {
-                                const updatedStep = s;
-                                if (step.stepNumber < updatedStep.stepNumber) {
-                                  updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                                }
-                                return updatedStep;
-                              });
-                            form.setValue("steps", updatedSteps);
-                            if (setReload) {
-                              setReload(!reload);
+                            if (
+                              isCalAIAction(step.action) &&
+                              agentData?.outboundPhoneNumbers &&
+                              agentData.outboundPhoneNumbers.length > 0
+                            ) {
+                              setIsDeleteStepDialogOpen(true)
+                            } else {
+                              const steps = form.getValues("steps");
+                              const updatedSteps = steps
+                                ?.filter((currStep) => currStep.id !== step.id)
+                                .map((s) => {
+                                  const updatedStep = s;
+                                  if (step.stepNumber < updatedStep.stepNumber) {
+                                    updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                  }
+                                  return updatedStep;
+                                });
+                              form.setValue("steps", updatedSteps);
+                              if (setReload) {
+                                setReload(!reload);
+                              }
                             }
                           },
                         }
-                      : null
-                  }>
-                  <FormCardBody>
-                    <WorkflowStepContainer
-                      form={form}
-                      user={props.user}
-                      step={step}
-                      reload={reload}
-                      setReload={setReload}
-                      teamId={teamId}
-                      readOnly={props.readOnly}
-                    />
-                  </FormCardBody>
-                </FormCard>
+                        : null
+                    }>
+                    <FormCardBody className="border-muted">
+                      <WorkflowStepContainer
+                        form={form}
+                        user={props.user}
+                        step={step}
+                        reload={reload}
+                        setReload={setReload}
+                        teamId={teamId}
+                        readOnly={props.readOnly}
+                        onSaveWorkflow={props.onSaveWorkflow}
+                        setIsDeleteStepDialogOpen={setIsDeleteStepDialogOpen}
+                        isDeleteStepDialogOpen={isDeleteStepDialogOpen}
+                        isAgentLoading={isAgentLoading}
+                        agentData={agentData}
+                      />
+                    </FormCardBody>
+                  </FormCard>
+                  {index !== form.getValues("steps").length - 1 && (
+                    <div className="w-2 border-l h-3 ml-7 !mt-0 border-default"></div>
+                  )}
+                </div>
               );
             })}
           </div>
         )}
-        <div className="flex justify-center">
-          <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
-        </div>
         {!props.readOnly && (
-          <FormCard label={t("add_action")}>
-            <FormCardBody>
-              <div className="flex flex-col items-center gap-4">
-                <Button
-                  type="button"
-                  onClick={() => setIsAddActionDialogOpen(true)}
-                  color="secondary"
-                  className="bg-default">
-                  {t("add_action")}
-                </Button>
-              </div>
-            </FormCardBody>
-          </FormCard>
+          <>
+            <div className="w-2 border-l h-3 ml-7 !mt-0 border-default"></div>
+            <Button
+              type="button"
+              onClick={() => setIsAddActionDialogOpen(true)}
+              color="secondary"
+              className="bg-default">
+              {t("add_action")}
+            </Button>
+          </>
         )}
       </div>
 

@@ -86,6 +86,31 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
   );
 };
 
+type BaseProps = {
+  children: React.ReactNode;
+  onLabelChange?: (label: string) => void;
+  deleteField?: Action | null;
+  duplicateField?: Action | null;
+  moveUp?: Action | null;
+  moveDown?: Action | null;
+  className?: string;
+  badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
+  leftIcon?: IconName;
+  collapsible?: boolean;
+} & JSX.IntrinsicElements["div"];
+
+type EditableLabelProps = {
+  label: string;
+  isLabelEditable: true;
+};
+
+type NonEditableLabelProps = {
+  label: React.ReactNode;
+  isLabelEditable?: never;
+};
+
+type FormCardProps = BaseProps & (EditableLabelProps | NonEditableLabelProps);
+
 export default function FormCard({
   children,
   label,
@@ -100,20 +125,7 @@ export default function FormCard({
   collapsible = true,
   leftIcon,
   ...restProps
-}: {
-  children: React.ReactNode;
-  label: string;
-  isLabelEditable?: boolean;
-  onLabelChange?: (label: string) => void;
-  deleteField?: Action | null;
-  duplicateField?: Action | null;
-  moveUp?: Action | null;
-  moveDown?: Action | null;
-  className?: string;
-  badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
-  leftIcon?: IconName;
-  collapsible?: boolean;
-} & JSX.IntrinsicElements["div"]) {
+}: FormCardProps) {
   className = classNames(
     "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-muted mb-2",
     className
@@ -173,11 +185,21 @@ export default function FormCard({
                 className="text-muted"
               />
             )}
-            {isLabelEditable ? (
-              <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
-            ) : (
-              <span className="text-emphasis text-sm font-semibold">{label}</span>
-            )}
+            {
+              typeof label === "string" ? (
+                isLabelEditable ? (
+                  <Input
+                    type="text"
+                    value={label}
+                    onChange={(e) => onLabelChange?.(e.target.value)}
+                  />
+                ) : (
+                  <span className="text-emphasis text-sm font-semibold">{label}</span>
+                )
+              ) : (
+                label
+              )
+            }
             {badge && (
               <Badge className="ml-2" variant={badge.variant}>
                 {badge.href ? <Link href={badge.href}>{badge.text}</Link> : badge.text}
