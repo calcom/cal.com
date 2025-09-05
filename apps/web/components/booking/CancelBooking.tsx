@@ -81,8 +81,8 @@ type Props = {
     payment?: {
       amount: number;
       currency: string;
-      appId: string;
-    };
+      appId: string | null;
+    } | null;
   };
   profile: {
     name: string | null;
