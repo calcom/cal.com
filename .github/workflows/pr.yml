@@ -6,11 +6,17 @@ on:
     branches:
       - main
       - gh-actions-test-branch
-  workflow_run:
-    workflows:
-      - PR Label Check
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+      pr_ref:
+        required: true
+        type: string
+      pr_sha:
+        required: true
+        type: string
   workflow_dispatch:
 
 permissions:
@@ -19,7 +25,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || (github.event.workflow_run && github.event.workflow_run.pull_requests && github.event.workflow_run.pull_requests[0].number) || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
   cancel-in-progress: true
 
 jobs:

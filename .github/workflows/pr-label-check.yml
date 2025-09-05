@@ -7,7 +7,6 @@ on:
       - gh-actions-test-branch
 
 permissions:
-  actions: write
   contents: read
   pull-requests: read
 
@@ -16,21 +15,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-ready-for-e2e:
+  call-pr-update:
     if: ${{ github.event.label.name == 'ready-for-e2e' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Save PR context
-        run: |
-          printf '{
-            "pr_number": ${{ github.event.pull_request.number }},
-            "pr_sha": "${{ github.event.pull_request.head.sha }}",
-            "action": "${{ github.event.action }}",
-            "label_name": "${{ github.event.label.name }}"
-          }' >> pr-context.json
-
-      - name: Upload PR context
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr-context
-          path: pr-context.json
+    uses: ./.github/workflows/pr.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      pr_ref: ${{ github.event.pull_request.head.ref }}
+      pr_sha: ${{ github.event.pull_request.head.sha }}
+    secrets: inherit
