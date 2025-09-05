@@ -6,6 +6,7 @@ export interface TeamPermissions {
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  canRead: boolean;
 }
 
 export interface MembershipWithRole {
@@ -42,6 +43,9 @@ export async function getTeamPermissions(
       resource: Resource.EventType,
       userRole: effectiveRole,
       fallbackRoles: {
+        read: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+        },
         create: {
           roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
@@ -58,6 +62,7 @@ export async function getTeamPermissions(
       canCreate: permissions.canCreate,
       canEdit: permissions.canEdit,
       canDelete: permissions.canDelete,
+      canRead: permissions.canRead,
     };
   } catch (error) {
     console.warn(
@@ -74,8 +79,9 @@ function getFallbackPermissions(role: MembershipRole): TeamPermissions {
   const isMember = role === MembershipRole.MEMBER;
 
   return {
+    canRead: isAdminOrOwner || isMember,
     canCreate: isAdminOrOwner,
-    canEdit: isAdminOrOwner || isMember,
+    canEdit: isAdminOrOwner,
     canDelete: isAdminOrOwner,
   };
 }
