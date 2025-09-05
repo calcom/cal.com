@@ -68,8 +68,8 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
 
   inputFields = inputFields || [];
   inputRoutes = inputRoutes || [];
-  type InputFields = typeof inputFields;
-  type InputRoutes = typeof inputRoutes;
+  type InputFields = NonNullable<typeof inputFields>;
+  type InputRoutes = NonNullable<typeof inputRoutes>;
   let routes: InputRoutes;
   let fields: InputFields;
   type DuplicateFrom = NonNullable<typeof duplicateFrom>;
