@@ -1,18 +1,22 @@
-import { randomBytes } from "crypto";
-import { NextResponse } from "next/server";
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const sameSiteParam = url.searchParams.get("sameSite");
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+  // Validate the param, default to "lax"
+  let sameSite: "lax" | "strict" | "none" = "lax";
+  if (sameSiteParam === "strict" || sameSiteParam === "none") {
+    sameSite = sameSiteParam;
+  }
 
-export async function GET() {
   const token = randomBytes(32).toString("hex");
-
   const res = NextResponse.json({ csrfToken: token });
 
   const useSecureCookies = WEBAPP_URL.startsWith("https://");
+
   res.cookies.set("calcom.csrf_token", token, {
-    httpOnly: false,
+    httpOnly: true,
     secure: useSecureCookies,
-    sameSite: useSecureCookies ? "none" : "lax",
+    sameSite,
     path: "/",
   });
 

@@ -206,7 +206,7 @@ export default function CancelBooking(props: Props) {
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
-                  const res = await fetch("/api/cancel", {
+                  const res = await fetch("/api/cancel?sameSite=none", {
                     body: JSON.stringify({
                       uid: booking?.uid,
                       cancellationReason: cancellationReason,
