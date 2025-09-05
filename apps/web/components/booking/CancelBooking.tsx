@@ -128,13 +128,17 @@ export default function CancelBooking(props: Props) {
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
   const [acknowledgeCancellationNoShowFee, setAcknowledgeCancellationNoShowFee] = useState(false);
 
+  const getAppMetadata = (appId: string): Record<string, unknown> | null => {
+    if (!eventTypeMetadata?.apps || !appId) return null;
+    const apps = eventTypeMetadata.apps as Record<string, unknown>;
+    return (apps[appId] as Record<string, unknown>) || null;
+  };
+
   const timeValue = booking?.payment?.appId
-    ? eventTypeMetadata?.apps?.[booking.payment?.appId as keyof typeof eventTypeMetadata.apps]
-        ?.autoChargeNoShowFeeTimeValue
+    ? (getAppMetadata(booking.payment.appId) as Record<string, unknown> | null)?.autoChargeNoShowFeeTimeValue
     : null;
   const timeUnit = booking?.payment?.appId
-    ? eventTypeMetadata?.apps?.[booking.payment?.appId as keyof typeof eventTypeMetadata.apps]
-        ?.autoChargeNoShowFeeTimeUnit
+    ? (getAppMetadata(booking.payment.appId) as Record<string, unknown> | null)?.autoChargeNoShowFeeTimeUnit
     : null;
 
   const autoChargeNoShowFee = () => {
@@ -144,7 +148,11 @@ export default function CancelBooking(props: Props) {
 
     if (!booking?.payment) return false;
 
-    return shouldChargeNoShowCancellationFee({ eventTypeMetadata, booking, payment: booking.payment });
+    return shouldChargeNoShowCancellationFee({
+      eventTypeMetadata: eventTypeMetadata || null,
+      booking,
+      payment: booking.payment,
+    });
   };
 
   const cancellationNoShowFeeWarning = autoChargeNoShowFee();
