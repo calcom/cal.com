@@ -1,4 +1,10 @@
-import { CrudAction, type CustomAction, PERMISSION_REGISTRY } from "../domain/types/permission-registry";
+import {
+  CrudAction,
+  type CustomAction,
+  PERMISSION_REGISTRY,
+  Scope,
+  getPermissionsForScope,
+} from "../domain/types/permission-registry";
 
 /**
  * Helper function to split permission string into resource and action
@@ -22,15 +28,18 @@ const splitPermission = (permission: string): { resource: string; action: string
  * Generic permission graph traversal function using BFS
  * @param startPermission The permission to start traversal from
  * @param direction Whether to find dependencies or dependents
+ * @param scope The scope to use for permission registry (defaults to Organization)
  * @returns Array of related permissions (excluding the start permission itself)
  */
 export const traversePermissions = (
   startPermission: string,
-  direction: "dependencies" | "dependents"
+  direction: "dependencies" | "dependents",
+  scope: Scope = Scope.Organization
 ): string[] => {
   const visited = new Set<string>();
   const result = new Set<string>();
   const queue: string[] = [startPermission];
+  const registry = getPermissionsForScope(scope);
 
   while (queue.length > 0) {
     const currentPermission = queue.shift();
@@ -46,7 +55,7 @@ export const traversePermissions = (
     if (direction === "dependencies") {
       // Find what the current permission depends on
       const { resource, action } = splitPermission(currentPermission);
-      const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
+      const resourceConfig = registry[resource as keyof typeof registry];
 
       if (resourceConfig && resourceConfig[action as CrudAction | CustomAction]) {
         const permissionDetails = resourceConfig[action as CrudAction | CustomAction];
@@ -70,7 +79,7 @@ export const traversePermissions = (
       }
     } else {
       // Find what depends on the current permission
-      Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
+      Object.entries(registry).forEach(([resource, config]) => {
         Object.entries(config).forEach(([action, details]) => {
           if (action.startsWith("_")) return; // Skip internal keys
 
@@ -108,17 +117,19 @@ export const traversePermissions = (
 /**
  * Get all permissions that the given permission transitively depends on
  * @param permission The permission to find dependencies for
+ * @param scope The scope to use for permission registry (defaults to Organization)
  * @returns Array of dependency permissions
  */
-export const getTransitiveDependencies = (permission: string): string[] => {
-  return traversePermissions(permission, "dependencies");
+export const getTransitiveDependencies = (permission: string, scope: Scope = Scope.Organization): string[] => {
+  return traversePermissions(permission, "dependencies", scope);
 };
 
 /**
  * Get all permissions that transitively depend on the given permission
  * @param permission The permission to find dependents for
+ * @param scope The scope to use for permission registry (defaults to Organization)
  * @returns Array of dependent permissions
  */
-export const getTransitiveDependents = (permission: string): string[] => {
-  return traversePermissions(permission, "dependents");
+export const getTransitiveDependents = (permission: string, scope: Scope = Scope.Organization): string[] => {
+  return traversePermissions(permission, "dependents", scope);
 };
