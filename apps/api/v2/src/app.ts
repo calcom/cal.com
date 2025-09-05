@@ -11,7 +11,7 @@ import {
 } from "@calcom/platform-constants";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
-import { BaseExceptionFilter, HttpAdapterHost } from "@nestjs/core";
+import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as cookieParser from "cookie-parser";
 import { Request } from "express";

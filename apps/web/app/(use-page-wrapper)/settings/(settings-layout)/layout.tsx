@@ -9,7 +9,6 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import React from "react";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
 import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";

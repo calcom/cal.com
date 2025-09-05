@@ -6,7 +6,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { getServerSideProps } from "@server/lib/auth/verify-email-change/getServerSideProps";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Toaster } from "sonner";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;

@@ -5,7 +5,7 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { StepCard } from "@calcom/ui/components/card";
 import type { FC } from "react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
 

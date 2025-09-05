@@ -1,12 +1,11 @@
 import {
-  ERROR_STATUS,
   GOOGLE_CALENDAR_ID,
   GOOGLE_CALENDAR_TYPE,
   GOOGLE_MEET,
   GOOGLE_MEET_TYPE,
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-import { ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import { ApiSuccessResponse } from "@calcom/platform-types";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";

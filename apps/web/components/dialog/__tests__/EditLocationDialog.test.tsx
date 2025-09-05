@@ -1,6 +1,5 @@
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import * as React from "react";
 import { vi } from "vitest";
 
 import { QueryCell } from "../../../lib/QueryCell";

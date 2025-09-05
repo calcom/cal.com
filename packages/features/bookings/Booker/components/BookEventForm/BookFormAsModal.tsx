@@ -6,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import type { ReactNode } from "react";
-import React from "react";
 
 import { getDurationFormatted } from "../../../components/event-meta/Duration";
 import { FromTime } from "../../utils/dates";

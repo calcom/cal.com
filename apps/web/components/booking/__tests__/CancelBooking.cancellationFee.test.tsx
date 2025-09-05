@@ -1,6 +1,5 @@
 import * as shouldChargeModule from "@calcom/lib/payment/shouldChargeNoShowCancellationFee";
 import { render, screen } from "@testing-library/react";
-import * as React from "react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import CancelBooking from "../CancelBooking";

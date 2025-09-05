@@ -1,5 +1,5 @@
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsNumber, IsString } from "class-validator";
 
 export class BookingReference {

@@ -29,7 +29,6 @@ import { v4 as uuidv4 } from "uuid";
 import { beforeAll, beforeEach, describe, expect, vi } from "vitest";
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
-import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";

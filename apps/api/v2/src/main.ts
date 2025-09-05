@@ -7,7 +7,6 @@ import {
   OperationObject,
   PathItemObject,
   PathsObject,
-  TagObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import type { AppConfig } from "@/config/type";
 import { getEnv } from "@/env";

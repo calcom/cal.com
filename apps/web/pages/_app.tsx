@@ -4,7 +4,6 @@ import type { AppProps } from "@lib/app-providers";
 import type { IncomingMessage } from "http";
 import type { NextPageContext } from "next";
 import { SessionProvider } from "next-auth/react";
-import React from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import "../styles/globals.css";

@@ -1,6 +1,5 @@
 import { ApiResponse } from "@calcom/platform-types";
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,

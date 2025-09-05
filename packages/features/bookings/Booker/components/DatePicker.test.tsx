@@ -1,6 +1,5 @@
 import dayjs from "@calcom/dayjs";
 import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
-import React from "react";
 import { afterEach, vi } from "vitest";
 
 import { render } from "../__tests__/test-utils";

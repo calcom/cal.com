@@ -12,7 +12,6 @@ import {
   SUCCESS_STATUS,
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";

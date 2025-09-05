@@ -552,7 +552,7 @@ export class BookingsController_2024_04_15 {
     const errMsg =
       type === "no-show"
         ? `Error while marking no-show.`
-        : `Error while creating ${type ? type + " " : ""}booking.`;
+        : `Error while creating ${type ? `${type} ` : ""}booking.`;
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);

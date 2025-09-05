@@ -2,7 +2,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsOptional, IsString, isDate } from "class-validator";
+import { IsDate, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 
 export enum OutOfOfficeReason {
   UNSPECIFIED = "unspecified",

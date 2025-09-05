@@ -1,4 +1,3 @@
-import React from "react";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
 

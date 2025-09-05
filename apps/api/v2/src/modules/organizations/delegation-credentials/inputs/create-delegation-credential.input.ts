@@ -1,6 +1,6 @@
 import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsNotEmpty, IsString, Validate, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsString, Validate } from "class-validator";
 import {
   GoogleServiceAccountKeyInput,
   MicrosoftServiceAccountKeyInput,

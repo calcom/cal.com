@@ -1,6 +1,6 @@
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleNewBooking } from "@calcom/platform-libraries";
-import { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import { ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -22,7 +22,6 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-04-15", () => {

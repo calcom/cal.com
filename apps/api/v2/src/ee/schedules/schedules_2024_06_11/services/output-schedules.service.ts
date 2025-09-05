@@ -29,10 +29,10 @@ export class OutputSchedulesService_2024_06_11 {
       availability: createdScheduleAvailabilities.map((availability) => ({
         days: availability.days.map(transformNumberToDay),
         startTime: this.padHoursMinutesWithZeros(
-          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
+          `${availability.startTime.getUTCHours()}:${availability.startTime.getUTCMinutes()}`
         ),
         endTime: this.padHoursMinutesWithZeros(
-          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
+          `${availability.endTime.getUTCHours()}:${availability.endTime.getUTCMinutes()}`
         ),
       })),
       isDefault: databaseSchedule.id === ownerDefaultScheduleId,
@@ -44,10 +44,10 @@ export class OutputSchedulesService_2024_06_11 {
           "-" +
           override.date?.getUTCDate().toString().padStart(2, "0"),
         startTime: this.padHoursMinutesWithZeros(
-          override.startTime.getUTCHours() + ":" + override.startTime.getUTCMinutes()
+          `${override.startTime.getUTCHours()}:${override.startTime.getUTCMinutes()}`
         ),
         endTime: this.padHoursMinutesWithZeros(
-          override.endTime.getUTCHours() + ":" + override.endTime.getUTCMinutes()
+          `${override.endTime.getUTCHours()}:${override.endTime.getUTCMinutes()}`
         ),
       })),
     };

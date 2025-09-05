@@ -5,7 +5,6 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
-import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
 import { EventManager } from "@calcom/platform-libraries/event-types";
 import {
   BookingOutput_2024_08_13,

@@ -1,6 +1,5 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { fireEvent, render } from "@testing-library/react";
-import React from "react";
 import { vi } from "vitest";
 
 import { CheckboxField } from "./Checkbox";

@@ -1,4 +1,3 @@
-import { CreateOAuthClientInput } from "@calcom/platform-types";
 import { TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient, Prisma } from "@prisma/client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";

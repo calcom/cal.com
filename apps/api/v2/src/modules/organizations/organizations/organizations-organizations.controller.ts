@@ -1,5 +1,4 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 import {
   Body,
   Controller,

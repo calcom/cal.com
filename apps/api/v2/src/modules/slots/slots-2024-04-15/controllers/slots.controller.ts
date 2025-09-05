@@ -19,7 +19,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiExcludeController as DocsExcludeController,
-  ApiTags as DocsTags,
 } from "@nestjs/swagger";
 import { Request as ExpressRequest, Response as ExpressResponse } from "express";
 import { TRPC_ERROR_CODE, TRPC_ERROR_MAP, TRPCErrorCode } from "@/filters/trpc-exception.filter";

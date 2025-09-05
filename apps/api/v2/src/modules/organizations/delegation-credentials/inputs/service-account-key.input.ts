@@ -1,9 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose, plainToClass, Type } from "class-transformer";
+import { Expose, plainToClass } from "class-transformer";
 import {
   IsNotEmpty,
   IsString,
-  ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
   validateSync,

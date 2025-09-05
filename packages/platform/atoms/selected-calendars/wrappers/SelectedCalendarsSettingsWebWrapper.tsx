@@ -9,7 +9,6 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 import Link from "next/link";
-import React from "react";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 

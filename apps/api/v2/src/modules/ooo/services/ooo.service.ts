@@ -2,9 +2,7 @@ import { OutOfOfficeEntry } from "@calcom/prisma/client";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import {
   CreateOutOfOfficeEntryDto,
-  GetOutOfOfficeEntryFiltersDTO,
   OutOfOfficeReason,
-  SortOrder,
   UpdateOutOfOfficeEntryDto,
 } from "@/modules/ooo/inputs/ooo.input";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";

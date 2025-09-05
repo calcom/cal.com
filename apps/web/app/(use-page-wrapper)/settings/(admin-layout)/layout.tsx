@@ -1,7 +1,6 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { cookies, headers } from "next/headers";
-import React from "react";
 
 import SettingsLayoutAppDir from "../(settings-layout)/layout";
 import type { AdminLayoutProps } from "./AdminLayoutAppDirClient";

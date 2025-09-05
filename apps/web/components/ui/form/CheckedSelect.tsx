@@ -2,7 +2,6 @@ import Select from "@calcom/features/form/components/Select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Icon } from "@calcom/ui/components/icon";
-import React from "react";
 import type { Props } from "react-select";
 
 type CheckedSelectOption = {

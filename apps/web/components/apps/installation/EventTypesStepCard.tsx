@@ -6,7 +6,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ScrollableArea } from "@calcom/ui/components/scrollable";
 import type { Dispatch, FC, SetStateAction } from "react";
-import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import type { TEventType, TEventTypeGroup, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";

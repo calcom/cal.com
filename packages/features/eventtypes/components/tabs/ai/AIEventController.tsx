@@ -16,7 +16,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { z } from "zod";
 

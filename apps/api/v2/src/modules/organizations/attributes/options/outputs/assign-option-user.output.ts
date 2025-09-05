@@ -2,7 +2,6 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsString, ValidateNested } from "class-validator";
 import { BaseOutputDTO } from "@/modules/organizations/attributes/index/outputs/base.output";
-import { OptionOutput } from "@/modules/organizations/attributes/options/outputs/option.output";
 
 class AssignOptionUserOutputData {
   @IsString()

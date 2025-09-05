@@ -76,7 +76,7 @@ export class GcalController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Connect a calendar" })
   async save(@Query("state") state: string, @Query("code") code: string): Promise<GcalSaveRedirectOutput> {
-    const url = new URL(this.config.get("api.url") + "/calendars/google/save");
+    const url = new URL(`${this.config.get("api.url")}/calendars/google/save`);
     url.searchParams.append("code", code);
     url.searchParams.append("state", state);
     return { url: url.href };
