@@ -27,7 +27,7 @@ vi.mock("@calcom/features/tasker", () => {
 
 const mockSendEmail = vi.fn(() => Promise.resolve());
 const mockResponseEmailConstructor = vi.fn();
-vi.mock("../emails/templates/response-email", () => ({
+vi.mock("@calcom/app-store/routing-forms/emails/templates/response-email", () => ({
   default: class MockResponseEmail {
     sendEmail = mockSendEmail;
     constructor(...args: unknown[]) {

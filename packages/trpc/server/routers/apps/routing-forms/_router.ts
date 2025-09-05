@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
+import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
+import { router } from "@calcom/trpc/server/trpc";
+
 import { ZDeleteFormInputSchema } from "./deleteForm.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
