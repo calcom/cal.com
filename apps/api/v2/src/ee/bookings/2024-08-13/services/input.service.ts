@@ -22,7 +22,6 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { CreationSource } from "@prisma/client";
 import { isURL, isPhoneNumber } from "class-validator";
 import { Request } from "express";
 import { DateTime } from "luxon";
@@ -30,6 +29,7 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CancelBookingInput,
