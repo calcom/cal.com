@@ -20,18 +20,18 @@ jobs:
     if: ${{ github.event.label.name == 'ready-for-e2e' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger PR workflow via workflow_dispatch
+      - name: Trigger PR workflow via repository dispatch
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.actions.createWorkflowDispatch({
+            await github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'pr.yml',
-              ref: '${{ github.event.pull_request.head.ref }}',
-              inputs: {
-                pr_number: '${{ github.event.pull_request.number }}',
+              event_type: 'ready-for-e2e',
+              client_payload: {
+                pr_number: ${{ github.event.pull_request.number }},
                 pr_ref: '${{ github.event.pull_request.head.ref }}',
-                pr_sha: '${{ github.event.pull_request.head.sha }}'
+                pr_sha: '${{ github.event.pull_request.head.sha }}',
+                pr_base_ref: '${{ github.event.pull_request.base.ref }}'
               }
             });
