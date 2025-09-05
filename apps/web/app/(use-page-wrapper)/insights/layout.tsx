@@ -28,20 +28,16 @@ export default async function InsightsLayout({ children }: { children: React.Rea
   }
 
   if (session.user.org?.id) {
-    const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(session.user.org.id, "pbac");
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId: session.user.id,
+      teamId: session.user.org.id,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
 
-    if (pbacFeatureEnabled) {
-      const permissionCheckService = new PermissionCheckService();
-      const hasPermission = await permissionCheckService.checkPermission({
-        userId: session.user.id,
-        teamId: session.user.org.id,
-        permission: "insights.read",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      });
-
-      if (!hasPermission) {
-        redirect("/");
-      }
+    if (!hasPermission) {
+      redirect("/");
     }
   }
 
