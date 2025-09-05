@@ -220,32 +220,35 @@ export class BookingEmailSmsHandler {
       originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
     );
 
+    const reassignedTo = users.find(
+      (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+    );
+
     try {
-      await sendRoundRobinRescheduledEmailsAndSMS(
-        { ...copyEventAdditionalInfo, iCalUID },
-        rescheduledMembers,
-        metadata
-      );
-      await sendRoundRobinScheduledEmailsAndSMS({
-        calEvent: copyEventAdditionalInfo,
-        members: newBookedMembers,
-        eventTypeMetadata: metadata,
-      });
-      const reassignedTo = users.find(
-        (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
-      );
-      await sendRoundRobinCancelledEmailsAndSMS(
-        cancelledRRHostEvt,
-        cancelledMembers,
-        metadata,
-        reassignedTo
-          ? {
-              name: reassignedTo.name,
-              email: reassignedTo.email,
-              ...(isRescheduledByBooker && { reason: "Booker Rescheduled" }),
-            }
-          : undefined
-      );
+      await Promise.all([
+        sendRoundRobinRescheduledEmailsAndSMS(
+          { ...copyEventAdditionalInfo, iCalUID },
+          rescheduledMembers,
+          metadata
+        ),
+        sendRoundRobinScheduledEmailsAndSMS({
+          calEvent: copyEventAdditionalInfo,
+          members: newBookedMembers,
+          eventTypeMetadata: metadata,
+        }),
+        sendRoundRobinCancelledEmailsAndSMS(
+          cancelledRRHostEvt,
+          cancelledMembers,
+          metadata,
+          reassignedTo
+            ? {
+                name: reassignedTo.name,
+                email: reassignedTo.email,
+                ...(isRescheduledByBooker && { reason: "Booker Rescheduled" }),
+              }
+            : undefined
+        ),
+      ]);
     } catch (err) {
       this.log.error("Failed to send rescheduled round robin event related emails", err);
     }
@@ -311,8 +314,10 @@ export class BookingEmailSmsHandler {
     const eventWithNotes = { ...evt, additionalNotes };
 
     try {
-      await sendOrganizerRequestEmail(eventWithNotes, metadata);
-      await sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata);
+      await Promise.all([
+        sendOrganizerRequestEmail(eventWithNotes, metadata),
+        sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata),
+      ]);
     } catch (err) {
       this.log.error("Failed to send requested event related emails", err);
     }
