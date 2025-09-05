@@ -41,21 +41,18 @@ export const shouldChargeNoShowCancellationFee = ({
     return false;
   }
 
+  const multiplier: { [key: string]: number } = {
+    minutes: 1,
+    hours: 60,
+    days: 1440,
+  };
+  const timeInMinutes = timeValue * multiplier[timeUnit];
+
   const now = new Date();
   const startTime = new Date(booking.startTime);
   const threshold = new Date(startTime);
 
-  switch (timeUnit) {
-    case "minutes":
-      threshold.setMinutes(threshold.getMinutes() - timeValue);
-      break;
-    case "hours":
-      threshold.setHours(threshold.getHours() - timeValue);
-      break;
-    case "days":
-      threshold.setDate(threshold.getDate() - timeValue);
-      break;
-  }
+  threshold.setMinutes(threshold.getMinutes() - timeInMinutes);
 
   return now >= threshold;
 };
