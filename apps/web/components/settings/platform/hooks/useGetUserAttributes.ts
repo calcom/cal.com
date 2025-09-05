@@ -11,7 +11,7 @@ export const useGetUserAttributes = () => {
   const {
     data: userBillingData,
     isFetching: isUserBillingDataLoading,
-    refetch: refectTeamBilling,
+    refetch: refetchTeamBilling,
   } = useCheckTeamBilling(platformUser?.organizationId, platformUser?.organization?.isPlatform ?? false);
   const isPlatformUser = platformUser?.organization?.isPlatform ?? false;
   const isPaidUser = userBillingData?.valid;
@@ -24,7 +24,7 @@ export const useGetUserAttributes = () => {
     isPaidUser,
     userBillingData,
     userOrgId,
-    refectTeamBilling,
+    refetchTeamBilling,
     refetchPlatformUser,
   };
 };

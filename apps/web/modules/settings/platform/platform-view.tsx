@@ -35,7 +35,7 @@ export default function Platform() {
     isPaidUser,
     userBillingData,
     userOrgId,
-    refectTeamBilling,
+    refetchTeamBilling,
     refetchPlatformUser,
   } = useGetUserAttributes();
 
@@ -50,10 +50,10 @@ export default function Platform() {
     await mutateAsync({ id: id });
   };
 
-  const validateBillingState = useCallback(() => {
-    refectTeamBilling();
+  const refetchBillingState = useCallback(() => {
+    refetchTeamBilling();
     refetchPlatformUser();
-  }, [refectTeamBilling, refetchPlatformUser]);
+  }, [refetchTeamBilling, refetchPlatformUser]);
 
   useEffect(() => {
     setInitialClientId(data[0]?.id);
@@ -61,11 +61,11 @@ export default function Platform() {
   }, [data]);
 
   useEffect(() => {
-    validateBillingState();
-  }, [pathname, refectTeamBilling, refetchPlatformUser, validateBillingState]);
+    refetchBillingState();
+  }, [pathname, refetchTeamBilling, refetchPlatformUser, refetchBillingState]);
 
   useExternalRedirectHandler(() => {
-    validateBillingState();
+    refetchBillingState();
   });
 
   if (isUserLoading || isOAuthClientLoading) return <div className="m-5">{t("loading")}</div>;
