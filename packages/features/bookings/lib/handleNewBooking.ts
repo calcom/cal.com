@@ -433,7 +433,6 @@ async function handler(
   input: BookingHandlerInput,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger });
   const {
     bookingData: rawBookingData,
     userId,
@@ -495,6 +494,7 @@ async function handler(
   });
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
+  const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
