@@ -7,7 +7,15 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecentImpersonations, type RecentImpersonation } from "@calcom/lib/recentImpersonations";
 import { Button } from "@calcom/ui/components/button";
-import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/components/list";
+import { PanelCard } from "@calcom/ui/components/card";
+import {
+  TableNew,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@calcom/ui/components/table";
 
 interface RecentImpersonationsListProps {
   onImpersonate?: (username: string) => void;
@@ -33,29 +41,39 @@ export default function RecentImpersonationsList({ onImpersonate }: RecentImpers
   }
 
   return (
-    <div className="mb-6">
-      <h3 className="text-emphasis mb-3 text-sm font-semibold">{t("recent_impersonations")}</h3>
-      <List>
-        {recentImpersonations.map((impersonation) => (
-          <ListItem key={impersonation.username} className="flex items-center justify-between">
-            <div className="flex-1">
-              <ListItemTitle>{impersonation.username}</ListItemTitle>
-              <ListItemText>
-                {new Date(impersonation.timestamp).toLocaleDateString()}{" "}
-                {new Date(impersonation.timestamp).toLocaleTimeString()}
-              </ListItemText>
-            </div>
-            <Button
-              type="button"
-              variant="button"
-              size="sm"
-              onClick={() => handleQuickImpersonate(impersonation.username)}
-              data-testid={`quick-impersonate-${impersonation.username}`}>
-              {t("quick_impersonate")}
-            </Button>
-          </ListItem>
-        ))}
-      </List>
-    </div>
+    <PanelCard title={t("recent_impersonations")}>
+      <div className="overflow-x-auto">
+        <TableNew className="border-0">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[40%]">User</TableHead>
+              <TableHead>Impersonated At</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {recentImpersonations.map((impersonation) => (
+              <TableRow key={impersonation.username}>
+                <TableCell className="font-medium">{impersonation.username}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {new Date(impersonation.timestamp).toLocaleDateString()}{" "}
+                  {new Date(impersonation.timestamp).toLocaleTimeString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    type="button"
+                    color="secondary"
+                    size="sm"
+                    onClick={() => handleQuickImpersonate(impersonation.username)}
+                    data-testid={`quick-impersonate-${impersonation.username}`}>
+                    {t("quick_impersonate")}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </TableNew>
+      </div>
+    </PanelCard>
   );
 }
