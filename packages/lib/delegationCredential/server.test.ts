@@ -19,47 +19,13 @@ import {
 } from "./server";
 
 const googleCalendarMetadata = {
-  name: "Google Calendar",
   type: "google_calendar",
-  category: "calendar",
-  logo: "icon.svg",
-  publisher: "Cal.com",
-  url: "https://cal.com/",
-  verified: true,
-  rating: 5,
-  reviews: 69,
-  trending: true,
-  isGlobal: false,
-  email: "help@cal.com",
-  appData: {
-    location: {
-      linkType: "dynamic",
-      type: "integrations:google:meet",
-      label: "Google Meet",
-    },
-  },
+  slug: "google-calendar",
 };
 
 const googleMeetMetadata = {
-  name: "Google Meet",
   type: "googlevideo",
-  category: "video",
-  logo: "icon.svg",
-  publisher: "Cal.com",
-  url: "https://cal.com/",
-  verified: true,
-  rating: 5,
-  reviews: 69,
-  trending: true,
-  isGlobal: false,
-  email: "help@cal.com",
-  appData: {
-    location: {
-      linkType: "dynamic",
-      type: "integrations:google:meet",
-      label: "Google Meet",
-    },
-  },
+  slug: "google-meet",
 };
 
 // Mock OrganizationRepository
