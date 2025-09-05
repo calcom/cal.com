@@ -67,10 +67,7 @@ export const Editor = (props: TextEditorProps) => {
   return (
     <div className="editor rounded-md">
       {props.label && (
-        <label
-          id={labelId}
-          className="mb-1 block cursor-pointer text-sm font-medium leading-6"
-          onClick={handleLabelClick}>
+        <label id={labelId} className="mb-1 block text-sm font-medium leading-6" onClick={handleLabelClick}>
           {props.label}
         </label>
       )}
