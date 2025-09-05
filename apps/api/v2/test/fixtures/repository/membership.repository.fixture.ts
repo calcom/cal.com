@@ -1,7 +1,9 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Membership, MembershipRole, Prisma, Team, User } from "@prisma/client";
+import { Membership, Prisma, Team, User } from "@prisma/client";
+
+import { MembershipRole } from "@calcom/platform-libraries";
 
 export class MembershipRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
