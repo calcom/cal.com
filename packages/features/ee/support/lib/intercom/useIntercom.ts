@@ -6,6 +6,7 @@ import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -144,9 +145,11 @@ declare global {
 
 export const useBootIntercom = () => {
   const { hasPaidPlan } = useHasPaidPlan();
+  const flagMap = useFlagMap();
   const { boot, open, update } = useIntercom();
 
   const { data: user } = trpc.viewer.me.get.useQuery();
+  const isTieredSupportEnabled = flagMap["tiered-support-chat"];
   const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
     trpc: {
       context: {
@@ -157,7 +160,14 @@ export const useBootIntercom = () => {
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
-    if (!isInterComEnabled || showIntercom === "false" || !user || !statsData || !hasPaidPlan) return;
+    if (
+      !isInterComEnabled ||
+      showIntercom === "false" ||
+      !user ||
+      !statsData ||
+      (!hasPaidPlan && isTieredSupportEnabled)
+    )
+      return;
 
     boot();
     if (typeof window !== "undefined" && !window.Support) {
@@ -171,7 +181,7 @@ export const useBootIntercom = () => {
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, statsData, hasPaidPlan]);
+  }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);
 };
 
 export default useIntercom;

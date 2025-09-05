@@ -120,7 +120,13 @@ const AppProviders = (props: PageWrapperProps) => {
             isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>{props.children}</OrgBrandProvider>
+              {props.isBookingPage || isBookingPage ? (
+                <OrgBrandProvider>{props.children}</OrgBrandProvider>
+              ) : (
+                <DynamicIntercomProvider>
+                  <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                </DynamicIntercomProvider>
+              )}
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>
@@ -134,11 +140,9 @@ const AppProviders = (props: PageWrapperProps) => {
 
   return (
     <>
-      <DynamicIntercomProvider>
-        <DynamicHelpscoutProvider>
-          <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
-        </DynamicHelpscoutProvider>
-      </DynamicIntercomProvider>
+      <DynamicHelpscoutProvider>
+        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
+      </DynamicHelpscoutProvider>
     </>
   );
 };
