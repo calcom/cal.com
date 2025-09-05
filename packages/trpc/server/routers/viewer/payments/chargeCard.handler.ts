@@ -137,7 +137,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
   const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
-    const paymentData = await paymentInstance.chargeCard(booking.payment[0]);
+    const paymentData = await paymentInstance.chargeCard(booking.payment[0], booking.id);
 
     if (!paymentData) {
       throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
