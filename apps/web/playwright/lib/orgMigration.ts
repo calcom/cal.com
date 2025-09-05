@@ -6,8 +6,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
-import { RedirectType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/enums";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 

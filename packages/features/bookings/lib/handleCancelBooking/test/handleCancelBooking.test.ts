@@ -10,7 +10,10 @@ import {
   TestData,
   getDate,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
+import {
+  expectBookingCancelledWebhookToHaveBeenFired,
+  expectWorkflowToBeTriggered,
+} from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
@@ -26,7 +29,7 @@ vi.mock("@calcom/lib/payment/processPaymentRefund", () => ({
 describe("Cancel Booking", () => {
   setupAndTeardown();
 
-  test("Should trigger BOOKING_CANCELLED webhook", async () => {
+  test("Should trigger BOOKING_CANCELLED webhook and workflow", async ({ emails }) => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
     const booker = getBooker({
@@ -59,6 +62,15 @@ describe("Cancel Booking", () => {
             appId: null,
           },
         ],
+        workflows: [
+          {
+            userId: organizer.id,
+            trigger: "EVENT_CANCELLED",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
         eventTypes: [
           {
             id: 1,
@@ -75,6 +87,12 @@ describe("Cancel Booking", () => {
           {
             id: idOfBookingToBeCancelled,
             uid: uidOfBookingToBeCancelled,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
             eventTypeId: 1,
             userId: 101,
             responses: {
@@ -133,6 +151,8 @@ describe("Cancel Booking", () => {
         },
       },
     });
+
+    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 
   test("Should call processPaymentRefund", async () => {
@@ -419,5 +439,74 @@ describe("Cancel Booking", () => {
         },
       },
     });
+  });
+
+  test("Should block cancelling past bookings", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "past-booking";
+    const idOfBookingToBeCancelled = 3040;
+    const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${minus1DateString}T05:00:00.000Z`,
+            endTime: `${minus1DateString}T05:30:00.000Z`,
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    // This should throw an error with current implementation
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: organizer.email,
+          cancellationReason: "Testing past booking cancellation",
+        },
+      })
+    ).rejects.toThrow("Cannot cancel a booking that has already ended");
   });
 });
