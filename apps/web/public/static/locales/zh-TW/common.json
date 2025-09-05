@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "測試此工作流程時，請注意電子郵件和簡訊只能提前至少 1 小時預定",
   "insights_no_data_found_for_filter": "找不到所選篩選條件或日期的資料。",
   "acknowledge_booking_no_show_fee": "我同意若我未出席此活動，將從我的卡片收取 {{amount, currency}} 的缺席費。",
+  "days": "天",
   "card_details": "卡片詳細資料",
   "something_went_wrong_on_our_end": "我們的系統出現了一些問題。請聯繫我們的支援團隊，我們會立即為您解決。",
   "please_provide_following_text_to_suppport": "聯絡支援團隊時，請提供下列資訊，以便我們進一步協助您",
@@ -3602,5 +3603,9 @@
   "search_variables": "搜尋變數",
   "no_variables_found": "未找到變數",
   "api_key_name_too_long": "名稱不得超過 {{max}} 個字元",
+  "auto_charge_for_last_minute_cancellation": "自動收取臨時取消的未出席費用",
+  "before_scheduled_start_time": "預定開始時間之前",
+  "cancel_booking_acknowledge_no_show_fee": "我確認在距開始時間 {{timeValue}} {{timeUnit}} 內取消預約，將會被收取未出席費用 {{amount, currency}}",
+  "contact_organizer": "如果您有任何問題，請聯繫主辦方。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
