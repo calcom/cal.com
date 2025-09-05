@@ -252,11 +252,14 @@ model Credential {
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  calIdTeam              CalIdTeam?            @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId            Int?
 
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
+  @@index([calIdTeamId])
 }
 
 enum IdentityProvider {
@@ -1078,21 +1081,24 @@ model Impersonations {
 }
 
 model ApiKey {
-  id         String      @id @unique @default(cuid())
-  userId     Int
-  teamId     Int?
-  note       String?
-  createdAt  DateTime    @default(now())
-  expiresAt  DateTime?
-  lastUsedAt DateTime?
-  hashedKey  String      @unique()
-  user       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team       Team?       @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  app        App?        @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId      String?
-  rateLimits RateLimit[]
+  id          String      @id @unique @default(cuid())
+  userId      Int
+  teamId      Int?
+  note        String?
+  createdAt   DateTime    @default(now())
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  hashedKey   String      @unique()
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team        Team?       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  app         App?        @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId       String?
+  rateLimits  RateLimit[]
+  calIdTeam   CalIdTeam?  @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId Int?
 
   @@index([userId])
+  @@index([calIdTeamId])
 }
 
 model RateLimit {
@@ -1212,9 +1218,12 @@ model App_RoutingForms_Form {
   /// @zod.custom(imports.RoutingFormSettings)
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
+  calIdTeam                CalIdTeam?                                  @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId              Int?
 
   @@index([userId])
   @@index([disabled])
+  @@index([calIdTeamId])
 }
 
 model App_RoutingForms_FormResponse {
@@ -1579,21 +1588,22 @@ model VerifiedEmail {
 
 model Feature {
   // The feature slug, ex: 'v2-workflows'
-  slug        String         @id @unique
+  slug        String              @id @unique
   // If the feature is currently enabled
-  enabled     Boolean        @default(false)
+  enabled     Boolean             @default(false)
   // A short description of the feature
   description String?
   // The type of feature flag
-  type        FeatureType?   @default(RELEASE)
+  type        FeatureType?        @default(RELEASE)
   // If the flag is considered stale
-  stale       Boolean?       @default(false)
+  stale       Boolean?            @default(false)
   lastUsedAt  DateTime?
-  createdAt   DateTime?      @default(now())
-  updatedAt   DateTime?      @default(now()) @updatedAt
+  createdAt   DateTime?           @default(now())
+  updatedAt   DateTime?           @default(now()) @updatedAt
   updatedBy   Int?
   users       UserFeatures[]
   teams       TeamFeatures[]
+  calIdTeams  CalIdTeamFeatures[]
 
   @@index([enabled])
   @@index([stale])
@@ -1666,16 +1676,20 @@ model OAuthClient {
 }
 
 model AccessCode {
-  id        Int           @id @default(autoincrement())
-  code      String
-  clientId  String?
-  client    OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  expiresAt DateTime
-  scopes    AccessScope[]
-  userId    Int?
-  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId    Int?
-  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id          Int           @id @default(autoincrement())
+  code        String
+  clientId    String?
+  client      OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  expiresAt   DateTime
+  scopes      AccessScope[]
+  userId      Int?
+  user        User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      Int?
+  team        Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  calIdTeam   CalIdTeam?    @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId Int?
+
+  @@index([calIdTeamId])
 }
 
 enum AccessScope {
@@ -2089,9 +2103,12 @@ model Attribute {
   options          AttributeOption[]
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
+  calIdTeam        CalIdTeam?        @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId      Int?
 
   @@unique([teamId, slug])
   @@index([teamId])
+  @@index([calIdTeamId])
 }
 
 model AttributeToUser {
@@ -2474,9 +2491,13 @@ model Role {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   type        RoleType         @default(CUSTOM)
+  calIdTeam   CalIdTeam?       @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId Int?
 
   @@unique([name, teamId])
+  @@unique([name, calIdTeamId])
   @@index([teamId])
+  @@index([calIdTeamId])
 }
 
 model RolePermission {
@@ -2521,6 +2542,14 @@ model CalIdTeam {
   bookingFrequency    Json?
   filterSegments      FilterSegment[]
 
+  credentials  Credential[] // Teams can have credentials for integrations
+  accessCodes  AccessCode[] // Teams can have OAuth access codes
+  routingForms App_RoutingForms_Form[] // Teams can own routing forms
+  apiKeys      ApiKey[] // Teams can have API keys for external access
+  attributes   Attribute[] // Teams can define custom attributes
+  roles        Role[] // Teams can have custom roles
+  features     CalIdTeamFeatures[] // Teams can have feature flags enabled
+
   @@unique([slug])
 }
 
@@ -2547,4 +2576,17 @@ model CalIdMembership {
   @@index([userId])
   @@index([acceptedInvitation])
   @@index([role])
+}
+
+model CalIdTeamFeatures {
+  calIdTeam   CalIdTeam @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId Int
+  feature     Feature   @relation(fields: [featureId], references: [slug], onDelete: Cascade)
+  featureId   String
+  assignedAt  DateTime  @default(now())
+  assignedBy  String
+  updatedAt   DateTime  @updatedAt
+
+  @@id([calIdTeamId, featureId])
+  @@index([calIdTeamId, featureId])
 }
