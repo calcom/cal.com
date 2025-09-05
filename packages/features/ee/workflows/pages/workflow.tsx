@@ -333,10 +333,10 @@ function WorkflowPage({
     });
 
     if (!isEmpty && isVerified) {
-      let activeOnEventTypeAndTeamIds: number[] = [];
+      let activeOnEventTypeOrTeamIds: number[] = [];
       let activeOnRoutingFormIds: string[] = [];
       if (isOrg || !isFormTrigger(values.trigger)) {
-        activeOnEventTypeAndTeamIds = values.activeOn
+        activeOnEventTypeOrTeamIds = values.activeOn
           .filter((option) => option.value !== "all")
           .map((option) => {
             return parseInt(option.value, 10);
@@ -351,7 +351,7 @@ function WorkflowPage({
       await updateMutation.mutateAsync({
         id: workflowId,
         name: values.name,
-        activeOnEventTypeIds: activeOnEventTypeAndTeamIds,
+        activeOnEventTypeIds: activeOnEventTypeOrTeamIds,
         activeOnRoutingFormIds,
         steps: values.steps,
         trigger: values.trigger,
