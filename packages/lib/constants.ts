@@ -68,9 +68,6 @@ export const MAX_EVENT_DURATION_MINUTES = 1440;
 /** Minimum duration allowed for an event in minutes */
 export const MIN_EVENT_DURATION_MINUTES = 1;
 
-/** Maximum file size allowed for banner uploads in bytes (5MB) */
-export const MAX_BANNER_SIZE = 5 * 1024 * 1024;
-
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
 export const PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS =

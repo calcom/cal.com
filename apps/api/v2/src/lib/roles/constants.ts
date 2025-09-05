@@ -1,4 +1,4 @@
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/platform-libraries";
 
 export const SYSTEM_ADMIN_ROLE = "SYSADMIN";
 export const ORG_ROLES = [

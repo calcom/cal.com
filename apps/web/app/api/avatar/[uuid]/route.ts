@@ -6,7 +6,6 @@ import { z } from "zod";
 
 import { AVATAR_FALLBACK, WEBAPP_URL } from "@calcom/lib/constants";
 import { convertSvgToPng } from "@calcom/lib/server/imageUtils";
-import { validateBase64Image } from "@calcom/lib/server/imageValidation";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
@@ -47,12 +46,6 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
       },
     });
 
-    const validation = validateBase64Image(data);
-    if (!validation.isValid) {
-      const url = new URL(AVATAR_FALLBACK, WEBAPP_URL).toString();
-      return NextResponse.redirect(url, 302);
-    }
-
     // Convert SVG to PNG if needed and update the database
     if (data.startsWith("data:image/svg+xml;base64,")) {
       const pngData = await convertSvgToPng(data);
@@ -79,11 +72,6 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
       "Content-Type": "image/png",
       "Content-Length": imageResp.length.toString(),
       "Cache-Control": "max-age=86400",
-      // Security headers to prevent XSS
-      "X-Content-Type-Options": "nosniff",
-      "Content-Disposition": "inline",
-      "X-Frame-Options": "DENY",
-      "Content-Security-Policy": "default-src 'none'; img-src 'self'",
     },
     status: 200,
   });
