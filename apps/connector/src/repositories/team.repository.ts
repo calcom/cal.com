@@ -3,19 +3,19 @@ import type { TeamPaginationQuery, MembershipPaginationQuery } from "@/schema/te
 import { NotFoundError } from "@/utils/error";
 
 import type { PrismaClient } from "@calcom/prisma/client";
-import type { Prisma, Team, Membership, EventType } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/client";
+import type { Prisma, CalIdTeam, CalIdMembership, EventType } from "@calcom/prisma/client";
+import { CalIdMembershipRole } from "@calcom/prisma/client";
 
 import { BaseRepository } from "./base.repository";
 
-export class TeamRepository extends BaseRepository<Team> {
+export class TeamRepository extends BaseRepository<CalIdTeam> {
   constructor(prisma: PrismaClient) {
     super(prisma);
   }
 
-  async create(data: Prisma.TeamCreateInput): Promise<Team> {
+  async create(data: Prisma.CalIdTeamCreateInput): Promise<CalIdTeam> {
     try {
-      return await this.prisma.team.create({
+      return await this.prisma.calIdTeam.create({
         data,
         include: {
           members: {
@@ -40,9 +40,9 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async findById(id: number): Promise<Team | null> {
+  async findById(id: number): Promise<CalIdTeam | null> {
     try {
-      return await this.prisma.team.findUnique({
+      return await this.prisma.calIdTeam.findUnique({
         where: { id },
         include: {
           members: {
@@ -67,7 +67,7 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async findByIdOrThrow(id: number): Promise<Team> {
+  async findByIdOrThrow(id: number): Promise<CalIdTeam> {
     const team = await this.findById(id);
     if (!team) {
       throw new NotFoundError("Team");
@@ -75,9 +75,9 @@ export class TeamRepository extends BaseRepository<Team> {
     return team;
   }
 
-  async findBySlug(slug: string): Promise<Team | null> {
+  async findBySlug(slug: string): Promise<CalIdTeam | null> {
     try {
-      return await this.prisma.team.findFirst({
+      return await this.prisma.calIdTeam.findFirst({
         where: { slug },
         include: {
           members: {
@@ -102,9 +102,9 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async findByUserIdAndTeamId(userId: number, teamId: number): Promise<Team | null> {
+  async findByUserIdAndTeamId(userId: number, teamId: number): Promise<CalIdTeam | null> {
     try {
-      return await this.prisma.team.findFirst({
+      return await this.prisma.calIdTeam.findFirst({
         where: {
           id: teamId,
           members: {
@@ -136,19 +136,19 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async findByUserIdAndTeamIdOrThrow(userId: number, teamId: number): Promise<Team> {
+  async findByUserIdAndTeamIdOrThrow(userId: number, teamId: number): Promise<CalIdTeam> {
     const team = await this.findByUserIdAndTeamId(userId, teamId);
     if (!team) {
-      throw new NotFoundError("Team");
+      throw new NotFoundError("CalIdTeam");
     }
 
     return team;
   }
 
-  async findMany(filters: Prisma.TeamWhereInput = {}, pagination: TeamPaginationQuery = {}) {
-    const { name, slug, isPrivate } = filters;
+  async findMany(filters: Prisma.CalIdTeamWhereInput = {}, pagination: TeamPaginationQuery = {}) {
+    const { name, slug, isTeamPrivate } = filters;
 
-    const where: Prisma.TeamWhereInput = { ...filters };
+    const where: Prisma.CalIdTeamWhereInput = { ...filters };
 
     if (name && typeof name === "string") {
       where.name = { contains: name, mode: "insensitive" };
@@ -158,14 +158,14 @@ export class TeamRepository extends BaseRepository<Team> {
       where.slug = { contains: slug, mode: "insensitive" };
     }
 
-    if (typeof isPrivate === "boolean") {
-      where.isPrivate = isPrivate;
+    if (typeof isTeamPrivate === "boolean") {
+      where.isTeamPrivate = isTeamPrivate;
     }
 
-    return this.executePaginatedQuery<Team, Prisma.TeamOrderByWithRelationInput>(
+    return this.executePaginatedQuery<CalIdTeam, Prisma.CalIdTeamOrderByWithRelationInput>(
       pagination,
       (options) =>
-        this.prisma.team.findMany({
+        this.prisma.calIdTeam.findMany({
           where,
           ...options,
           include: {
@@ -192,16 +192,16 @@ export class TeamRepository extends BaseRepository<Team> {
             },
           },
         }),
-      () => this.prisma.team.count({ where })
+      () => this.prisma.calIdTeam.count({ where })
     );
   }
 
   async findManyByUserId(
     userId: number,
-    filters: Omit<Prisma.TeamWhereInput, "members"> = {},
+    filters: Omit<Prisma.CalIdTeamWhereInput, "members"> = {},
     pagination: TeamPaginationQuery = {}
   ) {
-    const whereWithUserId: Prisma.TeamWhereInput = {
+    const whereWithUserId: Prisma.CalIdTeamWhereInput = {
       ...filters,
       members: {
         some: {
@@ -213,9 +213,9 @@ export class TeamRepository extends BaseRepository<Team> {
     return this.findMany(whereWithUserId, pagination);
   }
 
-  async update(id: number, data: Prisma.TeamUpdateInput): Promise<Team> {
+  async update(id: number, data: Prisma.CalIdTeamUpdateInput): Promise<CalIdTeam> {
     try {
-      return await this.prisma.team.update({
+      return await this.prisma.calIdTeam.update({
         where: { id },
         data,
         include: {
@@ -241,10 +241,17 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async updateByUserIdAndTeamId(userId: number, teamId: number, data: Prisma.TeamUpdateInput): Promise<Team> {
+  async updateByUserIdAndTeamId(
+    userId: number,
+    teamId: number,
+    data: Prisma.CalIdTeamUpdateInput
+  ): Promise<CalIdTeam> {
     try {
       // First check if the team belongs to the user and user has admin/owner role
-      await this.checkUserTeamPermissions(userId, teamId, [MembershipRole.ADMIN, MembershipRole.OWNER]);
+      await this.checkUserTeamPermissions(userId, teamId, [
+        CalIdMembershipRole.ADMIN,
+        CalIdMembershipRole.OWNER,
+      ]);
 
       return await this.update(teamId, data);
     } catch (error) {
@@ -254,7 +261,7 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async delete(id: number): Promise<void> {
     try {
-      await this.prisma.team.delete({
+      await this.prisma.calIdTeam.delete({
         where: { id },
       });
     } catch (error) {
@@ -265,7 +272,7 @@ export class TeamRepository extends BaseRepository<Team> {
   async deleteByUserIdAndTeamId(userId: number, teamId: number): Promise<void> {
     try {
       // First check if the team belongs to the user and user has owner role
-      await this.checkUserTeamPermissions(userId, teamId, [MembershipRole.OWNER]);
+      await this.checkUserTeamPermissions(userId, teamId, [CalIdMembershipRole.OWNER]);
 
       await this.delete(teamId);
     } catch (error) {
@@ -275,7 +282,7 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async exists(id: number): Promise<boolean> {
     try {
-      const count = await this.prisma.team.count({
+      const count = await this.prisma.calIdTeam.count({
         where: { id },
       });
       return count > 0;
@@ -286,7 +293,7 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async existsByUserIdAndTeamId(userId: number, teamId: number): Promise<boolean> {
     try {
-      const count = await this.prisma.team.count({
+      const count = await this.prisma.calIdTeam.count({
         where: {
           id: teamId,
           members: {
@@ -304,23 +311,23 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async slugExists(slug: string, excludeTeamId?: number): Promise<boolean> {
     try {
-      const where: Prisma.TeamWhereInput = { slug };
+      const where: Prisma.CalIdTeamWhereInput = { slug };
 
       if (excludeTeamId) {
         where.NOT = { id: excludeTeamId };
       }
 
-      const count = await this.prisma.team.count({ where });
+      const count = await this.prisma.calIdTeam.count({ where });
       return count > 0;
     } catch (error) {
       this.handleDatabaseError(error, "check slug exists");
     }
   }
 
-  // Team Membership methods
-  async createMembership(data: Prisma.MembershipCreateInput): Promise<Membership> {
+  // CalIdMembership methods
+  async createMembership(data: Prisma.CalIdMembershipCreateInput): Promise<CalIdMembership> {
     try {
-      return await this.prisma.membership.create({
+      return await this.prisma.calIdMembership.create({
         data,
         include: {
           user: {
@@ -333,7 +340,7 @@ export class TeamRepository extends BaseRepository<Team> {
               timeZone: true,
             },
           },
-          team: {
+          calIdTeam: {
             select: {
               id: true,
               name: true,
@@ -347,9 +354,9 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async findMembershipById(id: number): Promise<Membership | null> {
+  async findMembershipById(id: number): Promise<CalIdMembership | null> {
     try {
-      return await this.prisma.membership.findUnique({
+      return await this.prisma.calIdMembership.findUnique({
         where: { id },
         include: {
           user: {
@@ -362,7 +369,7 @@ export class TeamRepository extends BaseRepository<Team> {
               timeZone: true,
             },
           },
-          team: {
+          calIdTeam: {
             select: {
               id: true,
               name: true,
@@ -376,7 +383,7 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async findMembershipByIdOrThrow(id: number): Promise<Membership> {
+  async findMembershipByIdOrThrow(id: number): Promise<CalIdMembership> {
     const membership = await this.findMembershipById(id);
     if (!membership) {
       throw new NotFoundError("Membership");
@@ -386,18 +393,18 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async findMembershipsByTeamId(
     teamId: number,
-    filters: Omit<Prisma.MembershipWhereInput, "teamId"> = {},
+    filters: Omit<Prisma.CalIdMembershipWhereInput, "calIdTeamId"> = {},
     pagination: MembershipPaginationQuery = {}
   ) {
-    const where: Prisma.MembershipWhereInput = {
+    const where: Prisma.CalIdMembershipWhereInput = {
       ...filters,
-      teamId,
+      calIdTeamId: teamId,
     };
 
-    return this.executePaginatedQuery<Membership, Prisma.MembershipOrderByWithRelationInput>(
+    return this.executePaginatedQuery<CalIdMembership, Prisma.CalIdMembershipOrderByWithRelationInput>(
       pagination,
       (options) =>
-        this.prisma.membership.findMany({
+        this.prisma.calIdMembership.findMany({
           where,
           ...options,
           include: {
@@ -411,7 +418,7 @@ export class TeamRepository extends BaseRepository<Team> {
                 timeZone: true,
               },
             },
-            team: {
+            calIdTeam: {
               select: {
                 id: true,
                 name: true,
@@ -420,13 +427,13 @@ export class TeamRepository extends BaseRepository<Team> {
             },
           },
         }),
-      () => this.prisma.membership.count({ where })
+      () => this.prisma.calIdMembership.count({ where })
     );
   }
 
-  async updateMembership(id: number, data: Prisma.MembershipUpdateInput): Promise<Membership> {
+  async updateMembership(id: number, data: Prisma.CalIdMembershipUpdateInput): Promise<CalIdMembership> {
     try {
-      return await this.prisma.membership.update({
+      return await this.prisma.calIdMembership.update({
         where: { id },
         data,
         include: {
@@ -440,7 +447,7 @@ export class TeamRepository extends BaseRepository<Team> {
               timeZone: true,
             },
           },
-          team: {
+          calIdTeam: {
             select: {
               id: true,
               name: true,
@@ -456,7 +463,7 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async deleteMembership(id: number): Promise<void> {
     try {
-      await this.prisma.membership.delete({
+      await this.prisma.calIdMembership.delete({
         where: { id },
       });
     } catch (error) {
@@ -466,7 +473,7 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async membershipExists(id: number): Promise<boolean> {
     try {
-      const count = await this.prisma.membership.count({
+      const count = await this.prisma.calIdMembership.count({
         where: { id },
       });
       return count > 0;
@@ -475,7 +482,7 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  // Team Event Types methods
+  // CalIdTeam Event Types methods
   async findEventTypesByTeamId(
     teamId: number,
     filters: Omit<Prisma.EventTypeWhereInput, "teamId"> = {},
@@ -522,12 +529,12 @@ export class TeamRepository extends BaseRepository<Team> {
   private async checkUserTeamPermissions(
     userId: number,
     teamId: number,
-    allowedRoles: MembershipRole[]
+    allowedRoles: CalIdMembershipRole[]
   ): Promise<void> {
-    const membership = await this.prisma.membership.findFirst({
+    const membership = await this.prisma.calIdMembership.findFirst({
       where: {
         userId,
-        teamId,
+        calIdTeamId: teamId,
         role: {
           in: allowedRoles,
         },
@@ -539,12 +546,12 @@ export class TeamRepository extends BaseRepository<Team> {
     }
   }
 
-  async getUserMembershipInTeam(userId: number, teamId: number): Promise<Membership | null> {
+  async getUserMembershipInTeam(userId: number, teamId: number): Promise<CalIdMembership | null> {
     try {
-      return await this.prisma.membership.findFirst({
+      return await this.prisma.calIdMembership.findFirst({
         where: {
           userId,
-          teamId,
+          calIdTeamId: teamId,
         },
         include: {
           user: {
@@ -557,7 +564,7 @@ export class TeamRepository extends BaseRepository<Team> {
               timeZone: true,
             },
           },
-          team: {
+          calIdTeam: {
             select: {
               id: true,
               name: true,
@@ -573,8 +580,8 @@ export class TeamRepository extends BaseRepository<Team> {
 
   async getTeamSchedules(teamId: number): Promise<any[]> {
     try {
-      const memberships = await this.prisma.membership.findMany({
-        where: { teamId, accepted: true },
+      const memberships = await this.prisma.calIdMembership.findMany({
+        where: { calIdTeamId: teamId, acceptedInvitation: true },
         include: {
           user: {
             select: {

@@ -119,13 +119,13 @@ export async function teamRoutes(fastify: FastifyInstance): Promise<void> {
     async (request: AuthRequest, reply: FastifyReply) => {
       try {
         const queryParams = getTeamsQuerySchema.parse(request.query);
-        const { page, limit, orderBy, orderDir, name, slug, isPrivate } = queryParams;
+        const { page, limit, orderBy, orderDir, name, slug, isTeamPrivate } = queryParams;
         const userId = Number(request.user!.id);
 
         const filters: any = {};
         if (name) filters.name = name;
         if (slug) filters.slug = slug;
-        if (isPrivate !== undefined) filters.isPrivate = isPrivate;
+        if (isTeamPrivate !== undefined) filters.isTeamPrivate = isTeamPrivate;
 
         const result = await teamService.getTeams(userId, filters, {
           page,
@@ -548,12 +548,12 @@ export async function teamRoutes(fastify: FastifyInstance): Promise<void> {
       try {
         const { teamId } = teamIdParamSchema.parse(request.params);
         const queryParams = getTeamMembershipsQuerySchema.parse(request.query);
-        const { page, limit, orderBy, orderDir, role, accepted } = queryParams;
+        const { page, limit, orderBy, orderDir, role, acceptedInvitation } = queryParams;
         const userId = Number(request.user!.id);
 
         const filters: any = {};
         if (role) filters.role = role;
-        if (accepted !== undefined) filters.accepted = accepted;
+        if (acceptedInvitation !== undefined) filters.acceptedInvitation = acceptedInvitation;
 
         const result = await teamService.getTeamMemberships(userId, teamId, filters, {
           page,

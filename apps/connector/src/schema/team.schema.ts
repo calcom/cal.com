@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/client";
+import { CalIdMembershipRole } from "@calcom/prisma/client";
 
 // REQUEST SCHEMAS
 // Query schemas
@@ -14,16 +14,16 @@ export const getTeamsQuerySchema = z.object({
   orderDir: z.enum(["asc", "desc"]).default("desc"),
   name: z.string().optional(),
   slug: z.string().optional(),
-  isPrivate: z.coerce.boolean().optional(),
+  isTeamPrivate: z.coerce.boolean().optional(),
 });
 
 export const getTeamMembershipsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  orderBy: z.enum(["id", "role", "accepted", "createdAt"]).optional(),
+  orderBy: z.enum(["id", "role", "acceptedInvitation", "createdAt"]).optional(),
   orderDir: z.enum(["asc", "desc"]).default("desc"),
-  role: z.nativeEnum(MembershipRole).optional(),
-  accepted: z.coerce.boolean().optional(),
+  role: z.nativeEnum(CalIdMembershipRole).optional(),
+  acceptedInvitation: z.coerce.boolean().optional(),
 });
 
 // Body schemas
@@ -32,38 +32,33 @@ export const createTeamBodySchema = z.object({
   slug: z.string().min(1, "Slug is required").max(100, "Slug too long").optional(),
   bio: z.string().optional().nullable(),
   logoUrl: z.string().url().optional().nullable(),
-  appLogo: z.string().url().optional().nullable(),
-  appIconLogo: z.string().url().optional().nullable(),
-  calVideoLogo: z.string().url().optional().nullable(),
-  hideBranding: z.boolean().default(false),
+  hideTeamBranding: z.boolean().default(false),
   hideTeamProfileLink: z.boolean().default(false),
-  isPrivate: z.boolean().default(false),
+  isTeamPrivate: z.boolean().default(false),
   hideBookATeamMember: z.boolean().default(false),
   theme: z.string().optional().nullable(),
   brandColor: z.string().optional().nullable(),
   darkBrandColor: z.string().optional().nullable(),
-  bannerUrl: z.string().url().optional().nullable(),
   timeFormat: z.number().int().min(12).max(24).optional().nullable(),
-  timeZone: z.string().default("Europe/London"),
-  weekStart: z.string().default("Sunday"),
+  timeZone: z.string().default("Asia/Kolkata"),
+  weekStart: z.string().default("Monday"),
   metadata: z.any().optional().nullable(),
-  bookingLimits: z.any().optional().nullable(),
-  includeManagedEventsInLimits: z.boolean().default(false),
+  bookingFrequency: z.any().optional().nullable(),
 });
 
 export const updateTeamBodySchema = createTeamBodySchema.partial();
 
 export const createTeamMembershipBodySchema = z.object({
   userId: z.number().int().positive("User ID is required"),
-  role: z.nativeEnum(MembershipRole).default(MembershipRole.MEMBER),
-  accepted: z.boolean().default(false),
-  disableImpersonation: z.boolean().default(false),
+  role: z.nativeEnum(CalIdMembershipRole).default(CalIdMembershipRole.MEMBER),
+  acceptedInvitation: z.boolean().default(false),
+  impersonation: z.boolean().default(true),
 });
 
 export const updateTeamMembershipBodySchema = z.object({
-  role: z.nativeEnum(MembershipRole).optional(),
-  accepted: z.boolean().optional(),
-  disableImpersonation: z.boolean().optional(),
+  role: z.nativeEnum(CalIdMembershipRole).optional(),
+  acceptedInvitation: z.boolean().optional(),
+  impersonation: z.boolean().optional(),
 });
 
 // RESPONSE SCHEMAS
@@ -73,27 +68,20 @@ export const TeamResponseSchema = z.object({
   slug: z.string().nullable(),
   bio: z.string().nullable(),
   logoUrl: z.string().nullable(),
-  appLogo: z.string().nullable(),
-  appIconLogo: z.string().nullable(),
-  calVideoLogo: z.string().nullable(),
-  hideBranding: z.boolean(),
+  hideTeamBranding: z.boolean(),
   hideTeamProfileLink: z.boolean(),
-  isPrivate: z.boolean(),
+  isTeamPrivate: z.boolean(),
   hideBookATeamMember: z.boolean(),
   createdAt: z.date(),
+  updatedAt: z.date(),
   metadata: z.any().nullable(),
   theme: z.string().nullable(),
   brandColor: z.string().nullable(),
   darkBrandColor: z.string().nullable(),
-  bannerUrl: z.string().nullable(),
-  parentId: z.number().nullable(),
   timeFormat: z.number().nullable(),
   timeZone: z.string(),
   weekStart: z.string(),
-  isOrganization: z.boolean(),
-  isPlatform: z.boolean(),
-  bookingLimits: z.any().nullable(),
-  includeManagedEventsInLimits: z.boolean(),
+  bookingFrequency: z.any().nullable(),
   memberCount: z.number().optional(),
   eventTypeCount: z.number().optional(),
 });
@@ -102,9 +90,9 @@ export const MembershipResponseSchema = z.object({
   id: z.number(),
   teamId: z.number(),
   userId: z.number(),
-  accepted: z.boolean(),
-  role: z.string(),
-  disableImpersonation: z.boolean(),
+  acceptedInvitation: z.boolean(),
+  role: z.nativeEnum(CalIdMembershipRole),
+  impersonation: z.boolean(),
   createdAt: z.date().nullable(),
   updatedAt: z.date().nullable(),
   user: z
@@ -148,5 +136,5 @@ export type TeamResponse = z.infer<typeof TeamResponseSchema>;
 export type MembershipResponse = z.infer<typeof MembershipResponseSchema>;
 export type TeamScheduleResponse = z.infer<typeof TeamScheduleResponseSchema>;
 
-export type TeamPaginationQuery = PaginationQuery<Prisma.TeamOrderByWithRelationInput>;
-export type MembershipPaginationQuery = PaginationQuery<Prisma.MembershipOrderByWithRelationInput>;
+export type TeamPaginationQuery = PaginationQuery<Prisma.CalIdTeamOrderByWithRelationInput>;
+export type MembershipPaginationQuery = PaginationQuery<Prisma.CalIdMembershipOrderByWithRelationInput>;

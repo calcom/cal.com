@@ -7,7 +7,9 @@ import type {
   createTeamBodySchema,
   updateTeamBodySchema,
   createTeamMembershipBodySchema,
-  updateTeamMembershipBodySchema
+  updateTeamMembershipBodySchema,
+  TeamPaginationQuery,
+  MembershipPaginationQuery
 } from "@/schema/team.schema";
 import type { EventTypePaginationQuery, EventTypeResponse } from "@/schema/event-type.schema";
 import type { PaginationQuery } from "@/types";
@@ -15,8 +17,8 @@ import { ConflictError, UnauthorizedError } from "@/utils";
 import type { z } from "zod";
 
 import type { PrismaClient } from "@calcom/prisma/client";
-import type { Team, Membership, EventType, Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/client";
+import type { CalIdTeam, CalIdMembership, EventType, Prisma } from "@calcom/prisma/client";
+import { CalIdMembershipRole } from "@calcom/prisma/client";
 
 import { BaseService } from "../base.service";
 
@@ -50,8 +52,8 @@ export class TeamService extends BaseService {
 
   async getTeams(
     userId: number,
-    filters: Omit<Prisma.TeamWhereInput, 'members'> = {},
-    pagination: PaginationQuery<Prisma.TeamOrderByWithRelationInput> = {}
+    filters: Omit<Prisma.CalIdTeamWhereInput, 'members'> = {},
+    pagination: TeamPaginationQuery = {}
   ) {
     this.logOperation("getTeams", { userId, filters, pagination });
 
@@ -97,8 +99,8 @@ export class TeamService extends BaseService {
         members: {
           create: {
             userId,
-            role: MembershipRole.OWNER,
-            accepted: true,
+            role: CalIdMembershipRole.OWNER,
+            acceptedInvitation: true,
           }
         }
       });
@@ -122,7 +124,7 @@ export class TeamService extends BaseService {
        const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
       if (
         !userMembership ||
-        !([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role)
+        !([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role)
       ) {
         throw new UnauthorizedError("Insufficient permissions to update team");
       }
@@ -207,7 +209,7 @@ export class TeamService extends BaseService {
       const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
       if (
         !userMembership ||
-        !([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role)
+        !([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role)
       ) {
         throw new UnauthorizedError("Insufficient permissions to create team event type");
       }
@@ -246,7 +248,7 @@ export class TeamService extends BaseService {
        const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
       if (
         !userMembership ||
-        !([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role)
+        !([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role)
       ) {
         throw new UnauthorizedError("Insufficient permissions to update team event type");
       }
@@ -279,7 +281,7 @@ export class TeamService extends BaseService {
        const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
       if (
         !userMembership ||
-        !([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role)
+        !([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role)
       ) {
         throw new UnauthorizedError("Insufficient permissions to delete team event type");
       }
@@ -299,8 +301,8 @@ export class TeamService extends BaseService {
   async getTeamMemberships(
     userId: number,
     teamId: number,
-    filters: Omit<Prisma.MembershipWhereInput, 'teamId'> = {},
-    pagination: PaginationQuery<Prisma.MembershipOrderByWithRelationInput> = {}
+    filters: Omit<Prisma.CalIdMembershipWhereInput, 'calIdTeamId'> = {},
+    pagination: MembershipPaginationQuery = {}
   ) {
     this.logOperation("getTeamMemberships", { userId, teamId, filters, pagination });
 
@@ -330,7 +332,7 @@ export class TeamService extends BaseService {
       const membership = await this.teamRepository.findMembershipByIdOrThrow(membershipId);
 
       // Verify membership belongs to the team
-      if (membership.teamId !== teamId) {
+      if (membership.calIdTeamId !== teamId) {
         throw new ConflictError("Membership does not belong to this team");
       }
 
@@ -351,14 +353,14 @@ export class TeamService extends BaseService {
     try {
       // Check if user has admin/owner access to the team
       const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
-      if (!userMembership || !([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role)) {
+      if (!userMembership || !([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role)) {
         throw new UnauthorizedError("Insufficient permissions to add team members");
       }
 
       const { userId: userIdToBeAdded, ...rest } = input;
       const membership = await this.teamRepository.createMembership({
         ...rest,
-        team: {
+        calIdTeam: {
           connect: { id: teamId }
         },
         user: {
@@ -384,14 +386,14 @@ export class TeamService extends BaseService {
     try {
       // Check if user has admin/owner access to the team
       const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
-      if (!userMembership || !([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role)) {
+      if (!userMembership || !([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role)) {
         throw new UnauthorizedError("Insufficient permissions to update team membership");
       }
 
       const membership = await this.teamRepository.findMembershipByIdOrThrow(membershipId);
 
       // Verify membership belongs to the team
-      if (membership.teamId !== teamId) {
+      if (membership.calIdTeamId !== teamId) {
         throw new ConflictError("Membership does not belong to this team");
       }
 
@@ -410,14 +412,14 @@ export class TeamService extends BaseService {
       const membership = await this.teamRepository.findMembershipByIdOrThrow(membershipId);
 
       // Verify membership belongs to the team
-      if (membership.teamId !== teamId) {
+      if (membership.calIdTeamId !== teamId) {
         throw new ConflictError("Membership does not belong to this team");
       }
 
       // Check permissions: user can delete their own membership or admin/owner can delete others
       const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
       const canDelete = membership.userId === userId ||
-        (userMembership && ([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role));
+        (userMembership && ([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role));
 
       if (!canDelete) {
         throw new UnauthorizedError("Insufficient permissions to delete team membership");
@@ -437,7 +439,7 @@ export class TeamService extends BaseService {
     try {
       // Check if user has admin/owner access to the team
       const userMembership = await this.teamRepository.getUserMembershipInTeam(userId, teamId);
-      if (!userMembership || !([MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[]).includes(userMembership.role)) {
+      if (!userMembership || !([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(userMembership.role)) {
         throw new UnauthorizedError("Insufficient permissions to view team schedules");
       }
 
@@ -450,51 +452,44 @@ export class TeamService extends BaseService {
   }
 
   // Helper methods
-  private mapTeamToResponse(team: Team & any): TeamResponse {
+  private mapTeamToResponse(team: CalIdTeam & any): TeamResponse {
     return {
       id: team.id,
       name: team.name,
       slug: team.slug,
       bio: team.bio,
       logoUrl: team.logoUrl,
-      appLogo: team.appLogo,
-      appIconLogo: team.appIconLogo,
-      calVideoLogo: team.calVideoLogo,
-      hideBranding: team.hideBranding,
+      hideTeamBranding: team.hideTeamBranding,
       hideTeamProfileLink: team.hideTeamProfileLink,
-      isPrivate: team.isPrivate,
+      isTeamPrivate: team.isTeamPrivate,
       hideBookATeamMember: team.hideBookATeamMember,
       createdAt: team.createdAt,
+      updatedAt: team.updatedAt,
       metadata: team.metadata,
       theme: team.theme,
       brandColor: team.brandColor,
       darkBrandColor: team.darkBrandColor,
-      bannerUrl: team.bannerUrl,
-      parentId: team.parentId,
       timeFormat: team.timeFormat,
       timeZone: team.timeZone,
       weekStart: team.weekStart,
-      isOrganization: team.isOrganization,
-      isPlatform: team.isPlatform,
-      bookingLimits: team.bookingLimits,
-      includeManagedEventsInLimits: team.includeManagedEventsInLimits,
+      bookingFrequency: team.bookingFrequency,
       memberCount: team._count?.members || team.members?.length || 0,
       eventTypeCount: team._count?.eventTypes || team.eventTypes?.length || 0,
     };
   }
 
-  private mapMembershipToResponse(membership: Membership & any): MembershipResponse {
+  private mapMembershipToResponse(membership: CalIdMembership & any): MembershipResponse {
     return {
       id: membership.id,
-      teamId: membership.teamId,
+      teamId: membership.calIdTeamId,
       userId: membership.userId,
-      accepted: membership.accepted,
+      acceptedInvitation: membership.acceptedInvitation,
       role: membership.role,
-      disableImpersonation: membership.disableImpersonation,
+      impersonation: membership.impersonation,
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,
       user: membership.user,
-      team: membership.team,
+      team: membership.calIdTeam,
     };
   }
 
@@ -569,4 +564,5 @@ export class TeamService extends BaseService {
       restrictionScheduleId: eventType.restrictionScheduleId,
     };
   }
+
 }

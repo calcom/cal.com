@@ -1,5 +1,4 @@
 import { UserRepository } from "@/repositories/user.repository";
-import type { PaginationQuery } from "@/types";
 import { ConflictError, ValidationError } from "@/utils/error";
 import bcrypt from "bcryptjs";
 
@@ -9,7 +8,7 @@ import type { User, Prisma, UserPermissionRole } from "@calcom/prisma/client";
 import { BaseService } from "../base.service";
 import z from "zod";
 import zodToJsonSchema from 'zod-to-json-schema';
-import { UserResponse } from "@/schema/user.schema";
+import { UserPaginationQuery, UserResponse } from "@/schema/user.schema";
 
 export interface CreateUserInput {
   email: string;
@@ -93,7 +92,7 @@ export class UserService extends BaseService {
     }
   }
 
-  async getUsers(filters: Prisma.UserWhereInput = {}, pagination: PaginationQuery = {}) {
+  async getUsers(filters: Prisma.UserWhereInput = {}, pagination: UserPaginationQuery = {}) {
     this.logOperation("getUsers", { filters, pagination });
 
     try {

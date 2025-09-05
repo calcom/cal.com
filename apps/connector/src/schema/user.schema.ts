@@ -30,7 +30,7 @@ const updateUserBodySchema = createUserBodySchema.partial().extend({
   name: z.string().optional().nullable(),
   bio: z.string().optional().nullable(),
   avatarUrl: z.string().url().optional().nullable(),
-  hideBranding: z.boolean().optional(),
+  hideTeamBranding: z.boolean().optional(),
   trialEndsAt: z.date().optional(),
   allowDynamicBooking: z.boolean().optional().nullable(),
   allowSEOIndexing: z.boolean().optional().nullable(),
