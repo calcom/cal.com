@@ -141,7 +141,9 @@
     "@prisma/client@5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch"
   },
   "lint-staged": {
-    "(apps|packages)/**/*.{js,ts,jsx,tsx,json}": ["npx @biomejs/biome check --write --no-errors-on-unmatched"],
+    "(apps|packages)/**/*.{js,ts,jsx,tsx,json}": [
+      "npx @biomejs/biome check --write --no-errors-on-unmatched"
+    ],
     "packages/prisma/schema.prisma": ["prisma format"]
   },
   "engines": {

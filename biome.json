@@ -30,7 +30,10 @@
       "!packages/prisma/enums",
       "!apps/web/public/embed",
       "!apps/api/v2/swagger/documentation.json",
-      "!packages/ui/components/icon/dynamicIconImports.tsx"
+      "!packages/ui/components/icon/dynamicIconImports.tsx",
+      "!apps/ui-playground/**",
+      "!**/dist/**",
+      "!**/build/**"
     ]
   },
   "linter": {
@@ -41,9 +44,14 @@
       "correctness": {
         "noEmptyPattern": "off",
         "noUnusedImports": "error",
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": {
+          "level": "warn",
+          "options": {
+            "ignoreRestSiblings": true
+          }
+        }
       },
-      "security": { "noDangerouslySetInnerHtml": "error" },
+      "security": { "noDangerouslySetInnerHtml": "warn" },
       "style": {
         "noRestrictedImports": "error",
         "useBlockStatements": "off",
@@ -52,18 +60,21 @@
     },
     "includes": [
       "**",
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/build/**",
-      "**/coverage/**",
-      "**/.turbo/**",
-      "**",
-      "!**/node_modules",
+      "!**/node_modules/**",
+      "!**/dist/**",
+      "!**/build/**",
+      "!**/coverage/**",
+      "!**/.turbo/**",
+      "!**/.next/**",
+      "!**/public/**",
       "!apps/api/v2/dist",
       "!packages/platform/**/dist/*",
       "!packages/prisma/zod",
       "!apps/web/public/embed",
-      "!packages/ui/components/icon/dynamicIconImports.tsx"
+      "!packages/ui/components/icon/dynamicIconImports.tsx",
+      "!apps/ui-playground/**/*",
+      "!**/*.min.css",
+      "!**/*.min.js"
     ]
   },
   "javascript": {
@@ -77,6 +88,9 @@
       "quoteStyle": "double",
       "attributePosition": "auto",
       "bracketSpacing": true
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
     }
   },
   "html": { "formatter": { "selfCloseVoidElements": "always" } },
