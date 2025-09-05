@@ -452,7 +452,8 @@ export class UserAvailabilityService {
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
         finalTimezone,
-        initialData?.rescheduleUid ?? undefined
+        initialData?.rescheduleUid ?? undefined,
+        weekStart
       );
     }
 

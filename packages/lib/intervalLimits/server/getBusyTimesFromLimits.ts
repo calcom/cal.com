@@ -239,7 +239,8 @@ const _getBusyTimesFromTeamLimits = async (
   teamId: number,
   includeManagedEvents: boolean,
   timeZone: string,
-  rescheduleUid?: string
+  rescheduleUid?: string,
+  weekStart?: string
 ) => {
   const busyTimesService = getBusyTimesService();
   const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
@@ -266,7 +267,7 @@ const _getBusyTimesFromTeamLimits = async (
     userId,
   }));
 
-  const limitManager = new LimitManager();
+  const limitManager = new LimitManager(weekStart);
 
   await getBusyTimesFromBookingLimits({
     bookings: busyTimes,
@@ -279,6 +280,7 @@ const _getBusyTimesFromTeamLimits = async (
     user,
     includeManagedEvents,
     timeZone,
+    weekStart,
   });
 
   return limitManager.getBusyTimes();
