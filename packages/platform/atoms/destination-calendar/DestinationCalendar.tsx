@@ -4,6 +4,7 @@ import { Label } from "@calcom/ui/components/form";
 import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
 import { DestinationCalendarSelector } from "./DestinationCalendarSelector";
+import { DestinationReminderSelector } from "./DestinationReminderSelector";
 
 type DestinationHeaderClassnames = {
   container?: string;
@@ -20,6 +21,7 @@ export const DestinationCalendarSettings = (
   props: DestinationCalendarProps & { classNames?: string; classNamesObject?: DestinationCalendarClassNames }
 ) => {
   const { t } = useLocale();
+  const currentDestinationCalendar = props.destinationCalendar?.integration || "";
 
   return (
     <div
@@ -33,6 +35,12 @@ export const DestinationCalendarSettings = (
           <div>
             <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
             <DestinationCalendarSelector {...props} />
+            {currentDestinationCalendar && (
+              <>
+                <Label className="text-default mb-0 mt-5 font-medium">{t("reminder")}</Label>
+                <DestinationReminderSelector {...props} />
+              </>
+            )}
           </div>
         </div>
       </div>
