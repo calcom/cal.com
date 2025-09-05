@@ -25,7 +25,7 @@ export type AvatarProps = {
 };
 
 const avatarClasses = cva(
-  "bg-emphasis border-default relative inline-flex aspect-square items-center justify-center border align-top",
+  "bg-emphasis relative inline-flex aspect-square items-center justify-center align-top",
   {
     variants: {
       size: {

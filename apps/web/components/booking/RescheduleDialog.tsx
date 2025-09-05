@@ -1,20 +1,17 @@
-import React from "react";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
   DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/dialog";
+import React from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export function RescheduleDialog({link}: {link: string}) {
-  const { t } = useLocale();  
+export function RescheduleDialog({ link }: { link: string }) {
+  const { t } = useLocale();
 
   return (
     <Dialog>
@@ -26,23 +23,22 @@ export function RescheduleDialog({link}: {link: string}) {
 
       <DialogContent
         className="
-          bg-white rounded-lg shadow-xl
-          fixed 
-             w-[1200px] max-w-[90vw] max-h-[80vh] h-[800px] 
-          -translate-x-1/2 -translate-y-1/2
-          overflow-auto
-        "
-      >
+          fixed h-[800px] max-h-[80vh]
+          w-[1200px] 
+             max-w-[90vw] -translate-x-1/2 -translate-y-1/2 overflow-auto 
+          rounded-lg bg-white
+          shadow-xl
+        ">
         <DialogHeader>
-          <DialogTitle className="text-base font-semibold text-gray-900 mb-1">
-          { t("reschedule_booking") }
+          <DialogTitle className="mb-1 text-base font-semibold text-gray-900">
+            {t("reschedule_booking")}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="w-full h-[600px]">
+        <div className="h-[600px] w-full">
           <iframe
             src={link}
-            className="w-full h-full border rounded-md"
+            className="h-full w-full rounded-md border"
             title="Example Iframe"
             frameBorder="0"
             allowFullScreen

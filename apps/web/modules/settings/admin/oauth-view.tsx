@@ -2,7 +2,7 @@
 
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useState } from "react";
 import { useForm } from "react-hook-form";

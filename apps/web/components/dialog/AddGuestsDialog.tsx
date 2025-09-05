@@ -1,17 +1,13 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/features/ui/components/icon";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { z } from "zod";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { MultiEmail } from "@calcom/ui/components/address";
-import { Button, Input } from "@calid/features/ui";
-import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
-
-
-
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IAddGuestsDialog {
@@ -61,7 +57,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
       <DialogContent enableOverflow>
         <div className="flex flex-row space-x-3">
           <div className="w-full pt-1">
-            <DialogHeader title={t("additional_guests")} subtitle={t("additional_guests_sub")}/>
+            <DialogHeader title={t("additional_guests")} subtitle={t("additional_guests_sub")} />
             <div className="bg-default">
               <MultiEmail
                 label={t("add_emails")}
@@ -94,9 +90,11 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
             color="secondary">
             {t("cancel")}
           </Button>
-          <Button variant="destructive" data-testid="add_members" 
-          // loading={addGuestsMutation.isPending}
-          onClick={handleAdd}>
+          <Button
+            variant="destructive"
+            data-testid="add_members"
+            // loading={addGuestsMutation.isPending}
+            onClick={handleAdd}>
             {t("add")}
           </Button>
         </DialogFooter>

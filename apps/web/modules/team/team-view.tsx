@@ -1,10 +1,7 @@
 "use client";
 
-import { Icon } from "@calid/features/ui/components/icon/Icon";
-
-
-
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 // This route is reachable by
 // 1. /team/[slug]
 // 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)

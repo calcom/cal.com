@@ -1,5 +1,5 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 

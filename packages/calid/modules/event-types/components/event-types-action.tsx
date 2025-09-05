@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
   ButtonOrLink,
 } from "@calid/features/ui/components/dropdown-menu";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";

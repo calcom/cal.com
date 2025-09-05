@@ -1,4 +1,4 @@
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import {
   Tooltip,
@@ -162,7 +162,7 @@ export const buttonClasses = cva(
         ],
       },
       size: {
-        xs: "h-6 p-2 leading-none text-xs rounded-md",
+        xs: "h-2 p-2 leading-none text-xs rounded-md",
         sm: "h-7 px-2 py-1.5 leading-none text-sm" /** For backwards compatibility */,
         base: "px-2.5 py-2 text-sm leading-none",
         lg: "px-3 py-2.5 ",
@@ -210,7 +210,7 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "sm",
-        className: "h-6 w-6 !p-1 rounded-md",
+        className: "h-5 w-5 !p-1 rounded-md",
       },
       {
         variant: "icon",

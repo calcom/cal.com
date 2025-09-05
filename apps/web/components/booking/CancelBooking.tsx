@@ -1,9 +1,6 @@
 "use client";
 
-import { Icon } from "@calid/features/ui/components/icon/Icon";
-
-
-
+import { Icon } from "@calid/features/ui/components/icon";
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";

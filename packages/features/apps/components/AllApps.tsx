@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { useAutoAnimate } from "@formkit/auto-animate/react";

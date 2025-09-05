@@ -1,4 +1,4 @@
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { toast, type ExternalToast } from "sonner";
 
 const TOAST_VISIBLE_DURATION = 6000;

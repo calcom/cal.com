@@ -1,21 +1,17 @@
 "use client";
 
-// adjust import path
-import { Button } from "@calid/features/ui";
-import { Checkbox } from "@calid/features/ui";
-import { useToast } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
 import { useSession } from "next-auth/react";
-import React, { useState, useRef, useEffect, Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import React, { useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];

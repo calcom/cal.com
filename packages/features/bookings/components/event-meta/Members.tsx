@@ -1,4 +1,4 @@
-import { Avatar } from "@calid/features/ui";
+import { Avatar } from "@calid/features/ui/components/avatar";
 import { useEffect } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -9,7 +9,6 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { AvatarGroup } from "@calcom/ui/components/avatar";
 
 export interface EventMembersProps {
   /**

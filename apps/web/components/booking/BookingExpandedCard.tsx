@@ -1,8 +1,8 @@
 "use client";
 
-// adjust import path
-import { Button } from "@calid/features/ui";
-import { Checkbox } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Checkbox } from "@calid/features/ui/components/checkbox";
+import { Icon } from "@calid/features/ui/components/icon";
 import React, { useState, useRef, useEffect } from "react";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -10,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];

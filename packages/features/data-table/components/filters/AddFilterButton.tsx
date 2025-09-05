@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calid/features/ui/components/popover";
 import {
   TooltipProvider,
