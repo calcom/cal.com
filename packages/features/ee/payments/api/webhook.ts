@@ -53,6 +53,7 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
+  console.log("Stripe: Setup Success", safeStringify(setupIntent));
   const payment = await prisma.payment.findFirst({
     where: {
       externalId: setupIntent.id,
@@ -162,12 +163,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const payload = requestBuffer.toString();
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    console.log("Event received:", event);
 
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
-    if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
-      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
-    }
+    // if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
+    //   throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+    // }
 
     const handler = webhookHandlers[event.type];
     if (handler) {
