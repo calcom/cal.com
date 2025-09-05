@@ -55,7 +55,6 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import type { EventType } from "@calcom/lib/getUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import logger from "@calcom/lib/logger";
@@ -704,7 +703,7 @@ async function handler(
     location,
   });
 
-  const getWeekStartFromEventType = (eventType: EventType): string => {
+  const getWeekStartFromEventType = (eventType: getEventTypeResponse): string => {
     // For individual user events
     if (eventType.users && eventType.users.length > 0 && eventType.users[0].weekStart) {
       return eventType.users[0].weekStart;
