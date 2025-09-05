@@ -6,6 +6,7 @@ import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { shouldChargeNoShowCancellationFee } from "@calcom/lib/payment/shouldChargeNoShowCancellationFee";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
@@ -76,11 +77,12 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
-    startTime?: string;
-    payment?: Array<{
+    startTime: Date;
+    payment?: {
       amount: number;
       currency: string;
-    }>;
+      appId: string;
+    };
   };
   profile: {
     name: string | null;
@@ -129,40 +131,17 @@ export default function CancelBooking(props: Props) {
   const timeValue = eventTypeMetadata?.apps?.stripe?.autoChargeNoShowFeeTimeValue;
   const timeUnit = eventTypeMetadata?.apps?.stripe?.autoChargeNoShowFeeTimeUnit;
 
-  const shouldChargeCancellationFee = () => {
+  const autoChargeNoShowFee = () => {
     if (props.isHost) return false; // Hosts/organizers are exempt
 
-    const cancellationFeeEnabled = eventTypeMetadata?.apps?.stripe?.autoChargeNoShowFeeIfCancelled;
-    const paymentOption = eventTypeMetadata?.apps?.stripe?.paymentOption;
+    if (!booking?.startTime) return false;
 
-    if (!cancellationFeeEnabled || paymentOption !== "HOLD" || !booking?.startTime) {
-      return false;
-    }
+    if (!booking?.payment) return false;
 
-    if (!timeValue || !timeUnit) {
-      return false;
-    }
-
-    const now = new Date();
-    const startTime = new Date(booking.startTime);
-    const threshold = new Date(startTime);
-
-    switch (timeUnit) {
-      case "minutes":
-        threshold.setMinutes(threshold.getMinutes() - timeValue);
-        break;
-      case "hours":
-        threshold.setHours(threshold.getHours() - timeValue);
-        break;
-      case "days":
-        threshold.setDate(threshold.getDate() - timeValue);
-        break;
-    }
-
-    return now >= threshold;
+    return shouldChargeNoShowCancellationFee({ eventTypeMetadata, booking, payment: booking.payment });
   };
 
-  const cancellationNoShowFeeWarning = shouldChargeCancellationFee();
+  const cancellationNoShowFeeWarning = autoChargeNoShowFee();
 
   const hostMissingCancellationReason =
     props.isHost &&
