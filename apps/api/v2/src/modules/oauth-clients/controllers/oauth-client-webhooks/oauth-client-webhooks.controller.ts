@@ -21,8 +21,8 @@ import { Webhook } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { MembershipRole } from "@calcom/platform-libraries";
 import { SkipTakePagination } from "@calcom/platform-types";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { OAuthClientGuard } from "../../guards/oauth-client-guard";
 
