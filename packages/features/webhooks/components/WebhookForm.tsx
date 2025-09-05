@@ -91,7 +91,7 @@ function getWebhookVariables(t: (key: string) => string) {
           description: t("webhook_created_at"),
         },
         { name: "type", variable: "{{type}}", type: "String", description: t("webhook_type") },
-        { name: "title", variable: "{{title}}", type: "String", description: t("webhook_title") },
+        { name: "title", variable: "{{title}}", type: "String", description: t("event_name_info") },
         {
           name: "startTime",
           variable: "{{startTime}}",
@@ -127,7 +127,7 @@ function getWebhookVariables(t: (key: string) => string) {
           name: "cancellationReason",
           variable: "{{cancellationReason}}",
           type: "String",
-          description: t("webhook_cancellation_reason"),
+          description: t("webhook_cancellation_host"),
         },
         {
           name: "rejectionReason",
@@ -191,7 +191,7 @@ function getWebhookVariables(t: (key: string) => string) {
       ],
     },
     {
-      category: t("webhook_teams"),
+      category: t("teams"),
       variables: [
         {
           name: "team.name",
