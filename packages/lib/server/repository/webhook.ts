@@ -1,3 +1,4 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -179,5 +180,123 @@ export class WebhookRepository {
         timeUnit: true,
       },
     });
+  }
+
+  static async getFilteredWebhooksForUser({
+    userId,
+    userRole,
+  }: {
+    userId: number;
+    userRole?: UserPermissionRole;
+  }) {
+    // Get teams with webhook permissions in parallel
+    const permissionService = new PermissionCheckService();
+    const [teamsWithReadPermission, teamsWithUpdatePermission, teamsWithDeletePermission] = await Promise.all(
+      [
+        permissionService.getTeamIdsWithPermission(userId, "webhook.read"),
+        permissionService.getTeamIdsWithPermission(userId, "webhook.update"),
+        permissionService.getTeamIdsWithPermission(userId, "webhook.delete"),
+      ]
+    );
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatarUrl: true,
+        webhooks: true,
+        teams: {
+          where: {
+            accepted: true,
+            teamId: {
+              in: teamsWithReadPermission.length > 0 ? teamsWithReadPermission : undefined,
+            },
+          },
+          select: {
+            role: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logoUrl: true,
+                webhooks: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Build webhook groups with proper permissions
+    const webhookGroups: WebhookGroup[] = [];
+
+    // Add user's personal webhooks
+    webhookGroups.push({
+      teamId: null,
+      profile: {
+        slug: user.username,
+        name: user.name,
+        image: getUserAvatarUrl({ avatarUrl: user.avatarUrl }),
+      },
+      webhooks: user.webhooks.filter(filterWebhooks),
+      metadata: {
+        readOnly: false,
+      },
+    });
+
+    // Add team webhooks with permission checks
+    user.teams.forEach((membership) => {
+      const canUpdate = teamsWithUpdatePermission.includes(membership.team.id);
+      const canDelete = teamsWithDeletePermission.includes(membership.team.id);
+
+      webhookGroups.push({
+        teamId: membership.team.id,
+        profile: {
+          name: membership.team.name,
+          slug: membership.team.slug || null,
+          image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
+        },
+        webhooks: membership.team.webhooks.filter(filterWebhooks),
+        metadata: {
+          readOnly: !canUpdate && !canDelete,
+        },
+      });
+    });
+
+    // Add platform webhooks for admins
+    if (userRole === "ADMIN") {
+      const platformWebhooks = await prisma.webhook.findMany({
+        where: { platform: true },
+      });
+
+      webhookGroups.push({
+        teamId: null,
+        profile: {
+          slug: "Platform",
+          name: "Platform",
+          image: getPlaceholderAvatar(null, "Platform"),
+        },
+        webhooks: platformWebhooks,
+        metadata: {
+          readOnly: false,
+        },
+      });
+    }
+
+    return {
+      webhookGroups: webhookGroups.filter((group) => group.webhooks.length > 0),
+      profiles: webhookGroups.map((group) => ({
+        teamId: group.teamId,
+        ...group.profile,
+        ...group.metadata,
+      })),
+    };
   }
 }
