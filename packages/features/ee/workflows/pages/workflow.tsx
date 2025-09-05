@@ -5,8 +5,8 @@ import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Toaster } from "sonner";
 
-import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -16,8 +16,6 @@ import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Toaster } from "sonner";
-import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -25,6 +23,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Form, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { DeleteDialog } from "../components/DeleteDialog";
@@ -33,7 +32,6 @@ import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { isSMSAction, isSMSOrWhatsappAction, isCalAIAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export type FormValues = {
   name: string;
@@ -137,7 +135,8 @@ function WorkflowPage({
     return w !== null && w !== undefined && "permissions" in w;
   };
 
-  const hasPermissionToUpdate = workflow && hasPermissions(workflow) ? workflow.permissions?.canUpdate : false;
+  const hasPermissionToUpdate =
+    workflow && hasPermissions(workflow) ? workflow.permissions?.canUpdate : false;
 
   const isMember =
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
@@ -197,7 +196,7 @@ function WorkflowPage({
         setFormData(workflowWithDefaults);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
 
   // Update nameValue when workflow changes
@@ -237,9 +236,9 @@ function WorkflowPage({
           );
           activeOn = workflowData.activeOn
             ? workflowData.activeOn.map((active) => ({
-              value: active.eventType.id.toString(),
-              label: active.eventType.slug,
-            }))
+                value: active.eventType.id.toString(),
+                label: active.eventType.slug,
+              }))
             : undefined;
         }
       }
@@ -403,7 +402,7 @@ function WorkflowPage({
           await validateAndSubmitWorkflow(values);
         }}>
         <div className="flex h-full min-h-screen w-full flex-col">
-          <div className="bg-default border-b border-muted flex w-full items-center justify-between py-2 px-4">
+          <div className="bg-default border-muted flex w-full items-center justify-between border-b px-4 py-2">
             <div className="border-muted flex items-center gap-2">
               <Button
                 color="secondary"
@@ -411,7 +410,7 @@ function WorkflowPage({
                 variant="icon"
                 StartIcon="arrow-left"
                 href="/workflows"
-                data-testid="back-button"
+                data-testid="go-back-button"
               />
               <div className="flex min-w-0 items-center leading-none">
                 <span className="text-subtle min-w-content text-sm font-semibold leading-none">
@@ -421,6 +420,7 @@ function WorkflowPage({
                 {isEditingName ? (
                   <Input
                     {...form.register("name")}
+                    data-testid="workflow-name"
                     onChange={handleNameChange}
                     onKeyDown={handleNameKeyDown}
                     onBlur={handleNameSubmit}
@@ -437,6 +437,8 @@ function WorkflowPage({
                     <Button
                       variant="icon"
                       color="minimal"
+                      data-testid="edit-workflow-name-button"
+                      disabled={isPending}
                       onClick={() => setIsEditingName(true)}
                       CustomStartIcon={
                         <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
@@ -458,14 +460,15 @@ function WorkflowPage({
               )}
             </div>
 
-            <div className="border-muted justify-end gap-2 flex">
+            <div className="border-muted flex justify-end gap-2">
               <Tooltip sideOffset={4} content={t("delete")} side="bottom">
                 <Button
                   color="destructive"
                   type="button"
                   StartIcon="trash-2"
+                  data-testid="delete-button"
                   onClick={() => {
-                    setDeleteDialogOpen(true)
+                    setDeleteDialogOpen(true);
                   }}
                   disabled={readOnly}
                 />
@@ -473,13 +476,14 @@ function WorkflowPage({
               <Button
                 loading={updateMutation.isPending}
                 disabled={readOnly || updateMutation.isPending}
+                data-testid="save-workflow"
                 type="submit"
                 color="primary">
                 {t("save")}
               </Button>
             </div>
           </div>
-          <div className="w-full min-h-screen bg-default px-2 sm:p-0">
+          <div className="bg-default min-h-screen w-full px-2 sm:p-0">
             <div className="mx-auto my-8 max-w-4xl ">
               {!isError ? (
                 <>
@@ -518,7 +522,7 @@ function WorkflowPage({
           window.location.href = "/workflows";
         }}
       />
-    <Toaster position="bottom-right" />
+      <Toaster position="bottom-right" />
     </LicenseRequired>
   ) : (
     <></>

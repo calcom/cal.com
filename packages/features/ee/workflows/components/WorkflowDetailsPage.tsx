@@ -8,17 +8,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { trpc } from "@calcom/trpc/react";
 
 import { isCalAIAction, isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
-import { createUseQueries } from "@calcom/trpc/react/shared";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -36,20 +35,11 @@ interface Props {
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const {
-    form,
-    workflowId,
-    selectedOptions,
-    setSelectedOptions,
-    teamId,
-    isOrg,
-    allOptions,
-  } = props;
+  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
   const { t } = useLocale();
-  createUseQueries
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
-  const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false)
+  const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
 
   const [reload, setReload] = useState(false);
 
@@ -79,8 +69,8 @@ export default function WorkflowDetailsPage(props: Props) {
     const id =
       steps?.length > 0
         ? steps.sort((a, b) => {
-          return a.id - b.id;
-        })[0].id - 1
+            return a.id - b.id;
+          })[0].id - 1
         : 0;
 
     const step = {
@@ -89,8 +79,8 @@ export default function WorkflowDetailsPage(props: Props) {
       stepNumber:
         steps && steps.length > 0
           ? steps.sort((a, b) => {
-            return a.stepNumber - b.stepNumber;
-          })[steps.length - 1].stepNumber + 1
+              return a.stepNumber - b.stepNumber;
+            })[steps.length - 1].stepNumber + 1
           : 1,
       sendTo: sendTo || null,
       workflowId: workflowId,
@@ -114,10 +104,7 @@ export default function WorkflowDetailsPage(props: Props) {
       const watchedAgentId = form.watch(`steps.${index}.agentId`);
       const agentId = step?.agentId ?? watchedAgentId ?? null;
 
-      return t.viewer.aiVoiceAgent.get(
-        { id: agentId ?? "" },
-        { enabled: !!agentId }
-      );
+      return t.viewer.aiVoiceAgent.get({ id: agentId ?? "" }, { enabled: !!agentId });
     })
   );
 
@@ -127,13 +114,14 @@ export default function WorkflowDetailsPage(props: Props) {
         <FormCard
           className="border-muted mb-0"
           collapsible={false}
-          label={(
-            <div className="flex items-center gap-2 pt-1 pb-2">
-              <div className="rounded-lg ml-1 border border-subtle p-1 text-subtle">
+          label={
+            <div className="flex items-center gap-2 pb-2 pt-1">
+              <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
                 <Icon name="zap" size="16" />
               </div>
-              <div className="text-sm leading-none font-medium">{t("trigger")}</div>
-            </div>)}>
+              <div className="text-sm font-medium leading-none">{t("trigger")}</div>
+            </div>
+          }>
           <FormCardBody className="border-muted">
             <WorkflowStepContainer
               form={form}
@@ -149,7 +137,7 @@ export default function WorkflowDetailsPage(props: Props) {
           </FormCardBody>
         </FormCard>
 
-        <div className="w-2 border-l h-3 ml-7 !mt-0"></div>
+        <div className="!mt-0 ml-7 h-3 w-2 border-l" />
         {form.getValues("steps") && (
           <div className="">
             {form.getValues("steps")?.map((step, index) => {
@@ -162,42 +150,43 @@ export default function WorkflowDetailsPage(props: Props) {
                     key={step.id}
                     className="bg-muted border-muted mb-0"
                     collapsible={false}
-                    label={(
-                      <div className="flex items-center gap-2 pt-1 pb-2">
-                        <div className="rounded-lg border border-subtle p-1 text-subtle">
+                    label={
+                      <div className="flex items-center gap-2 pb-2 pt-1">
+                        <div className="border-subtle text-subtle rounded-lg border p-1">
                           <Icon name="arrow-right" size="16" />
                         </div>
-                        <div className="text-sm leading-none font-medium">{t("action")}</div>
-                      </div>)}
+                        <div className="text-sm font-medium leading-none">{t("action")}</div>
+                      </div>
+                    }
                     deleteField={
                       !props.readOnly && (form.getValues("steps")?.length || 0) > 1
                         ? {
-                          check: () => true,
-                          fn: () => {
-                            if (
-                              isCalAIAction(step.action) &&
-                              agentData?.outboundPhoneNumbers &&
-                              agentData.outboundPhoneNumbers.length > 0
-                            ) {
-                              setIsDeleteStepDialogOpen(true)
-                            } else {
-                              const steps = form.getValues("steps");
-                              const updatedSteps = steps
-                                ?.filter((currStep) => currStep.id !== step.id)
-                                .map((s) => {
-                                  const updatedStep = s;
-                                  if (step.stepNumber < updatedStep.stepNumber) {
-                                    updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                                  }
-                                  return updatedStep;
-                                });
-                              form.setValue("steps", updatedSteps);
-                              if (setReload) {
-                                setReload(!reload);
+                            check: () => true,
+                            fn: () => {
+                              if (
+                                isCalAIAction(step.action) &&
+                                agentData?.outboundPhoneNumbers &&
+                                agentData.outboundPhoneNumbers.length > 0
+                              ) {
+                                setIsDeleteStepDialogOpen(true);
+                              } else {
+                                const steps = form.getValues("steps");
+                                const updatedSteps = steps
+                                  ?.filter((currStep) => currStep.id !== step.id)
+                                  .map((s) => {
+                                    const updatedStep = s;
+                                    if (step.stepNumber < updatedStep.stepNumber) {
+                                      updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                    }
+                                    return updatedStep;
+                                  });
+                                form.setValue("steps", updatedSteps);
+                                if (setReload) {
+                                  setReload(!reload);
+                                }
                               }
-                            }
-                          },
-                        }
+                            },
+                          }
                         : null
                     }>
                     <FormCardBody className="border-muted">
@@ -218,7 +207,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     </FormCardBody>
                   </FormCard>
                   {index !== form.getValues("steps").length - 1 && (
-                    <div className="w-2 border-l h-3 ml-7 !mt-0 border-default"></div>
+                    <div className="border-default !mt-0 ml-7 h-3 w-2 border-l" />
                   )}
                 </div>
               );
@@ -227,7 +216,7 @@ export default function WorkflowDetailsPage(props: Props) {
         )}
         {!props.readOnly && (
           <>
-            <div className="w-2 border-l h-3 ml-7 !mt-0 border-default"></div>
+            <div className="border-default !mt-0 ml-7 h-3 w-2 border-l" />
             <Button
               type="button"
               onClick={() => setIsAddActionDialogOpen(true)}
