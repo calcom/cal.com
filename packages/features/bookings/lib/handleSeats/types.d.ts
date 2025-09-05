@@ -20,7 +20,7 @@ export type Invitee = {
     translate: TFunction;
     locale: string;
   };
-}[];
+};
 
 export type NewSeatedBookingObject = {
   rescheduleUid: string | undefined;
