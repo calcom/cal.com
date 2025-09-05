@@ -24,7 +24,7 @@ const googleCalendarMetadata = {
 };
 
 const googleMeetMetadata = {
-  type: "googlevideo",
+  type: "google_video",
   slug: "google-meet",
 };
 
