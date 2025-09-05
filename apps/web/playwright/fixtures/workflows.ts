@@ -47,7 +47,7 @@ export function createWorkflowPageFixture(page: Page) {
   const saveWorkflow = async () => {
     const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
     const saveButton = await page.getByTestId("save-workflow");
-    saveButton.click();
+    await saveButton.click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
     const responseData = await response.json();
