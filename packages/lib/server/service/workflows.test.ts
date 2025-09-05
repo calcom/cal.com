@@ -9,9 +9,15 @@ import { WorkflowService } from "./workflows";
 
 vi.mock("../../../features/ee/workflows/lib/reminders/reminderScheduler");
 vi.mock("@calcom/features/tasker");
+vi.mock("../../hideBranding");
 
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockTasker = vi.mocked(tasker);
+
+// Mock the getHideBranding function to return false
+vi.mock("../../hideBranding", () => ({
+  getHideBranding: vi.fn().mockResolvedValue(false),
+}));
 
 describe("WorkflowService.scheduleFormWorkflows", () => {
   beforeEach(() => {

@@ -1052,19 +1052,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange={(val) => {
                             if (val) {
                               const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+                              const value = val.value as WorkflowTemplates;
 
                               const template = getTemplateBodyForAction({
                                 action,
                                 locale: i18n.language,
                                 t,
-                                template: val.value ?? WorkflowTemplates.REMINDER,
+                                template: value ?? WorkflowTemplates.REMINDER,
                                 timeFormat,
                               });
 
                               form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
 
                               if (shouldScheduleEmailReminder(action)) {
-                                if (val.value === WorkflowTemplates.REMINDER) {
+                                if (value === WorkflowTemplates.REMINDER) {
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.emailSubject`,
                                     emailReminderTemplate({
@@ -1075,7 +1076,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                       timeFormat,
                                     }).emailSubject
                                   );
-                                } else if (val.value === WorkflowTemplates.RATING) {
+                                } else if (value === WorkflowTemplates.RATING) {
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.emailSubject`,
                                     emailRatingTemplate({
@@ -1088,8 +1089,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   );
                                 }
                               }
-                              field.onChange(val.value);
-                              form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
+                              field.onChange(value);
+                              form.setValue(`steps.${step.stepNumber - 1}.template`, value);
                               setUpdateTemplate(!updateTemplate);
                             }
                           }}
