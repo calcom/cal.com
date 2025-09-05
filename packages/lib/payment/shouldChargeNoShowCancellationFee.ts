@@ -1,24 +1,37 @@
+import type { z } from "zod";
+
+import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+
 export const shouldChargeNoShowCancellationFee = ({
   eventTypeMetadata,
   booking,
   payment,
 }: {
-  eventTypeMetadata: any;
+  eventTypeMetadata: z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>;
   booking: {
     startTime: Date;
   };
   payment: {
-    appId: string;
+    appId?: string | null;
   };
 }) => {
-  const paymentAppId = payment.appId;
-  console.log("paymentAppId", paymentAppId);
+  const paymentAppId = payment?.appId;
 
-  const cancellationFeeEnabled = eventTypeMetadata?.apps?.[paymentAppId]?.autoChargeNoShowFeeIfCancelled;
-  console.log("cancellationFeeEnabled", cancellationFeeEnabled);
-  const paymentOption = eventTypeMetadata?.apps?.[paymentAppId]?.paymentOption;
-  const timeValue = eventTypeMetadata?.apps?.[paymentAppId]?.autoChargeNoShowFeeTimeValue;
-  const timeUnit = eventTypeMetadata?.apps?.[paymentAppId]?.autoChargeNoShowFeeTimeUnit;
+  if (typeof paymentAppId !== "string") {
+    return false;
+  }
+
+  const cancellationFeeEnabled =
+    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]
+      ?.autoChargeNoShowFeeIfCancelled;
+  const paymentOption =
+    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]?.paymentOption;
+  const timeValue =
+    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]
+      ?.autoChargeNoShowFeeTimeValue;
+  const timeUnit =
+    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]
+      ?.autoChargeNoShowFeeTimeUnit;
 
   if (!cancellationFeeEnabled || paymentOption !== "HOLD" || !booking?.startTime) {
     return false;
