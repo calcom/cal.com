@@ -18,12 +18,12 @@ export function getRecentImpersonations(): RecentImpersonation[] {
   }
 }
 
-export function addRecentImpersonation(username: string): void {
+export function addRecentImpersonation(usernameRaw: string): void {
   try {
     const recent = getRecentImpersonations();
-
+    const username = usernameRaw.trim().toLowerCase();
+    if (!username) return;
     const filtered = recent.filter((item) => item.username !== username);
-
     const updated = [{ username, timestamp: Date.now() }, ...filtered].slice(0, MAX_RECENT);
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
