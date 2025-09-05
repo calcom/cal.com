@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "Bitte beachten Sie beim Testen dieses Workflows, dass E-Mails und SMS spätestens 1 Stunde im Voraus geplant werden können",
   "insights_no_data_found_for_filter": "Keine Daten für den ausgewählten Filter oder das ausgewählte Datum gefunden.",
   "acknowledge_booking_no_show_fee": "Ich bestätige, dass meiner Karte eine Gebühr von {{amount, currency}} berechnet wird, sofern ich nicht an diesem Ereignis teilnehme.",
+  "days": "Tage",
   "card_details": "Karteninformationen",
   "something_went_wrong_on_our_end": "Bei uns ist etwas schiefgelaufen. Kontaktiere unseren Support und wir werden das Problem umgehend für dich beheben.",
   "please_provide_following_text_to_suppport": "Bitte geben Sie den folgenden Text an, wenn Sie den Support kontaktieren, damit wir Ihnen besser helfen können",
@@ -3602,5 +3603,9 @@
   "search_variables": "Variablen durchsuchen",
   "no_variables_found": "Keine Variablen gefunden",
   "api_key_name_too_long": "Der Name darf {{max}} Zeichen nicht überschreiten",
+  "auto_charge_for_last_minute_cancellation": "Automatische Berechnung der Ausfallgebühr für kurzfristige Stornierungen",
+  "before_scheduled_start_time": "Vor dem geplanten Startzeitpunkt",
+  "cancel_booking_acknowledge_no_show_fee": "Ich bestätige, dass mir bei einer Stornierung innerhalb von {{timeValue}} {{timeUnit}} vor dem Startzeitpunkt die Ausfallgebühr von {{amount, currency}} berechnet wird",
+  "contact_organizer": "Bei Fragen wenden Sie sich bitte an den Organisator.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
