@@ -1,3 +1,8 @@
+import { randomBytes } from "crypto";
+import { NextResponse } from "next/server";
+
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const sameSiteParam = url.searchParams.get("sameSite");
