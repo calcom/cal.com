@@ -38,6 +38,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const requirePayment = getAppData("enabled");
+  const getSelectedOption = () =>
+    options.find((opt) => opt.value === (getAppData("refundCountCalendarDays") === true ? 1 : 0));
   const autoChargeNoShowFeeIfCancelled = getAppData("autoChargeNoShowFeeIfCancelled");
   const autoChargeNoShowFeeTimeUnit = getAppData("autoChargeNoShowFeeTimeUnit");
   const autoChargeNoShowFeeTimeValue = getAppData("autoChargeNoShowFeeTimeValue");
@@ -71,6 +73,10 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     }
   }, [requirePayment, getAppData, setAppData]);
 
+  const options = [
+    { value: 0, label: t("business_days") },
+    { value: 1, label: t("calendar_days") },
+  ];
   const autoChangeTimeUnitOptions = [
     { value: autoChargeNoShowFeeTimeUnitEnum.enum.minutes, label: t("minutes") },
     { value: autoChargeNoShowFeeTimeUnitEnum.enum.hours, label: t("hours") },
@@ -155,11 +161,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               isDisabled={seatsEnabled || disabled}
             />
           </div>
-
           {seatsEnabled && paymentOption === "HOLD" && (
             <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
           )}
-
           {paymentOption !== "HOLD" && (
             <div className="mt-4 w-full">
               <label className="text-default mb-1 block text-sm font-medium">{t("refund_policy")}</label>
@@ -186,12 +190,34 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                   </RadioGroup.Item>
                   <div className="flex items-center">
                     <span className="me-2 ms-2">&nbsp;{t("if_cancelled")}</span>
+                    <TextField
+                      labelSrOnly
+                      type="number"
+                      className={classNames(
+                        "border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                      )}
+                      placeholder="2"
+                      disabled={disabled}
+                      min={0}
+                      defaultValue={getAppData("refundDaysCount")}
+                      required={getAppData("refundPolicy") === RefundPolicy.DAYS}
+                      value={getAppData("refundDaysCount") ?? ""}
+                      onChange={(e) => setAppData("refundDaysCount", parseInt(e.currentTarget.value))}
+                    />
+                    <Select
+                      options={options}
+                      isSearchable={false}
+                      isDisabled={disabled}
+                      onChange={(option) => setAppData("refundCountCalendarDays", option?.value === 1)}
+                      value={getSelectedOption()}
+                      defaultValue={getSelectedOption()}
+                    />
+                    <span className="me-2 ms-2">&nbsp;{t("before")}</span>
                   </div>
                 </div>
               </RadioGroup.Root>
             </div>
           )}
-
           {paymentOption === "HOLD" && (
             <div className="mt-4">
               <div>
