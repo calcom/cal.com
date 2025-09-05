@@ -1,7 +1,15 @@
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
+import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
+import { emailRegex, emailSchema as emailRegexSchema } from "@calcom/lib/emailSchema";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
+import { slugify } from "@calcom/lib/slugify";
+import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
-import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
   objectInputType,
@@ -11,16 +19,7 @@ import type {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
-
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
-import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
-import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
-import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
-import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
-import { slugify } from "@calcom/lib/slugify";
-import { EventTypeCustomInputType } from "@calcom/prisma/enums";
+import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -255,9 +254,14 @@ export const stringOrNumber = z.union([
 
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
-  z.string().trim().min(1),
+  z
+    .string()
+    .trim()
+    .min(1),
   // boolean must be true if set.
-  z.boolean().refine((v) => v === true),
+  z
+    .boolean()
+    .refine((v) => v === true),
 ]);
 
 const PlatformClientParamsSchema = z.object({
@@ -539,7 +543,7 @@ export function denullishShape<
   UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<T, Catchall>,
-  Input = objectInputType<T, Catchall>
+  Input = objectInputType<T, Catchall>,
 >(
   obj: ZodObject<T, UnknownKeys, Catchall, Output, Input>
 ): ZodObject<ZodDenullishShape<T>, UnknownKeys, Catchall> {
@@ -590,7 +594,7 @@ type FromEntries<T> = T extends [infer Keys, unknown][]
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/fromEntries.ts
  */
 export const fromEntries = <
-  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>
+  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>,
 >(
   entries: E
 ): FromEntries<DeepWriteable<E>> => {

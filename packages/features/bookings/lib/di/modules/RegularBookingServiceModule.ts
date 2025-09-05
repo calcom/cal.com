@@ -1,6 +1,3 @@
-import type { Container } from "@evyweb/ioctopus";
-import { createModule } from "@evyweb/ioctopus";
-
 import { bookingRepositoryModule } from "@calcom/lib/di/modules/Booking";
 import { cacheModule } from "@calcom/lib/di/modules/Cache";
 import { checkBookingAndDurationLimitsModule } from "@calcom/lib/di/modules/CheckBookingAndDurationLimits";
@@ -8,6 +5,8 @@ import { checkBookingLimitsModule } from "@calcom/lib/di/modules/CheckBookingLim
 import { featuresRepositoryModule } from "@calcom/lib/di/modules/Features";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
+import type { Container } from "@evyweb/ioctopus";
+import { createModule } from "@evyweb/ioctopus";
 
 import { RegularBookingService } from "../../handleNewBooking";
 

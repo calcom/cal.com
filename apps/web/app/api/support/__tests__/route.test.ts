@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "../route";
 

@@ -50,7 +50,8 @@ const ApiKeyListItem = ({
       className={classNames(
         "flex w-full justify-between px-4 py-4 sm:px-6",
         lastItem ? "" : "border-subtle border-b"
-      )}>
+      )}
+    >
       <div>
         <div className="flex gap-1">
           <p className="text-sm font-semibold"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
@@ -89,7 +90,8 @@ const ApiKeyListItem = ({
                     id: apiKey.id,
                   })
                 }
-                StartIcon="trash">
+                StartIcon="trash"
+              >
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

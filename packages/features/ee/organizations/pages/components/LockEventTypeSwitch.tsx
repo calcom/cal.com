@@ -1,17 +1,15 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { Form, SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",
@@ -91,7 +89,8 @@ export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
               );
               setShowModal(false);
             }
-          }}>
+          }}
+        >
           <DialogContent enableOverflow>
             <Form form={formMethods} handleSubmit={onSubmit}>
               <div className="flex flex-row space-x-3">
@@ -102,18 +101,21 @@ export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
                     onValueChange={(val: CurrentEventTypeOptions) => {
                       formMethods.setValue("currentEventTypeOptions", val);
                     }}
-                    className={classNames("min-h-24 mt-1 flex flex-col gap-4")}>
+                    className={classNames("min-h-24 mt-1 flex flex-col gap-4")}
+                  >
                     <RadioArea.Item
                       checked={currentLockedOption === CurrentEventTypeOptions.HIDE}
                       value={CurrentEventTypeOptions.HIDE}
-                      className={classNames("h-full text-sm")}>
+                      className={classNames("h-full text-sm")}
+                    >
                       <strong className="mb-1 block">{t("hide_org_eventtypes")}</strong>
                       <p>{t("org_hide_event_types_org_admin")}</p>
                     </RadioArea.Item>
                     <RadioArea.Item
                       checked={currentLockedOption === CurrentEventTypeOptions.DELETE}
                       value={CurrentEventTypeOptions.DELETE}
-                      className={classNames("[&:has(input:checked)]:border-error h-full text-sm")}>
+                      className={classNames("[&:has(input:checked)]:border-error h-full text-sm")}
+                    >
                       <strong className="mb-1 block">{t("delete_org_eventtypes")}</strong>
                       <p>{t("org_delete_event_types_org_admin")}</p>
                     </RadioArea.Item>

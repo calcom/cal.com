@@ -1,7 +1,3 @@
-import { stringify } from "querystring";
-import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
-
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -9,12 +5,15 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import { stringify } from "querystring";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { invalidateCredential } from "../../_utils/invalidateCredential";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import config from "../config.json";
 import { appKeysSchema } from "../zod";

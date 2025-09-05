@@ -1,15 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type, Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
-  ValidateNested,
-  IsNumber,
-  Min,
-  Max,
-  IsOptional,
   IsArray,
-  IsEnum,
   IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
   IsString,
+  Max,
+  Min,
+  ValidateNested,
 } from "class-validator";
 
 export enum Status_2024_04_15 {

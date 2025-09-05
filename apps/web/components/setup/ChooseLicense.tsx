@@ -1,9 +1,8 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import Link from "next/link";
 import { useState } from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const ChooseLicense = (
   props: {
@@ -23,7 +22,8 @@ const ChooseLicense = (
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(value);
-      }}>
+      }}
+    >
       <RadioGroup.Root
         defaultValue={initialValue}
         value={value}
@@ -32,13 +32,15 @@ const ChooseLicense = (
         onValueChange={(value) => {
           onChange(value);
           setValue(value);
-        }}>
+        }}
+      >
         <RadioGroup.Item value="FREE">
           <div
             className={classNames(
               "bg-default cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
               value === "FREE" && "ring-2 ring-black"
-            )}>
+            )}
+          >
             <h2 className="font-cal text-emphasis text-xl">{t("agplv3_license")}</h2>
             <p className="font-medium text-green-800">{t("free_license_fee")}</p>
             <p className="text-subtle">{t("forever_open_and_free")}</p>

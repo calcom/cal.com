@@ -1,7 +1,6 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
 import DelegationCredentialList from "@calcom/features/ee/organizations/pages/settings/delegationCredential";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -19,7 +18,8 @@ const Page = async () => {
     <SettingsHeader
       borderInShellHeader
       title={t("delegation_credential")}
-      description={t("delegation_credential_description")}>
+      description={t("delegation_credential_description")}
+    >
       <DelegationCredentialList />
     </SettingsHeader>
   );

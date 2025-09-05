@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
-import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   editLocationHandler,

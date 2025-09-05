@@ -1,9 +1,9 @@
 import type { FilterHostsService } from "@calcom/lib/bookings/filterHostsBySameRoundRobinHost";
+import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
 import {
   findMatchingHostsWithEventSegment,
   getNormalizedHostsWithDelegationCredentials,
 } from "@calcom/lib/bookings/getRoutedUsers";
-import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -63,7 +63,7 @@ export class QualifiedHostsService {
       id: number;
       credentials: CredentialPayload[];
       userLevelSelectedCalendars: SelectedCalendar[];
-    } & Record<string, unknown>
+    } & Record<string, unknown>,
   >({
     eventType,
     rescheduleUid,

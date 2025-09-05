@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Toaster } from "react-hot-toast";
-
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import React, { useMemo, useState } from "react";
+import { Toaster } from "react-hot-toast";
 
 type IconName =
   | "activity"
@@ -165,7 +164,8 @@ const CopyMenu: React.FC<CopyMenuProps> = ({ name, onCopy }) => {
       <div className="bg-default space-y-1 rounded-md p-2 shadow-lg">
         <button
           onClick={() => onCopy(`<Icon name="${name}" className="h-4 w-4" />`)}
-          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm">
+          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm"
+        >
           Copy Component
         </button>
       </div>
@@ -354,7 +354,8 @@ export const IconGrid: React.FC<IconGridProps> = ({ className }) => {
           {filteredIcons.map((iconName) => (
             <div
               key={iconName}
-              className="border-subtle bg-default group relative overflow-hidden rounded-lg border p-4">
+              className="border-subtle bg-default group relative overflow-hidden rounded-lg border p-4"
+            >
               <div className="flex flex-col items-center space-y-2">
                 <div className="bg-subtle flex h-12 w-12 items-center justify-center rounded-md">
                   <Icon name={iconName} className="text-emphasis h-6 w-6" />

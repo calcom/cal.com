@@ -1,18 +1,17 @@
-import { useSession } from "next-auth/react";
-import { useMemo } from "react";
-
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import {
-  useOrgBranding,
   type OrganizationBranding,
+  useOrgBranding,
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import classNames from "@calcom/ui/classNames";
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
-import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
+import { MobileNavigationItem, MobileNavigationMoreItem, NavigationItem } from "./NavigationItem";
 
 export const MORE_SEPARATOR_NAME = "more";
 
@@ -228,7 +227,8 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
         className={classNames(
           "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
-        )}>
+        )}
+      >
         {mobileNavigationBottomItems.map((item) => (
           <MobileNavigationItem key={item.name} item={item} />
         ))}

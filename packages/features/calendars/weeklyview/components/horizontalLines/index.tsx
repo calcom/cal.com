@@ -1,7 +1,6 @@
-import { useId } from "react";
-
 import type dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { useId } from "react";
 
 export const HorizontalLines = ({
   hours,
@@ -22,7 +21,8 @@ export const HorizontalLines = ({
       className=" divide-default pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid divide-y"
       style={{
         gridTemplateRows: `repeat(${hours.length}, minmax(var(--gridDefaultSize),1fr)`,
-      }}>
+      }}
+    >
       <div className="row-end-1 h-[--calendar-offset-top] " ref={containerOffsetRef} />
       {hours.map((hour) => (
         <div key={`${id}-${hour.get("hour")}`}>

@@ -1,14 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Prisma } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -23,16 +14,22 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, LinkIconButton } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, Label, TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Prisma } from "@prisma/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
@@ -191,7 +188,8 @@ const OtherTeamProfileView = () => {
                   });
                   mutation.mutate({ id: team.id, ...variables });
                 }
-              }}>
+              }}
+            >
               <div className="flex items-center">
                 <Controller
                   control={form.control}
@@ -274,7 +272,8 @@ const OtherTeamProfileView = () => {
                     type="button"
                     onClick={() => {
                       publishMutation.mutate({ teamId: team.id });
-                    }}>
+                    }}
+                  >
                     Publish
                   </Button>
                 )}
@@ -306,7 +305,8 @@ const OtherTeamProfileView = () => {
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
-                  }}>
+                  }}
+                >
                   {t("copy_link_team")}
                 </LinkIconButton>
               </div>
@@ -328,7 +328,8 @@ const OtherTeamProfileView = () => {
               confirmBtnText={t("confirm_disband_team")}
               onConfirm={() => {
                 deleteTeam();
-              }}>
+              }}
+            >
               {t("disband_team_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>

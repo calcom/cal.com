@@ -12,7 +12,8 @@ export const TeamsCTA = () => {
       variant="fab"
       StartIcon="plus"
       type="button"
-      href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+      href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}
+    >
       {t("new")}
     </Button>
   );

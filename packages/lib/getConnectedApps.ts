@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { CredentialOwner } from "@calcom/app-store/types";
@@ -12,6 +10,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { Prisma } from "@prisma/client";
 
 import { buildNonDelegationCredentials } from "./delegationCredential/clientAndServer";
 

@@ -1,13 +1,3 @@
-import { AppConfig } from "@/config/type";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
-import { BillingRepository } from "@/modules/billing/billing.repository";
-import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
-import { PlatformPlan } from "@/modules/billing/types";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { InjectQueue } from "@nestjs/bull";
 import {
   BadRequestException,
@@ -21,6 +11,16 @@ import { ConfigService } from "@nestjs/config";
 import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
+import { AppConfig } from "@/config/type";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
+import { BillingRepository } from "@/modules/billing/billing.repository";
+import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
+import { PlatformPlan } from "@/modules/billing/types";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { StripeService } from "@/modules/stripe/stripe.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 
 @Injectable()
 export class BillingService implements OnModuleDestroy {
@@ -310,9 +310,8 @@ export class BillingService implements OnModuleDestroy {
   }
 
   async getActiveManagedUsersCount(subscriptionId: string, invoiceStart: Date, invoiceEnd: Date) {
-    const managedUsersEmails = await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(
-      subscriptionId
-    );
+    const managedUsersEmails =
+      await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(subscriptionId);
 
     if (!managedUsersEmails) return 0;
 

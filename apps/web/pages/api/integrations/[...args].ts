@@ -1,12 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import type { Session } from "next-auth";
-
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
+import type { NextApiRequest, NextApiResponse } from "next";
+import type { Session } from "next-auth";
 
 const defaultIntegrationAddHandler = async ({
   slug,

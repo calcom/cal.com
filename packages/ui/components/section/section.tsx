@@ -75,7 +75,8 @@ const Icon = ({
         "bg-default border-subtle border-subtle flex items-center justify-center border",
         size === "sm" && "rounded-md p-1",
         size === "md" && "rounded-[10px] p-1.5"
-      )}>
+      )}
+    >
       {iconSlot ? (
         iconSlot
       ) : (
@@ -164,7 +165,8 @@ const SubSectionHeader = ({
         "flex items-center gap-2",
         justify === "between" ? "justify-between" : "justify-start",
         classNames?.container
-      )}>
+      )}
+    >
       <div className={cn("flex items-center gap-2", classNames?.title)}>
         {icon && <Icon name={icon} size="sm" />}
         <div className={cn("flex", classNames?.title)}>
@@ -198,7 +200,8 @@ const SubSectionContent = ({
         "bg-muted flex flex-col rounded-lg px-[6px] py-1",
         invert && "bg-default border-subtle border",
         classNames?.container
-      )}>
+      )}
+    >
       {children}
     </div>
   );

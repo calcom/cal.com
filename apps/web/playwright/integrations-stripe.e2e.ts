@@ -1,12 +1,10 @@
-import { expect } from "@playwright/test";
-import type Prisma from "@prisma/client";
-
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-
-import { test, todo } from "./lib/fixtures";
+import { expect } from "@playwright/test";
+import type Prisma from "@prisma/client";
 import type { Fixtures } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import { confirmReschedule, IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });

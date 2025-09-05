@@ -1,3 +1,31 @@
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import {
+  AttendeeCancelledEmail,
+  AttendeeRescheduledEmail,
+  AttendeeScheduledEmail,
+  OrganizerCancelledEmail,
+  OrganizerRescheduledEmail,
+  OrganizerScheduledEmail,
+} from "@calcom/platform-libraries/emails";
+import {
+  BookingOutput_2024_08_13,
+  CancelBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import { Team } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { User } from "@prisma/client";
+import * as request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
@@ -10,35 +38,6 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
-import * as request from "supertest";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
-  OrganizerScheduledEmail,
-  AttendeeScheduledEmail,
-  OrganizerRescheduledEmail,
-  AttendeeRescheduledEmail,
-  OrganizerCancelledEmail,
-  AttendeeCancelledEmail,
-} from "@calcom/platform-libraries/emails";
-import {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
 
 jest
   .spyOn(AttendeeScheduledEmail.prototype, "getHtml")

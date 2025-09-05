@@ -1,9 +1,8 @@
-import { expect } from "@playwright/test";
-
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
+import { expect } from "@playwright/test";
 
-import { clearFilters, applySelectFilter } from "./filter-helpers";
+import { applySelectFilter, clearFilters } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });

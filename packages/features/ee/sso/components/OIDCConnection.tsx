@@ -1,15 +1,13 @@
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 type FormValues = {
   clientId: string;
@@ -92,7 +90,8 @@ const CreateConnectionDialog = ({
               clientSecret,
               wellKnownUrl,
             });
-          }}>
+          }}
+        >
           <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
             {t("sso_oidc_configuration_title")}
           </h2>
@@ -157,7 +156,8 @@ const CreateConnectionDialog = ({
               onClick={() => {
                 setOpenModal(false);
               }}
-              tabIndex={-1}>
+              tabIndex={-1}
+            >
               {t("cancel")}
             </Button>
             <Button type="submit" data-testid="sso-oidc-save" loading={form.formState.isSubmitting}>

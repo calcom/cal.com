@@ -1,7 +1,7 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
+import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";

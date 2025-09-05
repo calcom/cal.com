@@ -1,11 +1,3 @@
-import classNames from "classnames";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { RefCallback } from "react";
-import { useEffect, useState } from "react";
-
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,11 +9,17 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Label, Input } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Input, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-
 import type { TRPCClientErrorLike } from "@trpc/client";
+import classNames from "classnames";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { RefCallback } from "react";
+import { useEffect, useState } from "react";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -137,7 +135,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             color="primary"
             className="mx-2"
             href={paymentLink}
-            data-testid="reserve-username-btn">
+            data-testid="reserve-username-btn"
+          >
             {t("Reserve")}
           </Button>
         </div>
@@ -151,7 +150,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             color="primary"
             className="mx-2"
             onClick={() => setOpenDialogSaveUsername(true)}
-            data-testid="update-username-btn">
+            data-testid="update-username-btn"
+          >
             {t("update")}
           </Button>
           <Button
@@ -161,7 +161,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               if (currentUsername) {
                 setInputUsernameValue(currentUsername);
               }
-            }}>
+            }}
+          >
             {t("cancel")}
           </Button>
         </div>
@@ -203,7 +204,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           className={classNames(
             isInputUsernamePremium ? "border border-orange-400 " : "",
             "border-default bg-muted text-subtle hidden h-8 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
-          )}>
+          )}
+        >
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
 
@@ -244,7 +246,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 "mx-2 py-2",
                 isInputUsernamePremium ? "text-transparent" : "",
                 usernameIsAvailable ? "" : ""
-              )}>
+              )}
+            >
               {isInputUsernamePremium ? (
                 <Icon name="star" className="mt-[2px] h-4 w-4 fill-orange-400" />
               ) : (
@@ -278,7 +281,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 <p className="text-default mb-4 text-sm">{t("change_username_standard_to_premium")}</p>
               )}
             </>
-          }>
+          }
+        >
           <div className="flex flex-row">
             <div className="mb-4 w-full px-4 pt-1">
               <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
@@ -305,7 +309,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 type="button"
                 loading={updateUsername.isPending}
                 data-testid="go-to-billing"
-                href={paymentLink}>
+                href={paymentLink}
+              >
                 <>
                   {t("go_to_stripe_billing")} <Icon name="external-link" className="ml-1 h-4 w-4" />
                 </>
@@ -319,7 +324,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="save-username"
                 onClick={() => {
                   saveUsername();
-                }}>
+                }}
+              >
                 {t("save")}
               </Button>
             )}

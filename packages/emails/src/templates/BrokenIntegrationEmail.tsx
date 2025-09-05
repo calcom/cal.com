@@ -1,9 +1,8 @@
-import type { TFunction } from "i18next";
-
 import { AppStoreLocationType } from "@calcom/app-store/locations";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
 
 import { BaseScheduledEmail } from "./BaseScheduledEmail";
 
@@ -25,13 +24,15 @@ const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number 
           className="cursor-pointer text-blue-500 underline"
           href={
             props.eventTypeId ? `${WEBAPP_URL}/event-types/${props.eventTypeId}` : `${WEBAPP_URL}/event-types`
-          }>
+          }
+        >
           change your location on the event type
         </a>,
         <a
           key="broken-video-action-link-2"
           className="cursor-pointer text-blue-500 underline"
-          href={`${WEBAPP_URL}/apps/installed`}>
+          href={`${WEBAPP_URL}/apps/installed`}
+        >
           removing and adding the app again.
         </a>,
       ]}

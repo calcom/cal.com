@@ -1,10 +1,9 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Frame, PlaywrightTestConfig } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import dotEnv from "dotenv";
 import * as os from "os";
 import * as path from "path";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
 
 dotEnv.config({ path: ".env" });
 

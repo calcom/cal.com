@@ -1,4 +1,4 @@
-import { ScheduleOutput } from "@/ee/schedules/schedules_2024_04_15/outputs/schedule.output";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import {
@@ -10,8 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ScheduleOutput } from "@/ee/schedules/schedules_2024_04_15/outputs/schedule.output";
 
 export class UserVerifiedEmailOutputData {
   @Expose()

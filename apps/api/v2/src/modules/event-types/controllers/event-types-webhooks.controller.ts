@@ -1,3 +1,20 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { Webhook } from "@prisma/client";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -5,8 +22,8 @@ import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator"
 import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
 import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
-  EventTypeWebhookOutputResponseDto,
   EventTypeWebhookOutputDto,
+  EventTypeWebhookOutputResponseDto,
   EventTypeWebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/event-type-webhook.output";
 import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
@@ -14,24 +31,6 @@ import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pi
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { EventTypeWebhooksService } from "@/modules/webhooks/services/event-type-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Get,
-  Param,
-  Query,
-  Delete,
-  Patch,
-  ParseIntPipe,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { Webhook } from "@prisma/client";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/webhooks",

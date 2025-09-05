@@ -69,7 +69,7 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
       })
     );
 
-    const parsedJobPayload = JSON.parse(job.payload) as {
+    const _parsedJobPayload = JSON.parse(job.payload) as {
       id: number; // booking id
       endTime: string;
       triggerEvent: string;

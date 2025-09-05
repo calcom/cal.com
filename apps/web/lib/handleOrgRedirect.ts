@@ -1,10 +1,9 @@
-import type { ParsedUrlQuery } from "querystring";
-import { stringify } from "querystring";
-
 import { SINGLE_ORG_SLUG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RedirectType } from "@calcom/prisma/client";
+import type { ParsedUrlQuery } from "querystring";
+import { stringify } from "querystring";
 
 const log = logger.getSubLogger({ prefix: ["lib", "handleOrgRedirect"] });
 type NextJsRedirect = {

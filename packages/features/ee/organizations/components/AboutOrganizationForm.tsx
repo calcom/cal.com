@@ -1,17 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
-
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { TextAreaField } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
+import { Form, Label, TextAreaField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { useRouter } from "next/navigation";
+import { Controller, useForm } from "react-hook-form";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
@@ -39,7 +36,8 @@ export const AboutOrganizationForm = () => {
           setLogo(values.logo);
           setBio(values.bio);
           router.push(`/settings/organizations/new/add-teams`);
-        }}>
+        }}
+      >
         <div>
           <Controller
             control={aboutOrganizationFormMethods.control}
@@ -98,7 +96,8 @@ export const AboutOrganizationForm = () => {
             color="primary"
             EndIcon="arrow-right"
             type="submit"
-            className="w-full justify-center">
+            className="w-full justify-center"
+          >
             {t("continue")}
           </Button>
         </div>

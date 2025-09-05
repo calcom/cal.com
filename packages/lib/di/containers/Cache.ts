@@ -1,7 +1,6 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
+import { createContainer } from "@evyweb/ioctopus";
 
 import type { CacheService } from "../../../features/calendar-cache/lib/getShouldServeCache";
 import { cacheModule } from "../modules/Cache";

@@ -122,8 +122,8 @@ export async function executeAIPhoneCall(payload: string) {
     const rateLimitIdentifier = data.teamId
       ? `ai-phone-call:team:${data.teamId}`
       : data.userId
-      ? `ai-phone-call:user:${data.userId}`
-      : null;
+        ? `ai-phone-call:user:${data.userId}`
+        : null;
 
     if (!rateLimitIdentifier) {
       log.warn(`No rate limit identifier found for AI phone call. This should not happen.`, {

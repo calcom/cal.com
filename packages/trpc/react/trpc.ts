@@ -1,6 +1,3 @@
-import type { NextPageContext } from "next/types";
-import superjson from "superjson";
-
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
 import type { CreateTRPCNext } from "@trpc/next";
 import { createTRPCNext } from "@trpc/next";
@@ -8,6 +5,8 @@ import { createTRPCNext } from "@trpc/next";
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
 import type { TRPCClientErrorLike } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import type { NextPageContext } from "next/types";
+import superjson from "superjson";
 
 import type { AppRouter } from "../server/routers/_app";
 import { ENDPOINTS } from "./shared";
@@ -56,8 +55,8 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
       typeof window !== "undefined"
         ? "/api/trpc"
         : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}/api/trpc`
-        : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+          ? `https://${process.env.VERCEL_URL}/api/trpc`
+          : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
     /**
      * If you want to use SSR, you need to use the server's full URL

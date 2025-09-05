@@ -1,11 +1,6 @@
-import type { Webhook } from "@prisma/client";
-import Link from "next/link";
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import EventTypeWebhookListItem from "@calcom/features/webhooks/components/EventTypeWebhookListItem";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
@@ -20,6 +15,10 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+import type { Webhook } from "@prisma/client";
+import Link from "next/link";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -100,7 +99,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
         color="secondary"
         data-testid="new_webhook"
         StartIcon="plus"
-        onClick={() => setCreateModalOpen(true)}>
+        onClick={() => setCreateModalOpen(true)}
+      >
         {t("new_webhook")}
       </Button>
     );
@@ -188,7 +188,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                             <Link
                               key="edit_or_manage_webhooks"
                               className="cursor-pointer font-semibold underline"
-                              href="/settings/developer/webhooks">
+                              href="/settings/developer/webhooks"
+                            >
                               webhooks settings
                             </Link>,
                           ]}
@@ -221,7 +222,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
             <DialogContent
               enableOverflow
               title={t("create_webhook")}
-              description={t("create_webhook_team_event_type")}>
+              description={t("create_webhook_team_event_type")}
+            >
               <WebhookForm
                 noRoutingFormTriggers={true}
                 onSubmit={onCreateWebhook}

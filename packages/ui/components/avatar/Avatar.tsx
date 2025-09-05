@@ -1,10 +1,9 @@
+import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import classNames from "@calcom/ui/classNames";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { Provider as TooltipPrimitiveProvider } from "@radix-ui/react-tooltip";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
-
-import { AVATAR_FALLBACK } from "@calcom/lib/constants";
-import classNames from "@calcom/ui/classNames";
 
 import { Tooltip } from "../tooltip";
 
@@ -74,11 +73,8 @@ export function Avatar(props: AvatarProps) {
   let avatar = (
     <AvatarPrimitive.Root
       data-testid={props?.["data-testid"]}
-      className={classNames(
-        avatarClass,
-        indicator ? "overflow-visible" : "overflow-hidden",
-        props.className
-      )}>
+      className={classNames(avatarClass, indicator ? "overflow-visible" : "overflow-hidden", props.className)}
+    >
       <>
         <AvatarPrimitive.Image
           src={imageSrc ?? undefined}
@@ -88,7 +84,8 @@ export function Avatar(props: AvatarProps) {
         <AvatarPrimitive.Fallback
           delayMs={600}
           asChild={props.asChild}
-          className="flex h-full items-center justify-center">
+          className="flex h-full items-center justify-center"
+        >
           <>
             {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
           </>

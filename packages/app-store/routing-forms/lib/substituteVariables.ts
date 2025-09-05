@@ -1,7 +1,7 @@
 import { getHumanReadableFieldResponseValue } from "@calcom/lib/server/service/routingForm/responseData/getHumanReadableFieldResponseValue";
 import slugify from "@calcom/lib/slugify";
 
-import type { FormResponse, NonRouterRoute, Field } from "../types/types";
+import type { Field, FormResponse, NonRouterRoute } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
 
 /**

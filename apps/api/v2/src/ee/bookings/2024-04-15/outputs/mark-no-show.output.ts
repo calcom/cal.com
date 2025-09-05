@@ -1,8 +1,7 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsEnum, IsOptional, ValidateNested, IsArray, IsEmail, IsBoolean } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { IsArray, IsBoolean, IsEmail, IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
 
 class Attendee {
   @IsEmail()

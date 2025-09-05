@@ -1,12 +1,13 @@
 import type { PipeTransform } from "@nestjs/common";
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import type { ValidationError } from "class-validator";
 import { validateSync } from "class-validator";
-
-import { CreateRecurringBookingInput_2024_08_13 } from "./create-booking.input";
-import { CreateBookingInput_2024_08_13 } from "./create-booking.input";
-import { CreateInstantBookingInput_2024_08_13 } from "./create-booking.input";
+import {
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+} from "./create-booking.input";
 
 export type CreateBookingInput =
   | CreateBookingInput_2024_08_13

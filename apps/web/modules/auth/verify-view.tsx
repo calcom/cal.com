@@ -1,11 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { signIn } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import z from "zod";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,8 +9,12 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
 import Loader from "@components/Loader";
+import { motion } from "framer-motion";
+import { usePathname, useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
+import z from "zod";
 
 async function sendVerificationLogin(email: string, username: string, t: (key: string) => string) {
   await signIn("email", {
@@ -72,7 +70,8 @@ const PaymentSuccess = () => (
       padding: "6px",
       border: "0.6px solid rgba(0, 0, 0, 0.02)",
       background: "rgba(123, 203, 197, 0.10)",
-    }}>
+    }}
+  >
     <motion.div
       className="rounded-full"
       style={{
@@ -86,13 +85,15 @@ const PaymentSuccess = () => (
         repeat: Infinity,
         repeatType: "reverse",
         delay: 0.2, // Delay the start of animation for the second ring
-      }}>
+      }}
+    >
       <motion.div
         className="rounded-full p-3"
         style={{
           border: "1px solid rgba(255, 255, 255, 0.40)",
           background: "linear-gradient(180deg, #66C9CF 0%, #9CCCB2 100%)",
-        }}>
+        }}
+      >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M2.69185 10.6919L2.9297 10.9297L2.69185 10.6919C1.96938 11.4143 1.96938 12.5857 2.69185 13.3081L7.69185 18.3081C8.41432 19.0306 9.58568 19.0306 10.3081 18.3081L21.3081 7.30815C22.0306 6.58568 22.0306 5.41432 21.3081 4.69185C20.5857 3.96938 19.4143 3.96938 18.6919 4.69185L9 14.3837L5.30815 10.6919C4.58568 9.96938 3.41432 9.96938 2.69185 10.6919Z"
@@ -181,8 +182,8 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
             {hasPaymentFailed
               ? t("your_payment_failed")
               : sessionId
-              ? t("payment_successful")
-              : t("check_your_inbox")}
+                ? t("payment_successful")
+                : t("check_your_inbox")}
           </h3>
           {hasPaymentFailed && <p className="my-6">{t("account_created_premium_not_reserved")}</p>}
           <p className="text-muted dark:text-subtle text-base font-normal">
@@ -198,7 +199,8 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
                   : "https://mail.google.com/mail/u/0/"
               }
               target="_blank"
-              EndIcon="external-link">
+              EndIcon="external-link"
+            >
               {t("open_in_gmail")}
             </Button>
           </div>
@@ -222,7 +224,8 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
               _searchParams.set("t", `${Date.now()}`);
               router.replace(`${pathname}?${_searchParams.toString()}`);
               return await sendVerificationLogin(customer.email, customer.username, t);
-            }}>
+            }}
+          >
             {secondsLeft > 0 ? t("resend_in_seconds", { seconds: secondsLeft }) : t("resend")}
           </button>
         </div>

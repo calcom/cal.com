@@ -1,10 +1,8 @@
-import { createRouterCaller } from "app/_trpc/context";
-import { _generateMetadata } from "app/_utils";
-
 import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
 import { calendarsRouter } from "@calcom/trpc/server/routers/viewer/calendars/_router";
-
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
+import { createRouterCaller } from "app/_trpc/context";
+import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

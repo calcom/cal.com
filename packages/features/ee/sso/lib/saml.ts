@@ -1,4 +1,4 @@
-import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
+import type { OIDCSSORecord, SAMLSSORecord } from "@boxyhq/saml-jackson";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";

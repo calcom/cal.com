@@ -1,15 +1,14 @@
+import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import {
+  UpdateEmailAddressWorkflowStepDto,
+  UpdateEmailAttendeeWorkflowStepDto,
+  UpdateEmailHostWorkflowStepDto,
   UpdateWorkflowDto,
   UpdateWorkflowStepDto,
-  UpdateEmailAttendeeWorkflowStepDto,
-  UpdateEmailAddressWorkflowStepDto,
-  UpdateEmailHostWorkflowStepDto,
 } from "@/modules/workflows/inputs/update-workflow.input";
 import { WorkflowType } from "@/modules/workflows/workflows.repository";
-import { BadRequestException, Injectable } from "@nestjs/common";
-
-import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
 
 import {
   EMAIL_ADDRESS,
@@ -137,7 +136,7 @@ export class WorkflowsInputService {
     const timeUnitForZod =
       updateDto.trigger instanceof OnBeforeEventTriggerDto ||
       updateDto.trigger instanceof OnAfterEventTriggerDto
-        ? updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null
+        ? (updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null)
         : undefined;
 
     const updateData: TUpdateInputSchema = {
@@ -152,7 +151,7 @@ export class WorkflowsInputService {
       time:
         updateDto.trigger instanceof OnBeforeEventTriggerDto ||
         updateDto.trigger instanceof OnAfterEventTriggerDto
-          ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
+          ? (updateDto?.trigger?.offset?.value ?? currentData?.time ?? null)
           : null,
       timeUnit: timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null,
       isActiveOnAll: updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false,

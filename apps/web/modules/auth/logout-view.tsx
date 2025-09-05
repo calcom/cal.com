@@ -1,16 +1,14 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import type { ParsedUrlQuery } from "querystring";
-import { useEffect, useState } from "react";
-
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
-
 import AuthContainer from "@components/ui/AuthContainer";
+import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import type { ParsedUrlQuery } from "querystring";
+import { useEffect, useState } from "react";
 
 export type PageProps = {
   query: ParsedUrlQuery;
@@ -59,7 +57,8 @@ export function Logout(props: PageProps) {
         data-testid="logout-btn"
         onClick={navigateToLogin}
         className="flex w-full justify-center"
-        loading={btnLoading}>
+        loading={btnLoading}
+      >
         {t("go_back_login")}
       </Button>
     </AuthContainer>

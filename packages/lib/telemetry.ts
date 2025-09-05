@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { CollectOpts, EventHandler } from "next-collect";
 // Importing types so we're not directly importing next/server
 import type { NextRequest, NextResponse } from "next/server";
+import type { CollectOpts, EventHandler } from "next-collect";
 
 import { CONSOLE_URL } from "./constants";
 

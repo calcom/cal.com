@@ -1,13 +1,11 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, expect, it } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import {
   checkDurationLimit,
   checkDurationLimits,
 } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
+import { describe, expect, it } from "vitest";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 type MockData = {
   id: number;

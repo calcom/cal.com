@@ -1,9 +1,6 @@
-import type { EventTypeCustomInput, EventType } from "@prisma/client";
-import type { z } from "zod";
-
 import {
-  SMS_REMINDER_NUMBER_FIELD,
   CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+  SMS_REMINDER_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
@@ -14,9 +11,11 @@ import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
   BookingFieldTypeEnum,
   customInputSchema,
-  eventTypeBookingFields,
   EventTypeMetaDataSchema,
+  eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
+import type { EventType, EventTypeCustomInput } from "@prisma/client";
+import type { z } from "zod";
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
@@ -39,7 +38,7 @@ export const getSmsReminderNumberField = () =>
     defaultLabel: "number_text_notifications",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getSmsReminderNumberSource = ({
   workflowId,
@@ -62,7 +61,7 @@ export const getAIAgentCallPhoneNumberField = () =>
     defaultLabel: "phone_number_for_ai_call",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getAIAgentCallPhoneNumberSource = ({
   workflowId,

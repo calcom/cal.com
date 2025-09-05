@@ -1,15 +1,14 @@
-import {
-  getDate,
-  getGoogleCalendarCredential,
-  createBookingScenario,
-  Timezones,
-  TestData,
-  mockCalendar,
-} from "../../utils/bookingScenario/bookingScenario";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
 
 import { describe, test } from "vitest";
-
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
+import {
+  createBookingScenario,
+  getDate,
+  getGoogleCalendarCredential,
+  mockCalendar,
+  TestData,
+  Timezones,
+} from "../../utils/bookingScenario/bookingScenario";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";

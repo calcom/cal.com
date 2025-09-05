@@ -1,6 +1,3 @@
-import axios from "axios";
-import qs from "qs";
-
 import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -12,6 +9,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Contact, ContactCreateInput, CRM } from "@calcom/types/CrmService";
+import axios from "axios";
+import qs from "qs";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";

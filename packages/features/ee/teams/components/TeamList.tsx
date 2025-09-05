@@ -1,8 +1,6 @@
-import { useState } from "react";
-
 import {
-  ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
+  ORG_SELF_SERVE_ENABLED,
 } from "@calcom/lib/constants";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,6 +10,7 @@ import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { useState } from "react";
 
 import TeamListItem from "./TeamListItem";
 

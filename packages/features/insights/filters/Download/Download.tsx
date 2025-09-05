@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,7 +10,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
+import { hideProgressToast, showProgressToast, showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 
@@ -96,7 +95,8 @@ const Download = () => {
           EndIcon="file-down"
           color="secondary"
           loading={isDownloading}
-          className="h-full self-end sm:self-baseline">
+          className="h-full self-end sm:self-baseline"
+        >
           {t("download")}
         </Button>
       </DropdownMenuTrigger>

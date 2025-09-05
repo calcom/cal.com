@@ -1,6 +1,5 @@
-import type { TFunction } from "i18next";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import type { TFunction } from "i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 

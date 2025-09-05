@@ -1,6 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 
 import { createAttributes } from "../organizationHelpers";
 

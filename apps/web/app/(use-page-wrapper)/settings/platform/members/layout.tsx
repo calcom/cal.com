@@ -1,8 +1,7 @@
-import { getTranslate } from "app/_utils";
-
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import Shell from "@calcom/features/shell/Shell";
 import { Button } from "@calcom/ui/components/button";
+import { getTranslate } from "app/_utils";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const t = await getTranslate();
@@ -26,7 +25,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
       subtitle={t("platform_members_description")}
       withoutMain={false}
       isPlatformUser={true}
-      actions={<div className={CTA_CONTAINER_CLASS_NAME} />}>
+      actions={<div className={CTA_CONTAINER_CLASS_NAME} />}
+    >
       {children}
     </Shell>
   );

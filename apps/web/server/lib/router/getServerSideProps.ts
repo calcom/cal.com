@@ -1,9 +1,7 @@
-import { wrapGetServerSidePropsWithSentry } from "@sentry/nextjs";
-import type { GetServerSidePropsContext } from "next";
-
 import { getRoutedUrl, hasEmbedPath } from "@calcom/lib/server/getRoutedUrl";
-
+import { wrapGetServerSidePropsWithSentry } from "@sentry/nextjs";
 import { TRPCError } from "@trpc/server";
+import type { GetServerSidePropsContext } from "next";
 
 export const getServerSideProps = wrapGetServerSidePropsWithSentry(async function getServerSideProps(
   context: GetServerSidePropsContext
@@ -26,5 +24,4 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
     }
     throw error;
   }
-},
-"/router");
+}, "/router");

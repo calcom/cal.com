@@ -1,11 +1,10 @@
+import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
+import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
+import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
 import async from "async";
 import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
 import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
-
-import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
-import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
-import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 
 import { RaqbLogicResult } from "./evaluateRaqbLogic";
 import jsonLogic from "./jsonLogic";

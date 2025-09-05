@@ -1,5 +1,5 @@
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { DialogProps as ControlledDialogProps } from "@calcom/features/components/controlled-dialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 
@@ -29,7 +29,8 @@ export function DeleteDialog({
         onConfirm={(e) => {
           e.preventDefault();
           onDelete(eventTypeId);
-        }}>
+        }}
+      >
         <p className="mt-5">
           {isManagedEvent ? (
             <ul className="ml-4 list-disc">

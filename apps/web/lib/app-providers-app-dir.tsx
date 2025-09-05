@@ -1,23 +1,20 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { Session } from "next-auth";
-import { useSession } from "next-auth/react";
-import { EventCollectionProvider } from "next-collect/client";
-import { ThemeProvider } from "next-themes";
-import type { AppProps as NextAppProps } from "next/app";
-import type { ReadonlyURLSearchParams } from "next/navigation";
-import { usePathname, useSearchParams } from "next/navigation";
-
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-
+import type { PageWrapperProps } from "@components/PageWrapperAppDir";
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
-
-import type { PageWrapperProps } from "@components/PageWrapperAppDir";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import type { AppProps as NextAppProps } from "next/app";
+import type { ReadonlyURLSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import type { Session } from "next-auth";
+import { useSession } from "next-auth/react";
+import { EventCollectionProvider } from "next-collect/client";
+import { ThemeProvider } from "next-themes";
 
 import { getThemeProviderProps } from "./getThemeProviderProps";
 
@@ -45,7 +42,7 @@ export type AppProps = Omit<
 const getEmbedNamespace = (searchParams: ReadonlyURLSearchParams) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
-  return typeof window !== "undefined" ? window.getEmbedNamespace() : searchParams.get("embed") ?? null;
+  return typeof window !== "undefined" ? window.getEmbedNamespace() : (searchParams.get("embed") ?? null);
 };
 
 type CalcomThemeProps = Readonly<{
@@ -117,7 +114,8 @@ const AppProviders = (props: PageWrapperProps) => {
           <CalcomThemeProvider
             nonce={props.nonce}
             isThemeSupported={isThemeSupported}
-            isBookingPage={props.isBookingPage || isBookingPage}>
+            isBookingPage={props.isBookingPage || isBookingPage}
+          >
             <FeatureFlagsProvider>
               <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>

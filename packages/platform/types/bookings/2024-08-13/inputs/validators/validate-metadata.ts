@@ -1,4 +1,4 @@
-import type { ValidationOptions, ValidationArguments } from "class-validator";
+import type { ValidationArguments, ValidationOptions } from "class-validator";
 import { registerDecorator } from "class-validator";
 
 export const METADATA_DOCS = `You can store any additional data you want here.

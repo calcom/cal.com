@@ -1,19 +1,17 @@
-import type { User } from "@prisma/client";
-import type { Session } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { z } from "zod";
-
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Membership } from "@calcom/prisma/client";
+import type { Membership, Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { OrgProfile, PersonalProfile, UserAsPersonalProfile } from "@calcom/types/UserProfile";
+import type { User } from "@prisma/client";
+import type { Session } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { z } from "zod";
 
-import { Resource, CustomAction } from "../../../pbac/domain/types/permission-registry";
+import { CustomAction, Resource } from "../../../pbac/domain/types/permission-registry";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),

@@ -1,26 +1,17 @@
+import type { AppMeta } from "@calcom/types/App";
+import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 import chokidar from "chokidar";
 import fs from "fs";
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
 import path from "path";
-import prettier from "prettier";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import prettierConfig from "@calcom/config/prettier-preset";
-import type { AppMeta } from "@calcom/types/App";
-import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
 const isInWatchMode = process.argv[2] === "--watch";
 
-const formatOutput = (source: string) =>
-  prettier.format(source, {
-    parser: "babel",
-    ...prettierConfig,
-  });
+const formatOutput = (source: string) => source;
 
 const getVariableName = (appName: string) => appName.replace(/[-.\/]/g, "_");
 
@@ -124,7 +115,7 @@ function generateFiles() {
         {
           fileToBeImported: string;
           importName: string;
-        }
+        },
       ];
 
   /**

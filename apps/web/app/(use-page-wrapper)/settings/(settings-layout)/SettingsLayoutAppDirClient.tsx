@@ -1,15 +1,8 @@
 "use client";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import type { ComponentProps } from "react";
-import React, { useEffect, useState, useMemo } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
@@ -28,6 +21,12 @@ import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { ComponentProps } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -282,7 +281,8 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
     <Link
       href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
-      data-testid={`vertical-tab-${name}`}>
+      data-testid={`vertical-tab-${name}`}
+    >
       <Icon
         name="arrow-left"
         className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
@@ -375,7 +375,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     teamMenuOpen: open,
                   };
                   setTeamMenuState(newTeamMenuState);
-                }}>
+                }}
+              >
                 <CollapsibleTrigger asChild>
                   <button
                     className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
@@ -402,7 +403,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     }}
                     aria-label={`${team.name} ${
                       teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
-                    }`}>
+                    }`}
+                  >
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -497,12 +499,13 @@ const SettingsSidebarContainer = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
-  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
+  const [otherTeamMenuState, setOtherTeamMenuState] =
+    useState<
+      {
+        teamId: number | undefined;
+        teamMenuOpen: boolean;
+      }[]
+    >();
   const session = useSession();
 
   const organizationId = session.data?.user?.org?.id;
@@ -560,7 +563,8 @@ const SettingsSidebarContainer = ({
           ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
-      aria-label={t("settings_navigation")}>
+      aria-label={t("settings_navigation")}
+    >
       <>
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
@@ -587,7 +591,8 @@ const SettingsSidebarContainer = ({
                         title={tab.name}
                         as="p"
                         className="text-subtle truncate text-sm font-medium leading-5"
-                        loadingClassName="ms-3">
+                        loadingClassName="ms-3"
+                      >
                         {t(tab.name)}
                       </Skeleton>
                     </div>
@@ -625,7 +630,8 @@ const SettingsSidebarContainer = ({
                           title={tab.name}
                           as="p"
                           className="text-subtle truncate text-sm font-medium leading-5"
-                          loadingClassName="ms-3">
+                          loadingClassName="ms-3"
+                        >
                           {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
                         </Skeleton>
                       </div>
@@ -659,7 +665,8 @@ const SettingsSidebarContainer = ({
                           title={t("org_admin_other_teams")}
                           as="p"
                           className="text-subtle truncate text-sm font-medium leading-5"
-                          loadingClassName="ms-3">
+                          loadingClassName="ms-3"
+                        >
                           {t("org_admin_other_teams")}
                         </Skeleton>
                       </div>
@@ -683,7 +690,8 @@ const SettingsSidebarContainer = ({
                                   teamMenuOpen: open,
                                 };
                                 setOtherTeamMenuState(newOtherTeamMenuState);
-                              }}>
+                              }}
+                            >
                               <CollapsibleTrigger asChild>
                                 <button
                                   className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
@@ -712,7 +720,8 @@ const SettingsSidebarContainer = ({
                                     otherTeamMenuState[index].teamMenuOpen
                                       ? t("collapse_menu")
                                       : t("expand_menu")
-                                  }`}>
+                                  }`}
+                                >
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
                                       <Icon name="chevron-down" className="h-4 w-4" />
@@ -732,7 +741,8 @@ const SettingsSidebarContainer = ({
                               </CollapsibleTrigger>
                               <CollapsibleContent
                                 className="space-y-0.5"
-                                id={`other-team-content-${otherTeam.id}`}>
+                                id={`other-team-content-${otherTeam.id}`}
+                              >
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
@@ -783,7 +793,8 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
-            onClick={() => router.back()}>
+            onClick={() => router.back()}
+          >
             <Icon name="arrow-left" className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
@@ -845,10 +856,12 @@ export default function SettingsLayoutAppDirClient({
       MobileNavigationContainer={null}
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
-      }>
+      }
+    >
       <div className="flex flex-1 [&>*]:flex-1">
         <div
-          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}
+        >
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
@@ -878,7 +891,8 @@ const SidebarContainerElement = ({
       {sideContainerOpen && (
         <button
           onClick={() => setSideContainerOpen(false)}
-          className="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
+          className="fixed left-0 top-0 z-10 h-full w-full bg-black/50"
+        >
           <span className="sr-only">{t("hide_navigation")}</span>
         </button>
       )}

@@ -1,9 +1,5 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,12 +10,12 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, PasswordField, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { signOut, useSession } from "next-auth/react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;
@@ -182,7 +178,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
             <Button
               className="mt-3"
               onClick={() => createAccountPasswordMutation.mutate()}
-              loading={createAccountPasswordMutation.isPending}>
+              loading={createAccountPasswordMutation.isPending}
+            >
               {t("create_account_password")}
             </Button>
           </div>
@@ -225,7 +222,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
               type="submit"
               loading={passwordMutation.isPending}
               onClick={() => formMethods.clearErrors("apiError")}
-              disabled={isDisabled || passwordMutation.isPending || sessionMutation.isPending}>
+              disabled={isDisabled || passwordMutation.isPending || sessionMutation.isPending}
+            >
               {t("update")}
             </Button>
           </SectionBottomActions>
@@ -253,7 +251,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
               switchContainerClassName={classNames(
                 "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
                 !!sessionTimeout && "rounded-b-none"
-              )}>
+              )}
+            >
               <>
                 <div className="border-subtle border-x p-6 pb-8">
                   <div className="flex flex-col">
@@ -287,7 +286,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                       initialSessionTimeout === sessionTimeout ||
                       passwordMutation.isPending ||
                       sessionMutation.isPending
-                    }>
+                    }
+                  >
                     {t("update")}
                   </Button>
                 </SectionBottomActions>

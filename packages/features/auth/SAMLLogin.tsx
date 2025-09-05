@@ -1,8 +1,3 @@
-import { signIn } from "next-auth/react";
-import type { Dispatch, SetStateAction } from "react";
-import { useFormContext } from "react-hook-form";
-import z from "zod";
-
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
@@ -10,6 +5,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
+import { signIn } from "next-auth/react";
+import type { Dispatch, SetStateAction } from "react";
+import { useFormContext } from "react-hook-form";
+import z from "zod";
 
 interface Props {
   samlTenantID: string;
@@ -72,7 +71,8 @@ export function SAMLLogin({
           email,
         });
       }}
-      {...buttonProps}>
+      {...buttonProps}
+    >
       <span>{t("signin_with_saml_oidc")}</span>
       {lastUsed === "saml" && <LastUsed />}
     </Button>

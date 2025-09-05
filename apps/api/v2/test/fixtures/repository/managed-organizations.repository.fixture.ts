@@ -1,6 +1,6 @@
+import { TestingModule } from "@nestjs/testing";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TestingModule } from "@nestjs/testing";
 
 export class ManagedOrganizationsRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];

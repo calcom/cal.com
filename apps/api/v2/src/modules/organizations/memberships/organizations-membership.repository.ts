@@ -1,10 +1,9 @@
+import type { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
-import { Injectable } from "@nestjs/common";
-
-import type { Prisma } from "@calcom/prisma/client";
 
 import { UpdateOrgMembershipDto } from "./inputs/update-organization-membership.input";
 
@@ -31,7 +30,10 @@ const attributeToUserSelect = {
 
 @Injectable()
 export class OrganizationsMembershipRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async findOrgMembership(organizationId: number, membershipId: number) {
     return this.dbRead.prisma.membership.findUnique({

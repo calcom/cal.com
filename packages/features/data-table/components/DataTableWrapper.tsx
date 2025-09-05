@@ -139,7 +139,8 @@ export function DataTableWrapper<TData>({
               ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>
                   fetchMoreOnBottomReached(e.target as HTMLDivElement)
               : undefined
-          }>
+          }
+        >
           <div style={{ gridArea: "footer" }} className="px-3 py-2">
             <DataTablePagination<TData>
               table={table}

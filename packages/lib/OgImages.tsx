@@ -164,12 +164,14 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
         <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
           <div
             tw="flex w-[1040px] overflow-hidden"
-            style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}>
+            style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}
+          >
             Meet {joinMultipleNames(names)}
           </div>
           <div
             tw="flex mt-3 w-[1040px] overflow-hidden"
-            style={{ whiteSpace: "nowrap", fontFamily: "inter", textOverflow: "ellipsis" }}>
+            style={{ whiteSpace: "nowrap", fontFamily: "inter", textOverflow: "ellipsis" }}
+          >
             {title}
           </div>
         </div>

@@ -1,11 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -15,10 +9,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { TextField, Label, InputError } from "@calcom/ui/components/form";
+import { InputError, Label, Select, TextField } from "@calcom/ui/components/form";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
 import { showToast } from "@calcom/ui/components/toast";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
@@ -76,8 +74,8 @@ export default function BillingCredits() {
   const teamId: number | undefined = Number.isFinite(parsedTeamId)
     ? parsedTeamId
     : typeof orgId === "number"
-    ? orgId
-    : undefined;
+      ? orgId
+      : undefined;
 
   const tokens = (pathname ?? "").split("/").filter(Boolean);
   const settingsIndex = tokens.indexOf("settings");
@@ -149,7 +147,8 @@ export default function BillingCredits() {
               key="Credit System"
               className="underline underline-offset-2"
               target="_blank"
-              href="https://cal.com/help/billing-and-usage/messaging-credits">
+              href="https://cal.com/help/billing-and-usage/messaging-credits"
+            >
               Learn more
             </Link>,
           ]}
@@ -216,7 +215,8 @@ export default function BillingCredits() {
                 target="_blank"
                 EndIcon="external-link"
                 type="submit"
-                data-testid="buy-credits">
+                data-testid="buy-credits"
+              >
                 {t("buy_credits")}
               </Button>
             </div>

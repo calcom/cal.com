@@ -1,9 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, CreateOAuthClientInput, PlatformOAuthClientDto } from "@calcom/platform-types";
-
 import type { IPersistOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useCreateOAuthClient";
+import { useMutation } from "@tanstack/react-query";
 
 export const useUpdateOAuthClient = (
   { onSuccess, onError, clientId }: IPersistOAuthClient & { clientId?: string } = {

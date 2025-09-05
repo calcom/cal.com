@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
-import { IsBoolean, IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
+import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, Min, registerDecorator, ValidatorConstraint } from "class-validator";
 
 import type { Disabled_2024_06_14 } from "./disabled.input";
 

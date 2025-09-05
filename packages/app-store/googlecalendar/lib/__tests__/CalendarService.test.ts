@@ -5,17 +5,17 @@ import oAuthManagerMock, {
 } from "../../../tests/__mocks__/OAuthManager";
 import "../__mocks__/features.repository";
 import "../__mocks__/getGoogleAppKeys";
-import {
-  calendarMock,
-  adminMock,
-  setLastCreatedJWT,
-  setCredentialsMock,
-  setLastCreatedOAuth2Client,
-  freebusyQueryMock,
-  calendarListMock,
-} from "../__mocks__/googleapis";
 
-import { expect, test, beforeEach, vi, describe } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  adminMock,
+  calendarListMock,
+  calendarMock,
+  freebusyQueryMock,
+  setCredentialsMock,
+  setLastCreatedJWT,
+  setLastCreatedOAuth2Client,
+} from "../__mocks__/googleapis";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
@@ -26,11 +26,11 @@ import { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 
 import CalendarService from "../CalendarService";
 import {
-  createMockJWTInstance,
-  createInMemoryDelegationCredentialForCalendarService,
-  defaultDelegatedCredential,
   createCredentialForCalendarService,
   createInMemoryCredential,
+  createInMemoryDelegationCredentialForCalendarService,
+  createMockJWTInstance,
+  defaultDelegatedCredential,
 } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });

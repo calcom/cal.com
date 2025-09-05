@@ -1,8 +1,7 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, ValidateNested, IsNumber, IsString, IsOptional, IsUrl } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { IsEnum, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
 
 export class RecordingItem {
   @ApiProperty({ example: "1234567890" })

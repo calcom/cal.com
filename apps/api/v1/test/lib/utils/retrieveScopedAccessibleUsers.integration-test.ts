@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
-
 import prisma from "@calcom/prisma";
+import { describe, expect, it } from "vitest";
 
 import {
   getAccessibleUsers,

@@ -1,8 +1,7 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { TextAreaField } from "@calcom/ui/components/form";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const SizesExample: React.FC = () => (
   <RenderComponentWithSnippet>

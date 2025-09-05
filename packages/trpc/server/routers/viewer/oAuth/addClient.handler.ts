@@ -1,6 +1,5 @@
-import { randomBytes, createHash } from "crypto";
-
 import { prisma } from "@calcom/prisma";
+import { createHash, randomBytes } from "crypto";
 
 import type { TAddClientInputSchema } from "./addClient.schema";
 

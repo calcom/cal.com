@@ -1,14 +1,11 @@
-import type { Prisma } from "@prisma/client";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import {
+  bookingRepositoryBaseInputSchema,
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
-  routingRepositoryBaseInputSchema,
-  routedToPerPeriodInputSchema,
   routedToPerPeriodCsvInputSchema,
-  bookingRepositoryBaseInputSchema,
+  routedToPerPeriodInputSchema,
+  routingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
@@ -16,10 +13,11 @@ import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
-
+import type { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
-import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
+import { type GetDateRangesParams, getDateRanges, getTimeView } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
 
@@ -173,7 +171,7 @@ export const buildBaseWhereCondition = async ({
 };
 
 const buildHashMapForUsers = <
-  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
+  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown },
 >(
   usersFromTeam: T[]
 ) => {

@@ -1,10 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Dispatch } from "react";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { shallow } from "zustand/shallow";
-
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { SheetFooterControls } from "@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/features/users/components/UserTable/EditSheet/store";
@@ -12,15 +5,20 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Form } from "@calcom/ui/components/form";
-import { ToggleGroup, Select } from "@calcom/ui/components/form";
+import { Form, Select, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody } from "@calcom/ui/components/sheet";
-import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
+import { Sheet, SheetBody, SheetContent, SheetFooter, SheetHeader } from "@calcom/ui/components/sheet";
+import { Loader, Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Dispatch } from "react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { shallow } from "zustand/shallow";
 
-import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
+import { getUpdatedUser, updateRoleInCache } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";
 
 const formSchema = z.object({
@@ -188,7 +186,8 @@ export function EditMemberSheet({
       onOpenChange={() => {
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
-      }}>
+      }}
+    >
       <SheetContent className="bg-muted">
         {!isPending && !isLoadingRoles ? (
           <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">

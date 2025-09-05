@@ -1,6 +1,3 @@
-import type { BaseWidget } from "react-awesome-query-builder";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import {
@@ -11,6 +8,8 @@ import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAt
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
+import type { BaseWidget } from "react-awesome-query-builder";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/lib/service/attribute/server/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({

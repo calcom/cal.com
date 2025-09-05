@@ -1,7 +1,7 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
+import { AppsRepository } from "@/modules/apps/apps.repository";
 
 @Injectable()
 export class GCalService {

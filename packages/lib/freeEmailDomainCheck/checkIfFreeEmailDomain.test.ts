@@ -1,6 +1,5 @@
-import { describe, expect, test, vi } from "vitest";
-
 import { WatchlistRepository } from "@calcom/features/watchlist/watchlist.repository";
+import { describe, expect, test, vi } from "vitest";
 
 import { checkIfFreeEmailDomain } from "./checkIfFreeEmailDomain";
 

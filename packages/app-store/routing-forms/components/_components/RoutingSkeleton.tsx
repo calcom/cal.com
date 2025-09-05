@@ -10,7 +10,8 @@ export function RoutingSkeleton() {
                 className="my-1 flex flex-col gap-0.5 p-1"
                 style={{
                   height: "52px",
-                }}>
+                }}
+              >
                 <div className="flex items-center gap-2 px-2 py-1">
                   <div className="bg-subtle h-4 w-4 animate-pulse rounded" />
                   <div className="bg-subtle h-8 w-32 animate-pulse rounded" />

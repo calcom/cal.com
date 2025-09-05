@@ -1,16 +1,13 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import { getServerSideProps } from "@server/lib/setup/getServerSideProps";
-
-import Setup from "~/auth/setup-view";
 import type { PageProps as ClientPageProps } from "~/auth/setup-view";
+import Setup from "~/auth/setup-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

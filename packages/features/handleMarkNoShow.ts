@@ -1,5 +1,3 @@
-import { type TFunction } from "i18next";
-
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
@@ -16,6 +14,7 @@ import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enum
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { type TFunction } from "i18next";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
@@ -247,8 +246,8 @@ const handleMarkNoShow = async ({
             const destinationCalendar = booking.destinationCalendar
               ? [booking.destinationCalendar]
               : booking.user?.destinationCalendar
-              ? [booking.user?.destinationCalendar]
-              : [];
+                ? [booking.user?.destinationCalendar]
+                : [];
             const team = !!booking.eventType?.team
               ? {
                   name: booking.eventType.team.name,
@@ -359,10 +358,13 @@ const updateAttendees = async (
     },
   });
 
-  const allAttendeesMap = allAttendees.reduce((acc, attendee) => {
-    acc[attendee.email] = attendee;
-    return acc;
-  }, {} as Record<string, { id: number; email: string }>);
+  const allAttendeesMap = allAttendees.reduce(
+    (acc, attendee) => {
+      acc[attendee.email] = attendee;
+      return acc;
+    },
+    {} as Record<string, { id: number; email: string }>
+  );
 
   const updatePromises = attendees.map((attendee) => {
     const attendeeToUpdate = allAttendeesMap[attendee.email];

@@ -1,3 +1,7 @@
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getBooker,
@@ -18,14 +22,8 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
-
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import logger from "@calcom/lib/logger";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { handleNewRecurringBooking } from "../../handleNewRecurringBooking";
 

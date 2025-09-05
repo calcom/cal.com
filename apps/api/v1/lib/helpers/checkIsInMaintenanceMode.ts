@@ -4,7 +4,7 @@ import type { NextMiddleware } from "next-api-middleware";
 const safeGet = async <T = unknown>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
-  } catch (error) {
+  } catch (_error) {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };

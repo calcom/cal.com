@@ -1,6 +1,3 @@
-import type { TFunction } from "i18next";
-import { useEffect, useRef } from "react";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useShouldShowArrows } from "@calcom/features/apps/components/AllApps";
@@ -9,6 +6,8 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
+import type { TFunction } from "i18next";
+import { useEffect, useRef } from "react";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
 export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
@@ -107,7 +106,8 @@ export const EventDuration = ({
       <ul
         className="bg-default no-scrollbar flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md p-1"
         onScroll={(e) => calculateScroll(e)}
-        ref={ref}>
+        ref={ref}
+      >
         {durations
           .filter((dur) => state !== "booking" || dur === selectedDuration)
           .map((duration, index) => (
@@ -120,7 +120,8 @@ export const EventDuration = ({
               className={classNames(
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
                 "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
-              )}>
+              )}
+            >
               <div className="w-max">{getDurationFormatted(duration, t)}</div>
             </li>
           ))}

@@ -3,8 +3,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getBookerBaseUrlSync, getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui/components/avatar";
 
@@ -56,8 +55,8 @@ export const EventMembers = ({
               isEmbed || isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : entity.teamSlug
-                ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
-                : getBookerBaseUrlSync(entity.orgSlug),
+                  ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
+                  : getBookerBaseUrlSync(entity.orgSlug),
             image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",

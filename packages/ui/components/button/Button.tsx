@@ -1,13 +1,11 @@
+import classNames from "@calcom/ui/classNames";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
 import React, { forwardRef } from "react";
-
-import classNames from "@calcom/ui/classNames";
-
-import { Icon } from "../icon/Icon";
 import type { IconName } from "../icon/Icon";
+import { Icon } from "../icon/Icon";
 import { Tooltip } from "../tooltip/Tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
@@ -287,7 +285,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           loading ? "invisible" : "visible",
           variant === "fab" ? "hidden md:contents" : "",
           "group-active:translate-y-[0.5px]"
-        )}>
+        )}
+      >
         {props.children}
       </div>
       {loading && (
@@ -299,7 +298,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
-            viewBox="0 0 24 24">
+            viewBox="0 0 24 24"
+          >
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path
               className="opacity-75"
@@ -342,7 +342,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
-      tooltipClassName={tooltipClassName}>
+      tooltipClassName={tooltipClassName}
+    >
       {element}
     </Wrapper>
   );
@@ -371,7 +372,8 @@ const Wrapper = ({
       className={tooltipClassName}
       content={tooltip}
       side={tooltipSide}
-      sideOffset={tooltipOffset}>
+      sideOffset={tooltipOffset}
+    >
       {children}
     </Tooltip>
   );

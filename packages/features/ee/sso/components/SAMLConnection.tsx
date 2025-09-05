@@ -1,15 +1,13 @@
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
+import { Form, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 interface FormValues {
   metadata: string;
@@ -86,7 +84,8 @@ const CreateConnectionDialog = ({
               teamId,
               encodedRawMetadata: Buffer.from(values.metadata).toString("base64"),
             });
-          }}>
+          }}
+        >
           <div className="mb-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {t("sso_saml_configuration_title")}
@@ -119,7 +118,8 @@ const CreateConnectionDialog = ({
               onClick={() => {
                 setOpenModal(false);
               }}
-              tabIndex={-1}>
+              tabIndex={-1}
+            >
               {t("cancel")}
             </Button>
             <Button type="submit" loading={form.formState.isSubmitting}>

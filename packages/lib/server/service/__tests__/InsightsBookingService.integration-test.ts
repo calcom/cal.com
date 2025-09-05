@@ -1,10 +1,9 @@
-import type { Team, User, Membership } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-import { describe, expect, it } from "vitest";
-
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import type { Membership, Team, User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { describe, expect, it } from "vitest";
 
 import { InsightsBookingBaseService as InsightsBookingService } from "../InsightsBookingBaseService";
 

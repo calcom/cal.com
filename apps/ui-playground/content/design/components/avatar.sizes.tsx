@@ -1,8 +1,7 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Avatar } from "@calcom/ui/components/avatar";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 const sizes = ["xs", "xsm", "sm", "md", "mdLg", "lg", "xl"] as const;
 const sampleImage = "https://cal.com/stakeholder/peer.jpg";

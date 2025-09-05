@@ -1,10 +1,9 @@
-import type { Prisma } from "@prisma/client";
-
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import type { Prisma } from "@prisma/client";
 
 import type { THasActiveTeamPlanInputSchema } from "./hasActiveTeamPlan.schema";
 

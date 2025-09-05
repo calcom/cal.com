@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsDateString, IsString, IsInt } from "class-validator";
+import { IsDateString, IsInt, IsString } from "class-validator";
 
 export class GetReservedSlotOutput_2024_09_04 {
   @IsString()

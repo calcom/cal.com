@@ -1,14 +1,13 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
-import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
-import { Controller, useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { SettingsToggle, SelectField, Input, InputField, Form, Label } from "@calcom/ui/components/form";
+import { Form, Input, InputField, Label, SelectField, SettingsToggle } from "@calcom/ui/components/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useState } from "react";
+import type { FieldArrayWithId, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 
 const attributeFormSchema = z.object({
   attrName: z.string().min(1),
@@ -368,7 +367,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
             id: attributeOptionId,
           })),
         });
-      }}>
+      }}
+    >
       {header}
       <Controller
         name="isLocked"
@@ -455,7 +455,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                 type="button"
                 StartIcon="plus"
                 color="secondary"
-                onClick={() => append({ value: "", isGroup: true })}>
+                onClick={() => append({ value: "", isGroup: true })}
+              >
                 {t("new_group_option")}
               </Button>
             </div>
@@ -464,7 +465,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
       )}
       <Dialog
         open={deleteOptionDialog.open}
-        onOpenChange={() => setDeleteOptionDialog({ id: undefined, open: false })}>
+        onOpenChange={() => setDeleteOptionDialog({ id: undefined, open: false })}
+      >
         <ConfirmationDialogContent
           title={t("delete_attribute")}
           confirmBtnText={t("delete")}
@@ -472,7 +474,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
             removeOption(deleteOptionDialog.id as number);
             setDeleteOptionDialog({ id: undefined, open: false });
           }}
-          loadingText={t("deleting_attribute")}>
+          loadingText={t("deleting_attribute")}
+        >
           <>
             {t("delete_attribute_description", {
               numberOfUsers: watchedOptions[deleteOptionDialog.id as number]?.assignedUsers || 0,

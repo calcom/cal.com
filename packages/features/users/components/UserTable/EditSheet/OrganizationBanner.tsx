@@ -14,7 +14,8 @@ export function OrganizationBanner() {
         style={{
           background: "linear-gradient(to top right, var(--cal-bg-emphasis), var(--cal-bg))",
           height: currentOrganisation && currentOrganisation?.bannerUrl ? "auto" : "110px",
-        }}>
+        }}
+      >
         {currentOrganisation && currentOrganisation?.bannerUrl && (
           <img src={currentOrganisation?.bannerUrl} alt="Organization Banner" className="rounded-lg" />
         )}

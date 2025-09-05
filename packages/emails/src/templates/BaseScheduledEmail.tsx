@@ -1,19 +1,18 @@
-import type { TFunction } from "i18next";
-
 import dayjs from "@calcom/dayjs";
 import { formatPrice } from "@calcom/lib/price";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
 
 import {
+  AppsStatus,
   BaseEmailHtml,
   Info,
   LocationInfo,
   ManageLink,
+  UserFieldsResponses,
   WhenInfo,
   WhoInfo,
-  AppsStatus,
-  UserFieldsResponses,
 } from "../components";
 import { PersonInfo } from "../components/WhoInfo";
 
@@ -71,15 +70,16 @@ export const BaseScheduledEmail = (
         props.title
           ? props.title
           : props.calEvent.recurringEvent?.count
-          ? "your_event_has_been_scheduled_recurring"
-          : "your_event_has_been_scheduled"
+            ? "your_event_has_been_scheduled_recurring"
+            : "your_event_has_been_scheduled"
       )}
       callToAction={
         props.callToAction === null
           ? null
           : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
       }
-      subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
+      subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}
+    >
       {props.calEvent.rejectionReason && (
         <>
           <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />

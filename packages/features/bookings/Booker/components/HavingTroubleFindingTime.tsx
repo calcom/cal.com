@@ -1,8 +1,7 @@
-import { useState } from "react";
-
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
+import { useState } from "react";
 
 type Props = {
   onButtonClick: () => void;
@@ -40,7 +39,8 @@ export function HavingTroubleFindingTime(props: Props) {
           e.preventDefault();
           props.onButtonClick();
           setInternalClick(true);
-        }}>
+        }}
+      >
         {t("show_more")} <Icon name="arrow-right" className="h-4 w-4" />
       </button>
     </div>

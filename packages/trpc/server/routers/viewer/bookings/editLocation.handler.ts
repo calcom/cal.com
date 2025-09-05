@@ -1,11 +1,9 @@
-import type { z } from "zod";
-
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
+import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
-import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -15,13 +13,12 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
-import type { userMetadata } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
-
 import { TRPCError } from "@trpc/server";
+import type { z } from "zod";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";

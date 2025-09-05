@@ -1,15 +1,12 @@
+import { APP_NAME } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Form, PasswordField, TextField } from "@calcom/ui/components/form";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
-
-import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { PasswordField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();
@@ -46,7 +43,8 @@ export default function AppleCalendarSetup() {
                 className="font-bold hover:underline"
                 href="https://appleid.apple.com/account/manage"
                 target="_blank"
-                rel="noopener noreferrer">
+                rel="noopener noreferrer"
+              >
                 https://appleid.apple.com/account/manage
               </a>
               . {t("credentials_stored_encrypted")}
@@ -73,11 +71,13 @@ export default function AppleCalendarSetup() {
                   } catch (err) {
                     setErrorMessage(t("unable_to_add_apple_calendar"));
                   }
-                }}>
+                }}
+              >
                 <fieldset
                   className="space-y-4"
                   disabled={form.formState.isSubmitting}
-                  data-testid="apple-calendar-form">
+                  data-testid="apple-calendar-form"
+                >
                   <TextField
                     required
                     type="text"
@@ -104,7 +104,8 @@ export default function AppleCalendarSetup() {
                   <Button
                     type="submit"
                     loading={form.formState.isSubmitting}
-                    data-testid="apple-calendar-login-button">
+                    data-testid="apple-calendar-login-button"
+                  >
                     {t("save")}
                   </Button>
                 </div>

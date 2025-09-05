@@ -1,11 +1,10 @@
-import type { EventTypeCustomInput } from "@prisma/client";
-import type z from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod/custom/booking";
+import type { EventTypeCustomInput } from "@prisma/client";
+import type z from "zod";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";

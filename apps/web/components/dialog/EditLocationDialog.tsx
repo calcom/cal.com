@@ -1,10 +1,3 @@
-import { ErrorMessage } from "@hookform/error-message";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import { useEffect, useState } from "react";
-import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
-import { z } from "zod";
-
 import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
 import {
   getEventLocationType,
@@ -24,6 +17,12 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Form, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { ErrorMessage } from "@hookform/error-message";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { useEffect, useState } from "react";
+import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
+import { z } from "zod";
 
 import { QueryCell } from "../../lib/QueryCell";
 
@@ -256,7 +255,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               // Let the user retry
               setIsLocationUpdating(false);
             }
-          }}>
+          }}
+        >
           <div className="flex flex-row space-x-3">
             <div className="bg-subtle mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
               <Icon name="map-pin" className="text-emphasis h-6 w-6" />
@@ -340,7 +340,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 locationFormMethods.unregister(["locationType", "locationLink"]);
               }}
               type="button"
-              color="secondary">
+              color="secondary"
+            >
               {t("cancel")}
             </Button>
             <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>

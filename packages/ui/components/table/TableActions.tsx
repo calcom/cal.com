@@ -62,7 +62,8 @@ export const DropdownActions = ({
                 StartIcon={action.icon}
                 href={action.href}
                 data-bookingid={action.bookingId}
-                onClick={action.onClick || defaultAction}>
+                onClick={action.onClick || defaultAction}
+              >
                 {action.label}
               </DropdownItem>
             </DropdownMenuItem>
@@ -89,7 +90,8 @@ export const TableActions: FC<Props> = ({ actions }) => {
               {...(action?.actions ? { EndIcon: "chevron-down" } : null)}
               disabled={action.disabled}
               data-bookingid={action.bookingId}
-              color={action.color || "secondary"}>
+              color={action.color || "secondary"}
+            >
               {action.label}
             </Button>
           );

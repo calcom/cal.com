@@ -1,3 +1,7 @@
+import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { userSchemaResponse } from "@calcom/platform-types";
+import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -9,12 +13,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { userSchemaResponse } from "@calcom/platform-types";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Controller({
   path: "/v2/me",

@@ -1,12 +1,11 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { createContainer } from "@evyweb/ioctopus";
 
 import type { RegularBookingService } from "../modules/RegularBookingServiceModule";
 import {
-  regularBookingServiceModule,
   loadModuleDeps,
   moduleToken,
+  regularBookingServiceModule,
 } from "../modules/RegularBookingServiceModule";
 
 const regularBookingServiceContainer = createContainer();

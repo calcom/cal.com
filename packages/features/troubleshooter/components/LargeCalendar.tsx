@@ -1,11 +1,10 @@
-import { useSession } from "next-auth/react";
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 import { useTimePreferences } from "../../bookings/lib/timePreferences";
 import { useSchedule } from "../../schedules/lib/use-schedule/useSchedule";

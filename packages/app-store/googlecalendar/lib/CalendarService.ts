@@ -1,15 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { calendar_v3 } from "@googleapis/calendar";
-import type { GaxiosResponse } from "googleapis-common";
-import { RRule } from "rrule";
-import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/constants";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
+import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -18,14 +14,18 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
   Calendar,
-  CalendarServiceEvent,
   CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
-import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
+import type { calendar_v3 } from "@googleapis/calendar";
+import type { GaxiosResponse } from "googleapis-common";
+import { RRule } from "rrule";
+import { v4 as uuid } from "uuid";
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { CalendarAuth } from "./CalendarAuth";
@@ -507,16 +507,19 @@ export default class GoogleCalendarService implements Calendar {
     const freeBusyResult = await this.getFreeBusyResult(args, shouldServeCache);
     if (!freeBusyResult.calendars) return null;
 
-    const result = Object.entries(freeBusyResult.calendars).reduce((c, [id, i]) => {
-      i.busy?.forEach((busyTime) => {
-        c.push({
-          id,
-          start: busyTime.start || "",
-          end: busyTime.end || "",
+    const result = Object.entries(freeBusyResult.calendars).reduce(
+      (c, [id, i]) => {
+        i.busy?.forEach((busyTime) => {
+          c.push({
+            id,
+            start: busyTime.start || "",
+            end: busyTime.end || "",
+          });
         });
-      });
-      return c;
-    }, [] as (EventBusyDate & { id: string })[]);
+        return c;
+      },
+      [] as (EventBusyDate & { id: string })[]
+    );
 
     return result;
   }
@@ -808,7 +811,7 @@ export default class GoogleCalendarService implements Calendar {
             primary: cal.primary ?? false,
             readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
             email: cal.id ?? "",
-          } satisfies IntegrationCalendar)
+          }) satisfies IntegrationCalendar
       );
     } catch (error) {
       this.log.error("There was an error getting calendars: ", safeStringify(error));

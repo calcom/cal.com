@@ -1,9 +1,7 @@
-import type { Prisma } from "@prisma/client";
-
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { availabilityUserSelect } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
+import { availabilityUserSelect, prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { Prisma } from "@prisma/client";
 
 import { withSelectedCalendars } from "./withSelectedCalendars";
 

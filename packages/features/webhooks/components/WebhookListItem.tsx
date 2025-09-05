@@ -79,7 +79,8 @@ export default function WebhookListItem(props: {
       className={classNames(
         "flex w-full justify-between p-4",
         props.lastItem ? "" : "border-subtle border-b"
-      )}>
+      )}
+    >
       <div className="w-full truncate">
         <div className="flex">
           <Tooltip content={webhook.subscriberUrl}>
@@ -100,7 +101,8 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon="zap">
+                startIcon="zap"
+              >
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
@@ -127,7 +129,8 @@ export default function WebhookListItem(props: {
             className="hidden lg:flex"
             color="secondary"
             onClick={props.onEditWebhook}
-            data-testid="webhook-edit-button">
+            data-testid="webhook-edit-button"
+          >
             {t("edit")}
           </Button>
 

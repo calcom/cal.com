@@ -1,8 +1,7 @@
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
 import { localize } from "../lib/localize";

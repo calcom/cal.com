@@ -1,10 +1,9 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { App, Generic, Meeting } from "@calcom/lib/OgImages";
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import type { SatoriOptions } from "satori";
-import { z, ZodError } from "zod";
-
-import { Meeting, App, Generic } from "@calcom/lib/OgImages";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ZodError, z } from "zod";
 
 export const runtime = "edge";
 
@@ -75,13 +74,11 @@ async function handler(req: NextRequest) {
           });
 
           const img = new ImageResponse(
-            (
-              <Meeting
-                title={title}
-                profile={{ name: meetingProfileName, image: meetingImage }}
-                users={names.map((name, index) => ({ name, username: usernames[index] }))}
-              />
-            ),
+            <Meeting
+              title={title}
+              profile={{ name: meetingProfileName, image: meetingImage }}
+              users={names.map((name, index) => ({ name, username: usernames[index] }))}
+            />,
             ogConfig
           );
 

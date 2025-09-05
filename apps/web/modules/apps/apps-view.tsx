@@ -1,8 +1,5 @@
 "use client";
 
-import type { ChangeEventHandler } from "react";
-import { useState } from "react";
-
 import { AllApps } from "@calcom/features/apps/components/AllApps";
 import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
 import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
@@ -15,8 +12,9 @@ import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
-
 import AppsLayout from "@components/apps/layouts/AppsLayout";
+import type { ChangeEventHandler } from "react";
+import { useState } from "react";
 
 const tabs: HorizontalTabItemProps[] = [
   {
@@ -81,7 +79,8 @@ export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: 
         </div>
       )}
       headerClassName="sm:hidden lg:block hidden"
-      emptyStore={!appStore.length}>
+      emptyStore={!appStore.length}
+    >
       <div className="flex flex-col gap-y-8">
         {!searchText && (
           <>

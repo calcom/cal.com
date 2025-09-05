@@ -1,6 +1,6 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 
 type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
 
@@ -68,7 +68,8 @@ export const Slider = ({
     value={[value]}
     aria-label={label}
     onValueChange={(value: number[]) => changeHandler(value[0] ?? value)}
-    {...props}>
+    {...props}
+  >
     <SliderPrimitive.Track className="slider-track">
       <SliderPrimitive.Range className="slider-range" />
     </SliderPrimitive.Track>

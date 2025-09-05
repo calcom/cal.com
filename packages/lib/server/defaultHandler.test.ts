@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { defaultHandler } from "./defaultHandler";
 

@@ -1,30 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { Locales } from "@/lib/enums/locales";
-import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import {
-  CreateManagedUserData,
-  CreateManagedUserOutput,
-} from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
-import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
-import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
-import * as request from "supertest";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
 import {
   CAL_API_VERSION_HEADER,
   SUCCESS_STATUS,
@@ -40,6 +13,32 @@ import {
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
 } from "@calcom/platform-types";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import * as request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { Locales } from "@/lib/enums/locales";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
+import {
+  CreateManagedUserData,
+  CreateManagedUserOutput,
+} from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UsersModule } from "@/modules/users/users.module";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 

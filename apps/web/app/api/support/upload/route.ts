@@ -1,15 +1,13 @@
-import { AttachmentType } from "@team-plain/typescript-sdk";
-import { cookies, headers } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { plain, upsertPlainCustomer } from "@lib/plain/plain";
+import { AttachmentType } from "@team-plain/typescript-sdk";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["/api/support/upload"] });
 

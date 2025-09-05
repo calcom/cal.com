@@ -1,9 +1,8 @@
-import type { TFunction } from "i18next";
-import { describe, expect, it, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type { Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
+import { describe, expect, it, vi } from "vitest";
 
 describe("CalendarEventBuilder", () => {
   const mockTranslate = vi.fn(() => "foo") as TFunction;

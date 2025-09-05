@@ -4,7 +4,7 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
 

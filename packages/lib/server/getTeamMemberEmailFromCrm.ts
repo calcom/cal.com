@@ -1,5 +1,3 @@
-import type { ParsedUrlQuery } from "querystring";
-
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
 import { enabledAppSlugs } from "@calcom/app-store/routing-forms/lib/enabledApps";
@@ -10,6 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { ParsedUrlQuery } from "querystring";
 
 const log = logger.getSubLogger({ prefix: ["getTeamMemberEmailFromCrm"] });
 
@@ -219,8 +218,8 @@ async function getTeamMemberEmailForResponseOrContact({
   const attributeRoutingConfigGetterData = routingFormResponseId
     ? { routingFormResponseId, eventTypeId }
     : chosenRoute
-    ? { route: chosenRoute }
-    : null;
+      ? { route: chosenRoute }
+      : null;
 
   // If we have found crmAppSlug, it means that the CRM App in the routing-form will handle the logic
   if (attributeRoutingConfigGetterData && crmAppSlug) {

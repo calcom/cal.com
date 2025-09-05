@@ -34,7 +34,7 @@ function getFirstAndLastName(value: string | Record<"firstName" | "lastName", st
     try {
       // Support name={"firstName": "John", "lastName": "Johny Janardan"} for prefilling
       newValue = JSON.parse(value);
-    } catch (e) {
+    } catch (_e) {
       // Support name="John Johny Janardan" to be filled as firstName="John" and lastName="Johny Janardan"
       const parts = value.split(" ").map((part) => part.trim());
       const firstName = parts[0];

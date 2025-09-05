@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -11,6 +9,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
+import Link from "next/link";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
@@ -78,7 +77,8 @@ export const AppDependencyComponent = ({
       className={classNames(
         "rounded-md px-4 py-3",
         dependencyData && dependencyData.some((dependency) => !dependency.installed) ? "bg-info" : "bg-subtle"
-      )}>
+      )}
+    >
       {dependencyData &&
         dependencyData.map((dependency) => {
           return dependency.installed ? (
@@ -125,7 +125,8 @@ export const AppDependencyComponent = ({
                       <>
                         <Link
                           href={`${WEBAPP_URL}/apps/${dependency.slug}`}
-                          className="text-info flex items-center underline">
+                          className="text-info flex items-center underline"
+                        >
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
                           </span>

@@ -1,8 +1,6 @@
-import classNames from "classnames";
-
 import { Logo } from "@calcom/ui/components/logo";
-
 import Loader from "@components/Loader";
+import classNames from "classnames";
 
 interface Props {
   footerText?: React.ReactNode | string;

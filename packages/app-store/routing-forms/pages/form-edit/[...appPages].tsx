@@ -1,11 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useWatch } from "react-hook-form";
-import { Toaster } from "sonner";
-import { v4 as uuidv4 } from "uuid";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -13,17 +7,20 @@ import { FormCard } from "@calcom/ui/components/card";
 import {
   BooleanToggleGroupField,
   Label,
+  MultiOptionInput,
   SelectField,
   TextField,
-  MultiOptionInput,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import SingleForm from "../../components/SingleForm";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import { Toaster } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
+import SingleForm from "../../components/SingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 
@@ -89,7 +86,8 @@ function Field({
         badge={
           router ? { text: router.name, variant: "gray", href: `${appUrl}/form-edit/${router.id}` } : null
         }
-        deleteField={router ? null : deleteField}>
+        deleteField={router ? null : deleteField}
+      >
         <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
           <div className="mb-3 w-full">
             <TextField
@@ -138,7 +136,8 @@ function Field({
                           className={classNames(
                             "h-8 w-full justify-between text-left text-sm",
                             !!router && "bg-subtle cursor-not-allowed"
-                          )}>
+                          )}
+                        >
                           <span className="text-default">{defaultValue?.label || "Select field type"}</span>
                           <Icon name="chevron-down" className="text-default h-4 w-4" />
                         </Button>

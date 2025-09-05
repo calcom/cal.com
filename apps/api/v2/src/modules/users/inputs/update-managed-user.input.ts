@@ -1,10 +1,9 @@
+import { ValidateMetadata } from "@calcom/platform-types";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsEnum, IsIn, IsNumber, IsObject, IsOptional, IsString, IsTimeZone, IsUrl } from "class-validator";
 import { Locales } from "@/lib/enums/locales";
 import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { TimeFormat, WeekDay } from "@/modules/users/inputs/create-managed-user.input";
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEnum, IsIn, IsNumber, IsObject, IsOptional, IsString, IsTimeZone, IsUrl } from "class-validator";
-
-import { ValidateMetadata } from "@calcom/platform-types";
 
 export class UpdateManagedUserInput {
   @IsString()

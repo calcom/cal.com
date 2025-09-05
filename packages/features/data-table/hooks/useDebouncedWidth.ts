@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useDebouncedWidth(ref: React.RefObject<HTMLDivElement>, debounceMs = 100) {
   const [width, setWidth] = useState<number>(0);

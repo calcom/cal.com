@@ -1,18 +1,14 @@
+import { CAL_VIDEO, CONFERENCING_APPS, GOOGLE_MEET } from "@calcom/platform-constants";
+import { teamMetadataSchema } from "@calcom/platform-libraries";
+import { handleDeleteCredential } from "@calcom/platform-libraries/app-store";
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
 import { DefaultConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
-import { GOOGLE_MEET } from "@calcom/platform-constants";
-import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
-import { teamMetadataSchema } from "@calcom/platform-libraries";
-import { handleDeleteCredential } from "@calcom/platform-libraries/app-store";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class OrganizationsConferencingService {

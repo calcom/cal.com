@@ -1,10 +1,10 @@
 /// <reference types="stripe-event-types" />
-import { buffer } from "micro";
-import type { NextApiRequest } from "next";
-import type Stripe from "stripe";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
+import { buffer } from "micro";
+import type { NextApiRequest } from "next";
+import type Stripe from "stripe";
 
 /** Stripe Webhook Handler Mappings */
 export type SWHMap = {

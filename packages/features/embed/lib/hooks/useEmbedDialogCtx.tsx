@@ -1,5 +1,4 @@
-import { createContext, useContext } from "react";
-import React, { useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 import type { EmbedState } from "../../types";
 

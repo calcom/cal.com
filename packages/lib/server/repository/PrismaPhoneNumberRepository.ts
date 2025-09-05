@@ -1,7 +1,6 @@
-import { Prisma } from "@prisma/client";
-
 import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import { Prisma } from "@prisma/client";
 
 interface _PhoneNumberRawResult {
   id: number;
@@ -101,26 +100,29 @@ export class PrismaPhoneNumberRepository {
       `
         : [];
 
-    const agentsByPhoneNumber = agents.reduce((acc, agent) => {
-      const phoneNumberId = agent.phoneNumberId;
-      if (!acc[phoneNumberId]) {
-        acc[phoneNumberId] = { inbound: null, outbound: null };
-      }
+    const agentsByPhoneNumber = agents.reduce(
+      (acc, agent) => {
+        const phoneNumberId = agent.phoneNumberId;
+        if (!acc[phoneNumberId]) {
+          acc[phoneNumberId] = { inbound: null, outbound: null };
+        }
 
-      const agentData = {
-        id: agent.id,
-        name: agent.name,
-        providerAgentId: agent.providerAgentId,
-      };
+        const agentData = {
+          id: agent.id,
+          name: agent.name,
+          providerAgentId: agent.providerAgentId,
+        };
 
-      if (agent.agentType === "inbound") {
-        acc[phoneNumberId].inbound = agentData;
-      } else if (agent.agentType === "outbound") {
-        acc[phoneNumberId].outbound = agentData;
-      }
+        if (agent.agentType === "inbound") {
+          acc[phoneNumberId].inbound = agentData;
+        } else if (agent.agentType === "outbound") {
+          acc[phoneNumberId].outbound = agentData;
+        }
 
-      return acc;
-    }, {} as Record<number, { inbound: AgentRawResult | null; outbound: AgentRawResult | null }>);
+        return acc;
+      },
+      {} as Record<number, { inbound: AgentRawResult | null; outbound: AgentRawResult | null }>
+    );
 
     return phoneNumbers.map((pn) => ({
       id: pn.id,
@@ -393,26 +395,29 @@ export class PrismaPhoneNumberRepository {
       `
         : [];
 
-    const agentsByPhoneNumber = agents.reduce((acc, agent) => {
-      const phoneNumberId = agent.phoneNumberId;
-      if (!acc[phoneNumberId]) {
-        acc[phoneNumberId] = { inbound: null, outbound: null };
-      }
+    const agentsByPhoneNumber = agents.reduce(
+      (acc, agent) => {
+        const phoneNumberId = agent.phoneNumberId;
+        if (!acc[phoneNumberId]) {
+          acc[phoneNumberId] = { inbound: null, outbound: null };
+        }
 
-      const agentData = {
-        id: agent.id,
-        name: agent.name,
-        providerAgentId: agent.providerAgentId,
-      };
+        const agentData = {
+          id: agent.id,
+          name: agent.name,
+          providerAgentId: agent.providerAgentId,
+        };
 
-      if (agent.agentType === "inbound") {
-        acc[phoneNumberId].inbound = agentData;
-      } else if (agent.agentType === "outbound") {
-        acc[phoneNumberId].outbound = agentData;
-      }
+        if (agent.agentType === "inbound") {
+          acc[phoneNumberId].inbound = agentData;
+        } else if (agent.agentType === "outbound") {
+          acc[phoneNumberId].outbound = agentData;
+        }
 
-      return acc;
-    }, {} as Record<number, { inbound: AgentRawResult | null; outbound: AgentRawResult | null }>);
+        return acc;
+      },
+      {} as Record<number, { inbound: AgentRawResult | null; outbound: AgentRawResult | null }>
+    );
 
     return phoneNumbers.map((pn) => ({
       id: pn.id,

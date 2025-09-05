@@ -1,8 +1,7 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { MembershipRole } from "@calcom/prisma/enums";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import getUpgradeableHandler from "./getUpgradeable.handler";
 

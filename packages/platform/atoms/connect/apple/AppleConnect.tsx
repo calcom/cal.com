@@ -1,5 +1,11 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { Form, PasswordField, TextField } from "@calcom/ui/components/form";
+import type { FC } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -8,15 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { FC } from "react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";
@@ -24,8 +21,8 @@ import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
-import { ConnectedCalendarsTooltip } from "../OAuthConnect";
 import type { OAuthConnectProps } from "../OAuthConnect";
+import { ConnectedCalendarsTooltip } from "../OAuthConnect";
 
 export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   label,
@@ -99,7 +96,8 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 tooltipOffset={10}
                 tooltipClassName="p-0 text-inherit bg-inherit"
                 className={cn("", !isDisabled && "cursor-pointer", "border-none md:rounded-md", className)}
-                onClick={() => setIsDialogOpen(true)}>
+                onClick={() => setIsDialogOpen(true)}
+              >
                 {displayedLabel}
               </Button>
             )}
@@ -115,7 +113,8 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                   "border-none md:rounded-md",
                   className
                 )}
-                onClick={() => setIsDialogOpen(true)}>
+                onClick={() => setIsDialogOpen(true)}
+              >
                 {displayedLabel}
               </Button>
             )}
@@ -145,11 +144,13 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
               } else {
                 await saveCredentials({ calendar: "apple", username, password });
               }
-            }}>
+            }}
+          >
             <fieldset
               className="space-y-4"
               disabled={form.formState.isSubmitting}
-              data-testid="apple-calendar-form">
+              data-testid="apple-calendar-form"
+            >
               <TextField
                 required
                 type="text"
@@ -173,7 +174,8 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 type="button"
                 color="secondary"
                 className="md:rounded-md"
-                onClick={() => setIsDialogOpen(false)}>
+                onClick={() => setIsDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
@@ -181,7 +183,8 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
                 type="submit"
                 className="border-none md:rounded-md"
                 loading={form.formState.isSubmitting}
-                data-testid="apple-calendar-login-button">
+                data-testid="apple-calendar-login-button"
+              >
                 Save
               </Button>
             </div>

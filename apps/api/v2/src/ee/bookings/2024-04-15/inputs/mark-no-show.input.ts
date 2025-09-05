@@ -1,6 +1,6 @@
-import { ApiPropertyOptional, ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsOptional, IsArray, IsEmail, IsBoolean, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsEmail, IsOptional, ValidateNested } from "class-validator";
 
 class Attendee {
   @IsEmail()

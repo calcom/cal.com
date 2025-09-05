@@ -1,18 +1,16 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
-import Stripe from "stripe";
-import { v4 as uuidv4 } from "uuid";
-import z from "zod";
-
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorWithCode, getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
+import Stripe from "stripe";
+import { v4 as uuidv4 } from "uuid";
+import z from "zod";
 
 import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
@@ -358,8 +356,8 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    const attendeesToEmail = event.attendeeSeatId 
-      ? event.attendees.filter(attendee => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
+    const attendeesToEmail = event.attendeeSeatId
+      ? event.attendees.filter((attendee) => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
       : event.attendees;
 
     await sendAwaitingPaymentEmailAndSMS(

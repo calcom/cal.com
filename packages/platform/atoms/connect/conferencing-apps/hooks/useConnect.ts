@@ -1,15 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
-
 import {
-  SUCCESS_STATUS,
   ERROR_STATUS,
-  ZOOM,
   GOOGLE_MEET,
   OFFICE_365_VIDEO,
+  SUCCESS_STATUS,
+  ZOOM,
 } from "@calcom/platform-constants";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 import type { App } from "@calcom/types/App";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { useAtomsContext } from "../../../hooks/useAtomsContext";
 import http from "../../../lib/http";

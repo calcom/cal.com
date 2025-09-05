@@ -8,7 +8,7 @@ export const localStorage = {
     try {
       // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       return window.localStorage.getItem(key);
-    } catch (e) {
+    } catch (_e) {
       // In case storage is restricted. Possible reasons
       // 1. Third Party Context in Chrome Incognito mode.
       return null;
@@ -18,7 +18,7 @@ export const localStorage = {
     try {
       // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.localStorage.setItem(key, value);
-    } catch (e) {
+    } catch (_e) {
       // In case storage is restricted. Possible reasons
       // 1. Third Party Context in Chrome Incognito mode.
       // 2. Storage limit reached
@@ -29,7 +29,7 @@ export const localStorage = {
     try {
       // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.localStorage.removeItem(key);
-    } catch (e) {
+    } catch (_e) {
       return;
     }
   },

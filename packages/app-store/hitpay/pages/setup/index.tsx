@@ -1,12 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Toaster } from "sonner";
-import { z } from "zod";
-
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +6,14 @@ import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Toaster } from "sonner";
+import { z } from "zod";
 
 import KeyField from "../../components/KeyInput";
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
@@ -277,7 +276,8 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
                       background: "linear-gradient(180deg, #FFDE6E 63.72%, #F8C455 95.24%)",
                     }}
                     type="submit"
-                    disabled={loading}>
+                    disabled={loading}
+                  >
                     {hitpayIcon}
                     <span className="mr-2">Connect with HitPay</span>
                   </button>

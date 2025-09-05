@@ -1,8 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-import type { Options } from "react-select";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
   FormValues,
@@ -10,15 +5,17 @@ import type {
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { groupHostsByGroupId, getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
+import { getHostsFromOtherGroups, groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Label, Select, TextField } from "@calcom/ui/components/form";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
+import type { Options } from "react-select";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 import WeightDescription from "./WeightDescription";

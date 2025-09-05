@@ -1,12 +1,11 @@
 "use client";
 
-import type { User } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { User } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const shouldShowOnboarding = (
   user: Pick<User, "createdDate" | "completedOnboarding"> & {

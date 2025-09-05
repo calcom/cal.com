@@ -1,6 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { readonlyPrisma } from "@calcom/prisma";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RoutingEventsInsights } from "../routing-events";
 

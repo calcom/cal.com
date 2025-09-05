@@ -1,11 +1,11 @@
 import { isParamValuePresentInUrlSearchParams } from "../../lib/utils";
 import type {
-  EmbedThemeConfig,
-  UiConfig,
   EmbedNonStylesConfig,
   EmbedStyles,
+  EmbedThemeConfig,
   SetStyles,
   setNonStylesConfig,
+  UiConfig,
 } from "../../types";
 import { runAsap } from "./utils";
 

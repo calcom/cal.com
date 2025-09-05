@@ -1,19 +1,17 @@
-import { createRouterCaller } from "app/_trpc/context";
-import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
-import { headers, cookies } from "next/headers";
-import { redirect } from "next/navigation";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CustomAction, Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { createRouterCaller } from "app/_trpc/context";
+import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { MembersView } from "~/members/members-view";
 

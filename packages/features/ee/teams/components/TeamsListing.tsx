@@ -1,8 +1,5 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
-
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,6 +10,8 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
 
 import { UpgradeTip } from "../../../tips";
 import TeamList from "./TeamList";
@@ -143,7 +142,8 @@ export function TeamsListing({
               <p>{t("org_admins_can_create_new_teams")}</p>
             )
           }
-          isParentLoading={<SkeletonLoaderTeamList />}>
+          isParentLoading={<SkeletonLoaderTeamList />}
+        >
           <EmptyScreen
             Icon="users"
             headline={t("create_team_to_get_started")}
@@ -156,7 +156,8 @@ export function TeamsListing({
                 tooltip={
                   isCreateTeamButtonDisabled ? t("org_admins_can_create_new_teams") : t("create_new_team")
                 }
-                onClick={() => router.push(`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`)}>
+                onClick={() => router.push(`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`)}
+              >
                 {t(`create_new_team`)}
               </Button>
             }

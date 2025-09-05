@@ -1,10 +1,6 @@
-import { useMemo, useState, Suspense } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import WebShell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -13,21 +9,22 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import {
-  DropdownMenuSeparator,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Label, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Suspense, useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
@@ -112,12 +109,14 @@ function EventTypeSingleLayout({
                   "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md transition",
                   formMethods.watch("hidden") ? "pl-2" : "",
                   "lg:flex"
-                )}>
+                )}
+              >
                 {formMethods.watch("hidden") && (
                   <Skeleton
                     as={Label}
                     htmlFor="hiddenSwitch"
-                    className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                    className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline"
+                  >
                     {t("hidden")}
                   </Skeleton>
                 )}
@@ -126,7 +125,8 @@ function EventTypeSingleLayout({
                   content={
                     formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
                   }
-                  side="bottom">
+                  side="bottom"
+                >
                   <div className="self-center rounded-md p-2">
                     <Switch
                       id="hiddenSwitch"
@@ -218,7 +218,8 @@ function EventTypeSingleLayout({
                   type="button"
                   StartIcon="external-link"
                   href={permalink}
-                  rel="noreferrer">
+                  rel="noreferrer"
+                >
                   {t("preview")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -229,7 +230,8 @@ function EventTypeSingleLayout({
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
-                  }}>
+                  }}
+                >
                   {t("copy_link")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -240,7 +242,8 @@ function EventTypeSingleLayout({
                     color="destructive"
                     StartIcon="trash"
                     disabled={!hasPermsToDelete}
-                    onClick={() => setDeleteDialogOpen(true)}>
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -250,7 +253,8 @@ function EventTypeSingleLayout({
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
-                  className="mt-2 inline cursor-pointer self-center pr-2 ">
+                  className="mt-2 inline cursor-pointer self-center pr-2 "
+                >
                   {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                 </Skeleton>
                 <Switch
@@ -271,11 +275,13 @@ function EventTypeSingleLayout({
             loading={isUpdateMutationLoading}
             disabled={!formMethods.formState.isDirty}
             data-testid="update-eventtype"
-            form="event-type-form">
+            form="event-type-form"
+          >
             {t("save")}
           </Button>
         </div>
-      }>
+      }
+    >
       <Suspense fallback={<Icon name="loader" />}>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
@@ -295,7 +301,8 @@ function EventTypeSingleLayout({
               className={classNames(
                 "bg-default border-subtle  mt-4 rounded-md sm:mx-0 xl:mt-0",
                 disableBorder ? "border-0 " : "p-2 md:border md:p-6"
-              )}>
+              )}
+            >
               {children}
             </div>
           </div>

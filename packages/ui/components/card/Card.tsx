@@ -1,11 +1,11 @@
 // @TODO: turn this into a more generic component that has the same Props API as MUI https://mui.com/material-ui/react-card/
+
+import classNames from "@calcom/ui/classNames";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import React from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../button";
 
@@ -140,7 +140,8 @@ export function Card({
         "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
       )}
       data-testid="card-container"
-      {...containerProps}>
+      {...containerProps}
+    >
       <div>
         {icon && icon}
         {image && (
@@ -160,13 +161,15 @@ export function Card({
           className={classNames(
             cvaCardTypeByVariant({ variant, structure: "title" }),
             "text-emphasis line-clamp-1 font-bold leading-5"
-          )}>
+          )}
+        >
           {title}
         </h5>
         {description && (
           <p
             title={description.toString()}
-            className={classNames(cvaCardTypeByVariant({ variant, structure: "description" }), "pt-1")}>
+            className={classNames(cvaCardTypeByVariant({ variant, structure: "description" }), "pt-1")}
+          >
             {description}
           </p>
         )}
@@ -178,13 +181,15 @@ export function Card({
           rel="noreferrer"
           href={mediaLink}
           data-testid={actionButton?.["data-testid"]}
-          className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
+          className="group relative my-3 flex aspect-video items-center overflow-hidden rounded"
+        >
           <div className="absolute inset-0 bg-black bg-opacity-50 transition group-hover:bg-opacity-40" />
           <svg
             className="text-inverted absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full shadow-lg transition-all hover:-mt-px"
             viewBox="0 0 32 32"
             fill="none"
-            xmlns="http://www.w3.org/2000/svg">
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
               d="M16 32C24.8366 32 32 24.8366 32 16C32 7.16344 24.8366 0 16 0C7.16344 0 0 7.16344 0 16C0 24.8366 7.16344 32 16 32Z"
               fill="white"
@@ -210,7 +215,8 @@ export function Card({
             href={actionButton?.href}
             className="mt-10"
             EndIcon="arrow-right"
-            data-testid={actionButton["data-testid"]}>
+            data-testid={actionButton["data-testid"]}
+          >
             {actionButton?.child}
           </Button>
         </div>
@@ -224,7 +230,8 @@ export function Card({
               onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
-              className="text-default text-xs font-medium">
+              className="text-default text-xs font-medium"
+            >
               {learnMore.text}
             </LinkComponent>
           )}
@@ -233,7 +240,8 @@ export function Card({
               className="text-default hover:text-emphasis p-0 text-xs font-normal"
               color="minimal"
               data-testid={actionButton?.["data-testid"]}
-              onClick={actionButton?.onClick}>
+              onClick={actionButton?.onClick}
+            >
               {actionButton?.child}
             </button>
           )}

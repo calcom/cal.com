@@ -9,7 +9,7 @@ import { ZSubmitRatingInputSchema } from "./submitRating.schema";
 
 const NAMESPACE = "publicViewer";
 
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+const _namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 // things that unauthenticated users can query about themselves
 export const publicViewerRouter = router({

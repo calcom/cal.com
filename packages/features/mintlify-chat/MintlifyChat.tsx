@@ -1,12 +1,12 @@
 /* eslint-disable react/no-danger */
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import { getFormattedCitations, handleAiChat, optionallyAddBaseUrl } from "../mintlify-chat/util";
 
@@ -57,7 +57,8 @@ export const MintlifyChat = ({ searchText, aiResponse, setAiResponse }: Mintlify
         className={classNames(
           "hover:bg-subtle flex items-center gap-3 px-4 py-2 transition",
           isGenerating ? "cursor-not-allowed" : "cursor-pointer"
-        )}>
+        )}
+      >
         <div>
           <Icon name="star" />
         </div>

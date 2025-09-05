@@ -1,6 +1,3 @@
-import type { EventStatus } from "ics";
-import { v4 as uuidv4 } from "uuid";
-
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
@@ -17,6 +14,8 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventStatus } from "ics";
+import { v4 as uuidv4 } from "uuid";
 
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
@@ -164,8 +163,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
                 : ""
             }`
           : isEmailAttendeeAction && seatReferenceUid
-          ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
-          : ""
+            ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+            : ""
       }`,
 
       rescheduleReason: evt.rescheduleReason,

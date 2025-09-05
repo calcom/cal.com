@@ -1,10 +1,9 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventtypes/lib/types";
+import type {
+  EventTypeSetupProps,
+  FormValues,
+  PrivateLinkWithOptions,
+} from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { isLinkExpired as utilsIsLinkExpired } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -14,12 +13,13 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { TextField } from "@calcom/ui/components/form";
-import { DatePicker } from "@calcom/ui/components/form";
-import { NumberInput } from "@calcom/ui/components/form";
+import { DatePicker, NumberInput, TextField } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 
 export const MultiplePrivateLinksController = ({
   team,
@@ -324,7 +324,8 @@ export const MultiplePrivateLinksController = ({
                 color="minimal"
                 StartIcon="plus"
                 onClick={addPrivateLink}
-                data-testid="add-private-link-button">
+                data-testid="add-private-link-button"
+              >
                 {t("add_a_multiple_private_link")}
               </Button>
             </ul>
@@ -341,7 +342,8 @@ export const MultiplePrivateLinksController = ({
               data-testid="private-link-radio-group"
               onValueChange={(value: "time" | "usage") => {
                 setSelectedType(value);
-              }}>
+              }}
+            >
               <RadioArea.Item value="usage" data-testid="private-link-usage" className="w-full text-sm">
                 <strong className="mb-1 block">{t("usage_based_expiration")}</strong>
                 <p>
@@ -409,7 +411,8 @@ export const MultiplePrivateLinksController = ({
                   updateLinkSettings(currentLinkIndex, "usage", undefined, maxUsageCount);
                 }
                 setIsDialogOpen(false);
-              }}>
+              }}
+            >
               {t("save")}
             </Button>
           </div>

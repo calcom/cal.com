@@ -1,8 +1,6 @@
-import prismock from "../../../tests/libs/__mocks__/prisma";
-
 import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-
-import { describe, test, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import prismock from "../../../tests/libs/__mocks__/prisma";
 
 import { getRawEventType } from "./getEventTypeById";
 

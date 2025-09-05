@@ -1,13 +1,13 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
-  IsBoolean,
   ArrayMinSize,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
-  ValidateNested,
   ValidateIf,
+  ValidateNested,
 } from "class-validator";
 
 import {

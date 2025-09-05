@@ -1,24 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { APP_NAME } from "@calcom/lib/constants";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -100,7 +97,8 @@ const ProfileView = ({ team }: ProfileViewProps) => {
                 id: team.id,
                 theme: theme === "light" || theme === "dark" ? theme : null,
               });
-            }}>
+            }}
+          >
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
               <div>
                 <p className="mt-0.5 text-base font-semibold leading-none">{t("theme")}</p>
@@ -135,7 +133,8 @@ const ProfileView = ({ team }: ProfileViewProps) => {
                 disabled={isThemeSubmitting || !isThemeDirty}
                 type="submit"
                 data-testid="update-org-theme-btn"
-                color="primary">
+                color="primary"
+              >
                 {t("update")}
               </Button>
             </SectionBottomActions>
@@ -145,7 +144,8 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             form={brandColorsFormMethods}
             handleSubmit={(values) => {
               onBrandColorsFormSubmit(values);
-            }}>
+            }}
+          >
             <BrandColorsForm
               onSubmit={onBrandColorsFormSubmit}
               brandColor={team?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}

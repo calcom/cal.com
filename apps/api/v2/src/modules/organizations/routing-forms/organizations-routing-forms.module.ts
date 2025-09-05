@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { IsUserRoutingForm } from "@/modules/auth/guards/organizations/is-user-routing-form.guard";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -9,13 +10,11 @@ import { RoutingFormsModule } from "@/modules/routing-forms/routing-forms.module
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { Module } from "@nestjs/common";
-
-import { OrganizationsRoutingFormsResponsesController } from "./controllers/organizations-routing-forms-responses.controller";
 import { OrganizationsRoutingFormsController } from "./controllers/organizations-routing-forms.controller";
+import { OrganizationsRoutingFormsResponsesController } from "./controllers/organizations-routing-forms-responses.controller";
 import { OrganizationsRoutingFormsRepository } from "./organizations-routing-forms.repository";
-import { OrganizationsRoutingFormsResponsesService } from "./services/organizations-routing-forms-responses.service";
 import { OrganizationsRoutingFormsService } from "./services/organizations-routing-forms.service";
+import { OrganizationsRoutingFormsResponsesService } from "./services/organizations-routing-forms-responses.service";
 import { SharedRoutingFormResponseService } from "./services/shared-routing-form-response.service";
 
 @Module({

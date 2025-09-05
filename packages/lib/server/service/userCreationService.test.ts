@@ -1,10 +1,8 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
-
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { CreationSource } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { UserRepository } from "../repository/user";
 import { UserCreationService } from "./userCreationService";
@@ -63,7 +61,7 @@ describe("UserCreationService", () => {
         () =>
           ({
             create: mockCreate,
-          } as any)
+          }) as any
       );
     }
 
@@ -95,7 +93,7 @@ describe("UserCreationService", () => {
         () =>
           ({
             create: mockCreate,
-          } as any)
+          }) as any
       );
     }
 
@@ -126,7 +124,7 @@ describe("UserCreationService", () => {
         () =>
           ({
             create: mockCreate,
-          } as any)
+          }) as any
       );
     }
 

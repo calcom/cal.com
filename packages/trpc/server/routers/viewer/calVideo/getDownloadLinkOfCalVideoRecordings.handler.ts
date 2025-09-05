@@ -30,7 +30,7 @@ export const getDownloadLinkOfCalVideoRecordingsHandler = async ({
   try {
     const res = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
     return res;
-  } catch (err) {
+  } catch (_err) {
     throw new TRPCError({
       code: "BAD_REQUEST",
     });

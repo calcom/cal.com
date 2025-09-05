@@ -1,4 +1,3 @@
-import { componentSource } from "@/app/source";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { createTypeTable } from "fumadocs-typescript/ui";
 import defaultMdxComponents from "fumadocs-ui/mdx";
@@ -6,6 +5,7 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Toaster } from "react-hot-toast";
+import { componentSource } from "@/app/source";
 
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
   const params = await props.params;

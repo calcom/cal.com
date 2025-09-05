@@ -1,5 +1,3 @@
-import type { Workflow } from "@prisma/client";
-
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { SENDER_NAME } from "@calcom/lib/constants";
@@ -15,6 +13,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import type { Workflow } from "@prisma/client";
 
 import { TRPCError } from "@trpc/server";
 

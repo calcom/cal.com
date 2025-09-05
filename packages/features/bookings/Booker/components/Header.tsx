@@ -1,6 +1,3 @@
-import { useCallback, useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -13,6 +10,8 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useCallback, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import type { BookerLayout } from "../types";
@@ -67,7 +66,8 @@ export function Header({
             <Button
               color="primary"
               target="_blank"
-              href={`${WEBAPP_URL}/availability/troubleshoot?eventType=${eventSlug}`}>
+              href={`${WEBAPP_URL}/availability/troubleshoot?eventType=${eventSlug}`}
+            >
               {t("need_help")}
             </Button>
           </Tooltip>
@@ -130,7 +130,8 @@ export function Header({
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
-              onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}>
+              onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}
+            >
               {t("today")}
             </Button>
           )}

@@ -1,14 +1,14 @@
-import { ErrorMessage } from "@hookform/error-message";
-import { useFormContext, Controller } from "react-hook-form";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import type { CalVideoSettings as CalVideoSettingsType } from "@calcom/features/eventtypes/lib/types";
+import type {
+  CalVideoSettings as CalVideoSettingsType,
+  FormValues,
+} from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
-import { TextField } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { SettingsToggle, TextField } from "@calcom/ui/components/form";
+import { ErrorMessage } from "@hookform/error-message";
+import { Controller, useFormContext } from "react-hook-form";
 
 import LocationSettingsContainer from "./LocationSettingsContainer";
 

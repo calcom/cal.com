@@ -1,9 +1,5 @@
 "use client";
 
-import type { TFunction } from "i18next";
-import { useQueryState } from "nuqs";
-import { type ReactNode, useMemo, useRef, useState } from "react";
-
 import { DataTableSkeleton } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -14,17 +10,20 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { ToggleGroup, Input } from "@calcom/ui/components/form";
+import { Input, ToggleGroup } from "@calcom/ui/components/form";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@calcom/ui/components/hover-card";
 import {
-  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableNew,
   TableRow,
 } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { TFunction } from "i18next";
+import { useQueryState } from "nuqs";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 
 import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
@@ -221,11 +220,14 @@ export function RoutedToPerPeriod() {
     });
 
     return flattenedUsers.map((user) => {
-      const stats = uniquePeriods.reduce((acc, period) => {
-        const key = `${user.id}-${period.toISOString()}`;
-        acc[period.toISOString()] = statsMap.get(key) ?? 0;
-        return acc;
-      }, {} as { [key: string]: number });
+      const stats = uniquePeriods.reduce(
+        (acc, period) => {
+          const key = `${user.id}-${period.toISOString()}`;
+          acc[period.toISOString()] = statsMap.get(key) ?? 0;
+          return acc;
+        },
+        {} as { [key: string]: number }
+      );
 
       return {
         id: user.id,
@@ -249,7 +251,8 @@ export function RoutedToPerPeriod() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}>
+          onSearchChange={setSearchQuery}
+        >
           <div className="mt-6">
             <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
           </div>
@@ -284,11 +287,13 @@ export function RoutedToPerPeriod() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}>
+          onSearchChange={setSearchQuery}
+        >
           <div className="mt-6">
             <div
               className="scrollbar-thin border-subtle relative overflow-auto rounded-md border"
-              ref={tableContainerRef}>
+              ref={tableContainerRef}
+            >
               <TableNew className="border-0">
                 <TableHeader className="bg-subtle sticky top-0 z-10">
                   <TableRow>
@@ -303,7 +308,8 @@ export function RoutedToPerPeriod() {
                         <TableHead
                           key={period.toISOString()}
                           className="text-center"
-                          data-is-current={isCurrent}>
+                          data-is-current={isCurrent}
+                        >
                           <span className={classNames(isCurrent && "font-bold")}>
                             {date.toLocaleDateString()}
                           </span>

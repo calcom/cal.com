@@ -1,5 +1,3 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type {
   ApiResponse,
@@ -8,6 +6,7 @@ import type {
   PlatformOAuthClientDto,
   SubscribeTeamInput,
 } from "@calcom/platform-types";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface IPersistOAuthClient {
   onSuccess?: () => void;
@@ -143,7 +142,11 @@ export const useSubscribeTeamToStripe = (
     onSuccess,
     onError,
     teamId,
-  }: { teamId?: number | null; onSuccess: (redirectUrl: string) => void; onError: () => void } = {
+  }: {
+    teamId?: number | null;
+    onSuccess: (redirectUrl: string) => void;
+    onError: () => void;
+  } = {
     onSuccess: () => {
       return;
     },
@@ -180,7 +183,11 @@ export const useUpgradeTeamSubscriptionInStripe = (
     onSuccess,
     onError,
     teamId,
-  }: { teamId?: number | null; onSuccess: (redirectUrl: string) => void; onError: () => void } = {
+  }: {
+    teamId?: number | null;
+    onSuccess: (redirectUrl: string) => void;
+    onError: () => void;
+  } = {
     onSuccess: () => {
       return;
     },

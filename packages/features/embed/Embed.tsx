@@ -1,20 +1,10 @@
-import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
-import classNames from "classnames";
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import type { RefObject, Dispatch, SetStateAction } from "react";
-import { createRef, useRef, useState } from "react";
-import type { ControlProps } from "react-select";
-import { components } from "react-select";
-import { shallow } from "zustand/shallow";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import {
   BookerStoreProvider,
-  useInitializeBookerStoreContext,
   useBookerStoreContext,
+  useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
@@ -24,7 +14,7 @@ import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,23 +22,29 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Select, ColorPicker } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { ColorPicker, Label, Select, Switch, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
+import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
+import classNames from "classnames";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { Dispatch, RefObject, SetStateAction } from "react";
+import { createRef, useRef, useState } from "react";
+import type { ControlProps } from "react-select";
+import { components } from "react-select";
+import { shallow } from "zustand/shallow";
 
 import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
-import { EmbedTabName } from "./lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "./lib/constants";
+import { EmbedTabName } from "./lib/EmbedTabs";
 import { getDimension } from "./lib/getDimension";
 import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "./lib/hooks/useEmbedParams";
-import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "./types";
+import type { EmbedConfig, EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
@@ -219,7 +215,8 @@ const ChooseEmbedTypesDialogContent = ({
                   embedType: embed.type as EmbedType,
                 });
               }
-            }}>
+            }}
+          >
             <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
@@ -497,7 +494,8 @@ const EmailEmbedPreview = ({
             overflowY: "auto",
             backgroundColor: "white",
           }}
-          ref={emailContentRef}>
+          ref={emailContentRef}
+        >
           <div
             style={{
               fontStyle: "normal",
@@ -506,7 +504,8 @@ const EmailEmbedPreview = ({
               lineHeight: "19px",
               marginTop: "15px",
               marginBottom: "15px",
-            }}>
+            }}
+          >
             <b style={{ color: "black" }}> {eventType.title}</b>
           </div>
           <div
@@ -516,7 +515,8 @@ const EmailEmbedPreview = ({
               fontSize: "14px",
               lineHeight: "17px",
               color: "#333333",
-            }}>
+            }}
+          >
             {t("duration")}: <b style={{ color: "black" }}>{selectedDuration} mins</b>
           </div>
           <div>
@@ -528,7 +528,8 @@ const EmailEmbedPreview = ({
                   fontSize: "14px",
                   lineHeight: "17px",
                   color: "#333333",
-                }}>
+                }}
+              >
                 {t("timezone")}: <b style={{ color: "black" }}>{timezone}</b>
               </span>
             </b>
@@ -551,7 +552,8 @@ const EmailEmbedPreview = ({
                           textAlign: "left",
                           borderCollapse: "collapse",
                           borderSpacing: "0px",
-                        }}>
+                        }}
+                      >
                         <tbody>
                           <tr>
                             <td style={{ textAlign: "left", marginTop: "16px" }}>
@@ -562,7 +564,8 @@ const EmailEmbedPreview = ({
                                   paddingBottom: "8px",
                                   color: "rgb(26, 26, 26)",
                                   fontWeight: "bold",
-                                }}>
+                                }}
+                              >
                                 {selectedDate}
                                 &nbsp;
                               </span>
@@ -594,7 +597,8 @@ const EmailEmbedPreview = ({
                                               height: "24px",
                                               border: "1px solid #111827",
                                               borderRadius: "3px",
-                                            }}>
+                                            }}
+                                          >
                                             <table style={{ height: "21px" }}>
                                               <tbody>
                                                 <tr style={{ height: "21px" }}>
@@ -604,7 +608,8 @@ const EmailEmbedPreview = ({
                                                       width: "50px",
                                                       textAlign: "center",
                                                       marginRight: "1px",
-                                                    }}>
+                                                    }}
+                                                  >
                                                     <a
                                                       href={bookingURL}
                                                       className="spot"
@@ -615,12 +620,14 @@ const EmailEmbedPreview = ({
                                                         color: "#111827",
                                                         fontSize: "12px",
                                                         lineHeight: "16px",
-                                                      }}>
+                                                      }}
+                                                    >
                                                       <b
                                                         style={{
                                                           fontWeight: "normal",
                                                           textDecoration: "none",
-                                                        }}>
+                                                        }}
+                                                      >
                                                         {dayjs.utc(time).tz(timezone).format(timeFormat)}
                                                         &nbsp;
                                                       </b>
@@ -650,7 +657,8 @@ const EmailEmbedPreview = ({
                     textDecoration: "none",
                     cursor: "pointer",
                     color: "black",
-                  }}>
+                  }}
+                >
                   {t("see_all_available_times")}
                 </a>
               </div>
@@ -662,7 +670,8 @@ const EmailEmbedPreview = ({
               borderTop: "1px solid #CCCCCC",
               marginTop: "8px",
               paddingTop: "8px",
-            }}>
+            }}
+          >
             <span>{t("powered_by")}</span>{" "}
             <b style={{ color: "black" }}>
               <span> Cal.com</span>
@@ -922,12 +931,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       enableOverflow
       ref={dialogContentRef}
       className="rounded-lg p-0.5 sm:max-w-[80rem]"
-      type="creation">
+      type="creation"
+    >
       <div className="flex">
         <div className="bg-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
-            id="modal-title">
+            id="modal-title"
+          >
             <button className="h-6 w-6" onClick={gotoEmbedTypeSelectionState}>
               <Icon name="arrow-left" className="mr-4 w-4" />
             </button>
@@ -949,7 +960,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
                 <Collapsible
                   open={isEmbedCustomizationOpen}
-                  onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
+                  onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}
+                >
                   <CollapsibleContent className="text-sm">
                     {/* Conditionally render Window Sizing only if inline embed AND NOT React Atom */}
                     {embedType === "inline" && embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
@@ -1007,7 +1019,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       className={classNames(
                         "items-center justify-between",
                         embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                      )}>
+                      )}
+                    >
                       <div className="mb-2 text-sm">Button text</div>
                       {/* Default Values should come from preview iframe */}
                       <TextField
@@ -1033,7 +1046,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         embedType === "floating-popup"
                           ? "text-emphasis space-x-2 rtl:space-x-reverse"
                           : "hidden"
-                      )}>
+                      )}
+                    >
                       <Switch
                         defaultChecked={true}
                         onCheckedChange={(checked) => {
@@ -1054,7 +1068,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       className={classNames(
                         "mt-4 items-center justify-between",
                         embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                      )}>
+                      )}
+                    >
                       <div className="mb-2">Position of button</div>
                       <Select
                         onChange={(position) => {
@@ -1124,7 +1139,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div className="font-medium">
                 <Collapsible
                   open={isBookingCustomizationOpen}
-                  onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
+                  onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}
+                >
                   <CollapsibleContent>
                     <div className="text-sm">
                       {/* Conditionally render EmbedTheme only if NOT React Atom */}
@@ -1280,7 +1296,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       key={tab.href}
                       className={classNames(
                         embedParams.embedTabName === tab.href.split("=")[1] ? "flex-1" : "hidden"
-                      )}>
+                      )}
+                    >
                       {tab.type === "code" && (
                         <tab.Component
                           namespace={namespace}
@@ -1354,7 +1371,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     navigator.clipboard.writeText(currentTabCodeEl.value);
                     showToast(t("code_copied"), "success");
                   }
-                }}>
+                }}
+              >
                 {embedType === "email" ? t("copy") : t("copy_code")}
               </Button>
             </DialogFooter>
@@ -1393,7 +1411,8 @@ export const EmbedDialog = ({
               // Must not set name when noQueryParam mode as required by Dialog component
               name: "embed",
               clearQueryParamsOnClose: queryParamsForDialog,
-            })}>
+            })}
+      >
         {!embedParams.embedType ? (
           <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
         ) : (
@@ -1453,7 +1472,8 @@ export const EmbedButton = <T extends React.ElementType = typeof Button>({
       data-test-embed-url={embedUrl}
       data-testid="embed"
       type="button"
-      onClick={openEmbedModal}>
+      onClick={openEmbedModal}
+    >
       {children}
     </Component>
   );

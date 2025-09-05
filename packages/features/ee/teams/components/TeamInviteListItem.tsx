@@ -86,7 +86,8 @@ export default function TeamInviteListItem(props: Props) {
         className={classNames(
           "flex items-center  justify-between",
           !isInvitee && "group hover:bg-neutral-50"
-        )}>
+        )}
+      >
         {teamInfo}
         <div>
           <>

@@ -1,3 +1,7 @@
+import type { GroupedAttribute } from "@calcom/platform-libraries";
+import { groupMembershipAttributes } from "@calcom/platform-libraries";
+import { Injectable } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
 import { DbOrgMembership } from "@/modules/organizations/memberships/organizations-membership.repository";
 import {
   MultiSelectAttribute,
@@ -7,11 +11,6 @@ import {
   SingleSelectAttribute,
   TextAttribute,
 } from "@/modules/organizations/memberships/outputs/organization-membership.output";
-import { Injectable } from "@nestjs/common";
-import { plainToClass } from "class-transformer";
-
-import { groupMembershipAttributes } from "@calcom/platform-libraries";
-import type { GroupedAttribute } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationsMembershipOutputService {

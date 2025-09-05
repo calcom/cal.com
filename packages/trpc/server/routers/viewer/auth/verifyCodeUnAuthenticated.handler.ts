@@ -1,9 +1,7 @@
-import { createHash } from "crypto";
-
 import { totpRawCheck } from "@calcom/lib/totp";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
+import { createHash } from "crypto";
 
 type VerifyTokenOptions = {
   input: ZVerifyCodeInputSchema;

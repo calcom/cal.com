@@ -1,7 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
-
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import { v4 as uuidv4 } from "uuid";
 
 const SylapsApiAdapter = (): VideoApiAdapter => {
   return {

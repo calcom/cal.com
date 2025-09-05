@@ -112,7 +112,6 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     // Store permission results for teams that passed the filter
     hasPermissionForFiltered = permissionChecks.filter((hasPermission) => hasPermission);
     teamsData = teamsData.filter((_, index) => permissionChecks[index]);
-
   }
 
   return [

@@ -1,9 +1,8 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { RoutingFormResponseOutput } from "@calcom/platform-types";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsEnum } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { RoutingFormResponseOutput } from "@calcom/platform-types";
 
 export class UpdateRoutingFormResponseOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

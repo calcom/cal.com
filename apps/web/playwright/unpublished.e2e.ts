@@ -1,6 +1,5 @@
-import { expect } from "@playwright/test";
-
 import { SchedulingType } from "@calcom/prisma/enums";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 

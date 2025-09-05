@@ -1,15 +1,13 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { headers, cookies } from "next/headers";
-import { redirect } from "next/navigation";
-
 import OrgSettingsAttributesPage from "@calcom/ee/organizations/pages/settings/attributes/attributes-list-view";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

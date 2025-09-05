@@ -1,10 +1,8 @@
 "use client";
 
-import superjson from "superjson";
-
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
-
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
+import superjson from "superjson";
 
 import { trpc } from "./trpc";
 
@@ -35,8 +33,8 @@ const url =
   typeof window !== "undefined"
     ? "/api/trpc"
     : process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}/api/trpc`
-    : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+      ? `https://${process.env.VERCEL_URL}/api/trpc`
+      : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
 export const trpcClient = trpc.createClient({
   links: [

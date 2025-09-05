@@ -1,16 +1,15 @@
-import type { SelectedCalendar } from "@prisma/client";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import OfficeCalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import logger from "@calcom/lib/logger";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+import type { SelectedCalendar } from "@prisma/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { symmetricDecrypt } from "./crypto";
 import getCalendarsEvents, {
-  getCalendarsEventsWithTimezones,
   filterSelectedCalendarsForCredential,
+  getCalendarsEventsWithTimezones,
 } from "./getCalendarsEvents";
 
 vi.mock("./crypto", () => ({

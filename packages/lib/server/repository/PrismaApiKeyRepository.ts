@@ -1,7 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { generateUniqueAPIKey as generateHashedApiKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import prisma from "@calcom/prisma";
+import { v4 as uuidv4 } from "uuid";
 
 export class PrismaApiKeyRepository {
   static async findApiKeysFromUserId({ userId }: { userId: number }) {

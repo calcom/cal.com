@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
-import { describe, it, beforeEach, vi, expect } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";

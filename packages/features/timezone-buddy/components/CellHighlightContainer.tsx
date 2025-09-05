@@ -1,6 +1,6 @@
 "use client";
 
-import { LazyMotion, domAnimation, m } from "framer-motion";
+import { domAnimation, LazyMotion, m } from "framer-motion";
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 
@@ -62,7 +62,8 @@ export function CellHighlightContainer({ children }: { children: React.ReactNode
     <LazyMotion features={domAnimation}>
       <div
         className="relative -mx-2 w-[calc(100%+16px)] overflow-hidden overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6"
-        ref={componentContainerRef}>
+        ref={componentContainerRef}
+      >
         {children}
 
         <m.div

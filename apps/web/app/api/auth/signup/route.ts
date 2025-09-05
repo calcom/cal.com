@@ -1,7 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseRequestData } from "app/api/parseRequestData";
-import { NextResponse, type NextRequest } from "next/server";
-
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -12,6 +8,9 @@ import logger from "@calcom/lib/logger";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { prisma } from "@calcom/prisma";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
+import { type NextRequest, NextResponse } from "next/server";
 
 async function ensureSignupIsEnabled(body: Record<string, string>) {
   const { token } = signupSchema

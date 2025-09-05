@@ -1,9 +1,7 @@
+import { TestingModule } from "@nestjs/testing";
+import { Prisma } from "@prisma/client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TestingModule } from "@nestjs/testing";
-import { PlatformOAuthClient, Prisma } from "@prisma/client";
-
-import { CreateOAuthClientInput } from "@calcom/platform-types";
 
 export class OOORepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];

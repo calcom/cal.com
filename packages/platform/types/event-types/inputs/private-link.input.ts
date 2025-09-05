@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsOptional, IsDate, IsInt, Min, IsString } from "class-validator";
+import { IsDate, IsInt, IsOptional, IsString, Min } from "class-validator";
 
 export class CreatePrivateLinkInput {
   @IsOptional()

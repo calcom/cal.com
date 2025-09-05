@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fakeCurrentDocumentUrl, takeBookerToSlotsLoadingState, takeBookerToReadyState } from "./test-utils";
+import { fakeCurrentDocumentUrl, takeBookerToReadyState, takeBookerToSlotsLoadingState } from "./test-utils";
 
 beforeEach(() => {
   vi.useFakeTimers();

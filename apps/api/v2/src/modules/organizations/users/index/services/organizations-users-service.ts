@@ -1,14 +1,12 @@
+import { CreationSource, createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
+import { ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
+import { Team } from "@prisma/client";
+import { plainToInstance } from "class-transformer";
 import { EmailService } from "@/modules/email/email.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { Injectable, ConflictException, ForbiddenException } from "@nestjs/common";
-import { Team } from "@prisma/client";
-import { plainToInstance } from "class-transformer";
-
-import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
-import { CreationSource } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationsUsersService {

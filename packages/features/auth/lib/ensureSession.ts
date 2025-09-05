@@ -1,6 +1,5 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
+import type { NextApiRequest } from "next";
 
 import { getSession } from "./getSession";
 

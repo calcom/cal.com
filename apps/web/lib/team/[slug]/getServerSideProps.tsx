@@ -1,5 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getOrganizationSettings,
@@ -15,11 +13,11 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import type { Team, OrganizationSettings } from "@calcom/prisma/client";
+import type { OrganizationSettings, Team } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { GetServerSidePropsContext } from "next";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 

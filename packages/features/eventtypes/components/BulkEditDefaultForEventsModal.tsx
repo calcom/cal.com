@@ -1,13 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { CheckboxField, Form } from "@calcom/ui/components/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
@@ -50,7 +48,8 @@ export function BulkEditDefaultForEventsModal({
         type="creation"
         title={t("default_conferencing_bulk_title")}
         description={props.description}
-        enableOverflow>
+        enableOverflow
+      >
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -58,7 +57,8 @@ export function BulkEditDefaultForEventsModal({
               eventTypeIds: values.eventTypeIds,
               callback: () => props.setOpen(false),
             });
-          }}>
+          }}
+        >
           <div className="flex flex-col space-y-2">
             {eventTypes.length > 0 && (
               <div className="flex items-center space-x-2 rounded-md px-3 pb-2.5 pt-1">

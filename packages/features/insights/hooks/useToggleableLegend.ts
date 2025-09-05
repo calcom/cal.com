@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export const useToggleableLegend = <T extends { label: string }>(legend: T[], initialEnabled?: string[]) => {
   const [enabledSeries, setEnabledSeries] = useState<string[]>(

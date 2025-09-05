@@ -1,9 +1,8 @@
+import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import type { CalAiPhoneNumber, Team, User } from "@calcom/prisma/client";
 import type { NextRequest } from "next/server";
 import { Retell } from "retell-sdk";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import type { CalAiPhoneNumber, User, Team } from "@calcom/prisma/client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "../route";
 

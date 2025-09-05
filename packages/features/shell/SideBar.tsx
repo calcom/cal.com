@@ -1,10 +1,4 @@
-import type { User as UserAuth } from "next-auth";
-import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
+import { ENABLE_PROFILE_SWITCHER, IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,6 +11,11 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { User as UserAuth } from "next-auth";
+import { useSession } from "next-auth/react";
 
 import { KBarTrigger } from "../kbar/Kbar";
 import { Navigation } from "./navigation/Navigation";
@@ -77,7 +76,8 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         className={classNames(
           "bg-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
           !isPlatformPages && "max-h-screen"
-        )}>
+        )}
+      >
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {user?.org ? (
@@ -111,7 +111,8 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
-                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
+                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium"
+              >
                 <Icon
                   name="arrow-left"
                   className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
@@ -120,7 +121,8 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
-                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
+                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium"
+              >
                 <Icon
                   name="arrow-right"
                   className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
@@ -160,7 +162,8 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                     isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                     index === 0 && "mt-3"
                   )}
-                  onClick={item.onClick}>
+                  onClick={item.onClick}
+                >
                   {!!item.icon && (
                     <Icon
                       name={item.isLoading ? "rotate-cw" : item.icon}

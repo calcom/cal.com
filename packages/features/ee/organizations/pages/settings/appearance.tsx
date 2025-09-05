@@ -1,24 +1,21 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -97,7 +94,8 @@ const OrgAppearanceView = ({
           mutation.mutate({
             theme: null,
           });
-        }}>
+        }}
+      >
         <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
           <div>
             <p className="text-default text-base font-semibold">{t("theme")}</p>
@@ -132,7 +130,8 @@ const OrgAppearanceView = ({
             disabled={isOrgThemeSubmitting || !isOrgThemeDirty}
             type="submit"
             data-testid="update-org-theme-btn"
-            color="primary">
+            color="primary"
+          >
             {t("update")}
           </Button>
         </SectionBottomActions>
@@ -142,7 +141,8 @@ const OrgAppearanceView = ({
         form={brandColorsFormMethods}
         handleSubmit={(values) => {
           onBrandColorsFormSubmit(values);
-        }}>
+        }}
+      >
         <BrandColorsForm
           onSubmit={onBrandColorsFormSubmit}
           brandColor={currentOrg?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}

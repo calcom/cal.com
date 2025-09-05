@@ -1,14 +1,13 @@
-import type { Prisma } from "@prisma/client";
-import type { TFunction } from "i18next";
-import { createEvent } from "ics";
-import { RRule } from "rrule";
-import type { z } from "zod";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
+import type { Prisma } from "@prisma/client";
+import type { TFunction } from "i18next";
+import { createEvent } from "ics";
+import { RRule } from "rrule";
+import type { z } from "zod";
 
 import { getEventName } from "../event";
 

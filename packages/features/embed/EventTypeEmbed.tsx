@@ -1,6 +1,5 @@
-import type { ComponentProps } from "react";
-
 import { trpc } from "@calcom/trpc/react";
+import type { ComponentProps } from "react";
 
 import { EmbedButton, EmbedDialog } from "./Embed";
 import { tabs } from "./lib/EmbedTabs";

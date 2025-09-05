@@ -1,8 +1,6 @@
-import { UsersRepository } from "@/modules/users/users.repository";
-import { Logger } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/platform-libraries";
+import { Injectable, Logger } from "@nestjs/common";
+import { UsersRepository } from "@/modules/users/users.repository";
 
 import { FindTeamMembersMatchingAttributeQueryDto } from "../inputs/find-team-members-matching-attribute.input";
 

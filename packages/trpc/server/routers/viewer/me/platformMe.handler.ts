@@ -1,7 +1,6 @@
-import type { Session } from "next-auth";
-
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import type { Session } from "next-auth";
 
 type MeOptions = {
   ctx: {
@@ -13,9 +12,8 @@ type MeOptions = {
 export const platformMeHandler = async ({ ctx }: MeOptions) => {
   const { user: sessionUser } = ctx;
 
-  const allUserEnrichedProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(
-    sessionUser
-  );
+  const allUserEnrichedProfiles =
+    await ProfileRepository.findAllProfilesForUserIncludingMovedUser(sessionUser);
 
   const mainProfile =
     allUserEnrichedProfiles.find((profile) => sessionUser.movedToProfileId === profile.id) ||

@@ -1,5 +1,20 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
+
+import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
+import type {
+  Person as AttendeeInCalendarEvent,
+  Calendar,
+  CalendarEvent,
+  CalendarEventType,
+  CalendarServiceEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  TeamMember,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
@@ -15,21 +30,6 @@ import {
   updateCalendarObject,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
-
-import dayjs from "@calcom/dayjs";
-import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
-import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
-import type {
-  Calendar,
-  CalendarServiceEvent,
-  CalendarEvent,
-  CalendarEventType,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  TeamMember,
-} from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
@@ -169,8 +169,8 @@ export default abstract class BaseCalendarService implements Calendar {
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
       const mainHostDestinationCalendar = event.destinationCalendar
-        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-          event.destinationCalendar[0]
+        ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+          event.destinationCalendar[0])
         : undefined;
 
       // We create the event directly on iCal

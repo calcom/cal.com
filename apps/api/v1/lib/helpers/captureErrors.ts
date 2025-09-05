@@ -1,7 +1,6 @@
+import { redactError } from "@calcom/lib/redactError";
 import { captureException as SentryCaptureException } from "@sentry/nextjs";
 import type { NextMiddleware } from "next-api-middleware";
-
-import { redactError } from "@calcom/lib/redactError";
 
 export const captureErrors: NextMiddleware = async (_req, res, next) => {
   try {

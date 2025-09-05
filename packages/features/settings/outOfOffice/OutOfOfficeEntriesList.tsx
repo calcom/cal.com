@@ -1,26 +1,16 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useFormState } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import {
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableProvider,
   ColumnFilterType,
+  DataTableFilters,
+  DataTableProvider,
+  DataTableSegment,
+  DataTableToolbar,
+  DataTableWrapper,
   useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
-  DataTableFilters,
-  DataTableSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -36,10 +26,19 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useFormState } from "react-hook-form";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
-import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
+import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
@@ -75,7 +74,8 @@ export default function OutOfOfficeEntriesList() {
           <OutOfOfficeToggleGroup />
           <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
         </div>
-      }>
+      }
+    >
       <DataTableProvider useSegments={useSegments}>
         <OutOfOfficeEntriesListContent />
       </DataTableProvider>
@@ -123,7 +123,7 @@ function OutOfOfficeEntriesListContent() {
   const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
-      isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
+      isPending || isFetching ? new Array(5).fill(null) : (data?.pages?.flatMap((page) => page.rows) ?? []),
     [data, selectedTab, isPending, isFetching, searchTerm]
   ) as OutOfOfficeEntry[];
 
@@ -175,12 +175,14 @@ function OutOfOfficeEntriesListContent() {
                     <div className="">
                       <div
                         data-testid={`ooo-member-${username}-username`}
-                        className="text-emphasis text-sm font-medium leading-none">
+                        className="text-emphasis text-sm font-medium leading-none"
+                      >
                         {memberName}
                       </div>
                       <div
                         data-testid={`ooo-member-${username}-email`}
-                        className="text-subtle mt-1 text-sm leading-none">
+                        className="text-subtle mt-1 text-sm leading-none"
+                      >
                         {email}
                       </div>
                     </div>
@@ -201,7 +203,8 @@ function OutOfOfficeEntriesListContent() {
               {row.original && !isPending && !isFetching ? (
                 <div
                   className="flex flex-row justify-between p-2"
-                  data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
+                  data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}
+                >
                   <div className="flex flex-row items-center">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
                       {item?.reason?.emoji || "🏝️"}

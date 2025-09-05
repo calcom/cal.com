@@ -41,7 +41,8 @@ export default function DisconnectIntegrationModal({
           } else if (credentialId) {
             handleRemoveApp({ credentialId, teamId, callback: () => handleModelClose() });
           }
-        }}>
+        }}
+      >
         <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
       </ConfirmationDialogContent>
     </Dialog>

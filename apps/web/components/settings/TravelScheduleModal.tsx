@@ -1,14 +1,13 @@
-import { useState } from "react";
-import type { UseFormSetValue } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Label, SettingsToggle, DateRangePicker, DatePicker } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { DatePicker, DateRangePicker, Label, SettingsToggle } from "@calcom/ui/components/form";
+import { useState } from "react";
+import type { UseFormSetValue } from "react-hook-form";
 
 import type { FormValues } from "~/settings/my-account/general-view";
 
@@ -87,7 +86,8 @@ const TravelScheduleModal = ({
       <DialogContent
         title={t("travel_schedule")}
         description={t("travel_schedule_description")}
-        type="creation">
+        type="creation"
+      >
         <div>
           {!isNoEndDate ? (
             <>
@@ -146,7 +146,8 @@ const TravelScheduleModal = ({
             disabled={isNoEndDate ? !startDate : !startDate || !endDate}
             onClick={() => {
               createNewSchedule();
-            }}>
+            }}
+          >
             {t("add")}
           </Button>
         </DialogFooter>

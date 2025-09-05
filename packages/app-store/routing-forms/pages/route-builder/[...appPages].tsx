@@ -1,16 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Prisma } from "@prisma/client";
-import Link from "next/link";
-import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
-import type { UseFormReturn } from "react-hook-form";
-import { Toaster } from "sonner";
-import type { z } from "zod";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,42 +12,54 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import {
+  SelectWithValidation as Select,
+  SelectField,
+  Switch,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { Prisma } from "@prisma/client";
+import Link from "next/link";
+import React, { useCallback, useEffect, useState } from "react";
+import type { BuilderProps, Config, ImmutableTree, JsonTree } from "react-awesome-query-builder";
+import { Builder, Utils as QbUtils, Query } from "react-awesome-query-builder";
+import type { UseFormReturn } from "react-hook-form";
+import { Toaster } from "sonner";
+import type { z } from "zod";
 
 import { routingFormAppComponents } from "../../appComponents";
-import DynamicAppComponent from "../../components/DynamicAppComponent";
-import SingleForm from "../../components/SingleForm";
 import { EmptyState } from "../../components/_components/EmptyState";
 import { RoutingSkeleton } from "../../components/_components/RoutingSkeleton";
+import DynamicAppComponent from "../../components/DynamicAppComponent";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import {
-  withRaqbSettingsAndWidgets,
   ConfigFor,
+  withRaqbSettingsAndWidgets,
 } from "../../components/react-awesome-query-builder/config/uiConfig";
-import { RoutingPages } from "../../lib/RoutingPages";
+import SingleForm from "../../components/SingleForm";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
 import getEventTypeAppMetadata from "../../lib/getEventTypeAppMetadata";
 import {
-  getQueryBuilderConfigForFormFields,
-  getQueryBuilderConfigForAttributes,
-  type FormFieldsQueryBuilderConfigWithRaqbFields,
   type AttributesQueryBuilderConfigWithRaqbFields,
+  type FormFieldsQueryBuilderConfigWithRaqbFields,
+  getQueryBuilderConfigForAttributes,
+  getQueryBuilderConfigForFormFields,
   isDynamicOperandField,
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
-import type { RoutingFormWithResponseCount } from "../../types/types";
+import { RoutingPages } from "../../lib/RoutingPages";
 import type {
+  Attribute,
+  AttributeRoutingConfig,
+  EditFormRoute,
   GlobalRoute,
   LocalRoute,
+  RoutingFormWithResponseCount,
   SerializableRoute,
-  Attribute,
-  EditFormRoute,
-  AttributeRoutingConfig,
 } from "../../types/types";
 import type { zodRoutes } from "../../zod";
 import { RouteActionType } from "../../zod";
@@ -399,7 +400,7 @@ const Route = ({
   useEffect(() => {
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
+    setCustomEventTypeSlug(isCustom && !isRouter(route) ? (route.action.value.split("/").pop() ?? "") : "");
   }, []);
 
   useEnsureEventTypeIdInRedirectUrlAction({
@@ -487,7 +488,8 @@ const Route = ({
           }}
           isLabelEditable={false}
           label={route.name ?? `Route ${index + 1}`}
-          className="mb-6">
+          className="mb-6"
+        >
           <div className="-mt-3">
             <Link href={`${appUrl}/route-builder/${route.id}`}>
               <Badge variant="gray">
@@ -650,12 +652,14 @@ const Route = ({
                 setRoutes(newRoutes);
               },
             }
-      }>
+      }
+    >
       <div
         className={classNames(
           "cal-query-builder-card w-full gap-2 p-2",
           route.isFallback && "bg-muted border-subtle rounded-xl  border"
-        )}>
+        )}
+      >
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
           <div>
@@ -953,7 +957,7 @@ const buildState = <
     | {
         queryValue: AttributesQueryValue;
         config: AttributesQueryBuilderConfigWithRaqbFields;
-      }
+      },
 >({
   queryValue,
   config,
@@ -1337,7 +1341,8 @@ const Routes = ({
             StartIcon="plus"
             className="mb-6"
             onClick={createRoute}
-            data-testid="add-route-button">
+            data-testid="add-route-button"
+          >
             {t("add_a_new_route")}
           </Button>
         )}

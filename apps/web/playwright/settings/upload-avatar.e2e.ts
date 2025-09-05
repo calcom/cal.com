@@ -1,8 +1,7 @@
-import { expect } from "@playwright/test";
-import path from "path";
-
 import { CAL_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import { expect } from "@playwright/test";
+import path from "path";
 
 import { test } from "../lib/fixtures";
 
@@ -22,7 +21,9 @@ test.describe("User Avatar", async () => {
         // It is important to call waitForEvent before click to set up waiting.
         page.waitForEvent("filechooser"),
         // Opens the file chooser.
-        page.getByTestId("open-upload-image-filechooser").click(),
+        page
+          .getByTestId("open-upload-image-filechooser")
+          .click(),
       ]);
 
       await fileChooser.setFiles(`${path.dirname(__filename)}/../fixtures/cal.png`);
@@ -89,7 +90,9 @@ test.describe("Team Logo", async () => {
         // It is important to call waitForEvent before click to set up waiting.
         page.waitForEvent("filechooser"),
         // Opens the file chooser.
-        page.getByTestId("open-upload-image-filechooser").click(),
+        page
+          .getByTestId("open-upload-image-filechooser")
+          .click(),
       ]);
 
       await fileChooser.setFiles(`${path.dirname(__filename)}/../fixtures/cal.png`);
@@ -146,7 +149,9 @@ test.describe("Organization Logo", async () => {
         // It is important to call waitForEvent before click to set up waiting.
         page.waitForEvent("filechooser"),
         // Opens the file chooser.
-        page.getByTestId("open-upload-image-filechooser").click(),
+        page
+          .getByTestId("open-upload-image-filechooser")
+          .click(),
       ]);
 
       await fileChooser.setFiles(`${path.dirname(__filename)}/../fixtures/cal.png`);

@@ -1,9 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Membership, Workflow } from "@prisma/client";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
@@ -23,6 +17,11 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { Membership, Workflow } from "@prisma/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import type { WorkflowStep } from "../lib/types";
@@ -111,7 +110,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                 <li
                   key={workflow.id}
                   data-testid={dataTestId}
-                  className="group flex w-full max-w-full items-center justify-between overflow-hidden">
+                  className="group flex w-full max-w-full items-center justify-between overflow-hidden"
+                >
                   {!(firstItem && firstItem.id === workflow.id) && (
                     <ArrowButton onClick={() => moveWorkflow(index, -1)} arrowDirection="up" />
                   )}
@@ -126,16 +126,17 @@ export default function WorkflowListPage({ workflows }: Props) {
                             className={classNames(
                               "max-w-56 text-emphasis truncate text-sm font-medium leading-6 md:max-w-max",
                               workflow.name ? "text-emphasis" : "text-subtle"
-                            )}>
+                            )}
+                          >
                             {workflow.name
                               ? workflow.name
                               : workflow.steps[0]
-                              ? `Untitled (${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
-                                  .charAt(0)
-                                  .toUpperCase()}${`${t(
-                                  `${workflow.steps[0].action.toLowerCase()}_action`
-                                )}`.slice(1)})`
-                              : "Untitled"}
+                                ? `Untitled (${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
+                                    .charAt(0)
+                                    .toUpperCase()}${`${t(
+                                    `${workflow.steps[0].action.toLowerCase()}_action`
+                                  )}`.slice(1)})`
+                                : "Untitled"}
                           </div>
                           <div>
                             {(workflow.permissions?.readOnly ?? workflow.readOnly) && (
@@ -182,7 +183,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                                           ? ` (+${activeOn.eventType._count.children})`
                                           : ""}
                                       </p>
-                                    ))}>
+                                    ))}
+                                >
                                   <div>
                                     <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_event_types", {
@@ -197,7 +199,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <Tooltip
                                   content={workflow.activeOnTeams.map((activeOn, key) => (
                                     <p key={key}>{activeOn.team.name}</p>
-                                  ))}>
+                                  ))}
+                                >
                                   <div>
                                     <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_teams", {
@@ -299,7 +302,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                                   <DropdownItem
                                     type="button"
                                     StartIcon="pencil"
-                                    onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
+                                    onClick={async () => await router.replace(`/workflows/${workflow.id}`)}
+                                  >
                                     {t("edit")}
                                   </DropdownItem>
                                 </DropdownMenuItem>
@@ -315,7 +319,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                                     onClick={() => {
                                       setDeleteDialogOpen(true);
                                       setwWorkflowToDeleteId(workflow.id);
-                                    }}>
+                                    }}
+                                  >
                                     {t("delete")}
                                   </DropdownItem>
                                 </DropdownMenuItem>

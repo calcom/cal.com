@@ -1,26 +1,23 @@
-import { getSampleUserInSession } from "../utils/bookingScenario/getSampleUserInSession";
-import { setupAndTeardown } from "../utils/bookingScenario/setupAndTeardown";
-import {
-  createBookingScenario,
-  getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  getMockBookingAttendee,
-  getDate,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingRequestRescheduledEmails } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe } from "vitest";
-
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { TRequestRescheduleInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.schema";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+import {
+  createBookingScenario,
+  getBooker,
+  getDate,
+  getGoogleCalendarCredential,
+  getMockBookingAttendee,
+  getOrganizer,
+  getScenarioData,
+  TestData,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { expectBookingRequestRescheduledEmails } from "@calcom/web/test/utils/bookingScenario/expects";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { describe } from "vitest";
+import { getSampleUserInSession } from "../utils/bookingScenario/getSampleUserInSession";
+import { setupAndTeardown } from "../utils/bookingScenario/setupAndTeardown";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 

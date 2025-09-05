@@ -1,6 +1,3 @@
-import MarkdownIt from "markdown-it";
-import type { GetServerSidePropsContext } from "next";
-
 import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
   setEnableRecordingUIAndUserIdForOrganizer,
@@ -16,6 +13,8 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepo
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import MarkdownIt from "markdown-it";
+import type { GetServerSidePropsContext } from "next";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 

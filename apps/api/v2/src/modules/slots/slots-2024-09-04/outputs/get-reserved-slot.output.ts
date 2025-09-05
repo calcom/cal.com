@@ -1,11 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsNotEmptyObject, ValidateNested } from "class-validator";
-
 import {
   ApiResponseWithoutData,
   GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
 } from "@calcom/platform-types";
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsNotEmptyObject, ValidateNested } from "class-validator";
 
 export class GetReservedSlotOutput_2024_09_04 extends ApiResponseWithoutData {
   @ApiProperty({

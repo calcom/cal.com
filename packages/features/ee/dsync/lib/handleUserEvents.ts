@@ -8,10 +8,12 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import { assignValueToUserInOrgBulk } from "@calcom/lib/service/attribute/server/assignValueToUser";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
+import {
+  getTeamOrThrow,
+  sendExistingUserTeamInviteEmails,
+  sendSignupToOrganizationEmail,
+} from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import getAttributesFromScimPayload from "./getAttributesFromScimPayload";
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";

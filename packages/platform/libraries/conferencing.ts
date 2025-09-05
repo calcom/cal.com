@@ -1,5 +1,5 @@
 export {
-  getRecordingsOfCalVideoByRoomName,
-  getDownloadLinkOfCalVideoByRecordingId,
   getAllTranscriptsAccessLinkFromRoomName,
+  getDownloadLinkOfCalVideoByRecordingId,
+  getRecordingsOfCalVideoByRoomName,
 } from "@calcom/lib/videoClient";

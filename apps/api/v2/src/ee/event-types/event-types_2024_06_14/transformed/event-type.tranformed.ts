@@ -1,18 +1,17 @@
 import type {
+  ConfirmationPolicyTransformedSchema,
+  CreateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import type { z } from "zod";
+import type {
+  InternalLocationsSchema,
+  transformBookingFieldsApiToInternal,
   transformEventColorsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformRecurrenceApiToInternal,
   transformSeatsApiToInternal,
-  transformBookingFieldsApiToInternal,
-  InternalLocationsSchema,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
-import type { z } from "zod";
-
-import type {
-  CreateEventTypeInput_2024_06_14,
-  ConfirmationPolicyTransformedSchema,
-} from "@calcom/platform-types";
 
 export type InputEventTransformed_2024_06_14 = Omit<
   CreateEventTypeInput_2024_06_14,

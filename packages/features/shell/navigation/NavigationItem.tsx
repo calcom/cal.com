@@ -1,14 +1,13 @@
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React, { Fragment, useState, useEffect } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React, { Fragment, useEffect, useState } from "react";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 
@@ -59,7 +58,7 @@ export type NavigationItemType = {
 };
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
-  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) ?? false : false;
+  return isChild ? item.href === pathname : item.href ? (pathname?.startsWith(item.href) ?? false) : false;
 };
 
 export const NavigationItem: React.FC<{
@@ -116,7 +115,8 @@ export const NavigationItem: React.FC<{
                           childIsCurrent
                             ? "bg-emphasis text-white"
                             : "hover:bg-emphasis text-mute hover:text-emphasis"
-                        )}>
+                        )}
+                      >
                         {t(childItem.name)}
                       </Link>
                     );
@@ -127,7 +127,8 @@ export const NavigationItem: React.FC<{
               t(item.name)
             )
           }
-          className="lg:hidden">
+          className="lg:hidden"
+        >
           <button
             data-test-id={item.name}
             aria-label={t(item.name)}
@@ -146,7 +147,8 @@ export const NavigationItem: React.FC<{
               isLocaleReady
                 ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
-            )}>
+            )}
+          >
             {item.icon && (
               <Icon
                 name={item.isLoading ? "rotate-cw" : item.icon}
@@ -191,7 +193,8 @@ export const NavigationItem: React.FC<{
                 ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
             )}
-            aria-current={current ? "page" : undefined}>
+            aria-current={current ? "page" : undefined}
+          >
             {item.icon && (
               <Icon
                 name={item.isLoading ? "rotate-cw" : item.icon}
@@ -206,7 +209,8 @@ export const NavigationItem: React.FC<{
             {isLocaleReady ? (
               <span
                 className="hidden w-full justify-between truncate text-ellipsis lg:flex"
-                data-testid={`${item.name}-test`}>
+                data-testid={`${item.name}-test`}
+              >
                 {t(item.name)}
                 {item.badge && item.badge}
               </span>
@@ -241,7 +245,8 @@ export const MobileNavigationItem: React.FC<{
       href={item.href}
       target={item.target}
       className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
-      aria-current={current ? "page" : undefined}>
+      aria-current={current ? "page" : undefined}
+    >
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
         <Icon
@@ -275,7 +280,8 @@ export const MobileNavigationMoreItem: React.FC<{
         <>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition">
+            className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition"
+          >
             <span className="text-default flex items-center font-semibold">
               {item.icon && (
                 <Icon
@@ -294,7 +300,8 @@ export const MobileNavigationMoreItem: React.FC<{
                 <li key={childItem.name} className="border-subtle border-t">
                   <Link
                     href={childItem.href}
-                    className="hover:bg-muted flex items-center p-4 pl-12 transition">
+                    className="hover:bg-muted flex items-center p-4 pl-12 transition"
+                  >
                     <span className="text-default font-medium">
                       {isLocaleReady ? t(childItem.name) : <SkeletonText />}
                     </span>

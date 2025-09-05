@@ -91,7 +91,8 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         )}
         loading={isPageLoading}
         onClick={() => nextStep()}
-        disabled={disabledNextButton}>
+        disabled={disabledNextButton}
+      >
         {firstCalendar ? `${t("connect_your_video")}` : `${t("connect_calendar_first")}`}
       </Button>
     </>

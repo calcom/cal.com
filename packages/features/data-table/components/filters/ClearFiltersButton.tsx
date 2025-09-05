@@ -20,7 +20,8 @@ export const ClearFiltersButton = ({ exclude }: { exclude?: string[] }) => {
         target="_blank"
         rel="noreferrer"
         StartIcon="x"
-        onClick={() => clearAll(exclude)}>
+        onClick={() => clearAll(exclude)}
+      >
         {t("clear")}
       </Button>
     </Tooltip>

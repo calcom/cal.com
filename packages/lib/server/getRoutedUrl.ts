@@ -1,9 +1,4 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
-import { createHash } from "crypto";
-import type { GetServerSidePropsContext } from "next";
-import { stringify } from "querystring";
-import { v4 as uuidv4 } from "uuid";
-import z from "zod";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
@@ -24,8 +19,12 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
+import { createHash } from "crypto";
+import type { GetServerSidePropsContext } from "next";
+import { stringify } from "querystring";
+import { v4 as uuidv4 } from "uuid";
+import z from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 const querySchema = z

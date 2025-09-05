@@ -1,9 +1,8 @@
-import type { ComponentProps } from "react";
-
-import { EmbedDialog, EmbedButton } from "@calcom/features/embed/Embed";
+import { EmbedButton, EmbedDialog } from "@calcom/features/embed/Embed";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { ComponentProps } from "react";
 
 import { tabs } from "./lib/EmbedTabs";
 import { useEmbedTypes } from "./lib/hooks";
@@ -13,7 +12,7 @@ export const RoutingFormEmbedDialog = () => {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
   const routingFormTypes = types.filter((type) => type.type !== "email");
-  
+
   // Add the headless option specifically for routing forms
   const headlessType = {
     title: t("use_my_own_form"),
@@ -26,7 +25,8 @@ export const RoutingFormEmbedDialog = () => {
         className="rounded-md"
         viewBox="0 0 308 265"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg">
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <path
           d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
           fill="white"
@@ -60,10 +60,8 @@ export const RoutingFormEmbedDialog = () => {
     ),
   };
 
-  const routingFormTypesWithHeadless = IS_CALCOM 
-    ? [...routingFormTypes, headlessType]
-    : routingFormTypes;
-  
+  const routingFormTypesWithHeadless = IS_CALCOM ? [...routingFormTypes, headlessType] : routingFormTypes;
+
   return (
     <EmbedDialog
       types={routingFormTypesWithHeadless}

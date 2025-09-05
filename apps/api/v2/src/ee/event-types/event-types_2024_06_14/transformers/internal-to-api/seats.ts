@@ -1,8 +1,8 @@
 import type {
-  SeatOptionsTransformedSchema,
-  SeatOptionsDisabledSchema,
-  Seats_2024_06_14,
   Disabled_2024_06_14,
+  SeatOptionsDisabledSchema,
+  SeatOptionsTransformedSchema,
+  Seats_2024_06_14,
 } from "@calcom/platform-types";
 
 export function transformSeatsInternalToApi(

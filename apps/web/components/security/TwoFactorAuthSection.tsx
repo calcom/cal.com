@@ -1,8 +1,7 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { useState } from "react";
 
 import DisableTwoFactorModal from "./DisableTwoFactorModal";
 import EnableTwoFactorModal from "./EnableTwoFactorModal";
@@ -29,7 +28,8 @@ const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean 
           <Button
             type="submit"
             color="secondary"
-            onClick={() => (enabled ? setDisableModalOpen(true) : setEnableModalOpen(true))}>
+            onClick={() => (enabled ? setDisableModalOpen(true) : setEnableModalOpen(true))}
+          >
             {enabled ? t("disable") : t("enable")}
           </Button>
         </div>

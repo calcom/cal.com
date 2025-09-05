@@ -1,23 +1,22 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 import type { SingleFormComponentProps } from "../types/shared";
 import type { RoutingFormWithResponseCount } from "../types/types";
+import { Header } from "./_components/Header";
+import { TestFormRenderer, type UptoDateForm } from "./_components/TestForm";
 import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
-import { Header } from "./_components/Header";
-import { TestFormRenderer, type UptoDateForm } from "./_components/TestForm";
 
 const BREAKPOINTS = {
   sm: 640,
@@ -150,7 +149,8 @@ function SingleForm({
         <FormActionsProvider
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
-          setNewFormDialogState={setNewFormDialogState}>
+          setNewFormDialogState={setNewFormDialogState}
+        >
           <div className="flex h-full min-h-screen w-full flex-col">
             <Header
               routingForm={form}
@@ -168,12 +168,14 @@ function SingleForm({
                 isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
                 isDesktop && !isTestPreviewOpen && "grid-cols-1",
                 !isDesktop && "flex flex-col"
-              )}>
+              )}
+            >
               {isDesktop ? (
                 <motion.div
                   layout
                   className="mx-auto w-full max-w-4xl px-2 lg:px-4 xl:px-0"
-                  transition={{ duration: 0.3, ease: "easeInOut" }}>
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </motion.div>
               ) : (
@@ -187,7 +189,8 @@ function SingleForm({
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}>
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
                     <TestFormRenderer
                       isMobile={!isDesktop}
                       testForm={uptoDateForm}

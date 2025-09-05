@@ -1,8 +1,3 @@
-import { Prisma } from "@prisma/client";
-// eslint-disable-next-line no-restricted-imports
-import { keyBy } from "lodash";
-import type { GetServerSidePropsContext, NextApiResponse } from "next";
-
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
@@ -20,11 +15,14 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+// eslint-disable-next-line no-restricted-imports
+import { keyBy } from "lodash";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import { getDefaultScheduleId } from "../availability/util";
-import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
+import { type TUpdateProfileInputSchema, updateUserMetadataAllowedKeys } from "./updateProfile.schema";
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
 type UpdateProfileOptions = {

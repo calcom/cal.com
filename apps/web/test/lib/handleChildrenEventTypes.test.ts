@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
-
-import type { EventType } from "@prisma/client";
-import { describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
+import type { EventType } from "@prisma/client";
+import { describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   const eventType = buildEventType(data as Partial<EventType>);

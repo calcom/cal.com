@@ -1,27 +1,24 @@
+import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
+import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
+import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
+import { FeatureProvider } from "@calcom/features/flags/context/provider";
+import { useFlags } from "@calcom/features/flags/hooks";
+import { useViewerI18n } from "@components/I18nLanguageHandler";
+import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import type { WithLocaleProps } from "@lib/withLocale";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
+import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import dynamic from "next/dynamic";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
 import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
-import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import dynamic from "next/dynamic";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
-
-import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
-import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import { FeatureProvider } from "@calcom/features/flags/context/provider";
-import { useFlags } from "@calcom/features/flags/hooks";
-
-import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import type { WithLocaleProps } from "@lib/withLocale";
-
-import { useViewerI18n } from "@components/I18nLanguageHandler";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -207,9 +204,9 @@ function getThemeProviderProps({
   const themeSupport = isBookingPage
     ? ThemeSupport.Booking
     : // if isThemeSupported is explicitly false, we don't use theme there
-    props.isThemeSupported === false
-    ? ThemeSupport.None
-    : ThemeSupport.App;
+      props.isThemeSupported === false
+      ? ThemeSupport.None
+      : ThemeSupport.App;
 
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = props.themeBasis;
@@ -236,10 +233,10 @@ function getThemeProviderProps({
       // Even though it's recommended to use different namespaces when you want to theme differently on the same page but if the embeds are on different pages, the problem can still arise
       `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
     : themeSupport === ThemeSupport.App
-    ? "app-theme"
-    : isBookingPageThemeSupportRequired
-    ? `booking-theme${appearanceIdSuffix}`
-    : undefined;
+      ? "app-theme"
+      : isBookingPageThemeSupportRequired
+        ? `booking-theme${appearanceIdSuffix}`
+        : undefined;
 
   return {
     storageKey,
@@ -280,7 +277,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
             themeBasis={props.pageProps.themeBasis}
             isThemeSupported={props.Component.isThemeSupported}
             isBookingPage={props.Component.isBookingPage || isBookingPage}
-            router={props.router}>
+            router={props.router}
+          >
             <FeatureFlagsProvider>
               <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>

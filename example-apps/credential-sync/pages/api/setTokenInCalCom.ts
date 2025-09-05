@@ -1,12 +1,11 @@
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import type { NextApiRequest } from "next";
 
-import { symmetricEncrypt } from "@calcom/lib/crypto";
-
 import {
-  CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY,
-  CALCOM_CREDENTIAL_SYNC_SECRET,
-  CALCOM_CREDENTIAL_SYNC_HEADER_NAME,
   CALCOM_ADMIN_API_KEY,
+  CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY,
+  CALCOM_CREDENTIAL_SYNC_HEADER_NAME,
+  CALCOM_CREDENTIAL_SYNC_SECRET,
 } from "../../constants";
 import { generateGoogleCalendarAccessToken, generateZoomAccessToken } from "../../lib/integrations";
 
@@ -57,7 +56,7 @@ export default async function handler(req: NextApiRequest, res) {
       } else {
         return res.status(400).json({ error: await clonedResult.text() });
       }
-    } catch (e) {
+    } catch (_e) {
       return res.status(400).json({ error: await clonedResult.text() });
     }
   } catch (error) {

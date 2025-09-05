@@ -1,15 +1,13 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextField } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import z from "zod";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -52,7 +50,8 @@ export default function SendgridSetup() {
                 className="text-indigo-400"
                 href="https://app.sendgrid.com/settings/api_keys"
                 target="_blank"
-                rel="noopener noreferrer">
+                rel="noopener noreferrer"
+              >
                 Sendgrid
               </a>
               . {t("it_stored_encrypted")}
@@ -75,7 +74,8 @@ export default function SendgridSetup() {
                   } else {
                     showToast(json.message, "error");
                   }
-                }}>
+                }}
+              >
                 <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
                   <Controller
                     name="api_key"
@@ -132,7 +132,8 @@ export default function SendgridSetup() {
                         setTestPassed(false);
                       }
                       setTestLoading(false);
-                    }}>
+                    }}
+                  >
                     {t(
                       testPassed !== undefined ? (testPassed ? "test_passed" : "test_failed") : "test_api_key"
                     )}

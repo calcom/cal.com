@@ -1,8 +1,8 @@
+import { Module } from "@nestjs/common";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { EventTypeWebhooksController } from "@/modules/event-types/controllers/event-types-webhooks.controller";
 import { OAuthClientWebhooksController } from "@/modules/oauth-clients/controllers/oauth-client-webhooks/oauth-client-webhooks.controller";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
-import { Module } from "@nestjs/common";
 
 import { MembershipsModule } from "../memberships/memberships.module";
 import { OrganizationsModule } from "../organizations/organizations.module";

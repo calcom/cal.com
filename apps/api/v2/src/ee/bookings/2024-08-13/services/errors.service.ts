@@ -1,7 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Logger } from "@nestjs/common";
-
 import { CreateBookingInput } from "@calcom/platform-types";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class ErrorsBookingsService_2024_08_13 {

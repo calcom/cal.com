@@ -1,23 +1,16 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { useSession } from "next-auth/react";
-import { useQueryState, parseAsBoolean } from "nuqs";
-import { useMemo, useReducer, useState } from "react";
-import { createPortal } from "react-dom";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
-  DataTableProvider,
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableSelectionBar,
-  DataTableFilters,
-  DataTableSegment,
-  useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
+  DataTableFilters,
+  DataTableProvider,
+  DataTableSegment,
+  DataTableSelectionBar,
+  DataTableToolbar,
+  DataTableWrapper,
+  useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
@@ -38,6 +31,12 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
+import { keepPreviousData } from "@tanstack/react-query";
+import { type ColumnDef, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useSession } from "next-auth/react";
+import { parseAsBoolean, useQueryState } from "nuqs";
+import { useMemo, useReducer, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DynamicLink } from "./BulkActions/DynamicLink";
@@ -49,8 +48,8 @@ import { DeleteMemberModal } from "./DeleteMemberModal";
 import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
+import type { MemberPermissions, UserTableAction, UserTableState, UserTableUser } from "./types";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -201,10 +200,10 @@ function UserListTableContent({
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
-            ? ColumnFilterType.TEXT
-            : isSingleSelect
-            ? ColumnFilterType.SINGLE_SELECT
-            : ColumnFilterType.MULTI_SELECT;
+              ? ColumnFilterType.TEXT
+              : isSingleSelect
+                ? ColumnFilterType.SINGLE_SELECT
+                : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -230,7 +229,8 @@ function UserListTableContent({
                       <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
                         <Badge
                           variant={isAGroupOption ? "orange" : "gray"}
-                          className={classNames(suffix && "rounded-r-none")}>
+                          className={classNames(suffix && "rounded-r-none")}
+                        >
                           {attributeValue.value}
                         </Badge>
 
@@ -240,7 +240,8 @@ function UserListTableContent({
                             style={{
                               backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
                             }}
-                            className="rounded-l-none">
+                            className="rounded-l-none"
+                          >
                             {suffix}
                           </Badge>
                         ) : null}
@@ -300,12 +301,14 @@ function UserListTableContent({
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
-                  className="text-emphasis text-sm font-medium leading-none">
+                  className="text-emphasis text-sm font-medium leading-none"
+                >
                   {username || "No username"}
                 </div>
                 <div
                   data-testid={`member-${username}-email`}
-                  className="text-subtle mt-1 text-sm leading-none">
+                  className="text-subtle mt-1 text-sm leading-none"
+                >
                   {email}
                 </div>
               </div>
@@ -330,7 +333,8 @@ function UserListTableContent({
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
-              }}>
+              }}
+            >
               {roleName}
             </Badge>
           );
@@ -357,7 +361,8 @@ function UserListTableContent({
                   data-testid={`email-${email.replace("@", "")}-pending`}
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
-                  }}>
+                  }}
+                >
                   {t("pending")}
                 </Badge>
               )}
@@ -368,7 +373,8 @@ function UserListTableContent({
                   variant="gray"
                   onClick={() => {
                     table.getColumn("teams")?.setFilterValue([team.name]);
-                  }}>
+                  }}
+                >
                   {team.name}
                 </Badge>
               ))}
@@ -618,7 +624,8 @@ function UserListTableContent({
             <DataTableSegment.SaveButton />
             <DataTableSegment.Select />
           </>
-        }>
+        }
+      >
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
@@ -636,7 +643,8 @@ function UserListTableContent({
                   <DataTableSelectionBar.Button
                     color="secondary"
                     onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                    icon="handshake">
+                    icon="handshake"
+                  >
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
@@ -673,7 +681,8 @@ function UserListTableContent({
               StartIcon="file-down"
               loading={isDownloading}
               onClick={() => handleDownload()}
-              data-testid="export-members-button">
+              data-testid="export-members-button"
+            >
               {t("download")}
             </DataTableToolbar.CTA>
             {(permissions?.canInvite ?? adminOrOwner) && (
@@ -689,7 +698,8 @@ function UserListTableContent({
                     },
                   })
                 }
-                data-testid="new-organization-member-button">
+                data-testid="new-organization-member-button"
+              >
                 {t("add")}
               </DataTableToolbar.CTA>
             )}

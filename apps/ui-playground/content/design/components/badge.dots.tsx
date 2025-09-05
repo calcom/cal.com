@@ -1,8 +1,7 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Badge } from "@calcom/ui/components/badge";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 const variants = [
   "default",

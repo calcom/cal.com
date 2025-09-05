@@ -1,8 +1,7 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { CheckboxField } from "@calcom/ui/components/form";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const DescriptionExample: React.FC = () => (
   <RenderComponentWithSnippet>

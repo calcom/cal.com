@@ -1,14 +1,11 @@
+import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
+import { calendar_v3 } from "@googleapis/calendar";
+import { Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import type { Prisma } from "@prisma/client";
+import { JWT } from "googleapis-common";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcal.service";
 import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
-import { calendar_v3 } from "@googleapis/calendar";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { NotFoundException } from "@nestjs/common";
-import { Logger } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
-import { JWT } from "googleapis-common";
-
-import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
 
 import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
 import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
@@ -72,7 +69,6 @@ export class GoogleCalendarService {
       bookingReference.credential?.key,
       bookingReference.delegationCredential
     );
-
 
     const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
 

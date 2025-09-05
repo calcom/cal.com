@@ -1,18 +1,5 @@
 "use client";
 
-import { Analytics as DubAnalytics } from "@dub/analytics/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Script from "next/script";
-import { useState, useEffect } from "react";
-import type { SubmitHandler } from "react-hook-form";
-import { useForm, useFormContext } from "react-hook-form";
-import { Toaster } from "sonner";
-import { z } from "zod";
-
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
@@ -20,10 +7,10 @@ import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomai
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import {
   APP_NAME,
-  URL_PROTOCOL_REGEX,
-  IS_CALCOM,
-  WEBAPP_URL,
   CLOUDFLARE_SITE_ID,
+  IS_CALCOM,
+  URL_PROTOCOL_REGEX,
+  WEBAPP_URL,
   WEBSITE_PRIVACY_POLICY_URL,
   WEBSITE_TERMS_URL,
   WEBSITE_URL,
@@ -42,11 +29,22 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
+import { CheckboxField, Form, PasswordField, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Script from "next/script";
+import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import type { SubmitHandler } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
+import { Toaster } from "sonner";
+import { z } from "zod";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
@@ -345,7 +343,8 @@ export default function Signup({
           "[--cal-brand-subtle:#9CA3AF]",
           "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
           "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
-        )}>
+        )}
+      >
         <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
@@ -359,7 +358,8 @@ export default function Signup({
                   onClick={() => {
                     setDisplayEmailForm(false);
                     setIsSamlSignup(false);
-                  }}>
+                  }}
+                >
                   {t("back")}
                 </Button>
               </div>
@@ -394,7 +394,8 @@ export default function Signup({
                       };
                     }
                     await signUp(updatedValues);
-                  }}>
+                  }}
+                >
                   {/* Username */}
                   {!isOrgInviteByLink ? (
                     <UsernameField
@@ -500,7 +501,8 @@ export default function Signup({
                         formMethods.formState.errors.username && formMethods.formState.errors.email
                           ? "opacity-50"
                           : ""
-                      )}>
+                      )}
+                    >
                       <Icon name="shield-check" className="mr-2 h-5 w-5" />
                       {t("create_account_with_saml")}
                     </Button>
@@ -520,7 +522,8 @@ export default function Signup({
                           !formMethods.getValues("cfToken")) ||
                         isSubmitting ||
                         usernameTaken
-                      }>
+                      }
+                    >
                       {premiumUsername && !usernameTaken
                         ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
                         : t("create_account")}
@@ -566,7 +569,8 @@ export default function Signup({
                           : GOOGLE_AUTH_URL;
 
                         router.push(url);
-                      }}>
+                      }}
+                    >
                       {t("continue_with_google")}
                     </Button>
                   ) : null}
@@ -594,7 +598,8 @@ export default function Signup({
                       setDisplayEmailForm(true);
                       setIsSamlSignup(false);
                     }}
-                    data-testid="continue-with-email-button">
+                    data-testid="continue-with-email-button"
+                  >
                     {t("continue_with_email")}
                   </Button>
                   {isSAMLLoginEnabled && (
@@ -606,7 +611,8 @@ export default function Signup({
                       onClick={() => {
                         setDisplayEmailForm(true);
                         setIsSamlSignup(true);
-                      }}>
+                      }}
+                    >
                       {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
                     </Button>
                   )}
@@ -632,14 +638,16 @@ export default function Signup({
                         className="text-emphasis hover:underline"
                         key="terms"
                         href={`${WEBSITE_TERMS_URL}`}
-                        target="_blank">
+                        target="_blank"
+                      >
                         Terms
                       </Link>,
                       <Link
                         className="text-emphasis hover:underline"
                         key="privacy"
                         href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-                        target="_blank">
+                        target="_blank"
+                      >
                         Privacy Policy.
                       </Link>,
                     ]}

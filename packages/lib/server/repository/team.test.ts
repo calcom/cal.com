@@ -1,8 +1,7 @@
+import { describe, expect, it } from "vitest";
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
-import { it, describe, expect } from "vitest";
-
-import { getTeam, getOrg } from "./team";
+import { getOrg, getTeam } from "./team";
 
 const sampleTeamProps = {
   logo: null,

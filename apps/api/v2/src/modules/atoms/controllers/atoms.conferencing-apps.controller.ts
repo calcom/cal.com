@@ -1,3 +1,8 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ConnectedApps } from "@calcom/platform-libraries/app-store";
+import { ApiResponse } from "@calcom/platform-types";
+import { Controller, Get, Param, ParseIntPipe, UseGuards, VERSION_NEUTRAL, Version } from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
@@ -10,12 +15,6 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, Get, Param, ParseIntPipe, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ConnectedApps } from "@calcom/platform-libraries/app-store";
-import { ApiResponse } from "@calcom/platform-types";
 
 /*
 Conferencing endpoints for atoms, split from AtomsController for clarity and maintainability.

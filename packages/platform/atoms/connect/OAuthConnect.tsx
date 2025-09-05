@@ -1,10 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
-import type { FC } from "react";
-
 import type { CALENDARS } from "@calcom/platform-constants";
 import { Button } from "@calcom/ui/components/button";
+import type { FC, ReactNode } from "react";
 
 import type { OnCheckErrorType, UseCheckProps } from "../hooks/connect/useCheck";
 import { useCheck } from "../hooks/connect/useCheck";
@@ -86,7 +84,8 @@ export const OAuthConnect: FC<
           onClick={() => {
             connect();
             onSuccess?.();
-          }}>
+          }}
+        >
           {displayedLabel}
         </Button>
       </AtomsWrapper>
@@ -110,7 +109,8 @@ export const OAuthConnect: FC<
           connect();
           onSuccess?.();
         }}
-        onClick={() => connect()}>
+        onClick={() => connect()}
+      >
         {displayedLabel}
       </Button>
     </AtomsWrapper>

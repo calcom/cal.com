@@ -14,7 +14,8 @@ const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...pr
       <nav
         className="no-scrollbar flex space-x-0.5 overflow-x-scroll rounded-md"
         aria-label="Tabs"
-        {...props}>
+        {...props}
+      >
         {tabs.map((tab, idx) => (
           <HorizontalTabItem {...tab} key={idx} linkShallow={linkShallow} linkScroll={linkScroll} />
         ))}

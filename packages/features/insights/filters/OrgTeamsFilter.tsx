@@ -1,6 +1,3 @@
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-
 import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
@@ -13,6 +10,8 @@ import { Divider } from "@calcom/ui/components/divider";
 import { FilterSearchField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";
 

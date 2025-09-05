@@ -1,6 +1,3 @@
-import type { ReactNode } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,10 +5,11 @@ import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { ReactNode } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 type props = {
   isTeamAdminOrOwner: boolean;
@@ -96,7 +94,8 @@ export const TeamEventTypeForm = ({
                   <Tooltip
                     content={`${urlPrefix}/${
                       !isManagedEventType ? `team/${teamSlug}` : t("username_placeholder")
-                    }/`}>
+                    }/`}
+                  >
                     <span className="max-w-24 md:max-w-56">
                       {urlPrefix}/{!isManagedEventType ? `team/${teamSlug}` : t("username_placeholder")}/
                     </span>
@@ -124,12 +123,14 @@ export const TeamEventTypeForm = ({
             onValueChange={(val: SchedulingType) => {
               setValue("schedulingType", val);
             }}
-            className={classNames("mt-1 flex gap-4", isTeamAdminOrOwner && "flex-col")}>
+            className={classNames("mt-1 flex gap-4", isTeamAdminOrOwner && "flex-col")}
+          >
             <RadioArea.Item
               {...register("schedulingType")}
               value={SchedulingType.COLLECTIVE}
               className={classNames("w-full text-sm", !isTeamAdminOrOwner && "w-1/2")}
-              classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}>
+              classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}
+            >
               <strong className="mb-1 block">{t("collective")}</strong>
               <p>{t("collective_description")}</p>
             </RadioArea.Item>
@@ -137,7 +138,8 @@ export const TeamEventTypeForm = ({
               {...register("schedulingType")}
               value={SchedulingType.ROUND_ROBIN}
               className={classNames("text-sm", !isTeamAdminOrOwner && "w-1/2")}
-              classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}>
+              classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}
+            >
               <strong className="mb-1 block">{t("round_robin")}</strong>
               <p>{t("round_robin_description")}</p>
             </RadioArea.Item>
@@ -147,7 +149,8 @@ export const TeamEventTypeForm = ({
                 value={SchedulingType.MANAGED}
                 className={classNames("text-sm", !isTeamAdminOrOwner && "w-1/2")}
                 classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}
-                data-testid="managed-event-type">
+                data-testid="managed-event-type"
+              >
                 <strong className="mb-1 block">{t("managed_event")}</strong>
                 <p>{t("managed_event_description")}</p>
               </RadioArea.Item>

@@ -1,6 +1,5 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { createContainer } from "@evyweb/ioctopus";
 
 import type { InstantBookingCreateService } from "../modules/InstantBookingCreateServiceModule";
 import { instantBookingCreateServiceModule } from "../modules/InstantBookingCreateServiceModule";

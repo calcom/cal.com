@@ -1,3 +1,14 @@
+import { Team, Webhook } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -9,18 +20,6 @@ import {
   TeamWebhookOutputResponseDto,
   TeamWebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/team-webhook.output";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { Team, Webhook } from "@calcom/prisma/client";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;

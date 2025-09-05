@@ -1,24 +1,23 @@
-import { useSession } from "next-auth/react";
-import { useState, useMemo } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownItem,
-  DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 
 import { useDataTable } from "../../hooks";
 import type {
-  FilterSegmentOutput,
   CombinedFilterSegment,
+  FilterSegmentOutput,
   SystemFilterSegmentInternal,
   UserFilterSegment,
 } from "../../lib/types";
@@ -154,7 +153,8 @@ export function FilterSegmentSelect() {
             color="secondary"
             StartIcon="list-filter"
             EndIcon="chevron-down"
-            data-testid="filter-segment-select">
+            data-testid="filter-segment-select"
+          >
             {selectedSegment?.name || t("segment")}
           </Button>
         </DropdownMenuTrigger>
@@ -196,7 +196,8 @@ export function FilterSegmentSelect() {
                             setSegmentId({ id: segment.id, type: "user" });
                           }
                         }
-                      }}>
+                      }}
+                    >
                       {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
                         <Icon name="check" className="ml-3 h-4 w-4" />
                       )}
@@ -266,7 +267,8 @@ function DropdownItemWithSubmenu({
               align="start"
               side="right"
               sideOffset={8}
-              data-testid="filter-segment-select-submenu-content">
+              data-testid="filter-segment-select-submenu-content"
+            >
               {submenuItems.map((item, index) => (
                 <DropdownMenuItem key={index}>
                   <DropdownItem
@@ -276,7 +278,8 @@ function DropdownItemWithSubmenu({
                       event.preventDefault();
                       item.onClick(segment);
                       setIsOpen(false);
-                    }}>
+                    }}
+                  >
                     {t(item.labelKey)}
                   </DropdownItem>
                 </DropdownMenuItem>

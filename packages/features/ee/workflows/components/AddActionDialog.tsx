@@ -1,10 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
@@ -12,15 +5,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { EmailField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { CheckboxField, EmailField, Form, Input, Label, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { onlyLettersNumbersSpaces } from "../lib/schema";
@@ -151,7 +145,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               setIsPhoneNumberNeeded(false);
               setIsEmailAddressNeeded(false);
               setIsSenderIdNeeded(false);
-            }}>
+            }}
+          >
             <div className="space-y-1">
               <Label htmlFor="label">{t("action")}:</Label>
               <Controller

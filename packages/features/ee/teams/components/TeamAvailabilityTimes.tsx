@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
+import type { Dayjs } from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import getSlots from "@calcom/lib/slots";
+import { trpc } from "@calcom/trpc/react";
 /* eslint-enable @typescript-eslint/ban-ts-comment */
 // TODO: Currently this file is not type checked as it's deprecated
 //       it must be refactored if we want to restore TeamAvailability
 import classNames from "classnames";
 import React from "react";
 import type { ITimezone } from "react-timezone-select";
-
-import type { Dayjs } from "@calcom/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import getSlots from "@calcom/lib/slots";
-import { trpc } from "@calcom/trpc/react";
 
 import SkeletonLoader from "./SkeletonLoaderAvailabilityTimes";
 
@@ -69,7 +68,8 @@ export default function TeamAvailabilityTimes(props: Props) {
           <div key={slot.time.format()} className="flex flex-row items-center ">
             <a
               className="min-w-48 border-brand-default text-bookingdarker  bg-default mb-2 mr-3 block flex-grow rounded-md border py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 "
-              data-testid="time">
+              data-testid="time"
+            >
               {slot.time.tz(props.selectedTimeZone.toString()).format("HH:mm")}
             </a>
           </div>

@@ -1,21 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { CheckboxField, Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 
 const schema = z.object({
   teams: z.array(
@@ -215,7 +212,8 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
                     color="minimal"
                     className="group/remove mx-2 px-0 hover:bg-transparent"
                     onClick={() => handleRemoveInput(index)}
-                    aria-label="Remove Team">
+                    aria-label="Remove Team"
+                  >
                     <Icon
                       name="x"
                       className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1"
@@ -236,7 +234,8 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             onClick={handleCounterIncrease}
             aria-label={t("add_a_team")}
             className="my-1"
-            data-testId="add_a_team">
+            data-testId="add_a_team"
+          >
             {t("add_a_team")}
           </Button>
         )}
@@ -245,7 +244,8 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
           type="submit"
           color="primary"
           className="mt-6 w-full justify-center"
-          data-testId="continue_or_checkout">
+          data-testId="continue_or_checkout"
+        >
           {t("continue")}
         </Button>
       </Form>

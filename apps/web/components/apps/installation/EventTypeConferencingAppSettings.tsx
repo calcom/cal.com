@@ -1,10 +1,6 @@
-import { useMemo } from "react";
-import { useFormContext } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
-
 import type {
-  TLocationOptions,
   TEventTypeLocation,
+  TLocationOptions,
 } from "@calcom/features/eventtypes/components/locations/Locations";
 import Locations from "@calcom/features/eventtypes/components/locations/Locations";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
@@ -13,11 +9,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Label } from "@calcom/ui/components/form";
-import { Skeleton, SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-
-import { QueryCell } from "@lib/QueryCell";
-
+import { Skeleton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
+import { QueryCell } from "@lib/QueryCell";
+import { useMemo } from "react";
+import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
 

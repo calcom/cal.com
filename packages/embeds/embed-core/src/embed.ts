@@ -1,34 +1,36 @@
 /// <reference types="../env" />
-import { FloatingButton } from "./FloatingButton/FloatingButton";
-import { Inline } from "./Inline/inline";
-import { ModalBox } from "./ModalBox/ModalBox";
+
 import { addAppCssVars } from "./addAppCssVars";
 import {
   EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
   EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
   EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS,
 } from "./constants";
-import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
 import css from "./embed.css";
+import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
+import { FloatingButton } from "./FloatingButton/FloatingButton";
+import { Inline } from "./Inline/inline";
 import { getScrollableAncestor } from "./lib/domUtils";
 import { getScrollByDistanceHandler } from "./lib/eventHandlers/scrollByDistanceEventHandler";
 import {
+  buildConfigWithPrerenderRelatedFields,
   fromEntriesWithDuplicateKeys,
-  isRouterPath,
   generateDataAttributes,
   getConfigProp,
+  isRouterPath,
   isSameBookingLink,
-  buildConfigWithPrerenderRelatedFields,
 } from "./lib/utils";
-import { SdkActionManager } from "./sdk-action-manager";
+import { ModalBox } from "./ModalBox/ModalBox";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
+import { SdkActionManager } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
-import type { UiConfig, EmbedPageType, PrefillAndIframeAttrsConfig, ModalPrerenderOptions } from "./types";
+import type { EmbedPageType, ModalPrerenderOptions, PrefillAndIframeAttrsConfig, UiConfig } from "./types";
 import { getMaxHeightForModal } from "./ui-utils";
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
 export type { PrefillAndIframeAttrsConfig } from "./types";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[] | undefined> = T extends [any, ...infer U] ? U : never;
 export type Message = {

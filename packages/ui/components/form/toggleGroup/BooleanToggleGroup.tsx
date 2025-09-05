@@ -1,11 +1,10 @@
 "use client";
 
-import { useId } from "@radix-ui/react-id";
-import { Root as ToggleGroupPrimitive, Item as ToggleGroupItemPrimitive } from "@radix-ui/react-toggle-group";
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { useId } from "@radix-ui/react-id";
+import { Item as ToggleGroupItemPrimitive, Root as ToggleGroupPrimitive } from "@radix-ui/react-toggle-group";
+import { useState } from "react";
 
 import { Label } from "../../../components/form/inputs/Label";
 
@@ -83,18 +82,21 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
         setYesNoValue(yesNoValue);
         onValueChange(boolean(yesNoValue));
       }}
-      {...passThrough}>
+      {...passThrough}
+    >
       <ToggleGroupItemPrimitive
         className={classNames(boolean(yesNoValue) ? selectedClass : unselectedClass)}
         disabled={disabled}
-        value="yes">
+        value="yes"
+      >
         Yes
       </ToggleGroupItemPrimitive>
 
       <ToggleGroupItemPrimitive
         disabled={disabled}
         className={classNames(!boolean(yesNoValue) ? selectedClass : unselectedClass)}
-        value="no">
+        value="no"
+      >
         No
       </ToggleGroupItemPrimitive>
     </ToggleGroupPrimitive>

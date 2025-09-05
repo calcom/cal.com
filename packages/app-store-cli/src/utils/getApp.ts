@@ -18,7 +18,7 @@ export const getApp = (slug: string, isTemplate: boolean) => {
   if (foundApp) {
     try {
       return JSON.parse(fs.readFileSync(path.join(base, foundApp, "config.json")).toString());
-    } catch (e) {
+    } catch (_e) {
       return {};
     }
   }

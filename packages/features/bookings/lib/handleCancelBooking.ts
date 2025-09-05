@@ -1,6 +1,3 @@
-import type { Prisma, WorkflowReminder } from "@prisma/client";
-import type { z } from "zod";
-
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -10,8 +7,8 @@ import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/remind
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
-  deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
+  deleteWebhookScheduledTriggers,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -32,14 +29,16 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import {
+  bookingCancelInput,
   bookingMetadataSchema,
   eventTypeMetaDataSchemaWithTypedApps,
-  bookingCancelInput,
 } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { Prisma, WorkflowReminder } from "@prisma/client";
+import type { z } from "zod";
 
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
@@ -274,8 +273,8 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-      ? [bookingToDelete?.user.destinationCalendar]
-      : [],
+        ? [bookingToDelete?.user.destinationCalendar]
+        : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {

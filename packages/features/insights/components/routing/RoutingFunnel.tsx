@@ -6,7 +6,7 @@ import { trpc } from "@calcom/trpc";
 
 import { useToggleableLegend } from "../../hooks/useToggleableLegend";
 import { ChartCard } from "../ChartCard";
-import { RoutingFunnelContent, legend } from "./RoutingFunnelContent";
+import { legend, RoutingFunnelContent } from "./RoutingFunnelContent";
 import { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";
 
 export function RoutingFunnel() {
@@ -29,7 +29,8 @@ export function RoutingFunnel() {
         title={t("routing_funnel")}
         legend={legend}
         enabledLegend={enabledLegend}
-        onSeriesToggle={toggleSeries}>
+        onSeriesToggle={toggleSeries}
+      >
         <RoutingFunnelSkeleton />
       </ChartCard>
     );
@@ -40,7 +41,8 @@ export function RoutingFunnel() {
       title={t("routing_funnel")}
       legend={legend}
       enabledLegend={enabledLegend}
-      onSeriesToggle={toggleSeries}>
+      onSeriesToggle={toggleSeries}
+    >
       <RoutingFunnelContent data={data} enabledLegend={enabledLegend} />
     </ChartCard>
   );

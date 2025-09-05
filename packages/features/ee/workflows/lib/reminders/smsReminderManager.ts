@@ -12,8 +12,12 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";

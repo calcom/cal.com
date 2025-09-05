@@ -1,16 +1,12 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { useMemo, useReducer, useState } from "react";
-
 import {
-  DataTableWrapper,
-  DataTableProvider,
-  DataTableToolbar,
-  DataTableSelectionBar,
   DataTableFilters,
+  DataTableProvider,
   DataTableSegment,
+  DataTableSelectionBar,
+  DataTableToolbar,
+  DataTableWrapper,
   useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
@@ -22,10 +18,13 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { keepPreviousData } from "@tanstack/react-query";
+import { type ColumnDef, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useMemo, useReducer, useState } from "react";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
-import type { UserTableState, UserTableAction, PlatformManagedUserTableUser } from "./types";
+import type { PlatformManagedUserTableUser, UserTableAction, UserTableState } from "./types";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -62,7 +61,8 @@ export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps)
     <DataTableProvider
       useSegments={useSegments}
       defaultPageSize={25}
-      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
+      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}
+    >
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -149,12 +149,14 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
-                  className="text-emphasis text-sm font-medium leading-none">
+                  className="text-emphasis text-sm font-medium leading-none"
+                >
                   {username || "No username"}
                 </div>
                 <div
                   data-testid={`member-${username}-email`}
-                  className="text-subtle mt-1 text-sm leading-none">
+                  className="text-subtle mt-1 text-sm leading-none"
+                >
                   {email}
                 </div>
               </div>
@@ -178,7 +180,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
-              }}>
+              }}
+            >
               {role}
             </Badge>
           );
@@ -205,7 +208,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
                   data-testid={`email-${email.replace("@", "")}-pending`}
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
-                  }}>
+                  }}
+                >
                   Pending
                 </Badge>
               )}
@@ -216,7 +220,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
                   variant="gray"
                   onClick={() => {
                     table.getColumn("teams")?.setFilterValue([team.name]);
-                  }}>
+                  }}
+                >
                   {team.name}
                 </Badge>
               ))}
@@ -302,7 +307,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             <DataTableSegment.SaveButton />
             <DataTableSegment.Select />
           </>
-        }>
+        }
+      >
         {numberOfSelectedRows > 0 && (
           <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">

@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -7,6 +5,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 interface GroupNameCellProps {
   groupNames: string[];
@@ -86,12 +85,14 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
       <Badge
         variant="gray"
         size="lg"
-        className={classNames(!showTextInput && "hover:bg-emphasis", "min-h-8 h-auto py-2")}>
+        className={classNames(!showTextInput && "hover:bg-emphasis", "min-h-8 h-auto py-2")}
+      >
         <div
           className="flex items-center space-x-1"
           onClick={() => {
             if (!showTextInput) setShowTextInput(true);
-          }}>
+          }}
+        >
           {showTextInput ? (
             <TextField
               autoFocus

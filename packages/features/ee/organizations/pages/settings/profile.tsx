@@ -1,12 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Prisma } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
@@ -18,24 +11,27 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { LinkIconButton } from "@calcom/ui/components/button";
+import { Button, LinkIconButton } from "@calcom/ui/components/button";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, Label, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
 // if I include this in the above barrel import, I get a runtime error that the component is not exported.
 import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import {
+  SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  SkeletonAvatar,
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Prisma } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 
@@ -164,7 +160,8 @@ const OrgProfileView = ({
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");
-                }}>
+                }}
+              >
                 {t("copy_link_org")}
               </LinkIconButton>
             </div>
@@ -239,7 +236,8 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         };
 
         mutation.mutate(variables);
-      }}>
+      }}
+    >
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
         <div className="flex items-center">
           <Controller
@@ -406,7 +404,8 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       size="sm"
                       type="button"
                       aria-label="copy organization id"
-                      onClick={() => handleCopy(value.toString())}>
+                      onClick={() => handleCopy(value.toString())}
+                    >
                       <Icon name="copy" className="ml-1 h-4 w-4" />
                     </Button>
                   </Tooltip>
@@ -435,7 +434,8 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           color="primary"
           type="submit"
           loading={mutation.isPending}
-          disabled={isDisabled}>
+          disabled={isDisabled}
+        >
           {t("update")}
         </Button>
       </SectionBottomActions>

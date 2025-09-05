@@ -10,13 +10,15 @@ export const VerifyEmailByCode = (
     <BaseEmailHtml
       subject={props.language(`verify_email_subject${props.isVerifyingEmail ? "_verifying_email" : ""}`, {
         appName: APP_NAME,
-      })}>
+      })}
+    >
       <p
         style={{
           fontWeight: 600,
           fontSize: "32px",
           lineHeight: "38px",
-        }}>
+        }}
+      >
         <>{props.language("verify_email_email_header")}</>
       </p>
       <p style={{ fontWeight: 400 }}>
@@ -39,7 +41,8 @@ export const VerifyEmailByCode = (
               href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
               style={{ color: "#3E3E3E" }}
               target="_blank"
-              rel="noreferrer">
+              rel="noreferrer"
+            >
               <>{props.language("the_calcom_team", { companyName: SENDER_NAME })}</>
             </a>
           </>

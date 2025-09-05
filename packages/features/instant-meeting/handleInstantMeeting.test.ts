@@ -1,20 +1,19 @@
-import prismock from "../../../tests/libs/__mocks__/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import {
   createBookingScenario,
-  getScenarioData,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
-  mockSuccessfulVideoMeetingCreation,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockNoTranslations,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import type { NextApiRequest } from "next";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../tests/libs/__mocks__/prisma";
 
 vi.mock("@calcom/features/notifications/sendNotification", () => ({
   sendNotification: vi.fn(),

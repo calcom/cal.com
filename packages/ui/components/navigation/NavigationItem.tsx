@@ -1,11 +1,10 @@
+import classNames from "@calcom/ui/classNames";
 import { cva } from "class-variance-authority";
 import { Fragment } from "react";
 
-import classNames from "@calcom/ui/classNames";
-
 import { ButtonOrLink } from "../dropdown";
-import { Icon } from "../icon";
 import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 export type NavigationItemType = {
   isLastChild?: boolean;
@@ -72,7 +71,8 @@ const NavigationItemComponent = ({
           isFirstChild: isChild && index === 0,
         })}
         aria-current={item.isCurrent ? "page" : undefined}
-        onClick={item.onToggle}>
+        onClick={item.onToggle}
+      >
         {item.icon && (
           <Icon
             name={item.isLoading ? "rotate-cw" : item.icon}

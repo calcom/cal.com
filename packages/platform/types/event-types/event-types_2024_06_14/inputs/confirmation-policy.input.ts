@@ -1,10 +1,16 @@
+import { ConfirmationPolicyEnum, NoticeThresholdUnitEnum } from "@calcom/platform-enums";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsInt, ValidateNested, IsBoolean } from "class-validator";
-import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
-import { ValidatorConstraint, registerDecorator } from "class-validator";
-
-import { ConfirmationPolicyEnum, NoticeThresholdUnitEnum } from "@calcom/platform-enums";
+import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  registerDecorator,
+  ValidateNested,
+  ValidatorConstraint,
+} from "class-validator";
 
 import type { Disabled_2024_06_14 } from "./disabled.input";
 

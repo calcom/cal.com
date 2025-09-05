@@ -27,7 +27,7 @@ export default async function handler({
 
     return ensureNoServiceAccountKey({
       ...delegation,
-      serviceAccountClientId: serviceAccountKey.success ? serviceAccountKey.data?.client_id ?? null : null,
+      serviceAccountClientId: serviceAccountKey.success ? (serviceAccountKey.data?.client_id ?? null) : null,
     });
   });
 }

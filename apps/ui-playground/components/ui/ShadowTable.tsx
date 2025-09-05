@@ -1,9 +1,8 @@
 "use client";
 
+import { showToast } from "@calcom/ui/components/toast";
 import React from "react";
 import { Toaster } from "react-hot-toast";
-
-import { showToast } from "@calcom/ui/components/toast";
 
 interface ShadowToken {
   name: string;
@@ -107,9 +106,11 @@ export const ShadowTable: React.FC<ShadowTableProps> = () => {
           <div
             key={token.name}
             onClick={() => handleCopy(token.className)}
-            className="group relative cursor-pointer">
+            className="group relative cursor-pointer"
+          >
             <div
-              className={`border-subtle bg-default hover:bg-subtle relative overflow-hidden rounded-lg border p-4 transition-colors ${token.className}`}>
+              className={`border-subtle bg-default hover:bg-subtle relative overflow-hidden rounded-lg border p-4 transition-colors ${token.className}`}
+            >
               <div className="space-y-2">
                 <div>
                   <p className="text-emphasis text-sm font-medium">{token.name}</p>

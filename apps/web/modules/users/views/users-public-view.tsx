@@ -1,10 +1,5 @@
 "use client";
 
-import classNames from "classnames";
-import type { InferGetServerSidePropsType } from "next";
-import Link from "next/link";
-import { Toaster } from "sonner";
-
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -18,8 +13,11 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Icon } from "@calcom/ui/components/icon";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
+import classNames from "classnames";
+import type { InferGetServerSidePropsType } from "next";
+import Link from "next/link";
+import { Toaster } from "sonner";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
@@ -69,7 +67,8 @@ export function UserPage(props: PageProps) {
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-24"
-          )}>
+          )}
+        >
           <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-4">
             <UserAvatar
               size="lg"
@@ -108,7 +107,8 @@ export function UserPage(props: PageProps) {
 
           <div
             className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
-            data-testid="event-types">
+            data-testid="event-types"
+          >
             {eventTypes.map((type) => (
               <Link
                 key={type.id}
@@ -125,7 +125,8 @@ export function UserPage(props: PageProps) {
                   });
                 }}
                 className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
-                data-testid="event-type-link">
+                data-testid="event-type-link"
+              >
                 <Icon
                   name="arrow-right"
                   className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"

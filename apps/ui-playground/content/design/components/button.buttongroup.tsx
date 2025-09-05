@@ -1,7 +1,6 @@
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const ButtonGroupExample = () => {
   return (

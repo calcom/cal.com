@@ -1,8 +1,7 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach } from "vitest";
-
 import prisma from "@calcom/prisma";
+
+import { beforeEach, describe, expect, it } from "vitest";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { SelectedCalendarRepository } from "./selectedCalendar";
 

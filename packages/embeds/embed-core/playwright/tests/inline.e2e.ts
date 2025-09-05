@@ -1,6 +1,5 @@
-import { expect } from "@playwright/test";
-
 import { test, todo } from "@calcom/web/playwright/lib/fixtures";
+import { expect } from "@playwright/test";
 
 import {
   assertNoRequestIsBlocked,

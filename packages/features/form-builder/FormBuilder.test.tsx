@@ -1,19 +1,18 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
-import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
 
 import { FormBuilder } from "./FormBuilder";
 import {
-  mockProps,
-  verifier,
-  setMockIntersectionObserver,
-  setMockMatchMedia,
-  pageObject,
   expectScenario,
   getLocationBookingField,
+  mockProps,
+  pageObject,
+  setMockIntersectionObserver,
+  setMockMatchMedia,
+  verifier,
 } from "./testUtils";
 
 vi.mock("@formkit/auto-animate/react", () => ({

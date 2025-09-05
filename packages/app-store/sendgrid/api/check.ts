@@ -1,9 +1,9 @@
-import type { NextApiRequest } from "next";
+import { HttpError } from "@calcom/lib/http-error";
 
 import Sendgrid from "@calcom/lib/Sendgrid";
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import type { NextApiRequest } from "next";
 
 import checkSession from "../../_utils/auth";
 

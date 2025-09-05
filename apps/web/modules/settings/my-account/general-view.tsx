@@ -1,13 +1,8 @@
 "use client";
 
-import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -16,14 +11,14 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, Label, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
-
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
+import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 export type FormValues = {
   locale: {
@@ -163,7 +158,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               timeFormat: values.timeFormat.value,
               weekStart: values.weekStart.value,
             });
-          }}>
+          }}
+        >
           <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
             <Controller
               name="locale"
@@ -204,7 +200,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 color="secondary"
                 className="mt-2"
                 StartIcon="calendar"
-                onClick={() => setIsTZScheduleOpen(true)}>
+                onClick={() => setIsTZScheduleOpen(true)}
+              >
                 {t("schedule_timezone_change")}
               </Button>
             ) : (
@@ -218,7 +215,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           "flex items-center p-4",
                           index !== 0 ? "border-subtle border-t" : ""
                         )}
-                        key={index}>
+                        key={index}
+                      >
                         <div>
                           <div className="text-emphasis font-semibold">{`${formatLocalizedDateTime(
                             schedule.startDate,
@@ -255,7 +253,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   StartIcon="plus"
                   color="secondary"
                   className="mt-4"
-                  onClick={() => setIsTZScheduleOpen(true)}>
+                  onClick={() => setIsTZScheduleOpen(true)}
+                >
                   {t("add")}
                 </Button>
               </div>
@@ -308,7 +307,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               disabled={isDisabled}
               color="primary"
               type="submit"
-              data-testid="general-submit-button">
+              data-testid="general-submit-button"
+            >
               <>{t("update")}</>
             </Button>
           </SectionBottomActions>

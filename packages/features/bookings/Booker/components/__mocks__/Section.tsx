@@ -13,7 +13,8 @@ vi.mock("../Section", () => {
       <div
         data-testid="booker-section"
         className={className}
-        data-area={typeof area === "string" ? area : area?.default}>
+        data-area={typeof area === "string" ? area : area?.default}
+      >
         {children}
       </div>
     );

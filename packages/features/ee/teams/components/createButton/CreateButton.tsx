@@ -1,7 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -15,6 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { usePathname, useRouter } from "next/navigation";
 
 export interface Option {
   platform?: boolean;
@@ -84,14 +83,15 @@ export function CreateButton(props: CreateBtnProps) {
             !!CreateDialog
               ? openModal(options[0])
               : createFunction
-              ? createFunction(options[0].teamId || undefined)
-              : null
+                ? createFunction(options[0].teamId || undefined)
+                : null
           }
           data-testid="create-button"
           StartIcon="plus"
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
-          {...restProps}>
+          {...restProps}
+        >
           {buttonText ? buttonText : t("new")}
         </Button>
       ) : (
@@ -103,7 +103,8 @@ export function CreateButton(props: CreateBtnProps) {
               size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
-              {...restProps}>
+              {...restProps}
+            >
               {buttonText ? buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
@@ -121,9 +122,10 @@ export function CreateButton(props: CreateBtnProps) {
                     !!CreateDialog
                       ? openModal(option)
                       : createFunction
-                      ? createFunction(option.teamId || undefined, option.platform)
-                      : null
-                  }>
+                        ? createFunction(option.teamId || undefined, option.platform)
+                        : null
+                  }
+                >
                   {" "}
                   {/*improve this code */}
                   <span>{option.label}</span>

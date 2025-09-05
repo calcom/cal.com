@@ -1,23 +1,22 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState, useMemo, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
   CrudAction,
-  Scope,
   getPermissionsForScope,
+  Scope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Form, TextField, Checkbox, Label } from "@calcom/ui/components/form";
+import { Checkbox, Form, Label, TextField } from "@calcom/ui/components/form";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { revalidateTeamRoles } from "../actions";
 import { AdvancedPermissionGroup } from "./AdvancedPermissionGroup";
@@ -259,7 +258,8 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                 type="button"
                 color="secondary"
                 onClick={() => onOpenChange(false)}
-                disabled={createMutation.isPending || updateMutation.isPending}>
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
                 {t("cancel")}
               </Button>
               <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>

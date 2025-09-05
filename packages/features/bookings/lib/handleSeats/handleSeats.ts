@@ -11,7 +11,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
-import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
+import type { HandleSeatsResultBooking, NewSeatedBookingObject, SeatedBooking } from "./types";
 
 const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   const {

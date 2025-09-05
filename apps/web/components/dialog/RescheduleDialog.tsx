@@ -1,6 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -9,6 +6,8 @@ import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components
 import { TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
@@ -69,7 +68,8 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
                 bookingId,
                 rescheduleReason,
               });
-            }}>
+            }}
+          >
             {t("send_reschedule_request")}
           </Button>
         </DialogFooter>

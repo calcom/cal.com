@@ -1,10 +1,3 @@
-import type { TFunction } from "i18next";
-import { default as get } from "lodash/get";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
-import type z from "zod";
-
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -14,6 +7,12 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { TFunction } from "i18next";
+import { default as get } from "lodash/get";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import type z from "zod";
 
 export const LockedSwitch = (
   isManagedEventType: boolean,
@@ -62,7 +61,8 @@ export const LockedIndicator = (
             className={classNames(
               "ml-2 transform justify-between p-1",
               isManagedEventType && !options.simple && "w-28"
-            )}>
+            )}
+          >
             {!options.simple && (
               <span className="inline-flex">
                 <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />

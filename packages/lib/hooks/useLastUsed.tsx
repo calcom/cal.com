@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
+import { useEffect, useState } from "react";
 
 type LoginType = "saml" | "google" | "credentials";
 

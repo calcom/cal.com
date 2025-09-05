@@ -1,10 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
-import type { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
-import type { ApiResponse } from "@calcom/platform-types";
+import type { ApiResponse, EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 import http from "../../../lib/http";
 
@@ -12,9 +10,7 @@ export const QUERY_KEY = "use-event-type";
 export type UsePublicEventReturnType = ReturnType<typeof useEventType>;
 
 export const useEventType = (username: string, eventSlug: string, isTeamEvent: boolean | undefined) => {
-
-
-  const requestUsername =  username;
+  const requestUsername = username;
   const requestEventSlug = eventSlug;
 
   const isDynamic = useMemo(() => {
@@ -22,7 +18,7 @@ export const useEventType = (username: string, eventSlug: string, isTeamEvent: b
   }, [requestUsername]);
 
   const event = useQuery({
-    queryKey: [QUERY_KEY,  username, eventSlug],
+    queryKey: [QUERY_KEY, username, eventSlug],
     queryFn: async () => {
       if (isTeamEvent) {
         return;

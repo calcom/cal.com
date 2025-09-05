@@ -38,7 +38,8 @@ const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonati
               !disableImpersonation
                 ? mutation.mutate({ disableImpersonation: true })
                 : mutation.mutate({ disableImpersonation: false })
-            }>
+            }
+          >
             {!disableImpersonation ? t("disable") : t("enable")}
           </Button>
         </div>

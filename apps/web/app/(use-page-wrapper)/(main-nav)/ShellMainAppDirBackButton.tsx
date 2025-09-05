@@ -1,9 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import type { LayoutProps } from "@calcom/features/shell/Shell";
 import { Button } from "@calcom/ui/components/button";
+import { useRouter } from "next/navigation";
 
 export const ShellMainAppDirBackButton = ({ backPath }: { backPath: LayoutProps["backPath"] }) => {
   const router = useRouter();

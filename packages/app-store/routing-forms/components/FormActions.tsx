@@ -1,14 +1,9 @@
-import { useRouter } from "next/navigation";
-import { createContext, forwardRef, useContext, useState } from "react";
-import { useForm } from "react-hook-form";
-import { v4 as uuidv4 } from "uuid";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
+import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -17,10 +12,10 @@ import classNames from "@calcom/ui/classNames";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
@@ -28,11 +23,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Form, Switch, TextAreaField, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { createContext, forwardRef, useContext, useState } from "react";
+import { useForm } from "react-hook-form";
+import { v4 as uuidv4 } from "uuid";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 
@@ -98,7 +94,8 @@ function NewFormDialog({
         <div className="mb-1">
           <h3
             className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
-            id="modal-title">
+            id="modal-title"
+          >
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
@@ -117,7 +114,8 @@ function NewFormDialog({
               teamId,
               duplicateFrom: formToDuplicate,
             });
-          }}>
+          }}
+        >
           <div className="mt-3 space-y-5">
             <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
@@ -255,7 +253,8 @@ function Dialogs({
             deleteMutation.mutate({
               id: deleteDialogFormId,
             });
-          }}>
+          }}
+        >
           <ul className="list-disc pl-3">
             <li> {t("delete_form_confirmation")}</li>
             <li> {t("delete_form_confirmation_2")}</li>
@@ -375,7 +374,8 @@ export function FormActionsProvider({
               },
               isPending: toggleMutation.isPending,
             },
-          }}>
+          }}
+        >
           {children}
         </actionsCtx.Provider>
         <Dialogs
@@ -515,7 +515,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
             className={classNames(
               "sm:hover:bg-subtle self-center rounded-md p-2 transition hover:bg-gray-200",
               extraClassNames
-            )}>
+            )}
+          >
             <Switch
               data-testid="toggle-form-switch"
               disabled={!!disabled}
@@ -561,7 +562,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           props.className,
           "text-default w-full transition-none",
           props.color === "destructive" && "border-0"
-        )}>
+        )}
+      >
         {children}
       </Component>
     </DropdownMenuItem>

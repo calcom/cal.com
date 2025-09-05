@@ -39,7 +39,8 @@ export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(funct
         className="rounded-r-none border-r-0"
         StartIcon={StartIcon}
         color={color}
-        ref={forwardedRef}>
+        ref={forwardedRef}
+      >
         {children}
       </Button>
       <DropdownMenuPrimitive.Root>
@@ -50,7 +51,8 @@ export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(funct
               color,
               size: mainButtonProps.size,
               className: "rounded-l-none px-2",
-            })}>
+            })}
+          >
             <Icon name="chevron-down" className="h-4 w-4" />
           </button>
         </DropdownMenuPrimitive.Trigger>
@@ -58,12 +60,14 @@ export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(funct
         <DropdownMenuPrimitive.Portal>
           <DropdownMenuPrimitive.Content
             align="end"
-            className="bg-default border-subtle z-50 mt-1 min-w-[180px] overflow-hidden rounded-md border p-1 shadow-md">
+            className="bg-default border-subtle z-50 mt-1 min-w-[180px] overflow-hidden rounded-md border p-1 shadow-md"
+          >
             {dropdown.items.map((item, index) => (
               <DropdownMenuPrimitive.Item
                 key={index}
                 className="text-default hover:bg-subtle focus:bg-subtle flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm outline-none"
-                onClick={item.action}>
+                onClick={item.action}
+              >
                 {item.icon && <Icon name={item.icon} className="h-4 w-4" />}
                 {item.label}
               </DropdownMenuPrimitive.Item>

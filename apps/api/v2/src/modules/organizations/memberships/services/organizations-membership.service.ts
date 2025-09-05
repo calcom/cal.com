@@ -1,8 +1,7 @@
+import { TeamService } from "@calcom/platform-libraries";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
-
-import { TeamService } from "@calcom/platform-libraries";
 
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";

@@ -1,5 +1,3 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -7,6 +5,7 @@ import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
+import type { NextApiRequest } from "next";
 
 import { CalendarCache } from "../calendar-cache";
 
@@ -31,7 +30,7 @@ function getUniqueCalendarsByExternalId<
     eventTypeId: number | null;
     credentialId: number | null;
     id: string;
-  }
+  },
 >(calendars: T[]) {
   type ExternalId = string;
   return calendars.reduce(

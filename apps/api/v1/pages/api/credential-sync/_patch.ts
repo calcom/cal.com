@@ -1,11 +1,10 @@
-import type { NextApiRequest } from "next";
-
 import { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import type { NextApiRequest } from "next";
 
-import { schemaCredentialPatchParams, schemaCredentialPatchBody } from "~/lib/validations/credential-sync";
+import { schemaCredentialPatchBody, schemaCredentialPatchParams } from "~/lib/validations/credential-sync";
 
 /**
  * @swagger

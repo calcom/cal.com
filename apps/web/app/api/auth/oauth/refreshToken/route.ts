@@ -1,12 +1,11 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseUrlFormData } from "app/api/parseRequestData";
-import jwt from "jsonwebtoken";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseUrlFormData } from "app/api/parseRequestData";
+import jwt from "jsonwebtoken";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 async function handler(req: NextRequest) {
   const { client_id, client_secret, grant_type } = await parseUrlFormData(req);

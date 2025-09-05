@@ -1,9 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import Image from "next/image";
+import Link from "next/link";
 
 import { Slider } from "./Slider";
 
@@ -36,7 +35,8 @@ export function AppStoreCategories({
             href={`/apps/categories/${category.name}`}
             data-testid={`app-store-category-${category.name}`}
             className="relative flex rounded-md"
-            style={{ background: "radial-gradient(farthest-side at top right, #a2abbe 0%, #E3E3E3 100%)" }}>
+            style={{ background: "radial-gradient(farthest-side at top right, #a2abbe 0%, #E3E3E3 100%)" }}
+          >
             <div className="dark:bg-muted light:bg-[url('/noise.svg')] dark:from-subtle dark:to-muted w-full self-center bg-cover bg-center bg-no-repeat px-6 py-4 dark:bg-gradient-to-tr">
               <Image
                 src={`/app-categories/${category.name}.svg`}

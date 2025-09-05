@@ -1,8 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import { useQuery } from "@tanstack/react-query";
 
 import http from "../lib/http";
 

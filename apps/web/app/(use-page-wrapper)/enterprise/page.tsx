@@ -1,6 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-
 import EnterprisePage from "@components/EnterprisePage";
+import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

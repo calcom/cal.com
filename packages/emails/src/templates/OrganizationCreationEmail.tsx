@@ -34,7 +34,8 @@ export const OrganizationCreationEmail = (
           marginBottom: "32px",
           marginTop: "32px",
           lineHeightStep: "24px",
-        }}>
+        }}
+      >
         You have been added as an owner of the organization.
       </p>
       <p
@@ -45,7 +46,8 @@ export const OrganizationCreationEmail = (
           marginBottom: "32px",
           marginTop: "48px",
           lineHeightStep: "24px",
-        }}>
+        }}
+      >
         {isNewUser ? (
           <>
             Enjoy your new organization link: <a href={`${newLink}`}>{newLinkWithoutProtocol}</a>
@@ -84,7 +86,8 @@ export const OrganizationCreationEmail = (
             marginBottom: "32px",
             marginTop: "32px",
             lineHeightStep: "24px",
-          }}>
+          }}
+        >
           <>
             {props.language("email_no_user_signoff", {
               appName: APP_NAME,

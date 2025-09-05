@@ -1,8 +1,7 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsString, ValidateNested, IsEnum } from "class-validator";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { IsEnum, IsString, ValidateNested } from "class-validator";
 
 export class ConferencingAppsOauthUrlOutputDto {
   @IsString()

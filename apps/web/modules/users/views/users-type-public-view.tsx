@@ -1,16 +1,12 @@
 "use client";
 
-import type { EmbedProps } from "app/WithEmbedSSR";
-import { useSearchParams } from "next/navigation";
-
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
-
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+import type { EmbedProps } from "app/WithEmbedSSR";
+import { useSearchParams } from "next/navigation";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 

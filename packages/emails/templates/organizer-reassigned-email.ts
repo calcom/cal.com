@@ -3,8 +3,8 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
-import OrganizerScheduledEmail from "./organizer-scheduled-email";
 import type { Reassigned } from "./organizer-scheduled-email";
+import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerReassignedEmail extends OrganizerScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {

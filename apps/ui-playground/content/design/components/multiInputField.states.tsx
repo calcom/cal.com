@@ -1,9 +1,8 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useForm, FormProvider } from "react-hook-form";
-
 import { MultiOptionInput } from "@calcom/ui/components/form";
+import { FormProvider, useForm } from "react-hook-form";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 type FormValues = {
   defaultOptions: Array<{ label: string; id: string }>;

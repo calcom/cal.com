@@ -1,16 +1,15 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import type { IconName } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
   DropdownItem,
+  DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 const menuItems = [
   { label: "View", icon: "eye", kbd: "V" },

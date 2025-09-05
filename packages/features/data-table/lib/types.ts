@@ -1,7 +1,6 @@
-import type { SortingState, ColumnSort } from "@tanstack/react-table";
-import { z } from "zod";
-
 import type { IconName } from "@calcom/ui/components/icon";
+import type { ColumnSort, SortingState } from "@tanstack/react-table";
+import { z } from "zod";
 
 export type { SortingState } from "@tanstack/react-table";
 
@@ -179,27 +178,27 @@ export const ZColumnFilter = z.object({
 export type FilterValueSchema<T extends ColumnFilterType> = T extends ColumnFilterType.SINGLE_SELECT
   ? typeof ZSingleSelectFilterValue
   : T extends ColumnFilterType.MULTI_SELECT
-  ? typeof ZMultiSelectFilterValue
-  : T extends ColumnFilterType.TEXT
-  ? typeof ZTextFilterValue
-  : T extends ColumnFilterType.NUMBER
-  ? typeof ZNumberFilterValue
-  : T extends ColumnFilterType.DATE_RANGE
-  ? typeof ZDateRangeFilterValue
-  : never;
+    ? typeof ZMultiSelectFilterValue
+    : T extends ColumnFilterType.TEXT
+      ? typeof ZTextFilterValue
+      : T extends ColumnFilterType.NUMBER
+        ? typeof ZNumberFilterValue
+        : T extends ColumnFilterType.DATE_RANGE
+          ? typeof ZDateRangeFilterValue
+          : never;
 
 export type FilterValue<T extends ColumnFilterType = ColumnFilterType> =
   T extends ColumnFilterType.SINGLE_SELECT
     ? SingleSelectFilterValue
     : T extends ColumnFilterType.MULTI_SELECT
-    ? MultiSelectFilterValue
-    : T extends ColumnFilterType.TEXT
-    ? TextFilterValue
-    : T extends ColumnFilterType.NUMBER
-    ? NumberFilterValue
-    : T extends ColumnFilterType.DATE_RANGE
-    ? DateRangeFilterValue
-    : never;
+      ? MultiSelectFilterValue
+      : T extends ColumnFilterType.TEXT
+        ? TextFilterValue
+        : T extends ColumnFilterType.NUMBER
+          ? NumberFilterValue
+          : T extends ColumnFilterType.DATE_RANGE
+            ? DateRangeFilterValue
+            : never;
 
 export type TypedColumnFilter<T extends ColumnFilterType> = {
   id: string;

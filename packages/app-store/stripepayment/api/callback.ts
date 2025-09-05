@@ -12,7 +12,7 @@ function getReturnToValueFromQueryState(req: NextApiRequest) {
   let returnTo = "";
   try {
     returnTo = JSON.parse(`${req.query.state}`).returnTo;
-  } catch (error) {
+  } catch (_error) {
     console.info("No 'returnTo' in req.query.state");
   }
   return returnTo;

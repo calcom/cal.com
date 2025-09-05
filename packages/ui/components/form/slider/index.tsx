@@ -1,9 +1,8 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import * as React from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
@@ -12,7 +11,8 @@ const Slider = React.forwardRef<
   <SliderPrimitive.Root
     ref={ref}
     className={classNames("relative flex w-full touch-none select-none items-center", className)}
-    {...props}>
+    {...props}
+  >
     <SliderPrimitive.Track className="bg-subtle border-subtle relative h-2 w-full grow overflow-hidden rounded-full border-[1px]">
       <SliderPrimitive.Range className="bg-brand-default absolute h-full" />
     </SliderPrimitive.Track>

@@ -1,7 +1,7 @@
-export { TimezoneSelect, TimezoneSelectComponent } from "./TimezoneSelect";
 export type {
   ITimezone,
   ITimezoneOption,
-  TimezoneSelectProps,
   TimezoneSelectComponentProps,
+  TimezoneSelectProps,
 } from "./TimezoneSelect";
+export { TimezoneSelect, TimezoneSelectComponent } from "./TimezoneSelect";

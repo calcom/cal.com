@@ -1,14 +1,13 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 
 export type ICalendarSwitchProps = {
   title: string;
@@ -108,7 +107,8 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           "ml-3 break-all text-sm font-medium leading-5",
           disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer"
         )}
-        htmlFor={externalId}>
+        htmlFor={externalId}
+      >
         {name}
       </label>
       {!!props.destination && (

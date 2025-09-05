@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { checkRateLimitAndThrowError } from "./checkRateLimitAndThrowError";
-import { rateLimiter } from "./rateLimit";
 import type { RatelimitResponse } from "./rateLimit";
+import { rateLimiter } from "./rateLimit";
 
 vi.mock("./rateLimit", () => {
   return {

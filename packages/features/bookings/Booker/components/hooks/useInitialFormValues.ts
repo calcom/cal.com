@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import type { z } from "zod";
-
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { useEffect, useState } from "react";
+import type { z } from "zod";
 
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
 
@@ -109,14 +108,14 @@ export function useInitialFormValues({
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].email
             : !!parsedQuery["email"]
-            ? parsedQuery["email"]
-            : email ?? "",
+              ? parsedQuery["email"]
+              : (email ?? ""),
         name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
             : !!parsedQuery["name"]
-            ? parsedQuery["name"]
-            : name ?? username ?? "",
+              ? parsedQuery["name"]
+              : (name ?? username ?? ""),
       };
 
       if (clientId) {

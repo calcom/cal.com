@@ -1,7 +1,3 @@
-import type { TFunction } from "i18next";
-import { default as cloneDeep } from "lodash/cloneDeep";
-import type { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { EventNameObjectType } from "@calcom/lib/event";
@@ -12,6 +8,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
+import { default as cloneDeep } from "lodash/cloneDeep";
+import type { z } from "zod";
 
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
 import CancelledSeatSMS from "../sms/attendee/cancelled-seat-sms";
@@ -43,8 +42,8 @@ import AttendeeUpdatedEmail from "./templates/attendee-updated-email";
 import type { EmailVerifyCode } from "./templates/attendee-verify-email";
 import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
-import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
 import type { IBookingRedirect } from "./templates/booking-redirect-notification";
+import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";

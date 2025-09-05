@@ -1,6 +1,4 @@
-import type { Prisma } from "@prisma/client";
-
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CustomAction, Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -9,6 +7,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import type { Prisma } from "@prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -92,10 +91,13 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
     if (roleManager.isPBACEnabled) {
       const roles = await roleManager.getTeamRoles(teamId);
-      customRoles = roles.reduce((acc, role) => {
-        acc[role.id] = role;
-        return acc;
-      }, {} as { [key: string]: { id: string; name: string } });
+      customRoles = roles.reduce(
+        (acc, role) => {
+          acc[role.id] = role;
+          return acc;
+        },
+        {} as { [key: string]: { id: string; name: string } }
+      );
     }
   } catch (error) {
     // PBAC not enabled or error occurred, continue with traditional roles

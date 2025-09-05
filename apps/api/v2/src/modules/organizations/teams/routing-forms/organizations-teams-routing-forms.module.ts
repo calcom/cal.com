@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -11,15 +12,13 @@ import { RoutingFormsModule } from "@/modules/routing-forms/routing-forms.module
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
-import { Module } from "@nestjs/common";
-
-import { OrganizationsTeamsRoutingFormsResponsesController } from "./controllers/organizations-teams-routing-forms-responses.controller";
 import { OrganizationsTeamsRoutingFormsController } from "./controllers/organizations-teams-routing-forms.controller";
-import { OrganizationsTeamsRoutingFormsResponsesRepository } from "./repositories/organizations-teams-routing-forms-responses.repository";
+import { OrganizationsTeamsRoutingFormsResponsesController } from "./controllers/organizations-teams-routing-forms-responses.controller";
 import { OrganizationsTeamsRoutingFormsRepository } from "./repositories/organizations-teams-routing-forms.repository";
-import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "./services/organizations-teams-routing-forms-responses-output.service";
-import { OrganizationsTeamsRoutingFormsResponsesService } from "./services/organizations-teams-routing-forms-responses.service";
+import { OrganizationsTeamsRoutingFormsResponsesRepository } from "./repositories/organizations-teams-routing-forms-responses.repository";
 import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-teams-routing-forms.service";
+import { OrganizationsTeamsRoutingFormsResponsesService } from "./services/organizations-teams-routing-forms-responses.service";
+import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "./services/organizations-teams-routing-forms-responses-output.service";
 
 @Module({
   imports: [

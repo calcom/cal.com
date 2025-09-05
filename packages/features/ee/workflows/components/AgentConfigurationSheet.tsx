@@ -1,10 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import { useState, useRef, useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-import type { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
@@ -15,9 +8,13 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogHeader, DialogFooter as BaseDialogFooter } from "@calcom/ui/components/dialog";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { Dialog as UIDialog } from "@calcom/ui/components/dialog";
+import {
+  DialogFooter as BaseDialogFooter,
+  ConfirmationDialogContent,
+  DialogContent,
+  DialogHeader,
+  Dialog as UIDialog,
+} from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -26,19 +23,24 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
-import { ToggleGroup, Switch } from "@calcom/ui/components/form";
-import { Label, TextArea, Input, TextField, Form } from "@calcom/ui/components/form";
+import { Form, Input, Label, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
+  SheetBody,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetBody,
-  SheetFooter,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { useEffect, useRef, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
@@ -597,7 +599,8 @@ export function AgentConfigurationSheet({
                             color="secondary"
                             onClick={() => setIsTestAgentDialogOpen(true)}
                             className="rounded-[10px]"
-                            disabled={readOnly}>
+                            disabled={readOnly}
+                          >
                             {t("test_agent")}
                           </Button>
                           <Dropdown>
@@ -627,7 +630,8 @@ export function AgentConfigurationSheet({
                                         handleDeletePhoneNumber(phoneNumber.phoneNumber);
                                       }
                                     }
-                                  }}>
+                                  }}
+                                >
                                   {agentData?.outboundPhoneNumbers?.filter(
                                     (phone) =>
                                       phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
@@ -660,14 +664,16 @@ export function AgentConfigurationSheet({
                           onClick={() => setIsBuyDialogOpen(true)}
                           StartIcon="external-link"
                           className="px-6"
-                          disabled={buyNumberMutation.isPending}>
+                          disabled={buyNumberMutation.isPending}
+                        >
                           {t("buy")}
                         </Button>
                         <Button
                           onClick={() => setIsImportDialogOpen(true)}
                           color="secondary"
                           className="px-6"
-                          disabled={importNumberMutation.isPending}>
+                          disabled={importNumberMutation.isPending}
+                        >
                           {t("import")}
                         </Button>
                       </div>
@@ -685,7 +691,8 @@ export function AgentConfigurationSheet({
               type="button"
               onClick={agentForm.handleSubmit(handleAgentUpdate)}
               disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
-              loading={updateAgentMutation.isPending}>
+              loading={updateAgentMutation.isPending}
+            >
               {t("save")}
             </Button>
           </SheetFooter>
@@ -774,7 +781,8 @@ export function AgentConfigurationSheet({
                   });
                 }}
                 loading={buyNumberMutation.isPending}
-                disabled={buyNumberMutation.isPending}>
+                disabled={buyNumberMutation.isPending}
+              >
                 {t("buy_us_number_button", { priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE })}
               </Button>
             </BaseDialogFooter>
@@ -941,7 +949,8 @@ export function AgentConfigurationSheet({
                     EndIcon="external-link"
                     href="https://cal.com/help/importing/import-numbers"
                     target="_blank"
-                    className="text-emphasis my-auto">
+                    className="text-emphasis my-auto"
+                  >
                     {t("learn")}
                   </Button>
                 </div>
@@ -955,7 +964,8 @@ export function AgentConfigurationSheet({
               <Button
                 type="submit"
                 loading={importNumberMutation.isPending}
-                disabled={importNumberMutation.isPending}>
+                disabled={importNumberMutation.isPending}
+              >
                 {t("create")}
               </Button>
             </BaseDialogFooter>
@@ -979,7 +989,8 @@ export function AgentConfigurationSheet({
           variety="danger"
           title={t("cancel_phone_number_subscription")}
           confirmBtnText={t("yes_cancel_subscription")}
-          onConfirm={confirmCancelSubscription}>
+          onConfirm={confirmCancelSubscription}
+        >
           {t("cancel_phone_number_subscription_confirmation")}
         </ConfirmationDialogContent>
       </UIDialog>
@@ -990,7 +1001,8 @@ export function AgentConfigurationSheet({
           variety="danger"
           title={t("delete_phone_number")}
           confirmBtnText={t("yes_delete_phone_number")}
-          onConfirm={confirmDeletePhoneNumber}>
+          onConfirm={confirmDeletePhoneNumber}
+        >
           {t("delete_phone_number_confirmation")}
         </ConfirmationDialogContent>
       </UIDialog>

@@ -1,8 +1,7 @@
-import prismock from "../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import type { Calendar } from "@calcom/types/Calendar";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismock from "../../../tests/libs/__mocks__/prisma";
 
 import { CalendarCacheRepository } from "./calendar-cache.repository";
 

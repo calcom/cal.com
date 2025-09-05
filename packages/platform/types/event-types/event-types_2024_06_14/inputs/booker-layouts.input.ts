@@ -1,11 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
-import type { ValidatorConstraintInterface, ValidationOptions, ValidationArguments } from "class-validator";
-import { IsEnum, ValidatorConstraint, registerDecorator } from "class-validator";
-
 import {
   BookerLayoutsInputEnum_2024_06_14,
   type BookerLayoutsOutputEnum_2024_06_14,
 } from "@calcom/platform-enums";
+import { ApiProperty } from "@nestjs/swagger";
+import type { ValidationArguments, ValidationOptions, ValidatorConstraintInterface } from "class-validator";
+import { IsEnum, registerDecorator, ValidatorConstraint } from "class-validator";
 
 export type BookerLayoutsTransformedSchema = {
   defaultLayout: BookerLayoutsOutputEnum_2024_06_14;

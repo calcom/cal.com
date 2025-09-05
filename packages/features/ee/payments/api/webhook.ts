@@ -1,8 +1,3 @@
-import type { Prisma } from "@prisma/client";
-import { buffer } from "micro";
-import type { NextApiRequest, NextApiResponse } from "next";
-import type Stripe from "stripe";
-
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -10,8 +5,8 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -21,6 +16,10 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@prisma/client";
+import { buffer } from "micro";
+import type { NextApiRequest, NextApiResponse } from "next";
+import type Stripe from "stripe";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 

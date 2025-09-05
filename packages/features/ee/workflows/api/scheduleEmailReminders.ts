@@ -1,9 +1,6 @@
 /**
  * @deprecated use smtp with tasker instead
  */
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
@@ -17,6 +14,9 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   getAllRemindersToCancel,

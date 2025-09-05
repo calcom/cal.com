@@ -1,11 +1,10 @@
+import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-
-import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
-import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -26,7 +25,7 @@ import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -34,36 +33,34 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
 import { TextAreaField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
-import { TableActions } from "@calcom/ui/components/table";
 import type { ActionType } from "@calcom/ui/components/table";
+import { TableActions } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
-
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
+import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import {
-  getPendingActions,
+  type BookingActionContext,
+  getAfterEventActions,
   getCancelEventAction,
   getEditEventActions,
-  getAfterEventActions,
-  shouldShowPendingActions,
+  getPendingActions,
   shouldShowEditActions,
+  shouldShowPendingActions,
   shouldShowRecurringCancelAction,
-  type BookingActionContext,
 } from "./bookingActions";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -262,8 +259,8 @@ function BookingListItem(booking: BookingItemProps) {
       action.id === "reject"
         ? () => setRejectionDialogIsOpen(true)
         : action.id === "confirm"
-        ? () => bookingConfirm(true)
-        : undefined,
+          ? () => bookingConfirm(true)
+          : undefined,
     disabled: action.disabled || mutation.isPending,
   })) as ActionType[];
 
@@ -360,14 +357,14 @@ function BookingListItem(booking: BookingItemProps) {
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
         : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
-        : action.id === "change_location"
-        ? () => setIsOpenLocationDialog(true)
-        : action.id === "add_members"
-        ? () => setIsOpenAddGuestsDialog(true)
-        : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
-        : undefined,
+          ? () => setRerouteDialogIsOpen(true)
+          : action.id === "change_location"
+            ? () => setIsOpenLocationDialog(true)
+            : action.id === "add_members"
+              ? () => setIsOpenAddGuestsDialog(true)
+              : action.id === "reassign"
+                ? () => setIsOpenReassignDialog(true)
+                : undefined,
   })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);
@@ -377,22 +374,22 @@ function BookingListItem(booking: BookingItemProps) {
       action.id === "view_recordings"
         ? () => setViewRecordingsDialogIsOpen(true)
         : action.id === "meeting_session_details"
-        ? () => setMeetingSessionDetailsDialogIsOpen(true)
-        : action.id === "charge_card"
-        ? () => setChargeCardDialogIsOpen(true)
-        : action.id === "no_show"
-        ? () => {
-            if (attendeeList.length === 1) {
-              const attendee = attendeeList[0];
-              noShowMutation.mutate({
-                bookingUid: booking.uid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
-              return;
-            }
-            setIsNoShowDialogOpen(true);
-          }
-        : undefined,
+          ? () => setMeetingSessionDetailsDialogIsOpen(true)
+          : action.id === "charge_card"
+            ? () => setChargeCardDialogIsOpen(true)
+            : action.id === "no_show"
+              ? () => {
+                  if (attendeeList.length === 1) {
+                    const attendee = attendeeList[0];
+                    noShowMutation.mutate({
+                      bookingUid: booking.uid,
+                      attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+                    });
+                    return;
+                  }
+                  setIsNoShowDialogOpen(true);
+                }
+              : undefined,
     disabled:
       action.disabled ||
       (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
@@ -483,7 +480,8 @@ function BookingListItem(booking: BookingItemProps) {
               data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);
-              }}>
+              }}
+            >
               {t("rejection_confirmation")}
             </Button>
           </DialogFooter>
@@ -492,7 +490,8 @@ function BookingListItem(booking: BookingItemProps) {
       <div
         data-testid="booking-item"
         data-today={String(booking.isToday)}
-        className="hover:bg-muted group w-full">
+        className="hover:bg-muted group w-full"
+      >
         <div className="flex flex-col sm:flex-row">
           <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
             <div className="flex h-full items-center">
@@ -525,7 +524,8 @@ function BookingListItem(booking: BookingItemProps) {
                             target="_blank"
                             title={locationToDisplay}
                             rel="noreferrer"
-                            className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                            className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400"
+                          >
                             <div className="flex items-center gap-2">
                               {provider?.iconUrl && (
                                 <img
@@ -598,7 +598,8 @@ function BookingListItem(booking: BookingItemProps) {
                   className={classNames(
                     "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
                     isCancelled ? "line-through" : ""
-                  )}>
+                  )}
+                >
                   {title}
                   <span> </span>
 
@@ -611,7 +612,8 @@ function BookingListItem(booking: BookingItemProps) {
                 {booking.description && (
                   <div
                     className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
-                    title={booking.description}>
+                    title={booking.description}
+                  >
                     &quot;{booking.description}&quot;
                   </div>
                 )}
@@ -659,7 +661,8 @@ function BookingListItem(booking: BookingItemProps) {
                           onClick={action.onClick}
                           data-bookingid={action.bookingId}
                           data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
+                          className={action.disabled ? "text-muted" : undefined}
+                        >
                           {action.label}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -677,7 +680,8 @@ function BookingListItem(booking: BookingItemProps) {
                           disabled={action.disabled}
                           data-bookingid={action.bookingId}
                           data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
+                          className={action.disabled ? "text-muted" : undefined}
+                        >
                           {action.label}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -686,7 +690,8 @@ function BookingListItem(booking: BookingItemProps) {
                     <DropdownMenuItem
                       className="rounded-lg"
                       key={cancelEventAction.id}
-                      disabled={cancelEventAction.disabled}>
+                      disabled={cancelEventAction.disabled}
+                    >
                       <DropdownItem
                         type="button"
                         color={cancelEventAction.color}
@@ -696,7 +701,8 @@ function BookingListItem(booking: BookingItemProps) {
                         disabled={cancelEventAction.disabled}
                         data-bookingid={cancelEventAction.bookingId}
                         data-testid={cancelEventAction.id}
-                        className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                        className={cancelEventAction.disabled ? "text-muted" : undefined}
+                      >
                         {cancelEventAction.label}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -845,7 +851,8 @@ const RecurringBookingsTooltip = ({
                     {dayjs(aDate).locale(language).format("D MMMM YYYY")}
                   </p>
                 );
-              })}>
+              })}
+            >
               <div className="text-default">
                 <Icon
                   name="refresh-ccw"
@@ -893,7 +900,8 @@ const FirstAttendee = ({
       key={user.email}
       className="hover:text-blue-500"
       href={`mailto:${user.email}`}
-      onClick={(e) => e.stopPropagation()}>
+      onClick={(e) => e.stopPropagation()}
+    >
       {user.name || user.email}
     </a>
   );
@@ -936,7 +944,8 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         <button
           data-testid="guest"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 transition hover:text-blue-500">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500"
+        >
           {noShow ? (
             <>
               {name || email} <Icon name="eye-off" className="inline h-4" />
@@ -956,7 +965,8 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                 onClick={(e) => {
                   setOpenDropdown(false);
                   e.stopPropagation();
-                }}>
+                }}
+              >
                 <a href={`mailto:${email}`}>{t("email")}</a>
               </DropdownItem>
             </DropdownMenuItem>
@@ -968,10 +978,11 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
               onClick={(e) => {
                 e.preventDefault();
                 const isEmailCopied = isSmsCalEmail(email);
-                copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
+                copyToClipboard(isEmailCopied ? email : (phoneNumber ?? ""));
                 setOpenDropdown(false);
                 showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
-              }}>
+              }}
+            >
               {!isCopied ? t("copy") : t("copied")}
             </DropdownItem>
           </DropdownMenuItem>
@@ -985,7 +996,8 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                   setOpenDropdown(false);
                   noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
                 }}
-                StartIcon={noShow ? "eye" : "eye-off"}>
+                StartIcon={noShow ? "eye" : "eye-off"}
+              >
                 {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -1050,7 +1062,8 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
         <button
           data-testid="more-guests"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none"
+        >
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
@@ -1072,7 +1085,8 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
                   onClick={(e) => {
                     e.preventDefault();
                     onChange(!value);
-                  }}>
+                  }}
+                >
                   <span className={value ? "line-through" : ""}>{field.email}</span>
                 </DropdownMenuCheckboxItem>
               )}
@@ -1086,7 +1100,8 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
               onClick={(e) => {
                 e.preventDefault();
                 handleSubmit(onSubmit)();
-              }}>
+              }}
+            >
               {t("mark_as_no_show_title")}
             </Button>
           </div>
@@ -1146,7 +1161,8 @@ const NoShowAttendeesDialog = ({
                 bookingUid,
                 attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
               });
-            }}>
+            }}
+          >
             <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
               <span className="text-emphasis flex flex-col text-sm">
                 {attendee.name}
@@ -1178,11 +1194,13 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
       onOpenChange={(value) => {
         setOpenDropdown(value);
         setSelectedEmail("");
-      }}>
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <button
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none"
+        >
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
@@ -1196,7 +1214,8 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               onClick={(e) => {
                 e.preventDefault();
                 setSelectedEmail(guest.email);
-              }}>
+              }}
+            >
               <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
             </DropdownItem>
           </DropdownMenuItem>
@@ -1210,7 +1229,8 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               onClick={(e) => {
                 setOpenDropdown(false);
                 e.stopPropagation();
-              }}>
+              }}
+            >
               {t("email")}
             </Button>
           </Link>
@@ -1221,7 +1241,8 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               e.preventDefault();
               copyToClipboard(selectedEmail);
               showToast(t("email_copied"), "success");
-            }}>
+            }}
+          >
             {!isCopied ? t("copy") : t("copied")}
           </Button>
         </div>
@@ -1260,7 +1281,8 @@ const DisplayAttendees = ({
                 <p key={attendee.email}>
                   <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
                 </p>
-              ))}>
+              ))}
+            >
               {isBookingInPast ? (
                 <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />
               ) : (

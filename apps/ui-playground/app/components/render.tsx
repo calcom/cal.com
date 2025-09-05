@@ -1,9 +1,8 @@
 "use client";
 
-import { type PropsWithChildren, useState } from "react";
-
 import className from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { type PropsWithChildren, useState } from "react";
 
 type Props = {
   customCodeSnippet?: string;
@@ -32,7 +31,8 @@ export const RenderComponentWithSnippet: React.FC<PropsWithChildren<Props>> = (p
           color="minimal"
           onClick={() => {
             setOpen(!open);
-          }}>
+          }}
+        >
           Code (WIP)
         </Button>
       </div>
@@ -41,7 +41,8 @@ export const RenderComponentWithSnippet: React.FC<PropsWithChildren<Props>> = (p
         className={className(
           "bg-gray-2  max-h-96 w-full overflow-y-scroll transition-all",
           open ? "block" : "hidden"
-        )}>
+        )}
+      >
         <div className="flex items-start">
           {/* <pre className="py-0 text-gray-8 text-right">
             {snippet

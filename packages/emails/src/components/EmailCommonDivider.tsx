@@ -24,7 +24,8 @@ const EmailCommonDivider = ({
           backgroundColor: "#FFFFFF",
           margin: "0px auto",
           maxWidth: 600,
-        }}>
+        }}
+      >
         <Row
           align="center"
           border="0"
@@ -32,7 +33,8 @@ const EmailCommonDivider = ({
             background: "#FFFFFF",
             backgroundColor: "#FFFFFF",
             width: "100%",
-          }}>
+          }}
+        >
           <td
             style={{
               borderLeft: "1px solid #E1E1E1",
@@ -42,7 +44,8 @@ const EmailCommonDivider = ({
               padding: "15px 0px 0 0px",
               textAlign: "center",
               ...headStyles,
-            }}>
+            }}
+          >
             <RawHtml
               html={`<!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:598px;" ><![endif]-->`}
             />
@@ -55,7 +58,8 @@ const EmailCommonDivider = ({
                 display: "inline-block",
                 verticalAlign: "top",
                 width: "100%",
-              }}>
+              }}
+            >
               <Row border="0" style={{ verticalAlign: "top" }} width="100%" multiple={mutipleRows}>
                 {children}
               </Row>

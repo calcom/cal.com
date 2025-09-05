@@ -453,7 +453,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                         className={classNames(
                           "w-full rounded-none focus:ring-0",
                           blockType === key ? "bg-subtle w-full" : ""
-                        )}>
+                        )}
+                      >
                         <>
                           <span className={`icon block-type ${key}`} />
                           <span>{blockTypeToBlockName[key]}</span>

@@ -1,5 +1,5 @@
-import { templateTypeEnum } from "./zod-utils";
 import type { TemplateType } from "./zod-utils";
+import { templateTypeEnum } from "./zod-utils";
 
 export const PROMPT_TEMPLATES: Partial<Record<TemplateType, { generalPrompt: string }>> = {
   [templateTypeEnum.enum.CHECK_IN_APPOINTMENT]: {

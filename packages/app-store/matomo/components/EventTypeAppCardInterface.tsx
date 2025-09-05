@@ -1,6 +1,6 @@
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { TextField } from "@calcom/ui/components/form";
 
@@ -20,7 +20,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         updateEnabled(e);
       }}
       switchChecked={enabled}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+    >
       <div className="flex flex-col gap-2">
         <TextField
           dataTestid={`${app.slug}-url`}

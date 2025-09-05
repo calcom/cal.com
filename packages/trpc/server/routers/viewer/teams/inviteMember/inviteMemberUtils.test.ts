@@ -1,22 +1,20 @@
-import { describe, it, vi, expect } from "vitest";
-
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
+import { describe, expect, it, vi } from "vitest";
 
 import type { TeamWithParent } from "./types";
 import type { UserWithMembership } from "./utils";
-import { INVITE_STATUS } from "./utils";
 import {
-  ensureAtleastAdminPermissions,
-  getUniqueInvitationsOrThrowIfEmpty,
-  getOrgState,
-  getOrgConnectionInfo,
   canBeInvited,
-  getAutoJoinStatus,
   checkInputEmailIsValid,
+  ensureAtleastAdminPermissions,
+  getAutoJoinStatus,
+  getOrgConnectionInfo,
+  getOrgState,
+  getUniqueInvitationsOrThrowIfEmpty,
+  INVITE_STATUS,
 } from "./utils";
 
 vi.mock("@calcom/lib/server/queries/teams", () => {

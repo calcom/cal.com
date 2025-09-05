@@ -1,10 +1,18 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_08_13,
+  X_CAL_CLIENT_ID,
+  X_CAL_SECRET_KEY,
+} from "@calcom/platform-constants";
+import {
+  BookingOutput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -20,22 +28,13 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import {
-  CAL_API_VERSION_HEADER,
-  SUCCESS_STATUS,
-  VERSION_2024_08_13,
-  X_CAL_CLIENT_ID,
-  X_CAL_SECRET_KEY,
-} from "@calcom/platform-constants";
-import {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
 
 describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
   describe("Organization Team bookings", () => {

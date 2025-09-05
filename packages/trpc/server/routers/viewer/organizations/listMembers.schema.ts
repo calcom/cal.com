@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { ZFilterValue } from "@calcom/features/data-table/lib/types";
+import { z } from "zod";
 
 const expandableColumns = z.enum(["attributes"]);
 

@@ -1,17 +1,16 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { Label, TextField, ToggleGroup, Form } from "@calcom/ui/components/form";
+import { Form, Label, TextField, ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import type { SessionContextValue } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { UserPermissionRole } from "../../../../prisma/enums";
 
@@ -89,7 +88,8 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
           id="createOrg"
           handleSubmit={(values) => {
             mutation.mutate(values);
-          }}>
+          }}
+        >
           <div>
             {serverErrorMessage && (
               <div className="mb-5">
@@ -246,7 +246,8 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
               type="submit"
               form="createOrg"
               loading={mutation.isPending}
-              className="w-full justify-center">
+              className="w-full justify-center"
+            >
               {t("continue")} - {calculateMonthlyPrice()}
             </Button>
           </div>
@@ -263,7 +264,8 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
               onClick={() => {
                 newLicenseKeyFormMethods.reset();
                 setStripeCheckoutUrl(null);
-              }}>
+              }}
+            >
               Back
             </Button>
           </div>

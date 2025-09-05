@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildCalEventFromBooking } from "../buildCalEventFromBooking";
 import { parseRecurringEvent } from "../isRecurringEvent";

@@ -1,9 +1,5 @@
 import "@calcom/lib/__mocks__/logger";
 
-import { createHash } from "crypto";
-import type { GetServerSidePropsContext } from "next";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
@@ -16,6 +12,9 @@ import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-form
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { createHash } from "crypto";
+import type { GetServerSidePropsContext } from "next";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 
@@ -93,7 +92,7 @@ describe("getRoutedUrl", () => {
         () =>
           ({
             enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-          } as any)
+          }) as any
       );
     }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);

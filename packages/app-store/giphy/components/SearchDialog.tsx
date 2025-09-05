@@ -1,15 +1,14 @@
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface ISearchDialog {
   isOpenDialog: boolean;
@@ -99,7 +98,8 @@ export const SearchDialog = (props: ISearchDialog) => {
         setKeyword("");
         setGifImage("");
         setSelectedMode(mode);
-      }}>
+      }}
+    >
       <Icon name={iconName} className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
       {text}
     </div>
@@ -128,7 +128,8 @@ export const SearchDialog = (props: ISearchDialog) => {
         </div>
         <form
           className="flex w-full justify-center space-x-2 space-y-2 rtl:space-x-reverse"
-          onSubmit={handleFormSubmit}>
+          onSubmit={handleFormSubmit}
+        >
           <div className="relative block w-full pt-2">
             <Input
               type="text"
@@ -156,7 +157,8 @@ export const SearchDialog = (props: ISearchDialog) => {
                     className={classNames("mx-4 h-5 w-5 animate-spin", "text-inverted dark:text-emphasis")}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
-                    viewBox="0 0 24 24">
+                    viewBox="0 0 24 24"
+                  >
                     <circle
                       className="opacity-25"
                       cx="12"
@@ -187,7 +189,8 @@ export const SearchDialog = (props: ISearchDialog) => {
               color="secondary"
               type="button"
               loading={isPending}
-              onClick={() => searchGiphy(keyword, nextOffset)}>
+              onClick={() => searchGiphy(keyword, nextOffset)}
+            >
               Shuffle
             </Button>
           </div>
@@ -198,7 +201,8 @@ export const SearchDialog = (props: ISearchDialog) => {
             tabIndex={-1}
             onClick={() => {
               props.setIsOpenDialog(false);
-            }}>
+            }}
+          >
             {t("cancel")}
           </DialogClose>
 
@@ -212,7 +216,8 @@ export const SearchDialog = (props: ISearchDialog) => {
               setGifImage("");
               setKeyword("");
               return false;
-            }}>
+            }}
+          >
             {t("add_gif")}
           </Button>
         </DialogFooter>

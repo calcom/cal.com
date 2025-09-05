@@ -1,7 +1,3 @@
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "@calcom/ee/teams/components/MemberInvitationModal";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -19,7 +15,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -31,6 +27,9 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { TeamRole } from "./TeamPill";
 
@@ -141,7 +140,8 @@ export default function TeamListItem(props: Props) {
               data-testid="team-list-item-link"
               href={`/settings/teams/${team.id}/profile`}
               className="flex-grow cursor-pointer truncate text-sm"
-              title={`${team.name}`}>
+              title={`${team.name}`}
+            >
               {teamInfo}
             </Link>
           ) : (
@@ -163,7 +163,8 @@ export default function TeamListItem(props: Props) {
                   data-testid={`accept-invitation-${team.id}`}
                   StartIcon="check"
                   className="me-2 ms-2"
-                  onClick={acceptInvite}>
+                  onClick={acceptInvite}
+                >
                   {t("accept")}
                 </Button>
               </div>
@@ -231,7 +232,8 @@ export default function TeamListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           href={`/settings/teams/${team.id}/profile`}
-                          StartIcon="pencil">
+                          StartIcon="pencil"
+                        >
                           {t("edit_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -246,7 +248,8 @@ export default function TeamListItem(props: Props) {
                             orgSlug: team.parent ? team.parent.slug : null,
                             teamSlug: team.slug,
                           })}`}
-                          StartIcon="external-link">
+                          StartIcon="external-link"
+                        >
                           {t("preview_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -258,7 +261,8 @@ export default function TeamListItem(props: Props) {
                           onClick={() => {
                             setOpenMemberInvitationModal(true);
                           }}
-                          StartIcon="send">
+                          StartIcon="send"
+                        >
                           {t("invite_team_member") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -275,7 +279,8 @@ export default function TeamListItem(props: Props) {
                               className="rounded-t-none"
                               onClick={(e) => {
                                 e.stopPropagation();
-                              }}>
+                              }}
+                            >
                               {t("disband_team")}
                             </DropdownItem>
                           </DialogTrigger>
@@ -286,7 +291,8 @@ export default function TeamListItem(props: Props) {
                             isPending={props.isPending}
                             onConfirm={() => {
                               props.onActionSelect("disband");
-                            }}>
+                            }}
+                          >
                             {t("disband_team_confirmation_message")}
                           </ConfirmationDialogContent>
                         </Dialog>
@@ -303,7 +309,8 @@ export default function TeamListItem(props: Props) {
                               StartIcon="log-out"
                               onClick={(e) => {
                                 e.stopPropagation();
-                              }}>
+                              }}
+                            >
                               {t("leave_team")}
                             </DropdownItem>
                           </DialogTrigger>
@@ -311,7 +318,8 @@ export default function TeamListItem(props: Props) {
                             variety="danger"
                             title={t("leave_team")}
                             confirmBtnText={t("confirm_leave_team")}
-                            onConfirm={declineInvite}>
+                            onConfirm={declineInvite}
+                          >
                             {t("leave_team_confirmation_message")}
                           </ConfirmationDialogContent>
                         </Dialog>
@@ -347,7 +355,8 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
         onClick={() => {
           publishTeamMutation.mutate({ teamId });
         }}
-        StartIcon="globe">
+        StartIcon="globe"
+      >
         {t("team_publish")}
       </DropdownItem>
     </DropdownMenuItem>
@@ -371,7 +380,8 @@ const TeamPublishSection = ({ children, teamId }: { children: React.ReactNode; t
       type="button"
       onClick={() => {
         publishTeamMutation.mutate({ teamId });
-      }}>
+      }}
+    >
       {children}
     </button>
   );

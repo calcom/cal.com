@@ -8,10 +8,10 @@ import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
 import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
 import type {
-  PermissionString,
-  Resource,
   CrudAction,
   CustomAction,
+  PermissionString,
+  Resource,
 } from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";

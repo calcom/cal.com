@@ -1,11 +1,11 @@
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { PlatformPlanType, orderedPlans } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { orderedPlans, PlatformPlanType } from "@/modules/billing/types";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { RedisService } from "@/modules/redis/redis.service";
 
 @Injectable()
 export class PlatformPlanGuard implements CanActivate {

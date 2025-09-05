@@ -1,5 +1,5 @@
 import type { TeamPermissions } from "../models/Permission";
-import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
+import type { CrudAction, CustomAction, PermissionString, Resource } from "../types/permission-registry";
 
 export interface IPermissionRepository {
   getUserMemberships(userId: number): Promise<TeamPermissions[]>;

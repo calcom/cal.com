@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -14,11 +11,10 @@ import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { DateRangePicker, Input, Label, Select, Switch, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
@@ -184,12 +180,14 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         if (!open) {
           closeModal();
         }
-      }}>
+      }}
+    >
       <DialogContent
         enableOverflow
         onOpenAutoFocus={(event) => {
           event.preventDefault();
-        }}>
+        }}
+      >
         <form
           id="create-or-edit-ooo-form"
           onSubmit={handleSubmit((data) => {
@@ -202,15 +200,16 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
               });
             }
-          })}>
+          })}
+        >
           <div className="h-full px-1">
             <DialogHeader
               title={
                 currentlyEditingOutOfOfficeEntry
                   ? t("edit_an_out_of_office")
                   : oooType === "team"
-                  ? t("create_ooo_dialog_team_title")
-                  : t("create_an_out_of_office")
+                    ? t("create_ooo_dialog_team_title")
+                    : t("create_an_out_of_office")
               }
               subtitle={
                 oooType === "team"
@@ -237,7 +236,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                     <div
                       className={`scroll-bar bg-default mt-2 flex ${
                         !!currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
-                      } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}>
+                      } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}
+                    >
                       {oooMemberListOptions.map((member) => (
                         <label
                           key={member.value}
@@ -257,7 +257,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                             watchForUserId === member.value && "bg-subtle",
                             !currentlyEditingOutOfOfficeEntry &&
                               "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer focus:ring-2"
-                          )}>
+                          )}
+                        >
                           <div className="flex flex-1 items-center space-x-3">
                             <input
                               type="radio"
@@ -276,7 +277,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                             color="minimal"
                             loading={oooForMembers.isFetchingNextPage}
                             disabled={!oooForMembers.hasNextPage}
-                            onClick={() => oooForMembers.fetchNextPage()}>
+                            onClick={() => oooForMembers.fetchNextPage()}
+                          >
                             {oooForMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
                           </Button>
                         </div>
@@ -399,7 +401,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                             className={classNames(
                               "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring-2",
                               watchedTeamUserId === member.value && "bg-subtle"
-                            )}>
+                            )}
+                          >
                             <div className="flex flex-1 items-center space-x-3">
                               <input
                                 type="radio"
@@ -416,7 +419,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                           color="minimal"
                           loading={redirectMembers.isFetchingNextPage}
                           disabled={!redirectMembers.hasNextPage}
-                          onClick={() => redirectMembers.fetchNextPage()}>
+                          onClick={() => redirectMembers.fetchNextPage()}
+                        >
                           {redirectMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
                         </Button>
                       </div>
@@ -434,7 +438,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 onClick={() => {
                   closeModal();
                 }}
-                className="mr-1">
+                className="mr-1"
+              >
                 {t("cancel")}
               </Button>
               <Button
@@ -442,7 +447,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 color="primary"
                 type="submit"
                 disabled={isSubmitting || isReasonListPending}
-                data-testid="create-or-edit-entry-ooo-redirect">
+                data-testid="create-or-edit-entry-ooo-redirect"
+              >
                 {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
               </Button>
             </div>

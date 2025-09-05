@@ -1,3 +1,7 @@
+import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -5,12 +9,6 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-
-import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const querySchema = z.object({
   type: z

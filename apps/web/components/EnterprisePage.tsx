@@ -62,7 +62,8 @@ export default function EnterprisePage() {
                 </Button>
               </ButtonGroup>
             </div>
-          }>
+          }
+        >
           <>Create Org</>
         </UpgradeTip>
       </Shell>

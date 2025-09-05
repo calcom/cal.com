@@ -1,9 +1,7 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
 
 import * as billingModule from "..";
 import { InternalTeamBilling } from "./internal-team-billing";

@@ -1,10 +1,9 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const WithIconExample = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -15,7 +14,8 @@ export const WithIconExample = () => {
         <Section.Header
           icon="calendar"
           title="Section with Icon"
-          description="This section includes an icon in the header. Toggle to see auto-animation.">
+          description="This section includes an icon in the header. Toggle to see auto-animation."
+        >
           <Switch size="sm" checked={isOpen} onCheckedChange={setIsOpen} />
         </Section.Header>
         {isOpen && (

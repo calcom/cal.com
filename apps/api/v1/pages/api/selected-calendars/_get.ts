@@ -1,9 +1,8 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { FindManyArgs } from "@calcom/lib/server/repository/selectedCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import type { NextApiRequest } from "next";
 
 import { schemaSelectedCalendarPublic } from "~/lib/validations/selected-calendar";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";

@@ -171,7 +171,8 @@ function StatItem({ index, children }: { index: number; children: React.ReactNod
         index === 0 && "border-b sm:border-r md:border-b-0 md:border-r",
         index === 1 && "border-b sm:border-r-0 md:border-b-0 md:border-r",
         index === 2 && "border-b sm:border-b-0 sm:border-r md:border-b-0"
-      )}>
+      )}
+    >
       {children}
     </div>
   );

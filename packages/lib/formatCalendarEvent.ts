@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { cloneDeep } from "lodash";
 
 // format CalEvent to remove platformClientId from email addresses
 const formatClientIdFromEmails = (calEvent: CalendarEvent, clientId: string) => {

@@ -1,16 +1,14 @@
-import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { unstable_cache } from "next/cache";
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
+import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
 
@@ -61,7 +59,8 @@ const Page = async ({ searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
+      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}
+    >
       <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
     </ShellMainAppDir>
   );

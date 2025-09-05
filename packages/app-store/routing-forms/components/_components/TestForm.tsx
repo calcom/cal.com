@@ -1,9 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import type { Dispatch, SetStateAction } from "react";
-import { useState, useMemo } from "react";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -11,15 +7,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { Brand } from "@calcom/types/utils";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-
 import { TRPCClientError } from "@trpc/react-query";
+import { AnimatePresence, motion } from "framer-motion";
+import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useState } from "react";
 
 import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import type { SingleFormComponentProps } from "../../types/shared";
-import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/types";
+import type { FormResponse, NonRouterRoute, RoutingForm } from "../../types/types";
 import FormInputFields from "../FormInputFields";
 import { ResultsView as Results } from "./ResultSection";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
@@ -53,12 +51,14 @@ const FormView = ({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.2 }}>
+      transition={{ duration: 0.2 }}
+    >
       <form
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-        }}>
+        }}
+      >
         {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
       </form>
       {!renderFooter ? (
@@ -214,7 +214,8 @@ export const TestForm = ({
                     variant="icon"
                     StartIcon="external-link"
                     data-testid="open-form-in-new-tab"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("open_in_new_tab")}</span>
                   </Button>
                   <Button
@@ -222,7 +223,8 @@ export const TestForm = ({
                     onClick={resetForm}
                     variant="icon"
                     StartIcon="refresh-cw"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
                   <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
@@ -261,7 +263,8 @@ export const TestForm = ({
                     target="_blank"
                     variant="icon"
                     StartIcon="external-link"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("open_in_new_tab")}</span>
                   </Button>
                   <Button
@@ -269,7 +272,8 @@ export const TestForm = ({
                     onClick={resetForm}
                     variant="icon"
                     StartIcon="refresh-cw"
-                    size="sm">
+                    size="sm"
+                  >
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
                   <Button
@@ -278,7 +282,8 @@ export const TestForm = ({
                     variant="icon"
                     StartIcon="x"
                     size="sm"
-                    data-testid="close-results-button">
+                    data-testid="close-results-button"
+                  >
                     <span className="sr-only">{t("close")}</span>
                   </Button>
                 </div>
@@ -359,7 +364,8 @@ export const TestFormRenderer = ({
                   onClose();
                   setIsTestPreviewOpen(false);
                 }}
-                color="secondary">
+                color="secondary"
+              >
                 {t("close")}
               </Button>
               <Button onClick={onSubmit} disabled={!isValid}>

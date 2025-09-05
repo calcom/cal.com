@@ -1,6 +1,5 @@
-import type { Prisma as PrismaType } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
+import type { Prisma as PrismaType } from "@prisma/client";
 
 /**
  * Creates a team event type and assigns all team members as hosts

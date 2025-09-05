@@ -1,6 +1,5 @@
-import { type Instrumentation } from 'next'
-
 import * as Sentry from "@sentry/nextjs";
+import { type Instrumentation } from "next";
 
 export async function register() {
   if (process.env.NODE_ENV === "production") {
@@ -13,9 +12,7 @@ export async function register() {
   }
 }
 
-export const onRequestError:  Instrumentation.onRequestError = ( err,
-  request,
-  context) => {
+export const onRequestError: Instrumentation.onRequestError = (err, request, context) => {
   if (process.env.NODE_ENV === "production") {
     Sentry.captureRequestError(err, request, context);
   }

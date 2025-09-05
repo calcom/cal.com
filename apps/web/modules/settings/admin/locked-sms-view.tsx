@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
 import { trpc } from "@calcom/trpc";
-import { TextField } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 import UsersTable from "./components/UsersTable";
 
@@ -53,7 +52,8 @@ export default function LockedSMSView() {
             onClick={() => {
               mutation.mutate({ username, lock: true });
               utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
-            }}>
+            }}
+          >
             Lock User
           </Button>
         </div>
@@ -73,7 +73,8 @@ export default function LockedSMSView() {
             onClick={() => {
               mutation.mutate({ teamSlug, lock: true });
               utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
-            }}>
+            }}
+          >
             Lock Team
           </Button>
         </div>

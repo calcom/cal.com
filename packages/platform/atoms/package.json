@@ -35,11 +35,7 @@
     "vite-plugin-inspect": "^0.8.4",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
-  "files": [
-    "dist",
-    "globals.min.css",
-    "fonts"
-  ],
+  "files": ["dist", "globals.min.css", "fonts"],
   "module": "./dist/cal-atoms.js",
   "exports": {
     ".": {

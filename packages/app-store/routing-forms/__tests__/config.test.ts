@@ -1,8 +1,8 @@
-import { describe, it, vi, expect } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
-  FormFieldsBaseConfig,
   AttributesBaseConfig,
+  FormFieldsBaseConfig,
 } from "../components/react-awesome-query-builder/config/config";
 
 vi.mock("../components/react-awesome-query-builder/widgets", () => ({

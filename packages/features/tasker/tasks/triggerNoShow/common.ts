@@ -8,7 +8,7 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
-import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
+import type { TTriggerNoShowPayloadSchema, TWebhook } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 type OriginalRescheduledBooking =

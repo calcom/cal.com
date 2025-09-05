@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z, ZodError } from "zod";
+import { ZodError, z } from "zod";
 
 import { GiphyManager } from "../lib";
 

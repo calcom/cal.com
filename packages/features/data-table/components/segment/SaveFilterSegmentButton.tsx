@@ -1,7 +1,3 @@
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { type FilterSegmentScope } from "@calcom/prisma/enums";
@@ -15,8 +11,11 @@ import {
   DialogTrigger,
 } from "@calcom/ui/components/dialog";
 import { Form, Input, Label, Select, Switch } from "@calcom/ui/components/form";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
+import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import { useDataTable } from "../../hooks";
 
@@ -172,7 +171,8 @@ export function SaveFilterSegmentButton() {
           StartIcon="bookmark"
           color="secondary"
           disabled={!canSaveSegment}
-          data-testid="save-filter-segment-button">
+          data-testid="save-filter-segment-button"
+        >
           {t("save")}
         </Button>
       </DialogTrigger>
@@ -184,7 +184,8 @@ export function SaveFilterSegmentButton() {
               <RadioGroup
                 defaultValue="update"
                 onValueChange={(value: string) => setSaveMode(value as "create" | "update")}
-                className="space-y-2">
+                className="space-y-2"
+              >
                 <RadioField
                   id="update_segment"
                   label={t("override_segment", { name: selectedSegment.name })}

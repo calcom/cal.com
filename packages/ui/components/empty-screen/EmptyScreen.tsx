@@ -1,7 +1,6 @@
+import classNames from "@calcom/ui/classNames";
 import type { ReactNode } from "react";
 import React from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../button";
 import type { IconName } from "../icon";
@@ -46,7 +45,8 @@ export function EmptyScreen({
           border && "border-subtle border",
           dashedBorder && "border-dashed",
           className
-        )}>
+        )}
+      >
         {!avatar ? null : (
           <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
         )}
@@ -56,7 +56,8 @@ export function EmptyScreen({
             className={classNames(
               "bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ",
               iconWrapperClassName
-            )}>
+            )}
+          >
             <Icon
               name={icon}
               className={classNames("text-default inline-block h-10 w-10 stroke-[1.3px]", iconClassName)}
@@ -70,7 +71,8 @@ export function EmptyScreen({
               "text-semibold font-cal text-emphasis text-center text-xl normal-nums",
               icon && "mt-6",
               !description && "mb-8"
-            )}>
+            )}
+          >
             {headline}
           </h2>
           {description && (

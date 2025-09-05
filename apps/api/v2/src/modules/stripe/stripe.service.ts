@@ -1,3 +1,15 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import type { Credential, Prisma, User } from "@prisma/client";
+import Stripe from "stripe";
+import { z } from "zod";
 import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -5,19 +17,6 @@ import { MembershipsRepository } from "@/modules/memberships/memberships.reposit
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  UnauthorizedException,
-  InternalServerErrorException,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import type { Prisma, Credential, User } from "@prisma/client";
-import Stripe from "stripe";
-import { z } from "zod";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 

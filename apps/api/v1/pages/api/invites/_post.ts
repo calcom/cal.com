@@ -1,5 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -10,9 +8,9 @@ import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewe
 import { ZInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const data = ZInviteMemberInputSchema.parse(req.body);

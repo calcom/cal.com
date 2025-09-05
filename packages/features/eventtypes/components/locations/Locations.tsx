@@ -1,17 +1,10 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ErrorMessage } from "@hookform/error-message";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
-
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type {
-  LocationFormValues,
   EventTypeSetupProps,
   FormValues,
+  LocationFormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
@@ -23,6 +16,12 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ErrorMessage } from "@hookform/error-message";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+import { useFieldArray, useFormContext } from "react-hook-form";
 
 import CalVideoSettings from "./CalVideoSettings";
 import DefaultLocationSettings from "./DefaultLocationSettings";
@@ -251,7 +250,8 @@ const Locations: React.FC<LocationsProps> = ({
                     onClick={() => {
                       remove(index);
                     }}
-                    aria-label={t("remove")}>
+                    aria-label={t("remove")}
+                  >
                     <div className="h-4 w-4">
                       <Icon
                         name="x"
@@ -309,7 +309,8 @@ const Locations: React.FC<LocationsProps> = ({
                     className={classNames(
                       "ml-6",
                       customClassNames?.organizerContactInput?.publicDisplayCheckbox?.container
-                    )}>
+                    )}
+                  >
                     <CheckboxField
                       name={`locations[${index}].displayLocationPublicly`}
                       data-testid="display-location"
@@ -395,7 +396,8 @@ const Locations: React.FC<LocationsProps> = ({
                   <Link
                     key="event_type_requires_google_calendar"
                     className="cursor-pointer text-blue-500 underline"
-                    href="/apps/google-calendar">
+                    href="/apps/google-calendar"
+                  >
                     here
                   </Link>,
                 ]}
@@ -421,7 +423,8 @@ const Locations: React.FC<LocationsProps> = ({
               disabled={seatsEnabled}
               className={classNames(customClassNames?.addLocationButton)}
               tooltip={seatsEnabled ? t("seats_option_doesnt_support_multi_location") : undefined}
-              onClick={() => setShowEmptyLocationSelect(true)}>
+              onClick={() => setShowEmptyLocationSelect(true)}
+            >
               {t("add_location")}
             </Button>
           </li>
@@ -436,7 +439,8 @@ const Locations: React.FC<LocationsProps> = ({
               <Link
                 key="cant_find_the_right_conferencing_app_visit_our_app_store"
                 className="cursor-pointer text-blue-500 underline"
-                href="/apps/categories/conferencing">
+                href="/apps/categories/conferencing"
+              >
                 App Store
               </Link>,
             ]}

@@ -1,7 +1,7 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 const credentialForCalendarRepositorySelect = {
   id: true,
@@ -20,7 +20,10 @@ const credentialForCalendarRepositorySelect = {
 
 @Injectable()
 export class CalendarsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async getCalendarCredentials(credentialId: number, userId: number) {
     return await this.dbRead.prisma.credential.findFirst({

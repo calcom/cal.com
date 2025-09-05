@@ -1,8 +1,6 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ category: string }> }) =>
   await _generateMetadata(

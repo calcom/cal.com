@@ -17,7 +17,8 @@ function EditModeFooter() {
         className="justify-center"
         onClick={() => {
           setEditMode(false);
-        }}>
+        }}
+      >
         {t("cancel")}
       </Button>
 
@@ -46,7 +47,8 @@ function MoreInfoFooter() {
           setEditMode(true);
         }}
         key="EDIT_BUTTON"
-        StartIcon="pencil">
+        StartIcon="pencil"
+      >
         {t("edit")}
       </Button>
     </>

@@ -1,9 +1,9 @@
 import prisma from "@calcom/prisma";
 
 import type {
-  TransactionInterface,
-  TransactionContext,
   TransactionalPhoneNumberRepository,
+  TransactionContext,
+  TransactionInterface,
 } from "../interfaces/TransactionInterface";
 
 /**

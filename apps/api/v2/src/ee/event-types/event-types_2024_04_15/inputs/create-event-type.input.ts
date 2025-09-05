@@ -1,16 +1,16 @@
-import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
-import { ApiProperty as DocsProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
-  IsString,
-  IsNumber,
-  IsBoolean,
-  IsOptional,
-  ValidateNested,
-  Min,
   IsArray,
+  IsBoolean,
   IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
 } from "class-validator";
+import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_SLUG_EXAMPLE = "cooking-class";

@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TeamService } from "./teamService";
 

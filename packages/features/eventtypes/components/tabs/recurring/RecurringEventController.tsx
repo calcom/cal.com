@@ -1,22 +1,19 @@
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type {
   EventTypeSetup,
+  FormValues,
   InputClassNames,
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Select, SettingsToggle, TextField } from "@calcom/ui/components/form";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
@@ -99,8 +96,8 @@ export default function RecurringEventController({
                 isSeatsOffered
                   ? t("seats_doesnt_support_recurring")
                   : hasBookingLimitPerBooker
-                  ? t("booking_limit_per_booker_doesnt_support_recurring")
-                  : undefined
+                    ? t("booking_limit_per_booker_doesnt_support_recurring")
+                    : undefined
               }
               onCheckedChange={(e) => {
                 if (!e) {
@@ -115,7 +112,8 @@ export default function RecurringEventController({
                   formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                   setRecurringEventState(newVal);
                 }
-              }}>
+              }}
+            >
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 {recurringEventState && (
                   <div data-testid="recurring-event-collapsible" className="text-sm">
@@ -124,7 +122,8 @@ export default function RecurringEventController({
                         className={classNames(
                           "text-emphasis ltr:mr-2 rtl:ml-2",
                           customClassNames?.frequencyInput?.label
-                        )}>
+                        )}
+                      >
                         {t("repeats_every")}
                       </p>
                       <TextField
@@ -167,12 +166,14 @@ export default function RecurringEventController({
                       className={classNames(
                         "mt-4 flex items-center",
                         customClassNames?.maxEventsInput?.container
-                      )}>
+                      )}
+                    >
                       <p
                         className={classNames(
                           "text-emphasis ltr:mr-2 rtl:ml-2",
                           customClassNames?.maxEventsInput?.labelText
-                        )}>
+                        )}
+                      >
                         {t("for_a_maximum_of")}
                       </p>
                       <TextField
@@ -195,7 +196,8 @@ export default function RecurringEventController({
                         className={classNames(
                           "text-emphasis ltr:ml-2 rtl:mr-2",
                           customClassNames?.maxEventsInput?.suffixText
-                        )}>
+                        )}
+                      >
                         {t("events", {
                           count: recurringEventState.count,
                         })}

@@ -1,8 +1,7 @@
-import type { SessionContextValue } from "next-auth/react";
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui/components/top-banner";
+import Link from "next/link";
+import type { SessionContextValue } from "next-auth/react";
 
 export type AdminPasswordBannerProps = { data: SessionContextValue["data"] };
 

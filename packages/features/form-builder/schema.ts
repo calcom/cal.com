@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
+import { z } from "zod";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { preprocessNameFieldDataWithVariant } from "./utils";

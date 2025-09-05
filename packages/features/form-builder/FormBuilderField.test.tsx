@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
-import { FormProvider, useForm } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
 
 import { FormBuilderField } from "./FormBuilderField";

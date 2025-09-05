@@ -1,8 +1,7 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
 export class DefaultConferencingAppsOutputDto {
   @IsString()

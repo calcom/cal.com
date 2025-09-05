@@ -1,11 +1,4 @@
-import { ProviderVerifyAccessTokenOutput } from "@/ee/provider/outputs/verify-access-token.output";
-import { ProviderVerifyClientOutput } from "@/ee/provider/outputs/verify-client.output";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   BadRequestException,
   Controller,
@@ -18,8 +11,14 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiExcludeController, ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ProviderVerifyAccessTokenOutput } from "@/ee/provider/outputs/verify-access-token.output";
+import { ProviderVerifyClientOutput } from "@/ee/provider/outputs/verify-client.output";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 
 @Controller({
   path: "/v2/provider",

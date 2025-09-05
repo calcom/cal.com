@@ -1,16 +1,15 @@
-import type { MutableRefObject } from "react";
-import { forwardRef } from "react";
-
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useEmbedBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui/components/form";
+import type { MutableRefObject } from "react";
+import { forwardRef } from "react";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
-import { Codes } from "./EmbedCodes";
 import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
-import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
+import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
+import { Codes } from "./EmbedCodes";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";

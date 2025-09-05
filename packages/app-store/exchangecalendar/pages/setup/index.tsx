@@ -1,19 +1,14 @@
+import { emailSchema } from "@calcom/lib/emailSchema";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { EmailField, Form, PasswordField, SelectField, TextField } from "@calcom/ui/components/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import z from "zod";
-
-import { emailSchema } from "@calcom/lib/emailSchema";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmailField } from "@calcom/ui/components/form";
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
 
 import { ExchangeAuthentication, ExchangeVersion } from "../../enums";
 
@@ -98,7 +93,8 @@ export default function ExchangeSetup() {
                     } else {
                       router.push(json.url);
                     }
-                  }}>
+                  }}
+                >
                   <fieldset className="space-y-4" disabled={form.formState.isSubmitting}>
                     <TextField
                       required

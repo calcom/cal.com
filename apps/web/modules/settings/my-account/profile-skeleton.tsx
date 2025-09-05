@@ -4,8 +4,8 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  SkeletonButton,
   SkeletonAvatar,
+  SkeletonButton,
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui/components/skeleton";
@@ -16,7 +16,8 @@ export const SkeletonLoader = () => {
     <SettingsHeader
       title={t("profile")}
       description={t("profile_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <SkeletonContainer>
         <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-4 py-8">
           <div className="flex items-center">

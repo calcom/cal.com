@@ -1,16 +1,15 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
@@ -47,7 +46,8 @@ function VerifyEmailPage() {
                 onClick={() => {
                   showToast(t("send_email"), "success");
                   mutation.mutate();
-                }}>
+                }}
+              >
                 {t("resend_email")}
               </Button>
             }

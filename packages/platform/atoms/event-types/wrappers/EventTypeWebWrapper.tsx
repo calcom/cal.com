@@ -1,10 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
@@ -16,14 +11,17 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
-
 import { TRPCClientError } from "@trpc/react-query";
+import dynamic from "next/dynamic";
+import { useRouter as useAppRouter, usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
@@ -376,7 +374,8 @@ const EventTypeWeb = ({
       isUpdating={updateMutation.isPending}
       isPlatform={false}
       tabName={tabName}
-      tabsNavigation={tabsNavigation}>
+      tabsNavigation={tabsNavigation}
+    >
       <>
         {slugExistsChildrenDialogOpen.length ? (
           <ManagedEventTypeDialog

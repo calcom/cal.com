@@ -1,12 +1,3 @@
-import type { Browser, Page, WorkerInfo } from "@playwright/test";
-import { expect } from "@playwright/test";
-import type Prisma from "@prisma/client";
-import type { Team } from "@prisma/client";
-import { Prisma as PrismaType } from "@prisma/client";
-import { hashSync as hash } from "bcryptjs";
-import { uuid } from "short-uuid";
-import { v4 } from "uuid";
-
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -16,6 +7,14 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
+import type { Browser, Page, WorkerInfo } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type Prisma from "@prisma/client";
+import type { Team } from "@prisma/client";
+import { Prisma as PrismaType } from "@prisma/client";
+import { hashSync as hash } from "bcryptjs";
+import { uuid } from "short-uuid";
+import { v4 } from "uuid";
 
 import { createRoutingForm } from "../lib/test-helpers/routingFormHelpers";
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
@@ -849,7 +848,7 @@ const createUser = (
       profileUsername: opts?.profileUsername,
     }),
     schedules:
-      opts?.completedOnboarding ?? true
+      (opts?.completedOnboarding ?? true)
         ? {
             create: {
               name: "Working Hours",

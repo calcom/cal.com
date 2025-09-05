@@ -1,12 +1,11 @@
-import type { RatelimitResponse } from "@unkey/ratelimit";
-import type { Request, Response } from "express";
-import type { NextApiResponse, NextApiRequest } from "next";
-import { createMocks } from "node-mocks-http";
-import { describe, it, expect, vi } from "vitest";
-
 import { handleAutoLock } from "@calcom/lib/autoLock";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HttpError } from "@calcom/lib/http-error";
+import type { RatelimitResponse } from "@unkey/ratelimit";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { describe, expect, it, vi } from "vitest";
 
 import { rateLimitApiKey } from "~/lib/helpers/rateLimitApiKey";
 

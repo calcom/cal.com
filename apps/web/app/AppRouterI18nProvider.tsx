@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useMemo } from "react";
 import type { ReactNode } from "react";
+import { createContext, useMemo } from "react";
 
 type AppRouterI18nContextType = {
   translations: Record<string, string>;

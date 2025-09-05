@@ -1,7 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsEnum, IsInt } from "class-validator";
-
 import { MembershipRole } from "@calcom/platform-libraries";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsBoolean, IsEnum, IsInt, IsOptional } from "class-validator";
 
 export class CreateOrgTeamMembershipDto {
   @IsInt()

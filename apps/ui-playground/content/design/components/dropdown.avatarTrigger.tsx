@@ -1,16 +1,15 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-
 import { Avatar } from "@calcom/ui/components/avatar";
 import {
   Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
   DropdownItem,
+  DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const AvatarTriggerExample: React.FC = () => (
   <RenderComponentWithSnippet>

@@ -1,6 +1,6 @@
-import { ApiProperty as DocsProperty, ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from "class-validator";
+import { IsArray, IsBoolean, IsDate, IsOptional, IsString, ValidateNested } from "class-validator";
 import { DateTime } from "luxon";
 import { z } from "zod";
 

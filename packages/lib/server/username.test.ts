@@ -1,6 +1,5 @@
+import { beforeEach, describe, expect, it } from "vitest";
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, expect, it, beforeEach } from "vitest";
 
 import { usernameCheckForSignup } from "./username";
 

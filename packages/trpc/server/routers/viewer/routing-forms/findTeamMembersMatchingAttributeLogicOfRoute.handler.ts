@@ -3,9 +3,6 @@
  * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
-import type { App_RoutingForms_Form } from "@prisma/client";
-import type { ServerResponse } from "http";
-import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
@@ -24,8 +21,10 @@ import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTiming
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { App_RoutingForms_Form } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import type { ServerResponse } from "http";
+import type { NextApiResponse } from "next";
 
 import type { TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
@@ -51,7 +50,7 @@ async function getEnrichedSerializableForm<
       } | null;
       metadata: unknown;
     } | null;
-  }
+  },
 >(form: TForm) {
   const formWithUserInfoProfile = {
     ...form,

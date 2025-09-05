@@ -1,9 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import prismock from "../../../../tests/libs/__mocks__/prisma";
-
-import { describe, test, vi, expect, beforeEach } from "vitest";
 
 import { CreationSource } from "@calcom/prisma/enums";
+
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { UserRepository } from "./user";
 

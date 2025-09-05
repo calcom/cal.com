@@ -1,15 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useFormContext } from "react-hook-form";
-import { z } from "zod";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { useRouter } from "next/navigation";
+import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 import { AttributeForm } from "./AttributesForm";
 
@@ -67,7 +66,8 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
             variant="icon"
             StartIcon="arrow-left"
             color="minimal"
-            href="/settings/organizations/attributes">
+            href="/settings/organizations/attributes"
+          >
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
           <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">

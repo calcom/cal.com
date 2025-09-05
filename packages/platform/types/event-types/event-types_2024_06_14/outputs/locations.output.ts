@@ -1,9 +1,17 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsUrl, IsIn, IsOptional, IsNumber, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+import {
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
 
 import {
   InputAddressLocation_2024_06_14,
@@ -11,8 +19,8 @@ import {
   InputAttendeeDefinedLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
-  inputLocations,
   InputPhoneLocation_2024_06_14,
+  inputLocations,
 } from "../inputs";
 
 const outputLocations = [...inputLocations, "conferencing", "unknown"] as const;

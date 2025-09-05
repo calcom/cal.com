@@ -1,13 +1,12 @@
 import type { Data } from "@/pages/api/get-managed-users";
 import "@/styles/globals.css";
+
+import { BookerEmbed, CalProvider, Router } from "@calcom/atoms";
 import type { AppProps } from "next/app";
 import { Poppins } from "next/font/google";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Select from "react-select";
-
-import { CalProvider, BookerEmbed, Router } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
@@ -90,7 +89,8 @@ export default function App({ Component, pageProps }: AppProps) {
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         clientId={process.env.NEXT_PUBLIC_X_CAL_ID ?? ""}
         // eslint-disable-next-line turbo/no-undeclared-env-vars
-        options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}>
+        options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}
+      >
         {email ? (
           <>
             <Component {...pageProps} calUsername={username} calEmail={email} />

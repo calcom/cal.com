@@ -1,47 +1,44 @@
-import {
-  createBookingScenario,
-  createOrganization,
-  getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
-  Timezones,
-  getDate,
-  getExpectedCalEventForBookingRequest,
-  BookingLocations,
-  getZoomAppCredential,
-  getDefaultBookingFields,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import {
-  // expectWorkflowToBeTriggered,
-  expectSuccessfulBookingCreationEmails,
-  expectBookingToBeInDatabase,
-  expectBookingCreatedWebhookToHaveBeenFired,
-  expectSuccessfulCalendarEventCreationInCalendar,
-  expectSuccessfulVideoMeetingCreation,
-  expectSMSToBeTriggered,
-  expectBookingRequestedEmails,
-  expectBookingRequestedWebhookToHaveBeenFired,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, expect, beforeEach } from "vitest";
-
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestSMS } from "@calcom/lib/testSMS";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+import {
+  BookingLocations,
+  createBookingScenario,
+  createOrganization,
+  getBooker,
+  getDate,
+  getDefaultBookingFields,
+  getExpectedCalEventForBookingRequest,
+  getGoogleCalendarCredential,
+  getOrganizer,
+  getScenarioData,
+  getZoomAppCredential,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+  Timezones,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import {
+  expectBookingCreatedWebhookToHaveBeenFired,
+  expectBookingRequestedEmails,
+  expectBookingRequestedWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
+  expectSMSToBeTriggered,
+  // expectWorkflowToBeTriggered,
+  expectSuccessfulBookingCreationEmails,
+  expectSuccessfulCalendarEventCreationInCalendar,
+  expectSuccessfulVideoMeetingCreation,
+} from "@calcom/web/test/utils/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { beforeEach, describe, expect } from "vitest";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 

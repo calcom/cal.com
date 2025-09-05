@@ -1,11 +1,8 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-
-import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { describe, expect, beforeEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
+import { beforeEach, describe, expect } from "vitest";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { handleWebhookScheduledTriggers } from "../handleWebhookScheduledTriggers";
 

@@ -1,13 +1,12 @@
-import type { z } from "zod";
-
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";

@@ -1,11 +1,9 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { render } from "@testing-library/react";
-import React from "react";
-import { vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { PeriodType } from "@calcom/prisma/enums";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { render } from "@testing-library/react";
+import { vi } from "vitest";
 
 import { DatePicker } from "../DatePicker";
 

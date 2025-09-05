@@ -1,9 +1,8 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { RangeSliderPopover } from "@calcom/ui/components/form";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const PopoverExample: React.FC = () => {
   const [defaultRange, setDefaultRange] = useState([15, 30]);

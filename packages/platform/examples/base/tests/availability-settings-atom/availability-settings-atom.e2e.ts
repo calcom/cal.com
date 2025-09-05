@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 async function selectOption(page: Page, optionNumber: number) {
   for (let i = 0; i < optionNumber; i++) {

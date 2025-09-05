@@ -1,26 +1,25 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
-import { useSession, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { uuid } from "short-uuid";
-
-import { deriveOrgNameFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
-import { deriveSlugFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
+import {
+  deriveOrgNameFromEmail,
+  deriveSlugFromEmail,
+} from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
+import { useRouter } from "next/navigation";
+import type { SessionContextValue } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { uuid } from "short-uuid";
 
 export const CreateANewPlatformForm = () => {
   const session = useSession();
@@ -99,7 +98,8 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
               creationSource: CreationSource.API_V2,
             });
           }
-        }}>
+        }}
+      >
         <div>
           {serverErrorMessage && (
             <div className="mb-4">
@@ -175,7 +175,8 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
             EndIcon="arrow-right"
             type="submit"
             form="createOrg"
-            className="w-full justify-center">
+            className="w-full justify-center"
+          >
             {t("continue")}
           </Button>
         </div>

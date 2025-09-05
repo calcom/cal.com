@@ -1,10 +1,9 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useForm } from "react-hook-form";
-
 import { Button } from "@calcom/ui/components/button";
 import { InputField } from "@calcom/ui/components/form";
+import { useForm } from "react-hook-form";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 type FormValues = {
   username: string;

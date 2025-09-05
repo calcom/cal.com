@@ -1,10 +1,9 @@
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { useToggleableLegend } from "../../hooks/useToggleableLegend";
@@ -90,7 +89,8 @@ export const EventTrendsChart = () => {
       title={t("event_trends")}
       legend={legend}
       enabledLegend={enabledLegend}
-      onSeriesToggle={toggleSeries}>
+      onSeriesToggle={toggleSeries}
+    >
       <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={eventTrends ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>

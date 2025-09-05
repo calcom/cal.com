@@ -1,9 +1,17 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty, ApiPropertyOptional as DocsPropertyOptional } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
 
 const inputBookingFieldTypes = [
   "name",

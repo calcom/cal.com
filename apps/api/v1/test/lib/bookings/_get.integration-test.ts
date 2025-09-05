@@ -1,10 +1,9 @@
+import prisma from "@calcom/prisma";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
-
-import prisma from "@calcom/prisma";
 
 import { handler } from "../../../pages/api/bookings/_get";
 
@@ -346,10 +345,13 @@ describe("GET /api/bookings", async () => {
       expect(uniqueBookingIds.size).toBe(bookingIds.length);
 
       if (uniqueBookingIds.size !== bookingIds.length) {
-        const counts = bookingIds.reduce((acc, id) => {
-          acc[id] = (acc[id] || 0) + 1;
-          return acc;
-        }, {} as Record<number, number>);
+        const counts = bookingIds.reduce(
+          (acc, id) => {
+            acc[id] = (acc[id] || 0) + 1;
+            return acc;
+          },
+          {} as Record<number, number>
+        );
 
         const duplicates = Object.entries(counts)
           .filter(([_, count]) => count > 1)

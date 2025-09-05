@@ -1,6 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
-
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +7,8 @@ import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import Link from "next/link";
 
 import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
@@ -74,7 +73,8 @@ export default function AppCard({
               alt={app?.name}
             />
           </Link>
-        }>
+        }
+      >
         <div>
           <div>
             {/* {app.credentialOwner && !isPlatform && (

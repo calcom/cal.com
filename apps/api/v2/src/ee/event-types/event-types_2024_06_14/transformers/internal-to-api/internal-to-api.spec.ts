@@ -5,40 +5,40 @@ import {
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
 import type {
-  TransformBookingLimitsSchema_2024_06_14,
-  TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
   EventTypeColorsTransformedSchema,
-  TransformRecurringEventSchema_2024_06_14,
-  SeatOptionsTransformedSchema,
-  SeatOptionsDisabledSchema,
   OutputAddressLocation_2024_06_14,
   OutputAttendeeAddressLocation_2024_06_14,
-  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputAttendeeDefinedLocation_2024_06_14,
   OutputAttendeePhoneLocation_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputLinkLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
   OutputUnknownLocation_2024_06_14,
+  SeatOptionsDisabledSchema,
+  SeatOptionsTransformedSchema,
+  TransformBookingLimitsSchema_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
+  TransformRecurringEventSchema_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
-  transformLocationsInternalToApi,
-  transformBookingFieldsInternalToApi,
-  transformIntervalLimitsInternalToApi,
-  transformFutureBookingLimitsInternalToApi,
-  transformRecurrenceInternalToApi,
   transformBookerLayoutsInternalToApi,
-  transformRequiresConfirmationInternalToApi,
+  transformBookingFieldsInternalToApi,
   transformEventTypeColorsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformLocationsInternalToApi,
+  transformRecurrenceInternalToApi,
+  transformRequiresConfirmationInternalToApi,
   transformSeatsInternalToApi,
 } from ".";
 import {
-  systemBeforeFieldEmail,
-  systemBeforeFieldName,
   type CustomField,
   type SystemField,
+  systemBeforeFieldEmail,
+  systemBeforeFieldName,
 } from "./booking-fields";
 
 describe("transformLocationsInternalToApi", () => {

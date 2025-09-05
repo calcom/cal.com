@@ -1,9 +1,8 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { RangeSlider } from "@calcom/ui/components/form";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const BasicExample: React.FC = () => {
   const [singleValue, setSingleValue] = useState([50]);

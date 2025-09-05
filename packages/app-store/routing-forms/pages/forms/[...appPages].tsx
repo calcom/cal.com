@@ -1,12 +1,8 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -25,8 +21,11 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 
-import type { SetNewFormDialogState, NewFormDialogState } from "../../components/FormActions";
+import type { NewFormDialogState, SetNewFormDialogState } from "../../components/FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "../../types/types";
@@ -141,7 +140,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
             <NewFormButton setNewFormDialogState={setNewFormDialogState} />
           ) : null
         }
-        subtitle={t("routing_forms_description")}>
+        subtitle={t("routing_forms_description")}
+      >
         <UpgradeTip
           plan="team"
           title={t("teams_plan_required")}
@@ -160,11 +160,13 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 </Button>
               </ButtonGroup>
             </div>
-          }>
+          }
+        >
           <FormActionsProvider
             appUrl={appUrl}
             newFormDialogState={newFormDialogState}
-            setNewFormDialogState={setNewFormDialogState}>
+            setNewFormDialogState={setNewFormDialogState}
+          >
             <div className="mb-10 w-full">
               <div className="mb-2 flex">
                 <TeamsFilter />
@@ -186,7 +188,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                     description={t("change_filter_common")}
                   />
                 }
-                SkeletonLoader={SkeletonLoaderTeamList}>
+                SkeletonLoader={SkeletonLoaderTeamList}
+              >
                 <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list" ref={parent}>
                     {forms?.map(({ form, readOnly, hasError }, index) => {
@@ -207,7 +210,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                       return (
                         <div
                           className="group flex w-full max-w-full items-center justify-between overflow-hidden"
-                          key={form.id}>
+                          key={form.id}
+                        >
                           {!(firstItem && firstItem.id === form.id) && (
                             <ArrowButton onClick={() => moveRoutingForm(index, -1)} arrowDirection="up" />
                           )}
@@ -269,14 +273,16 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="minimal"
                                       className="!flex"
-                                      StartIcon="pencil">
+                                      StartIcon="pencil"
+                                    >
                                       {t("edit")}
                                     </FormAction>
                                     <FormAction
                                       action="download"
                                       routingForm={form}
                                       color="minimal"
-                                      StartIcon="download">
+                                      StartIcon="download"
+                                    >
                                       {t("download_responses")}
                                     </FormAction>
                                     <FormAction
@@ -284,7 +290,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="minimal"
                                       className="w-full"
-                                      StartIcon="copy">
+                                      StartIcon="copy"
+                                    >
                                       {t("duplicate")}
                                     </FormAction>
                                     <FormAction
@@ -292,13 +299,15 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="destructive"
                                       className="w-full"
-                                      StartIcon="trash">
+                                      StartIcon="trash"
+                                    >
                                       {t("delete")}
                                     </FormAction>
                                   </FormActionsDropdown>
                                 </ButtonGroup>
                               </>
-                            }>
+                            }
+                          >
                             <div className="flex flex-wrap gap-1">
                               <Badge variant="gray" startIcon="menu">
                                 {fields.length} {fields.length === 1 ? "field" : "fields"}

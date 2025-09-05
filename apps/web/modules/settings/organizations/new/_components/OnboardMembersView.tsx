@@ -1,10 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
@@ -17,6 +12,10 @@ import { TextField } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
@@ -164,7 +163,8 @@ export const AddNewTeamMembersForm = () => {
         {(invitedMembers.length > 0 || uniqueMembers?.length > 0) && (
           <ul
             className="border-subtle divide-subtle max-h-[300px] divide-y overflow-y-auto rounded-md border"
-            data-testid="pending-member-list">
+            data-testid="pending-member-list"
+          >
             {invitedMembers.map((member) => (
               <li key={member.email} className="flex items-center justify-between px-5 py-2">
                 <div className="flex items-center space-x-3">
@@ -221,7 +221,8 @@ export const AddNewTeamMembersForm = () => {
               onboardingId,
             });
           }}
-          loading={orgCreation.isPending}>
+          loading={orgCreation.isPending}
+        >
           {isBillingEnabled ? t("checkout") : t("create")}
         </Button>
       </div>

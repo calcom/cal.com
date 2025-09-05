@@ -1,14 +1,13 @@
-import type { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import {
-  serviceAccountKeySchema,
-  type ServiceAccountKey,
+  decryptServiceAccountKey,
   type EncryptedServiceAccountKey,
   encryptServiceAccountKey,
-  decryptServiceAccountKey,
+  type ServiceAccountKey,
+  serviceAccountKeySchema,
 } from "@calcom/lib/server/serviceAccountKey";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@prisma/client";
 
 import { OrganizationRepository } from "./organization";
 

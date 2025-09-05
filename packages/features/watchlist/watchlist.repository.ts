@@ -1,7 +1,6 @@
-import { captureException } from "@sentry/nextjs";
-
 import db from "@calcom/prisma";
-import { WatchlistType, WatchlistSeverity } from "@calcom/prisma/enums";
+import { WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
+import { captureException } from "@sentry/nextjs";
 
 import type { IWatchlistRepository } from "./watchlist.repository.interface";
 

@@ -1,8 +1,7 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useSession } from "next-auth/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { showToast } from "@calcom/ui/components/toast";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useSession } from "next-auth/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import PlainContactForm from "../PlainContactForm";
 

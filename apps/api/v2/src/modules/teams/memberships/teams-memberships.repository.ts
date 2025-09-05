@@ -1,10 +1,9 @@
+import type { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
-import { Injectable } from "@nestjs/common";
-
-import type { Prisma } from "@calcom/prisma/client";
 
 export const MembershipUserSelect: Prisma.UserSelect = {
   username: true,
@@ -17,7 +16,10 @@ export const MembershipUserSelect: Prisma.UserSelect = {
 
 @Injectable()
 export class TeamsMembershipsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
     return this.dbWrite.prisma.membership.create({

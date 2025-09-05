@@ -1,6 +1,6 @@
 import { Task } from "./repository";
 import type { TaskTypes } from "./tasker";
-import { type TaskerCreate, type Tasker } from "./tasker";
+import { type Tasker, type TaskerCreate } from "./tasker";
 
 /**
  * This is the default internal Tasker that uses the Task repository to create tasks.

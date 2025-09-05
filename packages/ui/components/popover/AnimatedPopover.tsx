@@ -1,7 +1,6 @@
+import classNames from "@calcom/ui/classNames";
 import * as Popover from "@radix-ui/react-popover";
 import React from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 import { buttonClasses } from "../button";
 import { Icon } from "../icon";
@@ -61,7 +60,8 @@ export const AnimatedPopover = ({
               color: "secondary",
             }),
             popoverTriggerClassNames
-          )}>
+          )}
+        >
           {Trigger ? (
             Trigger
           ) : (
@@ -92,7 +92,8 @@ export const AnimatedPopover = ({
           className={classNames(
             "bg-default border-subtle scroll-bar absolute z-50 mt-1 max-h-64 w-56 select-none overflow-y-auto rounded-md border py-[2px] shadow-md focus-within:outline-none",
             align === "end" && "-translate-x-[228px]"
-          )}>
+          )}
+        >
           {children}
         </div>
       </Popover.Content>

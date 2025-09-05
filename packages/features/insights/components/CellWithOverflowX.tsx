@@ -22,7 +22,8 @@ export function CellWithOverflowX({
           } else {
             nextElement.classList.add("hidden");
           }
-        }}>
+        }}
+      >
         {children}
       </div>
       <div className="from-default absolute right-0 top-0 hidden h-full w-8 bg-gradient-to-l to-transparent " />

@@ -1,6 +1,3 @@
-import type { Locator, Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -15,12 +12,14 @@ import {
   testEmail,
   testName,
 } from "@calcom/web/playwright/lib/testUtils";
+import type { Locator, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import {
   addForm,
+  addOneFieldAndDescriptionAndSaveForm,
   saveCurrentForm,
   verifySelectOptions,
-  addOneFieldAndDescriptionAndSaveForm,
 } from "./testUtils";
 
 function todo(title: string) {

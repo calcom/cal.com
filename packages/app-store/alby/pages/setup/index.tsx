@@ -1,17 +1,16 @@
-import { auth, Client, webln } from "@getalby/sdk";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
-import { Toaster } from "sonner";
-
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui/components/toast";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { auth, Client, webln } from "@getalby/sdk";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { Toaster } from "sonner";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 
@@ -156,7 +155,8 @@ function AlbySetupPage(props: IAlbySetupProps) {
                     background: "linear-gradient(180deg, #FFDE6E 63.72%, #F8C455 95.24%)",
                   }}
                   type="button"
-                  onClick={connectWithAlby}>
+                  onClick={connectWithAlby}
+                >
                   {albyIcon}
                   <span className="mr-2">Connect with Alby</span>
                 </button>

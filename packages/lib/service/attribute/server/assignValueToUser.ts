@@ -1,18 +1,17 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-
+import { MembershipRepository } from "../../../server/repository/membership";
 import { PrismaAttributeOptionRepository } from "../../../server/repository/PrismaAttributeOptionRepository";
 import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
-import { MembershipRepository } from "../../../server/repository/membership";
-import type { AttributeId, AttributeName, BulkAttributeAssigner, AttributeOptionAssignment } from "../types";
+import type { AttributeId, AttributeName, AttributeOptionAssignment, BulkAttributeAssigner } from "../types";
 import {
+  buildSlugFromValue,
+  canSetValueBeyondOptions,
   doesSupportMultipleValues,
   isAssignmentForLockedAttribute,
   isAssignmentForTheSamePool,
   isAssignmentSame,
-  buildSlugFromValue,
-  canSetValueBeyondOptions,
 } from "../utils";
 import { findAssignmentsForMember } from "./utils";
 
@@ -307,7 +306,7 @@ const buildPrismaQueryForAttributeOptionCreation = ({
 };
 
 const createMissingOptionsAndReturnAlongWithExisting = async <
-  TattributeOptionsToAssign extends AttributeOptionsToAssign
+  TattributeOptionsToAssign extends AttributeOptionsToAssign,
 >({
   attributeOptionsToAssignIncludingNonExistentOptions,
   orgId,

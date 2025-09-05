@@ -1,9 +1,8 @@
+import { TeamService } from "@calcom/platform-libraries";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
-
-import { TeamService } from "@calcom/platform-libraries";
 
 @Injectable()
 export class TeamsMembershipsService {

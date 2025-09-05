@@ -1,6 +1,5 @@
-import z from "zod";
-
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
+import z from "zod";
 
 // Base user schema - fields that any user can set
 export const createOrganizationSchema = z.object({

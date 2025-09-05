@@ -1,10 +1,9 @@
-import { useEffect } from "react";
-
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
+import { useEffect } from "react";
 
 import { useOverlayCalendarStore } from "./store";
 
@@ -39,7 +38,8 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
       className={classNames(
         "hidden gap-2",
         layout === "week_view" || layout === "column_view" ? "xl:flex" : "md:flex"
-      )}>
+      )}
+    >
       <div className="flex items-center gap-2 pr-2">
         <Switch
           data-testid="overlay-calendar-switch"
@@ -55,7 +55,8 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
         />
         <label
           htmlFor="overlayCalendar"
-          className="text-emphasis text-sm font-medium leading-none hover:cursor-pointer">
+          className="text-emphasis text-sm font-medium leading-none hover:cursor-pointer"
+        >
           {t("overlay_my_calendar")}
         </label>
       </div>

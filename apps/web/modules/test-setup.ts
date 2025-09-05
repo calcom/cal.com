@@ -1,5 +1,5 @@
 import React from "react";
-import { vi, afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
 
 global.React = React;
 

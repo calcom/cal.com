@@ -1,10 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { AppCategories } from "@prisma/client";
-import type { UIEvent } from "react";
-import { useEffect, useRef, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -12,6 +7,10 @@ import type { CredentialFrontendPayload as Credential } from "@calcom/types/Cred
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { AppCategories } from "@prisma/client";
+import type { UIEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AppCard } from "./AppCard";
 
@@ -98,7 +97,8 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
       <ul
         className="no-scrollbar mt-3 flex max-w-full space-x-1 overflow-x-auto lg:mt-0 lg:max-w-[50%]"
         onScroll={(e) => calculateScroll(e)}
-        ref={ref}>
+        ref={ref}
+      >
         <li
           onClick={() => {
             onCategoryChange(null);
@@ -106,7 +106,8 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
             "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
-          )}>
+          )}
+        >
           {t("all")}
         </li>
         {categories.map((cat, pos) => (
@@ -122,7 +123,8 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
             className={classNames(
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
               "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
-            )}>
+            )}
+          >
             {cat[0].toUpperCase() + cat.slice(1)}
           </li>
         ))}
@@ -176,7 +178,8 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
       {filteredApps.length ? (
         <div
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
-          ref={appsContainerRef}>
+          ref={appsContainerRef}
+        >
           {filteredApps.map((app) => (
             <AppCard
               key={app.name}

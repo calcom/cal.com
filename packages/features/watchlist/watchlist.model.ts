@@ -1,6 +1,5 @@
-import type { z } from "zod";
-
 import { _WatchlistModel } from "@calcom/prisma/zod/watchlist";
+import type { z } from "zod";
 
 export const WatchlistModelSchema = _WatchlistModel.pick({
   id: true,

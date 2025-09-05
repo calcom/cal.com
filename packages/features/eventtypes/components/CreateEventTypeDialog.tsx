@@ -1,8 +1,3 @@
-import type { EventType } from "@prisma/client";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -14,8 +9,12 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
+import type { EventType } from "@prisma/client";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
 
 import CreateEventTypeForm from "./CreateEventTypeForm";
 
@@ -114,12 +113,14 @@ export default function CreateEventTypeDialog({
   return (
     <Dialog
       name="new"
-      clearQueryParamsOnClose={["eventPage", "type", "description", "title", "length", "slug", "locations"]}>
+      clearQueryParamsOnClose={["eventPage", "type", "description", "title", "length", "slug", "locations"]}
+    >
       <DialogContent
         type="creation"
         enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
-        description={t("new_event_type_to_book_description")}>
+        description={t("new_event_type_to_book_description")}
+      >
         {teamId ? (
           <TeamEventTypeForm
             teamSlug={team?.slug}

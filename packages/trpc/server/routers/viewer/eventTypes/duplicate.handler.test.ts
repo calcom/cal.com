@@ -1,9 +1,7 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
-
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { TRPCError } from "@trpc/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import { duplicateHandler } from "./duplicate.handler";
 
@@ -33,7 +31,7 @@ describe("duplicateHandler", () => {
               clientVersion: "mockedVersion",
             })
           ),
-        } as any)
+        }) as any
     );
 
     await expect(duplicateHandler({ ctx, input })).rejects.toThrow(

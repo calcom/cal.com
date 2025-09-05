@@ -1,6 +1,5 @@
-import { create } from "zustand";
-
 import dayjs from "@calcom/dayjs";
+import { create } from "zustand";
 
 import type {
   CalendarComponentProps,

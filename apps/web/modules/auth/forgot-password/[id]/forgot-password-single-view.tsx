@@ -1,18 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import type { CSSProperties } from "react";
-import { useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-
+import { Form, PasswordField } from "@calcom/ui/components/form";
 import AuthContainer from "@components/ui/AuthContainer";
-
 import type { getServerSideProps } from "@server/lib/auth/forgot-password/[id]/getServerSideProps";
+import Link from "next/link";
+import type { CSSProperties } from "react";
+import { useForm } from "react-hook-form";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -65,7 +61,8 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
           <Link href="/auth/forgot-password" passHref legacyBehavior>
             <button
               type="button"
-              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+            >
               {t("try_again")}
             </button>
           </Link>
@@ -95,7 +92,8 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
                 password: values.new_password,
                 requestId,
               });
-            }}>
+            }}
+          >
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <div className="mt-1">
               <PasswordField
@@ -119,7 +117,8 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
                 color="primary"
                 type="submit"
                 disabled={loading || isEmpty}
-                className="w-full justify-center">
+                className="w-full justify-center"
+              >
                 {t("reset_password")}
               </Button>
             </div>

@@ -8,7 +8,8 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
         "text-default text-emphasis mb-2 block text-sm font-medium leading-none",
         className
       )}
-      {...restProps}>
+      {...restProps}
+    >
       {props.children}
     </label>
   );

@@ -1,15 +1,14 @@
-import type {
-  Booking,
-  EventType,
-  BookingReference,
-  Attendee,
-  Credential,
-  DestinationCalendar,
-  User,
-} from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import type {
+  Attendee,
+  Booking,
+  BookingReference,
+  Credential,
+  DestinationCalendar,
+  EventType,
+  User,
+} from "@prisma/client";
 
 import { TRPCError } from "@trpc/server";
 

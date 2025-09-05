@@ -1,19 +1,20 @@
+import { TimeUnit, WorkflowTriggerEvents } from "@calcom/platform-libraries";
+import { TUpdateInputSchema, updateWorkflow } from "@calcom/platform-libraries/workflows";
+import { PrismaClient } from "@calcom/prisma";
+import type { Workflow, WorkflowStep } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
-
-import { TimeUnit, WorkflowTriggerEvents } from "@calcom/platform-libraries";
-import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
-import { updateWorkflow } from "@calcom/platform-libraries/workflows";
-import { PrismaClient } from "@calcom/prisma";
-import type { Workflow, WorkflowStep } from "@calcom/prisma/client";
 
 export type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; steps: WorkflowStep[] };
 
 @Injectable()
 export class WorkflowsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async deleteTeamWorkflowById(teamId: number, workflowId: number) {
     return await this.dbWrite.prisma.workflow.delete({ where: { id: workflowId, teamId } });

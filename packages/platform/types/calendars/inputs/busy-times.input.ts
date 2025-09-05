@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { Transform } from "class-transformer";
-import { IsNumber, IsString, IsArray, ValidateNested, IsDateString } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsArray, IsDateString, IsNumber, IsString, ValidateNested } from "class-validator";
 
 export class Calendar {
   @Transform(({ value }: { value: string }) => value && parseInt(value))

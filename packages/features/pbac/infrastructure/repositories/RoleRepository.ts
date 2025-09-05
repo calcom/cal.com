@@ -1,9 +1,8 @@
-import { v4 as uuidv4 } from "uuid";
-
 import type { PrismaClient as PrismaWithExtensions } from "@calcom/prisma";
 import db from "@calcom/prisma";
+import { v4 as uuidv4 } from "uuid";
 
-import type { Role, RolePermission, PermissionChange, CreateRoleData } from "../../domain/models/Role";
+import type { CreateRoleData, PermissionChange, Role, RolePermission } from "../../domain/models/Role";
 import { RoleType } from "../../domain/models/Role";
 import { parsePermissionString } from "../../domain/types/permission-registry";
 import { RoleOutputMapper } from "../mappers/RoleOutputMapper";

@@ -1,26 +1,24 @@
 "use client";
 
-import type { Row } from "@tanstack/react-table";
-import { flexRender } from "@tanstack/react-table";
-import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
-import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
-// eslint-disable-next-line no-restricted-imports
-import kebabCase from "lodash/kebabCase";
-import { useEffect, useState, memo, useMemo } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
+import { Command, CommandItem, CommandList } from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
-import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import {
-  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableNew,
   TableRow,
 } from "@calcom/ui/components/table";
+import type { Header, HeaderGroup, Table as ReactTableType, Row } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
+import { useVirtualizer, type VirtualItem, type Virtualizer } from "@tanstack/react-virtual";
+// eslint-disable-next-line no-restricted-imports
+import kebabCase from "lodash/kebabCase";
+import { memo, useEffect, useMemo, useState } from "react";
 
 import { useColumnSizingVars } from "../hooks";
 import { useColumnResizing } from "../hooks/useColumnResizing";
@@ -115,7 +113,8 @@ export function DataTable<TData>({
         gridTemplateAreas: "'header' 'body' 'footer'",
         ...rest.style,
       }}
-      data-testid={testId ?? "data-table"}>
+      data-testid={testId ?? "data-table"}
+    >
       {/*
         Invalidate left & right properties for <= sm screen size,
         because we pin columns only for >= sm screen sizes.
@@ -138,7 +137,8 @@ export function DataTable<TData>({
           paginationMode === "infinite" && "h-[80dvh]", // Set a fixed height for the container
           containerClassName
         )}
-        style={{ gridArea: "body" }}>
+        style={{ gridArea: "body" }}
+      >
         <TableNew
           className={classNames(
             "data-table grid border-0",
@@ -147,7 +147,8 @@ export function DataTable<TData>({
           style={{
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
-          }}>
+          }}
+        >
           <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
             {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
               <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full border-none">
@@ -165,7 +166,8 @@ export function DataTable<TData>({
                         "relative flex shrink-0 items-center",
                         "bg-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
-                      )}>
+                      )}
+                    >
                       <TableHeadLabel header={header} />
                       {Boolean(enableColumnResizing) && header.column.getCanResize() && (
                         <div
@@ -174,7 +176,8 @@ export function DataTable<TData>({
                           className={classNames(
                             "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
                             header.column.getIsResizing() && "!opacity-75"
-                          )}>
+                          )}
+                        >
                           <div className="bg-inverted mx-auto h-full w-[1px]" />
                         </div>
                       )}
@@ -290,7 +293,8 @@ function DataTableBody<TData>({
     <TableBody
       className="border-subtle relative grid border-t"
       data-testid={testId}
-      style={{ height: tableHeight }}>
+      style={{ height: tableHeight }}
+    >
       {rowsToRender.map(({ row, virtualItem }) => (
         <TableRow
           ref={virtualItem ? (node) => rowVirtualizer.measureElement(node) : undefined}
@@ -306,7 +310,8 @@ function DataTableBody<TData>({
               width: "100%",
             }),
           }}
-          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}
+        >
           {row.getVisibleCells().map((cell) => {
             const column = cell.column;
             return (
@@ -323,7 +328,8 @@ function DataTableBody<TData>({
                   variant === "compact" && "p-0",
                   column.getIsPinned() &&
                     "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
-                )}>
+                )}
+              >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             );
@@ -361,12 +367,14 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
           className={classNames(
             "group mr-1 flex w-full items-center gap-2 rounded-md px-2 py-1",
             open && "bg-muted"
-          )}>
+          )}
+        >
           <div
             className="text-default truncate text-sm leading-none"
             title={
               typeof header.column.columnDef.header === "string" ? header.column.columnDef.header : undefined
-            }>
+            }
+          >
             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
           </div>
           {header.column.getIsSorted() === "asc" && <Icon name="arrow-up" className="h-4 w-4 shrink-0" />}
@@ -394,7 +402,8 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
                     } else {
                       header.column.toggleSorting(false, true);
                     }
-                  }}>
+                  }}
+                >
                   <Icon name="arrow-up" className="h-4 w-4" />
                   {t("asc")}
                   <div className="flex-1" />
@@ -408,7 +417,8 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
                     } else {
                       header.column.toggleSorting(true, true);
                     }
-                  }}>
+                  }}
+                >
                   <Icon name="arrow-down" className="h-4 w-4" />
                   {t("desc")}
                   <div className="flex-1" />
@@ -422,7 +432,8 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
                 onSelect={() => {
                   header.column.toggleVisibility(false);
                   setOpen(false);
-                }}>
+                }}
+              >
                 <Icon name="eye-off" className="h-4 w-4" />
                 {t("hide")}
               </CommandItem>

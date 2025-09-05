@@ -1,7 +1,3 @@
-import { format } from "date-fns";
-import type { Dayjs } from "dayjs";
-import { useState, useEffect, useCallback } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -9,28 +5,31 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
-  CommandList,
-  CommandItem,
   CommandGroup,
+  CommandItem,
+  CommandList,
   CommandSeparator,
 } from "@calcom/ui/components/command";
 import { DateRangePicker } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { format } from "date-fns";
+import type { Dayjs } from "dayjs";
+import { useCallback, useEffect, useState } from "react";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {
   CUSTOM_PRESET,
   CUSTOM_PRESET_VALUE,
   DEFAULT_PRESET,
-  PRESET_OPTIONS,
-  getDefaultStartDate,
-  getDefaultEndDate,
   getDateRangeFromPreset,
+  getDefaultEndDate,
+  getDefaultStartDate,
+  PRESET_OPTIONS,
   type PresetOption,
 } from "../../lib/dateRange";
-import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
-import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
+import type { DateRangeFilterOptions, FilterableColumn } from "../../lib/types";
+import { ColumnFilterType, ZDateRangeFilterValue } from "../../lib/types";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 
 type DateRangeFilterProps = {
@@ -66,8 +65,8 @@ export const DateRangeFilter = ({
     forceCustom
       ? CUSTOM_PRESET
       : filterValue?.data.preset
-      ? PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
-      : DEFAULT_PRESET
+        ? (PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET)
+        : DEFAULT_PRESET
   );
 
   const updateValues = useCallback(
@@ -157,7 +156,8 @@ export const DateRangeFilter = ({
           className="items-center capitalize"
           StartIcon="calendar-range"
           EndIcon="chevron-down"
-          data-testid={`filter-popover-trigger-${column.id}`}>
+          data-testid={`filter-popover-trigger-${column.id}`}
+        >
           {showColumnName && (
             <>
               <span>{column.title}</span>
@@ -189,7 +189,8 @@ export const DateRangeFilter = ({
                 <Button
                   color="secondary"
                   className="w-full justify-center"
-                  onClick={() => removeFilter(column.id)}>
+                  onClick={() => removeFilter(column.id)}
+                >
                   {t("clear")}
                 </Button>
               </div>
@@ -209,7 +210,8 @@ export const DateRangeFilter = ({
                   )}
                   onSelect={() => {
                     updateDateRangeFromPreset(option.value);
-                  }}>
+                  }}
+                >
                   <span className="capitalize">{t(option.labelKey, option.i18nOptions)}</span>
                   {selectedPreset.value === option.value && <Icon name="check" />}
                 </CommandItem>
@@ -226,7 +228,8 @@ export const DateRangeFilter = ({
                     className={classNames(
                       "w-full justify-center text-center",
                       buttonClasses({ color: "secondary" })
-                    )}>
+                    )}
+                  >
                     {t("clear")}
                   </CommandItem>
                 </CommandGroup>

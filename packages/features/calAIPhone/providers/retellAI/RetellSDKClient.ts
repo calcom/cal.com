@@ -1,18 +1,17 @@
-import { Retell } from "retell-sdk";
-
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { Retell } from "retell-sdk";
 
 import type {
-  RetellAIRepository,
-  CreateLLMRequest,
-  UpdateLLMRequest,
   CreateAgentRequest,
-  UpdateAgentRequest,
-  RetellAgent,
-  CreatePhoneNumberParams,
+  CreateLLMRequest,
   CreatePhoneCallParams,
+  CreatePhoneNumberParams,
   ImportPhoneNumberParams,
+  RetellAgent,
+  RetellAIRepository,
+  UpdateAgentRequest,
+  UpdateLLMRequest,
 } from "./types";
 
 const RETELL_API_KEY = process.env.RETELL_AI_KEY;

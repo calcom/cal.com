@@ -1,17 +1,15 @@
-import Link from "next/link";
-import { Fragment } from "react";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { DialogContent, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
 import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/components/list";
-import { SkeletonContainer } from "@calcom/ui/components/skeleton";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import Link from "next/link";
+import { Fragment } from "react";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 
@@ -58,7 +56,8 @@ export function OverlayCalendarSettingsModal({
           type="creation"
           title="Calendar Settings"
           className="pb-4"
-          description={t("view_overlay_calendar_events")}>
+          description={t("view_overlay_calendar_events")}
+        >
           <div className="no-scrollbar max-h-full overflow-y-scroll ">
             {isLoading ? (
               <SkeletonLoader />

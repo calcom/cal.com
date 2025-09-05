@@ -1,6 +1,3 @@
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
-
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
@@ -16,10 +13,11 @@ import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
-import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {

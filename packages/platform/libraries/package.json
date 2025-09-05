@@ -5,9 +5,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "yarn vite build",
     "build:watch": "yarn vite build --watch",
@@ -87,36 +85,16 @@
   },
   "typesVersions": {
     "*": {
-      "event-types": [
-        "dist/event-types.d.ts"
-      ],
-      "slots": [
-        "dist/slots.d.ts"
-      ],
-      "emails": [
-        "dist/emails.d.ts"
-      ],
-      "app-store": [
-        "dist/app-store.d.ts"
-      ],
-      "schedules": [
-        "dist/schedules.d.ts"
-      ],
-      "workflows": [
-        "dist/workflows.d.ts"
-      ],
-      "conferencing": [
-        "dist/conferencing.d.ts"
-      ],
-      "repositories": [
-        "dist/repositories.d.ts"
-      ],
-      "bookings": [
-        "dist/bookings.d.ts"
-      ],
-      "private-links": [
-        "dist/private-links.d.ts"
-      ]
+      "event-types": ["dist/event-types.d.ts"],
+      "slots": ["dist/slots.d.ts"],
+      "emails": ["dist/emails.d.ts"],
+      "app-store": ["dist/app-store.d.ts"],
+      "schedules": ["dist/schedules.d.ts"],
+      "workflows": ["dist/workflows.d.ts"],
+      "conferencing": ["dist/conferencing.d.ts"],
+      "repositories": ["dist/repositories.d.ts"],
+      "bookings": ["dist/bookings.d.ts"],
+      "private-links": ["dist/private-links.d.ts"]
     }
   }
 }

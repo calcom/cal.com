@@ -1,9 +1,8 @@
 "use client";
 
+import { showToast } from "@calcom/ui/components/toast";
 import React from "react";
 import { Toaster } from "react-hot-toast";
-
-import { showToast } from "@calcom/ui/components/toast";
 
 interface TypographyStyle {
   name: string;
@@ -38,7 +37,8 @@ const CopyMenu: React.FC<CopyMenuProps> = ({ style, onCopy }) => {
       <div className="bg-default space-y-1 rounded-md p-2 shadow-lg">
         <button
           onClick={() => onCopy(style.className)}
-          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm">
+          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm"
+        >
           Copy Tailwind Class
         </button>
         <button
@@ -48,7 +48,8 @@ font-size: ${style.specs.fontSize}px;
 line-height: ${style.specs.lineHeight};
 font-weight: ${style.specs.weight};`)
           }
-          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm">
+          className="hover:bg-subtle w-full rounded px-3 py-1 text-left text-sm"
+        >
           Copy CSS
         </button>
       </div>
@@ -81,7 +82,8 @@ export const TypographyTable: React.FC<TypographyTableProps> = ({ sections }) =>
               {section.styles.map((style, styleIndex) => (
                 <div
                   key={styleIndex}
-                  className="border-subtle bg-default group relative overflow-hidden rounded-lg border p-6">
+                  className="border-subtle bg-default group relative overflow-hidden rounded-lg border p-6"
+                >
                   <div className="flex items-start justify-between">
                     <div className="space-y-4">
                       <div>

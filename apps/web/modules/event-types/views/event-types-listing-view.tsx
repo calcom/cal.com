@@ -1,12 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { FC } from "react";
-import { memo, useEffect, useState } from "react";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
@@ -16,8 +9,7 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
-import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
+import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -48,16 +40,19 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Label, Switch, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { TRPCClientError } from "@trpc/client";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { FC } from "react";
+import { memo, useEffect, useState } from "react";
+import { z } from "zod";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -146,7 +141,8 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           color="minimal"
           loading={query.isFetchingNextPage}
           disabled={!query.hasNextPage}
-          onClick={() => query.fetchNextPage()}>
+          onClick={() => query.fetchNextPage()}
+        >
           {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
         </Button>
       </div>
@@ -174,13 +170,15 @@ const Item = ({
     <div>
       <span
         className="text-default font-semibold ltr:mr-1 rtl:ml-1"
-        data-testid={`event-type-title-${type.id}`}>
+        data-testid={`event-type-title-${type.id}`}
+      >
         {type.title}
       </span>
       {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
         <small
           className="text-subtle hidden font-normal leading-4 sm:inline"
-          data-testid={`event-type-slug-${type.id}`}>
+          data-testid={`event-type-slug-${type.id}`}
+        >
           {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
@@ -208,13 +206,15 @@ const Item = ({
             <div>
               <span
                 className="text-default font-semibold ltr:mr-1 rtl:ml-1"
-                data-testid={`event-type-title-${type.id}`}>
+                data-testid={`event-type-title-${type.id}`}
+              >
                 {type.title}
               </span>
               {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
                 <small
                   className="text-subtle hidden font-normal leading-4 sm:inline"
-                  data-testid={`event-type-slug-${type.id}`}>
+                  data-testid={`event-type-slug-${type.id}`}
+                >
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
               ) : null}
@@ -317,8 +317,8 @@ export const InfiniteEventTypeList = ({
           ? pageNo - 1
           : pageNo
         : index % LIMIT === LIMIT - 1
-        ? pageNo + 1
-        : pageNo;
+          ? pageNo + 1
+          : pageNo;
 
     const newIdx = (index + increment) % LIMIT;
     const newPositionEventType = newOrder[newPageNo].eventTypes[newIdx];
@@ -543,7 +543,8 @@ export const InfiniteEventTypeList = ({
                               <Tooltip
                                 content={
                                   type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                                }>
+                                }
+                              >
                                 <div className="self-center rounded-md p-2">
                                   <Switch
                                     name="Hidden"
@@ -622,7 +623,8 @@ export const InfiniteEventTypeList = ({
                                       type="button"
                                       data-testid={`event-type-edit-${type.id}`}
                                       StartIcon="pencil"
-                                      onClick={() => router.push(`/event-types/${type.id}`)}>
+                                      onClick={() => router.push(`/event-types/${type.id}`)}
+                                    >
                                       {t("edit")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
@@ -635,7 +637,8 @@ export const InfiniteEventTypeList = ({
                                         type="button"
                                         data-testid={`event-type-duplicate-${type.id}`}
                                         StartIcon="copy"
-                                        onClick={() => openDuplicateModal(type, group)}>
+                                        onClick={() => openDuplicateModal(type, group)}
+                                      >
                                         {t("duplicate")}
                                       </DropdownItem>
                                     </DropdownMenuItem>
@@ -650,7 +653,8 @@ export const InfiniteEventTypeList = ({
                                       StartIcon="code"
                                       className="w-full rounded-none"
                                       embedUrl={encodeURIComponent(embedLink)}
-                                      eventId={type.id}>
+                                      eventId={type.id}
+                                    >
                                       {t("embed")}
                                     </EventTypeEmbedButton>
                                   </DropdownMenuItem>
@@ -668,7 +672,8 @@ export const InfiniteEventTypeList = ({
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
                                         StartIcon="trash"
-                                        className="w-full rounded-t-none">
+                                        className="w-full rounded-t-none"
+                                      >
                                         {t("delete")}
                                       </DropdownItem>
                                     </DropdownMenuItem>
@@ -695,7 +700,8 @@ export const InfiniteEventTypeList = ({
                                   href={calLink}
                                   target="_blank"
                                   StartIcon="external-link"
-                                  className="w-full rounded-none">
+                                  className="w-full rounded-none"
+                                >
                                   {t("preview")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -707,7 +713,8 @@ export const InfiniteEventTypeList = ({
                                     showToast(t("link_copied"), "success");
                                   }}
                                   StartIcon="clipboard"
-                                  className="w-full rounded-none text-left">
+                                  className="w-full rounded-none text-left"
+                                >
                                   {t("copy_link")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -728,7 +735,8 @@ export const InfiniteEventTypeList = ({
                                     .catch(() => showToast(t("failed"), "error"));
                                 }}
                                 StartIcon="upload"
-                                className="w-full rounded-none">
+                                className="w-full rounded-none"
+                              >
                                 {t("share")}
                               </DropdownItem>
                             </DropdownMenuItem>
@@ -738,7 +746,8 @@ export const InfiniteEventTypeList = ({
                               <DropdownItem
                                 onClick={() => router.push(`/event-types/${type.id}`)}
                                 StartIcon="pencil"
-                                className="w-full rounded-none">
+                                className="w-full rounded-none"
+                              >
                                 {t("edit")}
                               </DropdownItem>
                             </DropdownMenuItem>
@@ -748,7 +757,8 @@ export const InfiniteEventTypeList = ({
                               <DropdownItem
                                 onClick={() => openDuplicateModal(type, group)}
                                 StartIcon="copy"
-                                data-testid={`event-type-duplicate-${type.id}`}>
+                                data-testid={`event-type-duplicate-${type.id}`}
+                              >
                                 {t("duplicate")}
                               </DropdownItem>
                             </DropdownMenuItem>
@@ -765,7 +775,8 @@ export const InfiniteEventTypeList = ({
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
                                   StartIcon="trash"
-                                  className="w-full rounded-t-none">
+                                  className="w-full rounded-t-none"
+                                >
                                   {t("delete")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -777,7 +788,8 @@ export const InfiniteEventTypeList = ({
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"
-                                className="mt-2 inline cursor-pointer self-center pr-2 ">
+                                className="mt-2 inline cursor-pointer self-center pr-2 "
+                              >
                                 {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                               </Skeleton>
                               <Switch
@@ -811,7 +823,8 @@ export const InfiniteEventTypeList = ({
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
-          }}>
+          }}
+        >
           <p className="mt-5">
             {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
               <ul className="ml-4 list-disc">
@@ -887,7 +900,8 @@ const EmptyEventTypeList = ({
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
             variant="button"
-            className="mt-5">
+            className="mt-5"
+          >
             {t("create")}
           </Button>
         }

@@ -6,7 +6,7 @@ import { ZResponseInputSchema } from "./response.schema";
 
 const NAMESPACE = "routingForms";
 
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+const _namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const routingFormsRouter = router({
   findTeamMembersMatchingAttributeLogicOfRoute: authedProcedure

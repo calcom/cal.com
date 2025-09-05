@@ -5,7 +5,7 @@ import { SMSLockState } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import type { IconName } from "@calcom/ui/components/icon";
-import { Table, DropdownActions } from "@calcom/ui/components/table";
+import { DropdownActions, Table } from "@calcom/ui/components/table";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 

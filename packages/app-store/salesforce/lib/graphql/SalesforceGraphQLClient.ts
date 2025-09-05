@@ -1,8 +1,7 @@
-import { Client, cacheExchange, fetchExchange } from "@urql/core";
-
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Contact } from "@calcom/types/CrmService";
+import { Client, cacheExchange, fetchExchange } from "@urql/core";
 
 import { SalesforceRecordEnum } from "../enums";
 import getAllPossibleWebsiteValuesFromEmailDomain from "../utils/getAllPossibleWebsiteValuesFromEmailDomain";
@@ -110,34 +109,37 @@ export class SalesforceGraphQLClient {
       if (!relatedContactsResults) return [];
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - in CD/CI pipeline this will have any type
-      const relatedContacts = relatedContactsResults.reduce((contacts, edge) => {
-        const node = edge?.node;
-        if (!node) {
-          log.error("A related contact query didn't include a node");
-          return contacts;
-        }
-        if (!node.AccountId?.value) {
-          log.error(`A related contact with id ${node.Id} didn't have an account id`);
-          return contacts;
-        }
-        if (!node.Account?.Owner?.Id) {
-          log.error(`A related contact with id ${node.Id} didn't have an account owner id`);
-          return contacts;
-        }
-        if (!node.Account?.Owner?.Email?.value) {
-          log.error(`A related contact with id ${node.Id} didn't have an account owner email`);
-          return contacts;
-        }
+      const relatedContacts = relatedContactsResults.reduce(
+        (contacts, edge) => {
+          const node = edge?.node;
+          if (!node) {
+            log.error("A related contact query didn't include a node");
+            return contacts;
+          }
+          if (!node.AccountId?.value) {
+            log.error(`A related contact with id ${node.Id} didn't have an account id`);
+            return contacts;
+          }
+          if (!node.Account?.Owner?.Id) {
+            log.error(`A related contact with id ${node.Id} didn't have an account owner id`);
+            return contacts;
+          }
+          if (!node.Account?.Owner?.Email?.value) {
+            log.error(`A related contact with id ${node.Id} didn't have an account owner email`);
+            return contacts;
+          }
 
-        contacts.push({
-          id: node.Id,
-          AccountId: node.AccountId.value,
-          ownerId: node.Account.Owner.Id,
-          ownerEmail: node.Account.Owner.Email.value,
-        });
+          contacts.push({
+            id: node.Id,
+            AccountId: node.AccountId.value,
+            ownerId: node.Account.Owner.Id,
+            ownerEmail: node.Account.Owner.Email.value,
+          });
 
-        return contacts;
-      }, [] as { id: string; AccountId: string; ownerId: string; ownerEmail: string }[]);
+          return contacts;
+        },
+        [] as { id: string; AccountId: string; ownerId: string; ownerEmail: string }[]
+      );
 
       const dominantAccountId = getDominantAccountId(relatedContacts);
 

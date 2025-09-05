@@ -1,14 +1,12 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const responseSchema = z.object({
   hash: z.string(),

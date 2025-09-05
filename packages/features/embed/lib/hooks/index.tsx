@@ -15,7 +15,8 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
             fill="white"
@@ -88,7 +89,8 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
             fill="white"
@@ -114,7 +116,8 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
             fill="white"
@@ -192,7 +195,8 @@ export const useEmbedTypes = () => {
           className="rounded-md"
           viewBox="0 0 308 265"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg">
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <g clip-path="url(#clip0_457_1339)">
             <rect width="308" height="265" rx="8" fill="white" />
             <rect width="308" height="18" rx="4" fill="#F3F4F6" />

@@ -1,9 +1,7 @@
-import { z } from "zod";
-
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 import type { TrpcSessionUser } from "../../../types";
 

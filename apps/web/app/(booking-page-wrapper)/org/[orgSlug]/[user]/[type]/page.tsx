@@ -1,19 +1,17 @@
-import { CustomI18nProvider } from "app/CustomI18nProvider";
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
-
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
-
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
+import type { PageProps } from "app/_types";
+import { generateMeetingMetadata } from "app/_utils";
+import { CustomI18nProvider } from "app/CustomI18nProvider";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 
 import type { PageProps as TeamTypePageProps } from "~/team/type-view";
 import TeamTypePage from "~/team/type-view";
-import UserTypePage from "~/users/views/users-type-public-view";
 import type { PageProps as UserTypePageProps } from "~/users/views/users-type-public-view";
+import UserTypePage from "~/users/views/users-type-public-view";
 
 export type OrgTypePageProps = UserTypePageProps | TeamTypePageProps;
 const getData = withAppDirSsr<OrgTypePageProps>(getServerSideProps);

@@ -1,6 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-
 import OutOfOfficeEntriesList from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
+import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

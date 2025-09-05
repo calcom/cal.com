@@ -1,10 +1,9 @@
-import type { User as UserAuth } from "next-auth";
-
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useHasActiveTeamPlanAsOwner } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import type { User as UserAuth } from "next-auth";
 
 import { type NavigationItemType } from "./navigation/NavigationItem";
 

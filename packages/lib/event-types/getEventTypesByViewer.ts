@@ -1,5 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -15,10 +14,9 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
-
+import { eventTypeMetaDataSchemaWithUntypedApps, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
+import { orderBy } from "lodash";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 

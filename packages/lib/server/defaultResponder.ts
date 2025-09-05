@@ -1,5 +1,4 @@
-import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
-import { captureException } from "@sentry/nextjs";
+import { captureException, wrapApiHandlerWithSentry } from "@sentry/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";

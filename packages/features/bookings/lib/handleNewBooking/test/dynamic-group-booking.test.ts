@@ -7,27 +7,26 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
-import {
-  createBookingScenario,
-  getDate,
-  getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockCalendar,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForDynamicGroupBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, expect } from "vitest";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+import {
+  createBookingScenario,
+  getBooker,
+  getDate,
+  getGoogleCalendarCredential,
+  getOrganizer,
+  getScenarioData,
+  mockCalendar,
+  TestData,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
+import { getMockRequestDataForDynamicGroupBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { describe, expect } from "vitest";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 

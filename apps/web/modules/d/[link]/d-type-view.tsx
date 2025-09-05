@@ -2,10 +2,8 @@
 
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-
-import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
-
 import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
+import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
 export default function Type({
   slug,

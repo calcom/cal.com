@@ -1,6 +1,3 @@
-import { useEffect } from "react";
-import type { z } from "zod";
-
 import type {
   SelectLikeComponentProps,
   TextLikeComponentProps,
@@ -11,14 +8,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
+import { Checkbox, CheckboxField, EmailField, InputField, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
+import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useEffect } from "react";
+import type { z } from "zod";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
-import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
+import type { FieldType, fieldSchema, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
@@ -66,7 +65,7 @@ type Component =
           name?: string;
           required?: boolean;
           translatedDefaultLabel?: string;
-        }
+        },
       >(
         props: TProps
       ) => JSX.Element;
@@ -79,7 +78,7 @@ type Component =
           variants: z.infer<typeof variantsConfigSchema>["variants"];
           value: Record<string, string> | string | undefined;
           setValue: (value: string | Record<string, string>) => void;
-        }
+        },
       >(
         props: TProps
       ) => JSX.Element;
@@ -287,7 +286,8 @@ export const Components: Record<FieldType, Component> = {
                   onClick={() => {
                     value.push("");
                     setValue(value);
-                  }}>
+                  }}
+                >
                   {t("add_another")}
                 </Button>
               )}
@@ -306,7 +306,8 @@ export const Components: Record<FieldType, Component> = {
                 value.push("");
                 setValue(value);
               }}
-              className="mr-auto h-fit whitespace-normal text-left">
+              className="mr-auto h-fit whitespace-normal text-left"
+            >
               <span className="flex-1">{label}</span>
             </Button>
           )}
@@ -372,7 +373,8 @@ export const Components: Record<FieldType, Component> = {
           value={value}
           onValueChange={(e) => {
             setValue(e);
-          }}>
+          }}
+        >
           <>
             {options.map((option, i) => (
               <RadioField
@@ -456,7 +458,7 @@ export const Components: Record<FieldType, Component> = {
                       <span className="text-emphasis me-2 ms-2 text-sm">
                         {option.value === "somewhereElse"
                           ? t("somewhere_else")
-                          : getCleanLabel(option.label) ?? ""}
+                          : (getCleanLabel(option.label) ?? "")}
                       </span>
                       <span>
                         {option.value === "phone" && (

@@ -1,3 +1,4 @@
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
@@ -5,12 +6,9 @@ import type { Messages } from "mailhog";
 import path from "path";
 import { uuid } from "short-uuid";
 
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
-
 import type { createEmailsFixture } from "../fixtures/emails";
 import { test } from "../lib/fixtures";
-import { fillStripeTestCheckout } from "../lib/testUtils";
-import { getEmailsReceivedByUser } from "../lib/testUtils";
+import { fillStripeTestCheckout, getEmailsReceivedByUser } from "../lib/testUtils";
 
 async function expectEmailWithSubject(
   page: Page,

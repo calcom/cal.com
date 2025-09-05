@@ -1,8 +1,7 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
@@ -81,7 +80,8 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
             color="primary"
             loading={isPending}
             onClick={(e) => onConfirm && onConfirm(e)}
-            data-testid="dialog-confirmation">
+            data-testid="dialog-confirmation"
+          >
             {isPending ? loadingText : confirmBtnText}
           </DialogClose>
         )}

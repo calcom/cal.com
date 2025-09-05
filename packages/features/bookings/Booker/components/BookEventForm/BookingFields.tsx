@@ -1,5 +1,3 @@
-import { useFormContext } from "react-hook-form";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -8,6 +6,7 @@ import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocati
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { useFormContext } from "react-hook-form";
 
 import { SystemField } from "../../../lib/SystemField";
 

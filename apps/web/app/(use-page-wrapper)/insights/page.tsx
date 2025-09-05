@@ -1,10 +1,8 @@
-import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
 
 import InsightsPage from "~/insights/insights-view";
 

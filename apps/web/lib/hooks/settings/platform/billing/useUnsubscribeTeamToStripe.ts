@@ -1,7 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse } from "@calcom/platform-types";
+import { useMutation } from "@tanstack/react-query";
 
 export const useUnsubscribeTeamToStripe = (
   { onSuccess, onError, teamId }: { teamId?: number | null; onSuccess: () => void; onError: () => void } = {

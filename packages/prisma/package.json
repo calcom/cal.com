@@ -38,11 +38,7 @@
   },
   "main": "index.ts",
   "types": "index.d.ts",
-  "files": [
-    "client",
-    "zod",
-    "zod-utils.ts"
-  ],
+  "files": ["client", "zod", "zod-utils.ts"],
   "prisma": {
     "seed": "ts-node --transpile-only ./seed.ts"
   }

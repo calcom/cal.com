@@ -1,10 +1,9 @@
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import classNames from "@calcom/ui/classNames";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useId } from "@radix-ui/react-id";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
-
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
 
@@ -32,7 +31,8 @@ const Checkbox = React.forwardRef<
       "border-default data-[state=checked]:bg-brand-default data-[state=checked]:text-brand peer h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
       className
     )}
-    {...props}>
+    {...props}
+  >
     <CheckboxPrimitive.Indicator className={classNames("flex items-center justify-center text-current")}>
       <Icon name="check" className="h-4 w-4" />
     </CheckboxPrimitive.Indicator>
@@ -110,7 +110,8 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                       "text-default ml-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
-                    )}>
+                    )}
+                  >
                     {description}
                   </span>
                 )}

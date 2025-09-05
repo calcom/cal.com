@@ -1,8 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -13,7 +10,9 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
@@ -120,7 +119,8 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
             return (
               <div
                 className="border-subtle flex w-full items-center justify-between rounded-md border px-4 py-2"
-                key={recording.id}>
+                key={recording.id}
+              >
                 <div className="flex flex-col">
                   <h1 className="text-sm font-semibold">
                     {t("recording")} {index + 1}
@@ -132,14 +132,16 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                     StartIcon="download"
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
-                    onClick={() => handleDownloadClick(recording.id)}>
+                    onClick={() => handleDownloadClick(recording.id)}
+                  >
                     {t("download")}
                   </Button>
                 ) : (
                   <Button
                     tooltip={t("upgrade_to_access_recordings_description")}
                     className="ml-4 lg:ml-0"
-                    onClick={() => router.push("/teams")}>
+                    onClick={() => router.push("/teams")}
+                  >
                     {t("upgrade")}
                   </Button>
                 )}

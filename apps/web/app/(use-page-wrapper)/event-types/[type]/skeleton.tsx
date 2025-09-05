@@ -2,10 +2,10 @@
 
 import Shell from "@calcom/features/shell/Shell";
 import {
+  SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  SkeletonAvatar,
 } from "@calcom/ui/components/skeleton";
 
 export const EventTypeEditPageSkeleton = () => {
@@ -38,7 +38,8 @@ export const EventTypeEditPageSkeleton = () => {
               {Array.from({ length: 8 }).map((_, index) => (
                 <div
                   key={index}
-                  className="group flex w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none">
+                  className="group flex w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none"
+                >
                   <div className="mr-3 h-4 w-4">
                     <SkeletonAvatar className="h-4 w-4" />
                   </div>

@@ -1,7 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import getRawBody from "raw-body";
-import { z } from "zod";
-
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -9,6 +5,9 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
+import getRawBody from "raw-body";
+import { z } from "zod";
 
 export const config = {
   api: {

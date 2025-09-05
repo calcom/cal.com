@@ -1,3 +1,10 @@
+import { SchedulingType } from "@calcom/platform-libraries";
+import {
+  CreateTeamEventTypeInput_2024_06_14,
+  HostPriority,
+  UpdateTeamEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { transformTeamLocationsApiToInternal } from "@/ee/event-types/event-types_2024_06_14/transformers/api-to-internal/locations";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
@@ -5,14 +12,6 @@ import { OrganizationsConferencingService } from "@/modules/organizations/confer
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-
-import { SchedulingType } from "@calcom/platform-libraries";
-import {
-  CreateTeamEventTypeInput_2024_06_14,
-  UpdateTeamEventTypeInput_2024_06_14,
-  HostPriority,
-} from "@calcom/platform-types";
 
 export type TransformedCreateTeamEventTypeInput = Awaited<
   ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>

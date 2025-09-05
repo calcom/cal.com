@@ -1,10 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -14,11 +9,13 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
+import { Form, Label, Select } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { DisablePhoneOnlySMSNotificationsSwitch } from "../components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
@@ -158,12 +155,14 @@ const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) 
           timeFormat: values.timeFormat.value,
           weekStart: values.weekStart.value,
         });
-      }}>
+      }}
+    >
       <div
         className={classNames(
           "border-subtle border-x border-y-0 px-4 py-8 sm:px-6",
           !permissions.canEdit && "rounded-b-lg border-y"
-        )}>
+        )}
+      >
         <Controller
           name="timeZone"
           control={formMethods.control}

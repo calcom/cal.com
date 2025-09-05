@@ -1,8 +1,7 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { describe, expect, it } from "vitest";
-
-import { IdentityProvider } from "@calcom/prisma/enums";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import unlinkConnectedAccountHandler from "./unlinkConnectedAccount.handler";
 

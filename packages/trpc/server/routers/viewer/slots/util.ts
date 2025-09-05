@@ -1,6 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import type { Logger } from "tslog";
-import { v4 as uuid } from "uuid";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -23,9 +21,9 @@ import type {
   CurrentSeats,
   EventType,
   GetAvailabilityUser,
-  UserAvailabilityService,
   IFromUser,
   IToUser,
+  UserAvailabilityService,
 } from "@calcom/lib/getUserAvailability";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -35,29 +33,30 @@ import LimitManager from "@calcom/lib/intervalLimits/limitManager";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
+  BookingDateInPastError,
   calculatePeriodLimits,
   isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
-  BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import type { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { TRPCError } from "@trpc/server";
+import type { Logger } from "tslog";
+import { v4 as uuid } from "uuid";
 
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots";
@@ -201,8 +200,8 @@ export class AvailableSlotsService {
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
         : input.usernameList
-        ? [input.usernameList]
-        : [],
+          ? [input.usernameList]
+          : [],
     });
 
     const usersWithOldSelectedCalendars = usersForDynamicEventType.map((user) => withSelectedCalendars(user));
@@ -1364,7 +1363,7 @@ export class AvailableSlotsService {
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
 
     const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
-    const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
+    const bookerUtcOffset = input.timeZone ? (getUTCOffsetByTimezone(input.timeZone) ?? 0) : 0;
     const periodLimits = calculatePeriodLimits({
       periodType: eventType.periodType,
       periodDays: eventType.periodDays,

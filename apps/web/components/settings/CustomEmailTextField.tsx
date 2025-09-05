@@ -1,6 +1,3 @@
-import { useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -12,6 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { InputError } from "@calcom/ui/components/form";
+import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "~/settings/my-account/profile-view";
 
@@ -46,7 +45,8 @@ const CustomEmailTextField = ({
       <div
         className={`border-default mt-2 flex w-full items-center rounded-[10px] border ${
           inputFocus ? "ring-brand-default border-neutral-300 ring-2" : ""
-        }`}>
+        }`}
+      >
         <input
           {...formMethods.register(formMethodFieldName)}
           className="flex-1 bg-transparent px-3 py-1.5 text-sm outline-none"
@@ -84,7 +84,8 @@ const CustomEmailTextField = ({
                   className="disabled:opacity-40"
                   onClick={handleChangePrimary}
                   disabled={!emailVerified || emailPrimary}
-                  data-testid="secondary-email-make-primary-button">
+                  data-testid="secondary-email-make-primary-button"
+                >
                   {t("make_primary")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -96,7 +97,8 @@ const CustomEmailTextField = ({
                     className="disabled:opacity-40"
                     onClick={handleVerifyEmail}
                     disabled={emailVerified}
-                    data-testid="resend-verify-email-button">
+                    data-testid="resend-verify-email-button"
+                  >
                     {t("resend_email")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -108,7 +110,8 @@ const CustomEmailTextField = ({
                   className="rounded-t-none disabled:opacity-40"
                   onClick={handleItemDelete}
                   disabled={emailPrimary}
-                  data-testid="secondary-email-delete-button">
+                  data-testid="secondary-email-delete-button"
+                >
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>

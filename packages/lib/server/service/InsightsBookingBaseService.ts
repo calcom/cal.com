@@ -1,27 +1,26 @@
-import { Prisma } from "@prisma/client";
-import md5 from "md5";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
-import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
-  isSingleSelectFilterValue,
   isMultiSelectFilterValue,
-  isTextFilterValue,
   isNumberFilterValue,
+  isSingleSelectFilterValue,
+  isTextFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { Prisma } from "@prisma/client";
+import md5 from "md5";
+import { z } from "zod";
 
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
-  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
+  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown },
 >(
   usersFromTeam: T[]
 ) => {

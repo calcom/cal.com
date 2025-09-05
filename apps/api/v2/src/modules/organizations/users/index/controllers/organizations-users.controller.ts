@@ -1,3 +1,21 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Team } from "@calcom/prisma/client";
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -18,31 +36,12 @@ import { CreateOrganizationUserInput } from "@/modules/organizations/users/index
 import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
 import {
+  GetOrganizationUserOutput,
   GetOrganizationUsersResponseDTO,
   GetOrgUsersWithProfileOutput,
 } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
-import { GetOrganizationUserOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  ParseIntPipe,
-  Body,
-  UseInterceptors,
-  Query,
-} from "@nestjs/common";
-import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { Team } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/users",

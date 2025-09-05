@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   AIPhoneServiceRegistry,
@@ -7,8 +7,8 @@ import {
 } from "./AIPhoneServiceRegistry";
 import type {
   AIPhoneServiceProvider,
-  AIPhoneServiceProviderFactory,
   AIPhoneServiceProviderConfig,
+  AIPhoneServiceProviderFactory,
 } from "./interfaces/AIPhoneService.interface";
 import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 

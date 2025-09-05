@@ -1,7 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { HostRepository } from "@calcom/lib/server/repository/host";
 import { PrismaClient } from "@calcom/prisma";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getDefaultScheduleId, hasDefaultSchedule, setupDefaultSchedule } from "./util";
 

@@ -1,10 +1,9 @@
+import ServerTrans from "@calcom/lib/components/ServerTrans";
+import { APP_NAME, IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import type { TFunction } from "i18next";
 
-import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
-
 import { getSubject, getTypeOfInvite } from "../../templates/team-invite-email";
-import { V2BaseEmailHtml, CallToAction } from "../components";
+import { CallToAction, V2BaseEmailHtml } from "../components";
 
 type TeamInvite = {
   language: TFunction;
@@ -55,7 +54,8 @@ export const TeamInviteEmail = (
           marginBottom: "32px",
           marginTop: "32px",
           lineHeightStep: "24px",
-        }}>
+        }}
+      >
         <>{content}</>
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
@@ -85,7 +85,8 @@ export const TeamInviteEmail = (
             marginBottom: "32px",
             marginTop: "32px",
             lineHeightStep: "24px",
-          }}>
+          }}
+        >
           <>
             {props.language("email_no_user_signoff", {
               appName: APP_NAME,
@@ -136,7 +137,7 @@ export const TeamInviteEmail = (
       parentTeamName: props.parentTeamName,
       prevLink: props.prevLink,
       newLink: props.newLink,
-      orgName: props.parentTeamName ?? props.isOrg ? props.teamName : "",
+      orgName: (props.parentTeamName ?? props.isOrg) ? props.teamName : "",
       prevLinkWithoutProtocol: props.prevLink?.replace(/https?:\/\//, ""),
       newLinkWithoutProtocol: props.newLink?.replace(/https?:\/\//, ""),
     };
@@ -179,7 +180,8 @@ export const TeamInviteEmail = (
                     a2: (
                       <a
                         className="cursor-pointer text-blue-500 underline"
-                        href={`${newLink}?orgRedirection=true`}>
+                        href={`${newLink}?orgRedirection=true`}
+                      >
                         {newLinkWithoutProtocol}
                       </a>
                     ),

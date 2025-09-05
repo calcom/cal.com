@@ -1,16 +1,14 @@
-import { expect } from "@playwright/test";
-import type { Page, Browser, Route, Response } from "@playwright/test";
-import type { Team, EventType, User } from "@prisma/client";
-import type { z } from "zod";
-
 import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
-import { getTimeMin, getTimeMax } from "@calcom/features/calendar-cache/lib/datesForCache";
+import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
-import { test } from "./lib/fixtures";
+import type { Browser, Page, Response, Route } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { EventType, Team, User } from "@prisma/client";
+import type { z } from "zod";
 import type { Fixtures } from "./lib/fixtures";
+import { test } from "./lib/fixtures";
 import { bookTimeSlot, doOnOrgDomain, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 /**

@@ -1,8 +1,6 @@
-import type { z } from "zod";
-
 import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
-
 import { TRPCError } from "@trpc/server";
+import type { z } from "zod";
 
 import type { workspacePlatformUpdateSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";

@@ -1,17 +1,15 @@
+import dayjs from "@calcom/dayjs";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
+import { CardComponent } from "@lib/plain/card-components";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import dayjs from "@calcom/dayjs";
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
-import { userMetadata } from "@calcom/prisma/zod-utils";
-
-import { CardComponent } from "@lib/plain/card-components";
 
 const customerCardDisplay = (
   name: string,

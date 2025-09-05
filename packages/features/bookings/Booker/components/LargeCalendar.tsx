@@ -1,5 +1,3 @@
-import { useMemo, useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -7,6 +5,7 @@ import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { localStorage } from "@calcom/lib/webstorage";
+import { useEffect, useMemo } from "react";
 
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";

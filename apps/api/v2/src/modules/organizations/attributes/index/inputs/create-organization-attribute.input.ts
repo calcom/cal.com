@@ -1,4 +1,4 @@
-import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { AttributeType } from "@calcom/platform-libraries";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -10,8 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-
-import { AttributeType } from "@calcom/platform-libraries";
+import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
 
 export class CreateOrganizationAttributeInput {
   @IsString()

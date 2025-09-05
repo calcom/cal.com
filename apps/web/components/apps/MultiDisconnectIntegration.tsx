@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -10,13 +8,13 @@ import {
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
-
 import type { inferRouterOutputs } from "@trpc/server";
+import { useState } from "react";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type Credentials = RouterOutput["viewer"]["apps"]["appCredentialsByType"]["credentials"];
@@ -85,7 +83,8 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                     name: cred.team?.name || getUserDisplayName(cred.user) || null,
                   });
                   setConfirmationDialogOpen(true);
-                }}>
+                }}
+              >
                 <div className="flex flex-col text-left">
                   <span>{cred.team?.name || getUserDisplayName(cred.user) || t("unnamed")}</span>
                 </div>
@@ -107,7 +106,8 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                 ...(credentialToDelete.teamId ? { teamId: credentialToDelete.teamId } : {}),
               });
             }
-          }}>
+          }}
+        >
           <p className="mt-5">
             {t("are_you_sure_you_want_to_remove_this_app_from")} {credentialToDelete?.name || t("unnamed")}?
           </p>

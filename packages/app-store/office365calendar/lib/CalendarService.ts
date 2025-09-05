@@ -1,12 +1,9 @@
-import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
-import type { DefaultBodyType } from "msw";
-
 import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
-  CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -19,9 +16,10 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
-
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import type { Event, Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import type { DefaultBodyType } from "msw";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
@@ -242,8 +240,8 @@ export default class Office365CalendarService implements Calendar {
 
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-        event.destinationCalendar[0]
+      ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0])
       : undefined;
     try {
       const eventsUrl = mainHostDestinationCalendar?.externalId
@@ -461,8 +459,8 @@ export default class Office365CalendarService implements Calendar {
       organizer: {
         emailAddress: {
           address: event.destinationCalendar
-            ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
-              event.organizer.email
+            ? (event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
+              event.organizer.email)
             : event.organizer.email,
           name: event.organizer.name,
         },

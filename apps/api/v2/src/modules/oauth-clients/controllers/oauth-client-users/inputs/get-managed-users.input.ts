@@ -1,9 +1,8 @@
+import { Pagination } from "@calcom/platform-types";
 import { BadRequestException } from "@nestjs/common";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { ArrayNotEmpty, isEmail, IsOptional } from "class-validator";
-
-import { Pagination } from "@calcom/platform-types";
+import { ArrayNotEmpty, IsOptional, isEmail } from "class-validator";
 
 export class GetManagedUsersInput extends Pagination {
   @IsOptional()

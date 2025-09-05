@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -7,17 +5,18 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
   Dropdown,
-  DropdownMenuTrigger,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownItem,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useSession } from "next-auth/react";
 
-import type { UserTableUser, UserTableAction } from "./types";
+import type { UserTableAction, UserTableUser } from "./types";
 
 export function TableActions({
   user,
@@ -90,7 +89,8 @@ export function TableActions({
                           },
                         })
                       }
-                      StartIcon="pencil">
+                      StartIcon="pencil"
+                    >
                       {t("edit")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -109,7 +109,8 @@ export function TableActions({
                             },
                           })
                         }
-                        StartIcon="lock">
+                        StartIcon="lock"
+                      >
                         {t("impersonate")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -130,7 +131,8 @@ export function TableActions({
                         })
                       }
                       color="destructive"
-                      StartIcon="user-x">
+                      StartIcon="user-x"
+                    >
                       {t("remove")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -147,7 +149,8 @@ export function TableActions({
                           isOrg: true,
                         });
                       }}
-                      StartIcon="send">
+                      StartIcon="send"
+                    >
                       {t("resend_invitation")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -183,7 +186,8 @@ export function TableActions({
                           },
                         })
                       }
-                      StartIcon="pencil">
+                      StartIcon="pencil"
+                    >
                       {t("edit")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -203,7 +207,8 @@ export function TableActions({
                         },
                       })
                     }
-                    StartIcon="user-x">
+                    StartIcon="user-x"
+                  >
                     {t("remove")}
                   </DropdownItem>
                 </DropdownMenuItem>

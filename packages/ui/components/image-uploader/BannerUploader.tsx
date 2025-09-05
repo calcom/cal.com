@@ -1,17 +1,16 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
-import Cropper from "react-easy-crop";
-
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useCallback, useEffect, useState } from "react";
+import Cropper from "react-easy-crop";
 
 import type { ButtonColor } from "../button";
 import { Button } from "../button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTrigger } from "../dialog";
 import { showToast } from "../toast";
-import { useFileReader, createImage, Slider } from "./Common";
-import type { FileEvent, Area } from "./Common";
+import type { Area, FileEvent } from "./Common";
+import { createImage, Slider, useFileReader } from "./Common";
 
 type BannerUploaderProps = {
   id: string;
@@ -139,14 +138,16 @@ export default function BannerUploader({
         if (!opened) {
           setFile(null);
         }
-      }}>
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           color={triggerButtonColor ?? "secondary"}
           type="button"
           disabled={disabled}
           data-testid={`open-upload-${target}-dialog`}
-          className="cursor-pointer py-1 text-sm">
+          className="cursor-pointer py-1 text-sm"
+        >
           {buttonMsg}
         </Button>
       </DialogTrigger>
@@ -168,7 +169,8 @@ export default function BannerUploader({
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
               data-testid="open-upload-image-filechooser"
-              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1"
+            >
               <input
                 onInput={onInputFile}
                 type="file"
@@ -189,7 +191,8 @@ export default function BannerUploader({
           <DialogClose
             data-testid="upload-avatar"
             color="primary"
-            onClick={() => showCroppedImage(croppedAreaPixels)}>
+            onClick={() => showCroppedImage(croppedAreaPixels)}
+          >
             {t("save")}
           </DialogClose>
         </DialogFooter>

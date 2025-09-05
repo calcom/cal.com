@@ -1,12 +1,10 @@
-import { CustomI18nProvider } from "app/CustomI18nProvider";
-import withEmbedSsrAppDir from "app/WithEmbedSSR";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { cookies, headers } from "next/headers";
-
 import { loadTranslations } from "@calcom/lib/server/i18n";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
+import type { PageProps as ServerPageProps } from "app/_types";
+import { CustomI18nProvider } from "app/CustomI18nProvider";
+import withEmbedSsrAppDir from "app/WithEmbedSSR";
+import { cookies, headers } from "next/headers";
 
 import TypePage, { type PageProps as ClientPageProps } from "~/team/type-view";
 

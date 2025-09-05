@@ -1,9 +1,11 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { ConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import {
+  GOOGLE_CALENDAR_ID,
+  GOOGLE_CALENDAR_TYPE,
+  GOOGLE_MEET,
+  GOOGLE_MEET_TYPE,
+  SUCCESS_STATUS,
+} from "@calcom/platform-constants";
+import { ApiSuccessResponse } from "@calcom/platform-types";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -13,16 +15,12 @@ import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentia
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import {
-  ERROR_STATUS,
-  GOOGLE_CALENDAR_ID,
-  GOOGLE_CALENDAR_TYPE,
-  GOOGLE_MEET,
-  GOOGLE_MEET_TYPE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
-import { ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { ConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Conferencing Endpoints", () => {
   describe("conferencing controller e2e tests", () => {

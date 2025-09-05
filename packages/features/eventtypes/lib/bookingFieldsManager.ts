@@ -1,10 +1,9 @@
-import type { z } from "zod";
-
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { prisma } from "@calcom/prisma";
 import type { EventType } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 
 type Field = z.infer<typeof eventTypeBookingFields>[number];
 

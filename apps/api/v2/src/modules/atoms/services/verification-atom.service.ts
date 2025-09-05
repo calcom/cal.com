@@ -1,15 +1,14 @@
+import {
+  checkEmailVerificationRequired,
+  sendEmailVerificationByCode,
+  verifyCodeAuthenticated,
+  verifyCodeUnAuthenticated,
+} from "@calcom/platform-libraries";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
-
-import {
-  verifyCodeUnAuthenticated,
-  verifyCodeAuthenticated,
-  sendEmailVerificationByCode,
-  checkEmailVerificationRequired,
-} from "@calcom/platform-libraries";
 
 @Injectable()
 export class VerificationAtomsService {

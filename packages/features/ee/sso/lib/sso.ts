@@ -7,7 +7,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import jackson from "./jackson";
-import { tenantPrefix, samlProductID } from "./saml";
+import { samlProductID, tenantPrefix } from "./saml";
 
 const getAllAcceptedMemberships = async ({ prisma, email }: { prisma: PrismaClient; email: string }) => {
   return await prisma.membership.findMany({

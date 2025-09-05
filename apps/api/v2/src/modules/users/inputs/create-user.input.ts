@@ -1,3 +1,4 @@
+import { ValidateMetadata } from "@calcom/platform-types";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
 import {
@@ -5,14 +6,12 @@ import {
   IsEmail,
   IsHexColor,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
-  Validate,
   Min,
-  IsObject,
+  Validate,
 } from "class-validator";
-
-import { ValidateMetadata } from "@calcom/platform-types";
 
 import { AvatarValidator } from "../validators/avatarValidator";
 import { LocaleValidator } from "../validators/localeValidator";

@@ -1,8 +1,3 @@
-import type { TokenResponse, Connection, Field } from "@jsforce/jsforce-node";
-import jsforce from "@jsforce/jsforce-node";
-import { RRule } from "rrule";
-import { z } from "zod";
-
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
@@ -14,26 +9,30 @@ import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } 
 import { RoutingFormResponseDataFactory } from "@calcom/lib/server/service/routingForm/RoutingFormResponseDataFactory";
 import { findFieldValueByIdentifier } from "@calcom/lib/server/service/routingForm/responseData/findFieldValueByIdentifier";
 import { prisma } from "@calcom/prisma";
-import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
+import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
+import type { Contact, CRM, CrmEvent } from "@calcom/types/CrmService";
+import type { Connection, Field, TokenResponse } from "@jsforce/jsforce-node";
+import jsforce from "@jsforce/jsforce-node";
+import { RRule } from "rrule";
+import { z } from "zod";
 
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
-import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry } from "../zod";
+import type { appDataSchema, writeToBookingEntry, writeToRecordDataSchema } from "../zod";
 import {
-  SalesforceRecordEnum,
-  SalesforceFieldType,
-  WhenToWriteToRecord,
   DateFieldTypeData,
   RoutingReasons,
+  SalesforceFieldType,
+  SalesforceRecordEnum,
+  WhenToWriteToRecord,
 } from "./enums";
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
-import getDominantAccountId from "./utils/getDominantAccountId";
 import type { GetDominantAccountIdInput } from "./utils/getDominantAccountId";
+import getDominantAccountId from "./utils/getDominantAccountId";
 
 class SFObjectToUpdateNotFoundError extends RetryableError {
   constructor(message: string) {

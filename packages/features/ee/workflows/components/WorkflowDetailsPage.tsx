@@ -1,10 +1,4 @@
-import { useRouter, useSearchParams } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect } from "react";
-import type { UseFormReturn } from "react-hook-form";
-import { Controller } from "react-hook-form";
-
-import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
+import { SCANNING_WORKFLOW_STEPS, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -12,10 +6,15 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
+import { CheckboxField, Label, MultiSelectCheckbox, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
-import { isSMSAction, isCalAIAction } from "../lib/actionHelperFunctions";
+import { isCalAIAction, isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -199,7 +198,8 @@ export default function WorkflowDetailsPage(props: Props) {
               StartIcon="trash-2"
               color="destructive"
               className="border"
-              onClick={() => setDeleteDialogOpen(true)}>
+              onClick={() => setDeleteDialogOpen(true)}
+            >
               {t("delete_workflow")}
             </Button>
           )}
@@ -250,7 +250,8 @@ export default function WorkflowDetailsPage(props: Props) {
                   type="button"
                   onClick={() => setIsAddActionDialogOpen(true)}
                   color="secondary"
-                  className="bg-default">
+                  className="bg-default"
+                >
                   {t("add_action")}
                 </Button>
               </div>

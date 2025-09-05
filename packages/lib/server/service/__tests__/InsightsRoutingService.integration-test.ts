@@ -1,12 +1,11 @@
-import type { Team, User, Membership } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-import { randomUUID } from "crypto";
-import { v4 as uuid } from "uuid";
-import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
-
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import type { Membership, Team, User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { randomUUID } from "crypto";
+import { v4 as uuid } from "uuid";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { InsightsRoutingBaseService as InsightsRoutingService } from "../../service/InsightsRoutingBaseService";
 

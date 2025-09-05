@@ -1,18 +1,17 @@
 "use client";
 
-import { useState } from "react";
-
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
-  Scope,
   CrudAction,
   getPermissionsForScope,
+  Scope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Checkbox, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useState } from "react";
 
 import { usePermissions } from "./usePermissions";
 
@@ -52,10 +51,10 @@ export function AdvancedPermissionGroup({
   const allPermissions = isAllResources
     ? ["*.*"]
     : resourceConfig
-    ? Object.entries(resourceConfig)
-        .filter(([action]) => action !== INTERNAL_DATAACCESS_KEY)
-        .map(([action]) => `${resource}.${action}`)
-    : [];
+      ? Object.entries(resourceConfig)
+          .filter(([action]) => action !== INTERNAL_DATAACCESS_KEY)
+          .map(([action]) => `${resource}.${action}`)
+      : [];
 
   // Check if all permissions for this resource are selected
   const isAllSelected = isAllResources
@@ -94,7 +93,8 @@ export function AdvancedPermissionGroup({
           if (e.target === e.currentTarget) {
             setIsExpanded(!isExpanded);
           }
-        }}>
+        }}
+      >
         <div className="flex items-center gap-1.5" onClick={() => setIsExpanded(!isExpanded)}>
           <Icon
             name="chevron-right"
@@ -113,12 +113,14 @@ export function AdvancedPermissionGroup({
           />
           <span
             className="text-default cursor-pointer text-sm font-medium leading-none"
-            onClick={() => setIsExpanded(!isExpanded)}>
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
             {t(resourceConfig?._resource?.i18nKey || "")}
           </span>
           <span
             className="text-muted cursor-pointer text-sm font-medium leading-none"
-            onClick={() => setIsExpanded(!isExpanded)}>
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
             {t("all_permissions")}
           </span>
         </div>

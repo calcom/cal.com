@@ -1,8 +1,7 @@
+import type { PrismaClient } from "@calcom/prisma";
 import type { Account, IdentityProvider, User, VerificationToken } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { Awaitable } from "next-auth";
-
-import type { PrismaClient } from "@calcom/prisma";
 
 import { identityProviderNameMap } from "./identityProviderNameMap";
 

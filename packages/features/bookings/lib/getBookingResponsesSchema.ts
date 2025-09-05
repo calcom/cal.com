@@ -1,10 +1,9 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
-import z from "zod";
-
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import z from "zod";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});

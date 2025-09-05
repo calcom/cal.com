@@ -15,7 +15,8 @@ export const CallToActionTable = (props: { children: React.ReactNode }) => (
             // @ts-ignore
             msoPaddingAlt: "10px 25px",
           }}
-          valign="middle">
+          valign="middle"
+        >
           {props.children}
         </td>
       </tr>

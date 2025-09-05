@@ -1,6 +1,3 @@
-import Link from "next/link";
-import { useState } from "react";
-
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -11,6 +8,8 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import Link from "next/link";
+import { useState } from "react";
 
 interface IAppConnectionItem {
   title: string;
@@ -93,7 +92,8 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                             <>
                               <Link
                                 href={`${WEBAPP_URL}/getting-started/connected-calendar`}
-                                className="flex items-center text-xs underline">
+                                className="flex items-center text-xs underline"
+                              >
                                 <span className="mr-1">
                                   {t("connect_app", { dependencyName: dependency.name })}
                                 </span>
@@ -112,7 +112,8 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                 document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
                 buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
                 setInstalling(true);
-              }}>
+              }}
+            >
               {installed ? t("installed") : t("connect")}
             </Button>
           )}
@@ -128,7 +129,8 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
               if (slug) {
                 setDefaultConferencingApp.mutate({ slug });
               }
-            }}>
+            }}
+          >
             {t("set_as_default")}
           </Button>
         )}

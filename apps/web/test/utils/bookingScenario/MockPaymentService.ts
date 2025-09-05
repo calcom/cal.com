@@ -1,6 +1,5 @@
+import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
-
-import type { Payment, Prisma, PaymentOption, Booking } from "@prisma/client";
 import "vitest-fetch-mock";
 
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
@@ -71,12 +70,14 @@ export function getMockPaymentService() {
       await sendAwaitingPaymentEmailAndSMS({
         ...event,
         paymentInfo: {
-          link: createPaymentLink(/*{
+          link: createPaymentLink(
+            /*{
             paymentUid: paymentData.uid,
             name: booking.user?.name,
             email: booking.user?.email,
             date: booking.startTime.toISOString(),
-          }*/),
+          }*/
+          ),
           paymentOption: paymentData.paymentOption || "ON_BOOKING",
           amount: paymentData.amount,
           currency: paymentData.currency,

@@ -1,6 +1,5 @@
-import { getDate } from "../../utils/bookingScenario/bookingScenario";
-
 import { vi } from "vitest";
+import { getDate } from "../../utils/bookingScenario/bookingScenario";
 
 export function timeTravelToTheBeginningOfToday({ utcOffsetInHours = 0 }: { utcOffsetInHours: number }) {
   const timeInTheUtcOffsetInHours = 24 - utcOffsetInHours;

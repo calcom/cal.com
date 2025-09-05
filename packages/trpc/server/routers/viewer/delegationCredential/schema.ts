@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 export const DelegationCredentialCreateSchema = z.object({
   workspacePlatformSlug: z.string(),

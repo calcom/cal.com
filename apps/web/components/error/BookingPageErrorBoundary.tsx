@@ -13,7 +13,8 @@ export default function BookingPageErrorBoundary({ children }: { children: React
       onError={(error, info) => {
         console.error(error);
         captureReactException(error, info);
-      }}>
+      }}
+    >
       {children}
     </ErrorBoundary>
   );

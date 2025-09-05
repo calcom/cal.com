@@ -1,3 +1,16 @@
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
+import { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
+import { Team } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { Profile, User } from "@prisma/client";
+import * as request from "supertest";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
@@ -12,20 +25,6 @@ import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outp
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { Profile, User } from "@prisma/client";
-import * as request from "supertest";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
-import { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("Dynamic event type slots", () => {

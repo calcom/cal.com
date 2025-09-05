@@ -1,14 +1,13 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { ReactNode } from "react";
-import { useId, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { ReactNode } from "react";
+import { useId, useState } from "react";
 
 export function PanelCard({
   title,
@@ -50,7 +49,8 @@ export function PanelCard({
         "bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1",
         !isCollapsed && "pb-1",
         className
-      )}>
+      )}
+    >
       <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
         <div className="flex shrink-0 items-center gap-1">
           {collapsible && (
@@ -84,7 +84,8 @@ export function PanelCard({
                     className="text-left transition-opacity hover:opacity-80"
                     aria-expanded={!isCollapsed}
                     aria-controls={contentId}
-                    aria-label={isCollapsed ? t("expand_panel") : t("collapse_panel")}>
+                    aria-label={isCollapsed ? t("expand_panel") : t("collapse_panel")}
+                  >
                     {title as string}
                   </button>
                 ) : (
@@ -111,7 +112,8 @@ export function PanelCard({
           id={contentId}
           role="region"
           aria-labelledby={isStringTitle ? titleId : undefined}
-          className="bg-default border-muted w-full grow gap-3 rounded-xl border">
+          className="bg-default border-muted w-full grow gap-3 rounded-xl border"
+        >
           {subtitle && (
             <h3 className="text-subtle border-muted border-b p-3 text-sm font-medium leading-none">
               {subtitle}

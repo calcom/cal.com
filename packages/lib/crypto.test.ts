@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { symmetricEncrypt, symmetricDecrypt } from "./crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "./crypto";
 
 describe("crypto", () => {
   const testKey = "12345678901234567890123456789012"; // 32 bytes key

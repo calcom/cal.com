@@ -1,20 +1,18 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { unstable_cache } from "next/cache";
-import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import { Resource, CrudAction, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CrudAction, Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
 
 import { CreateRoleCTA } from "../../../organizations/roles/_components/CreateRoleCta";
 import { RolesList } from "../../../organizations/roles/_components/RolesList";
@@ -140,7 +138,8 @@ const Page = async ({
       title={t("roles_and_permissions")}
       description={t("roles_and_permissions_description")}
       borderInShellHeader={false}
-      CTA={canCreate ? <CreateRoleCTA /> : null}>
+      CTA={canCreate ? <CreateRoleCTA /> : null}
+    >
       <RolesList
         teamId={team.id}
         roles={roles}

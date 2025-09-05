@@ -1,14 +1,13 @@
-import { useState } from "react";
-
 import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter, DialogTrigger } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 import CreateDirectory from "./CreateDirectory";
 import DirectoryInfo from "./DirectoryInfo";
@@ -81,7 +80,8 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
               title={t("directory_sync_delete_title")}
               description={t("directory_sync_delete_description")}
               type="creation"
-              Icon="triangle-alert">
+              Icon="triangle-alert"
+            >
               <>
                 <div className="mb-10">
                   <p className="text-default mb-4">{t("directory_sync_delete_confirmation")}</p>
@@ -92,7 +92,8 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
                     color="primary"
                     data-testid="delete-account-confirm"
                     onClick={onDeleteConfirmation}
-                    loading={deleteMutation.isPending}>
+                    loading={deleteMutation.isPending}
+                  >
                     {t("directory_sync_delete_connection")}
                   </Button>
                 </DialogFooter>

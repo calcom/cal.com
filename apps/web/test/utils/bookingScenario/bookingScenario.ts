@@ -1,18 +1,21 @@
-import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-
-import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-import type { WebhookTriggerEvents } from "@prisma/client";
+import type {
+  Attendee,
+  Booking,
+  BookingReference,
+  Membership,
+  Prisma,
+  WebhookTriggerEvents,
+} from "@prisma/client";
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import { vi } from "vitest";
+import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 import "vitest-fetch-mock";
-import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
+import { type WeekDays, weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
@@ -20,26 +23,29 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type {
   WorkflowActions,
+  WorkflowMethods,
   WorkflowTemplates,
   WorkflowTriggerEvents,
-  WorkflowMethods,
 } from "@calcom/prisma/client";
-import type { PaymentOption, SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
-import type { BookingStatus } from "@calcom/prisma/enums";
-import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { userMetadataType } from "@calcom/prisma/zod-utils";
-import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type {
+  BookingStatus,
+  PaymentOption,
+  SchedulingType,
+  SMSLockState,
+  TimeUnit,
+} from "@calcom/prisma/enums";
+import type { eventTypeBookingFields, teamMetadataSchema, userMetadataType } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type {
   CalendarEvent,
+  EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
-  EventBusyDate,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
-import { getMockPaymentService } from "./MockPaymentService";
+import type { z } from "zod";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
+import { getMockPaymentService } from "./MockPaymentService";
 
 vi.mock("@calcom/app-store/calendar.services.generated", () => ({
   CalendarServiceMap: {
@@ -1091,12 +1097,7 @@ export async function createCredentials(
  *  use vi.setSystemTime to fix the date and time and then use hardcoded days instead of dynamic date calculation.
  */
 export const getDate = (
-  param: {
-    dateIncrement?: number;
-    monthIncrement?: number;
-    yearIncrement?: number;
-    fromDate?: Date;
-  } = {}
+  param: { dateIncrement?: number; monthIncrement?: number; yearIncrement?: number; fromDate?: Date } = {}
 ) => {
   let { dateIncrement, monthIncrement, yearIncrement, fromDate } = param;
 

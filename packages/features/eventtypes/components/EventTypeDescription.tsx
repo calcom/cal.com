@@ -1,7 +1,3 @@
-import type { Prisma } from "@prisma/client";
-import { useMemo } from "react";
-import type { z } from "zod";
-
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -14,6 +10,9 @@ import type { EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
+import type { Prisma } from "@prisma/client";
+import { useMemo } from "react";
+import type { z } from "zod";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -100,7 +99,8 @@ export const EventTypeDescription = ({
                 variant="gray"
                 customStartIcon={
                   <PriceIcon currency={paymentAppData.currency} className="h-3 w-3 stroke-[3px]" />
-                }>
+                }
+              >
                 <Price
                   currency={paymentAppData.currency}
                   price={paymentAppData.price}

@@ -1,8 +1,7 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
+import * as constants from "@calcom/lib/constants";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import * as constants from "@calcom/lib/constants";
+import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
 
 import { TeamBillingRepository } from "./team-billing.repository";
 

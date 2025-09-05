@@ -47,7 +47,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
     defaultScheduleId = null;
   }
 

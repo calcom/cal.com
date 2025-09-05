@@ -1,5 +1,3 @@
-import type { NextApiRequest } from "next";
-
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -7,6 +5,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import type { NextApiRequest } from "next";
 
 import { getCalendar } from "../../_utils/getCalendar";
 

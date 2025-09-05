@@ -1,11 +1,10 @@
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { Linter } from "eslint";
 import { parse } from "node-html-parser";
-
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 

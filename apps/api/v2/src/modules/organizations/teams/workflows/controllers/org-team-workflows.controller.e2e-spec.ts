@@ -1,29 +1,8 @@
-import { bootstrap } from "@/app";
-// Assuming this is your main app bootstrapper
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
-import {
-  ATTENDEE,
-  REMINDER,
-  PHONE_NUMBER,
-  EMAIL,
-  WorkflowEmailAttendeeStepDto,
-} from "@/modules/workflows/inputs/workflow-step.input";
-import {
-  BEFORE_EVENT,
-  DAY,
-  OnAfterEventTriggerDto,
-  OnBeforeEventTriggerDto,
-} from "@/modules/workflows/inputs/workflow-trigger.input";
-// Adjust path if needed
-import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User, Team } from "@prisma/client";
+import { Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -34,8 +13,28 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { VerifiedResourcesRepositoryFixtures } from "test/fixtures/repository/verified-resources.repository.fixture";
 import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { bootstrap } from "@/app";
+// Assuming this is your main app bootstrapper
+import { AppModule } from "@/app.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
+import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
+import {
+  ATTENDEE,
+  EMAIL,
+  PHONE_NUMBER,
+  REMINDER,
+  WorkflowEmailAttendeeStepDto,
+} from "@/modules/workflows/inputs/workflow-step.input";
+import {
+  BEFORE_EVENT,
+  DAY,
+  OnAfterEventTriggerDto,
+  OnBeforeEventTriggerDto,
+} from "@/modules/workflows/inputs/workflow-trigger.input";
+// Adjust path if needed
+import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
 
 describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let app: INestApplication;

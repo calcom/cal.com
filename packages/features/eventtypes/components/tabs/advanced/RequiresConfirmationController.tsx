@@ -1,22 +1,21 @@
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type {
+  EventTypeSetup,
+  FormValues,
+  SettingsToggleClassNames,
+} from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import classNames from "@calcom/ui/classNames";
+import { CheckboxField, Input, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { RadioField } from "@calcom/ui/components/radio";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
-
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import classNames from "@calcom/ui/classNames";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { RadioField } from "@calcom/ui/components/radio";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -110,7 +109,8 @@ export default function RequiresConfirmationController({
                   formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
                 }
                 onRequiresConfirmation(val);
-              }}>
+              }}
+            >
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   defaultValue={
@@ -137,12 +137,14 @@ export default function RequiresConfirmationController({
                         { shouldDirty: true }
                       );
                     }
-                  }}>
+                  }}
+                >
                   <div
                     className={classNames(
                       "flex flex-col flex-wrap justify-start gap-y-2",
                       customClassNames?.radioGroupContainer
-                    )}>
+                    )}
+                  >
                     {(requiresConfirmationSetup === undefined ||
                       !requiresConfirmationLockedProps.disabled) && (
                       <RadioField
@@ -170,7 +172,8 @@ export default function RequiresConfirmationController({
                                 components={[
                                   <div
                                     key="when_booked_with_less_than_notice"
-                                    className="mx-2 inline-flex items-center">
+                                    className="mx-2 inline-flex items-center"
+                                  >
                                     <Input
                                       type="number"
                                       min={1}
@@ -198,7 +201,8 @@ export default function RequiresConfirmationController({
                                     <label
                                       className={classNames(
                                         requiresConfirmationLockedProps.disabled && "cursor-not-allowed"
-                                      )}>
+                                      )}
+                                    >
                                       <Select
                                         inputId="notice"
                                         options={options}

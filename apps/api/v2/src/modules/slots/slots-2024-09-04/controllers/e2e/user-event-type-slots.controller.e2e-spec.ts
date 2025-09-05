@@ -1,21 +1,9 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
 import {
-  expectedSlotsRome,
-  expectedSlotsRomeRange,
-  expectedSlotsUTC,
-  expectedSlotsUTCRange,
-} from "@/modules/slots/slots-2024-09-04/controllers/e2e/expected-slots";
-import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
-import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
-import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
-import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+  CreateScheduleInput_2024_06_11,
+  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
+} from "@calcom/platform-types";
+import { Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -34,13 +22,24 @@ import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
+import { bootstrap } from "@/app";
+import { AppModule } from "@/app.module";
+import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
+import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
 import {
-  CreateScheduleInput_2024_06_11,
-  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
-} from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+  expectedSlotsRome,
+  expectedSlotsRomeRange,
+  expectedSlotsUTC,
+  expectedSlotsUTCRange,
+} from "@/modules/slots/slots-2024-09-04/controllers/e2e/expected-slots";
+import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
+import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
+import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
+import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("User event type slots", () => {

@@ -1,6 +1,7 @@
+import { Module } from "@nestjs/common";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { OrganizationsEventTypesPrivateLinksController } from "@/ee/event-types-private-links/controllers/organizations-event-types-private-links.controller";
 import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
@@ -35,8 +36,8 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { OrganizationsMembershipsController } from "@/modules/organizations/memberships/organizations-membership.controller";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
-import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
+import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
@@ -76,7 +77,6 @@ import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflow
 import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
 import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
 import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [

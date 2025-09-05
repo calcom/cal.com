@@ -1,5 +1,3 @@
-import { useSearchParams } from "next/navigation";
-
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
@@ -8,6 +6,7 @@ import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/get
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
+import { useSearchParams } from "next/navigation";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
 

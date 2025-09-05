@@ -1,9 +1,8 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { NextApiRequest } from "next";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";

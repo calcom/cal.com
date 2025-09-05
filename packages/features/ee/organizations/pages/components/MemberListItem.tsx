@@ -1,5 +1,3 @@
-import classNames from "classnames";
-
 import TeamPill, { TeamRole } from "@calcom/ee/teams/components/TeamPill";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -14,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import classNames from "classnames";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];
@@ -53,7 +52,8 @@ export default function MemberListItem(props: Props) {
                     <a
                       target="_blank"
                       href={`${bookerUrl}/${user.username}`}
-                      className="text-default block truncate text-sm">
+                      className="text-default block truncate text-sm"
+                    >
                       {bookingLink}
                     </a>
                   </>
@@ -90,7 +90,8 @@ export default function MemberListItem(props: Props) {
                       href={`/${user.username}`}
                       target="_blank"
                       type="button"
-                      StartIcon="external-link">
+                      StartIcon="external-link"
+                    >
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>

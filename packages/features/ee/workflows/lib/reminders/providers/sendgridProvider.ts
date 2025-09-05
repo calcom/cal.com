@@ -1,14 +1,14 @@
 /**
  * @deprecated use smtp with tasker instead
  */
-import client from "@sendgrid/client";
-import type { MailData } from "@sendgrid/helpers/classes/mail";
-import sgMail from "@sendgrid/mail";
-import { v4 as uuidv4 } from "uuid";
 
 import { addHTMLStyles } from "@calcom/emails/templates/workflow-email";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { setTestEmail } from "@calcom/lib/testEmails";
+import client from "@sendgrid/client";
+import type { MailData } from "@sendgrid/helpers/classes/mail";
+import sgMail from "@sendgrid/mail";
+import { v4 as uuidv4 } from "uuid";
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 

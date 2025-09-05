@@ -1,18 +1,18 @@
 // eslint-disable-next-line no-restricted-imports
-import startCase from "lodash/startCase";
 
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import startCase from "lodash/startCase";
 
 import { useFilterValue } from "../../hooks";
-import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";
+import { ColumnFilterType, type FilterableColumn, type FilterValue, ZFilterValue } from "../../lib/types";
 import {
-  isSingleSelectFilterValue,
   isMultiSelectFilterValue,
-  isTextFilterValue,
   isNumberFilterValue,
+  isSingleSelectFilterValue,
+  isTextFilterValue,
 } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
@@ -143,7 +143,8 @@ export function FilterPopover({ column }: FilterPopoverProps) {
           className="h-[34px] items-center"
           StartIcon={icon}
           EndIcon="chevron-down"
-          data-testid={`filter-popover-trigger-${column.id}`}>
+          data-testid={`filter-popover-trigger-${column.id}`}
+        >
           <span>{startCase(column.title)}</span>
           <AppliedFilterValue column={column} filterValue={filterValue} />
         </Button>

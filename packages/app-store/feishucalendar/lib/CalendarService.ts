@@ -4,8 +4,8 @@ import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
-  CalendarServiceEvent,
   CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
@@ -13,15 +13,15 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import { handleFeishuError, isExpired, FEISHU_HOST } from "../common";
+import { FEISHU_HOST, handleFeishuError, isExpired } from "../common";
 import type {
   CreateAttendeesResp,
   CreateEventResp,
-  FreeBusyResp,
-  GetPrimaryCalendarsResp,
   FeishuAuthCredentials,
   FeishuEvent,
   FeishuEventAttendee,
+  FreeBusyResp,
+  GetPrimaryCalendarsResp,
   ListCalendarsResp,
   RefreshTokenResp,
 } from "../types/FeishuCalendar";
@@ -135,8 +135,8 @@ export default class FeishuCalendarService implements Calendar {
     let eventId = "";
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
-        event.destinationCalendar[0]
+      ? (event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
+        event.destinationCalendar[0])
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -174,8 +174,8 @@ export default class FeishuCalendarService implements Calendar {
 
   private createAttendees = async (event: CalendarEvent, eventId: string, credentialId: number) => {
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-        event.destinationCalendar[0]
+      ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0])
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {

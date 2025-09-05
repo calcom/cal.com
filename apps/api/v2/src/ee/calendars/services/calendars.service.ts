@@ -1,3 +1,21 @@
+import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
+import {
+  type EventBusyDate,
+  getBusyCalendarTimes,
+  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
+} from "@calcom/platform-libraries";
+import { Calendar } from "@calcom/platform-types";
+import { PrismaClient } from "@calcom/prisma";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import type { Prisma } from "@prisma/client";
+import { User } from "@prisma/client";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
@@ -7,25 +25,6 @@ import {
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-  NotFoundException,
-} from "@nestjs/common";
-import { User } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-import { DateTime } from "luxon";
-import { z } from "zod";
-
-import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import {
-  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
-  getBusyCalendarTimes,
-  type EventBusyDate,
-} from "@calcom/platform-libraries";
-import { Calendar } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class CalendarsService {

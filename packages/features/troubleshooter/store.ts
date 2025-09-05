@@ -1,9 +1,8 @@
+import dayjs from "@calcom/dayjs";
 import { useEffect } from "react";
 import { create } from "zustand";
 
-import dayjs from "@calcom/dayjs";
-
-import { updateQueryParam, getQueryParam, removeQueryParam } from "../bookings/Booker/utils/query-param";
+import { getQueryParam, removeQueryParam, updateQueryParam } from "../bookings/Booker/utils/query-param";
 
 /**
  * Arguments passed into store initializer, containing

@@ -1,7 +1,7 @@
 import "../../../../../tests/libs/__mocks__/prisma";
 
 import * as cache from "memory-cache";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getDeploymentKey, getDeploymentSignatureToken } from "../../deployment/lib/getDeploymentKey";
 import { NoopLicenseKeyService } from "./LicenseKeyService";

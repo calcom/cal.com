@@ -40,7 +40,8 @@ export const RecentNoShowGuestsChart = () => {
     <ChartCard
       title={t("recent_no_show_guests")}
       titleTooltip={t("recent_no_show_guests_tooltip")}
-      className="h-full">
+      className="h-full"
+    >
       <div className="sm:max-h-[30.6rem] sm:overflow-y-auto">
         {data.map((item) => (
           <ChartCardItem key={item.bookingId}>
@@ -65,7 +66,8 @@ export const RecentNoShowGuestsChart = () => {
                 color="minimal"
                 size="sm"
                 StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-                onClick={() => handleCopyEmail(item.guestEmail)}>
+                onClick={() => handleCopyEmail(item.guestEmail)}
+              >
                 {!isCopied ? t("email") : t("copied")}
               </Button>
             </div>

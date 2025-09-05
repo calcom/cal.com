@@ -1,10 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseQueryResult } from "@tanstack/react-query";
-import { useState, memo, useEffect } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { OptionProps, SingleValueProps } from "react-select";
-import { components } from "react-select";
-
 import type { GetAllSchedulesByUserIdQueryType } from "@calcom/atoms/event-types/wrappers/EventAvailabilityTabWebWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
@@ -13,8 +6,8 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { TeamMembers } from "@calcom/features/eventtypes/components/EventType";
 import type {
   AvailabilityOption,
-  FormValues,
   EventTypeSetup,
+  FormValues,
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
@@ -28,12 +21,15 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { Spinner } from "@calcom/ui/components/icon";
+import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Icon, Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { memo, useEffect, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
@@ -209,16 +205,15 @@ const EventTypeScheduleDetails = memo(
               return (
                 <li
                   key={day}
-                  className={classNames(
-                    "my-6 flex border-transparent last:mb-2",
-                    customClassNames?.tableRow
-                  )}>
+                  className={classNames("my-6 flex border-transparent last:mb-2", customClassNames?.tableRow)}
+                >
                   <span
                     className={classNames(
                       "w-20 font-medium sm:w-32 ",
                       !isAvailable ? "text-subtle line-through" : "text-default",
                       customClassNames?.day
-                    )}>
+                    )}
+                  >
                     {day}
                   </span>
                   {isSchedulePending ? (
@@ -231,12 +226,14 @@ const EventTypeScheduleDetails = memo(
                           className={classNames(
                             "text-default flex items-center leading-4",
                             customClassNames?.dayAvailabilityContainer
-                          )}>
+                          )}
+                        >
                           <span
                             className={classNames(
                               "w-16 sm:w-28 sm:text-left",
                               customClassNames?.dayAvailabilityFrom
-                            )}>
+                            )}
+                          >
                             {format(dayRange.startTime, timeFormat === 12)}
                           </span>
                           <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>
@@ -250,7 +247,8 @@ const EventTypeScheduleDetails = memo(
                     </div>
                   ) : (
                     <span
-                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
+                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}
+                    >
                       {t("unavailable")}
                     </span>
                   )}
@@ -276,7 +274,8 @@ const EventTypeScheduleDetails = memo(
                 color="minimal"
                 EndIcon="external-link"
                 target="_blank"
-                rel="noopener noreferrer">
+                rel="noopener noreferrer"
+              >
                 {t("edit_availability")}
               </Button>
             )}
@@ -335,16 +334,15 @@ const EventTypeRestrictionScheduleDetails = memo(
               return (
                 <li
                   key={day}
-                  className={classNames(
-                    "my-6 flex border-transparent last:mb-2",
-                    customClassNames?.tableRow
-                  )}>
+                  className={classNames("my-6 flex border-transparent last:mb-2", customClassNames?.tableRow)}
+                >
                   <span
                     className={classNames(
                       "w-20 font-medium sm:w-32 ",
                       !isAvailable ? "text-subtle line-through" : "text-default",
                       customClassNames?.day
-                    )}>
+                    )}
+                  >
                     {day}
                   </span>
                   {isSchedulePending ? (
@@ -357,12 +355,14 @@ const EventTypeRestrictionScheduleDetails = memo(
                           className={classNames(
                             "text-default flex items-center leading-4",
                             customClassNames?.dayAvailabilityContainer
-                          )}>
+                          )}
+                        >
                           <span
                             className={classNames(
                               "w-16 sm:w-28 sm:text-left",
                               customClassNames?.dayAvailabilityFrom
-                            )}>
+                            )}
+                          >
                             {format(dayRange.startTime, timeFormat === 12)}
                           </span>
                           <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>
@@ -376,7 +376,8 @@ const EventTypeRestrictionScheduleDetails = memo(
                     </div>
                   ) : (
                     <span
-                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
+                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}
+                    >
                       {t("unavailable")}
                     </span>
                   )}
@@ -391,7 +392,8 @@ const EventTypeRestrictionScheduleDetails = memo(
               className={classNames(
                 "text-default flex items-center justify-center text-sm sm:justify-start",
                 useBookerTimezone && "text-muted line-through"
-              )}>
+              )}
+            >
               <Icon
                 name="globe"
                 className={classNames("h-3.5 w-3.5 ltr:mr-2 rtl:ml-2", useBookerTimezone && "text-muted")}
@@ -420,7 +422,8 @@ const EventTypeRestrictionScheduleDetails = memo(
                 color="minimal"
                 EndIcon="external-link"
                 target="_blank"
-                rel="noopener noreferrer">
+                rel="noopener noreferrer"
+              >
                 {t("edit_availability")}
               </Button>
             )}
@@ -545,13 +548,15 @@ const EventTypeSchedule = ({
         className={classNames(
           "border-subtle rounded-t-md border p-6",
           customClassNames?.availabilitySectionContainer
-        )}>
+        )}
+      >
         <label
           htmlFor="availability"
           className={classNames(
             "text-default mb-2 block text-sm font-medium leading-none",
             customClassNames?.availabilitySelect?.label
-          )}>
+          )}
+        >
           {t("availability")}
           {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator(formFieldName)}
         </label>
@@ -718,21 +723,25 @@ const TeamAvailability = ({
         className={classNames(
           "border-subtle flex flex-col rounded-md",
           customClassNames?.teamAvailibilityContainer
-        )}>
+        )}
+      >
         <div
           className={classNames(
             "border-subtle mt-5 rounded-t-md border p-6 pb-5",
             customClassNames?.chooseHostSchedulesLabelContainer
-          )}>
+          )}
+        >
           <Label
-            className={classNames("mb-1 text-sm font-semibold", customClassNames?.chooseHostSchedulesLabel)}>
+            className={classNames("mb-1 text-sm font-semibold", customClassNames?.chooseHostSchedulesLabel)}
+          >
             {t("choose_hosts_schedule")}
           </Label>
           <p
             className={classNames(
               "text-subtle max-w-full break-words text-sm leading-tight",
               customClassNames?.chooseHostSchedulesLabelDescription
-            )}>
+            )}
+          >
             {t("hosts_schedule_description")}
           </p>
         </div>
@@ -740,14 +749,16 @@ const TeamAvailability = ({
           {hosts && hosts.length > 0 ? (
             <ul
               className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}
-              ref={animationRef}>
+              ref={animationRef}
+            >
               {hosts?.map((host, index) => (
                 <li
                   key={host.userId}
                   className={classNames(
                     `flex flex-col px-3 py-2 ${index === hosts.length - 1 ? "" : "border-subtle border-b"}`,
                     customClassNames?.teamMemberSchedule?.container
-                  )}>
+                  )}
+                >
                   <TeamMemberSchedule
                     host={host}
                     index={index}
@@ -827,7 +838,8 @@ const UseTeamEventScheduleSettingsToggle = ({
           checked={!useHostSchedulesForTeamEvent}
           onCheckedChange={toggleScheduleState}
           title={t("choose_common_schedule_team_event")}
-          description={t("choose_common_schedule_team_event_description")}>
+          description={t("choose_common_schedule_team_event_description")}
+        >
           <EventTypeSchedule
             customClassNames={customClassNames?.userAvailability}
             eventType={eventType}
@@ -851,7 +863,8 @@ const UseTeamEventScheduleSettingsToggle = ({
             checked={restrictScheduleForHosts}
             onCheckedChange={toggleRestrictScheduleState}
             title={t("choose_restriction_schedule")}
-            description={t("restriction_schedule_description")}>
+            description={t("restriction_schedule_description")}
+          >
             <EventTypeSchedule
               customClassNames={customClassNames?.userAvailability}
               eventType={eventType}

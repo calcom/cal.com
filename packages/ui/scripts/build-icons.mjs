@@ -1,10 +1,11 @@
 // this script is based on https://github.com/epicweb-dev/epic-stack/blob/main/other/build-icons.ts
 //
+
+import * as path from "node:path";
 import { $ } from "execa";
 import glob from "fast-glob";
 import fsExtra from "fs-extra";
 import { parse } from "node-html-parser";
-import * as path from "node:path";
 
 import { copyIcons, removeTempDir } from "./generate-icons.mjs";
 

@@ -117,13 +117,13 @@ export type EventTypeCustomInputsResponse = BaseResponse & {
 };
 // From rrule https://jakubroztocil.github.io/rrule freq
 export enum Frequency {
-  "YEARLY",
-  "MONTHLY",
-  "WEEKLY",
-  "DAILY",
-  "HOURLY",
-  "MINUTELY",
-  "SECONDLY",
+  YEARLY,
+  MONTHLY,
+  WEEKLY,
+  DAILY,
+  HOURLY,
+  MINUTELY,
+  SECONDLY,
 }
 interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "locations"> {
   recurringEvent: {

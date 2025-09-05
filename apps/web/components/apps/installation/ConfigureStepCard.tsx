@@ -1,12 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Dispatch, SetStateAction } from "react";
-import type { FC } from "react";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { useFieldArray, useFormContext } from "react-hook-form";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LocationObject } from "@calcom/lib/location";
@@ -16,11 +7,16 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Dispatch, FC, SetStateAction } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { z } from "zod";
 
-import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import type { TEventType, TEventTypeGroup, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";
 
 export type TFormType = {
   id: number;
@@ -90,7 +86,8 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
           const locations = formMethods.getValues("locations");
           const bookingFields = formMethods.getValues("bookingFields");
           onSubmit({ metadata, locations, bookingFields });
-        }}>
+        }}
+      >
         <div>
           <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
             <div>
@@ -257,7 +254,8 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
             submitRefs.current.forEach((ref) => ref?.click());
             setSubmit(true);
           }}
-          loading={loading}>
+          loading={loading}
+        >
           {t("save")}
         </Button>
 
@@ -269,7 +267,8 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
               event.preventDefault();
               handleSetUpLater();
             }}
-            className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+            className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium"
+          >
             {t("set_up_later")}
           </Button>
         </div>

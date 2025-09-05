@@ -1,17 +1,15 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-
-import {
-  createBookingScenario,
-  Timezones,
-  TestData,
-  type ScenarioData,
-} from "../../utils/bookingScenario/bookingScenario";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
+import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import { describe, test, vi } from "vitest";
 import type { z } from "zod";
-
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
-import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import {
+  createBookingScenario,
+  type ScenarioData,
+  TestData,
+  Timezones,
+} from "../../utils/bookingScenario/bookingScenario";
 
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";

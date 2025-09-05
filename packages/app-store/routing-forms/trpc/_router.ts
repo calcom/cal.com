@@ -1,7 +1,6 @@
-import { z } from "zod";
-
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
+import { z } from "zod";
 
 import { ZDeleteFormInputSchema } from "./deleteForm.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
@@ -26,7 +25,7 @@ const getHandler = async <
   T extends {
     // eslint-disable-next-line @typescript-eslint/ban-types
     default: Function;
-  }
+  },
 >(
   /**
    * The name of the handler in cache. It has to be unique across all routes

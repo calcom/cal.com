@@ -1,9 +1,7 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach } from "vitest";
-
 import slugify from "@calcom/lib/slugify";
-import { MembershipRole, UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it } from "vitest";
+import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
 
 import { createTeamsHandler } from "../createTeams.handler";
 

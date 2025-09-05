@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,6 +7,7 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions"
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import { useRouter } from "next/navigation";
 
 import { hasPermission } from "../../../../../packages/platform/utils/permissions";
 
@@ -113,7 +112,8 @@ export default function Authorize() {
             className="bg-primary mr-2 text-black"
             onClick={() => {
               router.back();
-            }}>
+            }}
+          >
             {t("go_back")}
           </Button>
           <Button data-testid="allow-button" className="bg-black text-white">

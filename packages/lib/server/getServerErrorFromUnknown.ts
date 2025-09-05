@@ -1,13 +1,11 @@
-import { Prisma } from "@prisma/client";
-import type { ZodIssue } from "zod";
-import { ZodError } from "zod";
-
 import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-
+import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import type { ZodIssue } from "zod";
+import { ZodError } from "zod";
 
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
@@ -30,8 +28,8 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
       i.code === "invalid_union"
         ? i.unionErrors.map((ue) => parseZodErrorIssues(ue.issues)).join("; ")
         : i.code === "unrecognized_keys"
-        ? i.message
-        : `${i.path.length ? `${i.code} in '${i.path}': ` : ""}${i.message}`
+          ? i.message
+          : `${i.path.length ? `${i.code} in '${i.path}': ` : ""}${i.message}`
     )
     .join("; ");
 }

@@ -1,6 +1,6 @@
 import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 import type { LoggerOptions } from "winston";
-import { format, transports as Transports, config } from "winston";
+import { config, format, transports as Transports } from "winston";
 import type Transport from "winston-transport";
 
 const formattedTimestamp = format.timestamp({

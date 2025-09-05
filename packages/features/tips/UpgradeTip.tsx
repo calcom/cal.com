@@ -1,9 +1,8 @@
-import type { ReactNode } from "react";
-
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
+import type { ReactNode } from "react";
 
 export function UpgradeTip({
   title,

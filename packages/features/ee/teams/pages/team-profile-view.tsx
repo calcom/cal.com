@@ -1,14 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Prisma } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -27,24 +18,30 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, LinkIconButton } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, Label, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
+  SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  SkeletonAvatar,
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Prisma } from "@prisma/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -199,7 +196,8 @@ const ProfileView = () => {
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
                 showToast("Copied to clipboard", "success");
-              }}>
+              }}
+            >
               {t("copy_link_team")}
             </LinkIconButton>
           </div>
@@ -220,7 +218,8 @@ const ProfileView = () => {
                 color="destructive"
                 className="border"
                 StartIcon="trash-2"
-                data-testid="disband-team-button">
+                data-testid="disband-team-button"
+              >
                 {t("disband_team")}
               </Button>
             </DialogTrigger>
@@ -231,7 +230,8 @@ const ProfileView = () => {
             confirmBtnText={t("confirm_disband_team")}
             onConfirm={() => {
               deleteTeam();
-            }}>
+            }}
+          >
             {t("disband_team_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
@@ -248,7 +248,8 @@ const ProfileView = () => {
             variety="danger"
             title={t("leave_team")}
             confirmBtnText={t("confirm_leave_team")}
-            onConfirm={leaveTeam}>
+            onConfirm={leaveTeam}
+          >
             {t("leave_team_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
@@ -353,7 +354,8 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
           });
           mutation.mutate({ id: team.id, ...variables });
         }
-      }}>
+      }}
+    >
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
         {!team.parent && (
           <div className="flex items-center pb-8">
@@ -444,7 +446,8 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
                   size="sm"
                   type="button"
                   aria-label="copy team id"
-                  onClick={() => handleCopy(teamId.toString())}>
+                  onClick={() => handleCopy(teamId.toString())}
+                >
                   <Icon name="copy" className="ml-1 h-4 w-4" />
                 </Button>
               </Tooltip>
@@ -478,7 +481,8 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
               type="button"
               onClick={() => {
                 publishMutation.mutate({ teamId: team.id });
-              }}>
+              }}
+            >
               {t("team_publish")}
             </Button>
           )}

@@ -1,9 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { cookies, headers } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
@@ -12,8 +6,12 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),

@@ -5,9 +5,9 @@ import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import {
   bookTimeSlot,
-  submitAndWaitForResponse,
   selectFirstAvailableTimeSlotNextMonth,
   setupManagedEvent,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 test.afterEach(async ({ users }) => {

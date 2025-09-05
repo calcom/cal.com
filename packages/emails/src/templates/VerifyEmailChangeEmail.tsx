@@ -1,6 +1,5 @@
-import type { TFunction } from "i18next";
-
 import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import type { TFunction } from "i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -24,7 +23,8 @@ export const VerifyEmailChangeEmail = (
           fontWeight: 600,
           fontSize: "24px",
           lineHeight: "32px",
-        }}>
+        }}
+      >
         <>{props.language("change_of_email", { appName: APP_NAME })}</>
       </p>
       <p style={{ fontWeight: 400 }}>
@@ -39,17 +39,20 @@ export const VerifyEmailChangeEmail = (
           marginBottom: "2rem",
           display: "flex",
           justifyContent: "space-between",
-        }}>
+        }}
+      >
         <div
           style={{
             width: "100%",
-          }}>
+          }}
+        >
           <span
             style={{
               display: "block",
               fontSize: "14px",
               lineHeight: 0.5,
-            }}>
+            }}
+          >
             {props.language("old_email_address")}
           </span>
           <p
@@ -57,20 +60,23 @@ export const VerifyEmailChangeEmail = (
               color: `#6B7280`,
               lineHeight: 1,
               fontWeight: 400,
-            }}>
+            }}
+          >
             {props.user.emailFrom}
           </p>
         </div>
         <div
           style={{
             width: "100%",
-          }}>
+          }}
+        >
           <span
             style={{
               display: "block",
               fontSize: "14px",
               lineHeight: 0.5,
-            }}>
+            }}
+          >
             {props.language("new_email_address")}
           </span>
           <p
@@ -78,7 +84,8 @@ export const VerifyEmailChangeEmail = (
               color: `#6B7280`,
               lineHeight: 1,
               fontWeight: 400,
-            }}>
+            }}
+          >
             {props.user.emailTo}
           </p>
         </div>
@@ -92,7 +99,8 @@ export const VerifyEmailChangeEmail = (
               href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
               style={{ color: "#3E3E3E" }}
               target="_blank"
-              rel="noreferrer">
+              rel="noreferrer"
+            >
               <>{props.language("the_calcom_team", { companyName: SENDER_NAME })}</>
             </a>
           </>

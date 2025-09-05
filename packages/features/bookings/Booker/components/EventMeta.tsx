@@ -1,15 +1,10 @@
-import { m } from "framer-motion";
-import dynamic from "next/dynamic";
-import { useEffect, useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
-import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
+import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,6 +12,10 @@ import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { m } from "framer-motion";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 
 import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
@@ -141,8 +140,8 @@ export const EventMeta = ({
   const colorClass = isNearlyFull
     ? "text-rose-600"
     : isHalfFull
-    ? "text-yellow-500"
-    : "text-bookinghighlight";
+      ? "text-yellow-500"
+      : "text-bookinghighlight";
   const userLocale = locale ?? navigator.language;
   const translatedDescription = getTranslatedField(
     event?.fieldTranslations ?? [],
@@ -178,7 +177,8 @@ export const EventMeta = ({
           {(event.description || translatedDescription) && (
             <EventMetaBlock
               data-testid="event-meta-description"
-              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4"
+            >
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
@@ -218,7 +218,8 @@ export const EventMeta = ({
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
-              icon="globe">
+              icon="globe"
+            >
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
@@ -226,7 +227,8 @@ export const EventMeta = ({
                   className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}
-                  data-testid="event-meta-current-timezone">
+                  data-testid="event-meta-current-timezone"
+                >
                   <TimezoneSelect
                     timeZones={timeZones}
                     menuPosition="absolute"

@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  DataTableProvider,
-  DataTableFilters,
-  DateRangeFilter,
   ColumnFilterType,
+  DataTableFilters,
+  DataTableProvider,
+  DateRangeFilter,
   type FilterableColumn,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
@@ -16,14 +16,14 @@ import {
   HighestNoShowHostTable,
   HighestRatedMembersTable,
   LeastBookedTeamMembersTable,
+  LeastCompletedTeamMembersTable,
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
   MostCancelledBookingsTables,
   MostCompletedTeamMembersTable,
-  LeastCompletedTeamMembersTable,
   PopularEventsTable,
-  RecentNoShowGuestsChart,
   RecentFeedbackTable,
+  RecentNoShowGuestsChart,
   TimezoneBadge,
 } from "@calcom/features/insights/components/booking";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
@@ -58,7 +58,8 @@ function InsightsPageContent() {
     <>
       <div
         className="flex flex-wrap items-center gap-2"
-        data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
+        data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}
+      >
         <OrgTeamsFilter />
         <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
         <DataTableFilters.ActiveFilters table={table} />
@@ -117,7 +118,8 @@ function InsightsPageContent() {
           {t("looking_for_more_insights")}{" "}
           <a
             className="text-blue-500 hover:underline"
-            href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+            href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20..."
+          >
             {" "}
             {t("contact_support")}
           </a>

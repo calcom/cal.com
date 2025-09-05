@@ -1,10 +1,9 @@
 "use client";
 
-import { RenderComponentWithSnippet } from "@/app/components/render";
-import { useState } from "react";
-
 import { Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
+import { useState } from "react";
+import { RenderComponentWithSnippet } from "@/app/components/render";
 
 export const BasicExample = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -14,7 +13,8 @@ export const BasicExample = () => {
       <Section>
         <Section.Header
           title="Basic Section"
-          description="This is a basic section with a title and description">
+          description="This is a basic section with a title and description"
+        >
           <Switch size="sm" checked={isOpen} onCheckedChange={setIsOpen} />
         </Section.Header>
         {isOpen && (

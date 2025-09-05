@@ -1,8 +1,8 @@
-import type z from "zod";
-
-import { TITLE_FIELD, SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+
+import { SMS_REMINDER_NUMBER_FIELD, TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type z from "zod";
 
 export default function getLabelValueMapFromResponses(
   calEvent: Pick<CalendarEvent, "customInputs" | "userFieldsResponses" | "responses" | "eventTypeId">,

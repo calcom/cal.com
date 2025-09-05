@@ -1,5 +1,21 @@
 "use client";
 
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import useTheme from "@calcom/lib/hooks/useTheme";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { Avatar, UserAvatarGroup } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
+import Team from "@components/team/screens/Team";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 // This route is reachable by
 // 1. /team/[slug]
 // 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)
@@ -10,26 +26,6 @@ import classNames from "classnames";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-
-import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import useTheme from "@calcom/lib/hooks/useTheme";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { UserAvatarGroup } from "@calcom/ui/components/avatar";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-
-import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import Team from "@components/team/screens/Team";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
@@ -80,7 +76,8 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           className={classNames(
             "bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
-          )}>
+          )}
+        >
           <div className="px-6 py-4 ">
             <Link
               href={{
@@ -93,7 +90,8 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                 });
               }}
               data-testid="event-type-link"
-              className="flex justify-between">
+              className="flex justify-between"
+            >
               <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
                   <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
@@ -229,7 +227,8 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                             members: "1",
                           },
                         }}
-                        shallow={true}>
+                        shallow={true}
+                      >
                         {t("book_a_team_member")}
                       </Button>
                     </aside>

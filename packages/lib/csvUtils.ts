@@ -1,6 +1,5 @@
-import type { Table } from "@tanstack/react-table";
-
 import type { UserTableUser } from "@calcom/features/users/components/UserTable/types";
+import type { Table } from "@tanstack/react-table";
 
 export const downloadAsCsv = (data: string | Record<string, any>[], filename: string) => {
   // If data is an array of objects, convert it to CSV string
@@ -33,7 +32,9 @@ export const objectsToCsv = (data: Record<string, any>[]): string => {
   // Create CSV rows
   const csvRows = [
     // Header row
-    headers.map((header) => sanitizeValue(header)).join(","),
+    headers
+      .map((header) => sanitizeValue(header))
+      .join(","),
     // Data rows
     ...data.map((row) =>
       headers
@@ -117,16 +118,19 @@ export const generateCsvRawForMembersTable = (
     const { email, role, teams, username, attributes } = row;
 
     // Create a map of attributeId to array of values
-    const attributeMap = (attributes ?? []).reduce((acc, attr) => {
-      if (!acc[attr.attributeId]) {
-        acc[attr.attributeId] = [];
-      }
-      acc[attr.attributeId].push({
-        value: attr.value,
-        weight: attr.weight ?? undefined,
-      });
-      return acc;
-    }, {} as Record<string, { value: string; weight: number | undefined }[]>);
+    const attributeMap = (attributes ?? []).reduce(
+      (acc, attr) => {
+        if (!acc[attr.attributeId]) {
+          acc[attr.attributeId] = [];
+        }
+        acc[attr.attributeId].push({
+          value: attr.value,
+          weight: attr.weight ?? undefined,
+        });
+        return acc;
+      },
+      {} as Record<string, { value: string; weight: number | undefined }[]>
+    );
 
     const requiredColumns = [
       email, // Members column

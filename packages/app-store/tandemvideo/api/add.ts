@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { stringify } from "querystring";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { stringify } from "querystring";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 

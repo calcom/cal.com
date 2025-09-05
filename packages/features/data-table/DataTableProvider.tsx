@@ -1,37 +1,36 @@
 "use client";
 
-import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
+import type { ColumnSizingState, OnChangeFn, SortingState, VisibilityState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
 // eslint-disable-next-line no-restricted-imports
 import isEqual from "lodash/isEqual";
 import { usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { useState, createContext, useCallback, useEffect, useRef, useMemo } from "react";
-
-import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
   activeFiltersParser,
-  sortingParser,
-  columnVisibilityParser,
   columnSizingParser,
-  segmentIdParser,
+  columnVisibilityParser,
+  DEFAULT_PAGE_SIZE,
   pageIndexParser,
   pageSizeParser,
   searchTermParser,
-  DEFAULT_PAGE_SIZE,
+  segmentIdParser,
+  sortingParser,
 } from "./lib/parsers";
 import {
-  type FilterValue,
-  type FilterSegmentOutput,
-  type SystemFilterSegment,
-  type CombinedFilterSegment,
-  type SegmentIdentifier,
   type ActiveFilters,
-  type UseSegments,
+  type CombinedFilterSegment,
+  type FilterSegmentOutput,
+  type FilterValue,
+  type SegmentIdentifier,
   SYSTEM_SEGMENT_PREFIX,
+  type SystemFilterSegment,
+  type UseSegments,
 } from "./lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
@@ -419,7 +418,8 @@ export function DataTableProvider({
         searchTerm,
         setSearchTerm: setDebouncedSearchTerm,
         timeZone,
-      }}>
+      }}
+    >
       {children}
     </DataTableContext.Provider>
   );

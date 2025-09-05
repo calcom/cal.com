@@ -1,9 +1,8 @@
-import type { Prisma } from "@prisma/client";
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@prisma/client";
+import type { NextApiRequest } from "next";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";

@@ -1,9 +1,8 @@
-import { Prisma } from "@prisma/client";
-import type { PrismaClient as PrismaClientWithoutExtensions } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
-
-import { UsageEvent, LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { LicenseKeySingleton, UsageEvent } from "@calcom/ee/common/server/LicenseKeyService";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import type { PrismaClient as PrismaClientWithoutExtensions } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 
 async function incrementUsage(prismaClient: PrismaClientWithoutExtensions, event?: UsageEvent) {
   const deploymentRepo = new DeploymentRepository(prismaClient);

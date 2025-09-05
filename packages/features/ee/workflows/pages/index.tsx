@@ -1,10 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,6 +12,10 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -90,7 +89,8 @@ function WorkflowsPage({ filteredList }: PageProps) {
                 }}
               />
             ) : null
-          }>
+          }
+        >
           <>
             {filteredWorkflows?.totalCount ? (
               <div className="flex">
@@ -115,7 +115,8 @@ function WorkflowsPage({ filteredList }: PageProps) {
               queryRes={{ isPending, data: filteredWorkflows }}
               emptyScreen={<EmptyScreen isFilteredView={false} />}
               noResultsScreen={<EmptyScreen isFilteredView={true} />}
-              SkeletonLoader={SkeletonLoader}>
+              SkeletonLoader={SkeletonLoader}
+            >
               <WorkflowList workflows={filteredWorkflows?.filtered} />
             </FilterResults>
           </>
@@ -168,7 +169,8 @@ const Filter = (props: {
           />
           <label
             htmlFor="yourWorkflows"
-            className="text-default ml-2 mr-auto self-center truncate text-sm font-medium">
+            className="text-default ml-2 mr-auto self-center truncate text-sm font-medium"
+          >
             {user}
           </label>
 
@@ -194,7 +196,8 @@ const Filter = (props: {
         {teams.map((profile) => (
           <div
             className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
-            key={`${profile.teamId || 0}`}>
+            key={`${profile.teamId || 0}`}
+          >
             <Avatar
               imageSrc={profile.image || ""}
               size="sm"
@@ -204,7 +207,8 @@ const Filter = (props: {
             />
             <label
               htmlFor={profile.slug || ""}
-              className="text-default ml-2 mr-auto select-none self-center truncate text-sm font-medium hover:cursor-pointer">
+              className="text-default ml-2 mr-auto select-none self-center truncate text-sm font-medium hover:cursor-pointer"
+            >
               {profile.slug}
             </label>
 

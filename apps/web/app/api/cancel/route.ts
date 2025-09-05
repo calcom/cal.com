@@ -1,13 +1,11 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { bookingCancelWithCsrfSchema } from "@calcom/prisma/zod-utils";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 async function handler(req: NextRequest) {
   let appDirRequestBody;

@@ -1,11 +1,10 @@
+import dayjs from "@calcom/dayjs";
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { AssignmentReasonEnum, BookingStatus } from "@calcom/prisma/enums";
 import { faker } from "@faker-js/faker";
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-
-import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
 

@@ -1,11 +1,8 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
-
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
 import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
@@ -13,12 +10,14 @@ import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import type {
+  EventTypePlatformWrapperRef,
   EventTypeSetupProps,
   FormValues,
-  EventTypePlatformWrapperRef,
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { useQueryClient } from "@tanstack/react-query";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
@@ -26,7 +25,7 @@ import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import { useAtomsEventTypeById, QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY } from "../hooks/useAtomEventTypeById";
+import { QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY, useAtomsEventTypeById } from "../hooks/useAtomEventTypeById";
 import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
@@ -349,7 +348,8 @@ const EventType = forwardRef<
         tabName={currentTab}
         tabsNavigation={tabsNavigation}
         allowDelete={allowDelete}
-        saveButtonRef={saveButtonRef}>
+        saveButtonRef={saveButtonRef}
+      >
         <>
           {slugExistsChildrenDialogOpen.length ? (
             <ManagedEventTypeDialog

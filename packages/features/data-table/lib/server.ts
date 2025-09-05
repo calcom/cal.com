@@ -2,11 +2,11 @@ import { Prisma } from "@prisma/client";
 
 import type { FilterValue, SortingState } from "./types";
 import {
-  isSingleSelectFilterValue,
-  isMultiSelectFilterValue,
-  isTextFilterValue,
-  isNumberFilterValue,
   isDateRangeFilterValue,
+  isMultiSelectFilterValue,
+  isNumberFilterValue,
+  isSingleSelectFilterValue,
+  isTextFilterValue,
 } from "./utils";
 
 type MakeWhereClauseProps = {

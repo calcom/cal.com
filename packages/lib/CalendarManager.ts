@@ -1,12 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
-import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import { getUid } from "@calcom/lib/CalEventParser";
-import { getRichDescription } from "@calcom/lib/CalEventParser";
+import { getRichDescription, getUid } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
@@ -24,9 +22,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
-
-import getCalendarsEvents from "./getCalendarsEvents";
-import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
+import { sortBy } from "lodash";
+import getCalendarsEvents, { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 

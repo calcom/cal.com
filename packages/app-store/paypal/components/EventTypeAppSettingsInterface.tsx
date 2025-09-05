@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-
 import {
   currencyOptions,
   currencySymbols,
@@ -7,13 +5,13 @@ import {
 } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
+import { Select, TextField } from "@calcom/ui/components/form";
+import { useEffect, useState } from "react";
 
 import {
-  convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
+  convertToSmallestCurrencyUnit,
 } from "../../_utils/payments/currencyConversions";
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
 

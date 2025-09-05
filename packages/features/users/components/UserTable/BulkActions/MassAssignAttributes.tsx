@@ -1,8 +1,4 @@
-import type { Table } from "@tanstack/react-table";
-import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
-import type { Dispatch, SetStateAction } from "react";
-
-import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
+import { type ColumnFilter, DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
@@ -21,6 +17,9 @@ import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
+import type { Table } from "@tanstack/react-table";
+import type { Dispatch, SetStateAction } from "react";
+import { createContext, type PropsWithChildren, useContext, useMemo, useState } from "react";
 
 import type { UserTableUser } from "../types";
 
@@ -130,12 +129,14 @@ function SelectedAttributeToAssign() {
                         return [...prev, option.id];
                       });
                     }
-                  }}>
+                  }}
+                >
                   <span>{option.value}</span>
                   <div
                     className={classNames(
                       "ml-auto flex h-4 w-4 items-center justify-center rounded-sm border"
-                    )}>
+                    )}
+                  >
                     {selectedAttributeOptions?.includes(option.id) ? (
                       <Icon name="check" className={classNames("h-4 w-4")} />
                     ) : null}
@@ -190,10 +191,12 @@ function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }
                     onSelect={() => {
                       setSelectedAttribute(option.id);
                       setSelectedAttributeOptions([]);
-                    }}>
+                    }}
+                  >
                     <span>{option.name}</span>
                     <div
-                      className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}>
+                      className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}
+                    >
                       <Icon name="chevron-right" className={classNames("h-4 w-4")} />
                     </div>
                   </CommandItem>
@@ -256,7 +259,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
           setSelectedAttributeOptions([]);
           setShowMultiSelectWarning(false);
         }
-      }}>
+      }}
+    >
       <PopoverTrigger asChild>
         <DataTableSelectionBar.Button icon="tags" color="secondary">
           {t("add_attributes")}
@@ -278,7 +282,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                   setSelectedAttribute(undefined);
                   setSelectedAttributeOptions([]);
                   setShowMultiSelectWarning(false);
-                }}>
+                }}
+              >
                 {t("clear")}
               </Button>
               <Button
@@ -321,7 +326,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                       userIds: table.getSelectedRowModel().rows.map((row) => row.original.id),
                     });
                   }
-                }}>
+                }}
+              >
                 {t("apply")}
               </Button>
             </>

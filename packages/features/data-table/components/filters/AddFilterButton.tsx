@@ -1,16 +1,15 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
-import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 
@@ -61,7 +60,8 @@ function AddFilterButtonComponent<TData>(
               color="secondary"
               data-testid="add-filter-button"
               StartIcon="sliders-horizontal"
-              className="h-full">
+              className="h-full"
+            >
               {t("filter")}
             </Button>
           </PopoverTrigger>
@@ -95,7 +95,8 @@ function AddFilterButtonComponent<TData>(
                       setOpen(false);
                     }}
                     className="flex items-center justify-between px-4 py-2"
-                    data-testid={`add-filter-item-${column.id}`}>
+                    data-testid={`add-filter-item-${column.id}`}
+                  >
                     <span>{startCase(column.title)}</span>
                     {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}
                   </CommandItem>

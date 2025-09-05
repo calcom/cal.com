@@ -1,7 +1,7 @@
+import { TestingModule } from "@nestjs/testing";
+import { Prisma } from "@prisma/client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TestingModule } from "@nestjs/testing";
-import { Prisma, User } from "@prisma/client";
 
 export class AttributeRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];

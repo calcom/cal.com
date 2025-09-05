@@ -1,11 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement } from "react";
-import { Toaster } from "sonner";
-
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
@@ -16,12 +10,16 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
-import { SideBarContainer } from "./SideBar";
-import { TopNavContainer } from "./TopNav";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
+import React, { cloneElement } from "react";
+import { Toaster } from "sonner";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
 import { MobileNavigationContainer } from "./navigation/Navigation";
+import { SideBarContainer } from "./SideBar";
+import { TopNavContainer } from "./TopNav";
 import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
@@ -131,7 +129,8 @@ export function ShellMain(props: LayoutProps) {
           className={classNames(
             "bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8"
-          )}>
+          )}
+        >
           {!!props.backPath && (
             <Button
               variant="icon"
@@ -148,16 +147,19 @@ export function ShellMain(props: LayoutProps) {
           )}
           {props.heading && (
             <header
-              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
+              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}
+            >
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}
+              >
                 {props.heading && (
                   <h3
                     className={classNames(
                       "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl"
-                    )}>
+                    )}
+                  >
                     {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                   </h3>
                 )}
@@ -175,7 +177,8 @@ export function ShellMain(props: LayoutProps) {
                       ? "relative"
                       : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
-                  )}>
+                  )}
+                >
                   {isLocaleReady && props.CTA}
                 </div>
               )}

@@ -17,7 +17,8 @@ const EmailScheduledBodyHeaderContent = (props: {
           paddingTop: 24,
           paddingBottom: 0,
           wordBreak: "break-word",
-        }}>
+        }}
+      >
         <div
           data-testid="heading"
           style={{
@@ -27,7 +28,8 @@ const EmailScheduledBodyHeaderContent = (props: {
             lineHeight: "24px",
             textAlign: "center",
             color: "#111827",
-          }}>
+          }}
+        >
           {props.title}
         </div>
       </td>
@@ -44,7 +46,8 @@ const EmailScheduledBodyHeaderContent = (props: {
               lineHeight: "24px",
               textAlign: "center",
               color: "#4B5563",
-            }}>
+            }}
+          >
             {props.subtitle}
           </div>
         </td>

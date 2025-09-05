@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 // eslint-disable-next-line
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import dayjs from "@calcom/dayjs";
@@ -15,6 +13,7 @@ import prisma from "@calcom/prisma";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import type { Prisma } from "@prisma/client";
 
 export const handleNoShowFee = async ({
   booking,

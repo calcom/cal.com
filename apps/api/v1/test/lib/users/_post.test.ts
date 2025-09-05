@@ -1,9 +1,8 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, test, expect, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import handler from "../../../pages/api/users/_post";
 

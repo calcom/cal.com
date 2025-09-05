@@ -1,20 +1,17 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
-
-import { useUnsubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing/useUnsubscribeTeamToStripe";
-
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
+import { useUnsubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing/useUnsubscribeTeamToStripe";
+import { usePathname } from "next/navigation";
 
 import { CtaRow } from "~/settings/billing/billing-view";
 
@@ -86,12 +83,14 @@ export default function PlatformBillingUpgrade() {
         title={t("platform_billing")}
         withoutMain={false}
         subtitle={t("manage_billing_description")}
-        isPlatformUser={true}>
+        isPlatformUser={true}
+      >
         <>
           <div className="border-subtle space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
             <CtaRow
               title={t("view_and_manage_billing_details")}
-              description={t("view_and_edit_billing_details")}>
+              description={t("view_and_edit_billing_details")}
+            >
               <Button color="primary" href={billingHref} target="_blank" EndIcon="external-link">
                 {t("billing_portal")}
               </Button>
@@ -101,7 +100,8 @@ export default function PlatformBillingUpgrade() {
 
             <CtaRow
               title="Change plan"
-              description={t("Want to change your existing plan or check out other plans?")}>
+              description={t("Want to change your existing plan or check out other plans?")}
+            >
               <Button href="/settings/platform/plans" color="secondary">
                 Plans
               </Button>
@@ -164,7 +164,8 @@ const CancelSubscriptionButton = ({
         onConfirm={() => {
           handleDelete();
           onDeleteConfirmed?.();
-        }}>
+        }}
+      >
         {t("cancel_subscription_description")}
       </ConfirmationDialogContent>
     </Dialog>

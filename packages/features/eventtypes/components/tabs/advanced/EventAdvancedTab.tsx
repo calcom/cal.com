@@ -1,13 +1,8 @@
-import { useState, Suspense, useMemo } from "react";
-import type { Dispatch, SetStateAction } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import {
-  SelectedCalendarsSettingsWebWrapper,
   SelectedCalendarSettingsScope,
+  SelectedCalendarsSettingsWebWrapper,
   SelectedCalendarsSettingsWebWrapperSkeleton,
 } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
@@ -21,21 +16,20 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
 import type {
-  FormValues,
-  EventTypeSetupProps,
-  SelectClassNames,
   CheckboxClassNames,
+  EventTypeSetupProps,
+  FormValues,
   InputClassNames,
+  SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import type { fieldSchema } from "@calcom/features/form-builder/schema";
-import type { EditableSchema } from "@calcom/features/form-builder/schema";
+import type { EditableSchema, fieldSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import {
-  DEFAULT_LIGHT_BRAND_COLOR,
-  DEFAULT_DARK_BRAND_COLOR,
   APP_NAME,
+  DEFAULT_DARK_BRAND_COLOR,
+  DEFAULT_LIGHT_BRAND_COLOR,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import type { EventNameObjectType } from "@calcom/lib/event";
@@ -52,15 +46,19 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
-  SelectField,
-  ColorPicker,
-  TextField,
-  Label,
   CheckboxField,
-  Switch,
+  ColorPicker,
+  Label,
+  SelectField,
   SettingsToggle,
+  Switch,
+  TextField,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import type { Dispatch, SetStateAction } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { z } from "zod";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -174,15 +172,14 @@ const destinationCalendarComponents = {
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           {showConnectedCalendarSettings && (
             <div
-              className={classNames(
-                "flex w-full flex-col",
-                customClassNames?.destinationCalendar?.container
-              )}>
+              className={classNames("flex w-full flex-col", customClassNames?.destinationCalendar?.container)}
+            >
               <Label
                 className={classNames(
                   "text-emphasis mb-0 font-medium",
                   customClassNames?.destinationCalendar?.label
-                )}>
+                )}
+              >
                 {t("add_to_calendar")}
               </Label>
               <Controller
@@ -217,7 +214,8 @@ const destinationCalendarComponents = {
                   size="sm"
                   aria-label="edit custom name"
                   className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                  onClick={() => setShowEventNameTip((old) => !old)}>
+                  onClick={() => setShowEventNameTip((old) => !old)}
+                >
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
               }
@@ -278,7 +276,8 @@ const destinationCalendarComponents = {
                   className={classNames(
                     "text-subtle mt-2 text-sm",
                     customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.displayEmailLabel
-                  )}>
+                  )}
+                >
                   {t("display_email_as_organizer")}
                 </p>
               </div>
@@ -788,12 +787,14 @@ export const EventAdvancedTab = ({
               onCheckedChange={(e) => {
                 setRedirectUrlVisible(e);
                 onChange(e ? value : "");
-              }}>
+              }}
+            >
               <div
                 className={classNames(
                   "border-subtle rounded-b-lg border border-t-0 p-6",
                   customClassNames?.bookingRedirect?.redirectUrlInput?.container
-                )}>
+                )}
+              >
                 <TextField
                   className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
                   label={t("redirect_success_booking")}
@@ -811,7 +812,8 @@ export const EventAdvancedTab = ({
                   className={classNames(
                     "mt-4",
                     customClassNames?.bookingRedirect?.forwardParamsCheckbox?.container
-                  )}>
+                  )}
+                >
                   <Controller
                     name="forwardParamsSuccessRedirect"
                     render={({ field: { value, onChange } }) => (
@@ -834,7 +836,8 @@ export const EventAdvancedTab = ({
                     formMethods.getValues("successRedirectUrl") ? "block" : "hidden",
                     customClassNames?.bookingRedirect?.error
                   )}
-                  data-testid="redirect-url-warning">
+                  data-testid="redirect-url-warning"
+                >
                   {t("redirect_url_warning")}
                 </div>
               </div>
@@ -872,7 +875,8 @@ export const EventAdvancedTab = ({
                     );
                   }
                   setMultiplePrivateLinksVisible(e);
-                }}>
+                }}
+              >
                 {!isManagedEventType && (
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                     <MultiplePrivateLinksController
@@ -912,10 +916,10 @@ export const EventAdvancedTab = ({
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
                   : noShowFeeEnabled
-                  ? t("no_show_fee_doesnt_support_seats")
-                  : isRecurringEvent
-                  ? t("recurring_event_doesnt_support_seats")
-                  : undefined
+                    ? t("no_show_fee_doesnt_support_seats")
+                    : isRecurringEvent
+                      ? t("recurring_event_doesnt_support_seats")
+                      : undefined
               }
               onCheckedChange={(e) => {
                 // Enabling seats will disable guests and requiring confirmation until fully supported
@@ -932,7 +936,8 @@ export const EventAdvancedTab = ({
                   toggleGuests(true);
                 }
                 onChange(e);
-              }}>
+              }}
+            >
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <Controller
                   name="seatsPerTimeSlot"
@@ -946,7 +951,7 @@ export const EventAdvancedTab = ({
                         type="number"
                         disabled={seatsLocked.disabled}
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
-                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
+                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : (value ?? 1)}
                         step={1}
                         placeholder="1"
                         min={1}
@@ -969,7 +974,8 @@ export const EventAdvancedTab = ({
                         className={classNames(
                           "mt-4",
                           customClassNames?.seatsOptions?.showAttendeesCheckbox?.container
-                        )}>
+                        )}
+                      >
                         <Controller
                           name="seatsShowAttendees"
                           render={({ field: { value, onChange } }) => (
@@ -991,7 +997,8 @@ export const EventAdvancedTab = ({
                         className={classNames(
                           "mt-2",
                           customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.container
-                        )}>
+                        )}
+                      >
                         <Controller
                           name="seatsShowAvailabilityCount"
                           render={({ field: { value, onChange } }) => (
@@ -1065,11 +1072,12 @@ export const EventAdvancedTab = ({
               checked={value}
               onCheckedChange={(e) => {
                 onChange(e);
-                const lockedTimeZone = e ? eventType.lockedTimeZone ?? "Europe/London" : null;
+                const lockedTimeZone = e ? (eventType.lockedTimeZone ?? "Europe/London") : null;
                 formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
               }}
               data-testid="lock-timezone-toggle"
-              childrenClassName="lg:ml-0">
+              childrenClassName="lg:ml-0"
+            >
               {showSelector && (
                 <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
                   <div>
@@ -1161,7 +1169,8 @@ export const EventAdvancedTab = ({
                         ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
                         : null
                     );
-                  }}>
+                  }}
+                >
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                     <SelectField
                       className="w-full"
@@ -1203,7 +1212,8 @@ export const EventAdvancedTab = ({
               });
               setIsEventTypeColorChecked(e);
             }}
-            childrenClassName={classNames("lg:ml-0", customClassNames?.eventTypeColors?.children)}>
+            childrenClassName={classNames("lg:ml-0", customClassNames?.eventTypeColors?.children)}
+          >
             <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
               <div>
                 <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>

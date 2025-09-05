@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("CSP Headers", () => {
   test("Login page should have CSP header with nonce", async ({ page }) => {

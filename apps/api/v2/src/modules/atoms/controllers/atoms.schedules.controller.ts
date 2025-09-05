@@ -1,9 +1,6 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetAtomSchedulesQueryParams } from "@/modules/atoms/inputs/get-atom-schedules-query-params.input";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
+import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
 import {
   Body,
   Controller,
@@ -13,18 +10,20 @@ import {
   Patch,
   Query,
   UseGuards,
-  Version,
   VERSION_NEUTRAL,
+  Version,
 } from "@nestjs/common";
 import {
-  ApiTags as DocsTags,
-  ApiExcludeController as DocsExcludeController,
   ApiOperation,
+  ApiExcludeController as DocsExcludeController,
+  ApiTags as DocsTags,
 } from "@nestjs/swagger";
-
-import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
-import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GetAtomSchedulesQueryParams } from "@/modules/atoms/inputs/get-atom-schedules-query-params.input";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 
 import { SchedulesAtomsService } from "../services/schedules-atom.service";
 

@@ -1,6 +1,3 @@
-import { setUser as SentrySetUser } from "@sentry/nextjs";
-import type { Session } from "next-auth";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -8,8 +5,9 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
-
+import { setUser as SentrySetUser } from "@sentry/nextjs";
 import { TRPCError } from "@trpc/server";
+import type { Session } from "next-auth";
 
 import type { TRPCContextInner } from "../createContext";
 import { middleware } from "../trpc";
