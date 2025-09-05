@@ -1,0 +1,65 @@
+name: Performance Tests
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL for performance tests'
+        required: false
+        default: 'https://cal.dev'
+
+jobs:
+  performance-tests:
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://cal.dev' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: '1.0.0'
+
+      - name: Run Smoke Tests
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+        with:
+          path: tests/performance/smoke/*.js
+          cloud-run-locally: true
+          fail-fast: true
+
+      - name: Run Load Tests
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+        with:
+          path: tests/performance/load/*.js
+          cloud-run-locally: true
+          fail-fast: true
+
+      - name: Run Stress Tests
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+        with:
+          path: tests/performance/stress/*.js
+          cloud-run-locally: true
+          fail-fast: true
+
+      - name: Run Spike Tests
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+        with:
+          path: tests/performance/spike/*.js
+          cloud-run-locally: true
+          fail-fast: true
