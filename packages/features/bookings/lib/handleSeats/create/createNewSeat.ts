@@ -110,7 +110,9 @@ const createNewSeat = async (
       ...(seatedBooking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
     },
   });
-  const newBookingSeat = updatedBooking.attendees.find((attendee) => attendee.email === inviteeToAdd.email);
+  const newBookingSeat = updatedBooking.attendees.find(
+    (attendee) => attendee.bookingSeat?.referenceUid === attendeeUniqueId
+  );
   const attendeeWithSeat = { ...inviteeToAdd, bookingSeat: newBookingSeat?.bookingSeat ?? null };
 
   evt = { ...evt, attendees: [...bookingAttendees, attendeeWithSeat] };
