@@ -187,7 +187,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                 <CheckboxField
                   checked={autoChargeNoShowFeeIfCancelled}
                   onChange={(e) => setAppData("autoChargeNoShowFeeIfCancelled", e.target.checked)}
-                  description="Auto charge no-show fee for last minute bookings"
+                  description={t("auto_charge_for_last_minute_cancellation")}
                 />
               </div>
               {autoChargeNoShowFeeIfCancelled && (
