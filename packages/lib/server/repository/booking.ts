@@ -985,6 +985,7 @@ export class BookingRepository {
             paymentOption: true,
             appId: true,
             success: true,
+            data: true,
           },
         },
       },
