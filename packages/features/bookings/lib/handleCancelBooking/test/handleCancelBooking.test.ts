@@ -865,7 +865,7 @@ describe("Cancel Booking", () => {
         cancelledBy: booker.email,
         cancellationReason: "Attendee cancelled within time threshold",
       },
-      userId: 101,
+      userId: 999,
     });
 
     expect(result.success).toBe(true);
