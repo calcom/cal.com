@@ -1,15 +1,14 @@
 import { z } from "zod";
 
-import { ZDeleteFormInputSchema } from "@calcom/app-store/routing-forms/trpc/deleteForm.schema";
-import { ZFormMutationInputSchema } from "@calcom/app-store/routing-forms/trpc/formMutation.schema";
-import { ZFormQueryInputSchema } from "@calcom/app-store/routing-forms/trpc/formQuery.schema";
-import { ZGetAttributesForTeamInputSchema } from "@calcom/app-store/routing-forms/trpc/getAttributesForTeam.schema";
-import { ZGetIncompleteBookingSettingsInputSchema } from "@calcom/app-store/routing-forms/trpc/getIncompleteBookingSettings.schema";
-import { ZSaveIncompleteBookingSettingsInputSchema } from "@calcom/app-store/routing-forms/trpc/saveIncompleteBookingSettings.schema";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZDeleteFormInputSchema } from "./deleteForm.schema";
+import { ZFormMutationInputSchema } from "./formMutation.schema";
+import { ZFormQueryInputSchema } from "./formQuery.schema";
+import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
+import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 import { forms } from "./procedures/forms";
+import { ZSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
@@ -54,10 +53,7 @@ export type TFormQueryInputSchema = z.infer<typeof ZFormQueryInputSchema>;
 const appRoutingForms = router({
   forms,
   formQuery: authedProcedure.input(ZFormQueryInputSchema).query(async ({ ctx, input }) => {
-    const handler = await getHandler(
-      "formQuery",
-      () => import("@calcom/app-store/routing-forms/trpc/formQuery.handler")
-    );
+    const handler = await getHandler("formQuery", () => import("./formQuery.handler"));
     return handler({ ctx, input });
   }),
   getResponseWithFormFields: authedProcedure
@@ -65,22 +61,16 @@ const appRoutingForms = router({
     .query(async ({ ctx, input }) => {
       const handler = await getHandler(
         "getResponseWithFormFields",
-        () => import("@calcom/app-store/routing-forms/trpc/getResponseWithFormFields.handler")
+        () => import("./getResponseWithFormFields.handler")
       );
       return handler({ ctx, input });
     }),
   formMutation: authedProcedure.input(ZFormMutationInputSchema).mutation(async ({ ctx, input }) => {
-    const handler = await getHandler(
-      "formMutation",
-      () => import("@calcom/app-store/routing-forms/trpc/formMutation.handler")
-    );
+    const handler = await getHandler("formMutation", () => import("./formMutation.handler"));
     return handler({ ctx, input });
   }),
   deleteForm: authedProcedure.input(ZDeleteFormInputSchema).mutation(async ({ ctx, input }) => {
-    const handler = await getHandler(
-      "deleteForm",
-      () => import("@calcom/app-store/routing-forms/trpc/deleteForm.handler")
-    );
+    const handler = await getHandler("deleteForm", () => import("./deleteForm.handler"));
     return handler({ ctx, input });
   }),
 
@@ -89,7 +79,7 @@ const appRoutingForms = router({
     .query(async ({ ctx, input }) => {
       const handler = await getHandler(
         "getAttributesForTeam",
-        () => import("@calcom/app-store/routing-forms/trpc/getAttributesForTeam.handler")
+        () => import("./getAttributesForTeam.handler")
       );
       return handler({ ctx, input });
     }),
@@ -99,7 +89,7 @@ const appRoutingForms = router({
     .query(async ({ ctx, input }) => {
       const handler = await getHandler(
         "getIncompleteBookingSettings",
-        () => import("@calcom/app-store/routing-forms/trpc/getIncompleteBookingSettings.handler")
+        () => import("./getIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
     }),
@@ -109,7 +99,7 @@ const appRoutingForms = router({
     .mutation(async ({ ctx, input }) => {
       const handler = await getHandler(
         "saveIncompleteBookingSettings",
-        () => import("@calcom/app-store/routing-forms/trpc/saveIncompleteBookingSettings.handler")
+        () => import("./saveIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
     }),

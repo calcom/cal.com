@@ -1,4 +1,4 @@
-import type { TFormSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
+import type { TFormSchema } from "./forms.schema";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

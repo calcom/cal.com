@@ -220,7 +220,9 @@ export const sendResponseEmail = async (
 ) => {
   try {
     if (typeof window === "undefined") {
-      const { default: ResponseEmail } = await import("../emails/templates/response-email");
+      const { default: ResponseEmail } = await import(
+        "@calcom/app-store/routing-forms/emails/templates/response-email"
+      );
       const email = new ResponseEmail({ form: form, toAddresses, orderedResponses });
       await email.sendEmail();
     }

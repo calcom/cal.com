@@ -1,8 +1,7 @@
-import { ZFormsInputSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
-
 import authedProcedure from "../../../../procedures/authedProcedure";
+import { ZFormsInputSchema } from "./forms.schema";
 
 export const forms = authedProcedure.input(ZFormsInputSchema).query(async ({ ctx, input }) => {
-  const handler = (await import("@calcom/app-store/routing-forms/trpc/forms.handler")).default;
+  const handler = (await import("./forms.handler")).default;
   return handler({ ctx, input });
 });
