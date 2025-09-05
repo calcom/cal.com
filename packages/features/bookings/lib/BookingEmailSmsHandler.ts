@@ -122,39 +122,6 @@ export class BookingEmailSmsHandler {
         break;
     }
   }
-  private async _sendRoundRobinRescheduledEmailsAndSMS(
-    ...args: Parameters<typeof sendRoundRobinRescheduledEmailsAndSMS>
-  ) {
-    await sendRoundRobinRescheduledEmailsAndSMS(...args);
-  }
-
-  private async _sendRoundRobinScheduledEmailsAndSMS(
-    ...args: Parameters<typeof sendRoundRobinScheduledEmailsAndSMS>
-  ) {
-    await sendRoundRobinScheduledEmailsAndSMS(...args);
-  }
-
-  private async _sendRoundRobinCancelledEmailsAndSMS(
-    ...args: Parameters<typeof sendRoundRobinCancelledEmailsAndSMS>
-  ) {
-    await sendRoundRobinCancelledEmailsAndSMS(...args);
-  }
-
-  private async _sendRescheduledEmailsAndSMS(...args: Parameters<typeof sendRescheduledEmailsAndSMS>) {
-    await sendRescheduledEmailsAndSMS(...args);
-  }
-
-  private async _sendScheduledEmailsAndSMS(...args: Parameters<typeof sendScheduledEmailsAndSMS>) {
-    await sendScheduledEmailsAndSMS(...args);
-  }
-
-  private async _sendOrganizerRequestEmail(...args: Parameters<typeof sendOrganizerRequestEmail>) {
-    await sendOrganizerRequestEmail(...args);
-  }
-
-  private async _sendAttendeeRequestEmailAndSMS(...args: Parameters<typeof sendAttendeeRequestEmailAndSMS>) {
-    await sendAttendeeRequestEmailAndSMS(...args);
-  }
 
   /**
    * Handles notifications for a RESCHEDULED booking.
@@ -168,7 +135,7 @@ export class BookingEmailSmsHandler {
       additionalInformation,
     } = data;
 
-    await this._sendRescheduledEmailsAndSMS(
+    await sendRescheduledEmailsAndSMS(
       {
         ...evt,
         additionalInformation,
@@ -264,12 +231,12 @@ export class BookingEmailSmsHandler {
     );
 
     try {
-      await this._sendRoundRobinRescheduledEmailsAndSMS(
+      await sendRoundRobinRescheduledEmailsAndSMS(
         { ...copyEventAdditionalInfo, iCalUID },
         rescheduledMembers,
         metadata
       );
-      await this._sendRoundRobinScheduledEmailsAndSMS({
+      await sendRoundRobinScheduledEmailsAndSMS({
         calEvent: copyEventAdditionalInfo,
         members: newBookedMembers,
         eventTypeMetadata: metadata,
@@ -277,7 +244,7 @@ export class BookingEmailSmsHandler {
       const reassignedTo = users.find(
         (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
       );
-      await this._sendRoundRobinCancelledEmailsAndSMS(
+      await sendRoundRobinCancelledEmailsAndSMS(
         cancelledRRHostEvt,
         cancelledMembers,
         metadata,
@@ -320,7 +287,7 @@ export class BookingEmailSmsHandler {
     }
 
     try {
-      await this._sendScheduledEmailsAndSMS(
+      await sendScheduledEmailsAndSMS(
         { ...evt, additionalInformation, additionalNotes, customInputs },
         eventNameObject,
         isHostConfirmationEmailsDisabled,
@@ -354,8 +321,8 @@ export class BookingEmailSmsHandler {
     const eventWithNotes = { ...evt, additionalNotes };
 
     try {
-      await this._sendOrganizerRequestEmail(eventWithNotes, metadata);
-      await this._sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata);
+      await sendOrganizerRequestEmail(eventWithNotes, metadata);
+      await sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata);
     } catch (err) {
       this.log.error("Failed to send requested event related emails", err);
     }
