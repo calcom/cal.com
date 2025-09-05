@@ -2,11 +2,24 @@ name: PR Update
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - gh-actions-test-branch
   workflow_dispatch:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+        description: 'PR number'
+      pr_ref:
+        required: true
+        type: string
+        description: 'PR head ref'
+      pr_sha:
+        required: true
+        type: string
+        description: 'PR head SHA'
 
 permissions:
   actions: write
@@ -14,12 +27,11 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   changes:
-    if: ${{ github.event.action != 'labeled' || github.event.label.name == 'ready-for-e2e' }}
     name: Detect changes
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
