@@ -1,7 +1,10 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
-  "files": { "ignoreUnknown": true },
+  "files": {
+    "ignoreUnknown": true,
+    "maxSize": 10485760
+  },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
@@ -15,25 +18,25 @@
     "expand": "auto",
     "useEditorconfig": true,
     "includes": [
-      "**",
-      "!**/node_modules",
-      "!**/.next",
-      "!**/public",
-      "!**/*.lock",
-      "!**/*.log",
-      "!**/.gitignore",
-      "!**/.npmignore",
-      "!**/.prettierignore",
-      "!**/.DS_Store",
-      "!**/.eslintignore",
-      "!packages/prisma/zod",
-      "!packages/prisma/enums",
-      "!apps/web/public/embed",
+      "**/*.{js,jsx,ts,tsx}",
+      "!**/node_modules/**",
+      "!**/.next/**",
+      "!**/public/**",
+      "!packages/prisma/zod/**",
+      "!packages/prisma/enums/**",
+      "!apps/web/public/embed/**",
       "!apps/api/v2/swagger/documentation.json",
       "!packages/ui/components/icon/dynamicIconImports.tsx",
       "!apps/ui-playground/**",
       "!**/dist/**",
-      "!**/build/**"
+      "!**/build/**",
+      "!**/.turbo/**",
+      "!**/.yarn/**",
+      "!**/coverage/**",
+      "!**/*.min.js",
+      "!**/*.min.css",
+      "!**/chunks/**",
+      "!**/*.generated.js"
     ]
   },
   "linter": {
@@ -115,6 +118,26 @@
   ],
   "assist": {
     "enabled": true,
-    "actions": { "source": { "organizeImports": "on" } }
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              "(.*)/__mocks__/(.*)",
+              "(.*)bookingScenario(.*)",
+              ":PACKAGE:",
+              "^@(calcom|ee)/(.*)$",
+              "^@lib/(.*)$",
+              "^@components/(.*)$",
+              "^@(server|trpc)/(.*)$",
+              "^~/(.*)$",
+              ":BLANK_LINE:",
+              ":PATH:"
+            ]
+          }
+        }
+      }
+    }
   }
 }
