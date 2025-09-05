@@ -2308,6 +2308,7 @@ checksums:
     testing_workflow_info_message: 63eb6b5f857e4fab7eae515a85e6bed5
     insights_no_data_found_for_filter: af12cfd502181543842597325894bb30
     acknowledge_booking_no_show_fee: 392224bac006a342a7fb63dad685689f
+    days: c95fe8aedde21a0b5653dbd0b3c58b48
     card_details: 12bfee4d5e5b0e0f1c52b0cc40427ad0
     something_went_wrong_on_our_end: fb27a37cc30453962862e03ff76d6501
     please_provide_following_text_to_suppport: 12912573e35d64fe41da3c33b5c8d4eb
@@ -3599,4 +3600,8 @@ checksums:
     search_variables: 109713c41acc0d58dcb26bd70f0fa3b3
     no_variables_found: ff245d81f9b63e74656862119685bb55
     api_key_name_too_long: 1175b1d59bbe58c2a1b1e86de785dce8
+    auto_charge_for_last_minute_cancellation: 8d438d61dc249f0ca003734e4a9dac18
+    before_scheduled_start_time: 35bbe398965e631eaf969ee89266ee84
+    cancel_booking_acknowledge_no_show_fee: 6e30c82004a60d5ec2daa40d93d3cce0
+    contact_organizer: d4d89322dbb7d3b447a45e09ffd48ba8
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

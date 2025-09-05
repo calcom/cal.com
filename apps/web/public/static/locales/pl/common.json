@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "Podczas testowania tego przepływu pracy pamiętaj, że wiadomości e-mail i SMS można zaplanować jedynie z co najmniej 1-godzinnym wyprzedzeniem",
   "insights_no_data_found_for_filter": "Nie znaleziono danych dotyczących wybranego filtru lub wskazanych dat.",
   "acknowledge_booking_no_show_fee": "Rozumiem, że jeśli nie wezmę udziału w wydarzeniu, z mojej karty pobrana zostanie opłata za niestawienie się w wysokości {{amount, currency}}.",
+  "days": "dni",
   "card_details": "Dane karty",
   "something_went_wrong_on_our_end": "Coś poszło nie tak po naszej stronie. Skontaktuj się z naszym zespołem wsparcia, a my natychmiast to naprawimy.",
   "please_provide_following_text_to_suppport": "W razie kontaktu z pomocą techniczną podaj następujący tekst, abyśmy mogli lepiej Ci pomóc.",
@@ -3602,5 +3603,9 @@
   "search_variables": "Szukaj zmiennych",
   "no_variables_found": "Nie znaleziono zmiennych",
   "api_key_name_too_long": "Nazwa nie może przekraczać {{max}} znaków",
+  "auto_charge_for_last_minute_cancellation": "Automatyczne naliczanie opłaty za niepojawienie się w przypadku odwołania w ostatniej chwili",
+  "before_scheduled_start_time": "Przed zaplanowanym czasem rozpoczęcia",
+  "cancel_booking_acknowledge_no_show_fee": "Potwierdzam, że odwołując rezerwację w ciągu {{timeValue}} {{timeUnit}} przed czasem rozpoczęcia, zostanie naliczona opłata za niepojawienie się w wysokości {{amount, currency}}",
+  "contact_organizer": "Jeśli masz jakiekolwiek pytania, skontaktuj się z organizatorem.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

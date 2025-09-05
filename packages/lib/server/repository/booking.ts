@@ -945,4 +945,49 @@ export class BookingRepository {
       },
     });
   }
+
+  async getBookingForPaymentProcessing(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        userPrimaryEmail: true,
+        status: true,
+        eventTypeId: true,
+        userId: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
+        eventType: {
+          select: {
+            title: true,
+            hideOrganizerEmail: true,
+            teamId: true,
+            metadata: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            paymentOption: true,
+            appId: true,
+            success: true,
+          },
+        },
+      },
+    });
+  }
 }

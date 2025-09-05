@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "Při testování tohoto pracovního postupu mějte na paměti, že e-maily a SMS lze naplánovat pouze nejméně 1 hodinu předem.",
   "insights_no_data_found_for_filter": "Pro vybraný filtr nebo vybraná data nebyla nalezena žádná data.",
   "acknowledge_booking_no_show_fee": "Beru na vědomí, že pokud se této události nezúčastním, bude z mé karty stržen poplatek za nedostavení se ve výši {{amount, currency}}.",
+  "days": "dny",
   "card_details": "Údaje o kartě",
   "something_went_wrong_on_our_end": "Na naší straně došlo k chybě. Kontaktujte náš tým podpory a my to pro vás co nejdříve opravíme.",
   "please_provide_following_text_to_suppport": "Při kontaktování podpory uveďte v zájmu lepší efektivity následující",
@@ -3602,5 +3603,9 @@
   "search_variables": "Hledat proměnné",
   "no_variables_found": "Nebyly nalezeny žádné proměnné",
   "api_key_name_too_long": "Název nesmí přesáhnout {{max}} znaků",
+  "auto_charge_for_last_minute_cancellation": "Automaticky účtovat poplatek za nedostavení se při zrušení na poslední chvíli",
+  "before_scheduled_start_time": "Před plánovaným časem zahájení",
+  "cancel_booking_acknowledge_no_show_fee": "Beru na vědomí, že zrušením rezervace v době kratší než {{timeValue}} {{timeUnit}} před začátkem mi bude účtován poplatek za nedostavení se ve výši {{amount, currency}}",
+  "contact_organizer": "Pokud máte jakékoli dotazy, kontaktujte prosím organizátora.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
