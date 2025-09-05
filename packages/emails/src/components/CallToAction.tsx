@@ -1,3 +1,4 @@
+import React from "react";
 import { CallToActionIcon } from "./CallToActionIcon";
 
 export const CallToAction = (props: {

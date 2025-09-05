@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import React, { CSSProperties } from "react";
 
 import EmailCommonDivider from "./EmailCommonDivider";
 import RawHtml from "./RawHtml";
