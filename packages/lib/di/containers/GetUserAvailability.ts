@@ -7,7 +7,7 @@ import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { UserAvailabilityService } from "../../getUserAvailability";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { busyTimesModule } from "../modules/BusyTimes";
-import { eventTypeRepositoryModule } from "../modules/EventType";
+import { eventTypeRepositoryModule } from "../modules/eventType";
 import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
 import { oooRepositoryModule } from "../modules/Ooo";
 

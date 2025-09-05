@@ -10,7 +10,7 @@ import { bookingRepositoryModule } from "../modules/Booking";
 import { busyTimesModule } from "../modules/BusyTimes";
 import { cacheModule } from "../modules/Cache";
 import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
-import { eventTypeRepositoryModule } from "../modules/EventType";
+import { eventTypeRepositoryModule } from "../modules/eventType";
 import { featuresRepositoryModule } from "../modules/Features";
 import { filterHostsModule } from "../modules/FilterHosts";
 import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
@@ -20,7 +20,7 @@ import { oooRepositoryModule } from "../modules/Ooo";
 import { qualifiedHostsModule } from "../modules/QualifiedHosts";
 import { routingFormResponseRepositoryModule } from "../modules/RoutingFormResponse";
 import { scheduleRepositoryModule } from "../modules/Schedule";
-import { selectedSlotsRepositoryModule } from "../modules/SelectedSlots";
+import { selectedSlotsRepositoryModule } from "../modules/selectedSlots";
 import { teamRepositoryModule } from "../modules/Team";
 import { userRepositoryModule } from "../modules/User";
 

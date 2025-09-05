@@ -23,6 +23,7 @@ export class CalVideoSettingsRepository {
       disableTranscriptionForGuests?: boolean | null;
       disableTranscriptionForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
+      enableFlappyBirdGame?: boolean | null;
     };
   }) {
     return await prisma.calVideoSettings.create({
@@ -34,6 +35,7 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        enableFlappyBirdGame: calVideoSettings.enableFlappyBirdGame ?? false,
         eventTypeId,
       },
     });

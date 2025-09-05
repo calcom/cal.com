@@ -130,7 +130,6 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
               labelClassName="text-sm leading-6 whitespace-normal break-words"
               checked={value}
               onCheckedChange={onChange}
-              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
             />
           );
         }}
