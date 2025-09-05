@@ -128,8 +128,14 @@ export default function CancelBooking(props: Props) {
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
   const [acknowledgeCancellationNoShowFee, setAcknowledgeCancellationNoShowFee] = useState(false);
 
-  const timeValue = eventTypeMetadata?.apps?.stripe?.autoChargeNoShowFeeTimeValue;
-  const timeUnit = eventTypeMetadata?.apps?.stripe?.autoChargeNoShowFeeTimeUnit;
+  const timeValue = booking?.payment?.appId
+    ? eventTypeMetadata?.apps?.[booking.payment?.appId as keyof typeof eventTypeMetadata.apps]
+        ?.autoChargeNoShowFeeTimeValue
+    : null;
+  const timeUnit = booking?.payment?.appId
+    ? eventTypeMetadata?.apps?.[booking.payment?.appId as keyof typeof eventTypeMetadata.apps]
+        ?.autoChargeNoShowFeeTimeUnit
+    : null;
 
   const autoChargeNoShowFee = () => {
     if (props.isHost) return false; // Hosts/organizers are exempt
