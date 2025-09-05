@@ -1,10 +1,10 @@
+import { enabledIncompleteBookingApps } from "@calcom/app-store/routing-forms/lib/enabledIncompleteBookingApps";
 import type { PrismaClient } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { enabledIncompleteBookingApps } from "../lib/enabledIncompleteBookingApps";
 import type { TGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 
 interface GetIncompleteBookingSettingsOptions {
