@@ -6,7 +6,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import { _onFormSubmission } from "./utils";
+import { _onFormSubmission } from "./formSubmissionUtils";
 
 // Mock dependencies
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
@@ -27,7 +27,7 @@ vi.mock("@calcom/features/tasker", () => {
 
 const mockSendEmail = vi.fn(() => Promise.resolve());
 const mockResponseEmailConstructor = vi.fn();
-vi.mock("@calcom/app-store/routing-forms/emails/templates/response-email", () => ({
+vi.mock("../emails/templates/response-email", () => ({
   default: class MockResponseEmail {
     sendEmail = mockSendEmail;
     constructor(...args: unknown[]) {
