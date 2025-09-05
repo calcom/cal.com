@@ -55,6 +55,7 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import type { EventType } from "@calcom/lib/getUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import logger from "@calcom/lib/logger";
@@ -703,12 +704,26 @@ async function handler(
     location,
   });
 
+  const getWeekStartFromEventType = (eventType: EventType): string => {
+    // For individual user events
+    if (eventType.users && eventType.users.length > 0 && eventType.users[0].weekStart) {
+      return eventType.users[0].weekStart;
+    }
+
+    // For team events
+    if (eventType.hosts && eventType.hosts.length > 0 && eventType.hosts[0].user?.weekStart) {
+      return eventType.hosts[0].user.weekStart;
+    }
+
+    return "Monday";
+  };
+
   const checkBookingAndDurationLimitsService = getCheckBookingAndDurationLimitsService();
   await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
     eventType,
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
-    weekStartDay: weekStartNum(eventType.users[0].weekStart),
+    weekStartDay: weekStartNum(getWeekStartFromEventType(eventType)),
   });
 
   let luckyUserResponse;
