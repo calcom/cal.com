@@ -8746,6 +8746,8 @@
           {
             "name": "credentialId",
             "in": "query",
+            "description": "The ID of the user's calendar credential used to access the calendar. Retrieve this from your connected calendar credentials via the `/v2/credentials` endpoint.",
+            "example": 135,
             "required": true,
             "schema": {
               "type": "number"
@@ -8754,6 +8756,8 @@
           {
             "name": "externalId",
             "in": "query",
+            "description": "The external calendar identifier from the calendar provider (e.g., email address for Google Calendar). This is returned when listing connected calendars.",
+            "example": "user@gmail.com",
             "required": true,
             "schema": {
               "type": "string"
