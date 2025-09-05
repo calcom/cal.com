@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "Bu iş axınını sınaqdan keçirərkən, e-poçtların və SMS-lərin ən azı 1 saat əvvəl planlaşdırıla biləcəyini unutmayın",
   "insights_no_data_found_for_filter": "Seçilmiş filtr və ya tarixlər üçün məlumat tapılmadı.",
   "acknowledge_booking_no_show_fee": "Bu tədbirə qatılmasam, kartıma {{amount, currency}} gəlməmə haqqı tətbiq olunacağını qəbul edirəm.",
+  "days": "günlər",
   "card_details": "Kart məlumatları",
   "something_went_wrong_on_our_end": "Bizim tərəfimizdə bir şey səhv getdi. Dəstək komandamızla əlaqə saxlayın və biz bunu sizin üçün dərhal həll edəcəyik.",
   "please_provide_following_text_to_suppport": "Dəstək ilə əlaqə saxlayarkən aşağıdakı mətni təqdim edin ki, sizə daha yaxşı kömək edə bilək",
@@ -3602,5 +3603,9 @@
   "search_variables": "Dəyişənləri axtar",
   "no_variables_found": "Heç bir dəyişən tapılmadı",
   "api_key_name_too_long": "Ad {{max}} simvolu keçməməlidir",
+  "auto_charge_for_last_minute_cancellation": "Son dəqiqə ləğvləri üçün avtomatik olaraq gəlməmə haqqını tutun",
+  "before_scheduled_start_time": "Planlaşdırılmış başlama vaxtından əvvəl",
+  "cancel_booking_acknowledge_no_show_fee": "Təsdiq edirəm ki, rezervasiyanı başlama vaxtından {{timeValue}} {{timeUnit}} ərzində ləğv etməklə mənə {{amount, currency}} məbləğində gəlməmə haqqı tutulacaq",
+  "contact_organizer": "Hər hansı sualınız varsa, təşkilatçı ilə əlaqə saxlayın.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
