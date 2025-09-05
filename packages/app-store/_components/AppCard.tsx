@@ -1,5 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";

@@ -1,6 +1,6 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";

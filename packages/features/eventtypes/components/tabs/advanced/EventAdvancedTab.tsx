@@ -2,7 +2,7 @@ import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
 } from "@calid/features/modules/workflows/utils/notificationDisableCheck";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

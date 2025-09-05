@@ -6,7 +6,7 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

@@ -2,7 +2,7 @@
 
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Logo } from "@calid/features/ui/components/logo";
 import type { VerticalTabItemProps } from "@calid/features/ui/components/navigation";
 import { VerticalTabItem } from "@calid/features/ui/components/navigation";

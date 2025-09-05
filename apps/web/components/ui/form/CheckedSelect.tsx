@@ -4,7 +4,7 @@ import type { Props } from "react-select";
 import Select from "@calcom/features/form/components/Select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

@@ -1,5 +1,5 @@
 import { isSMSOrWhatsappAction } from "@calid/features/modules/workflows/config/utils";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 
 
 

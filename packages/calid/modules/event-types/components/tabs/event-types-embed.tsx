@@ -1,7 +1,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";

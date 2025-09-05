@@ -1,4 +1,5 @@
-import { Button, Input } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Input } from "@calid/features/ui/components/input/input";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";

@@ -1,7 +1,7 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Divider } from "@calid/features/ui/components/divider";
 import { VerticalDivider } from "@calid/features/ui/components/divider";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";

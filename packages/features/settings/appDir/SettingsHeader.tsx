@@ -1,5 +1,5 @@
 import { Profile } from "@calid/features/ui/Profile";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";

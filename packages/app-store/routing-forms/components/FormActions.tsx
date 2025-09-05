@@ -1,7 +1,7 @@
 import { type ButtonProps } from "@calid/features/ui/components/button";
 import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Switch } from "@calid/features/ui/components/switch/switch";

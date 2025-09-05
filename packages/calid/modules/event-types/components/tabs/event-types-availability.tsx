@@ -1,6 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import { CustomSelect } from "@calid/features/ui/components/custom-select";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseQueryResult } from "@tanstack/react-query";

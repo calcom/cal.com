@@ -1,6 +1,6 @@
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button, buttonClasses } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { format } from "date-fns";
 import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";

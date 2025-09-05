@@ -1,6 +1,5 @@
-import { Button, Icon } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
@@ -321,7 +320,7 @@ const BookerComponent = ({
       // Remove the last segment
       segments.pop();
       // Rebuild pathname without last section
-      u.pathname = "/" + segments.join("/");
+      u.pathname = `/${segments.join("/")}`;
       // Clear query params
       u.search = "";
       return u.toString();
@@ -353,8 +352,9 @@ const BookerComponent = ({
             }}
             variant="fab"
             color="secondary"
-            className="h-[16px] mb-2"
-            StartIcon="arrow-left"></Button>
+            className="mb-2 h-[16px]"
+            StartIcon="arrow-left"
+          />
           <div
             ref={animationScope}
             data-testid="booker-container"
@@ -423,7 +423,8 @@ const BookerComponent = ({
                       loading="eager"
                       className="-mb-4 flex h-16 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
                       alt="org banner"
-                      style={{ backgroundImage: `url(${orgBannerUrl})` }}></div>
+                      style={{ backgroundImage: `url(${orgBannerUrl})` }}
+                    />
                   )}
 
                   <EventMeta

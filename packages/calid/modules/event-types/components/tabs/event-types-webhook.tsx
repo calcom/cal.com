@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { TooltipTrigger } from "@calid/features/ui/components/tooltip";

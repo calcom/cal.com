@@ -1,7 +1,9 @@
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
-import { useState, Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import { flushSync } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -25,7 +27,6 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import { Button as Button2 } from "@calcom/ui/button";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
@@ -41,10 +42,6 @@ import {
   DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
 import { TextAreaField } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
-
-
-
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
 import type { ActionType } from "@calcom/ui/components/table";
@@ -67,12 +64,9 @@ import {
   getPendingActions,
   getCancelEventAction,
   getRescheduleEventLink,
-  getRescheduleEventAction,
   getEditEventActions,
   getAfterEventActions,
   shouldShowPendingActions,
-  shouldShowEditActions,
-  shouldShowRecurringCancelAction,
   type BookingActionContext,
 } from "./bookingActions";
 
@@ -170,19 +164,19 @@ export default function BookingListItem(booking: BookingItemProps) {
   const getIconFromLocationValue = (value: string) => {
     switch (value) {
       case "phone":
-        return <Icon name="phone" className={"h-3.5 w-3.5"} />;
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
       case "userPhone":
-        return <Icon name="phone" className={"h-3.5 w-3.5"} />;
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
       case "inPerson":
-        return <Icon name="map-pin" className={"h-3.5 w-3.5"} />;
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
       case "attendeeInPerson":
-        return <Icon name="map-pin" className={"h-3.5 w-3.5"} />;
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
       case "link":
-        return <Icon name="link" className={"h-3.5 w-3.5"} />;
+        return <Icon name="link" className="h-3.5 w-3.5" />;
       case "somewhereElse":
-        return <Icon name="map" className={"h-3.5 w-3.5"} />;
+        return <Icon name="map" className="h-3.5 w-3.5" />;
       default:
-        return <Icon name="video" className={"h-3.5 w-3.5"} />;
+        return <Icon name="video" className="h-3.5 w-3.5" />;
     }
   };
 
@@ -463,15 +457,13 @@ export default function BookingListItem(booking: BookingItemProps) {
         bookingUId={booking.uid}
       /> */}
 
-      {
-        <BookingCancelDialog
-          isOpenDialog={isOpenSetCancellationDialog}
-          setIsOpenDialog={setIsOpenCancellationDialog}
-          seatReferenceUid={getSeatReferenceUid()}
-          bookingUId={booking.uid}
-          {...booking}
-        />
-      }
+      <BookingCancelDialog
+        isOpenDialog={isOpenSetCancellationDialog}
+        setIsOpenDialog={setIsOpenCancellationDialog}
+        seatReferenceUid={getSeatReferenceUid()}
+        bookingUId={booking.uid}
+        {...booking}
+      />
 
       {isOpenReassignDialog && (
         <ReassignDialog
@@ -736,7 +728,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                   <span>{t("reschedule")}</span>
                 </Button> */}
 
-                    {!isCancelled && <RescheduleDialog link={rescheduleEventLink}></RescheduleDialog>}
+                    {!isCancelled && <RescheduleDialog link={rescheduleEventLink} />}
 
                     {!isCancelled && (
                       <Button
@@ -838,7 +830,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                     )}
                   </div>
 
-                  <div className="flex-1"></div>
+                  <div className="flex-1" />
 
                   <div className="flex flex-row justify-end pr-4">
                     <button
@@ -875,7 +867,8 @@ export default function BookingListItem(booking: BookingItemProps) {
                 loggedInUser={booking.loggedInUser}
                 listingStatus={booking.status}
                 recurringInfo={booking.recurringInfo}
-                {...booking}></BookingExpandedCard>
+                {...booking}
+              />
             )}
           </div>
         </div>

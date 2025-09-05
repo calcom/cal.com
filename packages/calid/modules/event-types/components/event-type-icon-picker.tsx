@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import React, { useState, useMemo, useEffect } from "react";
 
 import type { IconParams } from "./event-type-card-icon";

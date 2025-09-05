@@ -1,5 +1,5 @@
 import type { IconName } from "@calid/features/ui";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import React from "react";
 
 export interface IconParams {

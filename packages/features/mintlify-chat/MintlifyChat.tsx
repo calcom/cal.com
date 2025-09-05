@@ -1,5 +1,5 @@
 /* eslint-disable react/no-danger */
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
