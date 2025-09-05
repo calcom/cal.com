@@ -43,7 +43,7 @@ type OrganizationData = {
   name: string;
   slug: string;
   isOrganizationConfigured: boolean;
-  isOrganizationAdminReviewed: boolean;
+  isAdminReviewed: boolean;
   autoAcceptEmail: string;
   seats: number | null;
   pricePerSeat: number | null;
@@ -418,7 +418,7 @@ async function handleOrganizationCreation({
     isOrganizationConfigured: true,
     // We believe that as the payment has been accepted first and we also restrict the emails to company emails, it is safe to set this to true.
     // We could easily set it to false if needed. In effect, it disables impersonations by non-admin reviewed organization's owner and also disables editing the member details
-    isOrganizationAdminReviewed: true,
+    isAdminReviewed: true,
     autoAcceptEmail: organizationOnboarding.orgOwnerEmail.split("@")[1],
     seats: organizationOnboarding.seats,
     pricePerSeat: organizationOnboarding.pricePerSeat,

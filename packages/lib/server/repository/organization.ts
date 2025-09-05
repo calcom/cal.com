@@ -29,7 +29,7 @@ export class OrganizationRepository {
       name: string;
       slug: string | null;
       isOrganizationConfigured: boolean;
-      isOrganizationAdminReviewed: boolean;
+      isAdminReviewed: boolean;
       autoAcceptEmail: string;
       seats: number | null;
       pricePerSeat: number | null;
@@ -77,7 +77,7 @@ export class OrganizationRepository {
       name: string;
       slug: string;
       isOrganizationConfigured: boolean;
-      isOrganizationAdminReviewed: boolean;
+      isAdminReviewed: boolean;
       autoAcceptEmail: string;
       seats: number | null;
       billingPeriod?: "MONTHLY" | "ANNUALLY";
@@ -126,7 +126,7 @@ export class OrganizationRepository {
     name: string;
     slug: string | null;
     isOrganizationConfigured: boolean;
-    isOrganizationAdminReviewed: boolean;
+    isAdminReviewed: boolean;
     autoAcceptEmail: string;
     seats: number | null;
     billingPeriod?: "MONTHLY" | "ANNUALLY";
@@ -146,7 +146,7 @@ export class OrganizationRepository {
         bio: orgData.bio,
         organizationSettings: {
           create: {
-            isAdminReviewed: orgData.isOrganizationAdminReviewed,
+            isAdminReviewed: orgData.isAdminReviewed,
             isOrganizationVerified: true,
             isOrganizationConfigured: orgData.isOrganizationConfigured,
             orgAutoAcceptEmail: orgData.autoAcceptEmail,
@@ -256,8 +256,24 @@ export class OrganizationRepository {
           teamId: orgId,
         },
       },
-      include: {
-        team: true,
+      select: {
+        userId: true,
+        teamId: true,
+        role: true,
+        accepted: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            bio: true,
+            metadata: true,
+            isOrganization: true,
+            isPrivate: true,
+            parentId: true,
+          },
+        },
       },
     });
 

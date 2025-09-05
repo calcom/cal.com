@@ -2,8 +2,6 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
-import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -19,6 +17,50 @@ import {
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
 } from "./server";
+
+const googleCalendarMetadata = {
+  name: "Google Calendar",
+  type: "google_calendar",
+  category: "calendar",
+  logo: "icon.svg",
+  publisher: "Cal.com",
+  url: "https://cal.com/",
+  verified: true,
+  rating: 5,
+  reviews: 69,
+  trending: true,
+  isGlobal: false,
+  email: "help@cal.com",
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:google:meet",
+      label: "Google Meet",
+    },
+  },
+};
+
+const googleMeetMetadata = {
+  name: "Google Meet",
+  type: "googlevideo",
+  category: "video",
+  logo: "icon.svg",
+  publisher: "Cal.com",
+  url: "https://cal.com/",
+  verified: true,
+  rating: 5,
+  reviews: 69,
+  trending: true,
+  isGlobal: false,
+  email: "help@cal.com",
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:google:meet",
+      label: "Google Meet",
+    },
+  },
+};
 
 // Mock OrganizationRepository
 vi.mock("@calcom/lib/server/repository/organization", () => ({
