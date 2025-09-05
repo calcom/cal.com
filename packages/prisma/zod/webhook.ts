@@ -1,20 +1,8 @@
-import { TimeUnit, WebhookTriggerEvents } from "@prisma/client";
-import * as z from "zod";
-import * as imports from "../zod-utils";
-import {
-  AppModel,
-  CompleteApp,
-  CompleteEventType,
-  CompletePlatformOAuthClient,
-  CompleteTeam,
-  CompleteUser,
-  CompleteWebhookScheduledTriggers,
-  EventTypeModel,
-  PlatformOAuthClientModel,
-  TeamModel,
-  UserModel,
-  WebhookScheduledTriggersModel,
-} from "./index";
+import { TimeUnit, WebhookTriggerEvents } from "@prisma/client"
+import * as z from "zod"
+
+import * as imports from "../zod-utils"
+import { AppModel, CompleteApp, CompleteEventType, CompletePlatformOAuthClient, CompleteTeam, CompleteUser, CompleteWebhookScheduledTriggers, EventTypeModel, PlatformOAuthClientModel, TeamModel, UserModel, WebhookScheduledTriggersModel } from "./index"
 
 export const _WebhookModel = z.object({
   id: z.string(),
@@ -32,15 +20,15 @@ export const _WebhookModel = z.object({
   platform: z.boolean(),
   time: z.number().int().nullish(),
   timeUnit: z.nativeEnum(TimeUnit).nullish(),
-});
+})
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
-  user?: CompleteUser | null;
-  team?: CompleteTeam | null;
-  eventType?: CompleteEventType | null;
-  platformOAuthClient?: CompletePlatformOAuthClient | null;
-  app?: CompleteApp | null;
-  scheduledTriggers: CompleteWebhookScheduledTriggers[];
+  user?: CompleteUser | null
+  team?: CompleteTeam | null
+  eventType?: CompleteEventType | null
+  platformOAuthClient?: CompletePlatformOAuthClient | null
+  app?: CompleteApp | null
+  scheduledTriggers: CompleteWebhookScheduledTriggers[]
 }
 
 /**
@@ -48,13 +36,11 @@ export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const WebhookModel: z.ZodSchema<CompleteWebhook> = z.lazy(() =>
-  _WebhookModel.extend({
-    user: UserModel.nullish(),
-    team: TeamModel.nullish(),
-    eventType: EventTypeModel.nullish(),
-    platformOAuthClient: PlatformOAuthClientModel.nullish(),
-    app: AppModel.nullish(),
-    scheduledTriggers: WebhookScheduledTriggersModel.array(),
-  })
-);
+export const WebhookModel: z.ZodSchema<CompleteWebhook> = z.lazy(() => _WebhookModel.extend({
+  user: UserModel.nullish(),
+  team: TeamModel.nullish(),
+  eventType: EventTypeModel.nullish(),
+  platformOAuthClient: PlatformOAuthClientModel.nullish(),
+  app: AppModel.nullish(),
+  scheduledTriggers: WebhookScheduledTriggersModel.array(),
+}))
