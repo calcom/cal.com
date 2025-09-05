@@ -6,6 +6,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
+import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -89,6 +90,8 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   });
 
+  const bookingResponses = booking.responses as BookingResponses;
+
   const bookingAttendees = await prisma.booking.update({
     where: {
       id: bookingId,
@@ -103,8 +106,8 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
         },
       },
       responses: {
-        ...booking.responses,
-        guests: [...(booking.responses?.guests || []), ...uniqueGuests],
+        ...bookingResponses,
+        guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
       },
     },
   });
