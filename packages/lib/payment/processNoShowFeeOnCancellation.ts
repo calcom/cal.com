@@ -1,4 +1,5 @@
 import logger from "@calcom/lib/logger";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { Payment } from "@calcom/prisma/client";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
@@ -8,11 +9,37 @@ import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellat
 export const processNoShowFeeOnCancellation = async ({
   booking,
   payments,
+  cancelledByUserId,
 }: {
   booking: Parameters<typeof handleNoShowFee>[0]["booking"];
   payments: Payment[];
+  cancelledByUserId?: number;
 }) => {
   const log = logger.getSubLogger({ prefix: ["processNoShowFeeOnCancellation"] });
+
+  // Skip no-show fee if the booking was cancelled by the organizer or team/org admin
+  if (cancelledByUserId && booking.userId === cancelledByUserId) {
+    log.info(
+      `Booking ${booking.uid} was cancelled by the organizer (${cancelledByUserId}), skipping no-show fee`
+    );
+    return;
+  }
+
+  // Skip no-show fee if the booking was cancelled by a team/org admin
+  if (cancelledByUserId && booking.eventType?.teamId) {
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      userId: cancelledByUserId,
+      teamId: booking.eventType.teamId,
+    });
+
+    if (membership && (membership.role === "ADMIN" || membership.role === "OWNER")) {
+      log.info(
+        `Booking ${booking.uid} was cancelled by team admin/owner (${cancelledByUserId}), skipping no-show fee`
+      );
+      return;
+    }
+  }
+
   const paymentToCharge = payments.find(
     (payment) => payment.paymentOption === "HOLD" && payment.success === false
   );

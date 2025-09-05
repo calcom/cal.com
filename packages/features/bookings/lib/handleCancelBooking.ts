@@ -463,7 +463,8 @@ async function handler(input: CancelBookingInput) {
     } else if (bookingToDelete.payment.some((payment) => payment.paymentOption === "HOLD")) {
       await processNoShowFeeOnCancellation({
         booking: bookingToDelete,
-        payment: bookingToDelete.payment,
+        payments: bookingToDelete.payment,
+        cancelledByUserId: userId,
       });
     }
   }
