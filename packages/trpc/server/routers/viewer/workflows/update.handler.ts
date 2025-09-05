@@ -48,8 +48,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
     id,
     name,
-    activeOnEventTypeIds,
-    activeOnRoutingFormIds,
+    activeOnEventTypeIds = [],
+    activeOnRoutingFormIds = [],
+    activeOnTeamIds = [],
     steps,
     trigger,
     time,
@@ -141,12 +142,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ).map((teamRel) => teamRel.teamId);
     }
 
-    newActiveOn = activeOnEventTypeIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
+    newActiveOn = activeOnTeamIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
 
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
-      newEventTypeIds: newActiveOn,
-      newRoutingFormIds: [], // No routing form IDs for team workflows
-      isOrg,
+      newTeamIds: newActiveOn,
       teamId: userWorkflow?.teamId,
       userId: userWorkflow?.userId,
     });
@@ -155,13 +154,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOnEventTypeIds.includes(teamId));
+    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOnTeamIds.includes(teamId));
 
     await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
       workflowSteps: userWorkflow.steps,
       isOrg,
-      activeOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)),
+      activeOnIds: activeOnTeamIds.filter((activeOn) => !newActiveOn.includes(activeOn)),
     });
 
     //update active on
@@ -172,7 +171,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     await ctx.prisma.workflowsOnTeams.createMany({
-      data: activeOnEventTypeIds.map((teamId) => ({
+      data: activeOnTeamIds.map((teamId) => ({
         workflowId: id,
         teamId,
       })),
@@ -195,13 +194,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
 
-    // activeOnRoutingFormIds are routing form ids
-    const routingFormIds = activeOnRoutingFormIds;
-
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
-      newEventTypeIds: [], // No event type IDs for form triggers
-      newRoutingFormIds: routingFormIds,
-      isOrg,
+      newRoutingFormIds: activeOnRoutingFormIds,
       teamId: userWorkflow?.teamId,
       userId: userWorkflow?.userId,
     });
@@ -219,7 +213,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     // Create new workflow - routing forms relationships
     await ctx.prisma.workflowsOnRoutingForms.createMany({
-      data: routingFormIds.map((routingFormId) => ({
+      data: activeOnRoutingFormIds.map((routingFormId) => ({
         workflowId: id,
         routingFormId,
       })),
@@ -293,8 +287,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     newActiveOn = activeOnEventTypeIds.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
       newEventTypeIds: newActiveOn,
-      newRoutingFormIds: [],
-      isOrg,
       teamId: userWorkflow?.teamId,
       userId: userWorkflow?.userId,
     });
