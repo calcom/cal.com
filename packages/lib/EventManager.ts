@@ -447,12 +447,34 @@ export default class EventManager {
     }
 
     const referencesToCreate = results.map((result) => {
+      // For update operations, check updatedEvent first, then fall back to createdEvent
+      const updatedEvent = Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
+      const createdEvent = result.createdEvent;
+      let event = updatedEvent;
+      if (!event) {
+        log.warn(
+          "updateLocation: No updatedEvent when doing updateLocation. Falling back to createdEvent but this is probably not what we want",
+          safeStringify({ bookingId: booking.id })
+        );
+        event = createdEvent;
+      }
+
+      const uid = event?.id?.toString() ?? "";
+      const meetingId = event?.id?.toString();
+
+      if (!uid) {
+        log.error(
+          "updateLocation: No uid for booking reference. The corresponding record in third party if created is orphan now",
+          safeStringify({ result })
+        );
+      }
+
       return {
         type: result.type,
-        uid: result.createdEvent?.id?.toString() ?? "",
-        meetingId: result.createdEvent?.id?.toString(),
-        meetingPassword: result.createdEvent?.password,
-        meetingUrl: result.createdEvent?.url,
+        uid,
+        meetingId,
+        meetingPassword: event?.password,
+        meetingUrl: event?.url,
         externalCalendarId: result.externalId,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
