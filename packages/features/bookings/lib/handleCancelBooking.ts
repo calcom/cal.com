@@ -47,61 +47,6 @@ import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
-const shouldChargeCancellationFee = (
-  eventType: {
-    hosts?: Array<{ user: { id: number } }>;
-    owner?: { id: number; hideBranding?: boolean } | null;
-    metadata?: Prisma.JsonValue;
-  },
-  startTime: Date,
-  userId: number,
-  _cancelledBy?: string
-): boolean => {
-  const metadata =
-    typeof eventType?.metadata === "object" && eventType?.metadata !== null
-      ? (eventType.metadata as Record<string, unknown>)
-      : null;
-  const apps = metadata?.apps as Record<string, unknown> | undefined;
-  const stripe = apps?.stripe as Record<string, unknown> | undefined;
-
-  const cancellationFeeEnabled = stripe?.cancellationFeeEnabled as boolean | undefined;
-  const paymentOption = stripe?.paymentOption as string | undefined;
-
-  if (!cancellationFeeEnabled || paymentOption !== "HOLD") {
-    return false;
-  }
-
-  const userIsHost = eventType.hosts?.find((host) => host.user.id === userId);
-  const userIsOwner = eventType.owner?.id === userId;
-  if (userIsHost || userIsOwner) {
-    return false;
-  }
-
-  const timeValue = stripe?.cancellationFeeTimeValue as number | undefined;
-  const timeUnit = stripe?.cancellationFeeTimeUnit as string | undefined;
-
-  if (!timeValue || !timeUnit) {
-    return false;
-  }
-
-  const now = new Date();
-  const threshold = new Date(startTime);
-
-  switch (timeUnit) {
-    case "minutes":
-      threshold.setMinutes(threshold.getMinutes() - timeValue);
-      break;
-    case "hours":
-      threshold.setHours(threshold.getHours() - timeValue);
-      break;
-    case "days":
-      threshold.setDate(threshold.getDate() - timeValue);
-      break;
-  }
-
-  return now >= threshold;
-};
-
 type PlatformParams = {
   platformClientId?: string;
   platformRescheduleUrl?: string;
@@ -386,48 +331,6 @@ async function handler(input: CancelBookingInput) {
     })
   );
   await Promise.all(promises);
-
-  if (
-    bookingToDelete.eventType &&
-    shouldChargeCancellationFee(
-      bookingToDelete.eventType,
-      bookingToDelete.startTime,
-      userId || -1,
-      cancelledBy
-    )
-  ) {
-    const payment = bookingToDelete.payment.find((p) => p.paymentOption === "HOLD");
-    if (payment && !payment.success) {
-      try {
-        const { PaymentServiceMap } = await import("@calcom/app-store/payment.services.generated");
-        const { CredentialRepository } = await import("@calcom/lib/server/repository/credential");
-
-        const paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
-          appId: payment.appId,
-          userId: bookingToDelete.userId || 0,
-          teamId: bookingToDelete.eventType?.team?.id || undefined,
-        });
-
-        if (paymentCredential?.app) {
-          const key = paymentCredential.app.dirName;
-          const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
-
-          if (paymentAppImportFn) {
-            const paymentApp = await paymentAppImportFn;
-            if (paymentApp?.PaymentService) {
-              const PaymentService = paymentApp.PaymentService;
-              const paymentInstance = new PaymentService(paymentCredential);
-
-              await paymentInstance.chargeCard(payment, bookingToDelete.id);
-              log.info(`Charged cancellation fee for booking ${bookingToDelete.id}`);
-            }
-          }
-        }
-      } catch (error) {
-        log.error("Failed to charge cancellation fee", safeStringify({ error }));
-      }
-    }
-  }
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
