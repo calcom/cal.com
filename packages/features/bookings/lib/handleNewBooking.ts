@@ -93,9 +93,10 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import {
-  BookingState,
+  BOOKING_CONFIRMED,
+  BOOKING_RESCHEDULED,
+  BOOKING_REQUESTED,
   BookingEmailSmsHandler,
-  type EmailsAndSmsSideEffectsPayload,
 } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -432,7 +433,7 @@ async function handler(
   input: BookingHandlerInput,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  let emailsAndSmsSideEffectsPayload: EmailsAndSmsSideEffectsPayload | null = null;
+  const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger });
   const {
     bookingData: rawBookingData,
     userId,
@@ -1651,8 +1652,7 @@ async function handler(
 
   let videoCallUrl;
 
-  //this is the actual rescheduling logic
-  // ACTION: BOOKING_RESCHEDULED
+  // this is the actual rescheduling logic
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     // cancel workflow reminders from previous rescheduled booking
@@ -1838,24 +1838,21 @@ async function handler(
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
     if (noEmail !== true && isConfirmedByDefault && !isDryRun) {
-      emailsAndSmsSideEffectsPayload = {
-        action: BookingState.BOOKING_RESCHEDULED,
+      await emailsAndSmsHandler.send({
+        action: BOOKING_RESCHEDULED,
         data: {
-          evt: {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes,
-            iCalUID,
-          },
+          evt,
           eventType,
-          videoMetadata,
+          additionalInformation: metadata,
+          additionalNotes,
+          iCalUID,
           originalRescheduledBooking,
           rescheduleReason,
           isRescheduledByBooker: reqBody.rescheduledBy === bookerEmail,
           users,
           changedOrganizer,
         },
-      };
+      });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -1962,8 +1959,8 @@ async function handler(
       }
       if (noEmail !== true) {
         if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
-          emailsAndSmsSideEffectsPayload = {
-            action: BookingState.BOOKING_CONFIRMED,
+          await emailsAndSmsHandler.send({
+            action: BOOKING_CONFIRMED,
             data: {
               eventType: {
                 metadata: eventType.metadata,
@@ -1972,8 +1969,11 @@ async function handler(
               eventNameObject,
               workflows,
               evt,
+              additionalInformation,
+              additionalNotes,
+              customInputs,
             },
-          };
+          });
         }
       }
     }
@@ -2003,10 +2003,10 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      emailsAndSmsSideEffectsPayload = {
-        action: BookingState.BOOKING_REQUESTED,
+      await emailsAndSmsHandler.send({
+        action: BOOKING_REQUESTED,
         data: { evt, attendees: attendeesList, eventType, additionalNotes },
-      };
+      });
     }
   }
 
@@ -2367,12 +2367,6 @@ async function handler(
     },
     paymentRequired: false,
   };
-
-  // Side Effects
-  if (emailsAndSmsSideEffectsPayload) {
-    const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger });
-    await emailsAndSmsHandler.send(emailsAndSmsSideEffectsPayload);
-  }
 
   return {
     ...bookingResponse,

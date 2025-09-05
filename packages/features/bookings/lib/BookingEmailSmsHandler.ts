@@ -22,21 +22,17 @@ import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import type { DestinationCalendar, User } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import type { DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
-export enum BookingState {
-  /** For newly confirmed bookings. */
-  BOOKING_CONFIRMED = "BOOKING_CONFIRMED",
-  /** For bookings that have been successfully rescheduled. */
-  BOOKING_RESCHEDULED = "BOOKING_RESCHEDULED",
-  /** For bookings that require organizer confirmation. */
-  BOOKING_REQUESTED = "BOOKING_REQUESTED",
-}
+export const BOOKING_CONFIRMED = "BOOKING_CONFIRMED";
+export const BOOKING_RESCHEDULED = "BOOKING_RESCHEDULED";
+export const BOOKING_REQUESTED = "BOOKING_REQUESTED";
+export type BookingState = typeof BOOKING_CONFIRMED | typeof BOOKING_RESCHEDULED | typeof BOOKING_REQUESTED;
 
-export type EmailAndSmsPayload = {
+type EmailAndSmsPayload = {
   evt: CalendarEvent;
   eventType: {
     metadata?: EventTypeMetadata;
@@ -44,9 +40,11 @@ export type EmailAndSmsPayload = {
   };
 };
 
-export type RescheduleEmailAndSmsPayload = EmailAndSmsPayload & {
+type RescheduleEmailAndSmsPayload = EmailAndSmsPayload & {
   rescheduleReason?: string;
-  videoMetadata: AdditionalInformation;
+  additionalInformation: AdditionalInformation;
+  additionalNotes: string | null | undefined;
+  iCalUID: string;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
     destinationCalendar: DestinationCalendar | null;
     isFixed?: boolean;
@@ -54,31 +52,33 @@ export type RescheduleEmailAndSmsPayload = EmailAndSmsPayload & {
   changedOrganizer?: boolean;
   isRescheduledByBooker: boolean;
   originalRescheduledBooking: NonNullable<BookingType>;
-  additionalNotes?: string | null;
 };
 
-export type ConfirmedEmailAndSmsPayload = EmailAndSmsPayload & {
+type ConfirmedEmailAndSmsPayload = EmailAndSmsPayload & {
   workflows: WorkflowType[];
   eventNameObject: EventNameObjectType;
+  additionalInformation: AdditionalInformation;
+  additionalNotes: string | null | undefined;
+  customInputs: Prisma.JsonObject | null | undefined;
 };
 
-export type RequestedEmailAndSmsPayload = EmailAndSmsPayload & {
+type RequestedEmailAndSmsPayload = EmailAndSmsPayload & {
   attendees?: Person[];
   additionalNotes?: string | null;
 };
 
 type RescheduledSideEffectsPayload = {
-  action: BookingState.BOOKING_RESCHEDULED;
+  action: typeof BOOKING_RESCHEDULED;
   data: RescheduleEmailAndSmsPayload;
 };
 
 type ConfirmedSideEffectsPayload = {
-  action: BookingState.BOOKING_CONFIRMED;
+  action: typeof BOOKING_CONFIRMED;
   data: ConfirmedEmailAndSmsPayload;
 };
 
 type RequestedSideEffectsPayload = {
-  action: BookingState.BOOKING_REQUESTED;
+  action: typeof BOOKING_REQUESTED;
   data: RequestedEmailAndSmsPayload;
 };
 
@@ -95,7 +95,65 @@ export class BookingEmailSmsHandler {
   private readonly log: Logger<unknown>;
 
   constructor(dependencies: IBookingEmailSmsHandler) {
-    this.log = dependencies.logger.getSubLogger({ prefix: ["[api] book:user:emails"] });
+    this.log = dependencies.logger.getSubLogger({ prefix: ["BookingEmailSmsHandler"] });
+  }
+
+  public async send(payload: EmailsAndSmsSideEffectsPayload) {
+    const { action, data } = payload;
+    switch (action) {
+      case BOOKING_RESCHEDULED:
+        if (data.eventType.schedulingType === "ROUND_ROBIN") {
+          await this._handleRoundRobinRescheduled(data);
+        } else {
+          await this._handleRescheduled(data);
+        }
+        break;
+
+      case BOOKING_CONFIRMED:
+        await this._handleConfirmed(data);
+        break;
+
+      case BOOKING_REQUESTED:
+        await this._handleRequested(data);
+        break;
+
+      default:
+        this.log.warn("Unknown email/SMS action requested.", { action });
+        break;
+    }
+  }
+  private async _sendRoundRobinRescheduledEmailsAndSMS(
+    ...args: Parameters<typeof sendRoundRobinRescheduledEmailsAndSMS>
+  ) {
+    await sendRoundRobinRescheduledEmailsAndSMS(...args);
+  }
+
+  private async _sendRoundRobinScheduledEmailsAndSMS(
+    ...args: Parameters<typeof sendRoundRobinScheduledEmailsAndSMS>
+  ) {
+    await sendRoundRobinScheduledEmailsAndSMS(...args);
+  }
+
+  private async _sendRoundRobinCancelledEmailsAndSMS(
+    ...args: Parameters<typeof sendRoundRobinCancelledEmailsAndSMS>
+  ) {
+    await sendRoundRobinCancelledEmailsAndSMS(...args);
+  }
+
+  private async _sendRescheduledEmailsAndSMS(...args: Parameters<typeof sendRescheduledEmailsAndSMS>) {
+    await sendRescheduledEmailsAndSMS(...args);
+  }
+
+  private async _sendScheduledEmailsAndSMS(...args: Parameters<typeof sendScheduledEmailsAndSMS>) {
+    await sendScheduledEmailsAndSMS(...args);
+  }
+
+  private async _sendOrganizerRequestEmail(...args: Parameters<typeof sendOrganizerRequestEmail>) {
+    await sendOrganizerRequestEmail(...args);
+  }
+
+  private async _sendAttendeeRequestEmailAndSMS(...args: Parameters<typeof sendAttendeeRequestEmailAndSMS>) {
+    await sendAttendeeRequestEmailAndSMS(...args);
   }
 
   /**
@@ -104,123 +162,135 @@ export class BookingEmailSmsHandler {
   private async _handleRescheduled(data: RescheduleEmailAndSmsPayload) {
     const {
       evt,
-      eventType: { metadata, schedulingType },
+      eventType: { metadata },
+      rescheduleReason,
+      additionalNotes,
+      additionalInformation,
+    } = data;
+
+    await this._sendRescheduledEmailsAndSMS(
+      {
+        ...evt,
+        additionalInformation,
+        additionalNotes,
+        cancellationReason: `$RCH$${rescheduleReason || ""}`,
+      },
+      metadata
+    );
+  }
+
+  /**
+   * Handles notifications for a RESCHEDULED RR booking.
+   */
+  private async _handleRoundRobinRescheduled(data: RescheduleEmailAndSmsPayload) {
+    const {
+      evt,
+      eventType: { metadata },
       originalRescheduledBooking,
       rescheduleReason,
       additionalNotes,
       changedOrganizer,
-      videoMetadata,
+      additionalInformation,
       users,
       isRescheduledByBooker,
+      iCalUID,
     } = data;
     const copyEvent = cloneDeep(evt);
     const copyEventAdditionalInfo = {
       ...copyEvent,
-      additionalInformation: videoMetadata,
+      additionalInformation,
       additionalNotes,
       cancellationReason: `$RCH$${rescheduleReason || ""}`,
     };
     const cancelledRRHostEvt = cloneDeep(copyEventAdditionalInfo);
     this.log.debug("Emails: Sending rescheduled emails for booking confirmation");
 
-    if (schedulingType === SchedulingType.ROUND_ROBIN) {
-      const originalBookingMemberEmails: Person[] = [];
+    const originalBookingMemberEmails: Person[] = [];
 
-      for (const user of originalRescheduledBooking.attendees) {
-        const translate = await getTranslation(user.locale ?? "en", "common");
-        originalBookingMemberEmails.push({
-          name: user.name,
-          email: user.email,
-          timeZone: user.timeZone,
-          phoneNumber: user.phoneNumber,
-          language: { translate, locale: user.locale ?? "en" },
-        });
+    for (const user of originalRescheduledBooking.attendees) {
+      const translate = await getTranslation(user.locale ?? "en", "common");
+      originalBookingMemberEmails.push({
+        name: user.name,
+        email: user.email,
+        timeZone: user.timeZone,
+        phoneNumber: user.phoneNumber,
+        language: { translate, locale: user.locale ?? "en" },
+      });
+    }
+    if (originalRescheduledBooking.user) {
+      const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
+      const originalOrganizer = originalRescheduledBooking.user;
+
+      originalBookingMemberEmails.push({
+        ...originalRescheduledBooking.user,
+        username: originalRescheduledBooking.user.username ?? undefined,
+        timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
+        name: originalRescheduledBooking.user.name || "",
+        language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
+      });
+
+      if (changedOrganizer) {
+        cancelledRRHostEvt.title = originalRescheduledBooking.title;
+        cancelledRRHostEvt.startTime =
+          dayjs(originalRescheduledBooking?.startTime).utc().format() || copyEventAdditionalInfo.startTime;
+        cancelledRRHostEvt.endTime =
+          dayjs(originalRescheduledBooking?.endTime).utc().format() || copyEventAdditionalInfo.endTime;
+        cancelledRRHostEvt.organizer = {
+          email: originalOrganizer.email,
+          name: originalOrganizer.name || "",
+          timeZone: originalOrganizer.timeZone,
+          language: { translate, locale: originalOrganizer.locale || "en" },
+        };
       }
-      if (originalRescheduledBooking.user) {
-        const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
-        const originalOrganizer = originalRescheduledBooking.user;
+    }
 
-        originalBookingMemberEmails.push({
-          ...originalRescheduledBooking.user,
-          username: originalRescheduledBooking.user.username ?? undefined,
-          timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
-          name: originalRescheduledBooking.user.name || "",
-          language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
-        });
+    const newBookingMemberEmails: Person[] = [
+      ...(copyEvent.team?.members || []),
+      copyEvent.organizer,
+      ...copyEvent.attendees,
+    ];
 
-        if (changedOrganizer) {
-          cancelledRRHostEvt.title = originalRescheduledBooking.title;
-          cancelledRRHostEvt.startTime =
-            dayjs(originalRescheduledBooking?.startTime).utc().format() || copyEventAdditionalInfo.startTime;
-          cancelledRRHostEvt.endTime =
-            dayjs(originalRescheduledBooking?.endTime).utc().format() || copyEventAdditionalInfo.endTime;
-          cancelledRRHostEvt.organizer = {
-            email: originalOrganizer.email,
-            name: originalOrganizer.name || "",
-            timeZone: originalOrganizer.timeZone,
-            language: { translate, locale: originalOrganizer.locale || "en" },
-          };
-        }
-      }
+    const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) =>
+      originalMember.email === newMember.email;
 
-      const newBookingMemberEmails: Person[] = [
-        ...(copyEvent.team?.members || []),
-        copyEvent.organizer,
-        ...copyEvent.attendees,
-      ];
+    const newBookedMembers = newBookingMemberEmails.filter(
+      (member) => !originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
+    );
+    const cancelledMembers = originalBookingMemberEmails.filter(
+      (member) => !newBookingMemberEmails.some((nm) => matchOriginalMemberWithNewMember(member, nm))
+    );
+    const rescheduledMembers = newBookingMemberEmails.filter((member) =>
+      originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
+    );
 
-      const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) =>
-        originalMember.email === newMember.email;
-
-      const newBookedMembers = newBookingMemberEmails.filter(
-        (member) => !originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
-      );
-      const cancelledMembers = originalBookingMemberEmails.filter(
-        (member) => !newBookingMemberEmails.some((nm) => matchOriginalMemberWithNewMember(member, nm))
-      );
-      const rescheduledMembers = newBookingMemberEmails.filter((member) =>
-        originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
-      );
-
-      try {
-        await sendRoundRobinRescheduledEmailsAndSMS(
-          { ...copyEventAdditionalInfo, iCalUID: evt.iCalUID },
-          rescheduledMembers,
-          metadata
-        );
-        await sendRoundRobinScheduledEmailsAndSMS({
-          calEvent: copyEventAdditionalInfo,
-          members: newBookedMembers,
-          eventTypeMetadata: metadata,
-        });
-        const reassignedTo = users.find(
-          (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
-        );
-        await sendRoundRobinCancelledEmailsAndSMS(
-          cancelledRRHostEvt,
-          cancelledMembers,
-          metadata,
-          reassignedTo
-            ? {
-                name: reassignedTo.name,
-                email: reassignedTo.email,
-                ...(isRescheduledByBooker && { reason: "Booker Rescheduled" }),
-              }
-            : undefined
-        );
-      } catch (err) {
-        this.log.error("Failed to send rescheduled round robin event related emails", err);
-      }
-    } else {
-      await sendRescheduledEmailsAndSMS(
-        {
-          ...copyEvent,
-          additionalInformation: videoMetadata,
-          additionalNotes,
-          cancellationReason: `$RCH$${rescheduleReason || ""}`,
-        },
+    try {
+      await this._sendRoundRobinRescheduledEmailsAndSMS(
+        { ...copyEventAdditionalInfo, iCalUID },
+        rescheduledMembers,
         metadata
       );
+      await this._sendRoundRobinScheduledEmailsAndSMS({
+        calEvent: copyEventAdditionalInfo,
+        members: newBookedMembers,
+        eventTypeMetadata: metadata,
+      });
+      const reassignedTo = users.find(
+        (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+      );
+      await this._sendRoundRobinCancelledEmailsAndSMS(
+        cancelledRRHostEvt,
+        cancelledMembers,
+        metadata,
+        reassignedTo
+          ? {
+              name: reassignedTo.name,
+              email: reassignedTo.email,
+              ...(isRescheduledByBooker && { reason: "Booker Rescheduled" }),
+            }
+          : undefined
+      );
+    } catch (err) {
+      this.log.error("Failed to send rescheduled round robin event related emails", err);
     }
   }
 
@@ -233,6 +303,9 @@ export class BookingEmailSmsHandler {
       eventType: { metadata },
       workflows,
       eventNameObject,
+      additionalInformation,
+      additionalNotes,
+      customInputs,
     } = data;
 
     let isHostConfirmationEmailsDisabled = metadata?.disableStandardEmails?.confirmation?.host || false;
@@ -246,8 +319,8 @@ export class BookingEmailSmsHandler {
       isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
     }
 
-    await sendScheduledEmailsAndSMS(
-      evt,
+    await this._sendScheduledEmailsAndSMS(
+      { ...evt, additionalInformation, additionalNotes, customInputs },
       eventNameObject,
       isHostConfirmationEmailsDisabled,
       isAttendeeConfirmationEmailDisabled,
@@ -276,29 +349,7 @@ export class BookingEmailSmsHandler {
 
     const eventWithNotes = { ...evt, additionalNotes };
 
-    await sendOrganizerRequestEmail(eventWithNotes, metadata);
-    await sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata);
-  }
-
-  public async send(payload: EmailsAndSmsSideEffectsPayload) {
-    const { action, data } = payload;
-
-    switch (action) {
-      case BookingState.BOOKING_RESCHEDULED:
-        await this._handleRescheduled(data);
-        break;
-
-      case BookingState.BOOKING_CONFIRMED:
-        await this._handleConfirmed(data);
-        break;
-
-      case BookingState.BOOKING_REQUESTED:
-        await this._handleRequested(data);
-        break;
-
-      default:
-        this.log.warn("Unknown email/SMS action requested.", { action });
-        break;
-    }
+    await this._sendOrganizerRequestEmail(eventWithNotes, metadata);
+    await this._sendAttendeeRequestEmailAndSMS(eventWithNotes, attendees[0], metadata);
   }
 }
