@@ -48,60 +48,6 @@ import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
-export const shouldChargeCancellationFee = (
-  eventType: {
-    hosts?: Array<{ user: { id: number } }>;
-    owner?: { id: number; hideBranding?: boolean } | null;
-    metadata?: Prisma.JsonValue;
-  },
-  startTime: Date,
-  userId: number,
-  _cancelledBy?: string
-): boolean => {
-  const metadata =
-    typeof eventType?.metadata === "object" && eventType?.metadata !== null
-      ? (eventType.metadata as Record<string, unknown>)
-      : null;
-  const apps = metadata?.apps as Record<string, unknown> | undefined;
-  const stripe = apps?.stripe as Record<string, unknown> | undefined;
-
-  const cancellationFeeEnabled = stripe?.cancellationFeeEnabled as boolean | undefined;
-  const paymentOption = stripe?.paymentOption as string | undefined;
-
-  if (!cancellationFeeEnabled || paymentOption !== "HOLD") {
-    return false;
-  }
-
-  const userIsHost = eventType.hosts?.find((host) => host.user.id === userId);
-  const userIsOwner = eventType.owner?.id === userId;
-  if (userIsHost || userIsOwner) {
-    return false;
-  }
-
-  const timeValue = stripe?.cancellationFeeTimeValue as number | undefined;
-  const timeUnit = stripe?.cancellationFeeTimeUnit as string | undefined;
-
-  if (!timeValue || !timeUnit) {
-    return false;
-  }
-
-  const now = new Date();
-  const threshold = new Date(startTime);
-
-  switch (timeUnit) {
-    case "minutes":
-      threshold.setMinutes(threshold.getMinutes() - timeValue);
-      break;
-    case "hours":
-      threshold.setHours(threshold.getHours() - timeValue);
-      break;
-    case "days":
-      threshold.setDate(threshold.getDate() - timeValue);
-      break;
-  }
-
-  return now >= threshold;
-};
 type PlatformParams = {
   platformClientId?: string;
   platformRescheduleUrl?: string;
