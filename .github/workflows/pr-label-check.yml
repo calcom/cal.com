@@ -7,6 +7,7 @@ on:
       - gh-actions-test-branch
 
 permissions:
+  actions: write
   contents: read
   pull-requests: read
 
@@ -27,7 +28,7 @@ jobs:
             "action": "${{ github.event.action }}",
             "label_name": "${{ github.event.label.name }}"
           }' >> pr-context.json
-      
+
       - name: Upload PR context
         uses: actions/upload-artifact@v4
         with:
