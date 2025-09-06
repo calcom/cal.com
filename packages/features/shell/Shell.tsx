@@ -21,6 +21,7 @@ import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
+import { CalAiBanner } from "./CalAiBanner";
 import { MobileNavigationContainer } from "./navigation/Navigation";
 import { useAppTheme } from "./useAppTheme";
 
@@ -205,6 +206,7 @@ function MainContainer({
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:py-4 lg:px-6">
+        <CalAiBanner />
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
