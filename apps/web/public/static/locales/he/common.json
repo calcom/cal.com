@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "במהלך בדיקת תהליך העבודה הזה, קח/י בחשבון שניתן לתזמן הודעות דוא\"ל ו-SMS לפחות שעה אחת מראש",
   "insights_no_data_found_for_filter": "לא נמצאו נתונים עבור המסנן שנבחר או התאריכים שנבחרו.",
   "acknowledge_booking_no_show_fee": "מובן לי שאם לא אשתתף באירוע הזה, דמי אי-הגעה בסך {{amount, currency}} ינוכו מהכרטיס שלי.",
+  "days": "ימים",
   "card_details": "פרטי כרטיס",
   "something_went_wrong_on_our_end": "משהו השתבש בצד שלנו. צור/י קשר עם צוות התמיכה שלנו, ואנו נתקן זאת עבורך בהקדם.",
   "please_provide_following_text_to_suppport": "כשפונים לתמיכה, יש לספק את הטקסט הבא כדי שנוכל לסייע לך בצורה יעילה יותר",
@@ -3602,5 +3603,9 @@
   "search_variables": "חפש משתנים",
   "no_variables_found": "לא נמצאו משתנים",
   "api_key_name_too_long": "השם לא יכול לעלות על {{max}} תווים",
+  "auto_charge_for_last_minute_cancellation": "חיוב אוטומטי של דמי אי-הופעה עבור ביטולים ברגע האחרון",
+  "before_scheduled_start_time": "לפני זמן ההתחלה המתוכנן",
+  "cancel_booking_acknowledge_no_show_fee": "אני מאשר/ת שבביטול ההזמנה תוך {{timeValue}} {{timeUnit}} מזמן ההתחלה אחויב בדמי אי-הופעה בסך {{amount, currency}}",
+  "contact_organizer": "אם יש לך שאלות כלשהן, אנא צור/י קשר עם המארגן.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

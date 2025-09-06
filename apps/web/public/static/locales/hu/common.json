@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "A munkafolyamat tesztelésekor ügyeljen arra, hogy az e-mailek és SMS-ek legalább 1 órával későbbre ütemezhetők",
   "insights_no_data_found_for_filter": "Nem található adat a kiválasztott szűrőhöz vagy a kiválasztott dátumokhoz.",
   "acknowledge_booking_no_show_fee": "Tudomásul veszem, hogy ha nem veszek részt ezen az eseményen, {{amount, currency}} meg nem jelenési díj kerül felszámításra.",
+  "days": "nap",
   "card_details": "Kártya adatai",
   "something_went_wrong_on_our_end": "Valami hiba történt a mi oldalunkon. Vedd fel a kapcsolatot az ügyfélszolgálatunkkal, és azonnal kijavítjuk neked.",
   "please_provide_following_text_to_suppport": "Kérjük, adja meg a következő szöveget, amikor kapcsolatba lép az ügyfélszolgálattal, hogy jobban segíthessünk",
@@ -3602,5 +3603,9 @@
   "search_variables": "Változók keresése",
   "no_variables_found": "Nem találhatók változók",
   "api_key_name_too_long": "A név nem haladhatja meg a {{max}} karaktert",
+  "auto_charge_for_last_minute_cancellation": "Automatikus lemondási díj felszámolása az utolsó pillanatban történő lemondásokért",
+  "before_scheduled_start_time": "A tervezett kezdési idő előtt",
+  "cancel_booking_acknowledge_no_show_fee": "Tudomásul veszem, hogy a foglalás lemondásával a kezdési időpont előtti {{timeValue}} {{timeUnit}}on belül felszámításra kerül a meg nem jelenési díj: {{amount, currency}}",
+  "contact_organizer": "Ha bármilyen kérdése van, kérjük, vegye fel a kapcsolatot a szervezővel.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

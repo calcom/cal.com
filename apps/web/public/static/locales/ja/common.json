@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "このワークフローをテストする場合、少なくとも 1 時間前でなければメールと SMS のスケジュール設定ができないことにご注意ください",
   "insights_no_data_found_for_filter": "選択したフィルターまたは日付のデータが見つかりませんでした。",
   "acknowledge_booking_no_show_fee": "このイベントに出席しなかった場合、不参加費用として {{amount, currency}} が私のカードに請求されることに同意します。",
+  "days": "日",
   "card_details": "カードの詳細",
   "something_went_wrong_on_our_end": "当社側で問題が発生しました。サポートチームにお問い合わせください。すぐに修正いたします。",
   "please_provide_following_text_to_suppport": "サポートにお問い合わせいただく際に次のテキストをご提供いただければ、解決に役立ちます。",
@@ -3602,5 +3603,9 @@
   "search_variables": "変数を検索",
   "no_variables_found": "変数が見つかりません",
   "api_key_name_too_long": "名前は{{max}}文字を超えてはいけません",
+  "auto_charge_for_last_minute_cancellation": "直前のキャンセルに対して自動的に無断キャンセル料を請求する",
+  "before_scheduled_start_time": "予定開始時刻より前",
+  "cancel_booking_acknowledge_no_show_fee": "開始時刻の{{timeValue}}{{timeUnit}}以内にキャンセルした場合、{{amount, currency}}の無断キャンセル料が請求されることを承諾します",
+  "contact_organizer": "ご質問がある場合は、主催者にお問い合わせください。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

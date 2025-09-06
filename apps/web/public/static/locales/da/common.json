@@ -2311,6 +2311,7 @@
   "testing_workflow_info_message": "Når du tester denne arbejdsgang, skal du være opmærksom på, at e-mails og SMS'er kun kan planlægges mindst 1 time i forvejen",
   "insights_no_data_found_for_filter": "Ingen data fundet for det valgte filter eller de valgte datoer.",
   "acknowledge_booking_no_show_fee": "Jeg anerkender, at hvis jeg ikke deltager i denne begivenhed, vil et gebyr for udeblivelse på {{amount, currency}} blive opkrævet på mit kort.",
+  "days": "dage",
   "card_details": "Kortoplysninger",
   "something_went_wrong_on_our_end": "Noget gik galt hos os. Kontakt vores supportteam, så løser vi det straks for dig.",
   "please_provide_following_text_to_suppport": "Angiv venligst følgende tekst, når du kontakter support, for at hjælpe os bedre",
@@ -3602,5 +3603,9 @@
   "search_variables": "Søg i variabler",
   "no_variables_found": "Ingen variable fundet",
   "api_key_name_too_long": "Navnet må ikke overstige {{max}} tegn",
+  "auto_charge_for_last_minute_cancellation": "Automatisk opkrævning af gebyr for udeblivelse ved aflysning i sidste øjeblik",
+  "before_scheduled_start_time": "Før den planlagte starttid",
+  "cancel_booking_acknowledge_no_show_fee": "Jeg anerkender, at ved at aflyse bookingen inden for {{timeValue}} {{timeUnit}} før starttiden, vil jeg blive opkrævet gebyret for udeblivelse på {{amount, currency}}",
+  "contact_organizer": "Hvis du har spørgsmål, bedes du kontakte arrangøren.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
