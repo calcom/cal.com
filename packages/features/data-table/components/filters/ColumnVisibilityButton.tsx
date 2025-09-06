@@ -74,15 +74,15 @@ function ColumnVisibilityButtonComponent<TData>(
               })}
             </CommandGroup>
           </CommandList>
-          <CommandSeparator />
+          <CommandSeparator className="mb-0" />
           <CommandGroup>
             <CommandItem
               onSelect={() => {
                 allColumns.forEach((column) => column.toggleVisibility(true));
               }}
               className={classNames(
-                "w-full justify-center text-center",
-                buttonClasses({ color: "secondary" })
+                buttonClasses({ color: "secondary" }),
+                "w-full justify-center text-center cursor-pointer mt-0"
               )}>
               {t("show_all_columns")}
             </CommandItem>
