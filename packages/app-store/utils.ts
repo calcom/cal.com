@@ -1,8 +1,7 @@
 import type { AppCategories } from "@prisma/client";
 
-// If you import this file on any app it should produce circular dependency
-// import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { defaultVideoAppCategories } from "@calcom/app-store/constants";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
@@ -19,6 +18,12 @@ export type LocationOption = {
   disabled?: boolean;
 };
 
+export type CredentialDataWithTeamName = CredentialForCalendarService & {
+  team?: {
+    name: string;
+  } | null;
+};
+
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
 
@@ -32,12 +37,6 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   delete store[key]["__createdUsingCli"];
   return store;
 }, {} as Record<string, AppMeta>);
-
-export type CredentialDataWithTeamName = CredentialForCalendarService & {
-  team?: {
-    name: string;
-  } | null;
-};
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
@@ -168,11 +167,5 @@ export function doesAppSupportTeamInstall({
 export function isConferencing(appCategories: string[]) {
   return appCategories.some((category) => category === "conferencing" || category === "video");
 }
-export const defaultVideoAppCategories: AppCategories[] = [
-  "messaging",
-  "conferencing",
-  // Legacy name for conferencing
-  "video",
-];
 
 export default getApps;
