@@ -1,11 +1,11 @@
-import type { Prisma } from "@prisma/client";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
 
+// TODO: Inject.
 export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
   const bookingRepo = new BookingRepository(prisma);
   const originalBooking = await bookingRepo.findOriginalRescheduledBooking(uid, seatsEventType);

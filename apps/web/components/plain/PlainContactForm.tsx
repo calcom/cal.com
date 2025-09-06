@@ -1,6 +1,7 @@
 "use client";
 
-import { Dispatch, SetStateAction, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
 import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
@@ -9,7 +10,13 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
-const PlainContactForm = ({ open, setIsOpen }: { open: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) => {
+const PlainContactForm = ({
+  open,
+  setIsOpen,
+}: {
+  open: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);

@@ -27,14 +27,14 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^5.4.2",
-    "@prisma/extension-accelerate": "^0.6.2",
-    "@prisma/generator-helper": "^5.4.2",
-    "prisma": "^5.4.2",
-    "prisma-kysely": "^1.7.1",
+    "@prisma/client": "^6.7.0",
+    "@prisma/extension-accelerate": "^1.3.0",
+    "@prisma/generator-helper": "^6.7.0",
+    "prisma": "^6.7.0",
+    "prisma-kysely": "^1.8.0",
     "ts-node": "^10.9.1",
     "zod": "^3.22.4",
-    "zod-prisma": "^0.5.4"
+    "zod-prisma-types": "^3.2.4"
   },
   "main": "index.ts",
   "types": "index.d.ts",

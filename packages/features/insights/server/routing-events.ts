@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import mapKeys from "lodash/mapKeys";
 // eslint-disable-next-line no-restricted-imports
@@ -12,6 +11,7 @@ import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/InsightsRoutingBaseService";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 type RoutingFormInsightsTeamFilter = {
   userId?: number | null;

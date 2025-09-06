@@ -17,6 +17,7 @@ const usePersistedExpansionState = (itemName: string) => {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
@@ -27,6 +28,7 @@ const usePersistedExpansionState = (itemName: string) => {
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
     } catch (_error) {}
   };

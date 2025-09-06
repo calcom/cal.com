@@ -1,3 +1,4 @@
+import "../../../../../../../tests/libs/__mocks__/prisma";
 import { beforeEach, describe, it, expect, vi } from "vitest";
 
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";

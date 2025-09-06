@@ -45,7 +45,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;

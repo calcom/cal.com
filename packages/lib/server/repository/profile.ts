@@ -1,4 +1,3 @@
-import type { User as PrismaUser } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
@@ -6,6 +5,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";

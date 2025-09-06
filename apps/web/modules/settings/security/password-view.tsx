@@ -4,7 +4,6 @@ import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -170,13 +169,13 @@ const PasswordView = ({ user }: PasswordViewProps) => {
           <div className="px-4 py-6 sm:px-6">
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
               {t("account_managed_by_identity_provider", {
-                provider: identityProviderNameMap[user.identityProvider],
+                provider: IdentityProvider[user.identityProvider],
               })}
             </h2>
 
             <p className="text-subtle mt-1 text-sm">
               {t("account_managed_by_identity_provider_description", {
-                provider: identityProviderNameMap[user.identityProvider],
+                provider: IdentityProvider[user.identityProvider],
               })}
             </p>
             <Button

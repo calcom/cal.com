@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { addFilter } from "./filter-helpers";

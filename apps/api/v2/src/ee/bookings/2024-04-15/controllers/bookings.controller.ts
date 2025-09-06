@@ -63,8 +63,8 @@ import {
   CancelBookingInput_2024_04_15,
   Status_2024_04_15,
 } from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
+import type { ApiResponse } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
 
 type BookingRequest = Request & {
   userId?: number;

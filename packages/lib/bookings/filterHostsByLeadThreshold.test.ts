@@ -2,8 +2,7 @@ import type { Mock } from "vitest";
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
-import prisma from "@calcom/prisma";
-import { RRResetInterval } from "@calcom/prisma/enums";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
 
@@ -17,7 +16,7 @@ const prismaMock = {
 };
 
 // Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
-vi.spyOn(prisma.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
+vi.spyOn(prismaMock.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
 
 // This variable will hold our mock function
 let getOrderedListOfLuckyUsersMock: Mock;
@@ -58,7 +57,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -76,7 +77,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -123,7 +126,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -182,7 +187,9 @@ describe("filterHostByLeadThreshold", () => {
         team: {
           parentId: null,
           rrResetInterval: RRResetInterval.MONTH,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         },
+        includeNoShowInRRCalculation: false,
       },
       routingFormResponse: null,
     });
@@ -197,7 +204,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })

@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import type { NextApiRequest } from "next";
 import short from "short-uuid";
@@ -25,6 +24,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { createInstantMeetingWithCalVideo } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { subscriptionSchema } from "./schema";

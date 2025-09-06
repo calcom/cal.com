@@ -15,7 +15,6 @@ import {
   BookingFieldSchema,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { Injectable } from "@nestjs/common";
-import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@prisma/client";
 
 import {
   userMetadata,
@@ -32,6 +31,7 @@ import {
   OutputUnknownLocation_2024_06_14,
   OutputUnknownBookingField_2024_06_14,
 } from "@calcom/platform-types";
+import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
 
 type EventTypeRelations = {
   users: User[];

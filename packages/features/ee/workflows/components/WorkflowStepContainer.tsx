@@ -1,4 +1,3 @@
-import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
 import { useParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
@@ -15,6 +14,7 @@ import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import {
   MembershipRole,
   PhoneNumberSubscriptionStatus,

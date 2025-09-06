@@ -1,13 +1,18 @@
-import { z } from "zod";
+import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 
-import { optionToValueSchema } from "@calcom/prisma/zod-utils";
-
-export const userBodySchema = z
-  .object({
-    locale: optionToValueSchema(z.string()),
-    role: optionToValueSchema(z.enum(["USER", "ADMIN"])),
-    weekStart: optionToValueSchema(z.string()),
-    timeFormat: optionToValueSchema(z.number()),
-    identityProvider: optionToValueSchema(z.enum(["CAL", "GOOGLE", "SAML"])),
-  })
-  .passthrough();
+export const userBodySchema = UserSchema.pick({
+  username: true,
+  name: true,
+  email: true,
+  role: true,
+  identityProvider: true,
+  bio: true,
+  avatarUrl: true,
+  timeZone: true,
+  weekStart: true,
+  theme: true,
+  defaultScheduleId: true,
+  locale: true,
+  timeFormat: true,
+  allowDynamicBooking: true,
+});

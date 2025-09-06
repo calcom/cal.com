@@ -198,7 +198,7 @@ export default class ICSFeedCalendarService implements Calendar {
             console.error("No timezone found");
           }
         }
-        
+
         let vtimezone = null;
         if (tzid) {
           const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");

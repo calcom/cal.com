@@ -118,7 +118,12 @@ describe("PlainContactForm", () => {
 
   it("shows loading state during submission", async () => {
     // never resolves → stays loading
-    mockFetch.mockImplementation(() => new Promise((_resolve) => {}));
+    mockFetch.mockImplementation(
+      () =>
+        new Promise((_resolve) => {
+          /* Prevent unexpected empty function error */
+        })
+    );
 
     render(<PlainContactForm open={true} setIsOpen={mockSetIsOpen} />);
 

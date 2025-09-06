@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import md5 from "md5";
 import { z } from "zod";
 
@@ -14,6 +13,7 @@ import {
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";

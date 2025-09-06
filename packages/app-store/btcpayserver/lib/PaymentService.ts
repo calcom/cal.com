@@ -1,4 +1,3 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import type z from "zod";
 
@@ -7,6 +6,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { IBookingPaymentRepository } from "@calcom/lib/server/repository/BookingPaymentRepository.interface";
 import { PrismaBookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
+import type { Booking, Payment, PaymentOption } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 

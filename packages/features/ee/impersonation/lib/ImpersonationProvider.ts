@@ -1,4 +1,3 @@
-import type { User } from "@prisma/client";
 import type { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
@@ -8,6 +7,7 @@ import { getSession } from "@calcom/features/auth/lib/getSession";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
