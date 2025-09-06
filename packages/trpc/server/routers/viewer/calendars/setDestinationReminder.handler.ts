@@ -1,4 +1,7 @@
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TSetDestinationCalendarReminderSchema } from "./setDestinationReminder.schema";
 
@@ -9,10 +12,10 @@ type SetDestinationReminderHandlerOptions = {
   input: TSetDestinationCalendarReminderSchema;
 };
 
-export const setDestinationReminderHandler = async ({ ctx, input }: SetDestinationReminderHandlerOptions) => {
+export const setDestinationReminderHandler = async ({ input }: SetDestinationReminderHandlerOptions) => {
   const { credentialId, integration, defaultReminder } = input;
 
-  const updatedCalendar = await ctx.prisma.destinationCalendar.updateMany({
+  const updatedCalendar = await prisma.destinationCalendar.updateMany({
     where: {
       credentialId,
       integration,
