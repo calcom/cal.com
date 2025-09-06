@@ -82,6 +82,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         title: event.title ?? `Busy`,
         start: new Date(event.start),
         end: new Date(event.end),
+        source: event.source,
         options: {
           borderColor:
             event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : "black",
@@ -113,6 +114,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
           title: "Date Override",
           start: dateOverrideStart.add(workingHoursForDay.startTime, "minutes").toDate(),
           end: dateOverrideEnd.add(workingHoursForDay.endTime, "minutes").toDate(),
+          source: "date-override",
           options: {
             borderColor: "black",
             status: BookingStatus.ACCEPTED,

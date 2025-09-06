@@ -11,6 +11,10 @@ vi.mock("./lib/datesForCache", () => ({
   getTimeMax: vi.fn().mockImplementation((timeMax) => timeMax),
 }));
 
+/**
+ * @deprecated These tests are deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 describe("CalendarCacheRepository", () => {
   let mockCalendar: Calendar;
 
@@ -27,6 +31,10 @@ describe("CalendarCacheRepository", () => {
 
   // It needs to consider parseKeyForCache being called
   // eslint-disable-next-line playwright/no-skipped-test
+  /**
+   * @deprecated These tests are deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   describe("getCachedAvailability", () => {
     it("should return cached availability data", async () => {
       const repository = new CalendarCacheRepository();
@@ -108,6 +116,10 @@ describe("CalendarCacheRepository", () => {
     });
   });
 
+  /**
+   * @deprecated These tests are deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   describe("upsertCachedAvailability(mocks min and max time fns)", () => {
     it("should create new cache entry when none exists", async () => {
       const repository = new CalendarCacheRepository();

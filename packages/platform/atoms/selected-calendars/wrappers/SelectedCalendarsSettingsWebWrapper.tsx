@@ -70,8 +70,6 @@ const ConnectedCalendarList = ({
                 <div className="flex w-32 justify-end">
                   <CredentialActionsDropdown
                     credentialId={connectedCalendar.credentialId}
-                    integrationType={connectedCalendar.integration.type}
-                    cacheUpdatedAt={connectedCalendar.cacheUpdatedAt}
                     onSuccess={onChanged}
                     delegationCredentialId={connectedCalendar.delegationCredentialId}
                     disableConnectionModification={disableConnectionModification}
@@ -123,8 +121,6 @@ const ConnectedCalendarList = ({
               <div className="flex w-32 justify-end">
                 <CredentialActionsDropdown
                   credentialId={connectedCalendar.credentialId}
-                  integrationType={connectedCalendar.integration.type}
-                  cacheUpdatedAt={connectedCalendar.cacheUpdatedAt}
                   onSuccess={onChanged}
                   delegationCredentialId={connectedCalendar.delegationCredentialId}
                   disableConnectionModification={disableConnectionModification}
