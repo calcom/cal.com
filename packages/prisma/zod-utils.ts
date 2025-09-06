@@ -12,7 +12,6 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
@@ -82,9 +81,6 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
-export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
-export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
-
 const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
   blockchainId: z.number().optional(),
@@ -138,7 +134,7 @@ export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithou
 export const eventTypeMetaDataSchemaWithTypedApps = _eventTypeMetaDataSchemaWithoutApps
   .merge(
     z.object({
-      apps: eventTypeAppMetadataOptionalSchema,
+      apps: z.record(z.any()).optional(),
     })
   )
   .nullable();

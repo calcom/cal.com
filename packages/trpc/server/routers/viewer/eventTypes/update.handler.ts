@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
-import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
@@ -21,7 +22,6 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -35,6 +35,8 @@ import {
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
+
+const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 
@@ -538,7 +540,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(input.metadata?.apps);
   for (const appKey in apps) {
-    const app = apps[appKey as keyof typeof appDataSchemas];
+    const app = apps[appKey as keyof typeof apps];
     // There should only be one enabled payment app in the metadata
     if (app.enabled && app.price && app.currency) {
       data.price = app.price;
