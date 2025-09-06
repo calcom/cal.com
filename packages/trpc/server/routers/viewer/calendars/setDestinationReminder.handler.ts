@@ -10,13 +10,12 @@ type SetDestinationReminderHandlerOptions = {
 };
 
 export const setDestinationReminderHandler = async ({ ctx, input }: SetDestinationReminderHandlerOptions) => {
-  const { credentialId, integration, externalId, defaultReminder } = input;
+  const { credentialId, integration, defaultReminder } = input;
 
   const updatedCalendar = await ctx.prisma.destinationCalendar.updateMany({
     where: {
       credentialId,
       integration,
-      externalId,
     },
     data: {
       customCalendarReminder: defaultReminder,

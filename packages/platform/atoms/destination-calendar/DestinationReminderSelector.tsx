@@ -70,7 +70,6 @@ export const DestinationReminderSelector = ({
           mutation.mutate({
             credentialId: destinationCalendar.credentialId,
             integration: destinationCalendar.integration,
-            externalId: destinationCalendar.externalId,
             defaultReminder: reminderValue,
           });
 
@@ -79,7 +78,6 @@ export const DestinationReminderSelector = ({
         value={selectedOption}
         isMulti={false}
       />
-      <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
     </div>
   );
 };

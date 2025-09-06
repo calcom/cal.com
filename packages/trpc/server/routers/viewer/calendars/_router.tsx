@@ -48,7 +48,6 @@ export const calendarsRouter = router({
       z.object({
         credentialId: z.number(),
         integration: z.string(),
-        externalId: z.string(),
         defaultReminder: z.number(),
       })
     )
