@@ -3597,5 +3597,7 @@
   "search_variables": "Search variables",
   "no_variables_found": "No variables found",
   "api_key_name_too_long": "Name must not exceed {{max}} characters",
+  "scroll_left": "Scroll left",
+  "scroll_right": "Scroll right",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

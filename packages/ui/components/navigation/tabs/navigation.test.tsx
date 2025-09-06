@@ -103,14 +103,14 @@ describe("Navigation Components", () => {
 
       test("shows scroll arrows when content overflows", () => {
         setupScrollTest(0);
-        expect(screen.getByLabelText("Scroll right")).toBeInTheDocument();
-        expect(screen.queryByLabelText("Scroll left")).not.toBeInTheDocument();
+        expect(screen.getByTestId("scroll-right-button")).toBeInTheDocument();
+        expect(screen.queryByTestId("scroll-left-button")).not.toBeInTheDocument();
       });
 
       test("shows both arrows when scrolled to middle", () => {
         setupScrollTest(100);
-        expect(screen.getByLabelText("Scroll left")).toBeInTheDocument();
-        expect(screen.getByLabelText("Scroll right")).toBeInTheDocument();
+        expect(screen.getByTestId("scroll-left-button")).toBeInTheDocument();
+        expect(screen.getByTestId("scroll-right-button")).toBeInTheDocument();
       });
 
       test("scrolls left when left arrow is clicked", () => {
@@ -118,7 +118,7 @@ describe("Navigation Components", () => {
         const scrollBySpy = vi.fn();
         navElement.scrollBy = scrollBySpy;
 
-        fireEvent.click(screen.getByLabelText("Scroll left"));
+        fireEvent.click(screen.getByTestId("scroll-left-button"));
         expect(scrollBySpy).toHaveBeenCalledWith({ left: -300, behavior: "smooth" });
       });
 
@@ -127,7 +127,7 @@ describe("Navigation Components", () => {
         const scrollBySpy = vi.fn();
         navElement.scrollBy = scrollBySpy;
 
-        fireEvent.click(screen.getByLabelText("Scroll right"));
+        fireEvent.click(screen.getByTestId("scroll-right-button"));
         expect(scrollBySpy).toHaveBeenCalledWith({ left: 300, behavior: "smooth" });
       });
     });
@@ -146,8 +146,8 @@ describe("Navigation Components", () => {
 
       fireEvent.scroll(navElement);
 
-      expect(screen.queryByLabelText("Scroll left")).not.toBeInTheDocument();
-      expect(screen.queryByLabelText("Scroll right")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("scroll-left-button")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("scroll-right-button")).not.toBeInTheDocument();
     });
   });
 

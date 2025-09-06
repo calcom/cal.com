@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { Icon } from "../../icon";
 import type { HorizontalTabItemProps } from "./HorizontalTabItem";
 import HorizontalTabItem from "./HorizontalTabItem";
@@ -12,6 +14,7 @@ export interface NavTabProps {
 }
 
 const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...props }: NavTabProps) {
+  const { t } = useLocale();
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -45,7 +48,8 @@ const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...pr
           <button
             onClick={() => scroll("left")}
             className="z-10 flex h-6 w-8 items-center justify-center transition-opacity hover:opacity-70"
-            aria-label="Scroll left">
+            aria-label={t("scroll_left")}
+            data-testid="scroll-left-button">
             <Icon name="chevron-left" className="h-4 w-4 text-white drop-shadow-sm" />
           </button>
         )}
@@ -63,7 +67,8 @@ const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...pr
           <button
             onClick={() => scroll("right")}
             className="z-10 flex h-6 w-8 items-center justify-center transition-opacity hover:opacity-70"
-            aria-label="Scroll right">
+            aria-label={t("scroll_right")}
+            data-testid="scroll-right-button">
             <Icon name="chevron-right" className="h-4 w-4 text-white drop-shadow-sm" />
           </button>
         )}
