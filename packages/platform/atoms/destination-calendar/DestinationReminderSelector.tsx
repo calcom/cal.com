@@ -4,17 +4,17 @@ import { useState, useEffect, useMemo } from "react";
 
 import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Select } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
 export type DestinationReminderSelectorProps = {
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
+  onReminderChange: (value: { credentialId: number; integration: string; defaultReminder: number }) => void;
 };
 
 export const DestinationReminderSelector = ({
   destinationCalendar,
+  onReminderChange,
 }: DestinationReminderSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
 
@@ -45,15 +45,6 @@ export const DestinationReminderSelector = ({
     }
   }, [destinationCalendar, memoOptions]);
 
-  const mutation = trpc.viewer.calendars.setDestinationReminder.useMutation({
-    onSuccess: () => {
-      showToast(t("save_changes"), "success");
-    },
-    onError(error) {
-      showToast(`Error updating reminder: ${error.message}`, "error");
-    },
-  });
-
   return (
     <div
       className="relative table w-full table-fixed"
@@ -65,9 +56,9 @@ export const DestinationReminderSelector = ({
         isSearchable={false}
         className={classNames("border-default my-2 block w-full min-w-0 flex-1 rounded-md text-sm")}
         onChange={(event) => {
-          const reminderValue = event?.value || 30;
+          const reminderValue = event?.value || 10;
 
-          mutation.mutate({
+          onReminderChange({
             credentialId: destinationCalendar.credentialId,
             integration: destinationCalendar.integration,
             defaultReminder: reminderValue,

@@ -17,8 +17,17 @@ export type DestinationCalendarClassNames = {
   header?: DestinationHeaderClassnames;
 };
 
+type onReminderChange = (value: {
+  credentialId: number;
+  integration: string;
+  defaultReminder: number;
+}) => void;
+
 export const DestinationCalendarSettings = (
-  props: DestinationCalendarProps & { classNames?: string; classNamesObject?: DestinationCalendarClassNames }
+  props: DestinationCalendarProps & {
+    classNames?: string;
+    classNamesObject?: DestinationCalendarClassNames;
+  } & onReminderChange
 ) => {
   const { t } = useLocale();
   const currentDestinationCalendar = props.destinationCalendar?.integration || "";
@@ -35,7 +44,7 @@ export const DestinationCalendarSettings = (
           <div>
             <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
             <DestinationCalendarSelector {...props} />
-            {currentDestinationCalendar && (
+            {props.onReminderChange && currentDestinationCalendar && (
               <>
                 <Label className="text-default mb-0 mt-5 font-medium">{t("reminder")}</Label>
                 <DestinationReminderSelector {...props} />
