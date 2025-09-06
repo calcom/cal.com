@@ -4260,7 +4260,6 @@ __metadata:
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
     "@tanstack/react-query": ^5.17.15
-    "@team-plain/typescript-sdk": ^5.9.0
     "@testing-library/react": ^13.3.0
     "@todesktop/client-core": ^1.20.0
     "@types/accept-language-parser": 1.5.2
@@ -16880,17 +16879,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@team-plain/typescript-sdk@npm:^5.9.0":
-  version: 5.9.0
-  resolution: "@team-plain/typescript-sdk@npm:5.9.0"
-  dependencies:
-    "@graphql-typed-document-node/core": ^3.2.0
-    ajv: ^8.12.0
-    ajv-formats: ^2.1.1
-    graphql: ^16.6.0
-    lodash.get: ^4.4.2
-    zod: 3.22.4
-  checksum: a1eb9a7f65096d232337d081a1b56a51fc5a4cd39877debf29c0eed5ee9140aaf0f148f65681257bfe804076bff93a049d46b0cae940844c4e20e9528a6a8782
+"@tanstack/virtual-core@npm:3.13.12":
+  version: 3.13.12
+  resolution: "@tanstack/virtual-core@npm:3.13.12"
+  checksum: bef2c3138543a2088fff7d4fa46624d07403b18d92ec5a7271e187457851535031a79bc78ac655355a221d5549ef3b5674a3b249d2531f4c17c93107498c8438
   languageName: node
   linkType: hard
 

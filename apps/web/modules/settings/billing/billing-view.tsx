@@ -19,10 +19,9 @@ interface CtaRowProps {
 
 declare global {
   interface Window {
-    Plain?: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      init: (config: any) => void;
+    Support?: {
       open: () => void;
+      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }
@@ -71,8 +70,8 @@ const BillingView = () => {
     : `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = async () => {
-    if (window.Plain) {
-      window.Plain.open();
+    if (window.Support) {
+      window.Support.open();
     }
   };
 
