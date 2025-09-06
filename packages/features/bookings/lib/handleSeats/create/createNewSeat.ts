@@ -70,17 +70,9 @@ const createNewSeat = async (
 
   const inviteeToAdd = invitee[0];
 
-  const updatedBooking = await prisma.booking.update({
+  await prisma.booking.update({
     where: {
       uid: seatedBooking.uid,
-    },
-    select: {
-      attendees: {
-        select: {
-          email: true,
-          bookingSeat: true,
-        },
-      },
     },
     data: {
       attendees: {
@@ -110,10 +102,14 @@ const createNewSeat = async (
       ...(seatedBooking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
     },
   });
-  const newBookingSeat = updatedBooking.attendees.find(
-    (attendee) => attendee.bookingSeat?.referenceUid === attendeeUniqueId
-  );
-  const attendeeWithSeat = { ...inviteeToAdd, bookingSeat: newBookingSeat?.bookingSeat ?? null };
+
+  const newBookingSeat = await prisma.bookingSeat.findUnique({
+    where: {
+      referenceUid: attendeeUniqueId,
+    },
+  });
+
+  const attendeeWithSeat = { ...inviteeToAdd, bookingSeat: newBookingSeat ?? null };
 
   evt = { ...evt, attendees: [...bookingAttendees, attendeeWithSeat] };
   evt.attendeeSeatId = attendeeUniqueId;
