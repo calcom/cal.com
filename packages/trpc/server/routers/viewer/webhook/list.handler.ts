@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -49,8 +50,20 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
         where.AND?.push({ eventTypeId: input.eventTypeId });
       }
     } else {
+      const permissionService = new PermissionCheckService();
+      const teamsWithReadPermission = await permissionService.getTeamIdsWithPermission(
+        ctx.user.id,
+        "webhook.read"
+      );
+
+      const teamIds = user?.teams.map((membership) => membership.teamId) || [];
+      const authorizedTeamIds = teamIds.filter((teamId) => teamsWithReadPermission.includes(teamId));
+
       where.AND?.push({
-        OR: [{ userId: ctx.user.id }, { teamId: { in: user?.teams.map((membership) => membership.teamId) } }],
+        OR: [
+          { userId: ctx.user.id },
+          { teamId: { in: authorizedTeamIds.length > 0 ? authorizedTeamIds : teamIds } },
+        ],
       });
     }
 

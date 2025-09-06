@@ -9,6 +9,7 @@ export enum Resource {
   Role = "role",
   RoutingForm = "routingForm",
   Workflow = "workflow",
+  Webhook = "webhook",
 }
 
 export enum CrudAction {
@@ -514,6 +515,38 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_routing_forms",
       dependsOn: ["routingForm.read"],
+    },
+  },
+  [Resource.Webhook]: {
+    _resource: {
+      i18nKey: "pbac_resource_webhook",
+    },
+    [CrudAction.Create]: {
+      description: "Create webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_webhooks",
+      dependsOn: ["webhook.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_webhooks",
+    },
+    [CrudAction.Update]: {
+      description: "Update webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_webhooks",
+      dependsOn: ["webhook.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_webhooks",
+      dependsOn: ["webhook.read"],
     },
   },
 };
