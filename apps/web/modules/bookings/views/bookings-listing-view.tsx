@@ -4,8 +4,8 @@ import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper }
 import { useSearchParams, usePathname } from "next/navigation";
 import { useMemo, useRef } from "react";
 
-import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
+import { WipeMyCalActionButton } from "@calcom/features/apps/wipemycalother/components";
 import {
   useDataTable,
   DataTableProvider,
