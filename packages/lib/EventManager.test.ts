@@ -4,6 +4,12 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
+
 import EventManager from "./EventManager";
 
 vi.mock("@calcom/lib/crypto", () => ({
