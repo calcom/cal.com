@@ -338,9 +338,10 @@ export const createBookerStore = () =>
         eventSlug,
         eventId,
         org,
-        rescheduleUid,
+        rescheduleUid:
+          rescheduleUid && rescheduleUid !== "null" && rescheduleUid !== "" ? rescheduleUid : null,
         rescheduledBy,
-        bookingUid,
+        bookingUid: bookingUid && bookingUid !== "null" && bookingUid !== "" ? bookingUid : null,
         bookingData,
         layout: layout || BookerLayouts.MONTH_VIEW,
         isTeamEvent: isTeamEvent || false,

@@ -132,7 +132,12 @@ const BookerPlatformWrapperComponent = (
   }, [onBookerStateChange, getStateValues, debouncedStateChange, bookerStoreContext]);
 
   useGetBookingForReschedule({
-    uid: props.rescheduleUid ?? props.bookingUid ?? "",
+    uid:
+      props.rescheduleUid && props.rescheduleUid !== "null" && props.rescheduleUid !== ""
+        ? props.rescheduleUid
+        : props.bookingUid && props.bookingUid !== "null" && props.bookingUid !== ""
+        ? props.bookingUid
+        : "",
     onSuccess: (data) => {
       setBookingData(data);
     },

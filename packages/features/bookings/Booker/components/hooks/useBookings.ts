@@ -153,7 +153,7 @@ export const useBookings = ({
   const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStoreContext((state) => state.selectedDuration);
 
-  const isRescheduling = !!rescheduleUid && !!bookingData;
+  const isRescheduling = !!rescheduleUid && rescheduleUid !== "null" && !!bookingData;
 
   const bookingId = parseInt(getQueryParam("bookingId") ?? "0");
 
