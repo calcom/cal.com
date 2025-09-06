@@ -157,7 +157,7 @@ export default function JoinCall(props: PageProps) {
   const handleJoinAsGuest = useCallback((guestName: string) => {
     const trimmedName = guestName.trim();
     if (!trimmedName) {
-      return false;
+      return;
     }
 
     setUserNameForCall(trimmedName);
