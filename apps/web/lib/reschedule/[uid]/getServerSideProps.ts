@@ -3,10 +3,13 @@ import type { GetServerSidePropsContext } from "next";
 import { URLSearchParams } from "url";
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -55,6 +58,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           users: {
             select: {
               username: true,
+              email: true,
+              id: true,
             },
           },
           slug: true,
@@ -63,6 +68,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           allowReschedulingCancelledBookings: true,
           team: {
             select: {
+              id: true,
               parentId: true,
               slug: true,
             },
@@ -79,6 +85,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
               user: {
                 select: {
                   id: true,
+                  email: true,
                 },
               },
             },
@@ -122,7 +129,28 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isNonRescheduleableBooking =
     booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
 
-  if (isDisabledRescheduling) {
+  // Check if user is a host or owner of the event type
+  const userId = session?.user?.id;
+  const userIsHost = userId
+    ? checkIfUserIsHost(
+        userId,
+        {
+          user: booking.user,
+          attendees: booking.attendees,
+        },
+        {
+          users: booking.eventType?.users,
+          hosts: booking.eventType?.hosts,
+        }
+      )
+    : false;
+  const userIsOwnerOfEventType = userId !== undefined && booking?.eventType?.owner?.id === userId;
+
+  const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, booking?.eventType?.team?.id ?? 0)) : false;
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
+  
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType || !!hasTeamOrOrgPermissions || isOrgAdminOrOwner;
+  if (isDisabledRescheduling && !isHostOrOwner) {
     return {
       redirect: {
         destination: `/booking/${uid}`,
@@ -182,13 +210,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       };
     }
-    const userIsHost = booking?.eventType.hosts.find((host) => {
-      if (host.user.id === userId) return true;
-    });
+    const userIsHost = userId
+      ? checkIfUserIsHost(
+          userId,
+          {
+            user: booking.user,
+            attendees: booking.attendees,
+          },
+          {
+            users: booking.eventType?.users,
+            hosts: booking.eventType?.hosts,
+          }
+        )
+      : false;
 
     const userIsOwnerOfEventType = booking?.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
+    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions && !isOrgAdminOrOwner) {
       return {
         notFound: true,
       } as {
