@@ -34,7 +34,9 @@ import {
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  GetBookingsCountOutput_2024_08_13,
 } from "@calcom/platform-types";
+import { GetOrganizationsBookingsStatisticsOutput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Organizations Bookings Endpoints 2024-08-13", () => {
@@ -795,6 +797,186 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               await userRepositoryFixture.delete(regularUser.id);
             });
         });
+      });
+    });
+
+    describe("get organization bookings count", () => {
+      it("should get bookings count by organizationId", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/count`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+            expect(response.body.data.count).toEqual(4);
+          });
+      });
+
+      it("should get bookings count by organizationId with userIds filter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/count?userIds=${orgUser.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+            expect(response.body.data.count).toEqual(2);
+          });
+      });
+
+      it("should get bookings count by organizationId with eventTypeIds filter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/count?eventTypeIds=${orgEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+            expect(response.body.data.count).toEqual(1);
+          });
+      });
+
+      it("should fail to get bookings count without authentication", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/count`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(401);
+      });
+    });
+
+    describe("get organization bookings statistics", () => {
+      it("should get bookings statistics by organizationId", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/statistics`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+
+            const stats = response.body.data;
+            expect(stats.created).toEqual(4);
+            expect(stats.completed).toEqual(4);
+            expect(stats.rescheduled).toEqual(0);
+            expect(stats.cancelled).toEqual(0);
+            expect(stats.pending).toEqual(0);
+            expect(stats.noShow).toEqual(0);
+            expect(typeof stats.averageRating).toBe("number");
+            expect(typeof stats.csatScore).toBe("number");
+          });
+      });
+
+      it("should get bookings statistics by organizationId with userIds filter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/statistics?userIds=${orgUser.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+
+            const stats = response.body.data;
+            expect(stats.created).toEqual(2);
+            expect(stats.completed).toEqual(2);
+            expect(typeof stats.averageRating).toBe("number");
+            expect(typeof stats.csatScore).toBe("number");
+          });
+      });
+
+      it("should get bookings statistics by organizationId with eventTypeIds filter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/statistics?eventTypeIds=${orgEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+
+            const stats = response.body.data;
+            expect(stats.created).toEqual(1);
+            expect(stats.completed).toEqual(1);
+            expect(typeof stats.averageRating).toBe("number");
+            expect(typeof stats.csatScore).toBe("number");
+          });
+      });
+
+      it("should get bookings statistics with date range filter", async () => {
+        const startDate = "2030-01-01T00:00:00.000Z";
+        const endDate = "2030-12-31T23:59:59.999Z";
+
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${organization.id}/bookings/statistics?startDate=${startDate}&endDate=${endDate}`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+
+            const stats = response.body.data;
+            expect(stats.created).toEqual(4);
+            expect(stats.completed).toEqual(4);
+          });
+      });
+
+      it("should return zero statistics for date range with no bookings", async () => {
+        const startDate = "2025-01-01T00:00:00.000Z";
+        const endDate = "2025-12-31T23:59:59.999Z";
+
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${organization.id}/bookings/statistics?startDate=${startDate}&endDate=${endDate}`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+
+            const stats = response.body.data;
+            expect(stats.created).toEqual(0);
+            expect(stats.completed).toEqual(0);
+            expect(stats.rescheduled).toEqual(0);
+            expect(stats.cancelled).toEqual(0);
+            expect(stats.pending).toEqual(0);
+            expect(stats.noShow).toEqual(0);
+            expect(stats.averageRating).toEqual(0);
+            expect(stats.csatScore).toEqual(0);
+          });
+      });
+
+      it("should fail to get bookings statistics without authentication", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/statistics`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(401);
+      });
+
+      it("should fail to get bookings statistics for non-existent organization", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/999999/bookings/statistics`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(403);
       });
     });
 
