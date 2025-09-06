@@ -63,6 +63,7 @@ export type EventBusyDetails = EventBusyDate & {
   title?: string;
   source?: string | null;
   userId?: number | null;
+  eventTypeId?: number | null;
 };
 
 export type CalendarServiceType = typeof Calendar;
