@@ -14,7 +14,7 @@ export type TargetRoutingFormForResponse = SerializableForm<
     user: {
       id: number;
       email: string;
-    };
+    } | null;
     team: {
       parentId: number | null;
     } | null;
@@ -45,7 +45,9 @@ export const onSubmissionOfFormResponse = async ({
   const settings = RoutingFormSettings.parse(form.settings);
   let userWithEmails: string[] = [];
 
-  if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
+  if (form.user && !form.teamId) {
+    userWithEmails = [form.user.email];
+  } else if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
     const whereClause: Prisma.MembershipWhereInput = { teamId: form.teamId };
     if (!settings?.sendToAll) {
       whereClause.userId = { in: settings.sendUpdatesTo };
@@ -61,12 +63,24 @@ export const onSubmissionOfFormResponse = async ({
       },
     });
     userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
+  } else if (form.user && form.teamId) {
+    userWithEmails = [form.user.email];
   }
 
-  await onFormSubmission(
-    { ...form, fields: form.fields, userWithEmails },
-    formResponseInDb.response as FormResponse,
-    formResponseInDb.id,
-    chosenRouteAction ?? undefined
-  );
+  if (form.user || userWithEmails.length > 0) {
+    const effectiveUser = form.user || { id: -1, email: userWithEmails[0] };
+    const effectiveUserWithEmails = form.user ? [form.user.email] : userWithEmails;
+
+    await onFormSubmission(
+      {
+        ...form,
+        fields: form.fields,
+        userWithEmails: effectiveUserWithEmails,
+        user: effectiveUser,
+      },
+      formResponseInDb.response as FormResponse,
+      formResponseInDb.id,
+      chosenRouteAction ?? undefined
+    );
+  }
 };

@@ -96,7 +96,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   const userRepo = new UserRepository(prisma);
   const formWithUserInfoProfile = {
     ...form,
-    user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
+    user: form.user ? await userRepo.enrichUserWithItsProfile({ user: form.user }) : null,
   };
 
   // Get PBAC permissions for team-scoped routing forms

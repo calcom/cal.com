@@ -127,7 +127,7 @@ function SingleForm({
       utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
-  const uptoDateForm = {
+  const uptoDateForm: UptoDateForm = {
     ...hookForm.getValues(),
     routes: hookForm.watch("routes"),
     user: enrichedWithUserProfileForm.user,

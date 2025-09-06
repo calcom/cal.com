@@ -107,7 +107,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   const userRepo = new UserRepository(prisma);
   const formWithUserProfile = {
     ...form,
-    user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
+    user: form.user ? await userRepo.enrichUserWithItsProfile({ user: form.user }) : null,
   };
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
@@ -120,8 +120,9 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   }
 
   const getSerializableFormStart = performance.now();
+  const enrichedForm = enrichFormWithMigrationData(formWithUserProfile);
   const serializableForm = await getSerializableForm({
-    form: enrichFormWithMigrationData(formWithUserProfile),
+    form: enrichedForm,
   });
   timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
@@ -208,7 +209,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       redirect: {
         destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
           eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
-          form: serializableForm,
+          form: enrichedForm,
           allURLSearchParams: getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
