@@ -62,8 +62,6 @@ export const InstallAppButton = (
   );
 };
 
-export { AppConfiguration } from "./_components/AppConfiguration";
-
 export const AppDependencyComponent = ({
   appName,
   dependencyData,
