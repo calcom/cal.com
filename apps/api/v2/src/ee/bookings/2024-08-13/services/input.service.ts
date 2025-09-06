@@ -29,6 +29,7 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CancelBookingInput,
@@ -44,8 +45,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType } from "@calcom/prisma/client";
-import { CreationSource } from "@calcom/prisma/enums";
+import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;
@@ -420,6 +420,9 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
+
     const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
     const repeatsEvery = occurrence.interval;
 
@@ -456,7 +459,7 @@ export class InputBookingsService_2024_08_13 {
     const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
     for (let i = 0; i < repeatsTimes; i++) {
-      const endTime = startTime.plus({ minutes: eventType.length });
+      const endTime = startTime.plus({ minutes: lengthInMinutes });
 
       events.push({
         start: startTime.toISO(),
@@ -702,6 +705,7 @@ export class InputBookingsService_2024_08_13 {
       beforeUpdatedDate: queryParams.beforeUpdatedAt,
       afterCreatedDate: queryParams.afterCreatedAt,
       beforeCreatedDate: queryParams.beforeCreatedAt,
+      bookingUid: queryParams.bookingUid,
     };
   }
 

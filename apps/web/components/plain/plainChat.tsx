@@ -83,6 +83,7 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
   ? ({ nonce }: { nonce: string | undefined }) => {
       const [config, setConfig] = useState<PlainChatConfig | null>(null);
       const [isSmallScreen, setIsSmallScreen] = useState(false);
+      const [isOpen, setIsOpen] = useState(false);
       const { data: session } = useSession();
       const pathname = usePathname();
       const searchParams = useSearchParams();
@@ -269,10 +270,19 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
 
         checkScreenSize();
         window.addEventListener("resize", checkScreenSize);
-        initConfig();
-
+        if (isPaidUser) {
+          initConfig();
+        } else if (typeof window !== "undefined" && !window.Plain) {
+          window.Plain = {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            init: () => {},
+            open: () => {
+              setIsOpen(true);
+            },
+          };
+        }
         return () => window.removeEventListener("resize", checkScreenSize);
-      }, [isAppDomain, checkScreenSize, initConfig, userEmail]);
+      }, [isAppDomain, checkScreenSize, initConfig, userEmail, isPaidUser]);
 
       const plainChatScript = `
         window.plainScriptLoaded = function() {
@@ -289,7 +299,7 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
       if (!isAppDomain || isSmallScreen || typeof window === "undefined") return null;
 
       if (!isPaidUser) {
-        return <PlainContactForm />;
+        return <PlainContactForm open={isOpen} setIsOpen={setIsOpen} />;
       }
 
       if (!config) return null;

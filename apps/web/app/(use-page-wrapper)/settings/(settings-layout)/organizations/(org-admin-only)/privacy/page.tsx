@@ -21,9 +21,9 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
+  const [t, _headers, _cookies] = await Promise.all([getTranslate(), headers(), cookies()]);
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
 
   if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
     return redirect("/settings/profile");

@@ -8,7 +8,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -294,7 +294,7 @@ async function tryToCancelSubscription(subscriptionId: string) {
 }
 
 function getSubscriptionId(metadata: Prisma.JsonValue) {
-  const parsedMetadata = teamMetadataSchema.safeParse(metadata);
+  const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
   if (parsedMetadata.success) {
     const subscriptionId = parsedMetadata.data?.subscriptionId;
     if (!subscriptionId) {

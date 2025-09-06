@@ -133,4 +133,26 @@ export class EventTypesRepository_2024_06_14 {
   async deleteEventType(eventTypeId: number) {
     return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
   }
+
+  async isUserHostOfEventType(userId: number, eventTypeId: number) {
+    const eventType = await this.dbRead.prisma.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        hosts: { some: { userId: userId } },
+      },
+      select: { id: true },
+    });
+    return !!eventType;
+  }
+
+  async isUserAssignedToEventType(userId: number, eventTypeId: number) {
+    const eventType = await this.dbRead.prisma.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        users: { some: { id: userId } },
+      },
+      select: { id: true },
+    });
+    return !!eventType;
+  }
 }

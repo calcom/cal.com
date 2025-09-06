@@ -9,7 +9,6 @@ import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 import { forms } from "./procedures/forms";
-import { ZReportInputSchema } from "./report.schema";
 import { ZSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -73,11 +72,6 @@ const appRoutingForms = router({
   }),
   deleteForm: authedProcedure.input(ZDeleteFormInputSchema).mutation(async ({ ctx, input }) => {
     const handler = await getHandler("deleteForm", () => import("./deleteForm.handler"));
-    return handler({ ctx, input });
-  }),
-
-  report: authedProcedure.input(ZReportInputSchema).query(async ({ ctx, input }) => {
-    const handler = await getHandler("report", () => import("./report.handler"));
     return handler({ ctx, input });
   }),
 

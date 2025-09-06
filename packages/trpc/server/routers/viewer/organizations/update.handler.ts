@@ -8,8 +8,10 @@ import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+
 import { TRPCError } from "@trpc/server";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
@@ -162,7 +164,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata ?? {});
+  const { mergeMetadata } = getMetadataHelpers(
+    teamMetadataStrictSchema.unwrap(),
+    prevOrganisation.metadata ?? {}
+  );
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     logoUrl: input.logoUrl,

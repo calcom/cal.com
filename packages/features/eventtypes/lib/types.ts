@@ -57,6 +57,7 @@ type EventLocation = {
   hostDefault?: string;
   credentialId?: number;
   teamName?: string;
+  customLabel?: string;
 };
 
 type PhoneCallConfig = {
@@ -150,6 +151,7 @@ export type FormValues = {
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
+  showOptimizedSlots: boolean;
   children: ChildrenEventType[];
   hosts: Host[];
   hostGroups: {
@@ -173,15 +175,7 @@ export type FormValues = {
   restrictionScheduleId: number | null;
   useBookerTimezone: boolean;
   restrictionScheduleName: string | null;
-  calVideoSettings?: {
-    disableRecordingForOrganizer?: boolean;
-    disableRecordingForGuests?: boolean;
-    enableAutomaticTranscription?: boolean;
-    enableAutomaticRecordingForOrganizer?: boolean;
-    disableTranscriptionForGuests?: boolean;
-    disableTranscriptionForOrganizer?: boolean;
-    redirectUrlOnExit?: string;
-  };
+  calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
 };
 
@@ -287,3 +281,23 @@ export const createEventTypeInput = z
     path: ["schedulingType"],
     message: "You must select a scheduling type for team events",
   });
+
+export type FormValidationResult = {
+  isValid: boolean;
+  errors: Record<string, unknown>;
+};
+
+export interface EventTypePlatformWrapperRef {
+  validateForm: () => Promise<FormValidationResult>;
+  handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
+}
+
+export interface CalVideoSettings {
+  disableRecordingForOrganizer?: boolean;
+  disableRecordingForGuests?: boolean;
+  enableAutomaticTranscription?: boolean;
+  enableAutomaticRecordingForOrganizer?: boolean;
+  disableTranscriptionForGuests?: boolean;
+  disableTranscriptionForOrganizer?: boolean;
+  redirectUrlOnExit?: string;
+}

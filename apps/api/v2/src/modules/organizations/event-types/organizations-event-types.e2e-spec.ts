@@ -23,7 +23,8 @@ import {
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
-import {
+import { SchedulingType } from "@calcom/platform-libraries";
+import type {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
@@ -31,9 +32,7 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { User } from "@calcom/prisma/client";
-import { Team } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -726,6 +725,7 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               type: "name",
               slug: "name",
+              label: "your_name",
               required: true,
               disableOnPrefill: false,
             },
@@ -823,6 +823,7 @@ describe("Organizations Event Types Endpoints", () => {
               type: "name",
               slug: "name",
               required: true,
+              label: "your_name",
               disableOnPrefill: false,
             },
             {

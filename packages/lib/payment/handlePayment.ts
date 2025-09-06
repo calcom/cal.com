@@ -1,20 +1,12 @@
-import appStore from "@calcom/app-store";
+import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-const isPaymentApp = (x: unknown): x is PaymentApp =>
-  !!x &&
-  typeof x === "object" &&
-  "lib" in x &&
-  typeof x.lib === "object" &&
-  !!x.lib &&
-  "PaymentService" in x.lib;
-
-const isKeyOf = <T extends object>(obj: T, key: unknown): key is keyof T =>
-  typeof key === "string" && key in obj;
+const isPaymentService = (x: unknown): x is { PaymentService: any } =>
+  !!x && typeof x === "object" && "PaymentService" in x && typeof x.PaymentService === "function";
 
 const handlePayment = async ({
   evt,
@@ -50,16 +42,19 @@ const handlePayment = async ({
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
-  if (!isKeyOf(appStore, key)) {
-    console.warn(`key: ${key} is not a valid key in appStore`);
+
+  const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
+  if (!paymentAppImportFn) {
+    console.warn(`payment app not implemented for key: ${key}`);
     return null;
   }
-  const paymentApp = await appStore[key]?.();
-  if (!isPaymentApp(paymentApp)) {
-    console.warn(`payment App service of type ${paymentApp} is not implemented`);
+
+  const paymentAppModule = await paymentAppImportFn;
+  if (!isPaymentService(paymentAppModule)) {
+    console.warn(`payment App service not found for key: ${key}`);
     return null;
   }
-  const PaymentService = paymentApp.lib.PaymentService;
+  const PaymentService = paymentAppModule.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
   const apps = eventTypeMetaDataSchemaWithTypedApps.parse(selectedEventType?.metadata)?.apps;

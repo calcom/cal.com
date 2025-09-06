@@ -1,6 +1,9 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
 import { OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
-import { GetOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import {
+  AuthOptionalUser,
+  GetOptionalUser,
+} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
@@ -37,7 +40,6 @@ import {
   GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
-import { User } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/slots",
@@ -261,7 +263,7 @@ export class SlotsController_2024_09_04 {
   @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
-    @GetOptionalUser() user: User
+    @GetOptionalUser() user: AuthOptionalUser
   ): Promise<ReserveSlotOutputResponse_2024_09_04> {
     const reservedSlot = await this.slotsService.reserveSlot(body, user?.id);
 

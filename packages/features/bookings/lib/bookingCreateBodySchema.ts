@@ -3,6 +3,7 @@ import z from "zod";
 
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { CreationSource } from "@calcom/prisma/enums";
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -50,6 +51,7 @@ export const bookingCreateBodySchema = z.object({
     })
     .optional(),
   dub_id: z.string().nullish(),
+  creationSource: z.nativeEnum(CreationSource).optional(),
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;

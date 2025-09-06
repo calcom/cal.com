@@ -31,7 +31,7 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const { activeFilters, addFilter } = useDataTable();
+  const { activeFilters, addFilter, filterToOpen } = useDataTable();
   const [open, setOpen] = useState(false);
 
   const filterableColumns = useFilterableColumns(table);
@@ -90,6 +90,7 @@ function AddFilterButtonComponent<TData>(
                   <CommandItem
                     key={column.id}
                     onSelect={() => {
+                      if (filterToOpen) filterToOpen.current = column.id;
                       addFilter(column.id);
                       setOpen(false);
                     }}

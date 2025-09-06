@@ -1,5 +1,35 @@
 ## 1.1.2
 
+## 1.7.0
+
+### Minor Changes
+
+- [#23445](https://github.com/calcom/cal.com/pull/23445) [`9724bc0`](https://github.com/calcom/cal.com/commit/9724bc07a6d9bfe3ff32fa4e5657de2da3068d85) Thanks [@supalarry](https://github.com/supalarry)! - feat: italian language support
+
+## 1.6.0
+
+### Minor Changes
+
+- [#23074](https://github.com/calcom/cal.com/pull/23074) [`09cf888`](https://github.com/calcom/cal.com/commit/09cf8885cf5e88fc0911edaf7e43f5c1c2d64923) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - feat: add send & verify code flow to booker atom when email verification is turned on
+
+- [#23211](https://github.com/calcom/cal.com/pull/23211) [`89a3b77`](https://github.com/calcom/cal.com/commit/89a3b77a1dd0773e6b746b14e72f9a792ac1c43a) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - feat: added hideEventMetadata prop to the booker atom that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information.
+
+### Patch Changes
+
+- [#23213](https://github.com/calcom/cal.com/pull/23213) [`40caa82`](https://github.com/calcom/cal.com/commit/40caa82e5592cc17d84dd5e73531d1b376ce187c) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR fixes `onBookerStateChange` prop not working
+
+## 1.5.0
+
+### Minor Changes
+
+- [#23174](https://github.com/calcom/cal.com/pull/23174) [`618ef63`](https://github.com/calcom/cal.com/commit/618ef630170eb1c05b4a131a01d0c2316b3d1880) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - fix: Availability atom handleFormSubmit callbacks not triggering
+
+## 1.4.0
+
+### Minor Changes
+
+- [#23119](https://github.com/calcom/cal.com/pull/23119) [`eb1ed10`](https://github.com/calcom/cal.com/commit/eb1ed107ba54a4ae99d0b3aa741ae3076d0ec629) Thanks [@ThyMinimalDev](https://github.com/ThyMinimalDev)! - Added Booker atom prop silentlyHandleCalendarFailures, which ensure the booker still displays slots when the third party calendars credentials are invalid or expired
+
 ## 1.3.1
 
 ### Patch Changes

@@ -2,14 +2,14 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 
-import { Membership, Prisma, Team, User } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/platform-libraries";
+import type { Membership, Prisma, Team, User } from "@calcom/prisma/client";
 
 export class MembershipRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
-  constructor(private readonly module: TestingModule) {
+  constructor(module: TestingModule) {
     this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
@@ -36,5 +36,9 @@ export class MembershipRepositoryFixture {
     });
     await this.prismaWriteClient.user.update({ where: { id: user.id }, data: { organizationId: org.id } });
     return membership;
+  }
+
+  async findById(membershipId: Membership["id"]) {
+    return this.prismaReadClient.membership.findUnique({ where: { id: membershipId } });
   }
 }

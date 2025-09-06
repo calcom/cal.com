@@ -32,14 +32,15 @@ function safeJSONStringify(x: any) {
   }
 }
 
-type UserFindArgs =
-  | Prisma.UserFindUniqueArgs
-  | Prisma.UserFindFirstArgs
-  | Prisma.UserFindManyArgs
-  | Prisma.UserFindUniqueOrThrowArgs
-  | Prisma.UserFindFirstOrThrowArgs;
-
-async function excludeLockedUsers(args: UserFindArgs, query: <T>(args: T) => Promise<unknown>) {
+async function excludeLockedUsers(
+  args:
+    | Prisma.UserFindUniqueArgs
+    | Prisma.UserFindFirstArgs
+    | Prisma.UserFindManyArgs
+    | Prisma.UserFindUniqueOrThrowArgs
+    | Prisma.UserFindFirstOrThrowArgs,
+  query: <T>(args: T) => Promise<unknown>
+) {
   args.where = args.where || {};
   const whereString = safeJSONStringify(args.where);
   const shouldIncludeLocked = whereString.includes('"locked":');

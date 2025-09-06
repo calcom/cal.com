@@ -17,7 +17,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import type { AssignmentReason } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -64,7 +65,6 @@ import {
   shouldShowRecurringCancelAction,
   type BookingActionContext,
 } from "./bookingActions";
-import { AssignmentReason } from "@calcom/prisma/client";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
@@ -691,7 +691,7 @@ function BookingListItem(booking: BookingItemProps) {
                         type="button"
                         color={cancelEventAction.color}
                         StartIcon={cancelEventAction.icon}
-                        href={cancelEventAction.href}
+                        href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
                         onClick={cancelEventAction.onClick}
                         disabled={cancelEventAction.disabled}
                         data-bookingid={cancelEventAction.bookingId}

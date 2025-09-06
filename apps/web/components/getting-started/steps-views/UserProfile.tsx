@@ -165,7 +165,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
         EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
-        {t("finish")}
+        {t("finish_and_start")}
       </Button>
     </form>
   );

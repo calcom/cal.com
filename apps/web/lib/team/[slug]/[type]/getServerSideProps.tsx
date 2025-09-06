@@ -10,10 +10,9 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { RedirectType } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
@@ -54,6 +53,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventData = team.eventTypes[0];
+
+  if (eventData.schedulingType === SchedulingType.MANAGED) {
+    return { notFound: true } as const;
+  }
 
   if (rescheduleUid && eventData.disableRescheduling) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };

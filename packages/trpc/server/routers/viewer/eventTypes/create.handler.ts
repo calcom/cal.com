@@ -4,8 +4,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import { PrismaClientKnownRequestError } from "@calcom/prisma/client/runtime/library";
+import { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -142,7 +141,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     return { eventType };
   } catch (e) {
     console.warn(e);
-    if (e instanceof PrismaClientKnownRequestError) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
       }

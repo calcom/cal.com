@@ -1,9 +1,12 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
+import type { Mock } from "vitest";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 
-import { RRResetInterval } from "@calcom/prisma/enums";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
-import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
+
+const luckyUserService = getLuckyUserService();
 
 // Mocking setup
 const prismaMock = {
@@ -15,13 +18,19 @@ const prismaMock = {
 // Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
 vi.spyOn(prismaMock.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
 
-vi.mock("../server/getLuckyUser", () => ({
-  getOrderedListOfLuckyUsers: vi.fn(),
-}));
+// This variable will hold our mock function
+let getOrderedListOfLuckyUsersMock: Mock;
+
+beforeEach(() => {
+  // Clear all mocks and spies before each test
+  vi.clearAllMocks();
+  // Spy on the real method and explicitly cast it as a Mock
+  getOrderedListOfLuckyUsersMock = vi.spyOn(luckyUserService, "getOrderedListOfLuckyUsers") as Mock;
+});
 
 afterEach(() => {
-  // Clear call history before each test to avoid cross-test interference
-  prismaMock.booking.groupBy.mockClear();
+  // Restore all spies to their original implementation
+  vi.restoreAllMocks();
 });
 
 describe("filterHostByLeadThreshold", () => {
@@ -48,7 +57,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -66,7 +77,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -97,7 +110,7 @@ describe("filterHostByLeadThreshold", () => {
       },
     ];
 
-    getOrderedListOfLuckyUsers.mockResolvedValue({
+    getOrderedListOfLuckyUsersMock.mockResolvedValue({
       perUserData: {
         bookingsCount: { 1: 10, 2: 6 },
       },
@@ -113,7 +126,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -154,7 +169,7 @@ describe("filterHostByLeadThreshold", () => {
       },
     ];
 
-    getOrderedListOfLuckyUsers.mockResolvedValue({
+    getOrderedListOfLuckyUsersMock.mockResolvedValue({
       perUserData: {
         bookingsCount: { 1: 7, 2: 5, 3: 0 },
         weights: { 1: 100, 2: 50, 3: 20 },
@@ -172,7 +187,9 @@ describe("filterHostByLeadThreshold", () => {
         team: {
           parentId: null,
           rrResetInterval: RRResetInterval.MONTH,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         },
+        includeNoShowInRRCalculation: false,
       },
       routingFormResponse: null,
     });
@@ -187,7 +204,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })

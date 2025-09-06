@@ -1,8 +1,8 @@
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { bookingMinimalSelect } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -827,6 +827,7 @@ export class BookingRepository {
         attendees: true,
         references: true,
         user: true,
+        payment: true,
       },
     });
   }
@@ -938,6 +939,52 @@ export class BookingRepository {
         attendees: {
           select: {
             email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getBookingForPaymentProcessing(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        userPrimaryEmail: true,
+        status: true,
+        eventTypeId: true,
+        userId: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
+        eventType: {
+          select: {
+            title: true,
+            hideOrganizerEmail: true,
+            teamId: true,
+            metadata: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            paymentOption: true,
+            appId: true,
+            success: true,
+            data: true,
           },
         },
       },

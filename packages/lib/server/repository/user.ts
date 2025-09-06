@@ -9,7 +9,7 @@ import { availabilityUserSelect } from "@calcom/prisma";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
@@ -1025,6 +1025,45 @@ export class UserRepository {
         ...availabilityUserSelect,
         credentials: {
           select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+  }
+
+  async findUsersWithLastBooking({ userIds, eventTypeId }: { userIds: number[]; eventTypeId: number }) {
+    return this.prismaClient.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        bookings: {
+          select: {
+            createdAt: true,
+          },
+          where: {
+            eventTypeId,
+            status: BookingStatus.ACCEPTED,
+            attendees: {
+              some: {
+                noShow: false,
+              },
+            },
+            OR: [
+              {
+                noShowHost: false,
+              },
+              {
+                noShowHost: null,
+              },
+            ],
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
         },
       },
     });

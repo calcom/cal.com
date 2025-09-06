@@ -10,6 +10,7 @@ export const availabilityUserSelect = {
   endTime: true,
   timeFormat: true,
   defaultScheduleId: true,
+  isPlatformManaged: true,
   // Relationships
   schedules: {
     select: {

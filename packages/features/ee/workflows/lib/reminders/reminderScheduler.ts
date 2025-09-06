@@ -3,6 +3,7 @@ import {
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
+  isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
@@ -16,6 +17,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
@@ -43,9 +45,6 @@ type ProcessWorkflowStepParams = {
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
   workflows: Workflow[];
-  isNotConfirmed?: boolean;
-  isRescheduleEvent?: boolean;
-  isFirstRecurringEvent?: boolean;
   isDryRun?: boolean;
 }
 
@@ -157,8 +156,6 @@ const processWorkflowStep = async (
       seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
       verifiedAt: step.verifiedAt,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
     });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -180,6 +177,20 @@ const processWorkflowStep = async (
       seatReferenceUid,
       verifiedAt: step.verifiedAt,
     });
+  } else if (isCalAIAction(step.action)) {
+    await scheduleAIPhoneCall({
+      evt,
+      triggerEvent: workflow.trigger,
+      timeSpan: {
+        time: workflow.time,
+        timeUnit: workflow.timeUnit,
+      },
+      workflowStepId: step.id,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
+      seatReferenceUid,
+      verifiedAt: step.verifiedAt,
+    });
   }
 };
 
@@ -188,37 +199,16 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     workflows,
     smsReminderNumber,
     calendarEvent: evt,
-    isNotConfirmed = false,
-    isRescheduleEvent = false,
-    isFirstRecurringEvent = true,
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
     isDryRun = false,
   } = args;
-  if (isDryRun) return;
-  if (isNotConfirmed || !workflows.length) return;
+  if (isDryRun || !workflows.length) return;
 
   for (const workflow of workflows) {
     if (workflow.steps.length === 0) continue;
 
-    const isNotBeforeOrAfterEvent =
-      workflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
-      workflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT;
-
-    if (
-      isNotBeforeOrAfterEvent &&
-      // Check if the trigger is not a new event without a reschedule and is the first recurring event.
-      !(
-        workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-        !isRescheduleEvent &&
-        isFirstRecurringEvent
-      ) &&
-      // Check if the trigger is not a rescheduled event that is rescheduled.
-      !(workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
-    ) {
-      continue;
-    }
     for (const step of workflow.steps) {
       await processWorkflowStep(workflow, step, {
         calendarEvent: evt,

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 import type { Membership, Workflow } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -26,7 +27,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { getActionIcon } from "../lib/getActionIcon";
 import type { WorkflowStep } from "../lib/types";
 import { DeleteDialog } from "./DeleteDialog";
-import { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 
 export type WorkflowType = Workflow & {
   team: {
@@ -260,7 +260,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               variant="icon"
                               StartIcon="pencil"
                               disabled={
-                                workflow.permissions ? !workflow.permissions.canUpdate : workflow.readOnly
+                                workflow.permissions ? !workflow.permissions?.canUpdate : workflow.readOnly
                               }
                               onClick={async () => await router.replace(`/workflows/${workflow.id}`)}
                               data-testid="edit-button"
@@ -275,7 +275,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               color="secondary"
                               variant="icon"
                               disabled={
-                                workflow.permissions ? !workflow.permissions.canDelete : workflow.readOnly
+                                workflow.permissions ? !workflow.permissions?.canDelete : workflow.readOnly
                               }
                               StartIcon="trash-2"
                               data-testid="delete-button"
@@ -293,7 +293,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               {(workflow.permissions
-                                ? workflow.permissions.canUpdate
+                                ? workflow.permissions?.canUpdate
                                 : !workflow.readOnly) && (
                                 <DropdownMenuItem>
                                   <DropdownItem
@@ -305,7 +305,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 </DropdownMenuItem>
                               )}
                               {(workflow.permissions
-                                ? workflow.permissions.canDelete
+                                ? workflow.permissions?.canDelete
                                 : !workflow.readOnly) && (
                                 <DropdownMenuItem>
                                   <DropdownItem

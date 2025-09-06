@@ -3,17 +3,17 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
+import { SchedulingType } from "@calcom/platform-libraries";
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 import type {
-  CalVideoSettings,
-  DestinationCalendar,
-  EventType,
-  Host,
-  Schedule,
   Team,
+  EventType,
   User,
+  Schedule,
+  Host,
+  DestinationCalendar,
+  CalVideoSettings,
 } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
 
 type EventTypeRelations = {
   users: User[];
@@ -82,6 +82,8 @@ type Input = Pick<
   | "hideOrganizerEmail"
   | "team"
   | "calVideoSettings"
+  | "hidden"
+  | "bookingRequiresAuthentication"
 >;
 
 @Injectable()

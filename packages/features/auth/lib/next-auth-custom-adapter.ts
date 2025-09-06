@@ -1,8 +1,8 @@
 import type { Adapter, AdapterUser, AdapterAccount } from "next-auth/adapters";
 
 import type { PrismaClient } from "@calcom/prisma";
-import type { Account, IdentityProvider, Prisma, User } from "@calcom/prisma/client";
-import { PrismaClientKnownRequestError } from "@calcom/prisma/client/runtime/library";
+import { Prisma } from "@calcom/prisma/client";
+import type { Account, IdentityProvider, User } from "@calcom/prisma/client";
 
 const parseIntSafe = (id: string | number): number => {
   if (typeof id === "number") return id;
@@ -134,8 +134,10 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
         const { id, ...verificationToken } = token;
         return verificationToken;
       } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
-          return null;
+        // If token already used/deleted, just return null
+        // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === "P2025") return null;
         }
         throw error;
       }

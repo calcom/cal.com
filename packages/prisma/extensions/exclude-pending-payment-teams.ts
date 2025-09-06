@@ -1,12 +1,5 @@
 import { Prisma } from "@calcom/prisma/client";
 
-type TeamFindArgs =
-  | Prisma.TeamFindUniqueArgs
-  | Prisma.TeamFindFirstArgs
-  | Prisma.TeamFindManyArgs
-  | Prisma.TeamFindUniqueOrThrowArgs
-  | Prisma.TeamFindFirstOrThrowArgs;
-
 export function excludePendingPaymentsExtension() {
   return Prisma.defineExtension({
     query: {
@@ -31,7 +24,15 @@ export function excludePendingPaymentsExtension() {
   });
 }
 
-async function excludePendingPayments(args: TeamFindArgs, query: <T>(args: T) => Promise<unknown>) {
+async function excludePendingPayments(
+  args:
+    | Prisma.TeamFindUniqueArgs
+    | Prisma.TeamFindFirstArgs
+    | Prisma.TeamFindManyArgs
+    | Prisma.TeamFindUniqueOrThrowArgs
+    | Prisma.TeamFindFirstOrThrowArgs,
+  query: <T>(args: T) => Promise<unknown>
+) {
   args.where = args.where || {};
   if (args.where.pendingPayment === undefined) {
     args.where.pendingPayment = false;

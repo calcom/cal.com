@@ -6,9 +6,8 @@ import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
-
 import type { Prisma, PrismaPromise, User, Membership, Profile } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -47,7 +46,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
 
   try {
-    await roleManager.checkPermissionToChangeRole(userId, organizationId);
+    await roleManager.checkPermissionToChangeRole(userId, organizationId, "org");
   } catch (error) {
     if (error instanceof RoleManagementError) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: error.message });
