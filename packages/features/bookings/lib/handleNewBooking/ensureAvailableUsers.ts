@@ -2,7 +2,10 @@ import type { Logger } from "tslog";
 
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
-import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import {
+  checkForConflicts,
+  prepareBusyTimes,
+} from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
@@ -239,8 +242,9 @@ const _ensureAvailableUsers = async (
     }
 
     try {
+      const preparedBusyTimes = prepareBusyTimes(bufferedBusyTimes);
       const foundConflict = checkForConflicts({
-        busy: bufferedBusyTimes,
+        busy: preparedBusyTimes,
         time: startDateTimeUtc,
         eventLength: duration,
       });
