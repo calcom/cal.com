@@ -135,16 +135,6 @@ export const getUserSession = async (ctx: TRPCContextInner) => {
   return { user, session: sessionWithUpId };
 };
 
-const sessionMiddleware = middleware(async ({ ctx, next }) => {
-  const middlewareStart = performance.now();
-  const { user, session } = await getUserSession(ctx);
-  const middlewareEnd = performance.now();
-  logger.debug("Perf:t.sessionMiddleware", middlewareEnd - middlewareStart);
-  return next({
-    ctx: { user, session },
-  });
-});
-
 export const isAuthed = middleware(async ({ ctx, next }) => {
   const middlewareStart = performance.now();
 
@@ -180,5 +170,3 @@ export const isOrgAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   }
   return next({ ctx: { user: user } });
 });
-
-export default sessionMiddleware;
