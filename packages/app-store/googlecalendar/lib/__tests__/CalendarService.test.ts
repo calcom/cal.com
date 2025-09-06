@@ -1610,7 +1610,17 @@ describe("createEvent", () => {
           "iCalUID": "test-ical-uid@google.com",
           "location": "Test Location",
           "reminders": {
-            "useDefault": true,
+            "overrides": [
+              {
+                "method": "popup",
+                "minutes": 10,
+              },
+              {
+                "method": "email",
+                "minutes": 10,
+              },
+            ],
+            "useDefault": false,
           },
           "start": {
             "dateTime": "2024-06-15T10:00:00Z",
