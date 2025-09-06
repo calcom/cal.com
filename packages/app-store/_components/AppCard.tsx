@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import OmniInstallAppButton from "@calcom/features/apps/components/OmniInstallAppButton";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -12,7 +13,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
 import type { CredentialOwner } from "../types";
-import OmniInstallAppButton from "@calcom/features/apps/components/OmniInstallAppButton";
 
 export default function AppCard({
   app,
