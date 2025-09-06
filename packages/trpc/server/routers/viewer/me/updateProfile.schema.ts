@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 
 export const updateUserMetadataAllowedKeys = z.object({
@@ -49,6 +50,7 @@ export const ZUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
+  bookingLimits: intervalLimitsType.optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

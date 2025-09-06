@@ -911,6 +911,7 @@ export class UserRepository {
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
         profiles: true,
+        bookingLimits: true,
       },
     });
 
