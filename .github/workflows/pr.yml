@@ -2,18 +2,21 @@ name: PR Update
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - gh-actions-test-branch
+  repository_dispatch:
+    types: [ready-for-e2e]
   workflow_dispatch:
 
 permissions:
   actions: write
   contents: read
+  pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -46,7 +49,7 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || github.event.label.name == 'ready-for-e2e') }}
+      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
     steps:
       - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
