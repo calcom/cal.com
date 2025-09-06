@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -81,6 +82,13 @@ export class AgentService {
       });
     }
 
+    let eventTypeId = data.eventTypeId;
+
+    if (RETELL_AI_TEST_MODE && RETELL_AI_TEST_EVENT_TYPE_MAP) {
+      const mappedId = RETELL_AI_TEST_EVENT_TYPE_MAP[String(data.eventTypeId)];
+      eventTypeId = mappedId ? Number(mappedId) : data.eventTypeId;
+    }
+
     try {
       const agent = await this.getAgent(agentId);
       const llmId = getLlmId(agent);
@@ -99,8 +107,8 @@ export class AgentService {
 
       const existing = llmDetails?.general_tools ?? [];
 
-      const hasCheck = existing.some((t) => t.name === `check_availability_${data.eventTypeId}`);
-      const hasBook = existing.some((t) => t.name === `book_appointment_${data.eventTypeId}`);
+      const hasCheck = existing.some((t) => t.name === `check_availability_${eventTypeId}`);
+      const hasBook = existing.some((t) => t.name === `book_appointment_${eventTypeId}`);
       // If both already exist and end_call also exists, nothing to do
       const hasEndCallAlready = existing.some((t) => t.type === "end_call");
       if (hasCheck && hasBook && hasEndCallAlready) {
@@ -113,27 +121,29 @@ export class AgentService {
       )?.cal_api_key;
 
       const apiKey =
-        reusableKey ??
-        (await this.createApiKey({
-          userId: data.userId,
-          teamId: data.teamId || undefined,
-        }));
+        RETELL_AI_TEST_MODE && process.env.RETELL_AI_TEST_CAL_API_KEY
+          ? process.env.RETELL_AI_TEST_CAL_API_KEY
+          : reusableKey ??
+            (await this.createApiKey({
+              userId: data.userId,
+              teamId: data.teamId || undefined,
+            }));
 
       const newEventTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [];
       if (!hasCheck) {
         newEventTools.push({
-          name: `check_availability_${data.eventTypeId}`,
+          name: `check_availability_${eventTypeId}`,
           type: "check_availability_cal",
-          event_type_id: data.eventTypeId,
+          event_type_id: eventTypeId,
           cal_api_key: apiKey,
           timezone: data.timeZone,
         });
       }
       if (!hasBook) {
         newEventTools.push({
-          name: `book_appointment_${data.eventTypeId}`,
+          name: `book_appointment_${eventTypeId}`,
           type: "book_appointment_cal",
-          event_type_id: data.eventTypeId,
+          event_type_id: eventTypeId,
           cal_api_key: apiKey,
           timezone: data.timeZone,
         });
@@ -180,6 +190,15 @@ export class AgentService {
       return;
     }
 
+    let mappedEventTypeIds = eventTypeIds;
+
+    if (RETELL_AI_TEST_MODE && RETELL_AI_TEST_EVENT_TYPE_MAP) {
+      mappedEventTypeIds = eventTypeIds.map((id) => {
+        const mappedId = RETELL_AI_TEST_EVENT_TYPE_MAP[String(id)];
+        return mappedId ? Number(mappedId) : id;
+      });
+    }
+
     try {
       const agent = await this.getAgent(agentId);
       const llmId = getLlmId(agent);
@@ -199,7 +218,7 @@ export class AgentService {
 
       const existing = llmDetails?.general_tools ?? [];
 
-      const toolNamesToRemove = eventTypeIds.flatMap((eventTypeId) => [
+      const toolNamesToRemove = mappedEventTypeIds.flatMap((eventTypeId) => [
         `check_availability_${eventTypeId}`,
         `book_appointment_${eventTypeId}`,
       ]);
@@ -212,6 +231,7 @@ export class AgentService {
           agentId,
           llmId,
           removedEventTypes: eventTypeIds,
+          mappedEventTypes: RETELL_AI_TEST_MODE ? mappedEventTypeIds : undefined,
           toolsRemoved: existing.length - filteredTools.length,
         });
       }
@@ -237,6 +257,15 @@ export class AgentService {
       throw new HttpError({
         statusCode: 400,
         message: "Agent ID is required and cannot be empty",
+      });
+    }
+
+    let mappedActiveEventTypeIds = activeEventTypeIds;
+
+    if (RETELL_AI_TEST_MODE && RETELL_AI_TEST_EVENT_TYPE_MAP) {
+      mappedActiveEventTypeIds = activeEventTypeIds.map((id) => {
+        const mappedId = RETELL_AI_TEST_EVENT_TYPE_MAP[String(id)];
+        return mappedId ? Number(mappedId) : id;
       });
     }
 
@@ -269,7 +298,7 @@ export class AgentService {
         if (!eventTypeIdMatch) return false;
 
         const eventTypeId = parseInt(eventTypeIdMatch[1]);
-        return !activeEventTypeIds.includes(eventTypeId);
+        return !mappedActiveEventTypeIds.includes(eventTypeId);
       });
 
       if (toolsToRemove.length > 0) {
@@ -303,6 +332,7 @@ export class AgentService {
       this.logger.error("Failed to cleanup unused tools for agent", {
         agentId,
         activeEventTypeIds,
+        mappedActiveEventTypeIds: RETELL_AI_TEST_MODE ? mappedActiveEventTypeIds : undefined,
         error,
       });
       throw new HttpError({

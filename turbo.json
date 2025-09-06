@@ -149,6 +149,9 @@
     "RENDER_EXTERNAL_URL",
     "RESERVED_SUBDOMAINS",
     "RETELL_AI_KEY",
+    "RETELL_AI_TEST_MODE",
+    "RETELL_AI_TEST_EVENT_TYPE_MAP",
+    "RETELL_AI_TEST_CAL_API_KEY",
     "SALESFORCE_CONSUMER_KEY",
     "SALESFORCE_CONSUMER_SECRET",
     "SAML_ADMINS",
@@ -467,9 +470,16 @@
       "outputs": ["dist/**", "build/**"]
     },
     "@calcom/app-store-cli#build": {
-      "cache": false,
-      "inputs": ["../../app-store/**"],
-      "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
+      "inputs": [
+        "../../packages/app-store/**/package.json",
+        "../../packages/app-store/**/config.json",
+        "../../packages/app-store/**/api/**",
+        "../../packages/app-store/**/components/**",
+        "../../packages/app-store/**/lib/**",
+        "../../packages/app-store/**/pages/**",
+        "../../packages/app-store-cli/src/**"
+      ],
+      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"]
     },
     "@calcom/embed-react#type-check": {
       "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],
