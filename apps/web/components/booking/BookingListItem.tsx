@@ -135,9 +135,9 @@ function BookingListItem(booking: BookingItemProps) {
   const cardCharged = booking?.payment[0]?.success;
 
   // Hide team member emails when hideOrganizerEmail is enabled for COLLECTIVE/ROUND_ROBIN events
-  const teamMemberEmails = new Set(booking.eventType?.team?.members?.map((m) => m.email) || []);
+  const teamMemberEmails = new Set<string>([]);
   const shouldHideTeamEmails =
-    booking.eventType?.hideOrganizerEmail &&
+    !!booking.eventType?.hideOrganizerEmail &&
     (booking.eventType?.schedulingType === "COLLECTIVE" ||
       booking.eventType?.schedulingType === "ROUND_ROBIN");
 
@@ -522,7 +522,7 @@ function BookingListItem(booking: BookingItemProps) {
                       userTimezone={userTimeZone}
                       startTime={booking.startTime}
                       endTime={booking.endTime}
-                      attendees={attendeeList}
+                      attendees={booking.attendees}
                     />
                   </div>
                   {!isPending && (
@@ -572,7 +572,7 @@ function BookingListItem(booking: BookingItemProps) {
                       userTimezone={userTimeZone}
                       startTime={booking.startTime}
                       endTime={booking.endTime}
-                      attendees={attendeeList}
+                      attendees={booking.attendees}
                     />
                   </div>
                 </div>
@@ -634,7 +634,7 @@ function BookingListItem(booking: BookingItemProps) {
                     currentEmail={userEmail}
                     bookingUid={booking.uid}
                     isBookingInPast={isBookingInPast}
-                    shouldHideTeamEmails={shouldHideTeamEmails}
+                    shouldHideTeamEmails={shouldHideTeamEmails || false}
                   />
                 )}
                 {isCancelled && booking.rescheduled && (
