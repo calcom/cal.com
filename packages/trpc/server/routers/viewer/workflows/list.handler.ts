@@ -2,7 +2,7 @@ import type { WorkflowType } from "@calcom/features/ee/workflows/components/Work
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
@@ -16,6 +16,16 @@ type ListOptions = {
 
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowType[] = [];
+
+  const excludeFormTriggersWhereClause = input?.includeOnlyEventTypeWorkflows
+    ? {
+        trigger: {
+          not: {
+            in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT],
+          },
+        },
+      }
+    : {};
 
   const org = await prisma.team.findFirst({
     where: {
@@ -40,6 +50,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   if (org) {
     const activeOrgWorkflows = await prisma.workflow.findMany({
       where: {
+        ...excludeFormTriggersWhereClause,
         team: {
           id: org.id,
           members: {
@@ -106,6 +117,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   if (input && input.teamId) {
     const teamWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
+        ...excludeFormTriggersWhereClause,
         team: {
           id: input.teamId,
           members: {
@@ -162,6 +174,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   if (input && input.userId) {
     const userWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
+        ...excludeFormTriggersWhereClause,
         userId: ctx.user.id,
       },
       include: {
@@ -203,6 +216,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   const allWorkflows = await prisma.workflow.findMany({
     where: {
+      ...excludeFormTriggersWhereClause,
       OR: [
         { userId: ctx.user.id },
         {

@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import logger from "./logger";
 import { ProfileRepository } from "./server/repository/profile";
 
@@ -37,6 +39,66 @@ function resolveHideBranding(options: {
   }
 
   return options.entityHideBranding ?? false;
+}
+
+/**
+ * Get hideBranding value for a user or team by their IDs
+ */
+export async function getHideBranding({
+  userId,
+  teamId,
+}: {
+  userId?: number;
+  teamId?: number;
+}): Promise<boolean> {
+  if (teamId) {
+    // Get team data with parent organization
+    //todo: use repository function
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        hideBranding: true,
+        parent: {
+          select: {
+            hideBranding: true,
+          },
+        },
+      },
+    });
+
+    if (!team) return false;
+
+    return resolveHideBranding({
+      entityHideBranding: team.hideBranding,
+      organizationHideBranding: team.parent?.hideBranding ?? null,
+    });
+  } else if (userId) {
+    // Get user data with profile and organization
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        hideBranding: true,
+        profiles: {
+          select: {
+            organization: {
+              select: {
+                hideBranding: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) return false;
+
+    return resolveHideBranding({
+      entityHideBranding: user.hideBranding,
+      organizationHideBranding: user.profiles?.[0]?.organization?.hideBranding,
+    });
+  }
+
+  return false;
 }
 
 /**

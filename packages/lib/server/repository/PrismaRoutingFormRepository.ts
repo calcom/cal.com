@@ -50,6 +50,8 @@ export class PrismaRoutingFormRepository {
             email: true,
             movedToProfileId: true,
             metadata: true,
+            timeFormat: true,
+            locale: true,
             organization: {
               select: {
                 slug: true,

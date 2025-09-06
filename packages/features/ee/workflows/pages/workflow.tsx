@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
@@ -27,7 +27,12 @@ import { showToast } from "@calcom/ui/components/toast";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction, isCalAIAction } from "../lib/actionHelperFunctions";
+import {
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isCalAIAction,
+  isFormTrigger,
+} from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
@@ -64,6 +69,11 @@ function WorkflowPage({
   const form = useForm<FormValues>({
     mode: "onBlur",
     resolver: zodResolver(formSchema),
+  });
+
+  const watchedTrigger = useWatch({
+    control: form.control,
+    name: "trigger",
   });
 
   const utils = trpc.useUtils();
@@ -107,12 +117,13 @@ function WorkflowPage({
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
+  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getActiveOnOptions.useQuery(
     { teamId, isOrg },
     { enabled: !isPendingWorkflow }
   );
 
   const teamOptions = data?.teamOptions ?? [];
+  const routingFormOptions = data?.routingFormOptions ?? [];
 
   let allEventTypeOptions = data?.eventTypeOptions ?? [];
   const distinctEventTypes = new Set();
@@ -172,13 +183,25 @@ function WorkflowPage({
       let activeOn;
 
       if (workflowData.isActiveOnAll) {
-        activeOn = isOrg ? teamOptions : allEventTypeOptions;
+        activeOn = isOrg
+          ? teamOptions
+          : isFormTrigger(workflowData.trigger)
+          ? routingFormOptions
+          : allEventTypeOptions;
       } else {
         if (isOrg) {
           activeOn = workflowData.activeOnTeams.flatMap((active) => {
             return {
               value: String(active.team.id) || "",
               label: active.team.slug || "",
+            };
+          });
+          setSelectedOptions(activeOn || []);
+        } else if (isFormTrigger(workflowData.trigger)) {
+          activeOn = workflowData.activeOnRoutingForms?.flatMap((active) => {
+            return {
+              value: String(active.routingForm.id) || "",
+              label: active.routingForm.name || "",
             };
           });
           setSelectedOptions(activeOn || []);
@@ -253,7 +276,6 @@ function WorkflowPage({
   });
 
   const validateAndSubmitWorkflow = async (values: FormValues): Promise<void> => {
-    let activeOnIds: number[] = [];
     let isEmpty = false;
     let isVerified = true;
 
@@ -311,18 +333,26 @@ function WorkflowPage({
     });
 
     if (!isEmpty && isVerified) {
-      if (values.activeOn) {
-        activeOnIds = values.activeOn
+      let activeOnEventTypeOrTeamIds: number[] = [];
+      let activeOnRoutingFormIds: string[] = [];
+      if (isOrg || !isFormTrigger(values.trigger)) {
+        activeOnEventTypeOrTeamIds = values.activeOn
           .filter((option) => option.value !== "all")
           .map((option) => {
             return parseInt(option.value, 10);
           });
+      } else {
+        // Form triggers, activeOn contains routing form IDs (strings)
+        activeOnRoutingFormIds = values.activeOn
+          .filter((option) => option.value !== "all")
+          .map((option) => option.value);
       }
 
       await updateMutation.mutateAsync({
         id: workflowId,
         name: values.name,
-        activeOn: activeOnIds,
+        activeOnEventTypeIds: activeOnEventTypeOrTeamIds,
+        activeOnRoutingFormIds,
         steps: values.steps,
         trigger: values.trigger,
         time: values.time || null,
@@ -404,7 +434,13 @@ function WorkflowPage({
                       teamId={workflow ? workflow.teamId || undefined : undefined}
                       readOnly={readOnly}
                       isOrg={isOrg}
-                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
+                      allOptions={
+                        isOrg
+                          ? teamOptions
+                          : isFormTrigger(watchedTrigger)
+                          ? routingFormOptions
+                          : allEventTypeOptions
+                      }
                       onSaveWorkflow={handleSaveWorkflow}
                     />
                   </>
