@@ -5,7 +5,6 @@ import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
 vi.mock("@calcom/prisma", () => ({
   prisma,
 }));
