@@ -2,20 +2,40 @@ import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
+import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
-
 import { ShellMainAppDir } from "../ShellMainAppDir";
+
+// Dynamically import the availability components
+const AvailabilityList = dynamic(
+  () => import("~/availability/availability-view").then((mod) => mod.AvailabilityList),
+  {
+    loading: () => <div>Loading availability...</div>,
+  }
+);
+
+const AvailabilityCTA = dynamic(() =>
+  import("~/availability/availability-view").then((mod) => mod.AvailabilityCTA)
+);
+
+const AvailabilitySliderTable = dynamic(
+  () =>
+    import("@calcom/features/timezone-buddy/components/AvailabilitySliderTable").then(
+      (mod) => mod.AvailabilitySliderTable
+    ),
+  {
+    loading: () => <div>Loading team availability...</div>,
+  }
+);
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

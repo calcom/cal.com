@@ -1,6 +1,7 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -9,6 +10,13 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { ServerTeamsListing } from "./server-page";
+
+// Just execute the dynamic imports without assigning to variables
+dynamic(() => import("@calcom/features/ee/teams/components/TeamsListing").then((mod) => mod.TeamsListing), {
+  loading: () => <div>Loading teams list...</div>,
+});
+
+dynamic(() => import("./CTA").then((mod) => mod.TeamsCTA));
 
 export const generateMetadata = async () =>
   await _generateMetadata(

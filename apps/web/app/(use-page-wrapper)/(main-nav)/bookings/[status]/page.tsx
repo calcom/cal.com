@@ -1,6 +1,7 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -10,7 +11,14 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
-import BookingsList from "~/bookings/views/bookings-listing-view";
+
+// Dynamically import the BookingsList component
+const BookingsList = dynamic(
+  () => import("~/bookings/views/bookings-listing-view").then((mod) => mod.default),
+  {
+    loading: () => <div>Loading bookings...</div>,
+  }
+);
 
 const querySchema = z.object({
   status: z.enum(validStatuses),
