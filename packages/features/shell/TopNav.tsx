@@ -10,7 +10,8 @@ import { Logo } from "@calcom/ui/components/logo";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 
 const KBarTrigger = dynamic(() => import("@calcom/features/kbar/Kbar").then((mod) => mod.KBarTrigger), {
-  ssr: true,
+  ssr: false,
+  loading: () => <span className="inline-block h-4 w-4" aria-hidden />,
 });
 
 export function TopNavContainer() {

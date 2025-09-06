@@ -15,7 +15,8 @@ import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
 const KBarTrigger = dynamic(() => import("@calcom/features/kbar/Kbar").then((mod) => mod.KBarTrigger), {
-  ssr: true,
+  ssr: false,
+  loading: () => <span className="inline-block h-4 w-4" aria-hidden />,
 });
 
 export const MORE_SEPARATOR_NAME = "more";
