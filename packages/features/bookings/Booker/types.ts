@@ -7,12 +7,12 @@ import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/co
 import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
+import type { UseScheduleForEventReturnType } from "./hooks/useScheduleForEvent";
 
 export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
@@ -127,7 +127,7 @@ export type WrappedBookerPropsMain = {
   calendars: UseCalendarsReturnType;
   bookerForm: UseBookingFormReturnType;
   event: BookerEventQuery;
-  schedule: useScheduleForEventReturnType;
+  schedule: UseScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
