@@ -161,11 +161,28 @@ export class BookingsRepository_2024_08_13 {
   async getByFromReschedule(fromReschedule: string) {
     return this.dbRead.prisma.booking.findFirst({
       where: {
-        fromReschedule,
+        fromReschedule: {
+          equals: fromReschedule,
+          not: null,
+        },
       },
       include: {
         attendees: true,
         user: true,
+      },
+    });
+  }
+
+  async getByFromRescheduleMany(fromRescheduleUids: string[]) {
+    if (fromRescheduleUids.length === 0) {
+      return [];
+    }
+    return this.dbRead.prisma.booking.findMany({
+      where: {
+        fromReschedule: {
+          in: fromRescheduleUids,
+          not: null,
+        },
       },
     });
   }
