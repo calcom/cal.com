@@ -3597,6 +3597,10 @@
   "search_variables": "Search variables",
   "no_variables_found": "No variables found",
   "api_key_name_too_long": "Name must not exceed {{max}} characters",
+  "auto_charge_for_last_minute_cancellation": "Auto charge no-show fee for last minute cancellations",
+  "before_scheduled_start_time": "Before scheduled start time",
+  "cancel_booking_acknowledge_no_show_fee": "I acknowledge that by cancelling the booking within {{timeValue}} {{timeUnit}} of the start time I will be charged the no show fee of {{amount, currency}}",
+  "contact_organizer": "If you have any questions, please contact the organizer.",
   "scroll_left": "Scroll left",
   "scroll_right": "Scroll right",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
