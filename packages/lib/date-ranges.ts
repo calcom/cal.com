@@ -50,12 +50,9 @@ export function processWorkingHours(
 
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
     const fromOffset = dateFrom.startOf("day").utcOffset();
-
     const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
-
     const offset = date.tz(adjustedTimezone).utcOffset();
 
-    // it always has to be start of the day (midnight) even when DST changes
     const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
     if (!item.days.includes(dateInTz.day())) {
       continue;
@@ -76,20 +73,16 @@ export function processWorkingHours(
     const startResult = dayjs.max(start, dateFrom);
     let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));
 
-    // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
-    // up to midnight.
     if (endResult.hour() === 23 && endResult.minute() === 59) {
       endResult = endResult.add(1, "minute");
     }
 
     if (endResult.isBefore(startResult)) {
-      // if an event ends before start, it's not a result.
       continue;
     }
 
     const endTimeKey = endResult.valueOf();
 
-    // Create a map of end times to range keys for O(1) lookup
     if (!endTimeToKeyMap) {
       endTimeToKeyMap = new Map<number, number[]>();
       for (const [key, range] of Object.entries(results)) {
@@ -101,7 +94,6 @@ export function processWorkingHours(
       }
     }
 
-    // Check for overlapping ranges with the same end time using O(1) lookup
     const keysWithSameEndTime = endTimeToKeyMap.get(endTimeKey) || [];
     let foundOverlapping = false;
 
@@ -111,11 +103,17 @@ export function processWorkingHours(
         startResult.valueOf() <= existingRange.end.valueOf() &&
         endResult.valueOf() >= existingRange.start.valueOf()
       ) {
-        // Merge by taking the earliest start time and keeping the same end time
-        results[key] = {
-          start: dayjs.min(existingRange.start, startResult),
-          end: endResult,
-        };
+        if (startResult.valueOf() < existingRange.start.valueOf()) {
+          results[key] = {
+            start: dayjs.min(existingRange.start, startResult),
+            end: endResult,
+          };
+        } else {
+          results[key] = {
+            start: existingRange.start,
+            end: endResult,
+          };
+        }
         foundOverlapping = true;
         break;
       }
@@ -125,8 +123,77 @@ export function processWorkingHours(
       continue;
     }
 
+    // Pre-compute timestamps outside the loop
+    const startValue = startResult.valueOf();
+    const endValue = endResult.valueOf();
+
+    const ADJACENCY_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+    let mergedStart = startResult;
+    let mergedEnd = endResult;
+    let mergedStartValue = startValue;
+    let mergedEndValue = endValue;
+    const keysToDelete: number[] = [];
+
+    for (const [key, range] of Object.entries(results)) {
+      const rangeKey = Number(key);
+      const rangeStartValue = range.start.valueOf();
+      const rangeEndValue = range.end.valueOf();
+
+      const isOverlapping =
+        (startValue <= rangeEndValue && endValue >= rangeStartValue) ||
+        Math.abs(startValue - rangeEndValue) <= ADJACENCY_THRESHOLD_MS ||
+        Math.abs(endValue - rangeStartValue) <= ADJACENCY_THRESHOLD_MS;
+
+      if (isOverlapping) {
+        if (rangeStartValue < mergedStartValue) {
+          mergedStart = range.start;
+          mergedStartValue = rangeStartValue;
+        }
+        if (rangeEndValue > mergedEndValue) {
+          mergedEnd = range.end;
+          mergedEndValue = rangeEndValue;
+        }
+        keysToDelete.push(rangeKey);
+      }
+    }
+
+    // Apply merges if any overlaps found
+    if (keysToDelete.length > 0) {
+      const newKey = mergedEnd.valueOf();
+      // Make keys unique and avoid deleting the bucket-holder if it equals newKey
+      const uniqueKeys = Array.from(new Set(keysToDelete));
+      const toDelete = uniqueKeys.filter((k) => k !== newKey);
+
+      // Snapshot end-times before any mutation
+      const oldEndTimesByKey = new Map<number, number>();
+      for (const k of toDelete) {
+        oldEndTimesByKey.set(k, results[k].end.valueOf());
+      }
+
+      // Remove old entries from results
+      for (const k of toDelete) {
+        delete results[k];
+      }
+
+      // Upsert merged entry
+      results[newKey] = { start: mergedStart, end: mergedEnd };
+
+      // Update endTimeToKeyMap (remove old keys, then ensure newKey is present once)
+      if (endTimeToKeyMap) {
+        oldEndTimesByKey.forEach((oldEndTime, oldKey) => {
+          const oldKeys = endTimeToKeyMap?.get(oldEndTime) || [];
+          const filteredKeys = oldKeys.filter((k) => k !== oldKey);
+          if (filteredKeys.length === 0) endTimeToKeyMap?.delete(oldEndTime);
+          else endTimeToKeyMap?.set(oldEndTime, filteredKeys);
+        });
+        const bucket = new Set(endTimeToKeyMap.get(newKey) || []);
+        bucket.add(newKey);
+        endTimeToKeyMap.set(newKey, Array.from(bucket));
+      }
+      continue;
+    }
+
     if (results[startResult.valueOf()]) {
-      // if a result already exists, we merge the end time
       const oldKey = startResult.valueOf();
       const newKey = endResult.valueOf();
 
@@ -148,13 +215,15 @@ export function processWorkingHours(
         if (!endTimeToKeyMap.has(endTimeKey)) {
           endTimeToKeyMap.set(endTimeKey, []);
         }
-        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+        const keySet = new Set(endTimeToKeyMap.get(endTimeKey) || []);
+        keySet.add(newKey);
+        endTimeToKeyMap.set(endTimeKey, Array.from(keySet));
       }
 
-      delete results[oldKey]; // delete the previous end time
+      delete results[oldKey];
       continue;
     }
-    // otherwise we create a new result
+
     const newKey = endResult.valueOf();
     results[newKey] = {
       start: startResult,
@@ -165,7 +234,9 @@ export function processWorkingHours(
       if (!endTimeToKeyMap.has(endTimeKey)) {
         endTimeToKeyMap.set(endTimeKey, []);
       }
-      endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+      const keySet = new Set(endTimeToKeyMap.get(endTimeKey) || []);
+      keySet.add(newKey);
+      endTimeToKeyMap.set(endTimeKey, Array.from(keySet));
     }
   }
 
