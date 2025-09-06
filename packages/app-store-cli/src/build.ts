@@ -161,6 +161,27 @@ function generateFiles() {
     return output;
 
     function addImportStatements() {
+      if (lazyImport) {
+        // Create the lazy loading helper function
+        output.push(`
+// Function to create lazy-loaded metadata
+const createLazyMetadata = (importPath: string, isMetadata = false) => {
+  return async () => {
+    try {
+      if (isMetadata) {
+        const module = await import(importPath);
+        return module.metadata;
+      }
+      return import(importPath);
+    } catch (error) {
+      console.warn(\`Failed to load metadata for \${importPath}:\`, error);
+      return null;
+    }
+  };
+};
+`);
+      }
+
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
         if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
@@ -183,6 +204,15 @@ function generateFiles() {
                 )}"`
               );
             }
+          } else {
+            // Create lazy loading wrapper function
+            const isMetadata = chosenConfig.fileToBeImported.includes("_metadata");
+            output.push(
+              `const ${getLocalImportName(app, chosenConfig)} = createLazyMetadata("${getModulePath(
+                app.path,
+                chosenConfig.fileToBeImported
+              )}", ${isMetadata});`
+            );
           }
         }
       }, filter);
@@ -195,21 +225,12 @@ function generateFiles() {
         const chosenConfig = getChosenImportConfig(importConfig, app);
 
         if (fileToBeImportedExists(app, chosenConfig)) {
+          const key = entryObjectKeyGetter(app);
           if (!lazyImport) {
-            const key = entryObjectKeyGetter(app);
             output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
           } else {
-            const key = entryObjectKeyGetter(app);
-            if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
-              output.push(
-                `"${key}": dynamic(() => import("${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}")),`
-              );
-            } else {
-              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
-            }
+            // For lazy imports, just reference the function we created
+            output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
           }
         }
       }, filter);
@@ -255,6 +276,7 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
+      lazyImport: true,
     })
   );
 
