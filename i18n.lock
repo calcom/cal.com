@@ -3390,6 +3390,7 @@ checksums:
     pbac_resource_booking: b6c73c2c1406f1f5fc13ef027ddb9352
     pbac_resource_insights: 1e88b2537ba6966f2a90b0def1ce1ddc
     pbac_resource_role: 21834ee85d5936bc0b262d5d5ddd58e3
+    pbac_resource_routing_form: d247797af01c33bcf3545d9708f39286
     pbac_resource_workflow: b0c9c8615a9ba7d9cb73e767290a7f72
     pbac_action_all: 8955f3bda3a57897951eaffc3772ba2f
     pbac_action_create: 757ccd28dd533ff3a933355273c1e32a
@@ -3460,6 +3461,10 @@ checksums:
     pbac_desc_manage_bookings: 5f7404cdf3a463bb1764e53079b74ff0
     pbac_desc_view_team_insights: 8a476dd09b83714320ddbc69a2ec7088
     pbac_desc_manage_team_insights: d3eab216d5f3e34358e68b287adcc102
+    pbac_desc_create_routing_forms: 2317c8e6bfdc397c9068e5a3055bf4a7
+    pbac_desc_view_routing_forms: 1c7a2290049b782702f46e28d19f2ed5
+    pbac_desc_update_routing_forms: 09cfc7887518428c1bd6890beee18f5a
+    pbac_desc_delete_routing_forms: 4e841cd1d89980f764bf6027aad6eef6
     read_permission_auto_enabled_tooltip: e6a994bc46d1208f07a303cd638efca2
     choose_restriction_schedule: ddc5f4cb03d3502a37e84fc5e3224c4f
     restriction_schedule_description: d861bc8515d77f509eefc8ff160e7593
