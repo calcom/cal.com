@@ -22,7 +22,30 @@ export const checkActiveBookingsLimitForBooker = async ({
   }
 
   if (offerToRescheduleLastBooking) {
-    await checkActiveBookingsLimitAndOfferReschedule({
+    const lastActiveBooking = await prisma.booking.findFirst({
+      where: {
+        eventTypeId,
+        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+        attendees: {
+          some: {
+            email: bookerEmail,
+          },
+        },
+      },
+      orderBy: { startTime: "desc" },
+    });
+
+    if (lastActiveBooking) {
+      await prisma.booking.update({
+        where: { id: lastActiveBooking.id },
+        data: {
+          status: BookingStatus.CANCELLED,
+          rescheduled: true,
+        },
+      });
+    }
+
+    return await checkActiveBookingsLimitAndOfferReschedule({
       eventTypeId,
       maxActiveBookingsPerBooker,
       bookerEmail,
