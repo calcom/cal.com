@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -6,7 +6,7 @@ import { Icon } from "../../icon";
 import type { HorizontalTabItemProps } from "./HorizontalTabItem";
 import HorizontalTabItem from "./HorizontalTabItem";
 
-export interface NavTabProps {
+export interface NavTabProps extends React.ComponentPropsWithoutRef<"nav"> {
   tabs: HorizontalTabItemProps[];
   linkShallow?: boolean;
   linkScroll?: boolean;
