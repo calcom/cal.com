@@ -9,13 +9,15 @@ import http from "../../../lib/http";
 
 export const QUERY_KEY = "get-installed-conferencing-apps";
 
-export const useAtomsGetInstalledConferencingApps = (teamId?: number) => {
+export const useAtomsGetInstalledConferencingApps = (teamId?: number, orgId?: number) => {
   const { isInit, accessToken, organizationId } = useAtomsContext();
 
   let pathname = "/atoms/conferencing";
 
   if (teamId) {
     pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/conferencing`;
+  } else if (orgId) {
+    pathname = `/atoms/organizations/${orgId}/conferencing`;
   }
 
   return useQuery({

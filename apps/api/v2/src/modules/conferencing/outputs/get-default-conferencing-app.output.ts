@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsEnum, IsOptional, IsString, IsNumber, ValidateNested } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -14,6 +14,11 @@ export class DefaultConferencingAppsOutputDto {
   @IsOptional()
   @Expose()
   readonly appLink?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Expose()
+  readonly credentialId?: number;
 }
 
 export class GetDefaultConferencingAppOutputResponseDto {
