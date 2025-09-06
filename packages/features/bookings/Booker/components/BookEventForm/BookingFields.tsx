@@ -76,6 +76,17 @@ export const BookingFields = ({
           readOnly = false;
         }
 
+        if (field.type === "phone" && field.name !== SystemField.Enum.location) {
+          // Hide phone field when phone location is selected
+          if (locationResponse?.value === "phone") {
+            // Pre-fill the booking phone field with location phone if available
+            if (locationResponse?.optionValue) {
+              setValue(`responses.${field.name}`, locationResponse.optionValue);
+            }
+            return null;
+          }
+        }
+
         if (field.name === SystemField.Enum.guests) {
           readOnly = false;
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
