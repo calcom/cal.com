@@ -10,13 +10,14 @@ import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, UsersModule, TokensModule],
+  imports: [PrismaModule, UsersModule, TokensModule, RedisModule],
   providers: [
     CredentialsRepository,
     CalendarsService,

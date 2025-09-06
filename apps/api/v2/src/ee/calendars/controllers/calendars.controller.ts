@@ -20,6 +20,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { RedisService } from "@/modules/redis/redis.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -83,7 +84,8 @@ export class CalendarsController {
     private readonly googleCalendarService: GoogleCalendarService,
     private readonly appleCalendarService: AppleCalendarService,
     private readonly icsFeedService: IcsFeedService,
-    private readonly calendarsRepository: CalendarsRepository
+    private readonly calendarsRepository: CalendarsRepository,
+    private readonly redisService: RedisService
   ) {}
 
   @Post("/ics-feed/save")
@@ -306,6 +308,8 @@ export class CalendarsController {
     const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
       credentialId
     );
+
+    this.calendarsService.deleteCalendarCache(user.id);
 
     return {
       status: SUCCESS_STATUS,

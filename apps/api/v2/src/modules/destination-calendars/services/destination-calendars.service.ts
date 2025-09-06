@@ -60,6 +60,7 @@ export class DestinationCalendarsService {
       delegatedCalendar ? delegationCredentialId : undefined
     );
 
+    this.calendarsService.deleteCalendarCache(userId);
     return {
       userId: updatedCalendarUserId,
       integration: updatedCalendarIntegration,
