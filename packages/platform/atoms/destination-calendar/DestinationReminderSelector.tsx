@@ -21,11 +21,11 @@ export const DestinationReminderSelector = ({
   // Reminder options
   const memoOptions = useMemo(
     () => [
-      { label: "Remind 10 minutes before", value: 10 },
-      { label: "Remind 30 minutes before", value: 30 },
-      { label: "Remind 1 hour before", value: 60 },
+      { label: t("remind_minutes_before", { count: 10 }), value: 10 },
+      { label: t("remind_minutes_before", { count: 30 }), value: 30 },
+      { label: t("remind_minutes_before", { count: 60 }), value: 60 },
     ],
-    []
+    [t]
   );
 
   // Selected option state

@@ -581,6 +581,7 @@
   "upload_a_logo": "Upload a logo",
   "upload_logo": "Upload logo",
   "remove_logo": "Remove logo",
+  "remind_minutes_before": "{{count}} minutes before",
   "enable": "Enable",
   "code": "Code",
   "code_is_incorrect": "Code is incorrect.",
