@@ -54,6 +54,10 @@ const updateOrganizationSettings = async ({
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
+  if (input.hasOwnProperty("disableAutofillOnBookingPage")) {
+    data.disableAutofillOnBookingPage = input.disableAutofillOnBookingPage;
+  }
+
   // If no settings values have changed lets skip this update
   if (Object.keys(data).length === 0) return;
 
