@@ -2,13 +2,34 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ReactNode } from "react";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+
+// State object passed to function-based titles for extensibility
+export interface PanelCardTitleState {
+  collapsed: boolean;
+  // Future: add more state variables here
+}
+
+// Function type for dynamic titles
+export type PanelCardTitleFunction = (state: PanelCardTitleState) => string | ReactNode;
+
+export interface PanelCardProps {
+  title: string | ReactNode | PanelCardTitleFunction;
+  subtitle?: string;
+  cta?: { label: string; onClick: () => void };
+  headerContent?: ReactNode;
+  className?: string;
+  titleTooltip?: string;
+  children: ReactNode;
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+}
 
 export function PanelCard({
   title,
@@ -20,17 +41,7 @@ export function PanelCard({
   children,
   collapsible = false,
   defaultCollapsed = false,
-}: {
-  title: string | ReactNode;
-  subtitle?: string;
-  cta?: { label: string; onClick: () => void };
-  headerContent?: ReactNode;
-  className?: string;
-  titleTooltip?: string;
-  children: ReactNode;
-  collapsible?: boolean;
-  defaultCollapsed?: boolean;
-}) {
+}: PanelCardProps) {
   const { t } = useLocale();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const contentId = useId();
@@ -41,7 +52,19 @@ export function PanelCard({
     setIsCollapsed((prev) => !prev);
   };
 
-  const isStringTitle = typeof title === "string";
+  // Resolve dynamic title based on current state
+  const titleContent = useMemo((): string | ReactNode => {
+    if (typeof title === "function") {
+      const state: PanelCardTitleState = {
+        collapsed: isCollapsed,
+        // Future: add more state variables here
+      };
+      return (title as PanelCardTitleFunction)(state);
+    }
+    return title;
+  }, [title, isCollapsed]);
+
+  const isStringTitle = typeof titleContent === "string";
 
   return (
     <div
@@ -85,16 +108,16 @@ export function PanelCard({
                     aria-expanded={!isCollapsed}
                     aria-controls={contentId}
                     aria-label={isCollapsed ? t("expand_panel") : t("collapse_panel")}>
-                    {title as string}
+                    {titleContent as string}
                   </button>
                 ) : (
-                  (title as string)
+                  (titleContent as string)
                 )}
               </h2>
               {titleTooltip && <InfoBadge content={titleTooltip} />}
             </div>
           ) : (
-            title
+            titleContent
           )}
         </div>
         <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
