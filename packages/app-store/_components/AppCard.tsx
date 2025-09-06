@@ -12,7 +12,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
 import type { CredentialOwner } from "../types";
-import OmniInstallAppButton from "./OmniInstallAppButton";
+import OmniInstallAppButton from "@calcom/features/apps/components/OmniInstallAppButton";
 
 export default function AppCard({
   app,
