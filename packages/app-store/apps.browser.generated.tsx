@@ -11,17 +11,17 @@ export const InstallAppButtonMap = {
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
-  "general-app-settings": dynamic(() =>
-    import("./templates/general-app-settings/components/AppSettingsInterface")
+  "general-app-settings": dynamic(
+    () => import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
-  weather_in_your_calendar: dynamic(() =>
-    import("./weather_in_your_calendar/components/AppSettingsInterface")
+  weather_in_your_calendar: dynamic(
+    () => import("./weather_in_your_calendar/components/AppSettingsInterface")
   ),
   zapier: dynamic(() => import("./zapier/components/AppSettingsInterface")),
 };
 export const EventTypeAddonMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppCardInterface")),
-  basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppCardInterface")),
+  basecamp3: dynamic(() => import("@calcom/features/apps/basecamp3/components/EventTypeAppCardInterface")),
   btcpayserver: dynamic(() => import("./btcpayserver/components/EventTypeAppCardInterface")),
   closecom: dynamic(() => import("./closecom/components/EventTypeAppCardInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
@@ -41,11 +41,11 @@ export const EventTypeAddonMap = {
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   salesforce: dynamic(() => import("./salesforce/components/EventTypeAppCardInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppCardInterface")),
-  "booking-pages-tag": dynamic(() =>
-    import("./templates/booking-pages-tag/components/EventTypeAppCardInterface")
+  "booking-pages-tag": dynamic(
+    () => import("./templates/booking-pages-tag/components/EventTypeAppCardInterface")
   ),
-  "event-type-app-card": dynamic(() =>
-    import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
+  "event-type-app-card": dynamic(
+    () => import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
   twipla: dynamic(() => import("./twipla/components/EventTypeAppCardInterface")),
   umami: dynamic(() => import("./umami/components/EventTypeAppCardInterface")),
@@ -54,7 +54,9 @@ export const EventTypeAddonMap = {
 };
 export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
-  basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppSettingsInterface")),
+  basecamp3: dynamic(
+    () => import("@calcom/features/apps/basecamp3/components/EventTypeAppSettingsInterface")
+  ),
   btcpayserver: dynamic(() => import("./btcpayserver/components/EventTypeAppSettingsInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppSettingsInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppSettingsInterface")),
