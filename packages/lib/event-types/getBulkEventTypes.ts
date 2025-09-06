@@ -6,21 +6,23 @@ import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/z
  * Process event types to add logo information
  * @param eventTypes - The event types to process
  */
-const processEventTypes = (eventTypes: { id: number; title: string; locations: unknown }[]) => {
-  const eventTypesWithLogo = eventTypes.map((eventType) => {
-    const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+const processEventTypes = async (eventTypes: { id: number; title: string; locations: unknown }[]) => {
+  const eventTypesWithLogo = await Promise.all(
+    eventTypes.map(async (eventType) => {
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
 
-    // some events has null as location for legacy reasons, so this fallbacks to daily video
-    const app = getAppFromLocationValue(
-      locationParsed.success && locationParsed.data?.[0]?.type
-        ? locationParsed.data[0].type
-        : "integrations:daily"
-    );
-    return {
-      ...eventType,
-      logo: app?.logo,
-    };
-  });
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = await getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
+      return {
+        ...eventType,
+        logo: app?.logo,
+      };
+    })
+  );
 
   return {
     eventTypes: eventTypesWithLogo,
@@ -40,7 +42,7 @@ export const getBulkUserEventTypes = async (userId: number) => {
     },
   });
 
-  return processEventTypes(eventTypes);
+  return await processEventTypes(eventTypes);
 };
 
 export const getBulkTeamEventTypes = async (teamId: number) => {
@@ -56,5 +58,5 @@ export const getBulkTeamEventTypes = async (teamId: number) => {
     },
   });
 
-  return processEventTypes(eventTypes);
+  return await processEventTypes(eventTypes);
 };

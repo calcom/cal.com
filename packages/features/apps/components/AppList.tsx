@@ -105,8 +105,8 @@ export const AppList = ({
                         type="button"
                         color="secondary"
                         StartIcon="video"
-                        onClick={() => {
-                          const locationType = getLocationFromApp(item?.locationOption?.value ?? "");
+                        onClick={async () => {
+                          const locationType = await getLocationFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
                             setLocationType({ ...locationType, slug: appSlug });
                           } else {

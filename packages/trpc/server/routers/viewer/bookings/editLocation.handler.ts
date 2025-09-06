@@ -195,7 +195,7 @@ export class SystemError extends Error {
   }
 }
 
-export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
+export async function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   organizer,
   loggedInUserTranslate: translate,
 }: {
@@ -218,17 +218,17 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
     );
   }
   const defaultConferencingAppSlug = defaultConferencingApp.appSlug;
-  const app = getAppFromSlug(defaultConferencingAppSlug);
+  const app = await getAppFromSlug(defaultConferencingAppSlug);
   if (!app) {
     throw new SystemError(`Default conferencing app ${defaultConferencingAppSlug} not found`);
   }
-  const defaultConferencingAppLocationType = app.appData?.location?.type;
+  const defaultConferencingAppLocationType = app?.appData?.location?.type;
   if (!defaultConferencingAppLocationType) {
     throw new SystemError("Default conferencing app has no location type");
   }
 
   const location = defaultConferencingAppLocationType;
-  const locationType = getEventLocationType(location);
+  const locationType = await getEventLocationType(location);
   if (!locationType) {
     throw new SystemError(`Location type not found: ${location}`);
   }

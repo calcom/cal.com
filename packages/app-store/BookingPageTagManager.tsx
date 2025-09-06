@@ -1,7 +1,7 @@
 import Script from "next/script";
+import React from "react";
 
 import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
-import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
 import type { Tag } from "@calcom/app-store/types";
 import { sdkActionManager } from "@calcom/lib/sdk-event";
 import type { AppMeta } from "@calcom/types/App";
@@ -29,30 +29,42 @@ const getPushEventScript = ({ tag, appId }: { tag: Tag; appId: string }) => {
   };
 };
 
-function getAnalyticsApps(eventType: Parameters<typeof getEventTypeAppData>[0]) {
-  return Object.entries(appStoreMetadata).reduce(
-    (acc, entry) => {
-      const [appId, app] = entry;
+async function getAnalyticsApps(eventType: Parameters<typeof getEventTypeAppData>[0]) {
+  const analyticsApps: Record<
+    string,
+    {
+      meta: AnalyticApp;
+      eventTypeAppData: ReturnType<typeof getEventTypeAppData>;
+    }
+  > = {};
+
+  const { AnalyticsMetadataMap } = await import("./analytics.metadata.generated");
+
+  for (const [appId, metadataPromise] of Object.entries(AnalyticsMetadataMap)) {
+    try {
+      const metadata = await metadataPromise;
       const eventTypeAppData = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas);
-
-      if (!eventTypeAppData || !app.appData?.tag) {
-        return acc;
+      if (
+        eventTypeAppData &&
+        metadata &&
+        typeof metadata === "object" &&
+        metadata !== null &&
+        "appData" in metadata
+      ) {
+        const typedMetadata = metadata as AppMeta;
+        if (typedMetadata.appData?.tag) {
+          analyticsApps[appId] = {
+            meta: typedMetadata as AnalyticApp,
+            eventTypeAppData,
+          };
+        }
       }
+    } catch (error) {
+      console.warn(`Failed to load analytics app ${appId}:`, error);
+    }
+  }
 
-      acc[appId] = {
-        meta: app as AnalyticApp,
-        eventTypeAppData: eventTypeAppData,
-      };
-      return acc;
-    },
-    {} as Record<
-      string,
-      {
-        meta: AnalyticApp;
-        eventTypeAppData: ReturnType<typeof getEventTypeAppData>;
-      }
-    >
-  );
+  return analyticsApps;
 }
 
 export function handleEvent(event: { detail: Record<string, unknown> & { type: string } }) {
@@ -94,7 +106,20 @@ export default function BookingPageTagManager({
 }: {
   eventType: Parameters<typeof getEventTypeAppData>[0];
 }) {
-  const analyticsApps = getAnalyticsApps(eventType);
+  const [analyticsApps, setAnalyticsApps] = React.useState<
+    Record<
+      string,
+      {
+        meta: AnalyticApp;
+        eventTypeAppData: ReturnType<typeof getEventTypeAppData>;
+      }
+    >
+  >({});
+
+  React.useEffect(() => {
+    getAnalyticsApps(eventType).then(setAnalyticsApps);
+  }, [eventType]);
+
   return (
     <>
       {Object.entries(analyticsApps).map(([appId, { meta: app, eventTypeAppData }]) => {

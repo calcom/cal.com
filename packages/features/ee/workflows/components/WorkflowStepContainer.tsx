@@ -61,7 +61,7 @@ import {
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
-import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
+import { emailReminderTemplateSync } from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
 import { TestAgentDialog } from "./TestAgentDialog";
@@ -248,14 +248,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
     // Skip setting reminderBody for CAL_AI actions since they don't need email templates
     if (!isCalAIAction(action)) {
-      const template = getTemplateBodyForAction({
+      getTemplateBodyForAction({
         action,
         locale: i18n.language,
         t,
         template: step.template ?? WorkflowTemplates.REMINDER,
         timeFormat,
+      }).then((template) => {
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
       });
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
     }
   }
 
@@ -263,14 +264,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
     // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
     if (!isCalAIAction(action)) {
-      const subjectTemplate = emailReminderTemplate({
+      const subjectTemplate = emailReminderTemplateSync({
         isEditingMode: true,
         locale: i18n.language,
         t,
         action: action,
         timeFormat,
-      }).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+        evt: {
+          title: "Sample Event",
+          eventType: { title: "Sample Event" },
+          startTime: new Date(),
+          location: "",
+        },
+      });
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate.emailSubject);
     }
   }
 
@@ -582,15 +589,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
-                            const template = getTemplateBodyForAction({
+                            getTemplateBodyForAction({
                               action: val.value,
                               locale: i18n.language,
                               t,
                               template: WorkflowTemplates.REMINDER,
                               timeFormat,
+                            }).then((template) => {
+                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
                             });
-
-                            form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
 
                             const setNumberRequiredConfigs = (
                               phoneNumberIsNeeded: boolean,
@@ -1046,27 +1053,34 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (val) {
                               const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
-                              const template = getTemplateBodyForAction({
+                              getTemplateBodyForAction({
                                 action,
                                 locale: i18n.language,
                                 t,
                                 template: val.value ?? WorkflowTemplates.REMINDER,
                                 timeFormat,
+                              }).then((template) => {
+                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
                               });
-
-                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
 
                               if (shouldScheduleEmailReminder(action)) {
                                 if (val.value === WorkflowTemplates.REMINDER) {
+                                  const subjectTemplate = emailReminderTemplateSync({
+                                    isEditingMode: true,
+                                    locale: i18n.language,
+                                    t,
+                                    action,
+                                    timeFormat,
+                                    evt: {
+                                      title: "Sample Event",
+                                      eventType: { title: "Sample Event" },
+                                      startTime: new Date(),
+                                      location: "",
+                                    },
+                                  });
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.emailSubject`,
-                                    emailReminderTemplate({
-                                      isEditingMode: true,
-                                      locale: i18n.language,
-                                      t,
-                                      action,
-                                      timeFormat,
-                                    }).emailSubject
+                                    subjectTemplate.emailSubject
                                   );
                                 } else if (val.value === WorkflowTemplates.RATING) {
                                   form.setValue(

@@ -115,7 +115,7 @@ export function getWhatsappTemplateForAction(
   return templateFunction(true, locale, action, timeFormat);
 }
 
-export function getTemplateBodyForAction({
+export async function getTemplateBodyForAction({
   action,
   locale,
   t,
@@ -127,7 +127,7 @@ export function getTemplateBodyForAction({
   t: TFunction;
   template: WorkflowTemplates;
   timeFormat: TimeFormat;
-}): string | null {
+}): Promise<string | null> {
   if (isSMSAction(action)) {
     return smsReminderTemplate(true, locale, action, timeFormat);
   }
@@ -139,5 +139,6 @@ export function getTemplateBodyForAction({
 
   // If not a whatsapp action then it's an email action
   const templateFunction = getEmailTemplateFunction(template);
-  return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailBody;
+  const result = await templateFunction({ isEditingMode: true, locale, t, action, timeFormat });
+  return result.emailBody;
 }

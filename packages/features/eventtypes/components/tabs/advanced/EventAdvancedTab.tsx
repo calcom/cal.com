@@ -39,7 +39,7 @@ import {
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import type { EventNameObjectType } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
+import { getEventNameSync } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
@@ -484,7 +484,7 @@ export const EventAdvancedTab = ({
     translate: t,
     formMethods,
   });
-  const eventNamePlaceholder = getEventName({
+  const eventNamePlaceholder = getEventNameSync({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
   });
