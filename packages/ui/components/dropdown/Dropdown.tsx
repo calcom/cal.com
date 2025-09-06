@@ -171,7 +171,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
       )}>
       <>
         {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4" />)}
-        <div className={classNames("w-fit text-sm font-medium leading-none", childrenClassName)}>
+        <div className={classNames("w-full text-left text-sm font-medium leading-none", childrenClassName)}>
           {children}
         </div>
         {EndIcon && <Icon name={EndIcon} className="h-4 w-4" />}
