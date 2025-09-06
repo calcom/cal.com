@@ -17,8 +17,8 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { Input } from "@calcom/ui/form";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
@@ -121,7 +121,7 @@ export default function JoinCall(props: PageProps) {
     if (displayLogInOverlay && !loggedInUserName && !overrideName && !isUserNameConfirmed) {
       return;
     }
-    
+
     let callFrame: DailyCall | null = null;
 
     try {
@@ -145,7 +145,14 @@ export default function JoinCall(props: PageProps) {
       setDaily(null);
       setIsCallFrameReady(false);
     };
-  }, [displayLogInOverlay, isUserNameConfirmed, userNameForCall, createCallFrame]);
+  }, [
+    displayLogInOverlay,
+    isUserNameConfirmed,
+    userNameForCall,
+    createCallFrame,
+    loggedInUserName,
+    overrideName,
+  ]);
 
   const handleJoinAsGuest = useCallback((guestName: string) => {
     const trimmedName = guestName.trim();
