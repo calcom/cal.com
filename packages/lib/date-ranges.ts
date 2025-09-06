@@ -309,8 +309,69 @@ export function buildDateRanges({
     )
   );
 
+  // Collect all-day unavailable dates from overrides
+  const allDayUnavailableDates = new Set<string>();
+  Object.entries(groupedDateOverrides).forEach(([dateString, ranges]) => {
+    ranges.forEach((range) => {
+      if (range.start.valueOf() === range.end.valueOf()) {
+        allDayUnavailableDates.add(dateString);
+      }
+    });
+  });
+
+  const splitWorkingHoursForBlockedDates = (workingHours: {
+    [x: string]: DateRange[];
+  }): { [x: string]: DateRange[] } => {
+    if (allDayUnavailableDates.size === 0) return workingHours;
+
+    const allSplitRanges: DateRange[] = [];
+
+    Object.entries(workingHours).forEach(([dateString, ranges]) => {
+      ranges.forEach((range) => {
+        let currentStart = range.start;
+        const rangeEnd = range.end;
+        let hasBlockedDate = false;
+
+        for (
+          let date = range.start.startOf("day");
+          date.isBefore(rangeEnd.startOf("day")) || date.isSame(rangeEnd.startOf("day"));
+          date = date.add(1, "day")
+        ) {
+          const checkDateString = date.format("YYYY-MM-DD");
+
+          if (allDayUnavailableDates.has(checkDateString)) {
+            hasBlockedDate = true;
+            if (currentStart.isBefore(date)) {
+              allSplitRanges.push({
+                start: currentStart,
+                end: date,
+              });
+            }
+            currentStart = date.add(1, "day");
+          }
+        }
+
+        if (currentStart.isBefore(rangeEnd)) {
+          allSplitRanges.push({
+            start: currentStart,
+            end: rangeEnd,
+          });
+        }
+
+        if (!hasBlockedDate) {
+          allSplitRanges.push(range);
+        }
+      });
+    });
+
+    return groupByDate(allSplitRanges);
+  };
+
+  // Apply the splitting to working hours before merging with overrides
+  const splitGroupedWorkingHours = splitWorkingHoursForBlockedDates(groupedWorkingHours);
+
   const dateRanges = Object.values({
-    ...groupedWorkingHours,
+    ...splitGroupedWorkingHours,
     ...groupedDateOverrides,
   }).map(
     // remove 0-length overrides that were kept to cancel out working dates until now.
@@ -318,7 +379,7 @@ export function buildDateRanges({
   );
 
   const oooExcludedDateRanges = Object.values({
-    ...groupedWorkingHours,
+    ...splitGroupedWorkingHours,
     ...groupedDateOverrides,
     ...groupedOOO,
   }).map(
