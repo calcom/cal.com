@@ -156,6 +156,8 @@ type GetUsersAvailabilityProps = {
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
 };
 
+type BookingLimits = Partial<Record<"PER_WEEK" | "PER_YEAR" | "PER_MONTH" | "PER_DAY", number>> | null;
+
 export interface IUserAvailabilityService {
   eventTypeRepo: EventTypeRepository;
   oooRepo: PrismaOOORepository;
@@ -316,6 +318,7 @@ export class UserAvailabilityService {
     if (userId) where.id = userId;
 
     const user = initialData?.user || (await this.getUser(where));
+    const weekStart = user?.weekStart ?? "Monday";
 
     if (!user) {
       throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
@@ -399,10 +402,21 @@ export class UserAvailabilityService {
 
     let busyTimesFromLimits: EventBusyDetails[] = [];
 
-    if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
+    function hasWeeklyLimits(bookingLimits: BookingLimits) {
+      if (!bookingLimits) return false;
+      return "PER_WEEK" in bookingLimits;
+    }
+
+    // ALWAYS recalculate if there are weekly limits to respect weekStart changes
+    const shouldRecalculateLimits = hasWeeklyLimits(bookingLimits) || hasWeeklyLimits(durationLimits);
+
+    if (
+      initialData?.busyTimesFromLimits &&
+      initialData?.eventTypeForLimits &&
+      !shouldRecalculateLimits // Only use cached data if no weekly limits
+    ) {
       busyTimesFromLimits = initialData.busyTimesFromLimits.get(user.id) || [];
     } else if (eventType && (bookingLimits || durationLimits)) {
-      // Fall back to individual query if not available in initialData
       busyTimesFromLimits = await getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
@@ -412,7 +426,8 @@ export class UserAvailabilityService {
         eventType,
         initialData?.busyTimesFromLimitsBookings ?? [],
         finalTimezone,
-        initialData?.rescheduleUid ?? undefined
+        initialData?.rescheduleUid ?? undefined,
+        weekStart // This ensures current weekStart is always used
       );
     }
 
@@ -437,7 +452,8 @@ export class UserAvailabilityService {
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
         finalTimezone,
-        initialData?.rescheduleUid ?? undefined
+        initialData?.rescheduleUid ?? undefined,
+        weekStart
       );
     }
 
@@ -602,8 +618,8 @@ export class UserAvailabilityService {
   getUserAvailability = withReporting(this._getUserAvailability.bind(this), "getUserAvailability");
 
   getPeriodStartDatesBetween = withReporting(
-    (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string) =>
-      getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone),
+    (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string, weekStart?: string) =>
+      getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone, weekStart),
     "getPeriodStartDatesBetween"
   );
 

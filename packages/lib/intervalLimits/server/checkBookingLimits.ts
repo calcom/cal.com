@@ -21,7 +21,8 @@ export class CheckBookingLimitsService {
     eventId: number,
     rescheduleUid?: string | undefined,
     timeZone?: string | null,
-    includeManagedEvents?: boolean
+    includeManagedEvents?: boolean,
+    weekStartDay?: number
   ) {
     const parsedBookingLimits = parseBookingLimit(bookingLimits);
     if (!parsedBookingLimits) return false;
@@ -36,6 +37,7 @@ export class CheckBookingLimitsService {
         timeZone,
         rescheduleUid,
         includeManagedEvents,
+        weekStartDay,
       })
     );
 
@@ -58,6 +60,7 @@ export class CheckBookingLimitsService {
     teamId,
     user,
     includeManagedEvents = false,
+    weekStartDay = 1,
   }: {
     eventStartDate: Date;
     eventId?: number;
@@ -68,6 +71,7 @@ export class CheckBookingLimitsService {
     teamId?: number;
     user?: { id: number; email: string };
     includeManagedEvents?: boolean;
+    weekStartDay?: number;
   }) {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
 
@@ -75,8 +79,27 @@ export class CheckBookingLimitsService {
 
     const unit = intervalLimitKeyToUnit(key);
 
-    const startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
-    const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
+    // Custom week calculation based on user's week start day
+    const getCustomWeekStart = (date: dayjs.Dayjs, weekStart: number) => {
+      const currentDay = date.day();
+      const daysFromWeekStart = (currentDay - weekStart + 7) % 7;
+      return date.subtract(daysFromWeekStart, "day").startOf("day");
+    };
+
+    const getCustomWeekEnd = (date: dayjs.Dayjs, weekStart: number) => {
+      return getCustomWeekStart(date, weekStart).add(6, "day").endOf("day");
+    };
+
+    let startDate: Date;
+    let endDate: Date;
+
+    if (unit === "week") {
+      startDate = getCustomWeekStart(eventDateInOrganizerTz, weekStartDay).toDate();
+      endDate = getCustomWeekEnd(eventDateInOrganizerTz, weekStartDay).toDate();
+    } else {
+      startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
+      endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
+    }
 
     let bookingsInPeriod;
 

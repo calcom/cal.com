@@ -12,6 +12,7 @@ type InputProps = {
   eventType: EventType;
   reqBodyStart: string;
   reqBodyRescheduleUid?: string;
+  weekStartDay?: number;
 };
 
 export interface ICheckBookingAndDurationLimitsService {
@@ -26,7 +27,12 @@ export class CheckBookingAndDurationLimitsService {
     "checkBookingAndDurationLimits"
   );
 
-  async _checkBookingAndDurationLimits({ eventType, reqBodyStart, reqBodyRescheduleUid }: InputProps) {
+  async _checkBookingAndDurationLimits({
+    eventType,
+    reqBodyStart,
+    reqBodyRescheduleUid,
+    weekStartDay,
+  }: InputProps) {
     if (
       Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
       Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
@@ -38,7 +44,9 @@ export class CheckBookingAndDurationLimitsService {
           startAsDate,
           eventType.id,
           reqBodyRescheduleUid,
-          eventType.schedule?.timeZone
+          eventType.schedule?.timeZone,
+          undefined,
+          weekStartDay || 0
         );
       }
       if (eventType.durationLimits) {
