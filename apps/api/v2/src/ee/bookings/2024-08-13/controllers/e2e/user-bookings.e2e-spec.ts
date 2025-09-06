@@ -34,7 +34,6 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
-import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
 import { EventManager } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -99,6 +98,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         .useValue({
           canActivate: () => true,
         })
+
         .compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
@@ -851,6 +851,60 @@ describe("Bookings Endpoints 2024-08-13", () => {
               );
             }
           });
+      });
+    });
+
+    describe("get booking session details", () => {
+      it("should return 404 for non-existent booking", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/non-existent-booking-uid/session-details`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(404);
+      });
+
+      it("should return 404 for booking without cal video reference", async () => {
+        // Create a simple booking without Cal Video reference
+        const regularBooking = await bookingsRepositoryFixture.create({
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2040, 0, 9, 15, 0, 0)),
+          endTime: new Date(Date.UTC(2040, 0, 9, 16, 0, 0)),
+          title: "Regular Booking Test",
+          uid: `regular-booking-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "https://meet.google.com/abc-def-ghi",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Regular User",
+            email: "regular-test@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "regular-test@gmail.com",
+              name: "Regular User",
+              locale: "en",
+              timeZone: "Europe/Rome",
+            },
+          },
+        });
+
+        try {
+          return request(app.getHttpServer())
+            .get(`/v2/bookings/${regularBooking.uid}/session-details`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(404);
+        } finally {
+          // Clean up test booking
+          await bookingsRepositoryFixture.deleteById(regularBooking.id);
+        }
       });
     });
 
@@ -2917,14 +2971,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
             },
           };
 
-          const beforeCreate = new Date();
           return request(app.getHttpServer())
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
-              const afterCreate = new Date();
               const responseBody: CreateBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();
