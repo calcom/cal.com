@@ -1,4 +1,6 @@
+import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
+import { GetVerifiedEmailsInput } from "@/modules/atoms/inputs/get-verified-emails-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -13,6 +15,8 @@ import {
 
 @Injectable()
 export class VerificationAtomsService {
+  constructor(private readonly atomsRepository: AtomsRepository) {}
+
   async checkEmailVerificationRequired(input: CheckEmailVerificationRequiredParams) {
     return await checkEmailVerificationRequired(input);
   }
@@ -60,5 +64,21 @@ export class VerificationAtomsService {
       language: input.language,
       isVerifyingEmail: input.isVerifyingEmail,
     });
+  }
+
+  async getVerifiedEmails(input: GetVerifiedEmailsInput): Promise<string[]> {
+    const { userId, userEmail, teamId } = input;
+    if (teamId) {
+      // implement team logic here
+      // and then return here only
+      return [];
+    }
+
+    let verifiedEmails = [userEmail];
+
+    const secondaryEmails = await this.atomsRepository.getSecondaryEmails(userId);
+    verifiedEmails = verifiedEmails.concat(secondaryEmails.map((secondaryEmail) => secondaryEmail.email));
+
+    return verifiedEmails;
   }
 }

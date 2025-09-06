@@ -1,8 +1,10 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
+import { GetVerifiedEmailsParams } from "@/modules/atoms/inputs/get-verified-emails-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
+import { GetVerifiedEmailsOutput } from "@/modules/atoms/outputs/get-verified-emails-output";
 import { SendVerificationEmailOutput } from "@/modules/atoms/outputs/send-verification-email.output";
 import { VerifyEmailCodeOutput } from "@/modules/atoms/outputs/verify-email-code.output";
 import { VerificationAtomsService } from "@/modules/atoms/services/verification-atom.service";
@@ -102,6 +104,26 @@ export class AtomsVerificationController {
 
     return {
       data: { verified },
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Get("/emails/verified-emails")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getVerifiedEmails(
+    @Query() query: GetVerifiedEmailsParams,
+    @GetUser() user: UserWithProfile
+  ): Promise<GetVerifiedEmailsOutput> {
+    const verifiedEmails = await this.verificationService.getVerifiedEmails({
+      userId: user.id,
+      userEmail: user.email,
+      teamId: query.teamId,
+    });
+
+    return {
+      data: verifiedEmails,
       status: SUCCESS_STATUS,
     };
   }

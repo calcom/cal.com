@@ -64,4 +64,15 @@ export class AtomsRepository {
 
     return userTeams;
   }
+
+  async getSecondaryEmails(userId: number) {
+    return await this.dbRead.prisma.secondaryEmail.findMany({
+      where: {
+        userId,
+        emailVerified: {
+          not: null,
+        },
+      },
+    });
+  }
 }
