@@ -3,6 +3,7 @@ import { expect, type Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 
 import { localize } from "../lib/localize";
 
@@ -11,6 +12,8 @@ type CreateWorkflowProps = {
   isTeam?: true;
   trigger?: WorkflowTriggerEvents;
 };
+
+const subjectPattern = /^Reminder: /i;
 
 export function createWorkflowPageFixture(page: Page) {
   const createWorkflow = async (props: CreateWorkflowProps) => {
@@ -25,8 +28,8 @@ export function createWorkflowPageFixture(page: Page) {
       await fillNameInput(name);
     }
     if (trigger) {
-      page.locator("div").filter({ hasText: WorkflowTriggerEvents.BEFORE_EVENT }).nth(1);
-      page.getByText(trigger);
+      await page.locator("#trigger-select").click();
+      await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
       await selectEventType("30 min");
     }
     const workflow = await saveWorkflow();
@@ -112,6 +115,20 @@ export function createWorkflowPageFixture(page: Page) {
     expect(deleteButton.isDisabled()).toBeTruthy();
   };
 
+  const assertWorkflowWasTriggered = async (emails: Fixtures["emails"], emailsToBeReceived: string[]) => {
+    const message = await emails.messages();
+    emailsToBeReceived.forEach((email) => {
+      expect(message?.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            subject: expect.stringMatching(subjectPattern),
+            to: email,
+          }),
+        ])
+      );
+    });
+  };
+
   const assertWorkflowReminders = async (eventTypeId: number, count: number) => {
     const booking = await prisma.booking.findFirst({
       where: {
@@ -143,5 +160,6 @@ export function createWorkflowPageFixture(page: Page) {
     selectedWorkflowPage,
     workflowOptionsAreDisabled,
     assertWorkflowReminders,
+    assertWorkflowWasTriggered,
   };
 }
