@@ -1,4 +1,4 @@
-import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsEnum, ValidateNested, IsString, IsUrl } from "class-validator";
 
@@ -19,6 +19,7 @@ class Output {
   pendingTeam!: TeamOutputDto;
 }
 
+@ApiExtraModels(Output)
 export class CreateTeamOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
