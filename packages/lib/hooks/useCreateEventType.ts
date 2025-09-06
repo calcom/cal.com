@@ -27,7 +27,11 @@ export const useCreateEventTypeForm = () => {
 
   useEffect(() => {
     if (isManagedEventType) {
-      form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
+      form.setValue("metadata.managedEventConfig.unlockedFields", {
+        ...unlockedManagedEventTypeProps,
+        assignRRMembersUsingSegment: true,
+        rrSegmentQueryValue: true,
+      });
     } else {
       form.setValue("metadata", null);
     }

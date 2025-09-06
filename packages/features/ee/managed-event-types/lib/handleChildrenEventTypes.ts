@@ -160,10 +160,11 @@ export default async function handleChildrenEventTypes({
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
-            instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
-            profileId: profileId ?? null,
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
+            title: eventType.title,
+            slug: eventType.slug,
+            length: eventType.length,
             bookingLimits:
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
             recurringEvent:
@@ -173,22 +174,19 @@ export default async function handleChildrenEventTypes({
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
             eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
             onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
-            userId,
             users: {
               connect: [{ id: userId }],
             },
-            parentId,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             workflows: currentWorkflowIds && {
               create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
             },
             /**
-             * RR Segment isn't applicable for managed event types.
+             * RR Segment is now supported for managed event types.
              */
-            rrSegmentQueryValue: undefined,
-            assignRRMembersUsingSegment: false,
+            rrSegmentQueryValue: (eventType.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
+            assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment ?? false,
             useEventLevelSelectedCalendars: false,
-            restrictionScheduleId: null,
             useBookerTimezone: false,
             allowReschedulingCancelledBookings:
               managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
@@ -219,8 +217,7 @@ export default async function handleChildrenEventTypes({
               : key === "beforeBufferTime"
               ? "beforeEventBuffer"
               : key;
-          // @ts-expect-error Element implicitly has any type
-          acc[filteredKey] = true;
+          (acc as any)[filteredKey] = true;
           return acc;
         }, {});
 
@@ -257,8 +254,6 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
-            restrictionScheduleId: null,
             useBookerTimezone: false,
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
