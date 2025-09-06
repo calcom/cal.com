@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 
 import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
@@ -65,6 +65,17 @@ export const attributesRouter = router({
     .input(ZFindTeamMembersMatchingAttributeLogicInputSchema)
     .query(async ({ ctx, input }) => {
       const { default: handler } = await import("./findTeamMembersMatchingAttributeLogic.handler");
+      return handler({ ctx, input });
+    }),
+
+  reassignEventTypes: authedOrgAdminProcedure
+    .input(
+      z.object({
+        orgId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { default: handler } = await import("./reassignEventTypes.handler");
       return handler({ ctx, input });
     }),
 });

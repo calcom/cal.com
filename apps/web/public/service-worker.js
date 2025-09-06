@@ -1,5 +1,5 @@
 self.addEventListener("push", async (event) => {
-  if (!event.data) return
+  if (!event.data) return;
 
   let notificationData = event.data.json();
 
@@ -16,12 +16,12 @@ self.addEventListener("push", async (event) => {
   const title = notificationData.title || "New Cal.com Notification";
   const image = notificationData.icon || "https://cal.com/api/logo?type=icon";
 
-   event.waitUntil(
+  event.waitUntil(
     (async () => {
       try {
         // Close notifications with the same tag if it exists
         const existingNotifications = await self.registration.getNotifications({
-          tag: notificationData.tag
+          tag: notificationData.tag,
         });
 
         existingNotifications.forEach((notification) => {
@@ -30,9 +30,9 @@ self.addEventListener("push", async (event) => {
 
         // Special handling for instant meetings
         if (notificationData.data?.type === "INSTANT_MEETING") {
-          allClients.forEach(client => {
+          allClients.forEach((client) => {
             client.postMessage({
-              type: 'PLAY_NOTIFICATION_SOUND'
+              type: "PLAY_NOTIFICATION_SOUND",
             });
           });
         }
@@ -47,7 +47,7 @@ self.addEventListener("push", async (event) => {
           requireInteraction: notificationData.requireInteraction ?? true,
           actions: notificationData.actions || [],
           vibrate: [200, 100, 200],
-          urgency: 'high'
+          urgency: "high",
         };
 
         console.log("notificationOptions", notificationOptions);
@@ -61,7 +61,6 @@ self.addEventListener("push", async (event) => {
   );
 });
 
-
 self.addEventListener("notificationclick", (event) => {
   if (event.notification.data?.type === "INSTANT_MEETING") {
     const stopSound = async () => {
@@ -70,9 +69,9 @@ self.addEventListener("notificationclick", (event) => {
         includeUncontrolled: true,
       });
 
-      allClients.forEach(client => {
+      allClients.forEach((client) => {
         client.postMessage({
-          type: 'STOP_NOTIFICATION_SOUND'
+          type: "STOP_NOTIFICATION_SOUND",
         });
       });
     };
@@ -96,17 +95,17 @@ self.addEventListener("notificationclick", (event) => {
   }
 });
 
-self.addEventListener('install', (event) => {
-  console.log('Service Worker installing.');
+self.addEventListener("install", (event) => {
+  console.log("Service Worker installing.");
 });
 
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker activated.');
+self.addEventListener("activate", (event) => {
+  console.log("Service Worker activated.");
 
   event.waitUntil(
     (async () => {
       const notifications = await self.registration.getNotifications();
-      notifications.forEach(notification => notification.close());
+      notifications.forEach((notification) => notification.close());
 
       return self.clients.claim();
     })()

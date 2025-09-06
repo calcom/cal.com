@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Alert } from "@calcom/ui/components/alert";
 
 import {
   convertToSmallestCurrencyUnit,

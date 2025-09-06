@@ -1,3 +1,4 @@
+import { reassignEventTypesBasedOnAttributes } from "@calcom/lib/server/eventTypeAttributeReassignment";
 import { getWhereClauseForAttributeOptionsManagedByCalcom } from "@calcom/lib/service/attribute/server/utils";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -218,6 +219,15 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       });
     }
   });
+
+  try {
+    await reassignEventTypesBasedOnAttributes({
+      orgId: org.id,
+      affectedUserIds: [input.userId],
+    });
+  } catch (error) {
+    console.error("Failed to reassign event types after attribute update:", error);
+  }
 
   return {
     success: true,
