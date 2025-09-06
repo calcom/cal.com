@@ -9,7 +9,7 @@ import { Select } from "@calcom/ui/components/form";
 
 export type DestinationReminderSelectorProps = {
   destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
-  onReminderChange: (value: { credentialId: number; integration: string; defaultReminder: number }) => void;
+  onReminderChange?: (value: { credentialId: number; integration: string; defaultReminder: number }) => void;
 };
 
 export const DestinationReminderSelector = ({
@@ -57,6 +57,9 @@ export const DestinationReminderSelector = ({
         className={classNames("border-default my-2 block w-full min-w-0 flex-1 rounded-md text-sm")}
         onChange={(event) => {
           const reminderValue = event?.value || 10;
+
+          if (!destinationCalendar?.credentialId || !destinationCalendar?.integration || !onReminderChange)
+            return;
 
           onReminderChange({
             credentialId: destinationCalendar.credentialId,

@@ -27,7 +27,8 @@ export const DestinationCalendarSettings = (
   props: DestinationCalendarProps & {
     classNames?: string;
     classNamesObject?: DestinationCalendarClassNames;
-  } & onReminderChange
+    onReminderChange?: onReminderChange;
+  }
 ) => {
   const { t } = useLocale();
   const currentDestinationCalendar = props.destinationCalendar?.integration || "";

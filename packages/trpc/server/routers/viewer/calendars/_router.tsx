@@ -4,6 +4,7 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
+import { ZUpdateDestinationCalendarReminderInputSchema } from "./setDestinationReminder.schema";
 
 type CalendarsRouterHandlerCache = {
   connectedCalendars?: typeof import("./connectedCalendars.handler").connectedCalendarsHandler;
@@ -44,13 +45,7 @@ export const calendarsRouter = router({
     }),
 
   setDestinationReminder: authedProcedure
-    .input(
-      z.object({
-        credentialId: z.number(),
-        integration: z.string(),
-        defaultReminder: z.number(),
-      })
-    )
+    .input(ZUpdateDestinationCalendarReminderInputSchema)
     .mutation(async ({ ctx, input }) => {
       if (!handlerCache.setDestinationReminder) {
         const { setDestinationReminderHandler } = await import("./setDestinationReminder.handler");
