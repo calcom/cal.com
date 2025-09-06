@@ -30,7 +30,7 @@ import { Switch } from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { routingFormAppComponents } from "../../appComponents";
+import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
 import SingleForm from "../../components/SingleForm";
 import { EmptyState } from "../../components/_components/EmptyState";

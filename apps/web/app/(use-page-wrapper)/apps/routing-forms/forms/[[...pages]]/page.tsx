@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import Forms from "@calcom/app-store/routing-forms/pages/forms/[...appPages]";
+import Forms from "@calcom/features/routing-forms/pages/forms/[...appPages]";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ pages: string[] }> }) => {
   const pages = (await params).pages;
