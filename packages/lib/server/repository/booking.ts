@@ -380,6 +380,35 @@ export class BookingRepository {
     });
   }
 
+  async findBookingById(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        ...bookingMinimalSelect,
+        eventType: {
+          select: {
+            title: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+          },
+        },
+      },
+    });
+  }
+
   async findBookingForMeetingPage({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
