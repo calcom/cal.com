@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import prisma from "@calcom/prisma";
 
 import {
@@ -48,6 +49,9 @@ export async function patchHandler(req: NextApiRequest) {
   await checkPermissions(req);
 
   const result = await prisma.membership.update(args);
+
+  await UserPlanUtils.updateUserPlan(result.userId);
+
   return { membership: schemaMembershipPublic.parse(result) };
 }
 

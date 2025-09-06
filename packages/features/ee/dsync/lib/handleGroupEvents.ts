@@ -5,6 +5,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { addNewMembersToEventTypes } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import {
@@ -46,13 +47,25 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     select: {
       teamId: true,
       team: {
-        include: {
+        select: {
+          id: true,
+          name: true,
           parent: {
-            include: {
-              organizationSettings: true,
+            select: {
+              id: true,
+              name: true,
+              organizationSettings: {
+                select: {
+                  orgAutoAcceptEmail: true,
+                },
+              },
             },
           },
-          organizationSettings: true,
+          organizationSettings: {
+            select: {
+              orgAutoAcceptEmail: true,
+            },
+          },
         },
       },
       groupName: true,
@@ -133,6 +146,8 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
           accepted: true,
         })),
       });
+
+      await Promise.allSettled(newUsers.map((user) => UserPlanUtils.updateUserPlan(user.id)));
       await Promise.allSettled(
         newUserEmails.map((email) => {
           return sendSignupToOrganizationEmail({
@@ -183,6 +198,9 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
       ],
       skipDuplicates: true,
     });
+
+    // Update user plans for existing users
+    await Promise.allSettled(users.map((user) => UserPlanUtils.updateUserPlan(user.id)));
 
     // Send emails to new members
     const newMembers = users.filter((user) => !user.teams.find((team) => team.teamId === group.teamId));

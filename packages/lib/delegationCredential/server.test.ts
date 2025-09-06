@@ -2,8 +2,6 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
-import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -19,6 +17,16 @@ import {
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
 } from "./server";
+
+const googleCalendarMetadata = {
+  type: "google_calendar",
+  slug: "google-calendar",
+};
+
+const googleMeetMetadata = {
+  type: "google_video",
+  slug: "google-meet",
+};
 
 // Mock OrganizationRepository
 vi.mock("@calcom/lib/server/repository/organization", () => ({
