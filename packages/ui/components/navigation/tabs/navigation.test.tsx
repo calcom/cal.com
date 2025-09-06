@@ -81,6 +81,74 @@ describe("Navigation Components", () => {
 
       expect(handleClick).toHaveBeenCalledWith("Tab");
     });
+
+    describe("scroll behavior", () => {
+      const manyTabs = Array.from({ length: 20 }, (_, i) => ({
+        name: `Tab ${i + 1}`,
+        href: `/tab-${i + 1}`,
+        "data-testid": `tab-${i + 1}`,
+      }));
+
+      const setupScrollTest = (scrollLeft = 0) => {
+        const { container } = render(<HorizontalTabs tabs={manyTabs} />);
+        const navElement = screen.getByRole("navigation");
+
+        Object.defineProperty(navElement, "scrollWidth", { value: 1000, configurable: true });
+        Object.defineProperty(navElement, "clientWidth", { value: 500, configurable: true });
+        Object.defineProperty(navElement, "scrollLeft", { value: scrollLeft, configurable: true });
+
+        fireEvent.scroll(navElement);
+        return { navElement, container };
+      };
+
+      test("shows scroll arrows when content overflows", () => {
+        setupScrollTest(0);
+        expect(screen.getByLabelText("Scroll right")).toBeInTheDocument();
+        expect(screen.queryByLabelText("Scroll left")).not.toBeInTheDocument();
+      });
+
+      test("shows both arrows when scrolled to middle", () => {
+        setupScrollTest(100);
+        expect(screen.getByLabelText("Scroll left")).toBeInTheDocument();
+        expect(screen.getByLabelText("Scroll right")).toBeInTheDocument();
+      });
+
+      test("scrolls left when left arrow is clicked", () => {
+        const { navElement } = setupScrollTest(100);
+        const scrollBySpy = vi.fn();
+        navElement.scrollBy = scrollBySpy;
+
+        fireEvent.click(screen.getByLabelText("Scroll left"));
+        expect(scrollBySpy).toHaveBeenCalledWith({ left: -300, behavior: "smooth" });
+      });
+
+      test("scrolls right when right arrow is clicked", () => {
+        const { navElement } = setupScrollTest(0);
+        const scrollBySpy = vi.fn();
+        navElement.scrollBy = scrollBySpy;
+
+        fireEvent.click(screen.getByLabelText("Scroll right"));
+        expect(scrollBySpy).toHaveBeenCalledWith({ left: 300, behavior: "smooth" });
+      });
+    });
+
+    test("hides arrows when no overflow", () => {
+      const fewTabs = [
+        { name: "Tab 1", href: "/tab1", "data-testid": "tab1" },
+        { name: "Tab 2", href: "/tab2", "data-testid": "tab2" },
+      ];
+
+      render(<HorizontalTabs tabs={fewTabs} />);
+
+      const navElement = screen.getByRole("navigation");
+      Object.defineProperty(navElement, "scrollWidth", { value: 500, configurable: true });
+      Object.defineProperty(navElement, "clientWidth", { value: 500, configurable: true });
+
+      fireEvent.scroll(navElement);
+
+      expect(screen.queryByLabelText("Scroll left")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Scroll right")).not.toBeInTheDocument();
+    });
   });
 
   describe("VerticalTabs", () => {
