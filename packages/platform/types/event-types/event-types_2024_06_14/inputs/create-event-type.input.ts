@@ -152,6 +152,34 @@ export class CalVideoSettings {
     description: "If true, enables the automatic recording for the event when organizer joins the call",
   })
   enableAutomaticRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic transcription for the event",
+  })
+  enableAutomaticTranscription?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, disables the transcription for the event when guests join the call",
+  })
+  disableTranscriptionForGuests?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, disables the transcription for the event when organizer joins the call",
+  })
+  disableTranscriptionForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the Flappy Bird game in the waiting room",
+  })
+  enableFlappyBirdGame?: boolean;
 }
 
 class BaseCreateEventTypeInput {

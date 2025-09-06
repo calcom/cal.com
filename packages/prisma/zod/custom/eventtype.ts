@@ -14,9 +14,9 @@ const calVideoSettingsSchema = z
     enableAutomaticTranscription: z.boolean().nullish(),
     disableTranscriptionForGuests: z.boolean().nullish(),
     disableTranscriptionForOrganizer: z.boolean().nullish(),
+    enableFlappyBirdGame: z.boolean().nullish(),
   })
-  .optional()
-  .nullable();
+  .nullish();
 
 export const createEventTypeInput = z.object({
   title: z.string().trim().min(1),
