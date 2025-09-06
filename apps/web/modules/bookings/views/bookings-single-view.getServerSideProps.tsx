@@ -10,6 +10,7 @@ import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
@@ -157,11 +158,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const userId = session?.user?.id;
 
-  const checkIfUserIsHost = (userId?: number | null) => {
+  const checkIfUserIsHostOrTeamAdmin = async (userId?: number | null) => {
     if (!userId) return false;
 
+    if (bookingInfo?.user?.id === userId) return true;
+
+    const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, eventType?.teamId ?? 0));
+
+    if (isTeamAdminOrOwner) return true;
+
     return (
-      bookingInfo?.user?.id === userId ||
       eventType.users.some(
         (user) =>
           user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
@@ -173,7 +179,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     );
   };
 
-  const isLoggedInUserHost = checkIfUserIsHost(userId);
+  const isLoggedInUserHost = await checkIfUserIsHostOrTeamAdmin(userId);
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);

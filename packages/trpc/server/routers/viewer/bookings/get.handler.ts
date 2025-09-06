@@ -12,6 +12,7 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -532,6 +533,7 @@ export async function getBookings({
                     .whereRef("Host.eventTypeId", "=", "EventType.id")
                 ).as("hosts"),
                 "EventType.length",
+                "EventType.teamId",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
@@ -689,13 +691,19 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+
+  const checkIfUserIsTeamAdminOrOwner = async (userId: number, booking: (typeof plainBookings)[number]) => {
+    const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, booking.eventType?.teamId ?? 0));
+    return isTeamAdminOrOwner;
+  };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
       if (
-        booking.seatsReferences.length &&
         !booking.eventType?.seatsShowAttendees &&
-        !checkIfUserIsHost(user.id, booking)
+        !checkIfUserIsHost(user.id, booking) &&
+        !(await checkIfUserIsTeamAdminOrOwner(user.id, booking))
       ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
