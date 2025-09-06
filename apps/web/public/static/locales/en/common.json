@@ -3533,6 +3533,8 @@
   "failed_bookings_by_field": "Failed Bookings By Field",
   "failed_bookings": "Failed bookings",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "default_availability_is_locked": "Default availability is locked",
+  "default_availability_locked_message": "Your team admin has locked your default availability. You cannot edit it.",
   "cache_status": "Cache Status",
   "cache_last_updated": "Last updated: {{timestamp}}",
   "delete_cached_data": "Delete cached data",
@@ -3610,5 +3612,8 @@
   "before_scheduled_start_time": "Before scheduled start time",
   "cancel_booking_acknowledge_no_show_fee": "I acknowledge that by cancelling the booking within {{timeValue}} {{timeUnit}} of the start time I will be charged the no show fee of {{amount, currency}}",
   "contact_organizer": "If you have any questions, please contact the organizer.",
+  "lock_default_availability": "Lock default availability",
+  "lock_default_availability_description": "When enabled, team members cannot edit their default availability schedule. They can still add new schedules.",
+  "availability_lock_updated_successfully": "Default availability lock setting updated successfully",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
