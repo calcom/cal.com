@@ -1,12 +1,12 @@
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { refreshAccessToken } from "@calcom/app-store/basecamp3/lib/helpers";
+import type { BasecampToken } from "@calcom/app-store/basecamp3/lib/types";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import { refreshAccessToken } from "../lib/helpers";
-import type { BasecampToken } from "../lib/types";
 import type { TProjectMutationInputSchema } from "./projectMutation.schema";
 
 interface ProjectMutationHandlerOptions {
