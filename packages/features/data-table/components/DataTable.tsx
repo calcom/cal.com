@@ -94,7 +94,7 @@ export function DataTable<TData>({
         onScroll?.({ target });
       }, 100);
     }
-  }, [virtualItemsCount, rows.length, tableContainerRef.current, paginationMode, onScroll]);
+  }, [virtualItemsCount, rows.length, tableContainerRef, paginationMode, onScroll]);
 
   const columnSizingVars = useColumnSizingVars({ table });
 
@@ -147,6 +147,8 @@ export function DataTable<TData>({
           style={{
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
+            maxWidth: "100%",
+            overflow: "hidden",
           }}>
           <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
             {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
@@ -334,7 +336,7 @@ function DataTableBody<TData>({
   );
 }
 
-const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
+const TableHeadLabel = <TData, TValue = unknown>({ header }: { header: Header<TData, TValue> }) => {
   const [open, setOpen] = useState(false);
   const { t } = useLocale();
 
