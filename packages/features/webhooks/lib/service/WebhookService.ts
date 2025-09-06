@@ -1,0 +1,294 @@
+import { createHmac } from "crypto";
+
+import logger from "@calcom/lib/logger";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
+import type { WebhookPayload } from "../factory/types";
+import type { ITasker } from "../interface/infrastructure";
+import type { IWebhookRepository, IWebhookService } from "../interface/services";
+import { TaskerProvider } from "../provider/TaskerProvider";
+
+const log = logger.getSubLogger({ prefix: ["[WebhookService]"] });
+
+export class WebhookService implements IWebhookService {
+  constructor(
+    private readonly repository: IWebhookRepository,
+    private readonly tasker?: ITasker // Optional for fallback import
+  ) {}
+
+  protected async sendWebhook(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscriber: WebhookSubscriber
+  ): Promise<WebhookDeliveryResult> {
+    try {
+      if (process.env.TASKER_ENABLE_WEBHOOKS === "1") {
+        return await this.scheduleWebhook(trigger, payload, subscriber);
+      } else {
+        return await this.sendWebhookDirectly(trigger, payload, subscriber);
+      }
+    } catch (error) {
+      return {
+        ok: false,
+        status: 0,
+        message: error instanceof Error ? error.message : String(error),
+        duration: 0,
+        subscriberUrl: subscriber.subscriberUrl,
+        webhookId: subscriber.id,
+      };
+    }
+  }
+
+  private async scheduleWebhook(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscriber: WebhookSubscriber
+  ): Promise<WebhookDeliveryResult> {
+    const tasker = this.tasker ?? (await TaskerProvider.load());
+
+    await tasker.create(
+      "sendWebhook",
+      JSON.stringify({
+        secretKey: subscriber.secret,
+        triggerEvent: trigger,
+        createdAt: new Date().toISOString(),
+        webhook: subscriber,
+        data: payload.payload,
+      })
+    );
+
+    return {
+      ok: true,
+      status: 200,
+      message: "Webhook scheduled successfully",
+      duration: 0,
+      subscriberUrl: subscriber.subscriberUrl,
+      webhookId: subscriber.id,
+    };
+  }
+
+  private async sendWebhookDirectly(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscriber: WebhookSubscriber
+  ): Promise<WebhookDeliveryResult> {
+    const { subscriberUrl, payloadTemplate } = subscriber;
+    if (!subscriberUrl) throw new Error("Missing subscriber URL");
+
+    const contentType =
+      !payloadTemplate || this.isJsonTemplate(payloadTemplate)
+        ? "application/json"
+        : "application/x-www-form-urlencoded";
+
+    const body = JSON.stringify({
+      triggerEvent: trigger,
+      createdAt: payload.createdAt,
+      payload: payload.payload,
+    });
+
+    const signature = subscriber.secret
+      ? createHmac("sha256", subscriber.secret).update(body).digest("hex")
+      : "no-secret-provided";
+
+    const response = await fetch(subscriberUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": contentType,
+        "X-Cal-Signature-256": signature,
+      },
+      redirect: "manual",
+      body,
+    });
+
+    const responseText = await response.text();
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      message: responseText || undefined,
+      duration: 0,
+      subscriberUrl: subscriberUrl,
+      webhookId: subscriber.id,
+    };
+  }
+
+  private isJsonTemplate(template: string | null): boolean {
+    if (!template) return true;
+    try {
+      JSON.parse(template);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async getSubscribers(options: Parameters<IWebhookRepository["getSubscribers"]>[0]) {
+    return this.repository.getSubscribers(options);
+  }
+
+  async processWebhooks(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscribers: WebhookSubscriber[]
+  ): Promise<void> {
+    const promises = subscribers.map(async (subscriber) => {
+      try {
+        log.debug("Processing webhook", {
+          trigger,
+          webhookId: subscriber.id,
+          subscriberUrl: subscriber.subscriberUrl,
+        });
+
+        const result = await this.sendWebhook(trigger, payload, subscriber);
+
+        if (result.ok) {
+          log.debug(`Webhook sent successfully`, {
+            trigger,
+            webhookId: subscriber.id,
+            statusCode: result.status,
+          });
+        } else {
+          log.error(`Webhook failed`, {
+            error: result.message,
+            trigger,
+            webhookId: subscriber.id,
+            statusCode: result.status,
+          });
+        }
+      } catch (err) {
+        log.error("Error sending webhook", {
+          error: err instanceof Error ? err.message : String(err),
+          trigger,
+          webhookId: subscriber.id,
+        });
+      }
+    });
+
+    await Promise.all(promises);
+  }
+
+  async scheduleTimeBasedWebhook(
+    trigger: WebhookTriggerEvents,
+    scheduledAt: Date,
+    bookingData: {
+      id: number;
+      uid: string;
+      eventTypeId: number | null;
+      userId: number | null;
+      teamId?: number | null;
+      responses?: Record<string, unknown>;
+    },
+    subscriber: WebhookSubscriber,
+    evt: Record<string, unknown>,
+    isDryRun = false
+  ): Promise<void> {
+    if (isDryRun) return;
+
+    try {
+      const tasker = this.tasker ?? (await TaskerProvider.load());
+      await tasker.create(
+        "sendWebhook",
+        JSON.stringify({
+          secretKey: subscriber.secret,
+          triggerEvent: trigger,
+          createdAt: new Date().toISOString(),
+          webhook: subscriber,
+          data: {
+            bookingId: bookingData.id,
+            eventTypeId: bookingData.eventTypeId,
+            userId: bookingData.userId,
+            teamId: bookingData.teamId,
+            responses: bookingData.responses,
+            evt,
+          },
+        }),
+        { scheduledAt, referenceUid: `booking-${bookingData.id}-${trigger}` }
+      );
+    } catch (error) {
+      log.error("Failed to schedule time-based webhook", {
+        trigger,
+        bookingId: bookingData.id,
+        subscriberUrl: subscriber.subscriberUrl,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  async cancelScheduledWebhooks(
+    bookingId: number,
+    triggers: WebhookTriggerEvents[] = [
+      WebhookTriggerEvents.MEETING_STARTED,
+      WebhookTriggerEvents.MEETING_ENDED,
+    ],
+    isDryRun = false
+  ): Promise<void> {
+    if (isDryRun) return;
+
+    try {
+      const tasker = this.tasker ?? (await TaskerProvider.load());
+      for (const trigger of triggers) {
+        const referenceUid = `booking-${bookingId}-${trigger}`;
+        await tasker.cancelWithReference(referenceUid, "sendWebhook");
+      }
+    } catch (error) {
+      log.error("Failed to cancel scheduled webhooks", {
+        bookingId,
+        triggers,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  async scheduleDelayedWebhooks(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    scheduledAt: Date,
+    options?: { teamId?: number | number[] | null; orgId?: number | null },
+    subscribers?: WebhookSubscriber[],
+    isDryRun = false
+  ): Promise<void> {
+    if (isDryRun) return;
+
+    const webhookSubscribers =
+      subscribers ||
+      (await this.repository.getSubscribers({
+        userId: null,
+        eventTypeId: null,
+        triggerEvent: trigger,
+        teamId: options?.teamId,
+        orgId: options?.orgId,
+        oAuthClientId: undefined,
+      }));
+
+    if (!webhookSubscribers.length) return;
+
+    try {
+      const tasker = this.tasker ?? (await TaskerProvider.load());
+      const createdAt = new Date().toISOString();
+
+      await Promise.all(
+        webhookSubscribers.map((subscriber) =>
+          tasker.create(
+            "sendWebhook",
+            JSON.stringify({
+              secretKey: subscriber.secret,
+              triggerEvent: trigger,
+              createdAt,
+              webhook: subscriber,
+              data: payload.payload,
+            }),
+            { scheduledAt }
+          )
+        )
+      );
+    } catch (error) {
+      log.error("Failed to schedule delayed webhooks", {
+        trigger,
+        scheduledAt,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+}
