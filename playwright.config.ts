@@ -124,7 +124,14 @@ const config: PlaywrightTestConfig = {
       },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TS definitions for USE are wrong.
-      use: DEFAULT_CHROMIUM,
+      use: {
+        ...DEFAULT_CHROMIUM,
+        launchOptions: {
+          env: {
+            NODE_OPTIONS: "--loader ./scripts/cjs-loader.mjs"
+          }
+        }
+      },
     },
     {
       name: "@calcom/embed-core",
