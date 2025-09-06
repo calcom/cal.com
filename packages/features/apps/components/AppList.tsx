@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
-import type { CredentialOwner } from "@calcom/app-store/types";
+import type { AppCardApp } from "@calcom/app-store/types";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
@@ -13,6 +13,7 @@ import type {
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
@@ -33,7 +34,7 @@ export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?:
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["apps"]["integrations"];
+  data: ConnectedApps;
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
@@ -69,13 +70,7 @@ export const AppList = ({
     showToast("Default app updated successfully", "success");
   }, []);
 
-  const ChildAppCard = ({
-    item,
-  }: {
-    item: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
-      credentialOwner?: CredentialOwner;
-    };
-  }) => {
+  const ChildAppCard = ({ item }: { item: AppCardApp }) => {
     const appSlug = item?.slug;
     const appIsDefault =
       appSlug === defaultConferencingApp?.appSlug ||

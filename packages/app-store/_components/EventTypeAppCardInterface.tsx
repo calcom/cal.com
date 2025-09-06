@@ -4,20 +4,15 @@ import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppConte
 import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
-import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
+import type { EventTypeAppCardComponentProps, EventTypeAppCardApp } from "../types";
 import { DynamicComponent } from "./DynamicComponent";
-
-export type EventTypeApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
-  credentialOwner?: CredentialOwner;
-};
 
 export type EventTypeForAppCard = EventTypeAppCardComponentProps["eventType"];
 
 export const EventTypeAppCard = (props: {
-  app: EventTypeApp;
+  app: EventTypeAppCardApp;
   eventType: EventTypeForAppCard;
   getAppData: GetAppData;
   setAppData: SetAppData;
