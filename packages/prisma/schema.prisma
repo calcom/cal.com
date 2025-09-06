@@ -269,10 +269,15 @@ model Credential {
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
 
+  // Unreachable calendar tracking
+  isUnreachable Boolean?  @default(false)
+  lastNotified  DateTime?
+
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
+  @@index([isUnreachable])
 }
 
 enum IdentityProvider {
@@ -387,6 +392,9 @@ model User {
 
   // receive monthly digest email for teams or not
   receiveMonthlyDigestEmail Boolean? @default(true)
+
+  // receive email notifications for unreachable calendars or not
+  notifyCalendarAlerts Boolean? @default(true)
 
   /// @zod.custom(imports.userMetadata)
   metadata             Json?

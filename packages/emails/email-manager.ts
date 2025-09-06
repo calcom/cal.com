@@ -79,6 +79,7 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+import UnreachableCalendarEmail from "./templates/unreachable-calendar-email";
 import type { WorkflowEmailData } from "./templates/workflow-email";
 import WorkflowEmail from "./templates/workflow-email";
 
@@ -884,6 +885,28 @@ export const sendDelegationCredentialDisabledEmail = async ({
         recipientName,
         calendarAppName,
         conferencingAppName,
+      })
+  );
+};
+
+export const sendUnreachableCalendarEmail = async ({
+  recipientEmail,
+  recipientName,
+  calendarName,
+  reason,
+}: {
+  recipientEmail: string;
+  recipientName?: string;
+  calendarName: string;
+  reason: string;
+}) => {
+  await sendEmail(
+    () =>
+      new UnreachableCalendarEmail({
+        recipientEmail,
+        recipientName,
+        calendarName,
+        reason,
       })
   );
 };
