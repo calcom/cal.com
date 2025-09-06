@@ -102,7 +102,7 @@ export default function FormCard({
   ...restProps
 }: {
   children: React.ReactNode;
-  label: string;
+  label: React.ReactNode;
   isLabelEditable?: boolean;
   onLabelChange?: (label: string) => void;
   deleteField?: Action | null;
@@ -173,10 +173,14 @@ export default function FormCard({
                 className="text-muted"
               />
             )}
-            {isLabelEditable ? (
-              <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
+            {typeof label === "string" ? (
+              isLabelEditable ? (
+                <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
+              ) : (
+                <span className="text-emphasis text-sm font-semibold">{label}</span>
+              )
             ) : (
-              <span className="text-emphasis text-sm font-semibold">{label}</span>
+              label
             )}
             {badge && (
               <Badge className="ml-2" variant={badge.variant}>
@@ -190,6 +194,21 @@ export default function FormCard({
         </div>
         <div className={isCollapsed ? "hidden" : ""}>{children}</div>
       </div>
+    </div>
+  );
+}
+
+export function FormCardBody({
+  children,
+  className = "",
+  ...props
+}: {
+  children: React.ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={`bg-default border-default w-full gap-3 rounded-2xl border p-3 ${className}`} {...props}>
+      {children}
     </div>
   );
 }
