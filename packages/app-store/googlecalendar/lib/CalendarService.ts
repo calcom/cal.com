@@ -75,6 +75,27 @@ export default class GoogleCalendarService implements Calendar {
     return this.auth.getClient();
   }
 
+  private async getReminderDuration(): Promise<number> {
+    try {
+      const calendarData = await prisma.destinationCalendar.findFirst({
+        where: {
+          credentialId: this.credential.id,
+          integration: "google_calendar",
+        },
+        select: {
+          customCalendarReminder: true,
+        },
+      });
+      return calendarData?.customCalendarReminder || 10;
+    } catch (error) {
+      this.log.error(
+        "Error fetching custom reminder duration, defaulting to 10 minutes",
+        safeStringify({ error })
+      );
+      return 10;
+    }
+  }
+
   private getAttendees = ({
     event,
     hostExternalCalendarId,
@@ -180,6 +201,7 @@ export default class GoogleCalendarService implements Calendar {
     externalCalendarId?: string
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
+    const defaultReminder = await this.getReminderDuration();
 
     const payload: calendar_v3.Schema$Event = {
       summary: calEvent.title,
@@ -193,9 +215,23 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: calEvent.organizer.timeZone,
       },
       attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: defaultReminder
+        ? {
+            useDefault: false,
+            overrides: [
+              {
+                method: "popup",
+                minutes: defaultReminder,
+              },
+              {
+                method: "email",
+                minutes: defaultReminder,
+              },
+            ],
+          }
+        : {
+            useDefault: true,
+          },
       guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
