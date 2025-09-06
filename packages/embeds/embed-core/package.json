@@ -30,7 +30,7 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
     "lint:fix": "eslint --ext .ts,.js src --fix",
-    "embed-tests": "yarn playwright test --config=playwright/config/playwright.config.ts",
+    "embed-tests": "cd ../../../ && yarn playwright test --project=@calcom/embed-core",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
