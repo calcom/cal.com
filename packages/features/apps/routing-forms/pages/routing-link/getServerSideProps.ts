@@ -1,5 +1,5 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/apps/routing-forms/lib/isAuthorizedToViewForm";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";

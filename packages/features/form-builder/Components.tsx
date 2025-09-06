@@ -5,8 +5,8 @@ import PhoneInput from "@calcom/features/components/phone-input";
 import type {
   SelectLikeComponentProps,
   TextLikeComponentProps,
-} from "@calcom/features/routing-forms/components/react-awesome-query-builder/widgets";
-import Widgets from "@calcom/features/routing-forms/components/react-awesome-query-builder/widgets";
+} from "@calcom/features/apps/routing-forms/components/react-awesome-query-builder/widgets";
+import Widgets from "@calcom/features/apps/routing-forms/components/react-awesome-query-builder/widgets";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";

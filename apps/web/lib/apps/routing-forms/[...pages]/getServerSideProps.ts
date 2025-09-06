@@ -2,7 +2,7 @@ import type { GetServerSidePropsResult, GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { routingServerSidePropsConfig } from "@calcom/features/routing-forms/pages/app-routing.server-config";
+import { routingServerSidePropsConfig } from "@calcom/features/apps/routing-forms/pages/app-routing.server-config";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 

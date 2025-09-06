@@ -48,7 +48,7 @@ const mockSession = {
   },
 } as Session;
 
-vi.mock("@calcom/features/routing-forms/components/FormInputFields", () => ({
+vi.mock("@calcom/features/apps/routing-forms/components/FormInputFields", () => ({
   default: vi.fn(({ response, form, setResponse, disabledFields }) => {
     return (
       <div data-testid="mock-form-input-fields">

@@ -10,9 +10,9 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForward } from "@calcom/features/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import { getUrlSearchParamsToForward } from "@calcom/features/apps/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/apps/routing-forms/lib/isAuthorizedToViewForm";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -31,12 +31,12 @@ vi.mock("@calcom/lib/server/repository/user", () => {
   };
 });
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
-vi.mock("@calcom/features/routing-forms/lib/isAuthorizedToViewForm");
+vi.mock("@calcom/features/apps/routing-forms/lib/isAuthorizedToViewForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getResponseToStore");
 vi.mock("@calcom/app-store/routing-forms/lib/processRoute");
 vi.mock("@calcom/app-store/routing-forms/lib/substituteVariables");
-vi.mock("@calcom/features/routing-forms/pages/routing-link/getUrlSearchParamsToForward");
+vi.mock("@calcom/features/apps/routing-forms/pages/routing-link/getUrlSearchParamsToForward");
 vi.mock("@calcom/app-store/routing-forms/getEventTypeRedirectUrl");
 vi.mock("@calcom/app-store/routing-forms/enrichFormWithMigrationData", () => ({
   enrichFormWithMigrationData: vi.fn((form) => form),

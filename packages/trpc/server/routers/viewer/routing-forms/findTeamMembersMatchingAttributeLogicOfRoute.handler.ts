@@ -8,7 +8,7 @@ import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/apps/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";

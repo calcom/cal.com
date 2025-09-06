@@ -16,8 +16,8 @@ import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import FormInputFields, {
   FormInputFieldsSkeleton,
-} from "@calcom/features/routing-forms/components/FormInputFields";
-import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+} from "@calcom/features/apps/routing-forms/components/FormInputFields";
+import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/apps/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";

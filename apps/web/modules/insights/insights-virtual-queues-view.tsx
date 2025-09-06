@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import type { RoutingForm } from "@calcom/app-store/routing-forms/types/types";
-import { TestForm } from "@calcom/features/routing-forms/components/_components/TestForm";
+import { TestForm } from "@calcom/features/apps/routing-forms/components/_components/TestForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Label } from "@calcom/ui/components/form";
