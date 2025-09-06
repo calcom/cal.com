@@ -215,7 +215,7 @@ class Routing {
 export class CreateBookingInput_2024_08_13 {
   @ApiProperty({
     type: String,
-    description: "The start time of the booking in ISO 8601 format in UTC timezone.",
+    description: "The start time of the booking in ISO 8601 format. Can be in UTC timezone (e.g., '2024-08-13T09:00:00Z') or include timezone information (e.g., '2024-08-13T09:00:00-05:00'). If no timezone is specified, the attendee's timezone will be used.",
     example: "2024-08-13T09:00:00Z",
   })
   @IsDateString()

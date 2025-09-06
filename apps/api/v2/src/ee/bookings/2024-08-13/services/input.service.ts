@@ -132,6 +132,14 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
+  private parseStartTimeToUTC(startTimeISO: string, attendeeTimeZone: string): DateTime {
+    const parsedDateTime = DateTime.fromISO(startTimeISO);
+    
+    return parsedDateTime.isValid && parsedDateTime.zoneName !== 'invalid' 
+      ? parsedDateTime.toUTC()
+      : DateTime.fromISO(startTimeISO, { zone: attendeeTimeZone }).toUTC();
+  }
+
   async transformInputCreateBooking(
     inputBooking: CreateBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam,
@@ -140,9 +148,8 @@ export class InputBookingsService_2024_08_13 {
     this.validateBookingLengthInMinutes(inputBooking, eventType);
 
     const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
-    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
-      inputBooking.attendee.timeZone
-    );
+    const startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, inputBooking.attendee.timeZone);
+    const startTime = startTimeUTC.setZone(inputBooking.attendee.timeZone);
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
     const guests =
@@ -438,9 +445,8 @@ export class InputBookingsService_2024_08_13 {
     const events = [];
     const recurringEventId = uuidv4();
 
-    let startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
-      inputBooking.attendee.timeZone
-    );
+    let startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, inputBooking.attendee.timeZone);
+    let startTime = startTimeUTC.setZone(inputBooking.attendee.timeZone);
 
     const guests =
       inputBooking.guests && platformClientId
@@ -586,7 +592,8 @@ export class InputBookingsService_2024_08_13 {
       );
     }
 
-    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
+    const startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, attendee.timeZone);
+    const startTime = startTimeUTC.setZone(attendee.timeZone);
     const endTime = startTime.plus({ minutes: eventType.length });
 
     return {
@@ -647,7 +654,8 @@ export class InputBookingsService_2024_08_13 {
       bookingResponses.attendeePhoneNumber = attendee.phoneNumber || undefined;
     }
 
-    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
+    const startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, attendee.timeZone);
+    const startTime = startTimeUTC.setZone(attendee.timeZone);
     const endTime = startTime.plus({ minutes: eventType.length });
 
     return {
