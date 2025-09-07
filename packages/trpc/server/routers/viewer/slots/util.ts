@@ -784,9 +784,14 @@ export class AvailableSlotsService {
       eventType.schedulingType !== SchedulingType.COLLECTIVE &&
       eventType.schedulingType !== SchedulingType.ROUND_ROBIN
     ) {
+      const userIdAndEmailObj: { [key: number]: string } = {};
+      userIdAndEmailMap.forEach((email, userId) => {
+        userIdAndEmailObj[userId] = email;
+      });
+      
       await this.addAttendeeAvailabilityForReschedule({
         rescheduleUid: input.rescheduleUid,
-        userIdAndEmailMap,
+        userIdAndEmailMap: userIdAndEmailObj,
         loggerWithEventDetails,
       });
     }
@@ -1476,6 +1481,7 @@ export class AvailableSlotsService {
               selectedCalendars: attendee.userLevelSelectedCalendars,
               rescheduleUid: input.rescheduleUid || undefined,
               seatedEvent: !!eventType?.seatsPerTimeSlot,
+              bypassBusyCalendarTimes,
             }).catch((error: any) => {
               loggerWithEventDetails.warn(`Failed to get busy times for attendee ${attendee.email}:`, error);
               return [];
@@ -1561,60 +1567,51 @@ export class AvailableSlotsService {
   //Get attendee users with their credentials and selected calendars for calendar integration
   private async getAttendeeUsersWithCredentialsForReschedule(rescheduleUid: string, excludeEmails: string[]) {
     try {
-      const booking = await this.dependencies.bookingRepo.findUniqueBookingByUid({
-        uid: rescheduleUid,
+      const booking = await this.dependencies.bookingRepo.findBookingByUid({
+        bookingUid: rescheduleUid,
       });
 
       if (!booking || !booking.attendees) return [];
 
-      // Find attendee emails (limit to 10 to keep things fast)
       const MAX_ATTENDEES = 10;
-      const attendeeEmailsMap: { [key: string]: boolean } = {};
-      const attendeeEmails: string[] = [];
-      
-      booking.attendees.forEach((attendee) => {
-        const email = attendee.email;
-        if (email && excludeEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
-          attendeeEmailsMap[email] = true;
-          attendeeEmails.push(email);
-        }
-      });
-
-      const limitedEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
+      const exclude = new Set((excludeEmails || []).map((e) => e.toLowerCase()));
+      const limitedEmails = Array.from(
+        new Set(
+          (booking.attendees || [])
+            .filter((a: { status?: string }) => (a?.status || "ACCEPTED") === "ACCEPTED")
+            .map((a: { email?: string }) => String(a?.email || "").toLowerCase())
+            .filter((e: string) => e && !exclude.has(e))
+        )
+      ).slice(0, MAX_ATTENDEES);
       if (!limitedEmails.length) return [];
 
-      // Get users first, then get their credentials and calendars
-      const userResults: Array<{ status: string; value?: any; reason?: any }> = [];
-      for (let i = 0; i < limitedEmails.length; i++) {
-        try {
-          const user = await this.dependencies.userRepo.findByEmail({ email: limitedEmails[i] });
-          userResults.push({ status: "fulfilled", value: user });
-        } catch (error) {
-          userResults.push({ status: "rejected", reason: error });
-        }
-      }
-      
-      // Get credentials and calendars for valid users
-      const usersWithCredentials: any[] = [];
-      for (let i = 0; i < userResults.length; i++) {
-        const result = userResults[i];
-        if (result.status === "fulfilled" && result.value && typeof result.value.id === "number") {
-          try {
-            const userWithCredentials = await this.dependencies.userRepo.findUserWithCredentials({ 
-              id: result.value.id 
-            });
-            if (userWithCredentials) {
-              usersWithCredentials.push({
-                ...userWithCredentials,
-                email: result.value.email,
-                username: result.value.username,
-              });
-            }
-          } catch (error) {
-            console.warn(`Failed to get credentials for user ${result.value.id}:`, error);
-          }
-        }
-      }
+      // Get users in parallel
+      const userResults = await Promise.allSettled(
+        limitedEmails.map((email) => this.dependencies.userRepo.findByEmail({ email }))
+      );
+      const foundUsers = userResults
+        .filter((r): r is PromiseFulfilledResult<{ id?: number; email?: string; username?: string } | null> => r.status === "fulfilled")
+        .map((r) => r.value)
+        .filter((u): u is { id: number; email?: string; username?: string } => !!u && typeof u.id === "number");
+
+      // Get credentials for valid users in parallel
+      const credsResults = await Promise.allSettled(
+        foundUsers.map((u) => this.dependencies.userRepo.findUserWithCredentials({ id: u.id }))
+      );
+      const usersWithCredentials = credsResults
+        .map((r, idx) => ({ r, u: foundUsers[idx] }))
+        .filter((x): x is { r: PromiseFulfilledResult<any>; u: { id: number; email?: string; username?: string } } => x.r.status === "fulfilled" && !!x.r.value)
+        .map(({ r, u }) => ({ ...r.value, email: u.email, username: u.username }));
+
+      // Log failures (structured)
+      userResults
+        .filter((r) => r.status === "rejected")
+        .forEach((r) => log.warn("Failed to resolve attendee user by email", { reason: String((r as PromiseRejectedResult).reason) }));
+      credsResults
+        .filter((r) => r.status === "rejected")
+        .forEach((r, idx) =>
+          log.warn("Failed to load attendee credentials", { userId: foundUsers[idx]?.id, reason: String((r as PromiseRejectedResult).reason) })
+        );
       
       return usersWithCredentials;
     } catch (error) {
@@ -1642,8 +1639,8 @@ export class AvailableSlotsService {
     const attendeeEmails: string[] = [];
 
     booking.attendees
-      .filter((a: any) => (a?.status || "ACCEPTED") === "ACCEPTED")
-      .forEach((a: any) => {
+      .filter((a: { status?: string }) => (a?.status || "ACCEPTED") === "ACCEPTED")
+      .forEach((a: { email?: string }) => {
         const email = String(a.email || "").toLowerCase();
         if (email && !excludeMap[email] && !emailsMap[email]) {
           emailsMap[email] = true;
@@ -1705,8 +1702,8 @@ export class AvailableSlotsService {
       const attendeeEmails: string[] = [];
       
       originalBooking.attendees
-        .filter((a: any) => (a?.status || "ACCEPTED") === "ACCEPTED")
-        .forEach((a: any) => {
+        .filter((a: { status?: string }) => (a?.status || "ACCEPTED") === "ACCEPTED")
+        .forEach((a: { email?: string }) => {
           const email = String(a.email || "").toLowerCase();
           if (email && existingEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
             attendeeEmailsMap[email] = true;
