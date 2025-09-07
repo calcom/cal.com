@@ -104,7 +104,7 @@ describe("Segment", () => {
 
   const defaultProps = {
     teamId: 1,
-    queryValue: defaultQueryValue as AttributesQueryValue | null,
+    queryValue: defaultQueryValue,
     onQueryValueChange: vi.fn(),
     className: "test-class",
   };
@@ -151,24 +151,14 @@ describe("Segment", () => {
 
   it("shows no filter selected message when empty query value is provided", async () => {
     mockGetMatchingTeamMembers({
-      isPending: false,
-      data: {
-        mainWarnings: null,
-        fallbackWarnings: null,
-        troubleshooter: undefined,
-        result: [
-          {
-            id: 1,
-            name: "John Doe",
-            email: "john@example.com",
-          },
-        ],
-      },
+      isPending: true,
+      data: undefined,
     });
 
     const emptyQueryValue = {
       id: "root",
       type: "group",
+      children1: {},
     } as AttributesQueryValue;
 
     render(<Segment {...defaultProps} queryValue={emptyQueryValue} />);
