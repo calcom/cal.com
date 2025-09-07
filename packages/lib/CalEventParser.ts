@@ -33,16 +33,18 @@ export const getWhen = (
 
 export const sanitizeText = (input: string | null | undefined): string => {
   const text = input || "";
-  const processed = markdownToSafeHTML(text);
-  const stripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
-  const result = breakUrl(stripped);
+  let stripped = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+  stripped = stripped.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, "");
+  stripped = stripped.replace(/<img[^>]*>/gi, "");
+  stripped = stripped.replace(/<[^>]+>/g, "");
+  const processed = markdownToSafeHTML(stripped);
+  const finalStripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
+  const result = breakUrl(finalStripped);
   return result.trim();
 };
 
 const breakUrl = (input: string): string => {
-  return input
-    .replace(/(https?|ftp|file|sftp):\/\//g, "$1://") // Keeping original protocol
-    .replace(/((?:https?|ftp|file|sftp):\/\/[^ ]+)(?<!\[)\./g, "$1[.]"); // Replacing dots in url
+  return input.replace(/(https?:\/\/)/g, "hxxp://").replace(/(?<!\[)\./g, "[.]");
 };
 
 export const getWho = (
@@ -52,7 +54,7 @@ export const getWho = (
   >,
   t: TFunction
 ) => {
-  let attendeesFromCalEvent = calEvent.attendees ? [...calEvent.attendees] : [];
+  let attendeesFromCalEvent = [...calEvent.attendees];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
     attendeesFromCalEvent = [];
   }
@@ -61,27 +63,25 @@ export const getWho = (
       (attendee) =>
         `${sanitizeText(attendee?.name) || t("guest")}${
           attendee.phoneNumber ? ` - ${sanitizeText(attendee.phoneNumber)}` : ""
-        }${!isSmsCalEmail(attendee.email) ? `\n${sanitizeText(attendee.email)}` : ""}`
+        }\n${!isSmsCalEmail(attendee.email) ? sanitizeText(attendee.email) : ""}`
     )
-    .join("\n")
-    .trim();
+    .join("\n");
 
   const organizer = calEvent.hideOrganizerEmail
     ? `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}`
     : `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}\n${sanitizeText(
         calEvent.organizer.email
-      )}`.trim();
+      )}`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
         .map((member) => `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeText(member.email)}`)
         .join("\n")
-        .trim()
-    : "";
+    : [];
 
   const result = `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
-    teamMembers ? `\n${teamMembers}` : ""
-  }`.trim();
+    teamMembers.length ? `\n${teamMembers}` : ""
+  }`;
   return result;
 };
 
@@ -89,7 +89,7 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   if (!calEvent.additionalNotes) {
     return "";
   }
-  const result = `${t("additional_notes")}:\n${sanitizeText(calEvent.additionalNotes)}`;
+  const result = `${t("additional_notes")}:\n${breakUrl(sanitizeText(calEvent.additionalNotes))}`;
   return result;
 };
 
@@ -229,9 +229,9 @@ export const getManageLink = (
     return getPlatformManageLink(calEvent, t);
   }
 
-  const uid = getUid(calEvent);
-  const baseUrl = calEvent.bookerUrl ?? WEBAPP_URL;
-  return `${t("reschedule")}: ${baseUrl}/booking/${uid}?changes=true`;
+  return `${t("need_to_reschedule_or_cancel")} ${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(
+    calEvent
+  )}?changes=true`;
 };
 
 export const getPlatformCancelLink = (
@@ -334,8 +334,6 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getUserFieldsResponses>[0] &
   Parameters<typeof getAppsStatus>[0] &
   Parameters<typeof getManageLink>[0] &
-  Parameters<typeof getSanitizedAdditionalFields>[0] &
-  Parameters<typeof getSanitizedCalEvent>[0] &
   Pick<CalendarEvent, "organizer" | "paymentInfo">;
 
 export const getRichDescriptionHTML = (
@@ -407,6 +405,7 @@ export const getRichDescription = (
   const parts = [
     getCancellationReason(calEvent, t),
     getWhat(calEvent, t),
+    getWhen(calEvent, t),
     getWho(calEvent, t),
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t),
@@ -462,17 +461,6 @@ export const getVideoCallPassword = (calEvent: CalendarEvent): string => {
   return isDailyVideoCall(calEvent) ? "" : calEvent?.videoCallData?.password ?? "";
 };
 
-export const getSanitizedAdditionalFields = (
-  calEvent: Pick<CalendarEvent, "description" | "cancellationReason" | "rejectionReason" | "location">
-) => {
-  return {
-    description: sanitizeText(calEvent.description),
-    cancellationReason: sanitizeText(calEvent.cancellationReason),
-    rejectionReason: sanitizeText(calEvent.rejectionReason),
-    location: sanitizeText(calEvent.location),
-  };
-};
-
 export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => {
   const sanitized = { ...calEvent };
   sanitized.title = sanitizeText(sanitized.title);
@@ -489,6 +477,7 @@ export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => 
   if (sanitized.team?.members) {
     sanitized.team = {
       ...sanitized.team,
+      name: sanitizeText(sanitized.team.name),
       members: sanitized.team.members.map((member) => ({
         ...member,
         name: sanitizeText(member.name),
@@ -497,11 +486,10 @@ export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => 
     };
   }
   sanitized.additionalNotes = sanitizeText(sanitized.additionalNotes);
-  const additionalFields = getSanitizedAdditionalFields(calEvent);
-  sanitized.description = additionalFields.description;
-  sanitized.cancellationReason = additionalFields.cancellationReason;
-  sanitized.rejectionReason = additionalFields.rejectionReason;
-  sanitized.location = additionalFields.location;
+  sanitized.description = sanitizeText(sanitized.description);
+  sanitized.cancellationReason = sanitizeText(sanitized.cancellationReason);
+  sanitized.rejectionReason = sanitizeText(sanitized.rejectionReason);
+  sanitized.location = sanitizeText(sanitized.location);
   if (sanitized.customInputs) {
     sanitized.customInputs = Object.fromEntries(
       Object.entries(sanitized.customInputs).map(([key, value]) => [
@@ -511,23 +499,21 @@ export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => 
     );
   }
   if (sanitized.responses) {
-    sanitized.responses = {
-      ...sanitized.responses,
-      ...Object.fromEntries(
-        Object.entries(sanitized.responses).map(([key, value]) => {
-          if (typeof value === "object" && value !== null && "value" in value) {
-            return [
-              key,
-              {
-                ...value,
-                value: typeof value.value === "string" ? sanitizeText(value.value) : String(value.value),
-              },
-            ];
-          }
-          return [key, typeof value === "string" ? sanitizeText(value) : String(value)];
-        })
-      ),
-    };
+    sanitized.responses = Object.fromEntries(
+      Object.entries(sanitized.responses).map(([key, value]) => {
+        if (typeof value === "object" && value !== null && "value" in value) {
+          return [
+            key,
+            {
+              ...value,
+              value: sanitizeText(String(value.value)),
+              label: sanitizeText(String(value.label)),
+            },
+          ];
+        }
+        return [key, sanitizeText(String(value))];
+      })
+    );
   }
   return sanitized;
 };
