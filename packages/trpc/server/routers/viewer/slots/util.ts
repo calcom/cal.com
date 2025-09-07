@@ -1578,14 +1578,17 @@ export class AvailableSlotsService {
 
       const MAX_ATTENDEES = 10;
       const exclude = new Set((excludeEmails || []).map((e) => e.toLowerCase()));
-      const limitedEmails = Array.from(
-        new Set(
-          (booking.attendees || [])
-            .map((a: { email?: string }) => String(a?.email || "").toLowerCase())
-            .filter((e: string) => e && !exclude.has(e))
-        )
-      ).slice(0, MAX_ATTENDEES);
-      if (!limitedEmails.length) return [];
+      const emailsLowerToOriginal = new Map<string, string>();
+      for (const a of booking.attendees || []) {
+        const status = (a as any)?.status ?? "ACCEPTED";
+        const emailOriginal = String((a as any)?.email || "");
+        const emailLower = emailOriginal.toLowerCase();
+        if (!emailLower || exclude.has(emailLower) || status !== "ACCEPTED") continue;
+        if (!emailsLowerToOriginal.has(emailLower)) emailsLowerToOriginal.set(emailLower, emailOriginal);
+        if (emailsLowerToOriginal.size >= MAX_ATTENDEES) break;
+      }
+      const limitedEmails = Array.from(emailsLowerToOriginal.values());
+      if (limitedEmails.length === 0) return [];
 
       // Get users in parallel
       const userResults = await Promise.allSettled(
@@ -1617,62 +1620,14 @@ export class AvailableSlotsService {
       
       return usersWithCredentials;
     } catch (error) {
-      console.error("Error fetching attendee users with credentials:", error);
+      log.error("Error fetching attendee users with credentials", {
+        rescheduleUid,
+        reason: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
   }
 
-  private async getAcceptedAttendeeUserIdsForReschedule(rescheduleUid: string, excludeEmails: string[]) {
-    const bookingRepo = this.dependencies.bookingRepo;
-    const userRepo = this.dependencies.userRepo;
-
-    const booking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
-    if (!booking?.attendees?.length) return [];
-
-    // Skip host emails so we don't conflict with ourselves
-    const excludeMap: { [key: string]: boolean } = {};
-    (excludeEmails || []).forEach((e) => {
-      excludeMap[e.toLowerCase()] = true;
-    });
-    
-    // Find attendee emails (limit to 10 to keep things fast)
-    const MAX_ATTENDEES = 10;
-    const emailsMap: { [key: string]: boolean } = {};
-    const attendeeEmails: string[] = [];
-
-    booking.attendees
-      .forEach((a: { email?: string }) => {
-        const email = String(a.email || "").toLowerCase();
-        if (email && !excludeMap[email] && !emailsMap[email]) {
-          emailsMap[email] = true;
-          attendeeEmails.push(email);
-        }
-      });
-
-    const limitedEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
-    if (!limitedEmails.length) return [];
-
-    // See which of these emails belong to actual Cal.com users
-    const results: Array<{ status: string; value?: any; reason?: any }> = [];
-    for (let i = 0; i < limitedEmails.length; i++) {
-      try {
-        const user = await userRepo.findByEmail({ email: limitedEmails[i] });
-        results.push({ status: "fulfilled", value: user });
-      } catch (error) {
-        results.push({ status: "rejected", reason: error });
-      }
-    }
-    
-    // Grab the user IDs from anyone we found
-    const userIds: number[] = [];
-    results.forEach((result) => {
-      if (result.status === "fulfilled" && result.value && typeof result.value.id === "number") {
-        userIds.push(result.value.id);
-      }
-    });
-    
-    return userIds;
-  }
 
   // Alternative method that adds attendees upstream instead of filtering afterwards
   // Currently unused - we're using the slot filtering approach above instead
