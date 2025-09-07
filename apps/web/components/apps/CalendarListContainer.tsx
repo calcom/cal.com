@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
@@ -13,6 +13,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Switch } from "@calcom/ui/components/form";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
@@ -104,6 +105,41 @@ export function CalendarListContainer({
 }: CalendarListContainerProps) {
   const { t } = useLocale();
   const { error, setQuery: setError } = useRouterQuery("error");
+  const [loading, setLoading] = useState(false);
+  const [isNotifyCalendarAlertsChecked, setIsNotifyCalendarAlertsChecked] = useState(true);
+
+  const { data: user } = trpc.viewer.me.get.useQuery();
+
+  // Sync local state with user data
+  useEffect(() => {
+    if (user) {
+      // Default to true if notifyCalendarAlerts is null/undefined (matches database default)
+      setIsNotifyCalendarAlertsChecked(user.notifyCalendarAlerts ?? true);
+    }
+  }, [user]);
+
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async () => {
+      showToast(t("settings_updated_successfully"), "success");
+      setLoading(false);
+      // Don't invalidate immediately to avoid race conditions with optimistic updates
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+      // Revert the optimistic update on error
+      setIsNotifyCalendarAlertsChecked(!isNotifyCalendarAlertsChecked);
+      setLoading(false);
+    },
+  });
+
+  const handleCalendarNotificationToggle = async (enabled: boolean) => {
+    setLoading(true);
+    // Optimistic update
+    setIsNotifyCalendarAlertsChecked(enabled);
+    updateProfileMutation.mutate({
+      notifyCalendarAlerts: enabled,
+    });
+  };
 
   useEffect(() => {
     if (error === "account_already_linked") {
@@ -152,6 +188,27 @@ export function CalendarListContainer({
               </Suspense>
             </>
           )}
+
+          {/* Calendar Notifications Section */}
+          <div className="border-subtle mt-8 rounded-b-xl border-x border-b px-4 pb-8 pt-6 sm:px-6">
+            <ShellSubHeading
+              title={t("calendar_notifications")}
+              subtitle={t("calendar_notifications_description")}
+            />
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex-grow">
+                <h3 className="text-emphasis text-sm font-medium leading-6">
+                  {t("unreachable_calendar_alerts")}
+                </h3>
+                <p className="text-subtle mt-1 text-sm">{t("unreachable_calendar_alerts_description")}</p>
+              </div>
+              <Switch
+                checked={isNotifyCalendarAlertsChecked}
+                onCheckedChange={handleCalendarNotificationToggle}
+                disabled={loading}
+              />
+            </div>
+          </div>
         </>
       ) : fromOnboarding ? (
         <>
@@ -162,6 +219,27 @@ export function CalendarListContainer({
             />
           )}
           <CalendarList onChanged={onChanged} />
+
+          {/* Calendar Notifications Section */}
+          <div className="border-subtle mt-8 rounded-b-xl border-x border-b px-4 pb-8 pt-6 sm:px-6">
+            <ShellSubHeading
+              title={t("calendar_notifications")}
+              subtitle={t("calendar_notifications_description")}
+            />
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex-grow">
+                <h3 className="text-emphasis text-sm font-medium leading-6">
+                  {t("unreachable_calendar_alerts")}
+                </h3>
+                <p className="text-subtle mt-1 text-sm">{t("unreachable_calendar_alerts_description")}</p>
+              </div>
+              <Switch
+                checked={isNotifyCalendarAlertsChecked}
+                onCheckedChange={handleCalendarNotificationToggle}
+                disabled={loading}
+              />
+            </div>
+          </div>
         </>
       ) : (
         <EmptyScreen
@@ -177,6 +255,27 @@ export function CalendarListContainer({
           }
         />
       )}
+
+      {/* Calendar Notifications Section */}
+      <div className="border-subtle mt-8 rounded-b-xl border-x border-b px-4 pb-8 pt-6 sm:px-6">
+        <ShellSubHeading
+          title={t("calendar_notifications")}
+          subtitle={t("calendar_notifications_description")}
+        />
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex-grow">
+            <h3 className="text-emphasis text-sm font-medium leading-6">
+              {t("unreachable_calendar_alerts")}
+            </h3>
+            <p className="text-subtle mt-1 text-sm">{t("unreachable_calendar_alerts_description")}</p>
+          </div>
+          <Switch
+            checked={isNotifyCalendarAlertsChecked}
+            onCheckedChange={handleCalendarNotificationToggle}
+            disabled={loading}
+          />
+        </div>
+      </div>
     </SettingsHeader>
   );
 }

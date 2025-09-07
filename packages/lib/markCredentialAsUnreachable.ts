@@ -25,8 +25,8 @@ export async function markCredentialAsUnreachable(credentialId: number, error?: 
         },
         app: {
           select: {
-            name: true,
             slug: true,
+            dirName: true,
           },
         },
       },
@@ -40,7 +40,7 @@ export async function markCredentialAsUnreachable(credentialId: number, error?: 
     const now = new Date();
     const shouldNotify = shouldSendNotification(
       credential.lastNotified,
-      credential.user.notifyCalendarAlerts
+      credential.user.notifyCalendarAlerts ?? true
     );
 
     // Update the credential status
@@ -55,12 +55,10 @@ export async function markCredentialAsUnreachable(credentialId: number, error?: 
     // Send notification email if appropriate
     if (shouldNotify && credential.user.email) {
       await sendUnreachableCalendarEmail({
-        user: {
-          email: credential.user.email || "",
-          name: credential.user.name || "there",
-        },
-        calendarName: credential.app?.name || "calendar",
-        calendarType: credential.type,
+        recipientEmail: credential.user.email,
+        recipientName: credential.user.name || "there",
+        calendarName: credential.app?.slug || credential.app?.dirName || "calendar",
+        reason: error || "Calendar connection issue detected",
       });
 
       console.log(

@@ -24,6 +24,8 @@ type CredentialUpdateInput = {
   appId?: string;
   delegationCredentialId?: string | null;
   invalid?: boolean;
+  isUnreachable?: boolean;
+  lastNotified?: Date | null;
 };
 
 export class CredentialRepository {
