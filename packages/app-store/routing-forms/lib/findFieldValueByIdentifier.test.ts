@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 
+import type { RoutingFormResponseData } from "@calcom/lib/server/service/routingForm/responseData/types";
+
 import { findFieldValueByIdentifier } from "./findFieldValueByIdentifier";
-import type { RoutingFormResponseData } from "./types";
 
 describe("findFieldValueByIdentifier", () => {
   const responseData: RoutingFormResponseData = {
