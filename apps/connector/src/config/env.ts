@@ -10,6 +10,8 @@ export const envSchema = {
     "DATABASE_URL",
     "LOG_LEVEL",
     "API_KEY_PREFIX",
+    "UNKEY_ROOT_KEY",
+    "UNKEY_NAMESPACE",
   ],
   properties: {
     NODE_ENV: { type: "string", enum: ["development", "production", "test"] },
@@ -25,5 +27,7 @@ export const envSchema = {
       default: "info",
     },
     API_KEY_PREFIX: { type: "string" },
+    UNKEY_ROOT_KEY: { type: "string" },
+    UNKEY_NAMESPACE: { type: "string" },
   },
 };

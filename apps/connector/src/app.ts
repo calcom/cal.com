@@ -15,7 +15,6 @@ declare module "fastify" {
     prisma: PrismaClient;
   }
 }
-
 export async function createApp(): Promise<FastifyInstance> {
   console.log("🚀 Starting app creation...");
 
@@ -35,8 +34,16 @@ export async function createApp(): Promise<FastifyInstance> {
     });
     console.log("✅ Env plugin registered successfully");
 
-    //Registering plugins: prisma, , swagger
+    // Wait for env plugin to be fully ready
+    await fastify.after();
+
+    console.log("🔌 Starting plugin registration...");
+    //Registering plugins: prisma, auth, ratelimit, swagger
     await registerPlugins(fastify);
+    console.log("✅ All plugins registered successfully");
+
+    // Ensure all plugins are ready before registering routes
+    await fastify.after();
 
     console.log("🛣️ Starting route registration...");
     await registerRoutes(fastify);
@@ -45,6 +52,7 @@ export async function createApp(): Promise<FastifyInstance> {
     console.log("🎉 App creation completed successfully");
     return fastify;
   } catch (error) {
+    console.error("❌ App creation failed:", error);
     console.error("Full error object:", error);
     throw error;
   }
