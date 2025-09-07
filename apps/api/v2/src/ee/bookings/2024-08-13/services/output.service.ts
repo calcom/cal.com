@@ -12,15 +12,17 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { bookingMetadataSchema } from "@calcom/platform-libraries";
-import type {
-  BookingOutput_2024_08_13,
-  CreateRecurringSeatedBookingOutput_2024_08_13,
-  CreateSeatedBookingOutput_2024_08_13,
+import {
   GetRecurringSeatedBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  ReassignBookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
+  BookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import type {
+  CreateRecurringSeatedBookingOutput_2024_08_13,
+  CreateSeatedBookingOutput_2024_08_13,
+  ReassignBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import type { Booking, BookingSeat } from "@calcom/prisma/client";
 
