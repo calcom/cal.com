@@ -12,7 +12,7 @@ export const AppDependencyComponent = ({
   dependencyData,
 }: {
   appName: string;
-  dependencyData: { name: string; slug: string; installed: boolean }[];
+  dependencyData?: { name: string; slug: string; installed: boolean }[];
 }) => {
   const { t } = useLocale();
 
