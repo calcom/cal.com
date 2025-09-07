@@ -777,6 +777,35 @@ export class AvailableSlotsService {
       input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
+    
+    // When rescheduling, add attendee emails to the availability check
+    if (input.rescheduleUid) {
+      try {
+        const bookingToReschedule = await this.dependencies.bookingRepo.findBookingByUid({
+          bookingUid: input.rescheduleUid,
+        });
+        
+        if (bookingToReschedule?.attendees) {
+          // Find Cal.com users among attendees and add their emails to the map
+          for (const attendee of bookingToReschedule.attendees) {
+            const calUser = await this.dependencies.userRepo.findByEmail({ email: attendee.email });
+            if (calUser && !userIdAndEmailMap.has(calUser.id)) {
+              userIdAndEmailMap.set(calUser.id, calUser.email);
+              loggerWithEventDetails.debug("Added attendee to availability check", {
+                attendeeEmail: calUser.email,
+                attendeeId: calUser.id,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        loggerWithEventDetails.warn("Failed to add attendee availability for reschedule", {
+          rescheduleUid: input.rescheduleUid,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+    
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
