@@ -149,7 +149,7 @@ describe("Segment", () => {
     });
   });
 
-  it("shows matching team members when query value is provided", async () => {
+  it("shows no filter selected message when empty query value is provided", async () => {
     mockGetMatchingTeamMembers({
       isPending: false,
       data: {
@@ -166,12 +166,35 @@ describe("Segment", () => {
       },
     });
 
-    const queryValue = {
+    const emptyQueryValue = {
       id: "root",
       type: "group",
     } as AttributesQueryValue;
 
-    render(<Segment {...defaultProps} queryValue={queryValue} />);
+    render(<Segment {...defaultProps} queryValue={emptyQueryValue} />);
+    await waitFor(() => {
+      expect(screen.getByText("no_filter_set")).toBeInTheDocument();
+    });
+  });
+
+  it("shows matching team members when valid query value is provided", async () => {
+    mockGetMatchingTeamMembers({
+      isPending: false,
+      data: {
+        mainWarnings: null,
+        fallbackWarnings: null,
+        troubleshooter: undefined,
+        result: [
+          {
+            id: 1,
+            name: "John Doe",
+            email: "john@example.com",
+          },
+        ],
+      },
+    });
+
+    render(<Segment {...defaultProps} queryValue={defaultQueryValue} />);
     await waitFor(() => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
       expect(screen.getByText("(john@example.com)")).toBeInTheDocument();
