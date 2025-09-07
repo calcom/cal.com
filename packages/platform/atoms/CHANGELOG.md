@@ -1,5 +1,11 @@
 ## 1.1.2
 
+## 1.7.0
+
+### Minor Changes
+
+- [#23445](https://github.com/calcom/cal.com/pull/23445) [`9724bc0`](https://github.com/calcom/cal.com/commit/9724bc07a6d9bfe3ff32fa4e5657de2da3068d85) Thanks [@supalarry](https://github.com/supalarry)! - feat: italian language support
+
 ## 1.6.0
 
 ### Minor Changes
