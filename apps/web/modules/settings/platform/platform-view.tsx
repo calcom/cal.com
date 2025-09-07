@@ -1,10 +1,10 @@
 "use client";
 
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
@@ -18,10 +18,18 @@ import { PlatformPricing } from "@components/settings/platform/pricing/platform-
 
 const queryClient = new QueryClient();
 
+const PlatformSkeletonLoader = () => (
+  <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
+    <div className="m-5">
+      <SkeletonText className="h-8 w-full" />
+      <SkeletonText className="mt-4 h-8 w-3/4" />
+      <SkeletonText className="mt-4 h-8 w-1/2" />
+    </div>
+  </Shell>
+);
+
 export default function Platform() {
   const { t } = useLocale();
-  const [initialClientId, setInitialClientId] = useState("");
-  const [initialClientName, setInitialClientName] = useState("");
 
   const { data, isLoading: isOAuthClientLoading, refetch: refetchClients } = useOAuthClients();
 
@@ -39,15 +47,10 @@ export default function Platform() {
     await mutateAsync({ id: id });
   };
 
-  useEffect(() => {
-    setInitialClientId(data[0]?.id);
-    setInitialClientName(data[0]?.name);
-  }, [data]);
-
-  if (isUserLoading || isOAuthClientLoading) return <div className="m-5">{t("loading")}</div>;
+  if (isUserLoading || isOAuthClientLoading) return <PlatformSkeletonLoader />;
 
   if (isUserBillingDataLoading && !userBillingData) {
-    return <div className="m-5">{t("loading")}</div>;
+    return <PlatformSkeletonLoader />;
   }
 
   if (isPlatformUser && !isPaidUser)
