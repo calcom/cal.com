@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
 import { Segment } from "@calcom/features/Segment";
+import { buildEmptyQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
@@ -87,7 +88,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 describe("Segment", () => {
   const defaultProps = {
     teamId: 1,
-    queryValue: null as AttributesQueryValue | null,
+    queryValue: buildEmptyQueryValue() as AttributesQueryValue | null,
     onQueryValueChange: vi.fn(),
     className: "test-class",
   };
