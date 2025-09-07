@@ -777,35 +777,6 @@ export class AvailableSlotsService {
       input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
-    
-    // When rescheduling, add attendee emails to the availability check
-    if (input.rescheduleUid) {
-      try {
-        const bookingToReschedule = await this.dependencies.bookingRepo.findBookingByUid({
-          bookingUid: input.rescheduleUid,
-        });
-        
-        if (bookingToReschedule?.attendees) {
-          // Find Cal.com users among attendees and add their emails to the map
-          for (const attendee of bookingToReschedule.attendees) {
-            const calUser = await this.dependencies.userRepo.findByEmail({ email: attendee.email });
-            if (calUser && !userIdAndEmailMap.has(calUser.id)) {
-              userIdAndEmailMap.set(calUser.id, calUser.email);
-              loggerWithEventDetails.debug("Added attendee to availability check", {
-                attendeeEmail: calUser.email,
-                attendeeId: calUser.id,
-              });
-            }
-          }
-        }
-      } catch (error) {
-        loggerWithEventDetails.warn("Failed to add attendee availability for reschedule", {
-          rescheduleUid: input.rescheduleUid,
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
-      }
-    }
-    
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
@@ -1464,8 +1435,47 @@ export class AvailableSlotsService {
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
+    // Filter out slots where Cal.com attendees have conflicts during reschedule
+    let finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
+    if (input.rescheduleUid) {
+      const attendeeConflicts = await this.getAttendeeConflictsForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        startTime: startTime.toDate(),
+        endTime: endTime.toDate(),
+        loggerWithEventDetails,
+      });
+
+      if (attendeeConflicts.length > 0) {
+        finalSlotsMappedToDate = {} as typeof withinBoundsSlotsMappedToDate;
+        
+        for (const [date, slots] of Object.entries(withinBoundsSlotsMappedToDate)) {
+          const slotsWithoutConflicts = slots.filter(slot => {
+            const slotStart = dayjs(slot.time).toDate();
+            const slotEnd = dayjs(slot.time).add(eventType.length, 'minute').toDate();
+            
+            // Check if this slot overlaps with any attendee conflict
+            const hasConflict = attendeeConflicts.some(conflict => 
+              (slotStart < conflict.slotEndTime && slotEnd > conflict.slotStartTime)
+            );
+            
+            return !hasConflict;
+          });
+          
+          if (slotsWithoutConflicts.length > 0) {
+            finalSlotsMappedToDate[date] = slotsWithoutConflicts;
+          }
+        }
+        
+        loggerWithEventDetails.debug("Filtered slots for attendee conflicts", {
+          originalSlotCount: Object.values(withinBoundsSlotsMappedToDate).flat().length,
+          filteredSlotCount: Object.values(finalSlotsMappedToDate).flat().length,
+          conflictCount: attendeeConflicts.length,
+        });
+      }
+    }
+
     // We only want to run this on single targeted events and not dynamic
-    if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
+    if (!Object.keys(finalSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
         await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
           eventDetails: {
@@ -1507,8 +1517,103 @@ export class AvailableSlotsService {
       : null;
 
     return {
-      slots: withinBoundsSlotsMappedToDate,
+      slots: finalSlotsMappedToDate,
       ...troubleshooterData,
     };
+  }
+
+  /**
+   * Check if Cal.com attendees have conflicts during reschedule
+   * This is the proper solution for attendee availability checking
+   */
+  private async getAttendeeConflictsForReschedule({
+    rescheduleUid,
+    startTime,
+    endTime,
+    loggerWithEventDetails,
+  }: {
+    rescheduleUid: string;
+    startTime: Date;
+    endTime: Date;
+    loggerWithEventDetails: Logger<unknown>;
+  }): Promise<{ slotStartTime: Date; slotEndTime: Date }[]> {
+    try {
+      // 1. Get original booking with attendees
+      const originalBooking = await this.dependencies.bookingRepo.findBookingByUid({
+        bookingUid: rescheduleUid,
+      });
+
+      if (!originalBooking?.attendees?.length) {
+        return [];
+      }
+
+      // 2. Find all Cal.com users among attendees using existing single-email lookup
+      const attendeeEmails = originalBooking.attendees.map(a => a.email);
+      const calAttendees = [];
+      
+      // Use existing findByEmail method for each attendee (optimized batch approach would require new repo method)
+      for (const email of attendeeEmails) {
+        try {
+          const calUser = await this.dependencies.userRepo.findByEmail({ email });
+          if (calUser) {
+            calAttendees.push(calUser);
+          }
+        } catch (error) {
+          // Continue if user not found
+          loggerWithEventDetails.debug("Attendee not found as Cal.com user", { email });
+        }
+      }
+
+      if (!calAttendees.length) {
+        loggerWithEventDetails.debug("No Cal.com users found among attendees");
+        return [];
+      }
+
+      loggerWithEventDetails.debug("Found Cal.com attendees for reschedule check", {
+        attendeeCount: calAttendees.length,
+        attendeeEmails: calAttendees.map(a => a.email),
+      });
+
+      // 3. Create userIdAndEmailMap for attendees only
+      const attendeeUserIdAndEmailMap = new Map(
+        calAttendees.map(user => [user.id, user.email])
+      );
+
+      // 4. Get attendee conflicts using existing efficient method
+      const attendeeConflicts = await this.dependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: startTime,
+        endDate: endTime,
+        eventTypeId: null, // Check across all event types
+        seatedEvent: false,
+        userIdAndEmailMap: attendeeUserIdAndEmailMap,
+      });
+
+      // 5. Filter out the original booking being rescheduled
+      const relevantConflicts = attendeeConflicts.filter(
+        booking => booking.uid !== rescheduleUid
+      );
+
+      // 6. Convert to slot conflict format
+      const conflictSlots = relevantConflicts.map(booking => ({
+        slotStartTime: booking.startTime,
+        slotEndTime: booking.endTime,
+      }));
+
+      loggerWithEventDetails.debug("Found attendee conflicts", {
+        totalConflicts: attendeeConflicts.length,
+        relevantConflicts: conflictSlots.length,
+        excludedOriginal: attendeeConflicts.length - conflictSlots.length,
+      });
+
+      return conflictSlots;
+
+    } catch (error) {
+      loggerWithEventDetails.error("Failed to check attendee conflicts for reschedule", {
+        rescheduleUid,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      // Graceful degradation: return no conflicts to avoid blocking reschedule
+      return [];
+    }
   }
 }
