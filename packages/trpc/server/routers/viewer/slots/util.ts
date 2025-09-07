@@ -796,8 +796,7 @@ export class AvailableSlotsService {
       });
     }
     
-    const allUserIds: number[] = [];
-    userIdAndEmailMap.forEach((_, userId) => allUserIds.push(userId));
+    const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
