@@ -867,7 +867,10 @@ export default function Success(props: PageProps) {
                               uid: bookingInfo?.uid,
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
+                              startTime: bookingInfo?.startTime,
+                              payment: props.paymentStatus,
                             }}
+                            eventTypeMetadata={eventType.metadata}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}

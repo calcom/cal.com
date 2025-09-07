@@ -2956,5 +2956,154 @@ describe("handleNewBooking", () => {
       },
       timeout
     );
+
+    test(
+      "should set correct booking reference when rescheduling with phone location change",
+      async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "test@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_RESCHEDULED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [
+                  {
+                    type: "phone", // ← Original generic phone location
+                  },
+                ],
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                references: [
+                  getMockBookingReference({
+                    type: "google_calendar",
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-google-meet.example.com",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: 1,
+                  }),
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: booker.name,
+                    email: booker.email,
+                  }),
+                ],
+                // Different location from the one in the new booking
+                location: "+15552234567",
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: [],
+            apps: [TestData.apps["google-calendar"]],
+          })
+        );
+
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: { uid: "NEW_EVENT_ID" },
+          update: { uid: "UPDATED_EVENT_ID" },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: uidOfBookingToBeRescheduled,
+            start: `${plus1DateString}T06:00:00.000Z`,
+            end: `${plus1DateString}T06:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "+15551234567", value: "+15551234567" },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        logger.silly("Created booking", { createdBooking });
+
+        await expectBookingInDBToBeRescheduledFromTo({
+          from: {
+            uid: uidOfBookingToBeRescheduled,
+          },
+          to: {
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBooking.uid!,
+            eventTypeId: 1,
+            // Only recurring event can have recurringEventId
+            recurringEventId: null,
+            location: "+15551234567",
+            status: BookingStatus.ACCEPTED,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
+          },
+        });
+
+        // ✅ THE CRITICAL TEST: Ensure BookingReference has proper values
+        const newBooking = await prismaMock.booking.findFirst({
+          where: {
+            uid: createdBooking.uid,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(newBooking?.references).toHaveLength(1);
+        const reference = newBooking!.references[0];
+
+        // Valid reference should have uid
+        expect(reference.uid).toBe("UPDATED_EVENT_ID");
+      },
+      timeout
+    );
   });
 });
