@@ -86,6 +86,13 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     }
   };
 
+  const truncateText = (text: string, maxLength = 170): string => {
+    if (!text || text.length <= maxLength) return text;
+    const truncated = text.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(" ");
+    return `${lastSpace > 0 ? text.substring(0, lastSpace) : truncated}...`;
+  };
+
   return (
     <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
@@ -117,16 +124,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
-        className="text-default mt-2 flex-grow text-sm"
-        style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}>
-        {app.description}
-      </p>
+      <p className="text-default mt-2 flex-grow text-sm">{truncateText(app.description)}</p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
