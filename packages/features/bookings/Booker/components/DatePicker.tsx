@@ -2,6 +2,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { DatePickerClassNames } from "@calcom/features/bookings/Booker/types";
 import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
@@ -11,7 +12,6 @@ import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
 
 import type { Slots } from "../../types";
-import { useBookerStore } from "../store";
 
 const useMoveToNextMonthOnNoAvailability = ({
   browsingDate,
@@ -57,6 +57,7 @@ export const DatePicker = ({
   isLoading,
   classNames,
   scrollToTimeSlots,
+  showNoAvailabilityDialog,
 }: {
   event: {
     data?: {
@@ -72,14 +73,15 @@ export const DatePicker = ({
   isLoading?: boolean;
   classNames?: DatePickerClassNames;
   scrollToTimeSlots?: () => void;
+  showNoAvailabilityDialog?: boolean;
 }) => {
   const { i18n } = useLocale();
-  const [month, selectedDate, layout] = useBookerStore(
+  const [month, selectedDate, layout] = useBookerStoreContext(
     (state) => [state.month, state.selectedDate, state.layout],
     shallow
   );
 
-  const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
+  const [setSelectedDate, setMonth, setDayCount] = useBookerStoreContext(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
     shallow
   );
@@ -148,6 +150,7 @@ export const DatePicker = ({
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}
       isCompact={isCompact}
+      showNoAvailabilityDialog={showNoAvailabilityDialog}
     />
   );
 };

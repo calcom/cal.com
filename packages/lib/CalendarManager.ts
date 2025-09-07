@@ -2,6 +2,7 @@
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
@@ -34,7 +35,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = getCalendar(credential);
+        const calendar = () => getCalendar(credential);
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -70,7 +71,18 @@ export const getConnectedCalendars = async (
             delegationCredentialId,
           };
         }
-        const cals = await calendar.listCalendars();
+        const calendarInstance = await calendar();
+        if (!calendarInstance) {
+          return {
+            integration: safeToSendIntegration,
+            credentialId,
+            delegationCredentialId,
+            error: {
+              message: "Could not get calendar instance",
+            },
+          };
+        }
+        const cals = await calendarInstance.listCalendars();
         const calendars = sortBy(
           cals.map((cal: IntegrationCalendar) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
@@ -494,12 +506,14 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calendarDescription: getRichDescription(calEvent),
   };
 
+  const isMeetLocationType = calEvent.location === MeetLocationType;
+
   // Determine if the calendar event should include attendees
   const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
     .filter((domain) => domain.trim() !== "")
     .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
-  if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
+  if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType) {
     calendarEvent.attendees = [];
   }
 

@@ -18,7 +18,6 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -27,7 +26,6 @@ import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@cal
 import {
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
-  CreateRecurringSeatedBookingOutput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
@@ -35,11 +33,9 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
-  const googleMeetUrl = "https://meet.google.com/abc-def-ghi";
-
   describe("Seated bookings", () => {
     let app: INestApplication;
     let organization: Team;
@@ -48,7 +44,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let schedulesService: SchedulesService_2024_04_15;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let bookingSeatRepositoryFixture: BookingSeatRepositoryFixture;
@@ -58,7 +53,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let apiKeyString: string;
 
     let seatedEventTypeId: number;
-    const maxRecurrenceCount = 3;
 
     const seatedEventSlug = `seated-bookings-event-type-${randomString()}`;
 
@@ -83,7 +77,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
@@ -190,6 +183,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               absent: false,
               seatUid,
               bookingFieldsResponses: {
+                guests: [],
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
               },
@@ -264,6 +258,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               absent: false,
               seatUid: createdSeatedBooking.seatUid,
               bookingFieldsResponses: {
+                guests: [],
                 name: createdSeatedBooking.attendees[0].name,
                 ...createdSeatedBooking.attendees[0].bookingFieldsResponses,
               },
@@ -278,6 +273,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               absent: false,
               seatUid,
               bookingFieldsResponses: {
+                guests: [],
                 name: body.attendee.name,
                 ...body.bookingFieldsResponses,
               },
@@ -517,6 +513,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   absent: false,
                   seatUid,
                   bookingFieldsResponses: {
+                    guests: [],
                     name: body.attendee.name,
                     ...body.bookingFieldsResponses,
                   },

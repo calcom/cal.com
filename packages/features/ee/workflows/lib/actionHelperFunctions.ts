@@ -34,6 +34,10 @@ export function isSMSOrWhatsappAction(action: WorkflowActions) {
   return isSMSAction(action) || isWhatsappAction(action);
 }
 
+export function isCalAIAction(action: WorkflowActions) {
+  return action === WorkflowActions.CAL_AI_PHONE_CALL;
+}
+
 export function isEmailAction(action: WorkflowActions) {
   return (
     action === WorkflowActions.EMAIL_ADDRESS ||

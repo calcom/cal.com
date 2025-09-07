@@ -103,17 +103,51 @@ export const useInsightsColumns = ({
         size: 200,
         enableColumnFilter: false,
         enableSorting: false,
-        meta: {
-          filter: {
-            type: ColumnFilterType.TEXT,
-            textOptions: {
-              placeholder: t("name_or_email"),
-            },
-          },
-        },
         cell: (info) => {
           return <BookedByCell attendees={info.getValue()} rowId={info.row.original.id} />;
         },
+      }),
+
+      // Invisible attendee name filter
+      columnHelper.accessor("bookingAttendees", {
+        id: "attendeeName",
+        header: t("attendee_name"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+        cell: () => null,
+      }),
+
+      // Invisible attendee email filter
+      columnHelper.accessor("bookingAttendees", {
+        id: "attendeeEmail",
+        header: t("attendee_email_variable"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+        cell: () => null,
+      }),
+
+      // Invisible attendee phone filter
+      columnHelper.accessor("bookingAttendees", {
+        id: "attendeePhone",
+        header: t("attendee_phone_number"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+        cell: () => null,
       }),
 
       ...((headers || []).map((fieldHeader) => {
@@ -145,19 +179,28 @@ export const useInsightsColumns = ({
             return acc;
           }, {} as Record<string, string>) ?? {};
 
-        return columnHelper.accessor(`response.${fieldHeader.id}`, {
+        return columnHelper.accessor((row) => row.fields.find((field) => field.fieldId === fieldHeader.id), {
           id: fieldHeader.id,
           header: startCase(fieldHeader.label),
           enableSorting: false,
           cell: (info) => {
-            const values = info.getValue();
+            let values;
+
+            if (isMultiSelect) {
+              values = info.getValue()?.valueStringArray;
+            } else if (isNumber) {
+              values = info.getValue()?.valueNumber;
+            } else {
+              values = info.getValue()?.valueString;
+            }
+
             if (isMultiSelect || isSingleSelect) {
               const result = z.union([ZResponseMultipleValues, ZResponseSingleValue]).safeParse(values);
               return (
                 result.success && (
                   <ResponseValueCell
                     optionMap={optionMap}
-                    values={Array.isArray(result.data.value) ? result.data.value : [result.data.value]}
+                    values={Array.isArray(result.data) ? result.data : [result.data]}
                     rowId={info.row.original.id}
                   />
                 )
@@ -167,7 +210,7 @@ export const useInsightsColumns = ({
               return (
                 result.success && (
                   <div className="truncate">
-                    <span title={String(result.data.value)}>{result.data.value}</span>
+                    <span title={String(result.data)}>{result.data}</span>
                   </div>
                 )
               );

@@ -7,6 +7,7 @@ import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { UserRepository } from "./user";
 
@@ -669,25 +670,14 @@ export class BookingRepository {
           select: {
             id: true,
             name: true,
+            username: true,
             email: true,
             locale: true,
             timeZone: true,
+            timeFormat: true,
             destinationCalendar: true,
             credentials: {
-              select: {
-                id: true,
-                userId: true,
-                key: true,
-                type: true,
-                teamId: true,
-                appId: true,
-                invalid: true,
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
+              select: credentialForCalendarServiceSelect,
             },
           },
         },
@@ -838,6 +828,7 @@ export class BookingRepository {
         attendees: true,
         references: true,
         user: true,
+        payment: true,
       },
     });
   }
@@ -934,5 +925,70 @@ export class BookingRepository {
     `;
     }
     return totalBookingTime.totalMinutes ?? 0;
+  }
+
+  async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        uid: rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+        },
+      },
+      select: {
+        userId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getBookingForPaymentProcessing(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        userPrimaryEmail: true,
+        status: true,
+        eventTypeId: true,
+        userId: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
+        eventType: {
+          select: {
+            title: true,
+            hideOrganizerEmail: true,
+            teamId: true,
+            metadata: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            paymentOption: true,
+            appId: true,
+            success: true,
+            data: true,
+          },
+        },
+      },
+    });
   }
 }

@@ -36,7 +36,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
-import { getBusyTimesService } from "./di/containers/busy-times";
+import { getBusyTimesService } from "./di/containers/BusyTimes";
 import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "./intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "./sentryWrapper";
 
@@ -54,6 +54,7 @@ const availabilitySchema = z
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
     bypassBusyCalendarTimes: z.boolean().optional(),
+    silentlyHandleCalendarFailures: z.boolean().optional(),
     shouldServeCache: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
@@ -110,6 +111,7 @@ type GetUserAvailabilityQuery = {
   duration?: number;
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes: boolean;
+  silentlyHandleCalendarFailures?: boolean;
   shouldServeCache?: boolean;
 };
 
@@ -295,6 +297,7 @@ export class UserAvailabilityService {
       duration,
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
+      silentlyHandleCalendarFailures = false,
       shouldServeCache,
     } = availabilitySchema.parse(query);
 
@@ -457,6 +460,7 @@ export class UserAvailabilityService {
         duration,
         currentBookings: initialData?.currentBookings,
         bypassBusyCalendarTimes,
+        silentlyHandleCalendarFailures,
         shouldServeCache,
       });
     } catch (error) {

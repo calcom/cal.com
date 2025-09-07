@@ -69,7 +69,7 @@ test.describe("private links creation and usage", () => {
 
     // Ensure that private URL is enabled after modifying the event type.
     // Additionally, if the slug is changed, ensure that the private URL is updated accordingly.
-    await page.getByTestId("vertical-tab-event_setup_tab_title").click();
+    await page.getByTestId("vertical-tab-basics").click();
     await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
     await expect(page.locator('[data-testid="event-slug"]').first()).toHaveValue("somethingrandom");

@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useState, Suspense, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -10,9 +10,10 @@ import {
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapperSkeleton,
 } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
+import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -521,6 +522,8 @@ export const EventAdvancedTab = ({
     eventType.allowReschedulingCancelledBookings ?? false
   );
 
+  const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
+
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
@@ -564,6 +567,10 @@ export const EventAdvancedTab = ({
     }));
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
+
+  const TimezoneSelect = useMemo(() => {
+    return isPlatform ? PlatformTimzoneSelect : WebTimezoneSelect;
+  }, [isPlatform]);
 
   return (
     <div className="flex flex-col space-y-4">
@@ -1258,6 +1265,29 @@ export const EventAdvancedTab = ({
             </div>
           </SettingsToggle>
         )}
+      />
+      <Controller
+        name="showOptimizedSlots"
+        render={({ field: { onChange, value } }) => {
+          const isChecked = value;
+          return (
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              labelClassName="text-sm"
+              title={t("show_optimized_slots")}
+              description={t("show_optimized_slots_description")}
+              checked={isChecked}
+              {...showOptimizedSlotsLocked}
+              onCheckedChange={(active) => {
+                onChange(active ?? false);
+              }}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                isChecked && "rounded-b-none"
+              )}
+            />
+          );
+        }}
       />
       {isRoundRobinEventType && (
         <Controller

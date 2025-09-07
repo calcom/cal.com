@@ -1,3 +1,6 @@
+/**
+ * TODO: Consolidate this file with BookingLocationService and add tests
+ */
 import type { TFunction } from "i18next";
 import { z } from "zod";
 
@@ -7,6 +10,13 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
+import {
+  MeetLocationType as importedMeetLocationType,
+  MSTeamsLocationType as importedMSTeamsLocationType,
+} from "./constants";
+
+export const MeetLocationType = importedMeetLocationType;
+export const MSTeamsLocationType = importedMSTeamsLocationType;
 
 export type DefaultEventLocationType = {
   default: true;
@@ -15,6 +25,7 @@ export type DefaultEventLocationType = {
   messageForOrganizer: string;
   category: "in person" | "conferencing" | "other" | "phone";
   linkType: "static";
+  supportsCustomLabel?: boolean;
 
   iconUrl: string;
   urlRegExp?: string;
@@ -39,6 +50,7 @@ export type DefaultEventLocationType = {
   | {
       organizerInputType: "phone" | "text" | null;
       organizerInputPlaceholder?: string | null;
+      organizerInputLabel?: string | null;
       attendeeInputType?: null;
       attendeeInputPlaceholder?: null;
     }
@@ -53,13 +65,12 @@ export type DefaultEventLocationType = {
 export type EventLocationTypeFromApp = Ensure<
   EventLocationTypeFromAppMeta,
   "defaultValueVariable" | "variable"
->;
+> & { supportsCustomLabel?: boolean; organizerInputLabel?: string };
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
 export const DailyLocationType = "integrations:daily";
-
-export const MeetLocationType = "integrations:google:meet";
+export const CalVideoLocationType = DailyLocationType;
 
 /**
  * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking
@@ -142,18 +153,21 @@ export const defaultLocations: DefaultEventLocationType[] = [
     category: "conferencing",
     messageForOrganizer: "",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
     type: DefaultEventLocationTypeEnum.Link,
     label: "link_meeting",
     organizerInputType: "text",
+    organizerInputLabel: "meeting_link",
     variable: "locationLink",
     messageForOrganizer: "Provide a Meeting Link",
     defaultValueVariable: "link",
     iconUrl: "/link.svg",
     category: "other",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -177,6 +191,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     label: "organizer_phone_number",
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
+    organizerInputLabel: "phone_number",
     variable: "locationPhoneNumber",
     defaultValueVariable: "hostPhoneNumber",
     iconUrl: "/phone.svg",
@@ -201,6 +216,7 @@ export type LocationObject = {
   address?: string;
   displayLocationPublicly?: boolean;
   credentialId?: number;
+  customLabel?: string;
 } & Partial<
   Record<
     "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "somewhereElse",
@@ -281,7 +297,7 @@ export const guessEventLocationType = (locationTypeOrValue: string | undefined |
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
-type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link">;
+type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link" | "customLabel">;
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
   const locationsAfterPrivacyFilter = locations.map((location) => {
@@ -378,7 +394,7 @@ export const getLocationValueForDB = (
   eventLocations: LocationObject[]
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
-  let conferenceCredentialId = undefined;
+  let conferenceCredentialId: number | undefined = undefined;
 
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {

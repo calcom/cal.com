@@ -3,7 +3,6 @@ import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
@@ -45,10 +44,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 export class TeamsMembershipsController {
   private logger = new Logger("TeamsMembershipsController");
 
-  constructor(
-    private teamsMembershipsService: TeamsMembershipsService,
-    private teamsEventTypesService: TeamsEventTypesService
-  ) {}
+  constructor(private teamsMembershipsService: TeamsMembershipsService) {}
 
   @Roles("TEAM_ADMIN")
   @Post("/")
@@ -127,7 +123,6 @@ export class TeamsMembershipsController {
       membershipId,
       body
     );
-
     if (!currentMembership.accepted && updatedMembership.accepted) {
       try {
         await updateNewTeamMemberEventTypes(updatedMembership.userId, teamId);
@@ -150,8 +145,6 @@ export class TeamsMembershipsController {
     @Param("membershipId", ParseIntPipe) membershipId: number
   ): Promise<DeleteTeamMembershipOutput> {
     const membership = await this.teamsMembershipsService.deleteTeamMembership(teamId, membershipId);
-
-    await this.teamsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
 
     return {
       status: SUCCESS_STATUS,
