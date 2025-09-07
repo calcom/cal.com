@@ -1101,7 +1101,7 @@ export class BookingsService_2024_08_13 {
       user,
       prisma: this.prismaReadService.prisma,
       kysely: this.kyselyReadService.kysely,
-      bookingListingByStatus: [],
+      bookingListingByStatus: queryParams.status || [],
       filters,
     });
 
@@ -1123,7 +1123,7 @@ export class BookingsService_2024_08_13 {
     };
 
     const fetchedBookings = await getAllUserBookings({
-      bookingListingByStatus: [],
+      bookingListingByStatus: queryParams.status || [],
       skip: 0,
       take: null,
       filters,

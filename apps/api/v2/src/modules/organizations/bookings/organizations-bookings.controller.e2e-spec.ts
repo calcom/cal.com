@@ -34,9 +34,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
-  GetBookingsCountOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { GetOrganizationsBookingsStatisticsOutput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Organizations Bookings Endpoints 2024-08-13", () => {
@@ -977,6 +975,76 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .set(X_CAL_SECRET_KEY, oAuthClient.secret)
           .expect(403);
+      });
+
+      it("should get bookings count filtered by status", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/count?status=ACCEPTED`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+            expect(response.body.data.count).toEqual(4);
+          });
+      });
+
+      it("should get bookings statistics filtered by status", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/statistics?status=ACCEPTED`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+
+            const stats = response.body.data;
+            expect(stats.created).toEqual(4);
+            expect(stats.completed).toEqual(4);
+            expect(stats.cancelled).toEqual(0);
+            expect(stats.pending).toEqual(0);
+          });
+      });
+
+      it("should return zero count for non-matching status filter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/count?status=CANCELLED`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+            expect(response.body.data.count).toEqual(0);
+          });
+      });
+
+      it("should return zero statistics for non-matching status filter", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/statistics?status=CANCELLED`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            expect(response.body.status).toEqual(SUCCESS_STATUS);
+            expect(response.body.data).toBeDefined();
+
+            const stats = response.body.data;
+            expect(stats.created).toEqual(0);
+            expect(stats.completed).toEqual(0);
+            expect(stats.cancelled).toEqual(0);
+            expect(stats.pending).toEqual(0);
+            expect(stats.rescheduled).toEqual(0);
+            expect(stats.noShow).toEqual(0);
+            expect(stats.averageRating).toEqual(0);
+            expect(stats.csatScore).toEqual(0);
+          });
       });
     });
 
