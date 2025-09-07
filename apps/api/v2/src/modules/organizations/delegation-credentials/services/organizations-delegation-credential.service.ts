@@ -20,7 +20,7 @@ import {
   toggleDelegationCredentialEnabled,
   type TServiceAccountKeySchema,
 } from "@calcom/platform-libraries/app-store";
-import { User } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsDelegationCredentialService {

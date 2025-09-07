@@ -51,8 +51,12 @@ import {
   APPLE_CALENDAR,
   CREDENTIAL_CALENDARS,
 } from "@calcom/platform-constants";
-import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
-import { User } from "@calcom/prisma/client";
+import type {
+  ApiResponse,
+  CalendarBusyTimesInput,
+  CreateCalendarCredentialsInput,
+} from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
 
 export interface CalendarState {
   accessToken: string;

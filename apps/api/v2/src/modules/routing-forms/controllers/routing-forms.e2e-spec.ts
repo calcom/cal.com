@@ -22,8 +22,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { App_RoutingForms_Form, EventType, User } from "@calcom/prisma/client";
-import { Team } from "@calcom/prisma/client";
+import type { App_RoutingForms_Form, EventType, User, Team } from "@calcom/prisma/client";
 
 describe("Routing forms endpoints", () => {
   let app: INestApplication;

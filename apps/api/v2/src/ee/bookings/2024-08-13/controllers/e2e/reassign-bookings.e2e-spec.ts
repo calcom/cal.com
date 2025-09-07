@@ -24,9 +24,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import { CreateBookingInput_2024_08_13, BookingOutput_2024_08_13 } from "@calcom/platform-types";
-import { Booking, User } from "@calcom/prisma/client";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import type { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
+import type { Booking, User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Reassign bookings", () => {
@@ -319,10 +318,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
       return client;
-    }
-
-    function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-      return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
     }
 
     afterAll(async () => {

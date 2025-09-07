@@ -23,7 +23,7 @@ import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("OAuthFlow Endpoints", () => {
   describe("User Not Authenticated", () => {

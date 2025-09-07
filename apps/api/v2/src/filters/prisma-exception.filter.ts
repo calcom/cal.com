@@ -11,7 +11,7 @@ import {
   INTERNAL_SERVER_ERROR,
   NOT_FOUND,
 } from "@calcom/platform-constants";
-import { Response } from "@calcom/platform-types";
+import type { Response } from "@calcom/platform-types";
 import { Prisma } from "@calcom/prisma/client";
 
 type PrismaError =

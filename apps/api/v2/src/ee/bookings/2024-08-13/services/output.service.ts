@@ -12,7 +12,7 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { bookingMetadataSchema } from "@calcom/platform-libraries";
-import {
+import type {
   BookingOutput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,
@@ -22,7 +22,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
 } from "@calcom/platform-types";
-import { Booking, BookingSeat } from "@calcom/prisma/client";
+import type { Booking, BookingSeat } from "@calcom/prisma/client";
 
 export const bookingResponsesSchema = z
   .object({
@@ -166,8 +166,8 @@ export class OutputBookingsService_2024_08_13 {
 
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
     if (databaseMetadata === null) return {};
-
-    const { videoCallUrl, ...userDefinedMetadata } = databaseMetadata;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { videoCallUrl: _1, ...userDefinedMetadata } = databaseMetadata;
 
     return userDefinedMetadata;
   }

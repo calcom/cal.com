@@ -31,7 +31,7 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
-import { Webhook } from "@calcom/prisma/client";
+import type { Webhook } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/webhooks",

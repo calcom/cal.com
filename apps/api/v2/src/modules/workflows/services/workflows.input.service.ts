@@ -10,7 +10,6 @@ import { WorkflowType } from "@/modules/workflows/workflows.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 
 import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
-import { WorkflowStep } from "@calcom/prisma/client";
 
 import {
   EMAIL_ADDRESS,

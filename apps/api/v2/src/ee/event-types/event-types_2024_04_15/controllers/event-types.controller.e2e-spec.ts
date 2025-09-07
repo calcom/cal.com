@@ -36,8 +36,8 @@ import {
   eventTypeLocations,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import { ApiSuccessResponse } from "@calcom/platform-types";
-import { EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("Event types Endpoints", () => {
   describe("Not authenticated", () => {
@@ -290,9 +290,9 @@ describe("Event types Endpoints", () => {
           expect(responseBookingFields).toBeDefined();
           // note(Lauris): response bookingFields are already existing default bookingFields + the new one
           const responseBookingField = responseBookingFields.find((field) => field.name === bookingFieldName);
-          const fields = responseBookingField
-          //@ts-ignore
-          delete fields.labelAsSafeHtml
+          const fields = responseBookingField;
+          // @ts-expect-error fields is possibly undefined
+          delete fields.labelAsSafeHtml;
           expect(fields).toEqual(bookingFields[0]);
           eventType.bookingFields = responseBookingFields;
         });

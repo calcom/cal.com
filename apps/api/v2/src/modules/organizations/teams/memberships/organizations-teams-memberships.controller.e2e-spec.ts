@@ -20,9 +20,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse } from "@calcom/platform-types";
-import { EventType, User } from "@calcom/prisma/client";
-import { Membership, Team } from "@calcom/prisma/client";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { EventType, User, Membership, Team } from "@calcom/prisma/client";
 
 describe("Organizations Teams Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

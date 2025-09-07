@@ -30,7 +30,7 @@ import { MockedRedisService } from "test/mocks/mock-redis-service";
 import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 import { ApiAuthGuardRequest } from "./api-auth.strategy";
 import { ApiAuthStrategy } from "./api-auth.strategy";

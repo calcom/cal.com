@@ -28,8 +28,8 @@ import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { slugify } from "@calcom/platform-libraries";
-import { ApiSuccessResponse } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 
@@ -732,7 +732,6 @@ describe("OAuth Client Users Endpoints", () => {
     let team2: Team;
     let owner: User;
 
-    let managedEventType1: EventType;
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;

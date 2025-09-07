@@ -21,7 +21,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 
 const expectedSlotsUTC = {
   slots: {
@@ -262,7 +262,6 @@ describe("Slots 2024-04-15 Endpoints", () => {
     let eventTypeSlug: string;
     let reservedSlotUid: string;
 
-    const seatedEventTypeSlug = "peer-coding-seated";
     let seatedEventTypeId: number;
 
     beforeAll(async () => {

@@ -18,9 +18,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UserResponse } from "@calcom/platform-types";
-import { ApiSuccessResponse } from "@calcom/platform-types";
-import { User, Team } from "@calcom/prisma/client";
+import type { UserResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("Me Endpoints", () => {
   describe("User Authentication", () => {

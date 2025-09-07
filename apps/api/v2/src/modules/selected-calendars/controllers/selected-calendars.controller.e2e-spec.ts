@@ -18,9 +18,8 @@ import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.reposit
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 
-import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
+import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

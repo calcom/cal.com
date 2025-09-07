@@ -27,15 +27,14 @@ import {
   X_CAL_CLIENT_ID,
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-import {
+import type {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { User } from "@calcom/prisma/client";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import type { User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Organizations Bookings Endpoints 2024-08-13", () => {
   describe("Organization bookings", () => {

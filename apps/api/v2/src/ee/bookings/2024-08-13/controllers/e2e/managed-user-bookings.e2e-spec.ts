@@ -39,7 +39,7 @@ import {
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 

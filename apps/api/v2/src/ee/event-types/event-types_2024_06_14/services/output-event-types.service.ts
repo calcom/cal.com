@@ -23,7 +23,7 @@ import {
   getBookingFieldsWithSystemFields,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
-import {
+import type {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
   NoticeThresholdTransformedSchema,

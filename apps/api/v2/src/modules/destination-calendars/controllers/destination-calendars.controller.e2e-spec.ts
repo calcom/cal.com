@@ -20,7 +20,7 @@ import { randomString } from "test/utils/randomString";
 
 import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

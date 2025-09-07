@@ -32,7 +32,7 @@ import {
 import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
 import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
-import { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

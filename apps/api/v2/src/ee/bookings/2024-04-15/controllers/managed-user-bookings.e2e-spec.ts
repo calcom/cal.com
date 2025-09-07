@@ -32,7 +32,7 @@ import {
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 

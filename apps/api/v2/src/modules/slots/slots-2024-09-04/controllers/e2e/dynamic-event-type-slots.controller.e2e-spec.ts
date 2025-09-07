@@ -23,9 +23,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
-import { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
-import { Profile, User } from "@calcom/prisma/client";
-import { Team } from "@calcom/prisma/client";
+import type { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
+import type { Profile, User, Team } from "@calcom/prisma/client";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("Dynamic event type slots", () => {

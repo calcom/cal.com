@@ -17,7 +17,7 @@ import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.reposit
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 
-import { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 

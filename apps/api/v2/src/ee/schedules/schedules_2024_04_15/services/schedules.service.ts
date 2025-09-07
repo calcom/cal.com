@@ -7,9 +7,9 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 
 import { updateSchedule } from "@calcom/platform-libraries/schedules";
 import { ScheduleRepository } from "@calcom/platform-libraries/schedules";
-import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
-import { Schedule } from "@calcom/prisma/client";
+import type { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Schedule } from "@calcom/prisma/client";
 
 @Injectable()
 export class SchedulesService_2024_04_15 {

@@ -17,8 +17,8 @@ import {
   getEventTypesPublic,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import type { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
+import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesService_2024_06_14 {
@@ -38,7 +38,8 @@ export class EventTypesService_2024_06_14 {
     }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const { destinationCalendar: _destinationCalendar, ...rest } = body;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { destinationCalendar: _1, ...rest } = body;
 
     const { eventType: eventTypeCreated } = await createEventType({
       input: rest,

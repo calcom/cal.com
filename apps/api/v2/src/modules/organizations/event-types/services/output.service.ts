@@ -4,7 +4,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { SchedulingType } from "@calcom/platform-libraries";
-import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
+import type { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 import type {
   Team,
   EventType,

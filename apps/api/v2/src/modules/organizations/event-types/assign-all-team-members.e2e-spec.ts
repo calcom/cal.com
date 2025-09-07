@@ -27,7 +27,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import {
+import type {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
   Host,
@@ -35,7 +35,7 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 
@@ -63,7 +63,6 @@ describe("Assign all team members", () => {
   let firstManagedUser: CreateManagedUserData;
   let secondManagedUser: CreateManagedUserData;
 
-  let collectiveEventType: TeamEventTypeOutput_2024_06_14;
   let roundRobinEventType: TeamEventTypeOutput_2024_06_14;
 
   beforeAll(async () => {

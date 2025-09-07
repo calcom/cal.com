@@ -17,10 +17,12 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
-import { ApiSuccessResponse, ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
-import { User } from "@calcom/prisma/client";
-import { Team, Schedule } from "@calcom/prisma/client";
+import type {
+  GetSchedulesOutput_2024_06_11,
+  ApiSuccessResponse,
+  ScheduleOutput_2024_06_11,
+} from "@calcom/platform-types";
+import type { User, Team, Schedule } from "@calcom/prisma/client";
 
 describe("Organizations Teams Schedules Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

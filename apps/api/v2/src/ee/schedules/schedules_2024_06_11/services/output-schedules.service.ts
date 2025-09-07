@@ -1,7 +1,7 @@
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { WeekDay } from "@calcom/platform-types";
+import type { WeekDay } from "@calcom/platform-types";
 import type { Availability, Schedule } from "@calcom/prisma/client";
 
 @Injectable()

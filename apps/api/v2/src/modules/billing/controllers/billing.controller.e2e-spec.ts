@@ -19,7 +19,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { Team, PlatformOAuthClient, PlatformBilling } from "@calcom/prisma/client";
+import type { Team, PlatformBilling } from "@calcom/prisma/client";
 
 describe("Platform Billing Controller (e2e)", () => {
   let app: INestApplication;
@@ -30,8 +30,6 @@ describe("Platform Billing Controller (e2e)", () => {
   let organizationsRepositoryFixture: OrganizationRepositoryFixture;
   let profileRepositoryFixture: ProfileRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
-  let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
-  let oAuthClient: PlatformOAuthClient;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let organization: Team;
 
@@ -118,7 +116,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async (/* res */) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing?.plan).toEqual("FREE");
       });
@@ -146,7 +144,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async (/* res */) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing?.overdue).toEqual(true);
       });
@@ -176,7 +174,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async (/* res */) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing?.overdue).toEqual(false);
       });
@@ -209,7 +207,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async (/* res */) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing).toBeNull();
       });

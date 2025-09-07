@@ -22,9 +22,9 @@ import {
   getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
   type EventBusyDate,
 } from "@calcom/platform-libraries";
-import { Calendar } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
-import { Prisma, User } from "@calcom/prisma/client";
+import type { Calendar } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, User } from "@calcom/prisma/client";
 
 @Injectable()
 export class CalendarsService {

@@ -62,8 +62,8 @@ import {
   RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { EventType, User, Team } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];

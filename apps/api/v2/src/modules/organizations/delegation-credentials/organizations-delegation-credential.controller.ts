@@ -32,9 +32,9 @@ import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 
-import { CreateDelegationCredentialInput } from "./inputs/create-delegation-credential.input";
+import type { CreateDelegationCredentialInput } from "./inputs/create-delegation-credential.input";
 
 @Controller({
   path: "/v2/organizations/:orgId/delegation-credentials",
