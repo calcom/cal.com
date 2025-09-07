@@ -6,7 +6,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
@@ -17,6 +16,7 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
 import { Team, Schedule } from "@calcom/prisma/client";
 
 describe("Teams Schedules Endpoints", () => {
