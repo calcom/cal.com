@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -13,7 +12,7 @@ export const AppDependencyComponent = ({
   dependencyData,
 }: {
   appName: string;
-  dependencyData: RouterOutputs["viewer"]["apps"]["queryForDependencies"];
+  dependencyData: { name: string; slug: string; installed: boolean }[];
 }) => {
   const { t } = useLocale();
 
