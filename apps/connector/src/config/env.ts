@@ -12,6 +12,7 @@ export const envSchema = {
     "API_KEY_PREFIX",
     "UNKEY_ROOT_KEY",
     "UNKEY_NAMESPACE",
+    "PATH_PREFIX",
   ],
   properties: {
     NODE_ENV: { type: "string", enum: ["development", "production", "test"] },
@@ -29,5 +30,6 @@ export const envSchema = {
     API_KEY_PREFIX: { type: "string" },
     UNKEY_ROOT_KEY: { type: "string" },
     UNKEY_NAMESPACE: { type: "string" },
+    PATH_PREFIX: { type: "string", default: "/" },
   },
 };

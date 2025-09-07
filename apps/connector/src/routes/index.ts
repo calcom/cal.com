@@ -7,6 +7,8 @@ import { healthRoutes } from "./health";
 import { publicRoutes } from "./public";
 
 export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
+  const { PATH_PREFIX } = fastify.config;
+
   // Health routes (no auth)
   await fastify.register(
     async function (fastify: FastifyInstance) {
@@ -25,7 +27,7 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
 
       await fastify.register(healthRoutes);
     },
-    { prefix: "/api" }
+    { prefix: PATH_PREFIX }
   );
 
   // Public routes (authenticated users)
@@ -49,7 +51,7 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
 
       await fastify.register(publicRoutes);
     },
-    { prefix: "/api" }
+    { prefix: PATH_PREFIX }
   );
 
   // Admin routes (admin only)
@@ -74,7 +76,7 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
       await fastify.register(adminRoutes);
     },
     {
-      prefix: "/api/admin",
+      prefix: `${PATH_PREFIX}/admin`,
     }
   );
 
