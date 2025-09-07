@@ -1430,14 +1430,19 @@ export class AvailableSlotsService {
       return withinBoundsSlotsMappedToDate;
     };
     const mapWithinBoundsSlotsToDate = withReporting(
+      
       _mapWithinBoundsSlotsToDate.bind(this),
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
     // Filter out slots where Cal.com attendees have conflicts during reschedule
+    // Skip attendee availability check for collective events (team meetings)
+    // Also skip for round-robin to avoid complexity with multiple host scenarios
     let finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
-    if (input.rescheduleUid) {
+    if (input.rescheduleUid && 
+        eventType.schedulingType !== SchedulingType.COLLECTIVE &&
+        eventType.schedulingType !== SchedulingType.ROUND_ROBIN) {
       const attendeeConflicts = await this.getAttendeeConflictsForReschedule({
         rescheduleUid: input.rescheduleUid,
         startTime: startTime.toDate(),
@@ -1450,13 +1455,18 @@ export class AvailableSlotsService {
         
         for (const [date, slots] of Object.entries(withinBoundsSlotsMappedToDate)) {
           const slotsWithoutConflicts = slots.filter(slot => {
-            const slotStart = dayjs(slot.time).toDate();
-            const slotEnd = dayjs(slot.time).add(eventType.length, 'minute').toDate();
+            // Parse slot time consistently with UTC to avoid time zone issues
+            const slotStart = dayjs.utc(slot.time).toDate();
+            const slotEnd = dayjs.utc(slot.time).add(eventType.length, 'minute').toDate();
             
             // Check if this slot overlaps with any attendee conflict
-            const hasConflict = attendeeConflicts.some(conflict => 
-              (slotStart < conflict.slotEndTime && slotEnd > conflict.slotStartTime)
-            );
+            // Using proper overlap detection: (start1 < end2) && (start2 < end1)
+            const hasConflict = attendeeConflicts.some(conflict => {
+              const conflictStart = dayjs.utc(conflict.slotStartTime).toDate();
+              const conflictEnd = dayjs.utc(conflict.slotEndTime).toDate();
+              
+              return (slotStart < conflictEnd && conflictStart < slotEnd);
+            });
             
             return !hasConflict;
           });
@@ -1524,7 +1534,16 @@ export class AvailableSlotsService {
 
   /**
    * Check if Cal.com attendees have conflicts during reschedule
-   * This is the proper solution for attendee availability checking
+   * 
+   * LIMITATIONS (documented for production awareness):
+   * - Only checks Cal.com booking conflicts (not external calendars like Google/Outlook)
+   * - Limited to first 10 attendees for performance
+   * - Only checks ACCEPTED bookings as conflicts
+   * - Skipped for collective and round-robin events
+   * - Time zone handling assumes UTC consistency
+   * 
+   * For full calendar integration, attendees would need credential access
+   * which requires separate calendar integration service implementation.
    */
   private async getAttendeeConflictsForReschedule({
     rescheduleUid,
@@ -1547,22 +1566,31 @@ export class AvailableSlotsService {
         return [];
       }
 
-      // 2. Find all Cal.com users among attendees using existing single-email lookup
+      // 2. Batch lookup: Find all Cal.com users among attendees  
       const attendeeEmails = originalBooking.attendees.map(a => a.email);
-      const calAttendees = [];
       
-      // Use existing findByEmail method for each attendee (optimized batch approach would require new repo method)
-      for (const email of attendeeEmails) {
-        try {
-          const calUser = await this.dependencies.userRepo.findByEmail({ email });
-          if (calUser) {
-            calAttendees.push(calUser);
-          }
-        } catch (error) {
-          // Continue if user not found
-          loggerWithEventDetails.debug("Attendee not found as Cal.com user", { email });
-        }
+      // Performance safeguard: Limit attendees to check (prevent timeout)
+      const MAX_ATTENDEES_TO_CHECK = 10;
+      const emailsToCheck = attendeeEmails.slice(0, MAX_ATTENDEES_TO_CHECK);
+      
+      if (attendeeEmails.length > MAX_ATTENDEES_TO_CHECK) {
+        loggerWithEventDetails.warn("Too many attendees for availability check", {
+          totalAttendees: attendeeEmails.length,
+          checking: MAX_ATTENDEES_TO_CHECK,
+        });
       }
+
+      // Use Promise.all for concurrent lookups (much faster than sequential)
+      const attendeePromises = emailsToCheck.map(async (email) => {
+        try {
+          return await this.dependencies.userRepo.findByEmail({ email });
+        } catch {
+          return null;
+        }
+      });
+      
+      const attendeeResults = await Promise.all(attendeePromises);
+      const calAttendees = attendeeResults.filter((user): user is NonNullable<typeof user> => user !== null);
 
       if (!calAttendees.length) {
         loggerWithEventDetails.debug("No Cal.com users found among attendees");
@@ -1580,6 +1608,7 @@ export class AvailableSlotsService {
       );
 
       // 4. Get attendee conflicts using existing efficient method
+      // Only check Cal.com bookings (external calendar integration would require credential access)
       const attendeeConflicts = await this.dependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTime,
         endDate: endTime,
@@ -1588,10 +1617,16 @@ export class AvailableSlotsService {
         userIdAndEmailMap: attendeeUserIdAndEmailMap,
       });
 
-      // 5. Filter out the original booking being rescheduled
-      const relevantConflicts = attendeeConflicts.filter(
-        booking => booking.uid !== rescheduleUid
-      );
+      // 5. Filter out the original booking being rescheduled and handle booking statuses
+      const relevantConflicts = attendeeConflicts.filter(booking => {
+        // Exclude the original booking
+        if (booking.uid === rescheduleUid) return false;
+        
+        // Only consider confirmed bookings as conflicts (not pending/cancelled)
+        if (booking.status !== 'ACCEPTED') return false;
+        
+        return true;
+      });
 
       // 6. Convert to slot conflict format
       const conflictSlots = relevantConflicts.map(booking => ({
@@ -1603,6 +1638,8 @@ export class AvailableSlotsService {
         totalConflicts: attendeeConflicts.length,
         relevantConflicts: conflictSlots.length,
         excludedOriginal: attendeeConflicts.length - conflictSlots.length,
+        calAttendeesChecked: calAttendees.length,
+        maxAttendeesLimit: MAX_ATTENDEES_TO_CHECK,
       });
 
       return conflictSlots;
@@ -1611,8 +1648,11 @@ export class AvailableSlotsService {
       loggerWithEventDetails.error("Failed to check attendee conflicts for reschedule", {
         rescheduleUid,
         error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
       });
-      // Graceful degradation: return no conflicts to avoid blocking reschedule
+      
+      // Critical: For high-priority deployments, we fail gracefully
+      // Alternative: throw error to block reschedule if attendee check is mandatory
       return [];
     }
   }
