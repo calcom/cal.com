@@ -796,7 +796,8 @@ export class AvailableSlotsService {
       });
     }
     
-    const allUserIds = Array.from(userIdAndEmailMap.keys());
+    const allUserIds: number[] = [];
+    userIdAndEmailMap.forEach((_, userId) => allUserIds.push(userId));
 
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
@@ -1577,7 +1578,6 @@ export class AvailableSlotsService {
       const limitedEmails = Array.from(
         new Set(
           (booking.attendees || [])
-            .filter((a: { status?: string }) => (a?.status || "ACCEPTED") === "ACCEPTED")
             .map((a: { email?: string }) => String(a?.email || "").toLowerCase())
             .filter((e: string) => e && !exclude.has(e))
         )
@@ -1589,27 +1589,27 @@ export class AvailableSlotsService {
         limitedEmails.map((email) => this.dependencies.userRepo.findByEmail({ email }))
       );
       const foundUsers = userResults
-        .filter((r): r is PromiseFulfilledResult<{ id?: number; email?: string; username?: string } | null> => r.status === "fulfilled")
-        .map((r) => r.value)
-        .filter((u): u is { id: number; email?: string; username?: string } => !!u && typeof u.id === "number");
+        .filter((r: any) => r.status === "fulfilled")
+        .map((r: any) => r.value)
+        .filter((u: any) => !!u && typeof u.id === "number");
 
       // Get credentials for valid users in parallel
       const credsResults = await Promise.allSettled(
-        foundUsers.map((u) => this.dependencies.userRepo.findUserWithCredentials({ id: u.id }))
+        foundUsers.map((u: any) => this.dependencies.userRepo.findUserWithCredentials({ id: u.id }))
       );
       const usersWithCredentials = credsResults
-        .map((r, idx) => ({ r, u: foundUsers[idx] }))
-        .filter((x): x is { r: PromiseFulfilledResult<any>; u: { id: number; email?: string; username?: string } } => x.r.status === "fulfilled" && !!x.r.value)
-        .map(({ r, u }) => ({ ...r.value, email: u.email, username: u.username }));
+        .map((r: any, idx: number) => ({ r, u: foundUsers[idx] }))
+        .filter((x: any) => x.r.status === "fulfilled" && !!x.r.value)
+        .map(({ r, u }: any) => ({ ...r.value, email: u.email, username: u.username }));
 
       // Log failures (structured)
       userResults
-        .filter((r) => r.status === "rejected")
-        .forEach((r) => log.warn("Failed to resolve attendee user by email", { reason: String((r as PromiseRejectedResult).reason) }));
+        .filter((r: any) => r.status === "rejected")
+        .forEach((r: any) => log.warn("Failed to resolve attendee user by email", { reason: String(r.reason) }));
       credsResults
-        .filter((r) => r.status === "rejected")
-        .forEach((r, idx) =>
-          log.warn("Failed to load attendee credentials", { userId: foundUsers[idx]?.id, reason: String((r as PromiseRejectedResult).reason) })
+        .filter((r: any) => r.status === "rejected")
+        .forEach((r: any, idx: number) =>
+          log.warn("Failed to load attendee credentials", { userId: foundUsers[idx]?.id, reason: String(r.reason) })
         );
       
       return usersWithCredentials;
@@ -1638,7 +1638,6 @@ export class AvailableSlotsService {
     const attendeeEmails: string[] = [];
 
     booking.attendees
-      .filter((a: { status?: string }) => (a?.status || "ACCEPTED") === "ACCEPTED")
       .forEach((a: { email?: string }) => {
         const email = String(a.email || "").toLowerCase();
         if (email && !excludeMap[email] && !emailsMap[email]) {
@@ -1701,7 +1700,6 @@ export class AvailableSlotsService {
       const attendeeEmails: string[] = [];
       
       originalBooking.attendees
-        .filter((a: { status?: string }) => (a?.status || "ACCEPTED") === "ACCEPTED")
         .forEach((a: { email?: string }) => {
           const email = String(a.email || "").toLowerCase();
           if (email && existingEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
