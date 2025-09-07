@@ -517,7 +517,7 @@ describe("BookingLocationService", () => {
         });
 
         expect(result).toEqual({
-          bookingLocation: "123 Main St",
+          bookingLocation: "123 Main St", // getLocationValueForDB returns the address for inPerson
           conferenceCredentialId: null,
         });
       });
