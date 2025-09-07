@@ -778,7 +778,7 @@ export class AvailableSlotsService {
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     
-    // ENTERPRISE-READY: Add Cal.com attendees to availability check during reschedule
+    // Add Cal.com attendees to availability check during reschedule
     if (
       input.rescheduleUid &&
       eventType.schedulingType !== SchedulingType.COLLECTIVE &&
@@ -1558,9 +1558,7 @@ export class AvailableSlotsService {
   }
 
   // Get user IDs of Cal.com attendees from a booking for reschedule conflict checking
-  /**
-   * Get attendee users with their credentials and selected calendars for calendar integration
-   */
+  //Get attendee users with their credentials and selected calendars for calendar integration
   private async getAttendeeUsersWithCredentialsForReschedule(rescheduleUid: string, excludeEmails: string[]) {
     try {
       const booking = await this.dependencies.bookingRepo.findUniqueBookingByUid({
