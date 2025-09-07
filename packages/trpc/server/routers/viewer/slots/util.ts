@@ -777,7 +777,18 @@ export class AvailableSlotsService {
       input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
-    const allUserIds = Array.from(userIdAndEmailMap.keys());
+    
+    // ENTERPRISE-READY: Add Cal.com attendees to availability check during reschedule
+    if (input.rescheduleUid) {
+      await this.addAttendeeAvailabilityForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        userIdAndEmailMap,
+        eventType,
+        loggerWithEventDetails,
+      });
+    }
+    
+    const allUserIds = [...userIdAndEmailMap.keys()];
 
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
@@ -1436,53 +1447,9 @@ export class AvailableSlotsService {
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
-    // Filter out slots where Cal.com attendees have conflicts during reschedule
-    // Skip attendee availability check for collective events (team meetings)
-    // Also skip for round-robin to avoid complexity with multiple host scenarios
-    let finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
-    if (input.rescheduleUid && 
-        eventType.schedulingType !== SchedulingType.COLLECTIVE &&
-        eventType.schedulingType !== SchedulingType.ROUND_ROBIN) {
-      const attendeeConflicts = await this.getAttendeeConflictsForReschedule({
-        rescheduleUid: input.rescheduleUid,
-        startTime: startTime.toDate(),
-        endTime: endTime.toDate(),
-        loggerWithEventDetails,
-      });
-
-      if (attendeeConflicts.length > 0) {
-        finalSlotsMappedToDate = {} as typeof withinBoundsSlotsMappedToDate;
-        
-        for (const [date, slots] of Object.entries(withinBoundsSlotsMappedToDate)) {
-          const slotsWithoutConflicts = slots.filter(slot => {
-            // Parse slot time consistently with UTC to avoid time zone issues
-            const slotStart = dayjs.utc(slot.time).toDate();
-            const slotEnd = dayjs.utc(slot.time).add(eventType.length, 'minute').toDate();
-            
-            // Check if this slot overlaps with any attendee conflict
-            // Using proper overlap detection: (start1 < end2) && (start2 < end1)
-            const hasConflict = attendeeConflicts.some(conflict => {
-              const conflictStart = dayjs.utc(conflict.slotStartTime).toDate();
-              const conflictEnd = dayjs.utc(conflict.slotEndTime).toDate();
-              
-              return (slotStart < conflictEnd && conflictStart < slotEnd);
-            });
-            
-            return !hasConflict;
-          });
-          
-          if (slotsWithoutConflicts.length > 0) {
-            finalSlotsMappedToDate[date] = slotsWithoutConflicts;
-          }
-        }
-        
-        loggerWithEventDetails.debug("Filtered slots for attendee conflicts", {
-          originalSlotCount: Object.values(withinBoundsSlotsMappedToDate).flat().length,
-          filteredSlotCount: Object.values(finalSlotsMappedToDate).flat().length,
-          conflictCount: attendeeConflicts.length,
-        });
-      }
-    }
+    // Enterprise-ready reschedule solution: Attendees are now included in availability check upstream
+    // via addAttendeeAvailabilityForReschedule() method in userIdAndEmailMap
+    const finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
 
     // We only want to run this on single targeted events and not dynamic
     if (!Object.keys(finalSlotsMappedToDate).length && input.usernameList?.length === 1) {
@@ -1545,115 +1512,71 @@ export class AvailableSlotsService {
    * For full calendar integration, attendees would need credential access
    * which requires separate calendar integration service implementation.
    */
-  private async getAttendeeConflictsForReschedule({
+  /**
+   * ENTERPRISE-READY: Add Cal.com attendees to availability check during reschedule
+   * Extends existing userIdAndEmailMap architecture for optimal performance
+   */
+  private async addAttendeeAvailabilityForReschedule({
     rescheduleUid,
-    startTime,
-    endTime,
+    userIdAndEmailMap,
+    eventType,
     loggerWithEventDetails,
   }: {
     rescheduleUid: string;
-    startTime: Date;
-    endTime: Date;
-    loggerWithEventDetails: Logger<unknown>;
-  }): Promise<{ slotStartTime: Date; slotEndTime: Date }[]> {
+    userIdAndEmailMap: any;
+    eventType: any;
+    loggerWithEventDetails: any;
+  }) {
     try {
-      // 1. Get original booking with attendees
-      const originalBooking = await this.dependencies.bookingRepo.findBookingByUid({
-        bookingUid: rescheduleUid,
-      });
-
-      if (!originalBooking?.attendees?.length) {
-        return [];
-      }
-
-      // 2. Batch lookup: Find all Cal.com users among attendees  
-      const attendeeEmails = originalBooking.attendees.map(a => a.email);
+      const bookingRepo = this.dependencies.bookingRepo;
+      const userRepo = this.dependencies.userRepo;
       
-      // Performance safeguard: Limit attendees to check (prevent timeout)
-      const MAX_ATTENDEES_TO_CHECK = 10;
-      const emailsToCheck = attendeeEmails.slice(0, MAX_ATTENDEES_TO_CHECK);
+      // Get original booking
+      const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
+      if (!originalBooking?.attendees?.length) return;
+
+      // Extract Cal.com attendee emails that aren't already in the system
+      // Use case-insensitive comparison for email matching (emails are case-insensitive)  
+      const existingEmails = [...userIdAndEmailMap.values()]
+        .filter(email => email)
+        .map(email => email.toLowerCase());
       
-      if (attendeeEmails.length > MAX_ATTENDEES_TO_CHECK) {
-        loggerWithEventDetails.warn("Too many attendees for availability check", {
-          totalAttendees: attendeeEmails.length,
-          checking: MAX_ATTENDEES_TO_CHECK,
+      const attendeeEmails = originalBooking.attendees
+        .map((attendee: any) => attendee.email)
+        .filter((email: string) => {
+          if (!email) return false;
+          const lowerEmail = email.toLowerCase();
+          return existingEmails.indexOf(lowerEmail) === -1;
         });
-      }
 
-      // Use Promise.all for concurrent lookups (much faster than sequential)
-      const attendeePromises = emailsToCheck.map(async (email) => {
-        try {
-          return await this.dependencies.userRepo.findByEmail({ email });
-        } catch {
-          return null;
-        }
-      });
+      if (!attendeeEmails.length) return;
+
+      // Concurrent lookup of Cal.com users
+      const attendeePromises = attendeeEmails.map((email: string) => 
+        userRepo.findByEmail({ email })
+      );
       
       const attendeeResults = await Promise.all(attendeePromises);
-      const calAttendees = attendeeResults.filter((user): user is NonNullable<typeof user> => user !== null);
-
-      if (!calAttendees.length) {
-        loggerWithEventDetails.debug("No Cal.com users found among attendees");
-        return [];
-      }
-
-      loggerWithEventDetails.debug("Found Cal.com attendees for reschedule check", {
-        attendeeCount: calAttendees.length,
-        attendeeEmails: calAttendees.map(a => a.email),
+      
+      // Add Cal.com attendees to availability map
+      attendeeResults.forEach((user: any) => {
+        if (user?.id && user?.email) {
+          userIdAndEmailMap.set(user.id, user.email);
+        }
       });
 
-      // 3. Create userIdAndEmailMap for attendees only
-      const attendeeUserIdAndEmailMap = new Map(
-        calAttendees.map(user => [user.id, user.email])
-      );
-
-      // 4. Get attendee conflicts using existing efficient method
-      // Only check Cal.com bookings (external calendar integration would require credential access)
-      const attendeeConflicts = await this.dependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        startDate: startTime,
-        endDate: endTime,
-        eventTypeId: null, // Check across all event types
-        seatedEvent: false,
-        userIdAndEmailMap: attendeeUserIdAndEmailMap,
+      loggerWithEventDetails.info("Added Cal.com attendees to availability check", {
+        attendeeEmails: attendeeEmails.length,
+        addedUsers: attendeeResults.filter(Boolean).length,
+        totalUsers: userIdAndEmailMap.size,
       });
-
-      // 5. Filter out the original booking being rescheduled and handle booking statuses
-      const relevantConflicts = attendeeConflicts.filter(booking => {
-        // Exclude the original booking
-        if (booking.uid === rescheduleUid) return false;
-        
-        // Only consider confirmed bookings as conflicts (not pending/cancelled)
-        if (booking.status !== 'ACCEPTED') return false;
-        
-        return true;
-      });
-
-      // 6. Convert to slot conflict format
-      const conflictSlots = relevantConflicts.map(booking => ({
-        slotStartTime: booking.startTime,
-        slotEndTime: booking.endTime,
-      }));
-
-      loggerWithEventDetails.debug("Found attendee conflicts", {
-        totalConflicts: attendeeConflicts.length,
-        relevantConflicts: conflictSlots.length,
-        excludedOriginal: attendeeConflicts.length - conflictSlots.length,
-        calAttendeesChecked: calAttendees.length,
-        maxAttendeesLimit: MAX_ATTENDEES_TO_CHECK,
-      });
-
-      return conflictSlots;
 
     } catch (error) {
-      loggerWithEventDetails.error("Failed to check attendee conflicts for reschedule", {
+      loggerWithEventDetails.error("Failed to add attendees for reschedule", {
         rescheduleUid,
         error: error instanceof Error ? error.message : "Unknown error",
-        stack: error instanceof Error ? error.stack : undefined,
       });
-      
-      // Critical: For high-priority deployments, we fail gracefully
-      // Alternative: throw error to block reschedule if attendee check is mandatory
-      return [];
+      // Continue without attendee checking - graceful degradation
     }
   }
 }
