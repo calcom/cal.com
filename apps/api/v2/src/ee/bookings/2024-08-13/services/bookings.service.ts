@@ -38,6 +38,7 @@ import {
   handleNewRecurringBooking,
   getTranslation,
   getAllUserBookings,
+  getBookingsCount,
   handleInstantMeeting,
   handleCancelBooking,
   roundRobinReassignment,
@@ -1096,19 +1097,15 @@ export class BookingsService_2024_08_13 {
       ...(userIds?.length ? { userIds } : {}),
     };
 
-    const { getBookings } = await import("@calcom/trpc/server/routers/viewer/bookings/get.handler");
-
-    const { totalCount } = await getBookings({
+    const result = await getBookingsCount({
       user,
       prisma: this.prismaReadService.prisma,
       kysely: this.kyselyReadService.kysely,
       bookingListingByStatus: [],
       filters,
-      take: 0, // We only need count, not actual bookings
-      skip: 0,
     });
 
-    return totalCount;
+    return result;
   }
 
   async getBookingsStatistics(
