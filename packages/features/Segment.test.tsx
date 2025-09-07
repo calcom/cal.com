@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
 import { Segment } from "@calcom/features/Segment";
-import { buildEmptyQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
@@ -50,9 +50,10 @@ const mockAttributesWithSingleSelect = () => {
         slug: "department",
         name: "Department",
         type: AttributeType.SINGLE_SELECT,
+        isWeightsEnabled: false,
         options: [
-          { id: "1", value: "Sales", slug: "sales" },
-          { id: "2", value: "Engineering", slug: "engineering" },
+          { id: "1", value: "Sales", slug: "sales", contains: [], isGroup: false },
+          { id: "2", value: "Engineering", slug: "engineering", contains: [], isGroup: false },
         ],
       },
     ],
@@ -86,9 +87,24 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 }));
 
 describe("Segment", () => {
+  const defaultQueryValue = {
+    id: "root",
+    type: "group",
+    children1: {
+      "rule-1": {
+        type: "rule",
+        properties: {
+          field: "department",
+          operator: "select_equals",
+          value: ["Sales"],
+        },
+      },
+    },
+  } as AttributesQueryValue;
+
   const defaultProps = {
     teamId: 1,
-    queryValue: buildEmptyQueryValue() as AttributesQueryValue | null,
+    queryValue: defaultQueryValue as AttributesQueryValue | null,
     onQueryValueChange: vi.fn(),
     className: "test-class",
   };
