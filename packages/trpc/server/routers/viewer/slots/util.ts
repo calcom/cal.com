@@ -779,11 +779,14 @@ export class AvailableSlotsService {
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     
     // ENTERPRISE-READY: Add Cal.com attendees to availability check during reschedule
-    if (input.rescheduleUid) {
+    if (
+      input.rescheduleUid &&
+      eventType.schedulingType !== SchedulingType.COLLECTIVE &&
+      eventType.schedulingType !== SchedulingType.ROUND_ROBIN
+    ) {
       await this.addAttendeeAvailabilityForReschedule({
         rescheduleUid: input.rescheduleUid,
         userIdAndEmailMap,
-        eventType,
         loggerWithEventDetails,
       });
     }
@@ -1500,75 +1503,51 @@ export class AvailableSlotsService {
   }
 
   /**
-   * Check if Cal.com attendees have conflicts during reschedule
-   * 
-   * LIMITATIONS (documented for production awareness):
-   * - Only checks Cal.com booking conflicts (not external calendars like Google/Outlook)
-   * - Limited to first 10 attendees for performance
-   * - Only checks ACCEPTED bookings as conflicts
-   * - Skipped for collective and round-robin events
-   * - Time zone handling assumes UTC consistency
-   * 
-   * For full calendar integration, attendees would need credential access
-   * which requires separate calendar integration service implementation.
-   */
-  /**
-   * ENTERPRISE-READY: Add Cal.com attendees to availability check during reschedule
-   * Extends existing userIdAndEmailMap architecture for optimal performance
+   * Adds Cal.com attendees from the original booking to the availability check during reschedule.
+   * Only includes attendees who are registered Cal.com users.
    */
   private async addAttendeeAvailabilityForReschedule({
     rescheduleUid,
     userIdAndEmailMap,
-    eventType,
     loggerWithEventDetails,
   }: {
     rescheduleUid: string;
-    userIdAndEmailMap: any;
-    eventType: any;
-    loggerWithEventDetails: any;
+    userIdAndEmailMap: Map<number, string>;
+    loggerWithEventDetails: Logger<unknown>;
   }) {
     try {
       const bookingRepo = this.dependencies.bookingRepo;
       const userRepo = this.dependencies.userRepo;
       
-      // Get original booking
       const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
       if (!originalBooking?.attendees?.length) return;
 
-      // Extract Cal.com attendee emails that aren't already in the system
-      // Use case-insensitive comparison for email matching (emails are case-insensitive)  
-      const existingEmails = [...userIdAndEmailMap.values()]
-        .filter(email => email)
-        .map(email => email.toLowerCase());
-      
-      const attendeeEmails = originalBooking.attendees
-        .map((attendee: any) => attendee.email)
-        .filter((email: string) => {
-          if (!email) return false;
-          const lowerEmail = email.toLowerCase();
-          return existingEmails.indexOf(lowerEmail) === -1;
-        });
+      const existingEmails = new Set(
+        [...userIdAndEmailMap.values()].filter(Boolean).map((email) => String(email).toLowerCase())
+      );
+      const MAX_ATTENDEES = 10;
+      const attendeeEmails = Array.from(
+        new Set(
+          originalBooking.attendees
+            .filter((a: any) => (a?.status || "ACCEPTED") === "ACCEPTED")
+            .map((a: any) => String(a.email || "").toLowerCase())
+            .filter((email: string) => email && !existingEmails.has(email))
+        )
+      ).slice(0, MAX_ATTENDEES);
 
       if (!attendeeEmails.length) return;
 
-      // Concurrent lookup of Cal.com users
-      const attendeePromises = attendeeEmails.map((email: string) => 
-        userRepo.findByEmail({ email })
+      const attendeeResults = await Promise.allSettled(
+        attendeeEmails.map((email: string) => userRepo.findByEmail({ email }))
       );
       
-      const attendeeResults = await Promise.all(attendeePromises);
-      
-      // Add Cal.com attendees to availability map
-      attendeeResults.forEach((user: any) => {
-        if (user?.id && user?.email) {
-          userIdAndEmailMap.set(user.id, user.email);
+      attendeeResults.forEach((res) => {
+        if (res.status === "fulfilled") {
+          const user = res.value as { id?: number; email?: string } | null;
+          if (user?.id && user?.email) {
+            userIdAndEmailMap.set(user.id, user.email);
+          }
         }
-      });
-
-      loggerWithEventDetails.info("Added Cal.com attendees to availability check", {
-        attendeeEmails: attendeeEmails.length,
-        addedUsers: attendeeResults.filter(Boolean).length,
-        totalUsers: userIdAndEmailMap.size,
       });
 
     } catch (error) {
@@ -1576,7 +1555,6 @@ export class AvailableSlotsService {
         rescheduleUid,
         error: error instanceof Error ? error.message : "Unknown error",
       });
-      // Continue without attendee checking - graceful degradation
     }
   }
 }
