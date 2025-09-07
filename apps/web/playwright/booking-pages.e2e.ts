@@ -782,7 +782,11 @@ test.describe("Team cancellation reason settings", () => {
   };
 
   test.describe("Settings Management", () => {
-    test("Team admin can toggle cancellation reason settings", async ({ page, users, prisma }) => {
+    test("Team admin can change cancellation reason settings via dropdown", async ({
+      page,
+      users,
+      prisma,
+    }) => {
       // Setup: Create team owner
       const teamOwner = await users.create(
         { username: "team-owner", name: "Team Owner" },
@@ -805,19 +809,14 @@ test.describe("Team cancellation reason settings", () => {
       await teamOwner.apiLogin();
       await page.goto(`/settings/teams/${team.id}/settings`);
 
-      // Action: Toggle host setting (true → false)
+      // Action: Change to "Mandatory for both"
+      await page.locator('[data-testid="cancellation-reason-dropdown"]').click();
       await Promise.all([
-        page.locator('[data-testid="mandatory-cancellation-reason-host-toggle"]').click(),
+        page.locator('text="Mandatory for both hosts and attendees"').click(),
         page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
       ]);
 
-      // Action: Toggle attendee setting (false → true)
-      await Promise.all([
-        page.locator('[data-testid="mandatory-cancellation-reason-attendee-toggle"]').click(),
-        page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
-      ]);
-
-      // Verify: Database was updated correctly (host=false, attendee=true)
+      // Verify: Database was updated correctly (host=true, attendee=true)
       const updatedTeam = await prisma.team.findUnique({
         where: { id: team.id },
         select: {
@@ -825,7 +824,7 @@ test.describe("Team cancellation reason settings", () => {
           mandatoryCancellationReasonForAttendee: true,
         },
       });
-      expect(updatedTeam?.mandatoryCancellationReasonForHost).toBe(false);
+      expect(updatedTeam?.mandatoryCancellationReasonForHost).toBe(true);
       expect(updatedTeam?.mandatoryCancellationReasonForAttendee).toBe(true);
     });
   });

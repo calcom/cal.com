@@ -18,7 +18,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { SettingsToggle, Select } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
@@ -189,15 +189,28 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [mandatoryCancellationReasonForHost, setMandatoryCancellationReasonForHost] = useState(
-    team?.mandatoryCancellationReasonForHost ?? false
-  );
+  // Define the 4 options for cancellation reason settings
+  const cancellationReasonOptions = [
+    { value: "both", label: t("mandatory_for_both") },
+    { value: "host", label: t("mandatory_for_host_only") },
+    { value: "attendee", label: t("mandatory_for_attendee_only") },
+    { value: "none", label: t("optional_for_both") },
+  ];
 
-  const [mandatoryCancellationReasonForAttendee, setMandatoryCancellationReasonForAttendee] = useState(
-    team?.mandatoryCancellationReasonForAttendee ?? false
-  );
+  // Determine current value based on team settings
+  const getCurrentValue = () => {
+    const hostMandatory = team?.mandatoryCancellationReasonForHost ?? true; // Default to true for host
+    const attendeeMandatory = team?.mandatoryCancellationReasonForAttendee ?? false;
 
-  const hostMutation = trpc.viewer.teams.update.useMutation({
+    if (hostMandatory && attendeeMandatory) return "both";
+    if (hostMandatory && !attendeeMandatory) return "host";
+    if (!hostMandatory && attendeeMandatory) return "attendee";
+    return "none";
+  };
+
+  const [selectedValue, setSelectedValue] = useState(getCurrentValue());
+
+  const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
@@ -207,55 +220,58 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
     },
   });
 
-  const attendeeMutation = trpc.viewer.teams.update.useMutation({
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-    async onSuccess() {
-      await utils.viewer.teams.get.invalidate();
-      showToast(t("cancellation_reason_settings_updated_successfully"), "success");
-    },
-  });
+  const handleValueChange = (value: string) => {
+    setSelectedValue(value);
+
+    let hostMandatory = false;
+    let attendeeMandatory = false;
+
+    switch (value) {
+      case "both":
+        hostMandatory = true;
+        attendeeMandatory = true;
+        break;
+      case "host":
+        hostMandatory = true;
+        attendeeMandatory = false;
+        break;
+      case "attendee":
+        hostMandatory = false;
+        attendeeMandatory = true;
+        break;
+      case "none":
+        hostMandatory = false;
+        attendeeMandatory = false;
+        break;
+    }
+
+    mutation.mutate({
+      id: team.id,
+      mandatoryCancellationReasonForHost: hostMandatory,
+      mandatoryCancellationReasonForAttendee: attendeeMandatory,
+    });
+  };
 
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>
       {isAdmin ? (
-        <div className="mt-6 space-y-6">
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            title={t("mandatory_cancellation_reason_for_host")}
-            description={t("mandatory_cancellation_reason_for_host_description")}
-            labelClassName="text-sm"
-            disabled={hostMutation?.isPending}
-            checked={mandatoryCancellationReasonForHost}
-            data-testid="mandatory-cancellation-reason-host-toggle"
-            onCheckedChange={(checked) => {
-              setMandatoryCancellationReasonForHost(checked);
-              hostMutation.mutate({
-                id: team.id,
-                mandatoryCancellationReasonForHost: checked,
-              });
-            }}
-          />
-
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            title={t("mandatory_cancellation_reason_for_attendee")}
-            description={t("mandatory_cancellation_reason_for_attendee_description")}
-            labelClassName="text-sm"
-            disabled={attendeeMutation?.isPending}
-            checked={mandatoryCancellationReasonForAttendee}
-            data-testid="mandatory-cancellation-reason-attendee-toggle"
-            onCheckedChange={(checked) => {
-              setMandatoryCancellationReasonForAttendee(checked);
-              attendeeMutation.mutate({
-                id: team.id,
-                mandatoryCancellationReasonForAttendee: checked,
-              });
-            }}
-          />
+        <div className="border-subtle mt-6 rounded-md border p-5">
+          <div className="space-y-2">
+            <label className="text-emphasis text-sm font-medium">
+              {t("cancellation_reason_requirements")}
+            </label>
+            <p className="text-subtle text-sm">{t("cancellation_reason_requirements_description")}</p>
+            <Select
+              value={cancellationReasonOptions.find((option) => option.value === selectedValue)}
+              onChange={(option) => option && handleValueChange(option.value)}
+              options={cancellationReasonOptions}
+              isDisabled={mutation?.isPending}
+              data-testid="cancellation-reason-dropdown"
+              className="border-default"
+            />
+          </div>
         </div>
       ) : (
         <div className="border-subtle rounded-md border p-5">
