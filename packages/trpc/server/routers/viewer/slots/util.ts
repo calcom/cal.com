@@ -1478,12 +1478,15 @@ export class AvailableSlotsService {
               userId: attendee.id,
               userEmail: attendee.email,
               username: attendee.username || `user-${attendee.id}`,
-              selectedCalendars: attendee.userLevelSelectedCalendars,
+              selectedCalendars: attendee.selectedCalendars,
               rescheduleUid: input.rescheduleUid || undefined,
               seatedEvent: !!eventType?.seatsPerTimeSlot,
               bypassBusyCalendarTimes,
             }).catch((error: any) => {
-              loggerWithEventDetails.warn(`Failed to get busy times for attendee ${attendee.email}:`, error);
+              loggerWithEventDetails.warn("Failed to get busy times for attendee", { 
+                email: attendee.email, 
+                error: error instanceof Error ? error.message : String(error) 
+              });
               return [];
             })
           );
