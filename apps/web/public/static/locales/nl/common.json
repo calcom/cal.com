@@ -1645,6 +1645,9 @@
   "embeds": "Ingesloten opties",
   "impersonation": "Imitatie",
   "impersonation_description": "Instellingen voor imitatie van gebruiker beheren",
+  "recent_impersonations": "Recente identiteitsovernames",
+  "quick_impersonate": "Snel identiteit overnemen",
+  "no_recent_impersonations": "Geen recente identiteitsovernames",
   "users": "Gebruikers",
   "user": "Gebruiker",
   "profile_description": "Beheer de instellingen van uw {{appName}}-profiel",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "Let er bij het testen van deze werkstroom op dat e-mails en sms minimaal 1 uur van tevoren kunnen gepland moeten worden",
   "insights_no_data_found_for_filter": "Geen gegevens gevonden voor het geselecteerde filter of de geselecteerde datums.",
   "acknowledge_booking_no_show_fee": "Ik erken dat als ik deze gebeurtenis niet bijwoon, er {{amount, currency}} aan afwezigheidsvergoeding van mijn kaart worden afgeschreven.",
+  "days": "dagen",
   "card_details": "Kaartgegevens",
   "something_went_wrong_on_our_end": "Er is iets misgegaan aan onze kant. Neem contact op met ons ondersteuningsteam, en we lossen het meteen voor je op.",
   "please_provide_following_text_to_suppport": "Vermeld de volgende tekst wanneer u contact opneemt met ondersteuning, zodat we u beter kunnen helpen",
@@ -3602,5 +3606,9 @@
   "search_variables": "Variabelen zoeken",
   "no_variables_found": "Geen variabelen gevonden",
   "api_key_name_too_long": "Naam mag niet langer zijn dan {{max}} tekens",
+  "auto_charge_for_last_minute_cancellation": "Automatisch no-show kosten in rekening brengen voor last-minute annuleringen",
+  "before_scheduled_start_time": "Voor geplande starttijd",
+  "cancel_booking_acknowledge_no_show_fee": "Ik erken dat door de boeking te annuleren binnen {{timeValue}} {{timeUnit}} voor de starttijd, mij de no-show kosten van {{amount, currency}} in rekening worden gebracht",
+  "contact_organizer": "Als je vragen hebt, neem dan contact op met de organisator.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

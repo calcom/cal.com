@@ -1645,6 +1645,9 @@
   "embeds": "Embeds",
   "impersonation": "ការបន្លំជាអ្នកដទៃ",
   "impersonation_description": "ការកំណត់ដើម្បីគ្រប់គ្រងការបន្លំជាអ្នកដទៃ",
+  "recent_impersonations": "ការក្លែងបន្លំថ្មីៗ",
+  "quick_impersonate": "ក្លែងបន្លំរហ័ស",
+  "no_recent_impersonations": "គ្មានការក្លែងបន្លំថ្មីៗទេ",
   "users": "អ្នកប្រើប្រាស់",
   "user": "អ្នកប្រើប្រាស់",
   "profile_description": "គ្រប់គ្រងការកំណត់សម្រាប់ប្រវត្តិរូប {{appName}} របស់អ្នក",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "នៅពេលសាកល្បងដំណើរការនេះ សូមចំណាំថា អ៊ីមែល និងសារ SMS អាចត្រូវបានកំណត់ពេលយ៉ាងហោចណាស់ 1 ម៉ោងមុន",
   "insights_no_data_found_for_filter": "មិនមានទិន្នន័យសម្រាប់តម្រង ឬកាលបរិច្ឆេទដែលបានជ្រើស។",
   "acknowledge_booking_no_show_fee": "ខ្ញុំយល់ព្រមថា ប្រសិនបើខ្ញុំមិនចូលរួមព្រឹត្តិការណ៍នេះ នោះថ្លៃសេវាកម្មមិនមកចូលរួមចំនួន {{amount, currency}} នឹងត្រូវបានគិតលើកាតរបស់ខ្ញុំ។",
+  "days": "ថ្ងៃ",
   "card_details": "ព័ត៌មានកាត",
   "something_went_wrong_on_our_end": "មានបញ្ហាខាងយើង។ ទាក់ទងក្រុមគាំទ្ររបស់យើង ហើយយើងនឹងជួសជុលវាភ្លាមៗសម្រាប់អ្នក។",
   "please_provide_following_text_to_suppport": "សូមផ្តល់អត្ថបទខាងក្រោមនៅពេលទាក់ទងគាំទ្រ ដើម្បីជួយអ្នកបានល្អប្រសើរ",
@@ -3602,5 +3606,9 @@
   "search_variables": "ស្វែងរកអថេរ",
   "no_variables_found": "រកមិនឃើញអថេរទេ",
   "api_key_name_too_long": "ឈ្មោះមិនត្រូវលើសពី {{max}} តួអក្សរទេ",
+  "auto_charge_for_last_minute_cancellation": "គិតថ្លៃសេវាដោយស្វ័យប្រវត្តិសម្រាប់ការលុបចោលនៅនាទីចុងក្រោយ",
+  "before_scheduled_start_time": "មុនពេលចាប់ផ្តើមដែលបានកំណត់",
+  "cancel_booking_acknowledge_no_show_fee": "ខ្ញុំទទួលស្គាល់ថាដោយការលុបចោលការកក់ក្នុងរយៈពេល {{timeValue}} {{timeUnit}} មុនពេលចាប់ផ្តើម ខ្ញុំនឹងត្រូវបង់ថ្លៃសេវាមិនបានចូលរួមចំនួន {{amount, currency}}",
+  "contact_organizer": "ប្រសិនបើអ្នកមានសំណួរណាមួយ សូមទាក់ទងអ្នករៀបចំ។",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
