@@ -1451,9 +1451,7 @@ export class AvailableSlotsService {
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
-    // Enterprise-ready reschedule solution: Attendees are now included in availability check upstream
-    // via addAttendeeAvailabilityForReschedule() method in userIdAndEmailMap
-    // Additionally, filter slots that conflict with attendee availability for host-initiated reschedules
+    // Filter out slots that conflict with Cal.com attendee availability during host reschedules
     let finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
     if (
       input.rescheduleUid &&
@@ -1461,23 +1459,35 @@ export class AvailableSlotsService {
       eventType.schedulingType !== SchedulingType.ROUND_ROBIN
     ) {
       const hostEmails = (usersWithCredentials.map((u) => u.email).filter(Boolean) as string[]) || [];
-      const attendeeUserIds = await this.getAcceptedAttendeeUserIdsForReschedule(input.rescheduleUid, hostEmails);
+      const attendeeUsersWithCredentials = await this.getAttendeeUsersWithCredentialsForReschedule(input.rescheduleUid, hostEmails);
       
-      if (attendeeUserIds.length) {
-        // Get attendee busy times to filter out conflicting slots
-        const attendeeBusyDetails = await this.dependencies.busyTimesService.getBusyTimesForLimitChecks({
-          userIds: attendeeUserIds,
-          eventTypeId: eventType.id,
-          startDate: startTime.format(),
-          endDate: endTime.format(),
-          rescheduleUid: input.rescheduleUid || undefined,
-          bookingLimits: null,
-          durationLimits: null,
+      if (attendeeUsersWithCredentials.length) {
+        const attendeeBusyTimesPromises: Promise<any[]>[] = [];
+        attendeeUsersWithCredentials.forEach((attendee) => {
+          attendeeBusyTimesPromises.push(
+            this.dependencies.busyTimesService.getBusyTimes({
+              credentials: attendee.credentials,
+              startTime: startTime.format(),
+              endTime: endTime.format(),
+              eventTypeId: eventType.id,
+              userId: attendee.id,
+              userEmail: attendee.email,
+              username: attendee.username || `user-${attendee.id}`,
+              selectedCalendars: attendee.userLevelSelectedCalendars,
+              rescheduleUid: input.rescheduleUid || undefined,
+              seatedEvent: !!eventType?.seatsPerTimeSlot,
+            }).catch((error: any) => {
+              loggerWithEventDetails.warn(`Failed to get busy times for attendee ${attendee.email}:`, error);
+              return [];
+            })
+          );
         });
-        const attendeeBusy = attendeeBusyDetails.map((b) => ({ start: b.start, end: b.end }));
+        
+        const attendeeBusyTimesResults = await Promise.all(attendeeBusyTimesPromises);
+        const attendeeBusy = attendeeBusyTimesResults.flat().map((b) => ({ start: b.start, end: b.end }));
         const eventLength = input.duration || eventType.length;
 
-        // Filter out slots that conflict with attendee availability
+        // Only show slots where attendees are actually available
         finalSlotsMappedToDate = {};
         for (const date in withinBoundsSlotsMappedToDate) {
           if (withinBoundsSlotsMappedToDate.hasOwnProperty(date)) {
@@ -1490,7 +1500,7 @@ export class AvailableSlotsService {
                 currentSeats,
               })
             );
-            // Only include dates that have available slots
+            // Keep dates that have at least one free slot
             if (availableSlots.length > 0) {
               finalSlotsMappedToDate[date] = availableSlots;
             }
@@ -1547,11 +1557,74 @@ export class AvailableSlotsService {
     };
   }
 
+  // Get user IDs of Cal.com attendees from a booking for reschedule conflict checking
   /**
-   * Get Cal.com user IDs for attendees from the original booking.
-   * Only includes accepted attendees who are registered Cal.com users.
-   * Excludes host emails to prevent self-conflicts.
+   * Get attendee users with their credentials and selected calendars for calendar integration
    */
+  private async getAttendeeUsersWithCredentialsForReschedule(rescheduleUid: string, excludeEmails: string[]) {
+    try {
+      const booking = await this.dependencies.bookingRepo.findUniqueBookingByUid({
+        uid: rescheduleUid,
+      });
+
+      if (!booking || !booking.attendees) return [];
+
+      // Find attendee emails (limit to 10 to keep things fast)
+      const MAX_ATTENDEES = 10;
+      const attendeeEmailsMap: { [key: string]: boolean } = {};
+      const attendeeEmails: string[] = [];
+      
+      booking.attendees.forEach((attendee) => {
+        const email = attendee.email;
+        if (email && excludeEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
+          attendeeEmailsMap[email] = true;
+          attendeeEmails.push(email);
+        }
+      });
+
+      const limitedEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
+      if (!limitedEmails.length) return [];
+
+      // Get users first, then get their credentials and calendars
+      const userResults: Array<{ status: string; value?: any; reason?: any }> = [];
+      for (let i = 0; i < limitedEmails.length; i++) {
+        try {
+          const user = await this.dependencies.userRepo.findByEmail({ email: limitedEmails[i] });
+          userResults.push({ status: "fulfilled", value: user });
+        } catch (error) {
+          userResults.push({ status: "rejected", reason: error });
+        }
+      }
+      
+      // Get credentials and calendars for valid users
+      const usersWithCredentials: any[] = [];
+      for (let i = 0; i < userResults.length; i++) {
+        const result = userResults[i];
+        if (result.status === "fulfilled" && result.value && typeof result.value.id === "number") {
+          try {
+            const userWithCredentials = await this.dependencies.userRepo.findUserWithCredentials({ 
+              id: result.value.id 
+            });
+            if (userWithCredentials) {
+              usersWithCredentials.push({
+                ...userWithCredentials,
+                email: result.value.email,
+                username: result.value.username,
+              });
+            }
+          } catch (error) {
+            console.warn(`Failed to get credentials for user ${result.value.id}:`, error);
+          }
+        }
+      }
+      
+      return usersWithCredentials;
+    } catch (error) {
+      console.error("Error fetching attendee users with credentials:", error);
+      return [];
+    }
+  }
+
   private async getAcceptedAttendeeUserIdsForReschedule(rescheduleUid: string, excludeEmails: string[]) {
     const bookingRepo = this.dependencies.bookingRepo;
     const userRepo = this.dependencies.userRepo;
@@ -1559,13 +1632,13 @@ export class AvailableSlotsService {
     const booking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
     if (!booking?.attendees?.length) return [];
 
-    // Build exclusion map for host emails
+    // Skip host emails so we don't conflict with ourselves
     const excludeMap: { [key: string]: boolean } = {};
     (excludeEmails || []).forEach((e) => {
       excludeMap[e.toLowerCase()] = true;
     });
     
-    // Collect unique attendee emails (max 10 for performance)
+    // Find attendee emails (limit to 10 to keep things fast)
     const MAX_ATTENDEES = 10;
     const emailsMap: { [key: string]: boolean } = {};
     const attendeeEmails: string[] = [];
@@ -1583,19 +1656,18 @@ export class AvailableSlotsService {
     const limitedEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
     if (!limitedEmails.length) return [];
 
-    // Look up Cal.com users for these email addresses
-    const results = await Promise.all(
-      limitedEmails.map(async (email) => {
-        try {
-          const user = await userRepo.findByEmail({ email });
-          return { status: "fulfilled" as const, value: user };
-        } catch (error) {
-          return { status: "rejected" as const, reason: error };
-        }
-      })
-    );
+    // See which of these emails belong to actual Cal.com users
+    const results: Array<{ status: string; value?: any; reason?: any }> = [];
+    for (let i = 0; i < limitedEmails.length; i++) {
+      try {
+        const user = await userRepo.findByEmail({ email: limitedEmails[i] });
+        results.push({ status: "fulfilled", value: user });
+      } catch (error) {
+        results.push({ status: "rejected", reason: error });
+      }
+    }
     
-    // Extract user IDs from successful lookups
+    // Grab the user IDs from anyone we found
     const userIds: number[] = [];
     results.forEach((result) => {
       if (result.status === "fulfilled" && result.value && typeof result.value.id === "number") {
@@ -1606,19 +1678,15 @@ export class AvailableSlotsService {
     return userIds;
   }
 
-  /**
-   * Alternative approach: Add Cal.com attendees directly to the userIdAndEmailMap.
-   * This method modifies the existing availability check by including attendees
-   * in the upstream availability calculation instead of filtering afterwards.
-   * Currently not used in favor of the conflict-filtering approach above.
-   */
+  // Alternative method that adds attendees upstream instead of filtering afterwards
+  // Currently unused - we're using the slot filtering approach above instead
   private async addAttendeeAvailabilityForReschedule({
     rescheduleUid,
     userIdAndEmailMap,
     loggerWithEventDetails,
   }: {
     rescheduleUid: string;
-    userIdAndEmailMap: Map<number, string>;
+    userIdAndEmailMap: { [key: number]: string };
     loggerWithEventDetails: Logger<unknown>;
   }) {
     try {
@@ -1629,7 +1697,8 @@ export class AvailableSlotsService {
       if (!originalBooking?.attendees?.length) return;
 
       const existingEmails: string[] = [];
-      userIdAndEmailMap.forEach((email) => {
+      Object.keys(userIdAndEmailMap).forEach((key) => {
+        const email = userIdAndEmailMap[Number(key)];
         if (email) existingEmails.push(String(email).toLowerCase());
       });
       
@@ -1652,22 +1721,21 @@ export class AvailableSlotsService {
 
       if (!limitedAttendeeEmails.length) return;
 
-      const attendeeResults = await Promise.all(
-        limitedAttendeeEmails.map(async (email: string) => {
-          try {
-            const user = await userRepo.findByEmail({ email });
-            return { status: "fulfilled" as const, value: user };
-          } catch (error) {
-            return { status: "rejected" as const, reason: error };
-          }
-        })
-      );
+      const attendeeResults: Array<{ status: string; value?: any; reason?: any }> = [];
+      for (let i = 0; i < limitedAttendeeEmails.length; i++) {
+        try {
+          const user = await userRepo.findByEmail({ email: limitedAttendeeEmails[i] });
+          attendeeResults.push({ status: "fulfilled", value: user });
+        } catch (error) {
+          attendeeResults.push({ status: "rejected", reason: error });
+        }
+      }
       
       attendeeResults.forEach((res) => {
         if (res.status === "fulfilled") {
           const user = res.value as { id?: number; email?: string } | null;
           if (user?.id && user?.email) {
-            userIdAndEmailMap.set(user.id, user.email);
+            userIdAndEmailMap[user.id] = user.email;
           }
         }
       });
