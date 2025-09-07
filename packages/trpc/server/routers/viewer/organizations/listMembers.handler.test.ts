@@ -1,9 +1,14 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import { prisma } from "@calcom/prisma";
 
 import { listMembersHandler } from "./listMembers.handler";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 const prismaMock = {
   membership: {
@@ -90,6 +95,7 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
@@ -128,6 +134,7 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
@@ -186,6 +193,7 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {

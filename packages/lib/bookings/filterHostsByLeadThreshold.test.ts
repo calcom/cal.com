@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import type { Mock } from "vitest";
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 
@@ -5,6 +7,10 @@ import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 const luckyUserService = getLuckyUserService();
 
@@ -176,22 +182,6 @@ describe("filterHostByLeadThreshold", () => {
         bookingShortfalls: { 1: 1, 2: -3, 3: 0 },
         calibrations: { 1: 1, 2: 2, 3: 1 },
       },
-    });
-
-    const test = filterHostsByLeadThreshold({
-      hosts,
-      maxLeadThreshold: 3,
-      eventType: {
-        id: 1,
-        isRRWeightsEnabled: true,
-        team: {
-          parentId: null,
-          rrResetInterval: RRResetInterval.MONTH,
-          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-        },
-        includeNoShowInRRCalculation: false,
-      },
-      routingFormResponse: null,
     });
 
     expect(
