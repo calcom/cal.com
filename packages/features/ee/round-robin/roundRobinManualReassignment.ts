@@ -13,6 +13,7 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -27,7 +28,6 @@ import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKey
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingLocationService } from "@calcom/lib/server/service/bookingLocationService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
