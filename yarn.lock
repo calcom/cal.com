@@ -39744,21 +39744,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismock@patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch::locator=calcom-monorepo%40workspace%3A.":
-  version: 1.35.3
-  resolution: "prismock@patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch::version=1.35.3&hash=601941&locator=calcom-monorepo%40workspace%3A."
-  dependencies:
-    "@paralleldrive/cuid2": 2.2.2
-    "@prisma/generator-helper": 5.22.0
-    "@prisma/internals": 5.22.0
-    bson: 6.10.3
-  peerDependencies:
-    "@prisma/client": "*"
-    prisma: "*"
-  checksum: c267f0ef170a980aa01742b4977d64978e34e78e66d84e06c414fef226ea389df1f4a1b0a491a672dcafc3e7b58805a7d4a7773ae03080c674ad40897018a721
-  languageName: node
-  linkType: hard
-
 "proc-log@npm:^4.1.0, proc-log@npm:^4.2.0":
   version: 4.2.0
   resolution: "proc-log@npm:4.2.0"

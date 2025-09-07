@@ -136,7 +136,6 @@
     "dayjs@1.11.2": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
-    "prismock@1.35.3": "patch:prismock@npm%3A1.35.3#./.yarn/patches/prismock-npm-1.35.3-d859268b55.patch",
     "import-in-the-middle": "1.13.1"
   },
   "lint-staged": {
