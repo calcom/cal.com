@@ -163,6 +163,7 @@ export class WorkflowService {
             },
           },
           workflow,
+          submittedAt: new Date(),
         },
         { scheduledAt }
       );

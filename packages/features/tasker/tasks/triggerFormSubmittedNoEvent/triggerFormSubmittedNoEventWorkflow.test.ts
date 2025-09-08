@@ -6,14 +6,11 @@ import type { z } from "zod";
 import { shouldTriggerFormSubmittedNoEvent } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import type { ZTriggerFormSubmittedNoEventWorkflowPayloadSchema } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow";
 import { triggerFormSubmittedNoEventWorkflow } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates, TimeUnit } from "@calcom/prisma/enums";
 
-// Mock the WorkflowService
-vi.mock("@calcom/lib/server/service/workflows", () => ({
-  WorkflowService: {
-    scheduleFormWorkflows: vi.fn(() => Promise.resolve()),
-  },
+// Mock the scheduleWorkflowReminders function
+vi.mock("@calcom/ee/workflows/lib/reminders/reminderScheduler", () => ({
+  scheduleWorkflowReminders: vi.fn(() => Promise.resolve()),
 }));
 
 // Mock the form submission validation
@@ -29,18 +26,29 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-const mockScheduleFormWorkflows = vi.mocked(WorkflowService.scheduleFormWorkflows);
+import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+
+const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockShouldTriggerFormSubmittedNoEvent = vi.mocked(shouldTriggerFormSubmittedNoEvent);
 
 type WorkflowPayload = z.infer<typeof ZTriggerFormSubmittedNoEventWorkflowPayloadSchema>;
 
 function expectFormSubmittedNoEventWorkflowToBeCalled(payload: WorkflowPayload) {
-  expect(mockScheduleFormWorkflows).toHaveBeenCalledWith({
-    workflows: [payload.workflow],
-    responses: payload.responses,
-    responseId: payload.responseId,
-    form: payload.form,
-  });
+  expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith(
+    expect.objectContaining({
+      workflows: [payload.workflow],
+      formData: {
+        responses: payload.responses,
+        user: {
+          email: payload.form.user.email,
+          timeFormat: payload.form.user.timeFormat,
+          locale: payload.form.user.locale ?? "en",
+        },
+      },
+      hideBranding: payload.hideBranding,
+      smsReminderNumber: payload.smsReminderNumber,
+    })
+  );
 }
 
 describe("Form submitted, no event booked workflow trigger", () => {
@@ -70,6 +78,9 @@ describe("Form submitted, no event booked workflow trigger", () => {
           response: "Test input 1",
         },
       },
+      hideBranding: false,
+      smsReminderNumber: null,
+      submittedAt: new Date("2024-01-01T10:00:00Z"),
       workflow: {
         id: 1,
         name: "Test Workflow 1",
@@ -125,6 +136,9 @@ describe("Form submitted, no event booked workflow trigger", () => {
           response: "Test input 2",
         },
       },
+      hideBranding: false,
+      smsReminderNumber: null,
+      submittedAt: new Date("2024-01-01T11:00:00Z"),
       workflow: {
         id: 2,
         name: "Test Workflow 2",
@@ -157,7 +171,7 @@ describe("Form submitted, no event booked workflow trigger", () => {
 
     await triggerFormSubmittedNoEventWorkflow(payloadString);
 
-    // Should not call scheduleFormWorkflows when validation fails
-    expect(mockScheduleFormWorkflows).not.toHaveBeenCalled();
+    // Should not call scheduleWorkflowReminders when validation fails
+    expect(mockScheduleWorkflowReminders).not.toHaveBeenCalled();
   });
 });

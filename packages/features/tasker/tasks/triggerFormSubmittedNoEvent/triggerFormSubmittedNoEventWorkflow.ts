@@ -26,16 +26,18 @@ export const ZTriggerFormSubmittedNoEventWorkflowPayloadSchema = z.object({
   hideBranding: z.boolean(),
   smsReminderNumber: z.string().nullable(),
   workflow: ZWorkflow,
+  submittedAt: z.coerce.date(),
 });
 
 export async function triggerFormSubmittedNoEventWorkflow(payload: string): Promise<void> {
-  const { responseId, form, responses, smsReminderNumber, hideBranding, workflow } =
+  const { responseId, form, responses, smsReminderNumber, hideBranding, workflow, submittedAt } =
     ZTriggerFormSubmittedNoEventWorkflowPayloadSchema.parse(JSON.parse(payload));
 
   const shouldTrigger = await shouldTriggerFormSubmittedNoEvent({
     formId: form.id,
     responseId,
     responses,
+    submittedAt,
   });
 
   if (!shouldTrigger) return;
