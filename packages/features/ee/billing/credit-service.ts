@@ -172,7 +172,7 @@ export class CreditService {
           creditBalance?.limitReachedAt &&
           dayjs(creditBalance.limitReachedAt).isAfter(dayjs().startOf("month"));
 
-        if (limitReached) return false;
+        if (creditBalance?.limitReachedAt && !limitReached) return true;
 
         // check if team is still out of credits
         const teamCredits = await this._getAllCreditsForTeam({ teamId, tx });
