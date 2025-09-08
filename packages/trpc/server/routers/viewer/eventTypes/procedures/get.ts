@@ -1,4 +1,4 @@
-import { eventOwnerProcedure } from "../../util";
+import { eventOwnerProcedure } from "../../../util";
 import { ZGetInputSchema } from "../get.schema";
 
 export const get = eventOwnerProcedure.input(ZGetInputSchema).query(async ({ ctx, input }) => {
