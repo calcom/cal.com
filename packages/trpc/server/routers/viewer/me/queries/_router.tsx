@@ -17,7 +17,7 @@ export const meQueriesRouter = router({
     return handler({ ctx });
   }),
   platformMe: authedProcedure.query(async ({ ctx }) => {
-    const handler = (await import("./platformMe.handler")).platformMeHandler;
+    const handler = (await import("../platformMe.handler")).platformMeHandler;
     return handler({ ctx });
   }),
   shouldVerifyEmail: authedProcedure.query(async ({ ctx }) => {
