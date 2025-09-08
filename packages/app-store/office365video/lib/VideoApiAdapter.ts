@@ -4,8 +4,8 @@ import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
-import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -38,6 +38,7 @@ const getO365VideoAppKeys = async () => {
 
 const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
   console.log("TeamsVideoApiAdapter--credential: ", credential);
+  const log = logger.getSubLogger({ prefix: ["TeamsVideoApiAdapter"] });
   let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
 
@@ -193,24 +194,31 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
-      const resultString = await auth
-        .requestRaw({
+      try {
+        const response = await auth.requestRaw({
           url: `${await getUserEndpoint()}/onlineMeetings`,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),
           },
-        })
-        .then(handleErrorsRaw);
+        });
 
-      const resultObject = JSON.parse(resultString);
+        const resultString = await response.text();
+        const resultObject = JSON.parse(resultString);
 
-      return Promise.resolve({
-        type: "office365_video",
-        id: resultObject.id,
-        password: "",
-        url: resultObject.joinWebUrl || resultObject.joinUrl,
-      });
+        return Promise.resolve({
+          type: "office365_video",
+          id: resultObject.id,
+          password: "",
+          url: resultObject.joinWebUrl || resultObject.joinUrl,
+        });
+      } catch (error) {
+        log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
+        throw new HttpError({
+          statusCode: 500,
+          message: `Error creating MS Teams meeting for booking ${event.uid}`,
+        });
+      }
     },
     deleteMeeting: () => {
       return Promise.resolve([]);
@@ -221,31 +229,38 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       const url = `${await getUserEndpoint()}/onlineMeetings`;
       console.log("urllllllllllll: ", url);
       console.log("translateEvent(event): ", translateEvent(event));
-      const resultString = await auth
-        .requestRaw({
+      try {
+        const response = await auth.requestRaw({
           url,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),
           },
-        })
-        .then(handleErrorsRaw);
+        });
+        const resultString = await response.text();
 
-      const resultObject = JSON.parse(resultString);
+        const resultObject = JSON.parse(resultString);
 
-      if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
+        if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
+          throw new HttpError({
+            statusCode: 500,
+            message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
+          });
+        }
+
+        return Promise.resolve({
+          type: "office365_video",
+          id: resultObject.id,
+          password: "",
+          url: resultObject.joinWebUrl || resultObject.joinUrl,
+        });
+      } catch (error) {
+        log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
         throw new HttpError({
           statusCode: 500,
-          message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
+          message: `Error creating MS Teams meeting for booking ${event.uid}`,
         });
       }
-
-      return Promise.resolve({
-        type: "office365_video",
-        id: resultObject.id,
-        password: "",
-        url: resultObject.joinWebUrl || resultObject.joinUrl,
-      });
     },
   };
 };
