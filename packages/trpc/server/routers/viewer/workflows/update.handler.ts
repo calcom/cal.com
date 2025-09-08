@@ -3,6 +3,7 @@ import {
   isEmailAction,
   isFormTrigger,
   isCalAIAction,
+  isSMSAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
@@ -180,21 +181,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   } else if (isFormTrigger(trigger)) {
     const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
     const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
+    const hasSMSStep = steps.some((step) => isSMSAction(step.action));
 
-    if (hasEmailHostStep) {
+    if (hasEmailHostStep || hasSMSStep || hasCalAIStep) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Email to host action is not allowed for form triggers",
+        message: "This action is not allowed for form triggers",
       });
     }
-
-    if (hasCalAIStep) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cal.ai actions are not allowed for form triggers",
-      });
-    }
-
     // activeOnRoutingFormIds are routing form ids
     const routingFormIds = activeOnRoutingFormIds;
 

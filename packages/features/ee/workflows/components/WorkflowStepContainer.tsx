@@ -257,9 +257,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
   const hasAiAction = hasCalAIAction(form.getValues("steps"));
+  const hasSMSAction = form.getValues("steps").some((step) => isSMSAction(step.action));
 
   const filteredTriggerOptions = triggerOptions.filter(
-    (option) => !(hasAiAction && isFormTrigger(option.value))
+    (option) => !(isFormTrigger(option.value) && (hasAiAction || hasSMSAction) )
   );
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {

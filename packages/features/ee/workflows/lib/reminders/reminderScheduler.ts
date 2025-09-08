@@ -100,19 +100,21 @@ const processWorkflowStep = async (
   };
 
   if (isSMSAction(step.action)) {
+    if (!evt) {
+      // SMS action not not yet supported for form triggers
+      return;
+    }
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
 
-    const smsParams = {
+    await scheduleSMSReminder({
       ...scheduleFunctionParams,
       reminderPhone: sendTo,
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
       sender: step.sender,
       isVerificationPending: step.numberVerificationPending,
-      ...(evt ? { evt } : { formData }),
-    } as const;
-
-    await scheduleSMSReminder(smsParams);
+      evt,
+    });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
     step.action === WorkflowActions.EMAIL_HOST ||
