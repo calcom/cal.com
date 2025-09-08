@@ -6,6 +6,7 @@ export const WEBHOOK_DI_TOKENS = {
   RECORDING_WEBHOOK_SERVICE: Symbol("IRecordingWebhookService"),
   WEBHOOK_NOTIFIER: Symbol("IWebhookNotifier"),
   TASKER: Symbol("ITasker"),
+  LOGGER: Symbol("ILogger"),
   OOO_WEBHOOK_SERVICE: Symbol("OOO_WEBHOOK_SERVICE"),
   WEBHOOK_NOTIFICATION_HANDLER: Symbol("WebhookNotificationHandler"),
 
@@ -19,7 +20,4 @@ export const WEBHOOK_DI_TOKENS = {
 
   // Repositories
   WEBHOOK_REPOSITORY: Symbol("IWebhookRepository"),
-
-  // Factories
-  WEBHOOK_PAYLOAD_FACTORY: Symbol("WebhookPayloadFactory"),
 };

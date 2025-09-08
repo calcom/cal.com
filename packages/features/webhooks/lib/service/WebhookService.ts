@@ -1,21 +1,22 @@
 import { createHmac } from "crypto";
 
-import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
-import type { ITasker } from "../interface/infrastructure";
+import type { ITasker, ILogger } from "../interface/infrastructure";
 import type { IWebhookRepository, IWebhookService } from "../interface/services";
-import { TaskerProvider } from "../provider/TaskerProvider";
-
-const log = logger.getSubLogger({ prefix: ["[WebhookService]"] });
 
 export class WebhookService implements IWebhookService {
+  private readonly log: ILogger;
+
   constructor(
     private readonly repository: IWebhookRepository,
-    private readonly tasker?: ITasker // Optional for fallback import
-  ) {}
+    private readonly tasker: ITasker,
+    logger: ILogger
+  ) {
+    this.log = logger.getSubLogger({ prefix: ["[WebhookService]"] });
+  }
 
   protected async sendWebhook(
     trigger: WebhookTriggerEvents,
@@ -45,9 +46,11 @@ export class WebhookService implements IWebhookService {
     payload: WebhookPayload,
     subscriber: WebhookSubscriber
   ): Promise<WebhookDeliveryResult> {
-    const tasker = this.tasker ?? (await TaskerProvider.load());
+    if (!this.tasker) {
+      throw new Error("Tasker not injected - ensure proper DI configuration");
+    }
 
-    await tasker.create(
+    await this.tasker.create(
       "sendWebhook",
       JSON.stringify({
         secretKey: subscriber.secret,
@@ -133,13 +136,13 @@ export class WebhookService implements IWebhookService {
     subscribers: WebhookSubscriber[]
   ): Promise<void> {
     if (subscribers.length === 0) {
-      log.debug("No subscribers to process for trigger:", trigger);
+      this.log.debug("No subscribers to process for trigger:", { trigger });
       return;
     }
 
     const promises = subscribers.map(async (subscriber) => {
       try {
-        log.debug("Processing webhook", {
+        this.log.debug("Processing webhook", {
           trigger,
           webhookId: subscriber.id,
           subscriberUrl: subscriber.subscriberUrl,
@@ -148,13 +151,13 @@ export class WebhookService implements IWebhookService {
         const result = await this.sendWebhook(trigger, payload, subscriber);
 
         if (result.ok) {
-          log.debug(`Webhook sent successfully`, {
+          this.log.debug(`Webhook sent successfully`, {
             trigger,
             webhookId: subscriber.id,
             statusCode: result.status,
           });
         } else {
-          log.error(`Webhook failed`, {
+          this.log.error(`Webhook failed`, {
             error: result.message,
             trigger,
             webhookId: subscriber.id,
@@ -162,7 +165,7 @@ export class WebhookService implements IWebhookService {
           });
         }
       } catch (err) {
-        log.error("Error sending webhook", {
+        this.log.error("Error sending webhook", {
           error: err instanceof Error ? err.message : String(err),
           trigger,
           webhookId: subscriber.id,
@@ -179,7 +182,7 @@ export class WebhookService implements IWebhookService {
     const successCount = results.filter((result) => result.status === "fulfilled").length;
     const failureCount = results.filter((result) => result.status === "rejected").length;
 
-    log.info(`Webhook processing completed for ${trigger}`, {
+    this.log.info(`Webhook processing completed for ${trigger}`, {
       totalSubscribers: subscribers.length,
       successful: successCount,
       failed: failureCount,
@@ -189,7 +192,7 @@ export class WebhookService implements IWebhookService {
     results.forEach((result, index) => {
       if (result.status === "rejected") {
         const subscriber = subscribers[index];
-        log.error(`Webhook processing failed for subscriber`, {
+        this.log.error(`Webhook processing failed for subscriber`, {
           trigger,
           webhookId: subscriber?.id,
           subscriberUrl: subscriber?.subscriberUrl,
@@ -217,8 +220,10 @@ export class WebhookService implements IWebhookService {
     if (isDryRun) return;
 
     try {
-      const tasker = this.tasker ?? (await TaskerProvider.load());
-      await tasker.create(
+      if (!this.tasker) {
+        throw new Error("Tasker not injected - ensure proper DI configuration");
+      }
+      await this.tasker.create(
         "sendWebhook",
         JSON.stringify({
           secretKey: subscriber.secret,
@@ -237,7 +242,7 @@ export class WebhookService implements IWebhookService {
         { scheduledAt, referenceUid: `booking-${bookingData.id}-${trigger}` }
       );
     } catch (error) {
-      log.error("Failed to schedule time-based webhook", {
+      this.log.error("Failed to schedule time-based webhook", {
         trigger,
         bookingId: bookingData.id,
         subscriberUrl: subscriber.subscriberUrl,
@@ -257,13 +262,15 @@ export class WebhookService implements IWebhookService {
     if (isDryRun) return;
 
     try {
-      const tasker = this.tasker ?? (await TaskerProvider.load());
+      if (!this.tasker) {
+        throw new Error("Tasker not injected - ensure proper DI configuration");
+      }
       for (const trigger of triggers) {
         const referenceUid = `booking-${bookingId}-${trigger}`;
-        await tasker.cancelWithReference(referenceUid, "sendWebhook");
+        await this.tasker.cancelWithReference(referenceUid, "sendWebhook");
       }
     } catch (error) {
-      log.error("Failed to cancel scheduled webhooks", {
+      this.log.error("Failed to cancel scheduled webhooks", {
         bookingId,
         triggers,
         error: error instanceof Error ? error.message : String(error),
@@ -295,12 +302,14 @@ export class WebhookService implements IWebhookService {
     if (!webhookSubscribers.length) return;
 
     try {
-      const tasker = this.tasker ?? (await TaskerProvider.load());
+      if (!this.tasker) {
+        throw new Error("Tasker not injected - ensure proper DI configuration");
+      }
       const createdAt = new Date().toISOString();
 
       await Promise.all(
         webhookSubscribers.map((subscriber) =>
-          tasker.create(
+          this.tasker.create(
             "sendWebhook",
             JSON.stringify({
               secretKey: subscriber.secret,
@@ -314,7 +323,7 @@ export class WebhookService implements IWebhookService {
         )
       );
     } catch (error) {
-      log.error("Failed to schedule delayed webhooks", {
+      this.log.error("Failed to schedule delayed webhooks", {
         trigger,
         scheduledAt,
         error: error instanceof Error ? error.message : String(error),

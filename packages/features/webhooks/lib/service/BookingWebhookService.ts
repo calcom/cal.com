@@ -15,7 +15,7 @@ import type {
   WebhookSubscriber,
 } from "../dto/types";
 import type { IWebhookNotifier, IWebhookService, ITasker, IBookingWebhookService } from "../interface";
-import { TaskerProvider } from "../provider/TaskerProvider";
+import type { ILogger } from "../interface/infrastructure";
 import type {
   BookingCreatedParams,
   BookingCancelledParams,
@@ -31,15 +31,19 @@ import type {
 } from "../types";
 
 export class BookingWebhookService implements IBookingWebhookService {
+  private readonly log: ILogger;
+
   constructor(
     private readonly webhookNotifier: IWebhookNotifier,
     private readonly webhookService: IWebhookService,
-    private readonly tasker?: ITasker
-  ) {}
+    private readonly tasker: ITasker,
+    logger: ILogger
+  ) {
+    this.log = logger.getSubLogger({ prefix: ["[BookingWebhookService]"] });
+  }
 
-  private async getTasker(): Promise<ITasker> {
-    const tasker = this.tasker ?? (await TaskerProvider.load());
-    return tasker;
+  private getTasker(): ITasker {
+    return this.tasker;
   }
 
   async emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void> {
@@ -393,7 +397,7 @@ export class BookingWebhookService implements IBookingWebhookService {
     const successCount = results.filter((result) => result.status === "fulfilled").length;
     const failureCount = results.filter((result) => result.status === "rejected").length;
 
-    console.log(`Meeting webhook scheduling completed`, {
+    this.log.info(`Meeting webhook scheduling completed`, {
       bookingId: params.booking.id,
       totalWebhooks: schedulePromises.length,
       successful: successCount,
@@ -404,7 +408,7 @@ export class BookingWebhookService implements IBookingWebhookService {
     if (failureCount > 0) {
       results.forEach((result, index) => {
         if (result.status === "rejected") {
-          console.error(`Meeting webhook scheduling failed`, {
+          this.log.error(`Meeting webhook scheduling failed`, {
             bookingId: params.booking.id,
             index,
             error: result.reason,
@@ -449,11 +453,11 @@ export class BookingWebhookService implements IBookingWebhookService {
 
             return tasker.create(
               "triggerHostNoShowWebhook",
-              {
+              JSON.stringify({
                 triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
                 bookingId: params.booking.id,
                 webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
-              },
+              }),
               { scheduledAt }
             );
           }
@@ -480,11 +484,11 @@ export class BookingWebhookService implements IBookingWebhookService {
 
             return tasker.create(
               "triggerGuestNoShowWebhook",
-              {
+              JSON.stringify({
                 triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
                 bookingId: params.booking.id,
                 webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit as TimeUnit },
-              },
+              }),
               { scheduledAt }
             );
           }
@@ -499,7 +503,7 @@ export class BookingWebhookService implements IBookingWebhookService {
       const successCount = results.filter((result) => result.status === "fulfilled").length;
       const failureCount = results.filter((result) => result.status === "rejected").length;
 
-      console.log(`No-show webhook scheduling completed`, {
+      this.log.info(`No-show webhook scheduling completed`, {
         bookingId: params.booking.id,
         totalWebhooks: noShowPromises.length,
         successful: successCount,
@@ -510,7 +514,7 @@ export class BookingWebhookService implements IBookingWebhookService {
       if (failureCount > 0) {
         results.forEach((result, index) => {
           if (result.status === "rejected") {
-            console.error(`No-show webhook scheduling failed`, {
+            this.log.error(`No-show webhook scheduling failed`, {
               bookingId: params.booking.id,
               index,
               error: result.reason,
@@ -519,7 +523,9 @@ export class BookingWebhookService implements IBookingWebhookService {
         });
       }
     } catch (error) {
-      console.error("Failed to schedule no-show webhooks:", error);
+      this.log.error("Failed to schedule no-show webhooks:", {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

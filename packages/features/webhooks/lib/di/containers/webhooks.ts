@@ -10,6 +10,7 @@ export const webhookContainer = createContainer();
 
 // Load infrastructure
 webhookContainer.load(WEBHOOK_DI_TOKENS.TASKER, infrastructureModule);
+webhookContainer.load(WEBHOOK_DI_TOKENS.LOGGER, infrastructureModule);
 
 // Load repositories
 webhookContainer.load(WEBHOOK_DI_TOKENS.WEBHOOK_REPOSITORY, webhookRepositoryModule);
@@ -28,8 +29,7 @@ webhookContainer.load(WEBHOOK_DI_TOKENS.RECORDING_PAYLOAD_BUILDER, webhookFactor
 webhookContainer.load(WEBHOOK_DI_TOKENS.MEETING_PAYLOAD_BUILDER, webhookFactoryModule);
 webhookContainer.load(WEBHOOK_DI_TOKENS.INSTANT_MEETING_BUILDER, webhookFactoryModule);
 
-// Load factories and notifiers
-webhookContainer.load(WEBHOOK_DI_TOKENS.WEBHOOK_PAYLOAD_FACTORY, webhookFactoryModule);
+// Load notifiers
 webhookContainer.load(WEBHOOK_DI_TOKENS.WEBHOOK_NOTIFICATION_HANDLER, webhookFactoryModule);
 webhookContainer.load(WEBHOOK_DI_TOKENS.WEBHOOK_NOTIFIER, webhookFactoryModule);
 
@@ -47,8 +47,4 @@ export function getRecordingWebhookService() {
 
 export function getWebhookNotifier() {
   return webhookContainer.get(WEBHOOK_DI_TOKENS.WEBHOOK_NOTIFIER);
-}
-
-export function getWebhookPayloadFactory() {
-  return webhookContainer.get(WEBHOOK_DI_TOKENS.WEBHOOK_PAYLOAD_FACTORY);
 }
