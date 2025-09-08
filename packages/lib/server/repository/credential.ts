@@ -12,7 +12,7 @@ const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
 type BaseCredentialCreateInput = {
   type: string;
-  key: Prisma.InputJsonValue;
+  key: any;
   appId: string;
   delegationCredentialId?: string | null;
   subscriptionId?: string | null;
