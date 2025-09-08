@@ -812,6 +812,8 @@
   "workflow_validation_failed": "Workflow validation failed",
   "workflow_validation_empty_fields": "One or more workflow steps have empty message content",
   "workflow_validation_unverified_contacts": "One or more phone numbers or email addresses are not verified",
+  "supercharge_your_workflows_with_cal_ai": "Supercharge your Workflows with Cal.ai",
+  "supercharge_your_workflows_with_cal_ai_description": "Lifelike AI agents that book meetings, send reminders, and follow up with your customers.",
   "phone_number_imported_successfully": "Phone number imported and linked to agent successfully",
   "phone_number_deleted_successfully": "Phone number deleted successfully",
   "delete_phone_number_confirmation": "Are you sure you want to delete this phone number? This action cannot be undone.",

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Icon } from "@calcom/ui/components/icon";
 
 export function CalAiBanner() {
+  const { t } = useLocale();
   const [isVisible, setIsVisible] = useState(() => {
     if (typeof window === "undefined") return true;
     return !localStorage.getItem("calai-banner-dismissed");
@@ -33,9 +35,9 @@ export function CalAiBanner() {
 
       <div className="flex items-center justify-between p-6 lg:p-8">
         <div className="flex-1 pr-6">
-          <h2 className="font-cal font-subtle text-lg">Supercharge your Workflows with Cal.ai</h2>
+          <h2 className="font-cal font-subtle text-lg">{t("supercharge_your_workflows_with_cal_ai")}</h2>
           <p className="text-subtle mb-4 text-sm">
-            Lifelike AI agents that book meetings, send reminders, and follow up with your customers.
+            {t("supercharge_your_workflows_with_cal_ai_description")}
           </p>
 
           <button
