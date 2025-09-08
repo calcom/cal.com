@@ -7,7 +7,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../types";
+import type { TrpcSessionUser } from "../../../../../types";
 import type { TBulkUsersDelete } from "./bulkDeleteUsers.schema";
 
 type BulkDeleteUsersHandler = {
