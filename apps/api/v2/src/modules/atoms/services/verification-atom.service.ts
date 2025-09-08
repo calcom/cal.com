@@ -3,6 +3,7 @@ import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/che
 import { GetVerifiedEmailsInput } from "@/modules/atoms/inputs/get-verified-emails-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
 
@@ -15,7 +16,10 @@ import {
 
 @Injectable()
 export class VerificationAtomsService {
-  constructor(private readonly atomsRepository: AtomsRepository) {}
+  constructor(
+    private readonly atomsRepository: AtomsRepository,
+    private readonly teamsRepository: TeamsRepository
+  ) {}
 
   async checkEmailVerificationRequired(input: CheckEmailVerificationRequiredParams) {
     return await checkEmailVerificationRequired(input);
@@ -71,15 +75,31 @@ export class VerificationAtomsService {
     const userEmailWithoutOauthClientId = userEmail.replace(/\+([^+]+)@/, "@");
 
     if (teamId) {
-      // implement team logic here
-      // and then return here only
-      return [];
+      const verifiedEmails: string[] = [];
+      const teamMembers = await this.teamsRepository.getTeamMemberEmails(teamId);
+
+      if (teamMembers.length === 0) {
+        return verifiedEmails;
+      }
+
+      teamMembers.forEach((member) => {
+        const memberEmailWithoutOauthClientId = member.email.replace(/\+([^+]+)@/, "@");
+
+        verifiedEmails.push(memberEmailWithoutOauthClientId);
+        member.secondaryEmails.forEach((secondaryEmail) => {
+          verifiedEmails.push(secondaryEmail.email.replace(/\+([^+]+)@/, "@"));
+        });
+      });
+
+      return verifiedEmails;
     }
 
     let verifiedEmails = [userEmailWithoutOauthClientId];
 
     const secondaryEmails = await this.atomsRepository.getSecondaryEmails(userId);
-    verifiedEmails = verifiedEmails.concat(secondaryEmails.map((secondaryEmail) => secondaryEmail.email));
+    verifiedEmails = verifiedEmails.concat(
+      secondaryEmails.map((secondaryEmail) => secondaryEmail.email.replace(/\+([^+]+)@/, "@"))
+    );
 
     return verifiedEmails;
   }
