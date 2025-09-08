@@ -62,6 +62,7 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import AddVerifiedEmail from "../../AddVerifiedEmail";
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
@@ -508,7 +509,7 @@ export const EventAdvancedTab = ({
     "allowReschedulingCancelledBookings"
   );
 
-  const { _isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
+  const { isLocked: _isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
     multiplePrivateLinksLocked.disabled = true;
@@ -1161,6 +1162,9 @@ export const EventAdvancedTab = ({
                       : null
                   );
                 }}>
+                {isPlatform && (
+                  <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} />
+                )}
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                   <SelectField
                     className="w-full"
