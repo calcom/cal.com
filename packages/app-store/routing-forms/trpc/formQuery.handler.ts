@@ -3,6 +3,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
+import { TRPCError } from "@trpc/server";
+
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { TFormQueryInputSchema } from "./formQuery.schema";
 import { checkPermissionOnExistingRoutingForm } from "./permissions";
