@@ -13,10 +13,12 @@ import type { EventLocationTypeFromAppMeta } from "../types/App";
 import {
   MeetLocationType as importedMeetLocationType,
   MSTeamsLocationType as importedMSTeamsLocationType,
+  DailyLocationType as importedDailyLocationType,
 } from "./constants";
 
 export const MeetLocationType = importedMeetLocationType;
 export const MSTeamsLocationType = importedMSTeamsLocationType;
+export const DailyLocationType = importedDailyLocationType;
 
 export type DefaultEventLocationType = {
   default: true;
@@ -69,7 +71,6 @@ export type EventLocationTypeFromApp = Ensure<
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
-export const DailyLocationType = "integrations:daily";
 export const CalVideoLocationType = DailyLocationType;
 
 /**
