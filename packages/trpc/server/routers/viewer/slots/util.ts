@@ -1063,11 +1063,19 @@ export class AvailableSlotsService {
         rescheduleUid: input.rescheduleUid,
         loggerWithEventDetails,
       });
+      
+      // Efficient deduplication: handle both string and number IDs
       const existingIds: { [key: string]: boolean } = {};
-      allHosts.forEach((h) => {
-        existingIds[h.user.id] = true;
-      });
-      allHosts.push(...attendeeHosts.filter((h) => !existingIds[h.user.id]));
+      for (const host of allHosts) {
+        existingIds[String(host.user.id)] = true;
+      }
+      
+      // Filter out duplicates and add attendee hosts
+      for (const attendeeHost of attendeeHosts) {
+        if (!existingIds[String(attendeeHost.user.id)]) {
+          allHosts.push(attendeeHost);
+        }
+      }
     }
 
     const twoWeeksFromNow = dayjs().add(2, "week");
@@ -1520,28 +1528,36 @@ export class AvailableSlotsService {
       const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
       if (!originalBooking?.attendees?.length) return [];
 
-      // ACCEPTED-only, dedupe case-insensitively, preserve original-case for lookup
+      // ACCEPTED-only, dedupe case-insensitively, efficient with early termination
       const MAX_ATTENDEES = 10;
-      const lowerToOriginal: { [key: string]: string } = {};
-      for (const a of originalBooking.attendees) {
-        const status = (a as any)?.status ?? "ACCEPTED";
-        const original = String((a as any)?.email ?? "");
-        const lower = original.toLowerCase();
-        if (!lower || status !== "ACCEPTED") continue;
-        if (!lowerToOriginal[lower]) {
-          lowerToOriginal[lower] = original;
-          if (Object.keys(lowerToOriginal).length >= MAX_ATTENDEES) break;
+      const lowerCaseMap: { [key: string]: boolean } = {};
+      const emails: string[] = [];
+      
+      for (let i = 0; i < originalBooking.attendees.length && emails.length < MAX_ATTENDEES; i++) {
+        const attendee = originalBooking.attendees[i];
+        const status = (attendee as any)?.status ?? "ACCEPTED";
+        
+        if (status !== "ACCEPTED") continue;
+        
+        const email = String((attendee as any)?.email ?? "").trim();
+        if (!email) continue;
+        
+        const lowerEmail = email.toLowerCase();
+        if (!lowerCaseMap[lowerEmail]) {
+          lowerCaseMap[lowerEmail] = true;
+          emails.push(email); // Preserve original case
         }
       }
-      const emails = Object.keys(lowerToOriginal).map(key => lowerToOriginal[key]);
+      
       if (!emails.length) return [];
 
-      // Sequential lookups with isolated error handling
-      const attendeeHosts = [];
+      // Optimized sequential lookups with better error handling
+      const attendeeHosts: any[] = [];
       for (const email of emails) {
         try {
           const user = await this.dependencies.userAvailabilityService.getUser({ email });
-          if (user?.id && user?.email) {
+          // More robust check: user.id can be 0, so check for != null
+          if (user && user.id != null && user.email) {
             attendeeHosts.push({
               isFixed: false,
               groupId: null,
