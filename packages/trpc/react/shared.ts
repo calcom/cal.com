@@ -13,6 +13,7 @@ export const ENDPOINTS = [
   "apps/queries",
   "apps/mutations",
   "auth",
+  "auth/mutations",
   "availability",
   "availability/queries",
   "availability/mutations",
