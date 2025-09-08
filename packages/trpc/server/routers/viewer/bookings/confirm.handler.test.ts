@@ -5,9 +5,10 @@ import { describe, beforeEach, vi, expect, test } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import { confirmHandler } from "./confirm.handler";
 
+// eslint-disable-next-line playwright/no-skipped-test
 describe.skip("confirmHandler", () => {
   beforeEach(() => {
     // Reset all mocks before each test

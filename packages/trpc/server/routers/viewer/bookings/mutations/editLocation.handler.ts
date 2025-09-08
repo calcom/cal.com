@@ -23,7 +23,7 @@ import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
 
