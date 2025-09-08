@@ -19,11 +19,50 @@ import { PlatformPricing } from "@components/settings/platform/pricing/platform-
 const queryClient = new QueryClient();
 
 const PlatformSkeletonLoader = () => (
-  <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
-    <div className="m-5">
-      <SkeletonText className="h-8 w-full" />
-      <SkeletonText className="mt-4 h-8 w-3/4" />
-      <SkeletonText className="mt-4 h-8 w-1/2" />
+  <Shell
+    isPlatformUser={true}
+    withoutMain={false}
+    SidebarContainer={<></>}
+    heading={<SkeletonText className="h-6 w-36" />}
+    subtitle={<SkeletonText className="mt-1 h-4 w-64" />}
+    title={undefined}
+    description={undefined}>
+    <div className="mb-10">
+      <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
+        <div className="flex w-full flex-col gap-1">
+          <SkeletonText className="h-5 w-40" />
+          <SkeletonText className="h-4 w-56" />
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <div className="bg-emphasis h-9 w-20 animate-pulse rounded-md" />
+        </div>
+      </div>
+      <div className="border-subtle divide-subtle divide-y rounded-b-lg border border-t-0">
+        {[0, 1].map((i) => (
+          <div key={i} className="flex w-full justify-between px-4 py-4 sm:px-6">
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <div className="flex gap-2">
+                <SkeletonText className="h-4 w-28" />
+                <SkeletonText className="h-4 w-48" />
+              </div>
+              <div className="flex gap-2">
+                <SkeletonText className="h-4 w-24" />
+                <SkeletonText className="h-4 w-40" />
+              </div>
+              <div className="flex gap-2">
+                <SkeletonText className="h-4 w-28" />
+                <SkeletonText className="h-4 w-28" />
+                <SkeletonText className="h-4 w-20" />
+              </div>
+            </div>
+            <div className="ml-4 flex shrink-0 items-start gap-3">
+              <div className="bg-emphasis h-8 w-20 animate-pulse rounded-md" />
+              <div className="bg-emphasis h-8 w-16 animate-pulse rounded-md" />
+              <div className="bg-emphasis h-8 w-16 animate-pulse rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   </Shell>
 );
