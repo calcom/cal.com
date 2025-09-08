@@ -13,7 +13,7 @@ vi.mock("@calcom/prisma", () => ({
 
 describe("unlinkConnectedAccount.handler", () => {
   it("Should response with a success message when unlinking an Google account", async () => {
-    const user = { id: 1, identityProvider: IdentityProvider.GOOGLE };
+    const user = { id: 1, identityProvider: IdentityProvider.GOOGLE, identityProviderId: null };
     const args: Prisma.UserUpdateArgs = {
       where: {
         id: 1,
@@ -40,7 +40,7 @@ describe("unlinkConnectedAccount.handler", () => {
     `);
   });
   it("Should respond with an error message if unlink was unsuccessful", async () => {
-    const user = { id: 1, identityProvider: IdentityProvider.CAL };
+    const user = { id: 1, identityProvider: IdentityProvider.CAL, identityProviderId: null };
     const response = await unlinkConnectedAccountHandler({ ctx: { user } });
     expect(response).toMatchInlineSnapshot(`
       {

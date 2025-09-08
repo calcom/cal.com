@@ -8,7 +8,7 @@ type UpdateProfileOptions = {
     user: {
       id: number;
       identityProvider: IdentityProvider;
-      identityProviderId?: string;
+      identityProviderId: string | null;
     };
     res?: NextApiResponse | GetServerSidePropsContext["res"];
   };
