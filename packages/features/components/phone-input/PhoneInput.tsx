@@ -39,7 +39,7 @@ function BasePhoneInput({
     const sanitized = value
       .trim()
       .replace(/[^\d+]/g, "")
-      .replace(/^\+?/, "+");
+      .replace(/^\++/, "+");
 
     if (sanitized === "+" || sanitized === "") return;
 
@@ -190,7 +190,7 @@ const useDefaultCountry = () => {
           }
 
           const browserCountry = navigator.language.split("-")[1]?.toLowerCase();
-          if (browserCountry && isSupportedCountry(browserCountry)) {
+          if (browserCountry && isSupportedCountry(browserCountry.toUpperCase())) {
             setDefaultCountry(browserCountry);
             setIsDetecting(false);
             return;

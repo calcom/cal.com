@@ -19,6 +19,11 @@ export async function fetchGeolocation() {
 
   try {
     const res = await fetch("/api/geolocation");
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
 
     const newCacheData = {
@@ -31,10 +36,9 @@ export async function fetchGeolocation() {
   } catch (error) {
     const cachedData = localStorage.getItem(CACHE_KEY);
     if (cachedData) {
-      const { country } = JSON.parse(cachedData);
-      return { country };
+      return JSON.parse(cachedData);
     }
-    return { country: "US" };
+    return { country: "US", timestamp: Date.now() };
   }
 }
 

@@ -15,35 +15,59 @@ export function detectCountryFromHeaders(req: IncomingMessage): CountryDetection
   const vercelCountryCode: string | string[] = headers["x-vercel-ip-country"] ?? "";
   const primaryCountryCode = Array.isArray(vercelCountryCode) ? vercelCountryCode[0] : vercelCountryCode;
 
-  const fallbackCountryCode = headers["x-country-code"] || 
-                             headers["cf-ipcountry"] || 
-                             headers["x-cloudfront-viewer-country"];
+  const fallbackCountryCodeHeader =
+    headers["x-country-code"] ||
+    headers["cf-ipcountry"] ||
+    headers["cloudfront-viewer-country"];
 
-  const region = headers["x-vercel-ip-region"] || headers["cf-ipregion"];
-  const city = headers["x-vercel-ip-city"] || headers["cf-ipcity"];
-  const timezone = headers["x-vercel-ip-timezone"] || headers["cf-iptimezone"];
+  const regionHeader = headers["x-vercel-ip-country-region"] || headers["cf-region"] || headers["cf-region-code"];
+  const cityHeader = headers["x-vercel-ip-city"] || headers["cf-ipcity"];
+  const timezoneHeader = headers["x-vercel-ip-timezone"] || headers["cf-timezone"];
 
-  const countryCode = primaryCountryCode || fallbackCountryCode || "";
-  const detectionMethod = primaryCountryCode ? "vercel-ip" : fallbackCountryCode ? "fallback-header" : "none";
+  const normalizedFallback = Array.isArray(fallbackCountryCodeHeader)
+    ? fallbackCountryCodeHeader[0]
+    : fallbackCountryCodeHeader ?? "";
+  const normalizedRegion = Array.isArray(regionHeader) ? regionHeader[0] : regionHeader;
+  const normalizedCity = Array.isArray(cityHeader) ? cityHeader[0] : cityHeader;
+  const normalizedTimezone = Array.isArray(timezoneHeader) ? timezoneHeader[0] : timezoneHeader;
+
+  const countryCode = primaryCountryCode || normalizedFallback || "";
+  const detectionMethod = primaryCountryCode
+    ? "vercel-ip"
+    : normalizedFallback
+    ? "fallback-header"
+    : "none";
 
   return {
     countryCode,
-    region: Array.isArray(region) ? region[0] : region,
-    city: Array.isArray(city) ? city[0] : city,
-    timezone: Array.isArray(timezone) ? timezone[0] : timezone,
+    region: normalizedRegion,
+    city: normalizedCity,
+    timezone: normalizedTimezone,
     detectionMethod,
-    fallbackCountryCode: Array.isArray(fallbackCountryCode) ? fallbackCountryCode[0] : fallbackCountryCode,
+    fallbackCountryCode: normalizedFallback || undefined,
   };
 }
 
 export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
   try {
     const response = await fetch(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+      { signal: controller.signal }
     );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      return null;
+    }
+
     const data = await response.json();
     return data.countryCode || null;
   } catch (error) {
+    clearTimeout(timeoutId);
     return null;
   }
 }
