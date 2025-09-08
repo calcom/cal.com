@@ -1510,7 +1510,6 @@ export class AvailableSlotsService {
   }) {
     try {
       const bookingRepo = this.dependencies.bookingRepo;
-      const userRepo = this.dependencies.userRepo;
 
       const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
       if (!originalBooking?.attendees?.length) return [];
@@ -1535,12 +1534,12 @@ export class AvailableSlotsService {
       
       for (const email of limitedEmails) {
         try {
-          const user = await userRepo.findByEmail({ email });
+          const user = await this.dependencies.userAvailabilityService.getUser({ email });
           if (user?.id && user?.email) {
             attendeeHosts.push({
               isFixed: false,
-              groupId: null,
-              user: user as GetAvailabilityUserWithDelegationCredentials,
+              createdAt: null,
+              user,
             });
           }
         } catch {
