@@ -1022,7 +1022,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  recentNoShowGuests: userBelongsToTeamProcedure
+  recentNoShowGuests: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
