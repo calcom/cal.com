@@ -42,6 +42,9 @@ async function hasBooking(responseId: number): Promise<boolean> {
         id: responseId,
       },
     },
+    select: {
+      id: true,
+    },
   });
 
   return !!bookingFromResponse;
@@ -93,6 +96,10 @@ async function hasDuplicateSubmission({
       NOT: {
         id: responseId,
       },
+    },
+    select: {
+      id: true,
+      response: true,
     },
   });
 
