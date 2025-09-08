@@ -125,6 +125,12 @@ describe("CreditService", () => {
           warningSentAt: null,
         });
 
+        vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
+          totalMonthlyCredits: 500,
+          totalRemainingMonthlyCredits: 100,
+          additionalCredits: 0,
+        });
+
         const noLimitReached = await creditService.hasAvailableCredits({ teamId: 1 });
         expect(noLimitReached).toBe(true);
 
