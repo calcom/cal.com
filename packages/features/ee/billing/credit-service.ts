@@ -15,7 +15,8 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
+import type { CreditUsageType } from "@calcom/prisma/enums";
+import { CreditType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -171,7 +172,7 @@ export class CreditService {
           creditBalance?.limitReachedAt &&
           dayjs(creditBalance.limitReachedAt).isAfter(dayjs().startOf("month"));
 
-        if (!limitReached) return true;
+        if (limitReached) return false;
 
         // check if team is still out of credits
         const teamCredits = await this._getAllCreditsForTeam({ teamId, tx });
@@ -196,11 +197,14 @@ export class CreditService {
 
       if (userId) {
         const teamWithAvailableCredits = await this._getTeamWithAvailableCredits({ userId, tx });
-
-        if (teamWithAvailableCredits && !teamWithAvailableCredits.limitReached) return true;
+        if (
+          teamWithAvailableCredits &&
+          !teamWithAvailableCredits.limitReached &&
+          teamWithAvailableCredits.availableCredits > 0
+        )
+          return true;
 
         const userCredits = await this._getAllCredits({ userId, tx });
-
         return userCredits.additionalCredits > 0;
       }
 
@@ -336,7 +340,20 @@ export class CreditService {
     tx: PrismaTransaction;
     externalRef?: string;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, phoneNumber, email, tx } = props;
+    const {
+      credits,
+      creditType,
+      bookingUid,
+      smsSid,
+      teamId,
+      userId,
+      smsSegments,
+      callDuration,
+      creditFor,
+      phoneNumber,
+      email,
+      tx,
+    } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
