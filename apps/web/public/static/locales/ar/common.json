@@ -1645,6 +1645,9 @@
   "embeds": "التضمينات",
   "impersonation": "انتحال الشخصية",
   "impersonation_description": "إعدادات إدارة انتحال شخصية مستخدم",
+  "recent_impersonations": "عمليات انتحال الشخصية الأخيرة",
+  "quick_impersonate": "انتحال شخصية سريع",
+  "no_recent_impersonations": "لا توجد عمليات انتحال شخصية حديثة",
   "users": "المستخدمون",
   "user": "المستخدم",
   "profile_description": "إدارة الإعدادات لملفك الشخصي على {{appName}}",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "عند اختبار سير العمل هذا، يجب أن تدرك أنه لا يمكن جدولة رسائل البريد الإلكتروني والرسائل القصيرة إلا قبل ساعة واحدة على الأقل",
   "insights_no_data_found_for_filter": "لم يتم العثور على بيانات لعامل التصفية المحدد أو التواريخ المحددة.",
   "acknowledge_booking_no_show_fee": "أقر بأنه إذا لم أحضر هذا الحدث فسيتم سحب رسوم عدم حضور من بطاقتي تبلغ {{amount, currency}}.",
+  "days": "أيام",
   "card_details": "تفاصيل البطاقة",
   "something_went_wrong_on_our_end": "حدث خطأ ما من جانبنا. تواصل مع فريق الدعم لدينا، وسنقوم بإصلاحه فورًا لك.",
   "please_provide_following_text_to_suppport": "يرجى تقديم النص التالي عند الاتصال بالدعم لمساعدتك بشكل أفضل",
@@ -3602,5 +3606,9 @@
   "search_variables": "البحث عن المتغيرات",
   "no_variables_found": "لم يتم العثور على متغيرات",
   "api_key_name_too_long": "يجب ألا يتجاوز الاسم {{max}} حرفًا",
+  "auto_charge_for_last_minute_cancellation": "فرض رسوم التخلف عن الحضور تلقائياً للإلغاءات في اللحظة الأخيرة",
+  "before_scheduled_start_time": "قبل وقت البدء المحدد",
+  "cancel_booking_acknowledge_no_show_fee": "أقر بأنه عند إلغاء الحجز قبل {{timeValue}} {{timeUnit}} من وقت البدء سيتم فرض رسوم التخلف عن الحضور بقيمة {{amount, currency}}",
+  "contact_organizer": "إذا كانت لديك أي أسئلة، يرجى التواصل مع المنظم.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

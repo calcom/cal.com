@@ -1645,6 +1645,9 @@
   "embeds": "Вставки",
   "impersonation": "Вхід під іншим іменем",
   "impersonation_description": "Налаштування входу під іншим іменем",
+  "recent_impersonations": "Нещодавні видавання за інших",
+  "quick_impersonate": "Швидке видавання за іншого",
+  "no_recent_impersonations": "Немає нещодавніх видавань за інших",
   "users": "Користувачі",
   "user": "Користувач",
   "profile_description": "Керуйте налаштуваннями свого профілю {{appName}}",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "Тестуючи цей робочий процес, зважайте на те, що надсилання електронних листів і SMS-повідомлень можна запланувати щонайменше за 1 годину",
   "insights_no_data_found_for_filter": "Не знайдено жодних даних для вибраного фільтра або вибраних дат.",
   "acknowledge_booking_no_show_fee": "Я усвідомлюю, що в разі моєї відсутності на цьому заході з моєї картки буде стягнуто плату в розмірі {{amount, currency}}.",
+  "days": "днів",
   "card_details": "Карткові реквізити",
   "something_went_wrong_on_our_end": "Щось пішло не так з нашого боку. Зв'яжіться з нашою службою підтримки, і ми негайно виправимо це для вас.",
   "please_provide_following_text_to_suppport": "Надайте нижчезазначений текст, звертаючись до служби підтримки, щоб нам було легше допомогти вам",
@@ -3602,5 +3606,9 @@
   "search_variables": "Пошук змінних",
   "no_variables_found": "Змінних не знайдено",
   "api_key_name_too_long": "Назва не повинна перевищувати {{max}} символів",
+  "auto_charge_for_last_minute_cancellation": "Автоматично стягувати плату за неявку при скасуванні в останню хвилину",
+  "before_scheduled_start_time": "До запланованого часу початку",
+  "cancel_booking_acknowledge_no_show_fee": "Я підтверджую, що при скасуванні бронювання за {{timeValue}} {{timeUnit}} до початку зустрічі з мене буде стягнуто плату за неявку в розмірі {{amount, currency}}",
+  "contact_organizer": "Якщо у вас виникли запитання, будь ласка, зв'яжіться з організатором.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
