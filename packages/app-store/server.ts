@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { TFunction } from "i18next";
 
-import { defaultVideoAppCategories } from "@calcom/app-store/utils";
+import { defaultVideoAppCategories } from "@calcom/app-store/constants";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import {
   buildNonDelegationCredentials,
