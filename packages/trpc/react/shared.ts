@@ -75,6 +75,8 @@ export const ENDPOINTS = [
   "credits/queries",
   "credits/mutations",
   "filterSegments",
+  "filterSegments/queries",
+  "filterSegments/mutations",
   "aiVoiceAgent",
   "phoneNumber",
   "pbac",
