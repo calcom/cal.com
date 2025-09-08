@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
 import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -8,9 +9,11 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
