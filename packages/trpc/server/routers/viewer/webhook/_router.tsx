@@ -38,7 +38,7 @@ export const webhookRouter = router({
       });
     }),
 
-  get: createWebhookPbacProcedure("webhook.read")
+  get: createWebhookPbacProcedure("webhook.read", ["ADMIN", "OWNER", "MEMBER"])
     .input(ZGetInputSchema)
     .query(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.get) {
@@ -130,20 +130,22 @@ export const webhookRouter = router({
       });
     }),
 
-  getByViewer: createWebhookPbacProcedure("webhook.read").query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
-      UNSTABLE_HANDLER_CACHE.getByViewer = await import("./getByViewer.handler").then(
-        (mod) => mod.getByViewerHandler
-      );
-    }
+  getByViewer: createWebhookPbacProcedure("webhook.read", ["ADMIN", "OWNER", "MEMBER"]).query(
+    async ({ ctx }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
+        UNSTABLE_HANDLER_CACHE.getByViewer = await import("./getByViewer.handler").then(
+          (mod) => mod.getByViewerHandler
+        );
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.getByViewer({
-      ctx,
-    });
-  }),
+      return UNSTABLE_HANDLER_CACHE.getByViewer({
+        ctx,
+      });
+    }
+  ),
 });
