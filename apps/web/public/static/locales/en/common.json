@@ -839,6 +839,7 @@
   "phone_number_subscription_cancelled_successfully": "Phone number subscription canceled successfully",
   "updating": "Updating",
   "round_robin": "Round Robin",
+  "hi_how_are_you_doing": "Hi, how are you doing?",
   "round_robin_description": "Cycle meetings between multiple team members.",
   "managed_event": "Managed Event",
   "username_placeholder": "username",
