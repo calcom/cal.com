@@ -36,12 +36,14 @@ export default function WebhookListItem(props: {
   canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
-  readOnly?: boolean;
+  permissions: {
+    canEditWebhook?: boolean;
+    canDeleteWebhook?: boolean;
+  };
 }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { webhook } = props;
-  const canEditWebhook = props.canEditWebhook ?? true;
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
@@ -87,7 +89,7 @@ export default function WebhookListItem(props: {
               {webhook.subscriberUrl}
             </p>
           </Tooltip>
-          {!!props.readOnly && (
+          {!!props.permissions.canEditWebhook && (
             <Badge variant="gray" className="ml-2 ">
               {t("readonly")}
             </Badge>
@@ -107,7 +109,7 @@ export default function WebhookListItem(props: {
           </div>
         </Tooltip>
       </div>
-      {!props.readOnly && (
+      {(props.permissions.canEditWebhook || props.permissions.canDeleteWebhook) && (
         <div className="ml-2 flex items-center space-x-4">
           <Switch
             defaultChecked={webhook.active}
@@ -123,34 +125,48 @@ export default function WebhookListItem(props: {
             }
           />
 
-          <Button
-            className="hidden lg:flex"
-            color="secondary"
-            onClick={props.onEditWebhook}
-            data-testid="webhook-edit-button">
-            {t("edit")}
-          </Button>
+          {props.permissions.canEditWebhook && (
+            <Button
+              className="hidden lg:flex"
+              color="secondary"
+              onClick={props.onEditWebhook}
+              data-testid="webhook-edit-button">
+              {t("edit")}
+            </Button>
+          )}
 
-          <Button
-            className="hidden lg:flex"
-            color="destructive"
-            StartIcon="trash"
-            variant="icon"
-            onClick={onDeleteWebhook}
-          />
+          {props.permissions.canDeleteWebhook && (
+            <Button
+              className="hidden lg:flex"
+              color="destructive"
+              StartIcon="trash"
+              variant="icon"
+              onClick={onDeleteWebhook}
+            />
+          )}
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
-                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
-                  {t("edit")}
-                </DropdownItem>
-              </DropdownMenuItem>
+              {props.permissions.canEditWebhook && (
+                <DropdownMenuItem>
+                  <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
+                    {t("edit")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              )}
+
               <DropdownMenuSeparator />
 
+              {props.permissions.canDeleteWebhook && (
+                <DropdownMenuItem>
+                  <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                    {t("delete")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>
                 <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
                   {t("delete")}

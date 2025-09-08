@@ -64,8 +64,11 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                     <WebhookListItem
                       key={webhook.id}
                       webhook={webhook}
-                      readOnly={group?.metadata?.canModify ?? false}
                       lastItem={group.webhooks.length === index + 1}
+                      permissions={{
+                        canEditWebhook: group?.metadata?.canModify ?? false,
+                        canDeleteWebhook: group?.metadata?.canDelete ?? false,
+                      }}
                       onEditWebhook={() =>
                         router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
                       }
