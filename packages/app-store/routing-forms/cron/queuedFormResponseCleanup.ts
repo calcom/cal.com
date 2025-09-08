@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 
 import logger from "@calcom/lib/logger";
 import { PrismaQueuedFormResponseRepository } from "@calcom/lib/server/repository/routingForm/queuedFormResponse/PrismaQueuedFormResponseRepository";
-import { QueuedFormResponseService } from "@calcom/lib/server/service/routingForm/queuedFormResponse/QueuedFormResponseService";
 import prisma from "@calcom/prisma";
+
+import { QueuedFormResponseService } from "../lib/queuedFormResponse/QueuedFormResponseService";
 
 function validateRequest(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");

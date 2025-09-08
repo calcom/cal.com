@@ -1,6 +1,5 @@
 import type logger from "@calcom/lib/logger";
-
-import type { QueuedFormResponseRepositoryInterface } from "../../../repository/routingForm/queuedFormResponse/QueuedFormResponseRepository.interface";
+import type { QueuedFormResponseRepositoryInterface } from "@calcom/lib/server/repository/routingForm/queuedFormResponse/QueuedFormResponseRepository.interface";
 
 interface Dependencies {
   logger: typeof logger;

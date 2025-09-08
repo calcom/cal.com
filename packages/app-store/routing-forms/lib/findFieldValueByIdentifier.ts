@@ -1,6 +1,5 @@
-import type { RoutingFormResponseData } from "@calcom/lib/server/service/routingForm/responseData/types";
-
 import getFieldIdentifier from "./getFieldIdentifier";
+import type { RoutingFormResponseData } from "./responseData/types";
 
 type FindFieldValueByIdentifierResult =
   | { success: true; data: string | string[] | number | null }
