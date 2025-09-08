@@ -6,8 +6,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../types";
-import type { TAddMembersToTeams } from "./addMembersToTeams.schema";
+import type { TrpcSessionUser } from "../../../types";
+import type { TAddMembersToTeams } from "./mutations/addMembersToTeams.schema";
 
 interface AddBulkToTeamProps {
   user: NonNullable<TrpcSessionUser>;

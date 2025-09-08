@@ -27,7 +27,7 @@ import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
-import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
+import { setDestinationCalendarHandler } from "../../calendars/mutations/setDestinationCalendar.handler";
 import {
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,

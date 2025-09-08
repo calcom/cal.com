@@ -86,10 +86,10 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     distinct: ["userId"],
     orderBy: { role: "desc" },
     cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1, // We take +1 as itll be used for the next cursor
+    take: (limit ?? 10) + 1, // We take +1 as itll be used for the next cursor
   });
   let nextCursor: typeof cursor | undefined = undefined;
-  if (members && members.length > limit) {
+  if (members && members.length > (limit ?? 10)) {
     const nextItem = members.pop();
     nextCursor = nextItem?.id || null;
   }
