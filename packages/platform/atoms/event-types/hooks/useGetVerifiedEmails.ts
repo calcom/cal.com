@@ -3,12 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
-import { useAtomsContext } from "../hooks/useAtomsContext";
-import http from "../lib/http";
+import { useAtomsContext } from "../../hooks/useAtomsContext";
+import http from "../../lib/http";
 
 export const QUERY_KEY = "use-get-verified-emails";
 export const useGetVerifiedEmails = (teamId?: number) => {
-  const pathname = `/atoms/verification/email/check`;
+  const pathname = `/atoms/emails/verified-emails`;
   const { isInit, accessToken } = useAtomsContext();
 
   return useQuery({
@@ -21,6 +21,6 @@ export const useGetVerifiedEmails = (teamId?: number) => {
         throw new Error(res.data.error.message);
       });
     },
-    enabled: !!teamId && isInit && !!accessToken,
+    enabled: isInit && !!accessToken,
   });
 };
