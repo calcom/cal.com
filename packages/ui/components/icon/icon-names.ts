@@ -103,6 +103,7 @@ export type IconName =
   | "paperclip"
   | "pencil"
   | "phone-call"
+  | "phone-outgoing"
   | "phone"
   | "plus"
   | "refresh-ccw"

@@ -4,26 +4,37 @@ import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
+import cn from "@calcom/ui/classNames";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type WorkflowExampleType = {
-  Icon: IconName;
+  icon: IconName;
+  iconWrapperClassName?: string;
   title: string;
   description: string;
+  image?: string;
 };
 
 function WorkflowExample(props: WorkflowExampleType) {
-  const { Icon: iconName, title, description } = props;
+  const { icon: iconName, title, description, iconWrapperClassName, image } = props;
 
   return (
-    <div className="bg-default border-subtle mx-2 my-2 max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5">
+    <div className="bg-default border-subtle max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5">
       <div className="flex">
         <div className="flex items-center justify-center">
-          <div className="bg-emphasis dark:bg-default mr-4 flex h-10 w-10 items-center justify-center rounded-full">
-            <Icon name={iconName} className="text-default h-6 w-6 stroke-[2px]" />
+          <div
+            className={cn(
+              "bg-emphasis dark:bg-default mr-4 flex h-10 w-10 items-center justify-center rounded-[10px]",
+              iconWrapperClassName
+            )}>
+            {image ? (
+              <img src={image} alt={title} className={cn("text-default h-5 w-5")} />
+            ) : (
+              <Icon name={iconName} className={cn("text-default h-5 w-5")} />
+            )}
           </div>
         </div>
         <div className="m-auto w-full flex-grow items-center justify-center ">
@@ -56,7 +67,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
     },
   });
 
-  const workflowsExamples = [
+  const workflowsExamples: WorkflowExampleType[] = [
     { icon: "smartphone", title: t("send_sms_reminder"), description: t("send_sms_reminder_description") },
     {
       icon: "smartphone",
@@ -83,7 +94,31 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
       title: t("custom_sms_reminder"),
       description: t("custom_sms_reminder_description"),
     },
-  ] as constant;
+  ];
+
+  const calAITemplates: WorkflowExampleType[] = [
+    {
+      icon: "phone-outgoing",
+      title: t("call_to_confirm_booking"),
+      description: t("cal_ai_phone_call_action_description"),
+      iconWrapperClassName: "bg-[#2A2947]",
+      image: "/call-outgoing.svg",
+    },
+    {
+      icon: "phone-outgoing",
+      title: t("follow_up_with_no_shows"),
+      description: t("follow_up_with_no_shows_description"),
+      iconWrapperClassName: "bg-[#2A2947]",
+      image: "/call-outgoing.svg",
+    },
+    {
+      icon: "phone-outgoing",
+      title: t("remind_attendees_to_bring_id"),
+      description: t("remind_attendees_to_bring_id_description"),
+      iconWrapperClassName: "bg-[#2A2947]",
+      image: "/call-outgoing.svg",
+    },
+  ];
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (Smile icon),
 
   if (props.isFilteredView) {
@@ -113,21 +148,32 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-center">
-        <div className="bg-muted flex max-w-5xl flex-col rounded-md p-2">
-          <h2 className="text-emphasis ml-2 text-base font-semibold">Standard Templates</h2>
-          <div className="grid-cols-none items-center lg:grid lg:grid-cols-3">
-            {workflowsExamples.map((example, index) => (
-              <WorkflowExample
-                key={index}
-                Icon={example.icon}
-                title={example.title}
-                description={example.description}
-              />
-            ))}
-          </div>
-        </div>
+      <div className="flex flex-col gap-4">
+        <TemplateSection title={t("cal_ai_templates")} examples={calAITemplates} />
+        <TemplateSection title={t("standard_templates")} examples={workflowsExamples} />
       </div>
     </>
   );
 }
+
+const TemplateSection = ({ title, examples }: { title: string; examples: WorkflowExampleType[] }) => {
+  return (
+    <div className="flex items-center justify-center">
+      <div className="bg-muted flex max-w-5xl flex-col rounded-md p-2">
+        <h2 className="text-emphasis mb-2 text-base font-semibold">{title}</h2>
+        <div className="grid-cols-none items-center gap-2 lg:grid lg:grid-cols-3">
+          {examples.map((example: WorkflowExampleType, index: number) => (
+            <WorkflowExample
+              key={index}
+              icon={example.icon}
+              title={example.title}
+              description={example.description}
+              iconWrapperClassName={example.iconWrapperClassName}
+              image={example.image}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

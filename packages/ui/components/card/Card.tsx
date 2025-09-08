@@ -140,6 +140,7 @@ export interface BaseCardProps extends CVACardType {
   thumbnailUrl?: string;
   structure?: string;
   coverPhoto?: string;
+  buttonClassName?: string;
 }
 
 export function Card({
@@ -155,6 +156,7 @@ export function Card({
   thumbnailUrl,
   learnMore,
   coverPhoto,
+  buttonClassName,
 }: BaseCardProps) {
   const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
 
@@ -238,7 +240,7 @@ export function Card({
         </a>
       )}
       {variant === "NewLaunchSidebarCard" && coverPhoto && (
-        <img alt="cover" className="mt-2" src={coverPhoto} />
+        <img alt="cover" className="mt-3" src={coverPhoto} />
       )}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
@@ -263,13 +265,16 @@ export function Card({
               onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
-              className="text-default text-xs font-medium">
+              className={classNames("text-default text-xs font-medium", buttonClassName)}>
               {learnMore.text}
             </LinkComponent>
           )}
           {actionButton?.child && (
             <button
-              className="text-default hover:text-emphasis p-0 text-xs font-normal"
+              className={classNames(
+                "text-default hover:text-emphasis p-0 text-xs font-normal",
+                buttonClassName
+              )}
               color="minimal"
               data-testid={actionButton?.["data-testid"]}
               onClick={actionButton?.onClick}>

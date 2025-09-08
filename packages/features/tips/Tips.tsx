@@ -156,7 +156,7 @@ export const tips: Tip[] = [
   },
 ];
 
-const CalAIWorkflowsTip = {
+const CalAIWorkflowsTip: Tip = {
   id: 18,
   thumbnailUrl: "https://img.youtube.com/vi/fMHW6jYPIb8/0.jpg",
   title: "Cal.ai Workflows",
@@ -216,6 +216,7 @@ function Tips() {
         }}>
         {list.map((tip) => {
           const isTopTip = baseOriginalList.indexOf(tip) === 0;
+          const isCalAIWorkflowsTip = tip.title === "Cal.ai Workflows";
           return (
             <div
               className="relative"
@@ -242,7 +243,7 @@ function Tips() {
                     isTopTip
                       ? {
                           href: tip.href,
-                          text: tip.title === "Cal.ai Workflows" ? t("try_now") : t("learn_more"),
+                          text: isCalAIWorkflowsTip ? t("try_now") : t("learn_more"),
                         }
                       : undefined
                   }
@@ -253,6 +254,7 @@ function Tips() {
                     tabIndex: isTopTip ? undefined : -1,
                     "aria-hidden": isTopTip ? undefined : "true",
                   }}
+                  buttonClassName={isCalAIWorkflowsTip ? "text-white" : undefined}
                 />
               </div>
             </div>

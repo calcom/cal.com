@@ -99,6 +99,7 @@ export const lucideIconList = new Set([
   "paperclip",
   "pencil",
   "phone-call",
+  "phone-outgoing",
   "phone",
   "plus",
   "refresh-ccw",
