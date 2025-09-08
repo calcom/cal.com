@@ -6,6 +6,8 @@ export const ENDPOINTS = [
   "admin/queries",
   "admin/mutations",
   "apiKeys",
+  "apiKeys/queries",
+  "apiKeys/mutations",
   "appRoutingForms",
   "apps",
   "apps/queries",
