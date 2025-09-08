@@ -115,6 +115,7 @@
     "NEXT_PUBLIC_SENDGRID_SENDER_NAME",
     "NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID",
     "NEXT_PUBLIC_STRIPE_PRICING_TABLE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
     "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS",
     "NEXT_PUBLIC_SWAGGER_DOCS_URL",
     "NEXT_PUBLIC_TEAM_IMPERSONATION",
@@ -284,7 +285,8 @@
       "dependsOn": ["@calcom/prisma#db-migrate"]
     },
     "@calcom/trpc#build": {
-      "outputs": ["./types"]
+      "outputs": ["./types"],
+      "env": ["NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID"]
     },
     "@calcom/web#build": {
       "dependsOn": ["^build"],
@@ -427,10 +429,12 @@
       "cache": false
     },
     "lint": {
-      "cache": false
+      "cache": false,
+      "env": ["NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID"]
     },
     "lint:fix": {
-      "cache": false
+      "cache": false,
+      "env": ["NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID"]
     },
     "lint:report": {
       "cache": false,
