@@ -57,7 +57,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import logger from "@calcom/lib/logger";
-import { handlePayment } from "@calcom/lib/payment/handlePayment";
+import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
