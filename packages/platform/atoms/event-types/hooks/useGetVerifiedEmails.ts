@@ -8,7 +8,7 @@ import http from "../../lib/http";
 
 export const QUERY_KEY = "use-get-verified-emails";
 export const useGetVerifiedEmails = (teamId?: number) => {
-  const pathname = `/atoms/emails/verified-emails`;
+  const pathname = `/atoms/emails/verified-emails${!!teamId ? `?teamId=${teamId}` : ""}`;
   const { isInit, accessToken } = useAtomsContext();
 
   return useQuery({

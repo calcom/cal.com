@@ -6,7 +6,7 @@ import { useGetVerifiedEmails } from "../hooks/useGetVerifiedEmails";
 
 const EventAdvancedPlatformWrapper = (props: EventAdvancedBaseProps) => {
   const { isPending, data: connectedCalendarsQuery, error } = useConnectedCalendars({});
-  const { data: verifiedEmails } = useGetVerifiedEmails();
+  const { data: verifiedEmails } = useGetVerifiedEmails(props.team?.id);
 
   return (
     <EventAdvancedTab
