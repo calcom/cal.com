@@ -1645,6 +1645,9 @@
   "embeds": "Inbäddningar",
   "impersonation": "Imitering",
   "impersonation_description": "Inställningar för att hantera användarpersonifiering",
+  "recent_impersonations": "Senaste imitationer",
+  "quick_impersonate": "Snabb imitation",
+  "no_recent_impersonations": "Inga senaste imitationer",
   "users": "Användare",
   "user": "Användare",
   "profile_description": "Hantera inställningar för din {{appName}}-profil",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "När det här arbetsflödet testas ska du vara medveten om att e-postmeddelanden och SMS endast kan schemaläggas minst en timme i förväg",
   "insights_no_data_found_for_filter": "Inga data hittades för valt filter eller valda datum.",
   "acknowledge_booking_no_show_fee": "Jag bekräftar att en avgift på {{amount, currency}} för utebliven närvaro debiteras mitt kort om jag inte deltar i händelsen.",
+  "days": "dagar",
   "card_details": "Kortuppgifter",
   "something_went_wrong_on_our_end": "Något gick fel på vår sida. Kontakta vårt supportteam så fixar vi det omedelbart åt dig.",
   "please_provide_following_text_to_suppport": "Ange följande text när du kontaktar supporten så att vi kan hjälpa dig bättre",
@@ -3602,5 +3606,9 @@
   "search_variables": "Sök variabler",
   "no_variables_found": "Inga variabler hittades",
   "api_key_name_too_long": "Namnet får inte överstiga {{max}} tecken",
+  "auto_charge_for_last_minute_cancellation": "Automatisk debitering av uteblivandeavgift vid sena avbokningar",
+  "before_scheduled_start_time": "Före schemalagd starttid",
+  "cancel_booking_acknowledge_no_show_fee": "Jag bekräftar att genom att avboka inom {{timeValue}} {{timeUnit}} före starttiden kommer jag att debiteras uteblivandeavgiften på {{amount, currency}}",
+  "contact_organizer": "Om du har några frågor, vänligen kontakta arrangören.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

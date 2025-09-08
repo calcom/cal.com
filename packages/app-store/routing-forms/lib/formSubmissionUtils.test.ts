@@ -13,7 +13,7 @@ import {
 } from "@calcom/prisma/enums";
 import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
-import { _onFormSubmission } from "./utils";
+import { _onFormSubmission } from "./formSubmissionUtils";
 
 // Mock dependencies
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({

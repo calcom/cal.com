@@ -1645,6 +1645,9 @@
   "embeds": "Incrustaciones",
   "impersonation": "Suplantación",
   "impersonation_description": "Configuraciones para gestionar la suplantación de usuarios",
+  "recent_impersonations": "Suplantaciones recientes",
+  "quick_impersonate": "Suplantar rápidamente",
+  "no_recent_impersonations": "No hay suplantaciones recientes",
   "users": "Usuarios",
   "user": "Usuario",
   "profile_description": "Gestiona las configuraciones de tu perfil de {{appName}}",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "Al probar este flujo de trabajo, tenga en cuenta que los correos electrónicos y SMS solo se pueden programar con al menos 1 hora de anticipación",
   "insights_no_data_found_for_filter": "No se encontraron datos para el filtro o las fechas seleccionadas.",
   "acknowledge_booking_no_show_fee": "Reconozco que si no asisto a este evento, se aplicará una tarifa de no presentación de {{amount, currency}} a mi tarjeta.",
+  "days": "días",
   "card_details": "Detalles de la tarjeta",
   "something_went_wrong_on_our_end": "Algo salió mal de nuestra parte. Ponte en contacto con nuestro equipo de soporte y lo solucionaremos de inmediato para ti.",
   "please_provide_following_text_to_suppport": "Por favor, proporcione el siguiente texto al contactar con el soporte para ayudarle mejor",
@@ -3602,5 +3606,9 @@
   "search_variables": "Buscar variables",
   "no_variables_found": "No se encontraron variables",
   "api_key_name_too_long": "El nombre no debe exceder los {{max}} caracteres",
+  "auto_charge_for_last_minute_cancellation": "Cobrar automáticamente la tarifa por no presentarse en caso de cancelaciones de último minuto",
+  "before_scheduled_start_time": "Antes de la hora de inicio programada",
+  "cancel_booking_acknowledge_no_show_fee": "Reconozco que al cancelar la reserva dentro de los {{timeValue}} {{timeUnit}} previos a la hora de inicio, se me cobrará la tarifa por no presentarme de {{amount, currency}}",
+  "contact_organizer": "Si tienes alguna pregunta, comunícate con el organizador.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

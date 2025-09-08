@@ -1645,6 +1645,9 @@
   "embeds": "Incrustacions",
   "impersonation": "Suplantació",
   "impersonation_description": "Configuració per gestionar la suplantació d'usuaris",
+  "recent_impersonations": "Suplantacions recents",
+  "quick_impersonate": "Suplantació ràpida",
+  "no_recent_impersonations": "No hi ha suplantacions recents",
   "users": "Usuaris",
   "user": "Usuari",
   "profile_description": "Gestiona la configuració del teu perfil de {{appName}}",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "Quan provis aquest flux de treball, tingues en compte que els correus electrònics i SMS només es poden programar amb almenys 1 hora d'antelació",
   "insights_no_data_found_for_filter": "No s'han trobat dades per al filtre seleccionat o les dates seleccionades.",
   "acknowledge_booking_no_show_fee": "Reconec que si no assisteixo a aquest esdeveniment, s'aplicarà una penalització de {{amount, currency}} a la meva targeta.",
+  "days": "dies",
   "card_details": "Detalls de la targeta",
   "something_went_wrong_on_our_end": "Alguna cosa ha anat malament per la nostra part. Contacta amb el nostre equip de suport i ho solucionarem de seguida per a tu.",
   "please_provide_following_text_to_suppport": "Si us plau, proporciona el següent text quan contactis amb suport per ajudar-te millor",
@@ -3602,5 +3606,9 @@
   "search_variables": "Cerca variables",
   "no_variables_found": "No s'han trobat variables",
   "api_key_name_too_long": "El nom no ha de superar els {{max}} caràcters",
+  "auto_charge_for_last_minute_cancellation": "Càrrec automàtic de la tarifa per no assistència en cas de cancel·lacions d'última hora",
+  "before_scheduled_start_time": "Abans de l'hora d'inici programada",
+  "cancel_booking_acknowledge_no_show_fee": "Reconec que en cancel·lar la reserva dins dels {{timeValue}} {{timeUnit}} abans de l'hora d'inici se'm cobrarà la tarifa per no assistència de {{amount, currency}}",
+  "contact_organizer": "Si teniu alguna pregunta, poseu-vos en contacte amb l'organitzador.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
