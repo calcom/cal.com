@@ -18,6 +18,7 @@ export function CalAiBanner() {
     setIsVisible(false);
   };
 
+  // TODO: Cal AI template
   const handleTryNow = () => {
     window.open("/workflows", "_blank");
   };
@@ -33,7 +34,7 @@ export function CalAiBanner() {
         <Icon name="x" className="h-4 w-4 text-white" />
       </button>
 
-      <div className="relative flex items-center justify-between">
+      <div className="flex flex-col md:flex-row">
         <div className="flex-1 p-6 pr-6 lg:p-8">
           <h2 className="font-cal font-subtle text-lg">{t("supercharge_your_workflows_with_cal_ai")}</h2>
           <p className="text-subtle mb-4 text-sm">
@@ -47,7 +48,7 @@ export function CalAiBanner() {
           </button>
         </div>
 
-        <img src="/cal-ai-banner.svg" alt="Cal.ai Banner" className="absolute bottom-0 right-4 h-40" />
+        <img src="/cal-ai-banner.svg" alt="Cal.ai Banner" className="mt-auto hidden h-40 md:block" />
       </div>
     </div>
   );
