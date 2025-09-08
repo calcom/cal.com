@@ -27,7 +27,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { isEmail } from "../util";
+import { isEmail } from "../../util";
 import type { TeamWithParent } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });

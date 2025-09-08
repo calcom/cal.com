@@ -5,7 +5,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
+import { hasTeamPlanHandler } from "../../teams/queries/hasTeamPlan.handler";
 import type { TSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
 
 type SendVerificationCodeOptions = {

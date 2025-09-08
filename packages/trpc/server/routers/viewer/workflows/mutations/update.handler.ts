@@ -13,8 +13,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
-import type { TUpdateInputSchema } from "./update.schema";
+import hasActiveTeamPlanHandler from "../../teams/queries/hasActiveTeamPlan.handler";
 import {
   getSender,
   isAuthorized,
@@ -28,7 +27,8 @@ import {
   getEmailTemplateText,
   upsertAIAgentCallPhoneNumberFieldForEventTypes,
   removeAIAgentCallPhoneNumberFieldForEventTypes,
-} from "./util";
+} from "../util";
+import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateOptions = {
   ctx: {
