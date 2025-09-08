@@ -9,6 +9,7 @@ import {
   DeletedCalendarCredentialsOutputDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
@@ -79,6 +80,7 @@ const calendarStateSchema = z.object({
 export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
+    private readonly calendarsCacheService: CalendarsCacheService,
     private readonly outlookService: OutlookService,
     private readonly googleCalendarService: GoogleCalendarService,
     private readonly appleCalendarService: AppleCalendarService,
@@ -307,7 +309,7 @@ export class CalendarsController {
       credentialId
     );
 
-    this.calendarsService.deleteConnectedAndDestinationCalendarsCache(user.id);
+    this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
 
     return {
       status: SUCCESS_STATUS,

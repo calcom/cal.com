@@ -203,10 +203,6 @@ export class CalendarsService {
     await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
   }
 
-  async deleteConnectedAndDestinationCalendarsCache(userId: number) {
-    await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
-  }
-
   async checkCalendarCredentialValidity(userId: number, credentialId: number, type: string) {
     const credential = await this.credentialsRepository.getUserCredentialById(userId, credentialId, type);
 

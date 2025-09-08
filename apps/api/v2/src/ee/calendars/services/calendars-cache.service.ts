@@ -4,6 +4,7 @@ import { Injectable } from "@nestjs/common";
 import type { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/platform-libraries";
 
 export const REDIS_CALENDARS_CACHE_KEY = (userId: number) => `apiv2:user:${userId}:calendars`;
+export const CALENDARS_CACHE_TTL_MS = 10_000;
 
 type ConnectedDestinationCalendars = Awaited<
   ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
@@ -24,7 +25,12 @@ export class CalendarsCacheService {
     return cachedResult;
   }
 
-  async setConnectedAndDestinationCalendarsCache(userId: number, calendars: ConnectedDestinationCalendars) {
-    await this.redisService.set(REDIS_CALENDARS_CACHE_KEY(userId), JSON.stringify(calendars), { ttl: 10000 });
+  async setConnectedAndDestinationCalendarsCache(
+    userId: number,
+    calendars: ConnectedDestinationCalendars
+  ): Promise<void> {
+    await this.redisService.set<ConnectedDestinationCalendars>(REDIS_CALENDARS_CACHE_KEY(userId), calendars, {
+      ttl: CALENDARS_CACHE_TTL_MS,
+    });
   }
 }
