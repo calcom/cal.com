@@ -66,6 +66,7 @@ export const ENDPOINTS = [
   "teams",
   "organizations",
   "travelSchedules",
+  "travelSchedules/queries",
   "users",
   "viewer",
   "webhook",

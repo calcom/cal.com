@@ -1,9 +1,6 @@
-import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { travelSchedulesQueriesRouter } from "./queries/_router";
 
 export const travelSchedulesRouter = router({
-  get: authedProcedure.query(async ({ ctx }) => {
-    const handler = (await import("./getTravelSchedules.handler")).getTravelSchedulesHandler;
-    return handler({ ctx });
-  }),
+  queries: travelSchedulesQueriesRouter,
 });
