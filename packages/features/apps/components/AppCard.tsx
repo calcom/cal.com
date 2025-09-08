@@ -118,18 +118,16 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
+      <p 
         className="text-default mt-2 flex-grow text-sm overflow-hidden"
         style={{
-          textOverflow: "ellipsis",
-          whiteSpace: "normal",
-          maxHeight: "4.5em",
           lineHeight: "1.5em",
+          maxHeight: "4.5em", // Shows exactly 3 lines of text
+          textOverflow: "ellipsis",
           wordBreak: "break-word",
         }}
-        title={app.description}
-      >
-        {truncateOnWord(app.description, 180)}
+        title={app.description || undefined}>
+        {app.description ? (app.description.length > 140 ? `${app.description.substring(0, 140).trim()}...` : app.description) : ""}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
@@ -224,8 +222,7 @@ const InstallAppButtonChild = ({
       </Button>
     );
   }
-  // Paid apps don't support team installs at the moment
-  // Also, cal.ai(the only paid app at the moment) doesn't support team install either
+  // Paid apps don't support team installations yet
   if (paid) {
     return (
       <Button
