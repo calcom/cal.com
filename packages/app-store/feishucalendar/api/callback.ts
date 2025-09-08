@@ -108,7 +108,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       const primaryCalendar = await primaryCalendarResponse.json();
 
       if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
-        await SelectedCalendarRepository.create({
+        await SelectedCalendarRepository.upsert({
           userId: req.session?.user.id,
           integration: "feishu_calendar",
           externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,

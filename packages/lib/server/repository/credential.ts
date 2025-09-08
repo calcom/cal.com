@@ -21,8 +21,8 @@ type BaseCredentialCreateInput = {
 };
 
 type CredentialCreateInput =
-  | (BaseCredentialCreateInput & { userId: number; teamId?: never })
-  | (BaseCredentialCreateInput & { teamId: number; userId?: never });
+  | (BaseCredentialCreateInput & { userId: number })
+  | (BaseCredentialCreateInput & { teamId: number });
 
 type CredentialUpdateInput = {
   type?: string;
