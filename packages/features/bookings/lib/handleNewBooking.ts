@@ -1,6 +1,5 @@
 import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
-import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -14,28 +13,16 @@ import {
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
-import {
-  sendAttendeeRequestEmailAndSMS,
-  sendOrganizerRequestEmail,
-  sendRescheduledEmailsAndSMS,
-  sendRoundRobinCancelledEmailsAndSMS,
-  sendRoundRobinRescheduledEmailsAndSMS,
-  sendRoundRobinScheduledEmailsAndSMS,
-  sendScheduledEmailsAndSMS,
-} from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type { CreateRegularBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
+import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -71,7 +58,6 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import logger from "@calcom/lib/logger";
-import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -101,12 +87,12 @@ import type {
   AppsStatus,
   CalendarEvent,
   CalEventResponses,
-  Person,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
@@ -503,6 +489,7 @@ async function handler(
   });
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
+  const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
@@ -996,7 +983,7 @@ async function handler(
 
       // Filter out host groups that have no hosts in them
       const nonEmptyHostGroups = Object.fromEntries(
-        Object.entries(hostGroups).filter(([groupId, hosts]) => hosts.length > 0)
+        Object.entries(hostGroups).filter(([_groupId, hosts]) => hosts.length > 0)
       );
       // If there are RR hosts, we need to find a lucky user
       if (
@@ -1660,7 +1647,7 @@ async function handler(
 
   let videoCallUrl;
 
-  //this is the actual rescheduling logic
+  // this is the actual rescheduling logic
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     // cancel workflow reminders from previous rescheduled booking
@@ -1845,133 +1832,22 @@ async function handler(
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
-    if (noEmail !== true && isConfirmedByDefault) {
-      const copyEvent = cloneDeep(evt);
-      const copyEventAdditionalInfo = {
-        ...copyEvent,
-        additionalInformation: metadata,
-        additionalNotes, // Resets back to the additionalNote input and not the override value
-        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-      };
-      const cancelledRRHostEvt = cloneDeep(copyEventAdditionalInfo);
-      loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
-
-      /*
-        handle emails for round robin
-          - if booked rr host is the same, then rescheduling email
-          - if new rr host is booked, then cancellation email to old host and confirmation email to new host
-      */
-      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-        const originalBookingMemberEmails: Person[] = [];
-
-        for (const user of originalRescheduledBooking.attendees) {
-          const translate = await getTranslation(user.locale ?? "en", "common");
-          originalBookingMemberEmails.push({
-            name: user.name,
-            email: user.email,
-            timeZone: user.timeZone,
-            phoneNumber: user.phoneNumber,
-            language: { translate, locale: user.locale ?? "en" },
-          });
-        }
-        if (originalRescheduledBooking.user) {
-          const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
-          const originalOrganizer = originalRescheduledBooking.user;
-
-          originalBookingMemberEmails.push({
-            ...originalRescheduledBooking.user,
-            username: originalRescheduledBooking.user.username ?? undefined,
-            timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
-            name: originalRescheduledBooking.user.name || "",
-            language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
-          });
-
-          if (changedOrganizer) {
-            cancelledRRHostEvt.title = originalRescheduledBooking.title;
-            cancelledRRHostEvt.startTime =
-              dayjs(originalRescheduledBooking?.startTime).utc().format() ||
-              copyEventAdditionalInfo.startTime;
-            cancelledRRHostEvt.endTime =
-              dayjs(originalRescheduledBooking?.endTime).utc().format() || copyEventAdditionalInfo.endTime;
-            cancelledRRHostEvt.organizer = {
-              email: originalOrganizer.email,
-              name: originalOrganizer.name || "",
-              timeZone: originalOrganizer.timeZone,
-              language: { translate, locale: originalOrganizer.locale || "en" },
-            };
-          }
-        }
-
-        const newBookingMemberEmails: Person[] =
-          copyEvent.team?.members
-            .map((member) => member)
-            .concat(copyEvent.organizer)
-            .concat(copyEvent.attendees) || [];
-
-        const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) => {
-          return originalMember.email === newMember.email;
-        };
-
-        // scheduled Emails
-        const newBookedMembers = newBookingMemberEmails.filter(
-          (member) =>
-            !originalBookingMemberEmails.find((originalMember) =>
-              matchOriginalMemberWithNewMember(originalMember, member)
-            )
-        );
-        // cancelled Emails
-        const cancelledMembers = originalBookingMemberEmails.filter(
-          (member) =>
-            !newBookingMemberEmails.find((newMember) => matchOriginalMemberWithNewMember(member, newMember))
-        );
-        // rescheduled Emails
-        const rescheduledMembers = newBookingMemberEmails.filter((member) =>
-          originalBookingMemberEmails.find((orignalMember) =>
-            matchOriginalMemberWithNewMember(orignalMember, member)
-          )
-        );
-
-        if (!isDryRun) {
-          sendRoundRobinRescheduledEmailsAndSMS(
-            { ...copyEventAdditionalInfo, iCalUID },
-            rescheduledMembers,
-            eventType.metadata
-          );
-          sendRoundRobinScheduledEmailsAndSMS({
-            calEvent: copyEventAdditionalInfo,
-            members: newBookedMembers,
-            eventTypeMetadata: eventType.metadata,
-          });
-          const reassignedTo = users.find(
-            (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
-          );
-          sendRoundRobinCancelledEmailsAndSMS(
-            cancelledRRHostEvt,
-            cancelledMembers,
-            eventType.metadata,
-            !!reassignedTo
-              ? {
-                  name: reassignedTo.name,
-                  email: reassignedTo.email,
-                  ...(reqBody.rescheduledBy === bookerEmail && { reason: "Booker Rescheduled" }),
-                }
-              : undefined
-          );
-        }
-      } else {
-        if (!isDryRun) {
-          // send normal rescheduled emails (non round robin event, where organizers stay the same)
-          await sendRescheduledEmailsAndSMS(
-            {
-              ...copyEvent,
-              additionalInformation: metadata,
-              additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-            },
-            eventType?.metadata
-          );
-        }
-      }
+    if (!noEmail && isConfirmedByDefault && !isDryRun) {
+      await emailsAndSmsHandler.send({
+        action: BookingActionMap.rescheduled,
+        data: {
+          evt,
+          eventType,
+          additionalInformation: metadata,
+          additionalNotes,
+          iCalUID,
+          originalRescheduledBooking,
+          rescheduleReason,
+          isRescheduledByBooker: reqBody.rescheduledBy === bookerEmail,
+          users,
+          changedOrganizer,
+        },
+      });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -2076,43 +1952,23 @@ async function handler(
           });
         }
       }
-      if (noEmail !== true) {
-        let isHostConfirmationEmailsDisabled = false;
-        let isAttendeeConfirmationEmailDisabled = false;
-
-        isHostConfirmationEmailsDisabled =
-          eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
-        isAttendeeConfirmationEmailDisabled =
-          eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
-
-        if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-        }
-
-        if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-        }
-
-        loggerWithEventDetails.debug(
-          "Emails: Sending scheduled emails for booking confirmation",
-          safeStringify({
-            calEvent: getPiiFreeCalendarEvent(evt),
-          })
-        );
-
+      if (!noEmail) {
         if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
-          await sendScheduledEmailsAndSMS(
-            {
-              ...evt,
+          await emailsAndSmsHandler.send({
+            action: BookingActionMap.confirmed,
+            data: {
+              eventType: {
+                metadata: eventType.metadata,
+                schedulingType: eventType.schedulingType,
+              },
+              eventNameObject,
+              workflows,
+              evt,
               additionalInformation,
               additionalNotes,
               customInputs,
             },
-            eventNameObject,
-            isHostConfirmationEmailsDisabled,
-            isAttendeeConfirmationEmailDisabled,
-            eventType.metadata
-          );
+          });
         }
       }
     }
@@ -2142,8 +1998,10 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
-      await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
+      await emailsAndSmsHandler.send({
+        action: BookingActionMap.requested,
+        data: { evt, attendees: attendeesList, eventType, additionalNotes },
+      });
     }
   }
 

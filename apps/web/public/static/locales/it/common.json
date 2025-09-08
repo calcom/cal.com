@@ -1645,6 +1645,9 @@
   "embeds": "Integrazioni",
   "impersonation": "Accesso con altra identità",
   "impersonation_description": "Impostazioni per gestire gli accessi con altra identità",
+  "recent_impersonations": "Impersonificazioni recenti",
+  "quick_impersonate": "Impersonificazione rapida",
+  "no_recent_impersonations": "Nessuna impersonificazione recente",
   "users": "Utenti",
   "user": "Utente",
   "profile_description": "Gestisci le impostazioni del tuo profilo {{appName}}",
@@ -2311,6 +2314,7 @@
   "testing_workflow_info_message": "Durante il test di questo flusso di lavoro, tieni presente che le e-mail e i messaggi SMS devono essere programmati con almeno 1 ora di anticipo",
   "insights_no_data_found_for_filter": "Nessun dato trovato per il filtro selezionato o le date selezionate.",
   "acknowledge_booking_no_show_fee": "Confermo che in caso di mia mancata partecipazione a questo evento, una penale per mancata presentazione di {{amount, currency}} verrà addebitata sulla mia carta.",
+  "days": "giorni",
   "card_details": "Dati della carta",
   "something_went_wrong_on_our_end": "Qualcosa è andato storto da parte nostra. Contatta il nostro team di supporto e risolveremo il problema immediatamente per te.",
   "please_provide_following_text_to_suppport": "Fornisci il seguente testo quando contatterai il team di supporto per permeterci di aiutarti meglio",
@@ -3602,5 +3606,9 @@
   "search_variables": "Cerca variabili",
   "no_variables_found": "Nessuna variabile trovata",
   "api_key_name_too_long": "Il nome non deve superare i {{max}} caratteri",
+  "auto_charge_for_last_minute_cancellation": "Addebita automaticamente la penale per cancellazioni dell'ultimo minuto",
+  "before_scheduled_start_time": "Prima dell'orario di inizio programmato",
+  "cancel_booking_acknowledge_no_show_fee": "Riconosco che cancellando la prenotazione entro {{timeValue}} {{timeUnit}} dall'orario di inizio mi verrà addebitata la penale di mancata presenza di {{amount, currency}}",
+  "contact_organizer": "Per qualsiasi domanda, contatta l'organizzatore.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
