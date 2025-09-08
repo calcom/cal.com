@@ -365,6 +365,11 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
                           setEditModalOpen(true);
                           setWebhookToEdit(webhook);
                         }}
+                        // TODO (SEAN): Implement Permissions here when we have event-types PR merged
+                        permissions={{
+                          canEditWebhook: !webhookLockedStatus.disabled,
+                          canDeleteWebhook: !webhookLockedStatus.disabled,
+                        }}
                       />
                     );
                   })}
