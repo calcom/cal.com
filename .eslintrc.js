@@ -19,5 +19,17 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ["packages/app-store/**/*.{ts,tsx,js,jsx}"],
+      rules: {
+        "no-restricted-imports": [
+          "warn",
+          {
+            paths: ["@calcom/trpc"],
+            patterns: ["@calcom/trpc/*"],
+          },
+        ],
+      },
+    },
   ],
 };
