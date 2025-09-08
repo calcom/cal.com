@@ -1,8 +1,8 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import {
+  isCalAIAction,
   isEmailAction,
   isFormTrigger,
-  isCalAIAction,
   isSMSAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import tasker from "@calcom/features/tasker";
@@ -99,6 +99,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  if (isFormTrigger(trigger)) {
+    const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
+    const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
+    const hasSMSStep = steps.some((step) => isSMSAction(step.action));
+
+    if (hasEmailHostStep || hasSMSStep || hasCalAIStep) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This action is not allowed for form triggers",
+      });
+    }
+  }
+
   const isCurrentUsernamePremium = hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
   let teamsPlan = { isActive: false, isTrial: false };
@@ -179,16 +192,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       })),
     });
   } else if (isFormTrigger(trigger)) {
-    const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
-    const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
-    const hasSMSStep = steps.some((step) => isSMSAction(step.action));
-
-    if (hasEmailHostStep || hasSMSStep || hasCalAIStep) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This action is not allowed for form triggers",
-      });
-    }
     // activeOnRoutingFormIds are routing form ids
     const routingFormIds = activeOnRoutingFormIds;
 

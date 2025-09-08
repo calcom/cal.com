@@ -88,7 +88,9 @@ export default function WorkflowDetailsPage(props: Props) {
       ?.filter((option) => {
         if (
           (isFormTrigger(form.getValues("trigger")) &&
-            (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
+            (isSMSAction(option.value) ||
+              option.value === WorkflowActions.EMAIL_HOST ||
+              isCalAIAction(option.value))) ||
           isWhatsappAction(option.value) ||
           (isCalAIAction(option.value) && form.watch("selectAll")) ||
           (isCalAIAction(option.value) && isOrg)
@@ -104,8 +106,6 @@ export default function WorkflowDetailsPage(props: Props) {
         if (isFormTrigger(form.getValues("trigger"))) {
           if (option.value === WorkflowActions.EMAIL_ATTENDEE) {
             label = t("email_attendee_action_form");
-          } else if (option.value === WorkflowActions.SMS_ATTENDEE) {
-            label = t("sms_attendee_action_form");
           }
         }
 
