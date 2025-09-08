@@ -1,6 +1,6 @@
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TListInputSchema } from "./list.schema";
 
 type ListHandlerOptions = {

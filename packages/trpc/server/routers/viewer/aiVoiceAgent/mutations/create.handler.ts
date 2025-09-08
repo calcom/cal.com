@@ -1,7 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import type { RetellLLMGeneralTools } from "@calcom/features/calAIPhone/providers/retellAI/types";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
 type CreateHandlerOptions = {

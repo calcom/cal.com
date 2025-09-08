@@ -6,7 +6,7 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepo
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { mapEventType } from "./util";
 

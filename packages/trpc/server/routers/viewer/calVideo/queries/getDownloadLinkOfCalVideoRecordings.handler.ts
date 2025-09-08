@@ -4,7 +4,7 @@ import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient"
 
 import { TRPCError } from "@trpc/server";
 
-import type { WithSession } from "../../../createContext";
+import type { WithSession } from "../../../../createContext";
 import type { TGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 
 type GetDownloadLinkOfCalVideoRecordingsHandlerOptions = {

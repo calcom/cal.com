@@ -1,6 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TCancelInputSchema } from "./cancel.schema";
 
 type CancelHandlerOptions = {

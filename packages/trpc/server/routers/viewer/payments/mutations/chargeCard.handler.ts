@@ -4,7 +4,7 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TChargeCardInputSchema } from "./chargeCard.schema";
 
 interface ChargeCardHandlerOptions {

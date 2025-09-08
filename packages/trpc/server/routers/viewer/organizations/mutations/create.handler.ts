@@ -19,7 +19,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
 

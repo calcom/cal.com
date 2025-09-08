@@ -5,7 +5,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import getIP from "@calcom/lib/getIP";
 import { hashEmail, piiHasher } from "@calcom/lib/server/PiiHasher";
 
-import type { TRPCContext } from "../../../createContext";
+import type { TRPCContext } from "../../../../createContext";
 import type { TSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 
 type SendVerifyEmailCode = {

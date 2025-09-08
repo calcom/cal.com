@@ -4,7 +4,7 @@ import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
 
 type CreateSelfHostedOptions = {

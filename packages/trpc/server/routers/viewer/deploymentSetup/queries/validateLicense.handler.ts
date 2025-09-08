@@ -1,6 +1,6 @@
 import LicenseKeyService from "@calcom/features/ee/common/server/LicenseKeyService";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TValidateLicenseInputSchema } from "./validateLicense.schema";
 
 type ValidateLicenseOptions = {

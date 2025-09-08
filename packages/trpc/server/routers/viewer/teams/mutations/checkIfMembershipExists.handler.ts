@@ -1,6 +1,6 @@
 import { prisma } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 
 type CheckIfMembershipExistsOptions = {

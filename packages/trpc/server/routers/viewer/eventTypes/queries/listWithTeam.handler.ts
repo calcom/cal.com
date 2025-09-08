@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import db from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 
 type ListWithTeamOptions = {
   ctx: {
