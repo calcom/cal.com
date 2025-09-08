@@ -9,7 +9,11 @@ type UpdateOptions = {
 };
 
 export const updateHandler = async ({ input }: UpdateOptions) => {
-  const data: any = {
+  const data: {
+    agreedLicenseAt: Date;
+    licenseKey: string;
+    signatureTokenEncrypted?: string;
+  } = {
     agreedLicenseAt: new Date(),
     licenseKey: input.licenseKey,
   };

@@ -25,6 +25,8 @@ export const ENDPOINTS = [
   "credentials",
   "credentials/mutations",
   "deploymentSetup",
+  "deploymentSetup/queries",
+  "deploymentSetup/mutations",
   "dsync",
   "eventTypes",
   "eventTypes/queries",
