@@ -12,9 +12,14 @@ type HasAvailableCreditsOptions = {
 export const hasAvailableCreditsHandler = async ({ ctx, input }: HasAvailableCreditsOptions) => {
   const { teamId } = input;
 
+  const orgId = ctx.user.organization?.id;
+
   const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
   const creditService = new CreditService();
 
-  const hasCredits = await creditService.hasAvailableCredits({ userId: ctx.user.id, teamId });
+  const hasCredits = await creditService.hasAvailableCredits({
+    userId: ctx.user.id,
+    teamId: teamId ?? orgId,
+  });
   return hasCredits;
 };
