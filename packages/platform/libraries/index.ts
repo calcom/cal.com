@@ -86,7 +86,7 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
-export { validateCustomEventName } from "@calcom/lib/event";
+export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 
 export type TeamQuery = Prisma.TeamGetPayload<{
   select: {
