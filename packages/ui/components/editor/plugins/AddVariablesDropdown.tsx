@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
+import classNames from "../../../classNames";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Input } from "../../form";
 import { Icon } from "../../icon";
@@ -17,6 +19,7 @@ interface IAddVariablesDropdown {
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
   const [query, setQuery] = useState("");
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const filteredVariables = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -91,7 +94,11 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                       setQuery("");
                     }}>
                     <div className="flex flex-col">
-                      <div className="text-default truncate font-mono text-sm">
+                      <div
+                        className={classNames(
+                          "text-default font-mono text-sm",
+                          isMobile ? "break-all" : "truncate"
+                        )}>
                         {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                       </div>
                       <div className="text-muted hidden text-xs sm:block">{t(`${variable}_info`)}</div>
