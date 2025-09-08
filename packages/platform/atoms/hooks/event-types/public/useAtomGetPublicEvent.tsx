@@ -36,7 +36,7 @@ export const useAtomGetPublicEvent = ({ username, eventSlug, isTeamEvent, teamId
       const params: Record<string, any> = {
         isTeamEvent,
         teamId,
-        username: getUsernameList(username ?? "").join(",")
+        username: getUsernameList(username ?? "").join("+")
       };
       
       // Only include orgId if it's not 0

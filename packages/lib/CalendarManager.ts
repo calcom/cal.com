@@ -35,7 +35,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = getCalendar(credential);
+        const calendar = () => getCalendar(credential);
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -71,7 +71,18 @@ export const getConnectedCalendars = async (
             delegationCredentialId,
           };
         }
-        const cals = await calendar.listCalendars();
+        const calendarInstance = await calendar();
+        if (!calendarInstance) {
+          return {
+            integration: safeToSendIntegration,
+            credentialId,
+            delegationCredentialId,
+            error: {
+              message: "Could not get calendar instance",
+            },
+          };
+        }
+        const cals = await calendarInstance.listCalendars();
         const calendars = sortBy(
           cals.map((cal: IntegrationCalendar) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;

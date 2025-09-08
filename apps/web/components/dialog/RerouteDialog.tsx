@@ -539,18 +539,11 @@ const NewRoutingManager = ({
       url: chosenEventUrls.eventBookingAbsoluteUrl,
     });
 
-    console.log("SETTING NEW VALUE", {
-      type: "reschedule_to_different_event_new_tab",
-      reschedulerWindow,
-      newBooking: null,
-    });
     reroutingState.setValue({
       type: "reschedule_to_different_event_new_tab",
       reschedulerWindow,
       newBooking: null,
     });
-
-    console.log("VALUE NOW", JSON.stringify(reroutingState));
   }
 
   function reroutingPreview() {

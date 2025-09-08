@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
@@ -373,9 +373,9 @@ export const roundRobinManualReassignment = async ({
   };
 
   if (previousRRHost && emailsEnabled) {
-    await sendRoundRobinCancelledEmailsAndSMS(
-      cancelledEvt,
-      [
+    await sendRoundRobinReassignedEmailsAndSMS({
+      calEvent: cancelledEvt,
+      members: [
         {
           ...previousRRHost,
           name: previousRRHost.name || "",
@@ -384,9 +384,9 @@ export const roundRobinManualReassignment = async ({
           language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
         },
       ],
-      eventType?.metadata as EventTypeMetadata,
-      { name: newUser.name, email: newUser.email }
-    );
+      reassignedTo: { name: newUser.name, email: newUser.email },
+      eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
+    });
   }
 
   if (hasOrganizerChanged) {
@@ -502,8 +502,6 @@ export async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
-        userId: workflow.userId,
-        teamId: workflow.teamId,
       });
     }
 
