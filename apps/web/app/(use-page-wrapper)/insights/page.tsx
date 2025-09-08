@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import InsightsPage from "~/insights/insights-view";
 
-import { checkInsightsPermission } from "./checkInsightsPermission";
+import { checkInsightsPagePermission } from "./checkInsightsPagePermission";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -16,7 +16,7 @@ export const generateMetadata = async () =>
   );
 
 const ServerPage = async () => {
-  const session = await checkInsightsPermission();
+  const session = await checkInsightsPagePermission();
 
   const { timeZone } = await prisma.user.findUniqueOrThrow({
     where: { id: session?.user.id ?? -1 },

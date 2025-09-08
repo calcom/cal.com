@@ -10,16 +10,15 @@ import {
   routedToPerPeriodCsvInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { hasInsightsPermission } from "./hasInsightsPermission";
 import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
@@ -237,24 +236,14 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
   });
 });
 
-const insightsPbacProcedure = userBelongsToTeamProcedure.use(async ({ ctx, next, getRawInput }) => {
-  const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
-  if (!parse.success) {
-    throw new TRPCError({ code: "BAD_REQUEST" });
-  }
+const insightsPbacProcedure = userBelongsToTeamProcedure.use(async ({ ctx, next }) => {
+  const hasPermission = await hasInsightsPermission({
+    userId: ctx.user.id,
+    organizationId: ctx.user.organizationId,
+  });
 
-  if (ctx.user.organizationId) {
-    const permissionCheckService = new PermissionCheckService();
-    const hasPermission = await permissionCheckService.checkPermission({
-      userId: ctx.user.id,
-      teamId: ctx.user.organizationId,
-      permission: "insights.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER], // even members can see their own data
-    });
-
-    if (!hasPermission) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
+  if (!hasPermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   return next({

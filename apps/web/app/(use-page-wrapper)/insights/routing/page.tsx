@@ -2,7 +2,7 @@ import { _generateMetadata } from "app/_utils";
 
 import InsightsRoutingPage from "~/insights/insights-routing-view";
 
-import { checkInsightsPermission } from "../checkInsightsPermission";
+import { checkInsightsPagePermission } from "../checkInsightsPagePermission";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,7 +14,7 @@ export const generateMetadata = async () =>
   );
 
 export default async function Page() {
-  await checkInsightsPermission();
+  await checkInsightsPagePermission();
 
   return <InsightsRoutingPage />;
 }

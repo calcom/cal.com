@@ -3,13 +3,12 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { hasInsightsPermission } from "@calcom/features/insights/server/hasInsightsPermission";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-export async function checkInsightsPermission() {
+export async function checkInsightsPagePermission() {
   const featuresRepository = new FeaturesRepository(prisma);
   const insightsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("insights");
 
@@ -22,18 +21,13 @@ export async function checkInsightsPermission() {
     redirect("/auth/login");
   }
 
-  if (session.user.org?.id) {
-    const permissionCheckService = new PermissionCheckService();
-    const hasPermission = await permissionCheckService.checkPermission({
-      userId: session.user.id,
-      teamId: session.user.org.id,
-      permission: "insights.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER], // even members can see their own data
-    });
+  const hasPermission = await hasInsightsPermission({
+    userId: session.user.id,
+    organizationId: session.user.org?.id,
+  });
 
-    if (!hasPermission) {
-      redirect("/");
-    }
+  if (!hasPermission) {
+    redirect("/");
   }
 
   return session;
