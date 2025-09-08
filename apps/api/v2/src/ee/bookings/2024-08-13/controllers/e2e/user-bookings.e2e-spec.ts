@@ -34,7 +34,6 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
-import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
 import { EventManager } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -1426,6 +1425,22 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.status).toEqual("cancelled");
             expect(data.rescheduledToUid).toEqual(rescheduledBooking.uid);
+          });
+      });
+
+      it("should get rescheduled booking status cancelled from get bookings", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?status=cancelled`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const fetchedRescheduledBooking = responseBody.data.find((b) => b.uid === createdBooking.uid);
+            expect(fetchedRescheduledBooking).toBeDefined();
+            expect(fetchedRescheduledBooking?.status).toEqual("cancelled");
+            expect(fetchedRescheduledBooking?.rescheduledToUid).toEqual(rescheduledBooking.uid);
           });
       });
 
@@ -2917,14 +2932,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
             },
           };
 
-          const beforeCreate = new Date();
           return request(app.getHttpServer())
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
-              const afterCreate = new Date();
               const responseBody: CreateBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();
