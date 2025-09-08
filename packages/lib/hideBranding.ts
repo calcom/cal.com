@@ -2,8 +2,12 @@ import { prisma } from "@calcom/prisma";
 
 import logger from "./logger";
 import { ProfileRepository } from "./server/repository/profile";
+import { TeamRepository } from "./server/repository/team";
+import { UserRepository } from "./server/repository/user";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
+const teamRepository = new TeamRepository(prisma);
+const userRepository = new UserRepository(prisma);
 type Team = {
   hideBranding: boolean | null;
   parent: {
@@ -53,18 +57,7 @@ export async function getHideBranding({
 }): Promise<boolean> {
   if (teamId) {
     // Get team data with parent organization
-    //todo: use repository function
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        hideBranding: true,
-        parent: {
-          select: {
-            hideBranding: true,
-          },
-        },
-      },
-    });
+    const team = await teamRepository.findTeamWithParentHideBranding({ teamId });
 
     if (!team) return false;
 
@@ -74,21 +67,7 @@ export async function getHideBranding({
     });
   } else if (userId) {
     // Get user data with profile and organization
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        hideBranding: true,
-        profiles: {
-          select: {
-            organization: {
-              select: {
-                hideBranding: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const user = await userRepository.findUserWithHideBranding({ userId });
 
     if (!user) return false;
 

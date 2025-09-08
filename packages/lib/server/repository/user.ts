@@ -1067,4 +1067,22 @@ export class UserRepository {
       },
     });
   }
+
+  async findUserWithHideBranding({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        hideBranding: true,
+        profiles: {
+          select: {
+            organization: {
+              select: {
+                hideBranding: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
