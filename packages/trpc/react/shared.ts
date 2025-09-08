@@ -66,6 +66,8 @@ export const ENDPOINTS = [
   "googleWorkspace",
   "oAuth",
   "attributes",
+  "attributes/queries",
+  "attributes/mutations",
   "delegationCredential",
   "delegationCredential/queries",
   "delegationCredential/mutations",

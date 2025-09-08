@@ -104,7 +104,7 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
 
   await prisma.$transaction(async (tx) => {
     const updateOptions = options.filter((option) => option.id !== undefined && option.id !== "");
-    const updatedOptionsIds = updateOptions.map((option) => option.id!);
+    const updatedOptionsIds = updateOptions.map((option) => option.id as string);
     // We need to delete all options that are not present in this UpdateOptions.id (as they have been deleted)
     await tx.attributeOption.deleteMany({
       where: {
@@ -159,10 +159,9 @@ async function validateOptionsBelongToAttribute(
   options: ZEditAttributeSchema["options"],
   attributeId: string
 ) {
-  // We have to use ! here to make sure typescript knows that the id is not undefined
   const optionsWithId = options
     .filter((option) => option.id !== undefined && option.id !== "")
-    .map((option) => option.id!);
+    .map((option) => option.id as string);
 
   // Check all ids of options passed in are owned by the attribute
   const optionsWithIdOwnedByAttribute = await prisma.attributeOption.findMany({
