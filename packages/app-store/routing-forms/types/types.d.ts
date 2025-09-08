@@ -112,3 +112,19 @@ export type RoutingFormWithResponseCount = RoutingForm & {
     responses: number;
   };
 };
+
+type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
+
+export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
+  string,
+  {
+    /**
+     * Deprecates `value` prop as it now has both the id(that doesn't change) and the label(that can change but is human friendly)
+     */
+    response: number | string | string[] | SelectFieldWebhookResponse | SelectFieldWebhookResponse[];
+    /**
+     * @deprecated Use `response` instead
+     */
+    value: FormResponse[keyof FormResponse]["value"];
+  }
+>;
