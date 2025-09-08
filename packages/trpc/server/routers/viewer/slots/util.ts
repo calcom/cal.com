@@ -1053,27 +1053,26 @@ export class AvailableSlotsService {
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
 
-    // Include attendees only for 1:1-style reschedules; skip collective/round-robin
-    if (
-      input.rescheduleUid &&
-      eventType.schedulingType !== SchedulingType.COLLECTIVE &&
-      eventType.schedulingType !== SchedulingType.ROUND_ROBIN
-    ) {
-      const attendeeHosts = await this.getAttendeeHostsForReschedule({
-        rescheduleUid: input.rescheduleUid,
-        loggerWithEventDetails,
-      });
+    // For reschedules, include attendees as additional hosts (but only for 1:1 meetings)
+    if (input.rescheduleUid) {
+      const isTeamEvent = eventType.schedulingType === SchedulingType.COLLECTIVE || 
+                          eventType.schedulingType === SchedulingType.ROUND_ROBIN;
       
-      // Efficient deduplication: handle both string and number IDs
-      const existingIds: { [key: string]: boolean } = {};
-      for (const host of allHosts) {
-        existingIds[String(host.user.id)] = true;
-      }
-      
-      // Filter out duplicates and add attendee hosts
-      for (const attendeeHost of attendeeHosts) {
-        if (!existingIds[String(attendeeHost.user.id)]) {
-          allHosts.push(attendeeHost);
+      if (!isTeamEvent) {
+        const attendeeHosts = await this.getAttendeeHostsForReschedule({
+          rescheduleUid: input.rescheduleUid,
+          loggerWithEventDetails,
+        });
+
+        // Add attendee hosts, but avoid duplicates with existing hosts
+        for (const attendeeHost of attendeeHosts) {
+          const isDuplicate = allHosts.some(existingHost => 
+            String(existingHost.user.id) === String(attendeeHost.user.id)
+          );
+          
+          if (!isDuplicate) {
+            allHosts.push(attendeeHost);
+          }
         }
       }
     }
@@ -1523,41 +1522,50 @@ export class AvailableSlotsService {
     loggerWithEventDetails: Logger<unknown>;
   }) {
     try {
-      const bookingRepo = this.dependencies.bookingRepo;
-
-      const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
-      if (!originalBooking?.attendees?.length) return [];
-
-      // ACCEPTED-only, dedupe case-insensitively, efficient with early termination
-      const MAX_ATTENDEES = 10;
-      const lowerCaseMap: { [key: string]: boolean } = {};
-      const emails: string[] = [];
+      const originalBooking = await this.dependencies.bookingRepo.findBookingByUid({ 
+        bookingUid: rescheduleUid 
+      });
       
-      for (let i = 0; i < originalBooking.attendees.length && emails.length < MAX_ATTENDEES; i++) {
-        const attendee = originalBooking.attendees[i];
+      if (!originalBooking?.attendees?.length) {
+        return [];
+      }
+
+      // Only include attendees who accepted the original booking
+      const acceptedAttendees = originalBooking.attendees.filter((attendee) => {
         const status = (attendee as any)?.status ?? "ACCEPTED";
-        
-        if (status !== "ACCEPTED") continue;
+        return status === "ACCEPTED";
+      });
+
+      // Remove duplicate emails (case-insensitive) and limit to reasonable number
+      const MAX_ATTENDEES = 10;
+      const uniqueEmails: string[] = [];
+      const seenEmails: { [key: string]: boolean } = {};
+
+      for (const attendee of acceptedAttendees) {
+        if (uniqueEmails.length >= MAX_ATTENDEES) break;
         
         const email = String((attendee as any)?.email ?? "").trim();
         if (!email) continue;
-        
-        const lowerEmail = email.toLowerCase();
-        if (!lowerCaseMap[lowerEmail]) {
-          lowerCaseMap[lowerEmail] = true;
-          emails.push(email); // Preserve original case
+
+        const emailKey = email.toLowerCase();
+        if (!seenEmails[emailKey]) {
+          seenEmails[emailKey] = true;
+          uniqueEmails.push(email);
         }
       }
-      
-      if (!emails.length) return [];
 
-      // Optimized sequential lookups with better error handling
+      if (uniqueEmails.length === 0) {
+        return [];
+      }
+
+      // Look up each attendee and convert them to host format
       const attendeeHosts: any[] = [];
-      for (const email of emails) {
+      
+      for (const email of uniqueEmails) {
         try {
           const user = await this.dependencies.userAvailabilityService.getUser({ email });
-          // More robust check: user.id can be 0, so check for != null
-          if (user && user.id != null && user.email) {
+          
+          if (user?.id != null && user?.email) {
             attendeeHosts.push({
               isFixed: false,
               groupId: null,
@@ -1566,20 +1574,20 @@ export class AvailableSlotsService {
             });
           }
         } catch (error) {
-          loggerWithEventDetails.warn("Failed to lookup attendee user", {
+          // Log the failure but continue with other attendees
+          loggerWithEventDetails.warn("Could not find user for attendee", {
             email,
-            reason: error instanceof Error ? error.message : String(error),
+            error: error instanceof Error ? error.message : String(error),
           });
-          // Continue with other attendees
         }
       }
 
       return attendeeHosts;
 
     } catch (error) {
-      loggerWithEventDetails.error("Failed to get attendee hosts", {
+      loggerWithEventDetails.error("Failed to get attendee hosts for reschedule", {
         rescheduleUid,
-        reason: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error ? error.message : String(error),
       });
       return [];
     }
