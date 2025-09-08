@@ -15,7 +15,7 @@ export const updateHandler = async ({ input }: UpdateOptions) => {
     signatureTokenEncrypted?: string;
   } = {
     agreedLicenseAt: new Date(),
-    licenseKey: input.licenseKey,
+    licenseKey: input.licenseKey || "",
   };
 
   // Encrypt and store the signature token if provided

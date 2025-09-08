@@ -57,7 +57,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         },
         hosts: {
           select: {
-            id: true,
             eventTypeId: true,
             userId: true,
             isFixed: true,

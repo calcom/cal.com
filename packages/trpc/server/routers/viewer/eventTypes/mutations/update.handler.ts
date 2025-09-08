@@ -519,6 +519,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         trigger: WorkflowTriggerEvents.NEW_EVENT,
       },
       select: {
+        id: true,
+        name: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        userId: true,
+        teamId: true,
         steps: true,
       },
     });
