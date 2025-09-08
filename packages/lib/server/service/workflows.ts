@@ -6,6 +6,7 @@ import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { tasker } from "@calcom/features/tasker";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { FormResponse } from "@calcom/routing-forms/types/types";
 
 import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
