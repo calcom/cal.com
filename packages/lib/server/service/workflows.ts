@@ -6,7 +6,7 @@ import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { tasker } from "@calcom/features/tasker";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
@@ -150,6 +150,8 @@ export class WorkflowService {
         {
           responseId,
           responses,
+          smsReminderNumber,
+          hideBranding,
           form: {
             id: form.id,
             userId: form.userId,
