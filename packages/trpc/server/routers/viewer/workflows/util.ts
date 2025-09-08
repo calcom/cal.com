@@ -521,16 +521,6 @@ export async function isAuthorizedToAddActiveOnIds({
       select: {
         userId: true,
         teamId: true,
-        team: {
-          select: {
-            members: {
-              select: {
-                userId: true,
-                accepted: true,
-              },
-            },
-          },
-        },
       },
     });
 
@@ -540,26 +530,10 @@ export async function isAuthorizedToAddActiveOnIds({
       return false;
     }
 
-    // Form belongs to a team that the user is a member of
-    if (routingForm.teamId && routingForm.team) {
-      const isTeamMember = routingForm.team.members.some(
-        (member) => member.userId === userId && member.accepted
-      );
-      if (isTeamMember) {
-        return true;
-      }
-    }
-
-    if (
-      !teamId &&
-      userId &&
-      routingForm.userId !== userId &&
-      !routingForm?.team?.members.some((member) => member.userId === userId && member.accepted)
-    ) {
+    if (!teamId && userId && routingForm.userId !== userId) {
       return false;
     }
   }
-
   return true;
 }
 
