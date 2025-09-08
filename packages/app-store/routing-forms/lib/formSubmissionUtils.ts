@@ -85,6 +85,29 @@ export function getFieldResponse({
   };
 }
 
+export const sendResponseEmail = async (
+  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
+  orderedResponses: OrderedResponses,
+  toAddresses: string[]
+) => {
+  try {
+    if (typeof window === "undefined") {
+      const { default: ResponseEmail } = await import("../emails/templates/response-email");
+      const email = new ResponseEmail({ form: form, toAddresses, orderedResponses });
+      await email.sendEmail();
+    }
+  } catch (e) {
+    moduleLogger.error("Error sending response email", e);
+  }
+};
+
+function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: number } }) {
+  // If it's a team form, the target must be team webhook
+  // If it's a user form, the target must be user webhook
+  const isTeamForm = form.teamId;
+  return { userId: isTeamForm ? null : form.user.id, teamId: isTeamForm ? form.teamId : null };
+}
+
 /**
  * Not called in preview mode or dry run mode
  * It takes care of sending webhooks and emails for form submissions
@@ -235,29 +258,6 @@ export async function _onFormSubmission(
   }
 }
 export const onFormSubmission = withReporting(_onFormSubmission, "onFormSubmission");
-
-export const sendResponseEmail = async (
-  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
-  orderedResponses: OrderedResponses,
-  toAddresses: string[]
-) => {
-  try {
-    if (typeof window === "undefined") {
-      const { default: ResponseEmail } = await import("../emails/templates/response-email");
-      const email = new ResponseEmail({ form: form, toAddresses, orderedResponses });
-      await email.sendEmail();
-    }
-  } catch (e) {
-    moduleLogger.error("Error sending response email", e);
-  }
-};
-
-function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: number } }) {
-  // If it's a team form, the target must be team webhook
-  // If it's a user form, the target must be user webhook
-  const isTeamForm = form.teamId;
-  return { userId: isTeamForm ? null : form.user.id, teamId: isTeamForm ? form.teamId : null };
-}
 
 export type TargetRoutingFormForResponse = SerializableForm<
   App_RoutingForms_Form & {
