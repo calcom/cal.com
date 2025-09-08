@@ -28,13 +28,13 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
-import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
+import type { TUpdateInputSchema } from "./update.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 
@@ -518,7 +518,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
         trigger: WorkflowTriggerEvents.NEW_EVENT,
       },
-      include: {
+      select: {
         steps: true,
       },
     });

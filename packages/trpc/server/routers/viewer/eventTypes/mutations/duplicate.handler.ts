@@ -32,19 +32,83 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         id: originalEventTypeId,
       },
       include: {
-        customInputs: true,
-        schedule: true,
+        customInputs: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            label: true,
+            type: true,
+            required: true,
+            placeholder: true,
+            options: true,
+          },
+        },
+        schedule: {
+          select: {
+            id: true,
+            name: true,
+            timeZone: true,
+          },
+        },
         users: {
           select: {
             id: true,
           },
         },
-        hosts: true,
-        team: true,
-        workflows: true,
-        webhooks: true,
-        hashedLink: true,
-        destinationCalendar: true,
+        hosts: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            userId: true,
+            isFixed: true,
+            priority: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        workflows: {
+          select: {
+            id: true,
+            workflowId: true,
+            eventTypeId: true,
+          },
+        },
+        webhooks: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            subscriberUrl: true,
+            payloadTemplate: true,
+            active: true,
+            eventTriggers: true,
+            secret: true,
+          },
+        },
+        hashedLink: {
+          select: {
+            id: true,
+            link: true,
+            eventTypeId: true,
+            expiresAt: true,
+            maxUsageCount: true,
+          },
+        },
+        destinationCalendar: {
+          select: {
+            id: true,
+            integration: true,
+            externalId: true,
+            primaryEmail: true,
+            userId: true,
+            eventTypeId: true,
+            credentialId: true,
+          },
+        },
         calVideoSettings: {
           select: {
             disableRecordingForOrganizer: true,

@@ -2,7 +2,7 @@ import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
-import { router, mergeRouters } from "../../trpc";
+import { router } from "../../trpc";
 import app_Basecamp3 from "../apps/basecamp3/_router";
 import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
@@ -24,7 +24,6 @@ import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
-import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { i18nRouter } from "./i18n/_router";
@@ -54,12 +53,7 @@ export const viewerRouter = router({
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
   credentials: credentialsRouter,
-  eventTypes: mergeRouters(
-    eventTypesRouter,
-    router({
-      heavy: heavyEventTypesRouter,
-    })
-  ),
+  eventTypes: eventTypesRouter,
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
   timezones: timezonesRouter,

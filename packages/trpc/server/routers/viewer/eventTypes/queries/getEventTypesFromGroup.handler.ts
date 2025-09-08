@@ -2,7 +2,6 @@ import type { Prisma } from "@prisma/client";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import logger from "@calcom/lib/logger";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
@@ -10,8 +9,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { mapEventType } from "./util";
-
-const log = logger.getSubLogger({ prefix: ["getEventTypesFromGroup"] });
 
 type GetByViewerOptions = {
   ctx: {

@@ -1,23 +1,38 @@
 import { z } from "zod";
 
-import { logP } from "@calcom/lib/perf";
-
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
-import { ZCreateInputSchema } from "./create.schema";
-import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { eventOwnerProcedure } from "../util";
+import { ZCreateInputSchema } from "./create.schema";
+import { ZDeleteInputSchema } from "./delete.schema";
+import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
-type BookingsRouterHandlerCache = {
-  create?: typeof import("./create.handler").createHandler;
-  duplicate?: typeof import("./duplicate.handler").duplicateHandler;
-  update?: typeof import("./update.handler").updateHandler;
-};
+export const eventTypesMutationsRouter = router({
+  delete: eventOwnerProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
+    const { deleteHandler } = await import("./delete.handler");
 
-const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
+    return deleteHandler({
+      ctx,
+      input,
+    });
+  }),
 
-export const eventTypesRouter = router({
+  bulkUpdateToDefaultLocation: authedProcedure
+    .input(
+      z.object({
+        eventTypeIds: z.array(z.number()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { bulkUpdateToDefaultLocationHandler } = await import("./bulkUpdateToDefaultLocation.handler");
+
+      return bulkUpdateToDefaultLocationHandler({
+        ctx,
+        input,
+      });
+    }),
+
   create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     const { createHandler } = await import("./create.handler");
 
@@ -41,5 +56,5 @@ export const eventTypesRouter = router({
       ctx,
       input,
     });
-  })
+  }),
 });
