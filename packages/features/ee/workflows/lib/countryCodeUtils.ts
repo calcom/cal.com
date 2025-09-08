@@ -1,31 +1,32 @@
+import { isSupportedCountry, getCountryCallingCode } from "libphonenumber-js";
+
 export interface CountryOption {
   label: string;
   value: string;
   dialCode: string;
 }
 
-const countryData: Record<string, { name: string; dialCode: string }> = {
-  us: { name: "United States", dialCode: "1" },
-  ca: { name: "Canada", dialCode: "1" },
-  gb: { name: "United Kingdom", dialCode: "44" },
-  de: { name: "Germany", dialCode: "49" },
-  fr: { name: "France", dialCode: "33" },
-  au: { name: "Australia", dialCode: "61" },
-  in: { name: "India", dialCode: "91" },
-  jp: { name: "Japan", dialCode: "81" },
-  br: { name: "Brazil", dialCode: "55" },
-  mx: { name: "Mexico", dialCode: "52" },
-  it: { name: "Italy", dialCode: "39" },
-  es: { name: "Spain", dialCode: "34" },
-  nl: { name: "Netherlands", dialCode: "31" },
-  se: { name: "Sweden", dialCode: "46" },
-  no: { name: "Norway", dialCode: "47" },
-  dk: { name: "Denmark", dialCode: "45" },
-  fi: { name: "Finland", dialCode: "358" },
-  ch: { name: "Switzerland", dialCode: "41" },
-  at: { name: "Austria", dialCode: "43" },
-  be: { name: "Belgium", dialCode: "32" },
+const generateCountryData = (): Record<string, { name: string; dialCode: string }> => {
+  const countryData: Record<string, { name: string; dialCode: string }> = {};
+  const intl = new Intl.DisplayNames(["en"], { type: "region" });
+
+  for (let i = 0; i < 26; i++) {
+    for (let j = 0; j < 26; j++) {
+      const code = String.fromCharCode(65 + i) + String.fromCharCode(65 + j);
+      if (isSupportedCountry(code)) {
+        try {
+          const dialCode = getCountryCallingCode(code);
+          const name = intl.of(code) || code;
+          countryData[code.toLowerCase()] = { name, dialCode };
+        } catch (e) {}
+      }
+    }
+  }
+
+  return countryData;
 };
+
+const countryData = generateCountryData();
 
 export const getCountryOptions = (): CountryOption[] => {
   return Object.entries(countryData).map(([countryCode, data]) => ({
