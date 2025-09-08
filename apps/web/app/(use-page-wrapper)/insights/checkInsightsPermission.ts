@@ -28,7 +28,7 @@ export async function checkInsightsPermission() {
       userId: session.user.id,
       teamId: session.user.org.id,
       permission: "insights.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER], // even members can see their own data
     });
 
     if (!hasPermission) {

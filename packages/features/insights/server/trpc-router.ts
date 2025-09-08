@@ -249,7 +249,7 @@ const insightsPbacProcedure = userBelongsToTeamProcedure.use(async ({ ctx, next,
       userId: ctx.user.id,
       teamId: ctx.user.organizationId,
       permission: "insights.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER], // even members can see their own data
     });
 
     if (!hasPermission) {
