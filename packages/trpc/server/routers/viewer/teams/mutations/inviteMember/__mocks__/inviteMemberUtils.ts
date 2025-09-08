@@ -22,7 +22,7 @@ export const inviteMemberutilsScenarios = {
       inviteMemberUtilsMock.checkPermissions.mockResolvedValue(undefined),
   },
   getTeamOrThrow: {
-    fakeReturnTeam: (team: { id: number } & Record<string, any>, forInput: { teamId: number }) => {
+    fakeReturnTeam: (team: { id: number } & Record<string, unknown>, forInput: { teamId: number }) => {
       const fakedVal = {
         organizationSettings: null,
         parent: null,
@@ -69,7 +69,7 @@ export const inviteMemberutilsScenarios = {
     useAdvancedMock: function (
       returnVal: Awaited<ReturnType<typeof inviteMemberUtilsMock.findUsersWithInviteStatus>>,
       forInput: {
-        team: any;
+        team: { id: number };
         invitations: {
           usernameOrEmail: string;
           newRole?: MembershipRole;
@@ -106,7 +106,7 @@ export const expects = {
     teamId,
   }: {
     emails: string[];
-    team: any[];
+    team: { id: number; name: string }[];
     inviterName: string;
     teamId: number;
     isOrg: boolean;

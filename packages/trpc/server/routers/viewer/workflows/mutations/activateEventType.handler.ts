@@ -303,7 +303,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       for (const booking of bookingsForReminders) {
         // eventTypeId is technically nullable but we know it will be there
-        const bookingEventType = activeOnEventTypes.get(booking.eventTypeId!);
+        const bookingEventType = activeOnEventTypes.get(booking.eventTypeId ?? 0);
         const defaultLocale = "en";
         const bookingInfo = {
           uid: booking.uid,

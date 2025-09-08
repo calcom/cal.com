@@ -36,7 +36,7 @@ vi.mock("@trpc/server", () => {
 });
 
 function fakeNoUsersFoundMatchingInvitations(args: {
-  team: any;
+  team: { id: number };
   invitations: {
     role: MembershipRole;
     usernameOrEmail: string;

@@ -88,11 +88,39 @@ export async function getTeamOrThrow(teamId: number) {
     where: {
       id: teamId,
     },
-    include: {
-      organizationSettings: true,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      bio: true,
+      hideBranding: true,
+      isOrganization: true,
+      metadata: true,
+      parentId: true,
+      organizationSettings: {
+        select: {
+          id: true,
+          isOrganizationVerified: true,
+          isOrganizationConfigured: true,
+          orgAutoAcceptEmail: true,
+          isAdminAPIEnabled: true,
+        },
+      },
       parent: {
-        include: {
-          organizationSettings: true,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          organizationSettings: {
+            select: {
+              id: true,
+              isOrganizationVerified: true,
+              isOrganizationConfigured: true,
+              orgAutoAcceptEmail: true,
+              isAdminAPIEnabled: true,
+            },
+          },
         },
       },
     },
@@ -740,12 +768,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({

@@ -30,7 +30,7 @@ async function verifyMembershipExists(userId: number, teamId: number): Promise<M
   });
 }
 
-async function verifyUserOrganizationConsistency(userId: number): Promise<{
+async function _verifyUserOrganizationConsistency(userId: number): Promise<{
   profileCount: number;
   acceptedMembershipCount: number;
   pendingMembershipCount: number;
@@ -83,7 +83,7 @@ async function createTestTeam(data: {
   slug: string;
   isOrganization?: boolean;
   parentId?: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   organizationSettings?: {
     orgAutoAcceptEmail: string;
     isOrganizationVerified?: boolean;
@@ -329,8 +329,8 @@ describe("inviteMember.handler Integration Tests", () => {
       await inviteMemberHandler({
         ctx: {
           user: createUserContext(inviterUser, organization.id),
-          session: {} as any,
-        } as any,
+          session: {} as NonNullable<TrpcSessionUser>["session"],
+        },
         input: {
           teamId: organization.id,
           usernameOrEmail: nonMatchingUser.email,
@@ -418,7 +418,7 @@ describe("inviteMember.handler Integration Tests", () => {
         ],
       });
 
-      const orgMembership = await verifyMembershipExists(
+      const _orgMembership = await verifyMembershipExists(
         unverifiedUserWithUnacceptedMembership.id,
         organization.id
       );

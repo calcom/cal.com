@@ -302,7 +302,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       let newStep;
 
       if (foundStep) {
-        const { senderName, ...rest } = {
+        const { senderName: _senderName, ...rest } = {
           ...foundStep,
           numberVerificationPending: false,
           sender: getSender({
@@ -363,7 +363,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           const aiPhoneService = createDefaultAIPhoneServiceProvider();
           const externalErrors: string[] = [];
 
-          const phoneNumberOperations: Promise<any>[] = [];
+          const phoneNumberOperations: Promise<void>[] = [];
 
           if (agent.outboundPhoneNumbers) {
             for (const phoneNumber of agent.outboundPhoneNumbers) {
@@ -575,7 +575,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         const {
           id: _stepId,
-          senderName,
+          senderName: _senderName,
           ...stepToAdd
         } = {
           ...newStep,

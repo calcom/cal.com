@@ -27,15 +27,96 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     where: {
       id: bookingId,
     },
-    include: {
-      attendees: true,
-      eventType: true,
-      destinationCalendar: true,
-      references: true,
+    select: {
+      id: true,
+      uid: true,
+      iCalUID: true,
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
+      location: true,
+      userId: true,
+      userPrimaryEmail: true,
+      attendees: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
+        },
+      },
+      eventType: {
+        select: {
+          id: true,
+          title: true,
+          teamId: true,
+          hideOrganizerEmail: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
+          customReplyToEmail: true,
+          recurringEvent: true,
+        },
+      },
+      destinationCalendar: {
+        select: {
+          id: true,
+          integration: true,
+          externalId: true,
+          primaryEmail: true,
+          userId: true,
+          eventTypeId: true,
+          credentialId: true,
+        },
+      },
+      references: {
+        select: {
+          id: true,
+          type: true,
+          uid: true,
+          meetingId: true,
+          meetingPassword: true,
+          meetingUrl: true,
+          externalCalendarId: true,
+          deleted: true,
+          credentialId: true,
+        },
+      },
       user: {
-        include: {
-          destinationCalendar: true,
-          credentials: true,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
+          destinationCalendar: {
+            select: {
+              id: true,
+              integration: true,
+              externalId: true,
+              primaryEmail: true,
+              userId: true,
+              eventTypeId: true,
+              credentialId: true,
+            },
+          },
+          credentials: {
+            select: {
+              id: true,
+              type: true,
+              key: true,
+              userId: true,
+              teamId: true,
+              appId: true,
+              invalid: true,
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -93,8 +174,17 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     where: {
       id: bookingId,
     },
-    include: {
-      attendees: true,
+    select: {
+      id: true,
+      attendees: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
+        },
+      },
     },
     data: {
       attendees: {

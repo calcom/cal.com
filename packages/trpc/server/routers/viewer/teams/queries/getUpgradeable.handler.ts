@@ -21,10 +21,30 @@ export const getUpgradeableHandler = async ({ userId }: GetUpgradeableOptions) =
         parentId: null, // Since ORGS relay on their parent's subscription, we don't need to return them
       },
     },
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      teamId: true,
+      accepted: true,
+      role: true,
       team: {
-        include: {
-          children: true,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          bio: true,
+          hideBranding: true,
+          isOrganization: true,
+          metadata: true,
+          parentId: true,
+          children: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
         },
       },
     },

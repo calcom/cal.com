@@ -108,9 +108,37 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     where: {
       userId_teamId: { userId: input.memberId, teamId: input.teamId },
     },
-    include: {
-      team: true,
-      user: true,
+    select: {
+      id: true,
+      userId: true,
+      teamId: true,
+      accepted: true,
+      role: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          bio: true,
+          hideBranding: true,
+          isOrganization: true,
+          metadata: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          bio: true,
+          avatar: true,
+          timeZone: true,
+          locale: true,
+        },
+      },
     },
   });
 
