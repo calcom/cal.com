@@ -1,4 +1,5 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesController_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/controllers/event-types.controller";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
@@ -30,6 +31,7 @@ import { Module } from "@nestjs/common";
     SchedulesRepository_2024_06_11,
     EventTypeResponseTransformPipe,
     CalendarsService,
+    CalendarsCacheService,
     CredentialsRepository,
     AppsRepository,
     CalendarsRepository,

@@ -1,5 +1,6 @@
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcal.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
@@ -23,6 +24,7 @@ import { Module } from "@nestjs/common";
     BookingReferencesRepository_2024_08_13,
     CredentialsRepository,
     CalendarsService,
+    CalendarsCacheService,
     SelectedCalendarsRepository,
     PrismaReadService,
     PrismaWriteService,
