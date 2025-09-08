@@ -216,17 +216,6 @@ export class WorkflowService {
     });
   }
 
-  static async scheduleWorkflows({
-    workflows,
-    ...args
-  }: ScheduleWorkflowRemindersArgs & { workflows: Workflow[] }) {
-    if (workflows.length <= 0) return;
-    await scheduleWorkflowReminders({
-      ...args,
-      workflows,
-    });
-  }
-
   static async scheduleWorkflowsFilteredByTriggerEvent({
     workflows,
     triggers,
