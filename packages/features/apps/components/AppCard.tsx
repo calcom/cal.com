@@ -19,6 +19,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { truncateOnWord } from "@calcom/lib/text";
 
 interface AppCardProps {
   app: App;
@@ -94,7 +95,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
-            "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
+            "mb-4 h-12 w-12 rounded-sm"
           )}
         />
       </div>
@@ -118,14 +119,17 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
-        className="text-default mt-2 flex-grow text-sm"
+        className="text-default mt-2 flex-grow text-sm overflow-hidden"
         style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}>
-        {app.description}
+          textOverflow: "ellipsis",
+          whiteSpace: "normal",
+          maxHeight: "4.5em",
+          lineHeight: "1.5em",
+          wordBreak: "break-word",
+        }}
+        title={app.description}
+      >
+        {truncateOnWord(app.description, 180)}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
