@@ -444,7 +444,7 @@ function WorkflowPage({
                       CustomStartIcon={
                         <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
                       }>
-                      <span className="sr-only">Edit</span>
+                      <span className="sr-only">{t("edit")}</span>
                     </Button>
                   </div>
                 )}
@@ -508,7 +508,7 @@ function WorkflowPage({
                   )}
                 </>
               ) : (
-                <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
+                <Alert severity="error" title={t("something_went_wrong")} message={error?.message ?? ""} />
               )}
             </div>
           </div>
