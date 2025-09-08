@@ -6,8 +6,10 @@ import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { tasker } from "@calcom/features/tasker";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
+//todo: fix import
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
+//todo: fix import
 import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
 

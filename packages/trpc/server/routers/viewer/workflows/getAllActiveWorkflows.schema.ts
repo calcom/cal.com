@@ -28,7 +28,7 @@ export const ZWorkflow = z.object({
       sender: z.string().nullable(),
       includeCalendarEvent: z.boolean(),
       numberVerificationPending: z.boolean(),
-      verifiedAt: z.coerce.date().nullable().optional(),
+      verifiedAt: z.date().nullable().optional(), // todo: fix type
     })
     .array(),
 });
