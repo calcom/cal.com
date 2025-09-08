@@ -1,15 +1,13 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import {
-  ZStripeCheckoutSessionInputSchema,
-  type TStripeCheckoutSessionInputSchema,
-} from "@calcom/trpc/server/routers/publicViewer/stripeCheckoutSession.schema";
+
+type StripeCheckoutSessionInput = {
+  checkoutSessionId?: string;
+  stripeCustomerId?: string;
+};
 
 export class StripeService {
-  static async getCheckoutSession(input: TStripeCheckoutSessionInputSchema) {
+  static async getCheckoutSession(input: StripeCheckoutSessionInput) {
     const { checkoutSessionId, stripeCustomerId } = input;
-
-    // Moved the following data checks to superRefine
-    ZStripeCheckoutSessionInputSchema.parse(input);
 
     let customerId: string;
     let isPremiumUsername = false;
