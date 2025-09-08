@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -26,15 +26,15 @@ import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
-import { setDestinationCalendarHandler } from "../../viewer/calendars/setDestinationCalendar.handler";
+import type { TrpcSessionUser } from "../../../../types";
+import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
-} from "./util";
+} from "../util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 
