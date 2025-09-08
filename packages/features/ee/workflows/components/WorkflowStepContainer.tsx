@@ -505,6 +505,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <CheckboxField
                       description={isOrganization ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
                       disabled={props.readOnly}
+                      descriptionClassName="ml-0"
                       onChange={(e) => {
                         onChange(e);
                         if (e.target.value) {
@@ -667,7 +668,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
           </div>
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
-            <div className="bg-muted mt-2 rounded-lg p-4">
+            <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-emphasis text-sm font-medium leading-none">
@@ -676,12 +677,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {t("set_up_required")}
                     </Badge>
                   </h2>
-                  <p className="text-muted mt-2 text-sm font-medium leading-none">
+                  <p className="text-muted mt-1 text-sm font-medium leading-none">
                     {t("no_phone_number_connected")}.
                   </p>
                 </div>
                 <Button
-                  color="secondary"
+                  color="primary"
                   onClick={async () => {
                     // save the workflow first to get the step id
                     if (props.onSaveWorkflow) {
@@ -709,7 +710,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     }
                   }}
                   loading={createAgentMutation.isPending}>
-                  {t("set_up")}
+                  {t("set_up_agent")}
                 </Button>
               </div>
             </div>
@@ -902,7 +903,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <Button
                           color="secondary"
                           size="sm"
-                          className="ml-2 min-w-fit rounded-xl"
+                          className="ml-2 min-w-fit rounded-[10px]"
                           disabled={verifyPhoneNumberMutation.isPending || props.readOnly}
                           onClick={() => {
                             verifyPhoneNumberMutation.mutate({
@@ -1017,7 +1018,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <Button
                           color="secondary"
                           size="sm"
-                          className="ml-2 min-w-fit rounded-xl"
+                          className="ml-2 min-w-fit rounded-[10px]"
                           disabled={verifyEmailCodeMutation.isPending || props.readOnly}
                           onClick={() => {
                             verifyEmailCodeMutation.mutate({

@@ -161,6 +161,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     deleteField={
                       !props.readOnly
                         ? {
+                            color: "destructive",
                             check: () => true,
                             fn: () => {
                               if (

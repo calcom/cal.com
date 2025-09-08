@@ -13,7 +13,7 @@ import { Input } from "../form/inputs/TextField";
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
 
-type Action = { check: () => boolean; fn: () => void };
+type Action = { check: () => boolean; fn: () => void; color?: "destructive" | "minimal" };
 
 type FormCardActionsProps = {
   deleteField?: Action | null;
@@ -37,8 +37,8 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     deleteField?.fn && {
       label: "Delete",
       icon: "trash",
-      color: "minimal",
       onClick: () => deleteField.fn(),
+      color: deleteField.color ?? "minimal",
     },
   ].filter((action): action is ActionItem => !!action);
 
