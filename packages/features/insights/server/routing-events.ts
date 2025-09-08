@@ -9,8 +9,6 @@ import {
   isValidRoutingFormFieldType,
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/InsightsRoutingBaseService";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
@@ -98,81 +96,24 @@ class RoutingEventsInsights {
     organizationId?: number | undefined;
     routingFormId?: string | undefined;
   }) {
-    const featuresRepository = new FeaturesRepository(prisma);
-    const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId || -1, "pbac");
-
-    if (pbacFeatureEnabled) {
-      const permissionCheckService = new PermissionCheckService();
-      const teamIds = await permissionCheckService.getTeamIdsWithPermission(userId, "insights.read");
-
-      if (isAll && organizationId) {
-        const forms = await prisma.app_RoutingForms_Form.findMany({
-          where: {
-            teamId: { in: teamIds },
-          },
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
+      teamId,
+      isAll,
+      organizationId,
+    });
+    return await prisma.app_RoutingForms_Form.findMany({
+      where: formsWhereCondition,
+      select: {
+        id: true,
+        name: true,
+        _count: {
           select: {
-            id: true,
-            name: true,
-            _count: {
-              select: {
-                responses: true,
-              },
-            },
-          },
-        });
-        return forms;
-      } else if (teamId && teamIds.includes(teamId)) {
-        const forms = await prisma.app_RoutingForms_Form.findMany({
-          where: { teamId },
-          select: {
-            id: true,
-            name: true,
-            _count: {
-              select: {
-                responses: true,
-              },
-            },
-          },
-        });
-        return forms;
-      } else {
-        const forms = await prisma.app_RoutingForms_Form.findMany({
-          where: {
-            userId,
-            teamId: null,
-          },
-          select: {
-            id: true,
-            name: true,
-            _count: {
-              select: {
-                responses: true,
-              },
-            },
-          },
-        });
-        return forms;
-      }
-    } else {
-      const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
-        userId,
-        teamId,
-        isAll,
-        organizationId,
-      });
-      return await prisma.app_RoutingForms_Form.findMany({
-        where: formsWhereCondition,
-        select: {
-          id: true,
-          name: true,
-          _count: {
-            select: {
-              responses: true,
-            },
+            responses: true,
           },
         },
-      });
-    }
+      },
+    });
   }
 
   static async getRoutingFormPaginatedResponsesForDownload({
