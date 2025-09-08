@@ -54,14 +54,14 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   });
 
   // Filter out users who are already in teams they are being invited to
-  const filteredUserIds = input.userIds.filter((userId) => {
+  const filteredUserIds = input.userIds.filter((userId: number) => {
     return !usersInTeams.some((membership) => membership.userId === userId);
   });
 
   // TODO: might need to come back to this is people are doing ALOT of invites with bulk actions.
   // Loop over all users and add them to all teams in the array
-  const membershipData = filteredUserIds.flatMap((userId) =>
-    input.teamIds.map((teamId) => {
+  const membershipData = filteredUserIds.flatMap((userId: number) =>
+    input.teamIds.map((teamId: number) => {
       const userMembership = usersInOrganization.find((membership) => membership.userId === userId);
       const accepted = userMembership && userMembership.accepted;
       return {
@@ -78,7 +78,7 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
     data: membershipData,
   });
 
-  membershipData.forEach(async ({ userId, teamId }) => {
+  membershipData.forEach(async ({ userId, teamId }: { userId: number; teamId: number }) => {
     await updateNewTeamMemberEventTypes(userId, teamId);
   });
 

@@ -1,8 +1,7 @@
-import { z } from "zod";
-
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { eventOwnerProcedure } from "../../../util";
+import { ZBulkUpdateToDefaultLocationInputSchema } from "./bulkUpdateToDefaultLocation.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
@@ -19,11 +18,7 @@ export const eventTypesMutationsRouter = router({
   }),
 
   bulkUpdateToDefaultLocation: authedProcedure
-    .input(
-      z.object({
-        eventTypeIds: z.array(z.number()),
-      })
-    )
+    .input(ZBulkUpdateToDefaultLocationInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { bulkUpdateToDefaultLocationHandler } = await import("./bulkUpdateToDefaultLocation.handler");
 
