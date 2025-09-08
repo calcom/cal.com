@@ -1310,10 +1310,8 @@ describe("Date Optimization Benchmarks", () => {
         )}ms, Speedup: ${speedupRatio.toFixed(1)}x`
       );
 
-      if (!process.env.CI) {
-        const minSpeedup = 5; // Assert significant performance improvement (at least 5x faster)
-        expect(speedupRatio).toBeGreaterThan(minSpeedup);
-      }
+      const minSpeedup = process.env.CI ? 1.5 : 5; // Lower threshold for CI
+      expect(speedupRatio).toBeGreaterThan(minSpeedup);
     }
   });
 
