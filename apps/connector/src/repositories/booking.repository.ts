@@ -1,5 +1,4 @@
 import type { GetBookingsInput } from "@/schema/booking.schema";
-
 import kysely from "@calcom/kysely";
 import { getAllUserBookings } from "@calcom/platform-libraries";
 import type { PrismaClient } from "@calcom/prisma";
@@ -60,5 +59,35 @@ export class BookingRepository extends BaseRepository<User> {
       sortUpdated: queryParams.sortUpdatedAt,
     };
   }
+
+  async getBookingById(id: number, expand: string[] = []) {
+    const includeEventType = expand.includes("team")
+      ? { include: { team: true } }
+      : false;
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id },
+      include: {
+        attendees: true,
+        user: true,
+        payment: true,
+        eventType: includeEventType,
+      },
+    });
+
+    return booking;
+  }
+
+  async deleteBookingById(id: number) {
+    try {
+      const deleted = await this.prisma.booking.delete({ where: { id } });
+      return deleted;
+    } catch (err) {
+      // surface not found as null to caller for consistent 404 handling
+      return null;
+    }
+  }
+
+
 
 }

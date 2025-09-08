@@ -162,3 +162,69 @@ export const bookingResponseSchema = z.object({
   isDryRun: z.boolean().optional(),
   // pass-through for extra fields
 }).catchall(z.any());
+
+// ---------------------------------------------
+// Read Booking by ID (params & response) schemas
+// ---------------------------------------------
+
+export const getBookingParamsSchema = z.object({
+  id: z
+    .union([z.string().transform((v) => parseInt(v, 10)), z.number()])
+    .pipe(z.number().int().positive()),
+  expand: z
+    .union([
+      z.string().transform((val) => val.split(',').map((s) => s.trim())),
+      z.array(z.string()),
+    ])
+    .optional(),
+});
+
+export type GetBookingParams = z.infer<typeof getBookingParamsSchema>;
+
+export const bookingReadPublicSchema = z.object({}).catchall(z.any());
+
+// ---------------------------------------------
+// Delete Booking by ID (params & response) schemas
+// ---------------------------------------------
+
+export const deleteBookingParamsSchema = z.object({
+  id: z
+    .union([z.string().transform((v) => parseInt(v, 10)), z.number()])
+    .pipe(z.number().int().positive()),
+});
+
+export type DeleteBookingParams = z.infer<typeof deleteBookingParamsSchema>;
+
+// ---------------------------------------------
+// Cancel Booking (body & response) schemas
+// ---------------------------------------------
+
+export const cancelBookingBodySchema = z
+  .object({
+    uid: z.string().optional(),
+    allRemainingBookings: z.boolean().optional(),
+    cancelSubsequentBookings: z.boolean().optional(),
+    cancellationReason: z.string().optional().default('Not Provided'),
+    seatReferenceUid: z.string().optional(),
+    cancelledBy: z.string().email({ message: 'Invalid email' }).optional(),
+    internalNote: z
+      .object({
+        id: z.number(),
+        name: z.string(),
+        cancellationReason: z.string().optional().nullable(),
+      })
+      .optional()
+      .nullable(),
+    autoRefund: z.boolean().optional(),
+  })
+  .strict();
+
+export type CancelBookingBody = z.infer<typeof cancelBookingBodySchema>;
+
+export const cancelBookingResponseSchema = z.object({
+  success: z.literal(true),
+  message: z.string(),
+  onlyRemovedAttendee: z.boolean(),
+  bookingId: z.number().int(),
+  bookingUid: z.string(),
+});
