@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
@@ -51,20 +52,25 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       }
     } else {
       const permissionService = new PermissionCheckService();
-      const teamsWithReadPermission = await permissionService.getTeamIdsWithPermission(
-        ctx.user.id,
-        "webhook.read"
-      );
+      const teamIds = user?.teams?.map((m) => m.teamId) ?? [];
+      const allowedTeamIds = (
+        await Promise.all(
+          teamIds.map(async (teamId) => {
+            const ok = await permissionService.checkPermission({
+              userId: ctx.user.id,
+              teamId,
+              permission: "webhook.read",
+              fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            });
+            return ok ? teamId : null;
+          })
+        )
+      ).filter((x): x is number => x !== null);
 
-      const teamIds = user?.teams.map((membership) => membership.teamId) || [];
-      const authorizedTeamIds = teamIds.filter((teamId) => teamsWithReadPermission.includes(teamId));
-
-      if (authorizedTeamIds.length === 0) {
-        return [];
-      }
+      console.log("Allowed Team IDs:", allowedTeamIds);
 
       where.AND?.push({
-        OR: [{ userId: ctx.user.id }, { teamId: { in: authorizedTeamIds } }],
+        OR: [{ userId: ctx.user.id }, ...(allowedTeamIds.length ? [{ teamId: { in: allowedTeamIds } }] : [])],
       });
     }
 
