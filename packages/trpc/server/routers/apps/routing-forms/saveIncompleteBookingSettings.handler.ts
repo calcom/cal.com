@@ -1,10 +1,10 @@
+import incompleteBookingActionDataSchemas from "@calcom/app-store/routing-forms/lib/incompleteBooking/actionDataSchemas";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import incompleteBookingActionDataSchemas from "../lib/incompleteBooking/actionDataSchemas";
 import type { TSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
 
 const log = logger.getSubLogger({ prefix: ["incomplete-booking"] });

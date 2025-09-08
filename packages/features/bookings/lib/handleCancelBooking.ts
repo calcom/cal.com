@@ -1,8 +1,8 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { z } from "zod";
 
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -456,16 +456,24 @@ async function handler(input: CancelBookingInput) {
     updatedBookings.push(updatedBooking);
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
-      await processPaymentRefund({
-        booking: bookingToDelete,
-        teamId,
-      });
+      try {
+        await processPaymentRefund({
+          booking: bookingToDelete,
+          teamId,
+        });
+      } catch (error) {
+        log.error(`Error processing payment refund for booking ${bookingToDelete.uid}:`, error);
+      }
     } else if (bookingToDelete.payment.some((payment) => payment.paymentOption === "HOLD")) {
-      await processNoShowFeeOnCancellation({
-        booking: bookingToDelete,
-        payments: bookingToDelete.payment,
-        cancelledByUserId: userId,
-      });
+      try {
+        await processNoShowFeeOnCancellation({
+          booking: bookingToDelete,
+          payments: bookingToDelete.payment,
+          cancelledByUserId: userId,
+        });
+      } catch (error) {
+        log.error(`Error processing no-show fee for booking ${bookingToDelete.uid}:`, error);
+      }
     }
   }
 
