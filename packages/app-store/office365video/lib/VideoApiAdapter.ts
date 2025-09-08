@@ -216,13 +216,10 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           url: resultObject.joinWebUrl || resultObject.joinUrl,
         });
       } catch (error) {
-        if (error instanceof Error && error.message === "Internal Server Error") {
-          throw error;
-        }
-        log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
+        log.error(`Error updating MS Teams meeting for booking ${event.uid}`, error);
         throw new HttpError({
           statusCode: 500,
-          message: `Error creating MS Teams meeting for booking ${event.uid}`,
+          message: `Error updating MS Teams meeting for booking ${event.uid}`,
         });
       }
     },
