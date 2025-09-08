@@ -12,10 +12,15 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 
 import LocationSettingsContainer from "./LocationSettingsContainer";
 
-const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
+const CalVideoSettings = ({
+  calVideoSettings,
+}: {
+  calVideoSettings: (CalVideoSettingsType & { redirectUrlOnExit?: string | null }) | null;
+}) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const isPlatform = useIsPlatform();
+
   return (
     <LocationSettingsContainer>
       <Controller
@@ -118,6 +123,23 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
           }}
         />
       )}
+
+      <Controller
+        name="calVideoSettings.enableFlappyBirdGame"
+        defaultValue={!!calVideoSettings?.enableFlappyBirdGame}
+        render={({ field: { onChange, value } }) => {
+          return (
+            <SettingsToggle
+              title={t("enable_flappy_bird_game")}
+              description={t("enable_flappy_bird_game_description")}
+              labelClassName="text-sm leading-6 whitespace-normal break-words"
+              checked={value}
+              onCheckedChange={onChange}
+              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+            />
+          );
+        }}
+      />
 
       <TextField
         label={t("enter_redirect_url_on_exit_description")}
