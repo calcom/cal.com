@@ -82,4 +82,6 @@ export const ENDPOINTS = [
   "phoneNumber/queries",
   "phoneNumber/mutations",
   "pbac",
+  "pbac/queries",
+  "pbac/mutations",
 ] as const;
