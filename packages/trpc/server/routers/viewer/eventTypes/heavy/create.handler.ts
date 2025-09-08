@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaClient } from "@calcom/prisma";
