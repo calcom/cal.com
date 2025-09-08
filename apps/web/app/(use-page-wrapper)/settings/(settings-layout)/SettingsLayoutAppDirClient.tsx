@@ -117,6 +117,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
+          isExternalLink: true,
         },
       ],
     },
