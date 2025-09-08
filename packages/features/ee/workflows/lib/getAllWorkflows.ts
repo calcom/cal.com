@@ -29,15 +29,22 @@ export const workflowSelect = {
   },
 };
 
-export const getAllWorkflows = async (
-  eventTypeWorkflows: Workflow[],
-  userId?: number | null,
-  teamId?: number | null,
-  orgId?: number | null,
-  workflowsLockedForUser = true,
-  triggerType: "eventType" | "routingForm" = "eventType"
-) => {
-  const allWorkflows = eventTypeWorkflows;
+export const getAllWorkflows = async ({
+  entityWorkflows,
+  userId,
+  teamId,
+  orgId,
+  workflowsLockedForUser,
+  triggerType,
+}: {
+  entityWorkflows: Workflow[];
+  userId?: number | null;
+  teamId?: number | null;
+  orgId?: number | null;
+  workflowsLockedForUser?: boolean;
+  triggerType: "eventType" | "routingForm";
+}) => {
+  const allWorkflows = entityWorkflows;
 
   let triggerTypeWhereClause: Prisma.WorkflowWhereInput = {};
 

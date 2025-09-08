@@ -998,13 +998,14 @@ export async function getAllWorkflowsFromEventType(
     ? !eventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
     : false;
 
-  const allWorkflows = await getAllWorkflows(
-    eventTypeWorkflows,
+  const allWorkflows = await getAllWorkflows({
+    entityWorkflows: eventTypeWorkflows,
     userId,
     teamId,
     orgId,
-    workflowsLockedForUser
-  );
+    workflowsLockedForUser,
+    triggerType: "eventType",
+  });
 
   return allWorkflows;
 }
@@ -1048,14 +1049,14 @@ export async function getAllWorkflowsFromRoutingForm(routingForm: {
   const userId = routingForm.userId;
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  const allWorkflows = await getAllWorkflows(
-    routingFormWorkflows,
+  const allWorkflows = await getAllWorkflows({
+    entityWorkflows: routingFormWorkflows,
     userId,
     teamId,
     orgId,
-    false, // workflowsLockedForUser - routing forms are not managed
-    "routingForm"
-  );
+    workflowsLockedForUser: false,
+    triggerType: "routingForm",
+  });
 
   return allWorkflows;
 }
