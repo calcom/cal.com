@@ -44,61 +44,94 @@ describe("BookingDateInPastError handling", () => {
   });
 });
 
-describe("Reschedule attendee filtering logic", () => {
-  it("should filter attendees correctly for conflict checking", () => {
-    // Test the core filtering logic we added for reschedule conflict prevention
+describe("Reschedule attendee availability integration", () => {
+  it("should include all attendees from original booking for upstream availability check", () => {
+    // Test the core filtering logic from addAttendeeAvailabilityForReschedule
     const attendees = [
-      { email: "host@example.com", status: "ACCEPTED" },      // Should exclude (host)
-      { email: "attendee1@example.com", status: "ACCEPTED" }, // Should include  
-      { email: "attendee2@example.com", status: "DECLINED" }, // Should exclude (declined)
-      { email: "attendee3@example.com", status: "PENDING" },  // Should exclude (pending)
-      { email: "attendee4@example.com" },                     // Should include (defaults to ACCEPTED)
+      { email: "host@example.com" },           // Should exclude (host)
+      { email: "attendee1@example.com" },     // Should include  
+      { email: "attendee2@example.com" },     // Should include
+      { email: "attendee3@example.com" },     // Should include
+      { email: "" },                          // Should exclude (empty email)
     ];
 
-    const excludeEmails = ["host@example.com"];
+    const existingEmails = ["host@example.com"];
     const MAX_ATTENDEES = 10;
 
-    // Simulate the core filtering logic from getAttendeeUsersWithCredentialsForReschedule
-    const exclude = new Set(excludeEmails.map(e => e.toLowerCase()));
-    const emailsLowerToOriginal = new Map();
+    // Simulate the filtering logic from addAttendeeAvailabilityForReschedule
+    const attendeeEmailsMap: { [key: string]: boolean } = {};
+    const attendeeEmails: string[] = [];
     
-    for (const a of attendees) {
-      const status = a.status ?? "ACCEPTED";
-      const emailOriginal = String(a.email || "");
-      const emailLower = emailOriginal.toLowerCase();
-      
-      if (!emailLower || exclude.has(emailLower) || status !== "ACCEPTED") continue;
-      if (!emailsLowerToOriginal.has(emailLower)) {
-        emailsLowerToOriginal.set(emailLower, emailOriginal);
+    attendees.forEach((attendee) => {
+      const email = String(attendee.email || "").toLowerCase();
+      if (email && existingEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
+        attendeeEmailsMap[email] = true;
+        attendeeEmails.push(email);
       }
-      if (emailsLowerToOriginal.size >= MAX_ATTENDEES) break;
-    }
+    });
     
-    const result = Array.from(emailsLowerToOriginal.values());
+    const result = attendeeEmails.slice(0, MAX_ATTENDEES);
 
     expect(result).toEqual([
       "attendee1@example.com",
-      "attendee4@example.com"
+      "attendee2@example.com",
+      "attendee3@example.com"
     ]);
   });
 
-  it("should only run conflict checking for appropriate reschedule scenarios", () => {
-    // Test the conditional logic that determines when to run attendee conflict checking
+  it("should run attendee inclusion for all reschedule scenarios", () => {
+    // Test the simplified conditional logic for upstream approach
     const testScenarios = [
-      { rescheduleUid: null, schedulingType: "MANAGED", expected: false },        // No reschedule
-      { rescheduleUid: "123", schedulingType: "COLLECTIVE", expected: false },   // COLLECTIVE events
-      { rescheduleUid: "123", schedulingType: "ROUND_ROBIN", expected: false },  // ROUND_ROBIN events
-      { rescheduleUid: "123", schedulingType: "MANAGED", expected: true },       // Should run
+      { rescheduleUid: null, expected: false, description: "No reschedule" },
+      { rescheduleUid: undefined, expected: false, description: "Undefined reschedule" },
+      { rescheduleUid: "", expected: false, description: "Empty reschedule" },
+      { rescheduleUid: "123", expected: true, description: "Valid reschedule ID" },
+      { rescheduleUid: "abc-def", expected: true, description: "UUID format" },
     ];
 
-    testScenarios.forEach(({ rescheduleUid, schedulingType, expected }) => {
-      const shouldRunConflictCheck = !!(
-        rescheduleUid &&
-        schedulingType !== "COLLECTIVE" && 
-        schedulingType !== "ROUND_ROBIN"
-      );
-      
-      expect(shouldRunConflictCheck).toBe(expected);
+    testScenarios.forEach(({ rescheduleUid, expected, description }) => {
+      const shouldIncludeAttendees = !!rescheduleUid;
+      expect(shouldIncludeAttendees).toBe(expected);
     });
+  });
+
+  it("should respect MAX_ATTENDEES limit and handle duplicates", () => {
+    // Test boundary conditions and performance considerations
+    const MAX_ATTENDEES = 3; // Lower limit for testing
+    const existingEmails = ["host@example.com"];
+    
+    // Create more attendees than the limit
+    const manyAttendees = [
+      { email: "attendee1@example.com" },
+      { email: "attendee2@example.com" },
+      { email: "attendee3@example.com" },
+      { email: "attendee4@example.com" }, // Should be cut off
+      { email: "attendee5@example.com" }, // Should be cut off
+      { email: "attendee1@example.com" }, // Duplicate
+    ];
+
+    const attendeeEmailsMap: { [key: string]: boolean } = {};
+    const attendeeEmails: string[] = [];
+    
+    manyAttendees.forEach((attendee) => {
+      const email = String(attendee.email || "").toLowerCase();
+      if (email && existingEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
+        attendeeEmailsMap[email] = true;
+        attendeeEmails.push(email);
+      }
+    });
+    
+    const result = attendeeEmails.slice(0, MAX_ATTENDEES);
+
+    // Should respect the limit
+    expect(result.length).toBe(MAX_ATTENDEES);
+    // Should not have duplicates
+    expect(new Set(result).size).toBe(result.length);
+    // Should be the first 3 unique attendees
+    expect(result).toEqual([
+      "attendee1@example.com",
+      "attendee2@example.com", 
+      "attendee3@example.com"
+    ]);
   });
 });

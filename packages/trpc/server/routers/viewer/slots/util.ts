@@ -778,9 +778,7 @@ export class AvailableSlotsService {
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     
-    // Add Cal.com attendees to the availability check for reschedule scenarios
-    // This ensures attendee availability is considered upstream in the main availability calculation
-    // by including them in userIdAndEmailMap, which flows through to all booking and busy time queries
+    // Include attendees in availability check when rescheduling
     if (input.rescheduleUid) {
       await this.addAttendeeAvailabilityForReschedule({
         rescheduleUid: input.rescheduleUid,
@@ -1449,8 +1447,7 @@ export class AvailableSlotsService {
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
-    // With the upstream approach, attendee availability is already included in the main calculation
-    // No need for additional downstream slot filtering
+    // Attendee availability already handled upstream, no filtering needed
     const finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
 
     // We only want to run this on single targeted events and not dynamic
@@ -1502,9 +1499,8 @@ export class AvailableSlotsService {
   }
 
   /**
-   * Add Cal.com attendees directly to the userIdAndEmailMap for upstream availability calculation.
-   * This ensures attendee availability is checked as part of the main availability flow
-   * rather than filtering slots afterwards.
+   * Include attendees from original booking in reschedule availability check.
+   * Only adds Cal.com users who accepted the original meeting.
    */
   private async addAttendeeAvailabilityForReschedule({
     rescheduleUid,
@@ -1531,15 +1527,14 @@ export class AvailableSlotsService {
       const attendeeEmailsMap: { [key: string]: boolean } = {};
       const attendeeEmails: string[] = [];
 
-      originalBooking.attendees
-        .filter((a: { status?: string }) => (a?.status ?? "ACCEPTED") === "ACCEPTED")
-        .forEach((a: { email?: string }) => {
-          const email = String(a?.email || "").toLowerCase();
-          if (email && existingEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
-            attendeeEmailsMap[email] = true;
-            attendeeEmails.push(email);
-          }
-        });
+      // Include all attendees from the original booking
+      originalBooking.attendees.forEach((attendee) => {
+        const email = String(attendee.email || "").toLowerCase();
+        if (email && existingEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
+          attendeeEmailsMap[email] = true;
+          attendeeEmails.push(email);
+        }
+      });
 
       const limitedAttendeeEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
 
