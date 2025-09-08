@@ -260,7 +260,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const hasSMSAction = form.getValues("steps").some((step) => isSMSAction(step.action));
 
   const filteredTriggerOptions = triggerOptions.filter(
-    (option) => !(isFormTrigger(option.value) && (hasAiAction || hasSMSAction) )
+    (option) => !(isFormTrigger(option.value) && (hasAiAction || hasSMSAction))
   );
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
@@ -464,6 +464,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           setTimeSectionText(null);
                           form.unregister("time");
                           form.unregister("timeUnit");
+                        }
+                        if (isFormTrigger(val.value)) {
+                          const steps = form.getValues("steps");
+                          if (steps && steps.length > 0) {
+                            const updatedSteps = steps.map((step) => ({
+                              ...step,
+                              template: WorkflowTemplates.CUSTOM,
+                            }));
+                            form.setValue("steps", updatedSteps);
+                          }
                         }
                       }
                     }}
