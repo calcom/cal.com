@@ -26,7 +26,11 @@ export class WorkflowOptOutService {
   }
 
   static async addOptOutMessage(message: string, locale: string) {
-    const t = await getTranslation(locale, "common");
-    return `${message}\n\n${t("sms_opt_out_message")}`;
+    if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
+      const t = await getTranslation(locale, "common");
+      return `${message}\n\n${t("sms_opt_out_message")}`;
+    }
+
+    return message;
   }
 }

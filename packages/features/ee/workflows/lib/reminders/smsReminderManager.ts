@@ -76,8 +76,7 @@ export type ScheduleTextReminderAction = Extract<
   WorkflowActions,
   "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
 >;
-
-export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
+export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   reminderPhone: string | null;
   message: string;
   action: ScheduleTextReminderAction;
@@ -86,7 +85,8 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
-};
+}
+
 export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
@@ -177,14 +177,11 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs & { evt
       }
 
       if (smsMessage.length > 0) {
-        const smsMessageWithoutOptOut = smsMessage;
+        const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
+          smsMessage,
+          evt.organizer.language.locale
+        );
 
-        if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
-          smsMessage = await WorkflowOptOutService.addOptOutMessage(
-            smsMessage,
-            evt.organizer.language.locale
-          );
-        }
         // Allows debugging generated email content without waiting for sendgrid to send emails
         log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
