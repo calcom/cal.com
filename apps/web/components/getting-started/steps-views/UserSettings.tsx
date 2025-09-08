@@ -13,8 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Input } from "@calcom/ui/components/form";
+import { Button } from "@calid/features/ui/components/button";
+import { Input } from "@calid/features/ui/components/input/input";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -70,54 +70,55 @@ const UserSettings = (props: IUserSettingsProps) => {
   });
 
   return (
-    <form onSubmit={onSubmit}>
-      <div className="space-y-6">
-        {/* Username textfield: when not coming from signup */}
-        {!props.hideUsername && <UsernameAvailabilityField />}
+    <form onSubmit={onSubmit} className="space-y-6">
+      {/* Username textfield: when not coming from signup */}
+      {!props.hideUsername && <UsernameAvailabilityField />}
 
-        {/* Full name textfield */}
-        <div className="w-full">
-          <label htmlFor="name" className="text-default mb-2 block text-sm font-medium">
-            {t("full_name")}
-          </label>
-          <Input
-            {...register("name", {
-              required: true,
-            })}
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="off"
-            autoCorrect="off"
-          />
-          {errors.name && (
-            <p data-testid="required" className="py-2 text-xs text-red-500">
-              {errors.name.message}
-            </p>
-          )}
-        </div>
-        {/* Timezone select field */}
-        <div className="w-full">
-          <label htmlFor="timeZone" className="text-default block text-sm font-medium">
-            {t("timezone")}
-          </label>
-
-          <TimezoneSelect
-            id="timeZone"
-            value={selectedTimeZone}
-            onChange={({ value }) => setSelectedTimeZone(value)}
-            className="mt-2 w-full rounded-md text-sm"
-          />
-
-          <p className="text-subtle mt-3 flex flex-row font-sans text-xs leading-tight">
-            {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
+      {/* Full name textfield */}
+      <div className="w-full">
+        <label htmlFor="name" className="text-emphasis block text-sm font-medium">
+          {t("full_name")}
+        </label>
+        <Input
+          {...register("name", {
+            required: true,
+          })}
+          id="name"
+          name="name"
+          type="text"
+          autoComplete="off"
+          autoCorrect="off"
+          className="w-full"
+        />
+        {errors.name && (
+          <p data-testid="required" className="mt-1 text-xs text-red-500">
+            {errors.name.message}
           </p>
-        </div>
+        )}
       </div>
+      
+      {/* Timezone select field */}
+      <div className="w-full">
+        <label htmlFor="timeZone" className="text-emphasis block text-sm font-medium">
+          {t("timezone")}
+        </label>
+
+        <TimezoneSelect
+          id="timeZone"
+          value={selectedTimeZone}
+          onChange={({ value }) => setSelectedTimeZone(value)}
+          className="w-full"
+        />
+
+        <p className="text-subtle mt-2 text-xs">
+          {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
+        </p>
+      </div>
+      
       <Button
         EndIcon="arrow-right"
         type="submit"
-        className="mt-8 flex w-full flex-row justify-center"
+        className="mt-8 w-full justify-center"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
         {t("next_step_text")}

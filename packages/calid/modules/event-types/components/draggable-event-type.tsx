@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@calid/features/ui/components/icon";
 import type { DragEndEvent, DragStartEvent, UniqueIdentifier } from "@dnd-kit/core";
 import {
   DndContext,
@@ -19,7 +18,6 @@ import {
 } from "@dnd-kit/sortable";
 import React, { useState } from "react";
 
-import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 
 import type { DraggableEventTypesProps } from "../types/event-types";
 import { DraggableEventCard } from "./draggable-event-card";
@@ -74,6 +72,7 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
 
   const activeEvent = activeId ? events.find((event) => event.id === activeId) : null;
 
+
   return (
     <DndContext
       sensors={sensors}
@@ -106,24 +105,20 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
 
       <DragOverlay>
         {activeEvent ? (
-          <div className="bg-card border-border scale-105 rounded-md border p-3 shadow-lg">
-            <div className="flex items-start justify-between">
-              <div className="flex flex-1 items-start space-x-2">
-                <div className="bg-muted/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
-                  <Icon name="user" className="text-muted-foreground h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-foreground mb-1 text-sm font-semibold">{activeEvent.title}</h3>
-                  <EventTypeDescription eventType={activeEvent} shortenDescription className="mb-2 text-xs" />
-                  <div className="flex items-center">
-                    <span className="bg-muted text-foreground inline-flex items-center rounded px-1.5 py-0.5 text-xs">
-                      <Icon name="clock" className="mr-0.5 h-2.5 w-2.5" />
-                      {activeEvent.length}m
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="rotate-3 scale-105 shadow-2xl">
+            <DraggableEventCard
+              event={activeEvent}
+              selectedTeam={selectedTeam}
+              currentTeam={currentTeam}
+              isEventActive={eventStates[activeEvent.id] ?? !activeEvent.hidden}
+              copiedLink={copiedLink}
+              bookerUrl={bookerUrl}
+              onEventEdit={onEventEdit}
+              onCopyLink={onCopyLink}
+              onToggleEvent={onToggleEvent}
+              onDuplicateEvent={onDuplicateEvent}
+              onDeleteEvent={onDeleteEvent}
+            />
           </div>
         ) : null}
       </DragOverlay>

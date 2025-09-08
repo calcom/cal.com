@@ -2,8 +2,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
+import {cn} from "@calid/features/lib/cn";
+import { Button } from "@calid/features/ui/components/button";
 import { List } from "@calcom/ui/components/list";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
@@ -43,7 +43,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   return (
     <>
       {!isPending && (
-        <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
+        <List className="bg-default border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
           {queryConnectedVideoApps?.items &&
             queryConnectedVideoApps?.items.map((item) => {
               if (item.slug === "daily-video") return null; // we dont want to show daily here as it is installed by default
@@ -72,10 +72,11 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
 
       {isPending && <StepConnectionLoader />}
       <Button
+        color="primary"
         EndIcon="arrow-right"
         data-testid="save-video-button"
-        className={classNames(
-          "text-inverted border-inverted bg-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",
+        className={cn(
+          "mt-8 flex w-full flex-row justify-center rounded-md border text-center text-sm",
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
         disabled={!hasAnyInstalledVideoApps}

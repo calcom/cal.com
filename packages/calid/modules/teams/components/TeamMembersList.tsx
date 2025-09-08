@@ -19,7 +19,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   flexRender,
@@ -299,7 +299,7 @@ export function TeamMembersList({
               <div className="flex w-full justify-end">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button StartIcon="ellipsis" variant="button" color="minimal" />
+                    <Button StartIcon="ellipsis" variant="icon" color="minimal" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {member.acceptedInvitation && username && (
@@ -500,9 +500,8 @@ export function TeamMembersList({
           <div className="flex items-center gap-2">
             {selectedCount > 1 && (
               <Button
-                className="border-none"
                 StartIcon="users"
-                color="minimal"
+                color="secondary"
                 variant="button"
                 size="sm"
                 onClick={() => {
@@ -523,9 +522,8 @@ export function TeamMembersList({
               </Button>
             )}
             <Button
-              className="border-none"
               StartIcon="scroll-text"
-              color="minimal"
+              color="secondary"
               variant="button"
               size="sm"
               onClick={addMembersToEventTypes}>
@@ -533,7 +531,6 @@ export function TeamMembersList({
             </Button>
             {canManageMembers && (
               <Button
-                className="border-none"
                 StartIcon="ban"
                 color="destructive"
                 variant="button"

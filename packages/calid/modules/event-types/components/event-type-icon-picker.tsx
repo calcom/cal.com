@@ -1,4 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
+import { Input, TextField } from "@calid/features/ui/components/input/input";
 import {
   Dialog,
   DialogContent,
@@ -6,9 +7,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import { Icon } from "@calid/features/ui/components/icon";
+import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import React, { useState, useMemo, useEffect } from "react";
-
+import { cn } from "@calid/features/lib/cn";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { IconParams } from "./event-type-card-icon";
 
 // Icon categories for organization
@@ -69,7 +71,7 @@ const iconCategories = {
     "code",
     "terminal",
     "git-branch",
-    "git-commit-horizontal",
+    "git-merge",
     "github",
     "globe",
     "cloud",
@@ -83,7 +85,7 @@ const iconCategories = {
     "book",
     "pen-tool",
     "pen",
-    "file-pen",
+    "file-text",
     "school",
     "award",
     "medal",
@@ -101,7 +103,6 @@ const iconCategories = {
   ],
   Health: [
     "heart",
-    "activity",
     "activity",
     "stethoscope",
     "pill",
@@ -152,13 +153,13 @@ const iconCategories = {
     "ship",
     "bike",
     "truck",
-    "car-taxi-front",
+    "car",
     "map-pin",
     "map",
     "navigation",
     "compass",
     "route",
-    "circle-parking",
+    "circle",
     "fuel",
     "car-front",
     "sailboat",
@@ -199,6 +200,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   currentIconParams = { icon: "calendar", color: "#6B7280" },
   onSelectIcon,
 }) => {
+  const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColor, setSelectedColor] = useState(currentIconParams.color);
   const [selectedIcon, setSelectedIcon] = useState(currentIconParams.icon);
@@ -293,30 +295,23 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col">
         <DialogHeader>
           <DialogTitle>Choose Icon</DialogTitle>
+          <TextField
+            addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+            addOnClassname="!border-muted"
+            containerClassName={cn("focus:!ring-offset-0 py-2")}
+            placeholder="Search icons..."
+            type="search"
+            autoComplete="false"
+            value={searchQuery}
+            onChange={handleSearchChange}>
+          </TextField>
         </DialogHeader>
 
         <div className="flex flex-1 flex-col space-y-4 overflow-hidden">
-          {/* Debug info */}
-
-          {/* Search bar */}
-          <div className="relative">
-            <Icon
-              name="search"
-              className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
-            />
-            <input
-              type="text"
-              placeholder="Search icons..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="border-border bg-background focus:ring-primary w-full rounded-lg border py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2"
-            />
-          </div>
-
           {/* Category tabs */}
           <div className="border-border flex flex-wrap gap-1 border-b pb-2">
             {categories.map((category) => (
@@ -325,8 +320,8 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                 onClick={() => handleCategorySelect(category)}
                 className={`rounded-md px-3 py-1 text-xs transition-colors ${
                   selectedCategory === category
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
+                    ? "bg-cal-active text-white"
+                    : "bg-muted text-default hover:text-emphasis"
                 }`}>
                 {category}
               </button>
@@ -334,7 +329,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
           </div>
 
           {/* Icon grid */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             {filteredIcons.length === 0 ? (
               <div className="text-muted-foreground flex h-32 items-center justify-center">
                 <div className="text-center">
@@ -344,7 +339,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="lg:grid-cols-14 grid grid-cols-8 gap-2 p-1 sm:grid-cols-10 md:grid-cols-12">
+              <div className="lg:grid-cols-14 grid grid-cols-8 gap-2 py-2 sm:grid-cols-10 md:grid-cols-12">
                 {filteredIcons.map((iconName) => {
                   const isSelected = selectedIcon === iconName;
 
@@ -352,10 +347,10 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                     <button
                       key={iconName}
                       onClick={() => handleIconSelect(iconName)}
-                      className={`hover:bg-muted group relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all ${
+                      className={`hover:bg-subtle group relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all ${
                         isSelected
-                          ? "border-primary bg-primary/10"
-                          : "hover:border-muted-foreground/20 border-transparent"
+                          ? "border-active"
+                          : "border-transparent"
                       }`}
                       title={iconName}>
                       <Icon
@@ -364,8 +359,8 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                         style={{ color: isSelected ? selectedColor : undefined }}
                       />
                       {isSelected && (
-                        <div className="bg-primary absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full">
-                          <Icon name="check" className="text-primary-foreground h-2.5 w-2.5" />
+                        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 rounded-full bg-cal-active p-0.5">
+                          <Icon name="check" className="h-2.5 w-2.5 text-white" />
                         </div>
                       )}
                     </button>
@@ -379,67 +374,31 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
           <div className="border-border border-t pt-4">
             <div className="space-y-3">
               <h4 className="text-sm font-medium">Icon Color</h4>
-
-              {/* Predefined color palette */}
-              <div className="flex flex-wrap gap-2">
-                {colorPalette.map((color) => {
-                  const isSelected = selectedColor === color;
-
-                  return (
-                    <button
-                      key={color}
-                      onClick={() => handleColorChange(color)}
-                      className={`h-8 w-8 rounded-full border-2 transition-all ${
-                        isSelected ? "border-foreground scale-110" : "border-border hover:scale-105"
-                      }`}
-                      style={{ backgroundColor: color }}
-                      title={color}
-                    />
-                  );
-                })}
-              </div>
-
               {/* Custom color input */}
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium">Custom:</label>
-                <input
+                <Input
                   type="color"
+                  className="h-8 w-8 p-0"
                   value={selectedColor}
                   onChange={(e) => handleColorChange(e.target.value)}
-                  className="border-border h-8 w-16 cursor-pointer rounded border"
                 />
-                <input
+                <Input
                   type="text"
                   value={selectedColor}
                   onChange={(e) => handleColorChange(e.target.value)}
                   placeholder="#6366f1"
-                  className="border-border bg-background focus:ring-primary flex-1 rounded border px-3 py-1 text-sm focus:outline-none focus:ring-2"
                 />
               </div>
-
-              {/* Preview */}
-              {selectedIcon && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">Preview:</span>
-                  <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
-                    <Icon
-                      name={selectedIcon as IconName}
-                      className="h-5 w-5"
-                      style={{ color: selectedColor }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
         <DialogFooter>
           <Button color="secondary" onClick={handleClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleApply} disabled={!selectedIcon}>
-            Apply
+            {t("apply")}
           </Button>
         </DialogFooter>
       </DialogContent>

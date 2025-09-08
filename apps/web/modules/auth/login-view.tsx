@@ -21,8 +21,8 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { EmailField, PasswordField } from "@calcom/ui/components/form";
+import { Button } from "@calid/features/ui/components/button";
+import { EmailField, PasswordField } from "@calid/features/ui/components/input/input";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -176,32 +176,36 @@ export default function Login({
     [error]
   );
 
-  const displaySSOLogin = HOSTED_CAL_FEATURES
-    ? true
-    : isSAMLLoginEnabled && !isPending && data?.connectionExists;
-
   return (
-    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
-      <AuthContainer
-        showLogo
-        heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
-        footerText={
-          twoFactorRequired
-            ? !totpEmail
-              ? TwoFactorFooter
-              : ExternalTotpFooter
-            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
-            ? LoginFooter
-            : null
-        }>
+    <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="max-w-lg w-full border border-subtle shadow-xl rounded-2xl p-8">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center items-center space-x-2 mb-8">
+            <span className="text-2xl font-bold text-gray-900">Cal ID</span>
+          </div>
+        </div>
+
+        {/* Welcome Text */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-emphasis">
+            {twoFactorRequired ? t("2fa_code") : t("welcome_back")}
+          </h1>
+          {!twoFactorRequired && (
+            <p className="text-subtle">
+              {t("sign_in_account")}
+            </p>
+          )}
+        </div>
+
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
-              <div className="space-y-3">
+              <div className="space-y-2 mb-4">
                 {isGoogleLoginEnabled && (
                   <Button
-                    color="primary"
-                    className="w-full justify-center"
+                    color="secondary"
+                    className="w-full justify-center bg-white text-subtle rounded-md"
                     disabled={formState.isSubmitting}
                     data-testid="google"
                     CustomStartIcon={<GoogleIcon />}
@@ -216,29 +220,25 @@ export default function Login({
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
                 )}
-                {displaySSOLogin && (
-                  <SAMLLogin
-                    disabled={formState.isSubmitting}
-                    samlTenantID={samlTenantID}
-                    samlProductID={samlProductID}
-                    setErrorMessage={setErrorMessage}
-                  />
-                )}
               </div>
-              {(isGoogleLoginEnabled || displaySSOLogin) && (
-                <div className="my-8">
-                  <div className="relative flex items-center">
-                    <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
-                      {t("or").toLocaleLowerCase()}
+
+              {/* Divider */}
+              {(isGoogleLoginEnabled) && (
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-subtle font-medium">
+                      {t("or_continue_with_email")}
                     </span>
-                    <div className="border-subtle flex-grow border-t" />
                   </div>
                 </div>
               )}
             </>
           )}
 
+          {/* Login Form */}
           <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
@@ -249,7 +249,7 @@ export default function Login({
                   id="email"
                   label={t("email_address")}
                   defaultValue={totpEmail || (searchParams?.get("email") as string)}
-                  placeholder="john.doe@example.com"
+                  placeholder="john@example.com"
                   required
                   autoComplete="email"
                   {...register("email")}
@@ -258,29 +258,51 @@ export default function Login({
                   id="password"
                   autoComplete="current-password"
                   required={!totpEmail}
-                  className="mb-0 w-full"
                   {...register("password")}
                 />
-                <Link className="mt-4" href="/auth/forgot-password" tabIndex={-1} className="text-default text-sm font-medium">
-                  {t("forgot")}
+                <Link className="mt-4" href="/auth/forgot-password" tabIndex={-1} className="text-active hover:underline text-sm">
+                  {t("forgot_password")}
                 </Link>
               </div>
 
+              {/* Two Factor Authentication */}
               {twoFactorRequired ? !twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center /> : null}
 
+              {/* Error Message */}
               {errorMessage && <Alert severity="error" title={errorMessage} />}
+
+              {/* Sign In Button */}
               <Button
                 type="submit"
-                color="secondary"
+                color="primary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center">
+                className="w-full justify-center py-3">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-gray-600" />}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-white" />}
               </Button>
             </div>
           </form>
+
+          {/* Footer */}
+          {!twoFactorRequired && process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && (
+            <div className="text-center mt-2">
+              <p className="text-subtle text-sm">
+                {t("dont_have_an_account")}{" "}
+                <Link href={`${WEBSITE_URL}/signup`} className="text-active hover:underline font-medium">
+                  {t("sign_up")}
+                </Link>
+              </p>
+            </div>
+          )}
+
+          {/* Two Factor Footer */}
+          {twoFactorRequired && (
+            <div className="flex flex-col space-y-3">
+              {!totpEmail ? TwoFactorFooter : ExternalTotpFooter}
+            </div>
+          )}
         </FormProvider>
-      </AuthContainer>
+      </div>
       <AddToHomescreen />
     </div>
   );

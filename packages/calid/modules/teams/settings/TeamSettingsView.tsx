@@ -5,7 +5,7 @@ import { IntervalLimitsManager } from "@calid/features/modules/event-types/compo
 import { Button } from "@calid/features/ui/components/button";
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -217,7 +217,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
         </div>
       ) : (
         <div className="border-subtle rounded-md border p-4">
-          <span className="text-default text-sm">{t("only_owner_change")}</span>
+          <span className="text-default text-sm">{t("only_owner_can_change")}</span>
         </div>
       )}
     </div>

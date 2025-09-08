@@ -51,13 +51,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   });
 
   if (!isTeamAdmin)
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "unauthorized_to_invite_team_members" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized to invite team member" });
 
   if (token) {
     const existingToken = await prisma.verificationToken.findFirst({
       where: { token, calIdTeamId: teamId },
     });
-    if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "invite_not_found" });
+    if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
     return {
       token: existingToken.token,
     };
@@ -74,7 +74,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     });
 
     if (!team) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "team_not_found" });
+      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
     }
 
     const results = [];

@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useCallback, useState } from "react";
 import React from "react";
 import Cropper from "react-easy-crop";
@@ -132,7 +132,6 @@ const getCroppedImg = async (imageSrc: string, pixelCrop: Area): Promise<string>
 interface CustomImageUploaderProps {
   targetId: string;
   buttonText: string;
-  buttonSize?: string;
   onImageChange: (imageDataUrl: string) => void;
   currentImageSrc?: string;
   targetType: string;
@@ -145,7 +144,6 @@ interface CustomImageUploaderProps {
 export default function CustomImageUploader({
   targetId,
   buttonText,
-  buttonSize = "md",
   onImageChange,
   currentImageSrc,
   targetType,
@@ -252,11 +250,12 @@ export default function CustomImageUploader({
       }}>
       <DialogTrigger asChild>
         <Button
+          StartIcon="upload"
           color={buttonColor as any}
-          size={buttonSize as any}
           disabled={isDisabled}
-          data-testid={getButtonTestId()}
-          className="border-border border p-2 ">
+          variant="button"
+          className="hover:border-emphasis"
+          data-testid={getButtonTestId()}>
           {buttonText}
         </Button>
       </DialogTrigger>

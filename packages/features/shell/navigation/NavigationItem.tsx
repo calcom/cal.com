@@ -114,7 +114,7 @@ export const NavigationItem: React.FC<{
               />
             )}
             {isLocaleReady ? (
-              <span className="hidden w-full justify-between truncate text-ellipsis lg:flex">
+              <span className="hidden w-full items-center justify-between truncate text-ellipsis lg:flex">
                 {t(item.name)}
                 {item.badge && item.badge}
               </span>

@@ -28,7 +28,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
@@ -214,7 +214,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
           orgSlug: eventType.team.parent?.slug ?? null,
         });
       }
-      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
+      triggerToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -231,7 +231,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
       } else if (err.data?.code === "INTERNAL_SERVER_ERROR") {
         message = t("unexpected_error_try_again");
       }
-      showToast(message ? t(message) : t(err.message), "error");
+      triggerToast(message ? t(message) : t(err.message), "error");
     },
   });
 
@@ -245,7 +245,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
           orgSlug: team.parent?.slug ?? null,
         });
       }
-      showToast(t("event_type_deleted_successfully"), "success");
+      triggerToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
       appRouter.push("/event-types");
       setSlugExistsChildrenDialogOpen([]);
@@ -254,10 +254,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
         setSlugExistsChildrenDialogOpen([]);
       } else if (err instanceof TRPCClientError) {
-        showToast(err.message, "error");
+        triggerToast(err.message, "error");
       }
     },
   });
@@ -319,7 +319,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
         team={team}
         user={user}
         isUserLoading={isLoggedInUserPending}
-        showToast={showToast}
+        triggerToast={triggerToast}
         calendarsQuery={{
           data: connectedCalendarsQuery.data,
           isPending: connectedCalendarsQuery.isPending,

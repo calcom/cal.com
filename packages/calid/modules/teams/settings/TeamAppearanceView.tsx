@@ -5,7 +5,7 @@ import ThemeCard from "@calid/features/ui/components/card/theme-card";
 import { Form } from "@calid/features/ui/components/form";
 import { Input } from "@calid/features/ui/components/input/input";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -152,11 +152,11 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
 
   const brandColor = brandColorsForm.watch("brandColor");
   const darkBrandColor = brandColorsForm.watch("darkBrandColor");
-  const isAdmin = team && checkIfMemberAdminorOwner(team.membership.role);
+  const isAdminOrOwner = team && checkIfMemberAdminorOwner(team.membership.role);
 
   return (
     <>
-      {isAdmin ? (
+      {isAdminOrOwner ? (
         <div className="flex w-full flex-col space-y-6">
           {/* Theme Form */}
           <div className="border-subtle space-y-6 rounded-md border p-4">
@@ -337,7 +337,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
         </div>
       ) : (
         <div className="border-subtle rounded-md border p-4">
-          <span className="text-default text-sm">{t("only_owner_change")}</span>
+          <span className="text-default text-sm">{t("only_owner_can_change")}</span>
         </div>
       )}
     </>

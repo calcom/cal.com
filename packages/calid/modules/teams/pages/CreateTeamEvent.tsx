@@ -3,7 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Form } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import { Controller } from "react-hook-form";
 

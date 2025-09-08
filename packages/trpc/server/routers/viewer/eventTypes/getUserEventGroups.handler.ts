@@ -4,12 +4,12 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 // import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { CalIdMembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -46,16 +46,38 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     shouldListUserEvents = true;
   }
 
-  const profileMemberships = await MembershipRepository.findAllByUpIdIncludeTeam(
-    {
-      upId: userProfile.upId,
+  const profileMemberships = await prisma.calIdMembership.findMany({
+    where: {
+      userId: user.id,
+      acceptedInvitation: true,
     },
-    {
-      where: {
-        accepted: true,
+    include: {
+      calIdTeam: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+          metadata: true,
+          timeZone: true,
+          timeFormat: true,
+          weekStart: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
+          bio: true,
+          hideTeamBranding: true,
+          hideTeamProfileLink: true,
+          isTeamPrivate: true,
+          hideBookATeamMember: true,
+          bookingFrequency: true,
+        },
       },
-    }
-  );
+    },
+    orderBy: {
+      role: "desc",
+    },
+  });
 
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -64,13 +86,13 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   const memberships = profileMemberships.map((membership) => ({
     ...membership,
     team: {
-      ...membership.team,
-      metadata: teamMetadataSchema.parse(membership.team.metadata),
+      ...membership.calIdTeam,
+      metadata: teamMetadataSchema.parse(membership.calIdTeam.metadata),
     },
   }));
 
   const teamMemberships = profileMemberships.map((membership) => ({
-    teamId: membership.team.id,
+    teamId: membership.calIdTeam.id,
     membershipRole: membership.role,
   }));
 
@@ -78,7 +100,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     teamId?: number | null;
     parentId?: number | null;
     bookerUrl: string;
-    membershipRole?: MembershipRole | null;
+    membershipRole?: CalIdMembershipRole | null;
     profile: {
       slug: (typeof profile)["username"] | null;
       name: (typeof profile)["name"];
@@ -119,20 +141,13 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     await Promise.all(
       memberships
         .filter((mmship) => {
-          if (mmship.team.isOrganization) {
-            return false;
-          } else {
-            if (!filters || !hasFilter(filters)) {
-              return true;
-            }
-            return filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
+          // calidTeams don't have organization structure, so we just filter by teamIds if provided
+          if (!filters || !hasFilter(filters)) {
+            return true;
           }
+          return filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
         })
         .map(async (membership) => {
-          const orgMembership = teamMemberships.find(
-            (teamM) => teamM.teamId === membership.team.parentId
-          )?.membershipRole;
-
           const team = {
             ...membership.team,
             metadata: teamMetadataSchema.parse(membership.team.metadata),
@@ -141,40 +156,26 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
           let slug;
 
           if (forRoutingForms) {
-            // For Routing form we want to ensure that after migration of team to an org, the URL remains same for the team
-            // Once we solve this https://github.com/calcom/cal.com/issues/12399, we can remove this conditional change in slug
+            // For Routing form we want to ensure that the URL remains consistent
             slug = `team/${team.slug}`;
           } else {
-            // In an Org, a team can be accessed without /team prefix as well as with /team prefix
-            slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
+            // calidTeams use team/ prefix for consistency
+            slug = team.slug ? `team/${team.slug}` : null;
           }
 
-          // const eventTypes = await Promise.all(team.eventTypes.map(mapEventType));
-          const teamParentMetadata = team.parent ? teamMetadataSchema.parse(team.parent.metadata) : null;
           return {
             teamId: team.id,
-            parentId: team.parentId,
-            bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? teamParentMetadata?.requestedSlug ?? null),
-            membershipRole:
-              orgMembership && compareMembership(orgMembership, membership.role)
-                ? orgMembership
-                : membership.role,
+            parentId: null, // calidTeams don't have parent organization structure
+            bookerUrl: getBookerBaseUrlSync(null), // calidTeams don't have organization context
+            membershipRole: membership.role,
             profile: {
-              image: team.parent
-                ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-                : getPlaceholderAvatar(team.logoUrl, team.name),
+              image: getPlaceholderAvatar(team.logoUrl, team.name),
               name: team.name,
               slug,
             },
             metadata: {
               membershipCount: 0,
-              readOnly:
-                membership.role ===
-                (team.parentId
-                  ? orgMembership && compareMembership(orgMembership, membership.role)
-                    ? orgMembership
-                    : MembershipRole.MEMBER
-                  : MembershipRole.MEMBER),
+              readOnly: membership.role === CalIdMembershipRole.MEMBER,
             },
           };
         })
@@ -195,8 +196,8 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   return denormalizedPayload;
 };
 
-export function compareMembership(mship1: MembershipRole, mship2: MembershipRole) {
-  const mshipToNumber = (mship: MembershipRole) =>
-    Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+export function compareMembership(mship1: CalIdMembershipRole, mship2: CalIdMembershipRole) {
+  const mshipToNumber = (mship: CalIdMembershipRole) =>
+    Object.keys(CalIdMembershipRole).findIndex((mmship) => mmship === mship);
   return mshipToNumber(mship1) > mshipToNumber(mship2);
 }

@@ -24,7 +24,7 @@ export const createCalidTeamHandler = async ({ ctx, input }: CreateTeamOptions) 
     },
   });
 
-  if (existingTeam) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_already_taken" });
+  if (existingTeam) throw new TRPCError({ code: "BAD_REQUEST", message: "Team URL already taken" });
 
   const newTeam = await prisma.calIdTeam.create({
     data: {

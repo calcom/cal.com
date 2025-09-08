@@ -7,13 +7,8 @@ import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
-
-import AuthContainer from "@components/ui/AuthContainer";
 
 export type PageProps = {
   query: ParsedUrlQuery;
@@ -44,28 +39,38 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <AuthContainer showLogo>
-      <div className="mb-4">
-        <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <Icon name="check" className="h-6 w-6 text-green-600" />
-        </div>
-        <div className="mt-3 text-center sm:mt-5">
-          <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-            {t("youve_been_logged_out")}
-          </h3>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{t(message())}</p>
+    <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="max-w-lg w-full border border-subtle shadow-xl rounded-2xl p-8">
+        <div className="text-center mb-8">
+          <div className="flex justify-center items-center space-x-2 mb-8">
+            <span className="text-2xl font-bold text-gray-900">Cal ID</span>
           </div>
         </div>
+
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-6">
+            <Icon name="check" className="h-8 w-8 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-emphasis">
+            {t("youve_been_logged_out")}
+          </h1>
+          <p className="text-subtle text-md leading-relaxed">
+            {t(message())}
+          </p>
+        </div>
+
+        <div className="mt-4">
+          <Button
+            data-testid="logout-btn"
+            onClick={navigateToLogin}
+            color="primary"
+            className="w-full justify-center py-3"
+            loading={btnLoading}>
+            {t("go_back_login")}
+          </Button>
+        </div>
       </div>
-      <Button
-        data-testid="logout-btn"
-        onClick={navigateToLogin}
-        className="flex w-full justify-center"
-        loading={btnLoading}>
-        {t("go_back_login")}
-      </Button>
-    </AuthContainer>
+    </div>
   );
 }
 

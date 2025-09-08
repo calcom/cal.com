@@ -1,12 +1,23 @@
-import { useTeamInvites } from "@calcom/lib/hooks/useHasPaidPlan";
+import { hasTeamInvitation } from "@calid/features/modules/teams/hooks/hasTeamInvitation";
+import { Badge } from "@calid/features/ui/components/badge";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge } from "@calcom/ui/components/badge";
 
 export function TeamInviteBadge() {
-  const { isPending, listInvites } = useTeamInvites();
   const { t } = useLocale();
+  const { hasPendingInvitations, isLoading } = hasTeamInvitation();
 
-  if (isPending || !listInvites || listInvites.length === 0) return null;
+  if (
+    isLoading ||
+    !hasPendingInvitations ||
+    (Array.isArray(hasPendingInvitations) && hasPendingInvitations.length === 0)
+  ) {
+    return null;
+  }
 
-  return <Badge variant="default">{t("invite_team_notifcation_badge")}</Badge>;
+  return (
+    <Badge size="sm" variant="default">
+      {t("team_invitation_notification_badge")}
+    </Badge>
+  );
 }

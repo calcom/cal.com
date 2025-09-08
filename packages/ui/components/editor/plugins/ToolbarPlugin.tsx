@@ -27,7 +27,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Button } from "../../button";
+import { Button } from "@calid/features/ui/components/button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Icon } from "../../icon";
 import type { TextEditorProps } from "../types";
@@ -428,7 +428,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
   if (!props.editable) return null;
   return (
-    <div className="toolbar flex" ref={toolbarRef}>
+    <div className="toolbar flex gap-1" ref={toolbarRef}>
       <>
         {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
           <>

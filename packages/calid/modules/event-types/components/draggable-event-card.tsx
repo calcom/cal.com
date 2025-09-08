@@ -8,21 +8,16 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@calid/features/ui/components/tooltip";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import React, { useMemo, useState, useEffect } from "react";
-
+import { Badge } from "@calid/features/ui/components/badge";
 import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { Button } from "@calid/features/ui/components/button";
 
 import type { DraggableEventCardProps } from "../types/event-types";
 import { EventTypeCardIcon } from "./event-type-card-icon";
@@ -45,25 +40,23 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   const { t } = useLocale();
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [currentIconParams, setCurrentIconParams] = useState<IconParams | undefined>(
-    event.metadata?.iconParams as IconParams
+    event.metadata?.iconParams as IconParams || { icon: "calendar", color: "#6B7280" }
   );
 
-  // CRITICAL FIX: Sync local state with props when event data changes
   useEffect(() => {
     const eventIconParams = event.metadata?.iconParams as IconParams;
-    setCurrentIconParams(eventIconParams);
+    setCurrentIconParams(eventIconParams || { icon: "calendar", color: "#6B7280" });
   }, [event.metadata?.iconParams]);
 
-  // TRPC mutation for updating event types
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: () => {
-      showToast(t("event_icon_updated"), "success");
+      triggerToast(t("event_icon_updated"), "success");
       // Force a refetch or invalidate queries to ensure all components see the update
       // You might want to add this depending on your TRPC setup:
       // utils.viewer.eventTypes.list.invalidate();
     },
     onError: (error) => {
-      showToast(error.message, "error");
+      triggerToast(error.message, "error");
       // Revert local state on error
       setCurrentIconParams(event.metadata?.iconParams as IconParams);
     },
@@ -78,7 +71,6 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
     transition,
   };
 
-  // Build the event URL based on current team structure
   const eventUrl = useMemo(() => {
     if (currentTeam?.teamId) {
       return `/${currentTeam.profile.slug}/${event.slug}`;
@@ -109,42 +101,36 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   const handleCopyPrivateLink = () => {
     const privateLink = `${bookerUrl}/d/${activeHashedLinks[0].link}/${event.slug}`;
     navigator.clipboard.writeText(privateLink);
-    showToast(t("private_link_copied"), "success");
+    triggerToast(t("private_link_copied"), "success");
   };
 
   const handleIconSelect = (newIconParams: IconParams) => {
-    console.log("Selected icon for event:", event.id, newIconParams);
-
-    // Update local state immediately for UI responsiveness
     setCurrentIconParams(newIconParams);
-
-    // Prepare the update payload - only include the required fields for your mutation
     const updateData = {
       id: event.id,
       metadata: {
         ...event.metadata,
         iconParams: newIconParams,
       },
-      // Add other required fields based on your mutation input type
-      // You may need to include these fields depending on your backend requirements:
-      // title: event.title,
-      // slug: event.slug,
-      // length: event.length,
-      // schedulingType: event.schedulingType,
-      // etc.
     };
 
     updateMutation.mutate(updateData);
   };
 
-  const handleIconClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleIconClick = () => {
+    // Open icon picker dialog
     setIsIconPickerOpen(true);
   };
 
+  const cleanPublicUrl = `${bookerUrl}${eventUrl}`.replace(/^https?:\/\//, '');
+
   return (
     <>
-      <div ref={setNodeRef} style={style} className="animate-fade-in group relative flex items-center">
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`animate-fade-in group relative flex items-center ${isDragging ? 'opacity-0' : ''}`}
+      >
         {/* Drag handle */}
         <div
           {...attributes}
@@ -153,119 +139,60 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
           style={{ cursor: "grab", left: "-20px" }}
           onMouseDown={(e) => (e.currentTarget.style.cursor = "grabbing")}
           onMouseUp={(e) => (e.currentTarget.style.cursor = "grab")}
-          onClick={(e) => e.stopPropagation()}>
-          <Icon name="grip-vertical" className="text-muted-foreground h-5 w-5" />
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Icon name="grip-vertical" />
         </div>
 
         {/* Card content */}
         <div
-          className={`bg-card border-border hover:border-border/60 flex-1 cursor-pointer rounded-md border px-4 py-4 transition-all hover:shadow-sm ${
-            !isEventActive ? "opacity-50" : ""
-          } ${isDragging ? "opacity-50 shadow-lg" : ""}`}
+          className={`bg-white border-subtle flex-1 cursor-pointer rounded-md border p-4 transition-all hover:shadow-md`}
           onClick={() => onEventEdit(event.id)}>
           <div className="flex items-start justify-between">
             <div className="flex flex-1 items-start space-x-3">
               {/* Event Type Icon - Updated with icon picker functionality */}
-              <div
-                className="bg-muted hover:bg-muted/70 group/icon relative flex h-12 w-12 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors"
+              <EventTypeCardIcon 
+                iconParams={currentIconParams}
                 onClick={handleIconClick}
-                title="Click to change icon">
-                <EventTypeCardIcon iconParams={currentIconParams} className="h-5 w-5" />
-                {/* Overlay hint on hover */}
-                <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/10 opacity-0 transition-opacity group-hover/icon:opacity-100">
-                  <Icon name="pencil" className="h-3 w-3 text-white" />
-                </div>
-              </div>
-
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="flex items-center space-x-3">
-                  <h3 className="text-foreground text-base font-semibold">{event.title}</h3>
-
-                  {/* URL box with icons */}
-                  <div className="bg-muted text-muted-foreground relative flex items-center space-x-1 rounded px-2 py-1 text-sm">
-                    <span>{`${bookerUrl}${eventUrl}`}</span>
-
-                    <TooltipProvider delayDuration={0}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onCopyLink(event.id, eventUrl);
-                            }}
-                            className="hover:bg-muted flex items-center justify-center rounded p-0.5">
-                            <Icon name="copy" className="h-3 w-3" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="rounded-sm px-2 py-1 text-xs" side="bottom" sideOffset={4}>
-                          Copy
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider delayDuration={0}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(`${bookerUrl}${eventUrl}`, "_blank");
-                            }}
-                            className="hover:bg-muted flex items-center justify-center rounded p-0.5">
-                            <Icon name="external-link" className="h-3 w-3" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="rounded-sm px-2 py-1 text-xs" side="bottom" sideOffset={4}>
-                          Preview
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    {copiedLink === event.id.toString() && (
-                      <div className="animate-fade-in absolute left-1/2 top-full z-50 ml-2 mt-1 whitespace-nowrap rounded border border-gray-200 bg-white px-2 py-1 text-xs text-black shadow-md">
-                        Copied!
-                      </div>
-                    )}
-                  </div>
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center mb-2 gap-2">
+                  <h3 className="text-emphasis text-medium font-semibold">{event.title}</h3>
+                  <Badge variant="secondary" isPublicUrl={true}>{cleanPublicUrl}</Badge>
                 </div>
 
                 {/* Event Description */}
-                <p className="text-muted text-sm">{event.description}</p>
+                <p className="text-subtle text-sm mb-3">{event.description}</p>
 
                 {/* Duration and scheduling info */}
                 <div className="flex items-center space-x-3">
                   {event.metadata?.multipleDuration ? (
                     event.metadata.multipleDuration.map((duration, idx) => (
-                      <span
+                      <Badge
                         key={idx}
-                        className="bg-muted text-foreground inline-flex items-center rounded px-2 py-1 text-sm">
-                        <Icon name="clock" className="mr-1 h-3 w-3" />
+                        variant="secondary"
+                        size="sm"
+                        startIcon="clock">
                         {duration}m
-                      </span>
+                      </Badge>
                     ))
                   ) : (
-                    <span className="bg-muted text-foreground inline-flex items-center rounded px-2 py-1 text-sm">
-                      <Icon name="clock" className="mr-1 h-3 w-3" />
+                    <Badge
+                      variant="secondary"
+                      size="sm"
+                      startIcon="clock">
                       {event.length}m
-                    </span>
+                    </Badge>
                   )}
 
                   {/* Team members for team events */}
                   {event.teamId && !isManagedEventType && event.users && event.users.length > 0 && (
-                    <div className="flex -space-x-1">
-                      {event.users.slice(0, 3).map((user, idx) => (
-                        <div
-                          key={user.id}
-                          className="bg-primary text-primary-foreground flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs font-medium">
-                          {user.name?.[0] || user.email?.[0] || "U"}
-                        </div>
-                      ))}
-                      {event.users.length > 3 && (
-                        <div className="bg-muted text-muted-foreground flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs">
-                          +{event.users.length - 3}
-                        </div>
-                      )}
-                    </div>
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      startIcon="users">
+                      {event.users.length} member{event.users.length !== 1 ? 's' : ''}
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -278,7 +205,6 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                   checked={isEventActive}
                   onCheckedChange={(checked) => onToggleEvent(event.id, checked)}
                   onClick={(e) => e.stopPropagation()}
-                  size="sm"
                 />
               )}
 
@@ -286,16 +212,17 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
               <div onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="hover:bg-muted rounded-md p-1.5 transition-colors">
-                      <Icon name="ellipsis" className="text-muted-foreground h-5 w-5" />
-                    </button>
+                    <Button
+                      color="secondary"
+                      variant="icon"
+                      StartIcon="ellipsis"
+                      onClick={(e) => e.stopPropagation()}>
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
                     {!currentTeam?.metadata?.readOnly && (
                       <DropdownMenuItem onClick={() => onEventEdit(event.id)} className="text-sm">
-                        <Icon name="pencil" className="mr-2 h-3 w-3" />
+                        <Icon name="pencil-line" className="mr-2 h-3 w-3" />
                         Edit
                       </DropdownMenuItem>
                     )}
@@ -362,7 +289,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
       <EventTypeIconPicker
         isOpen={isIconPickerOpen}
         onClose={() => setIsIconPickerOpen(false)}
-        currentIconParams={currentIconParams}
+        currentIconParams={currentIconParams || { icon: "calendar", color: "#6B7280" }}
         onSelectIcon={handleIconSelect}
       />
     </>

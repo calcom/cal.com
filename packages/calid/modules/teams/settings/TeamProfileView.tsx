@@ -14,7 +14,7 @@ import {
 } from "@calid/features/ui/components/dialog";
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -110,7 +110,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
     },
   });
 
-  const leaveTeamMutation = trpc.viewer.calidTeams.leave.useMutation({
+  const leaveTeamMutation = trpc.viewer.calidTeams.leaveTeam.useMutation({
     onSuccess: async () => {
       await utils.viewer.teams.list.invalidate();
       triggerToast("team_settings_updated_successfully", "success");
@@ -131,7 +131,6 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
         logo: team.logoUrl || "",
       });
     }
-    console.log(team);
   }, [team, form]);
 
   const disbandTeam = () => {
@@ -195,7 +194,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                             onImageChange={onChange}
                             currentImageSrc={getDefaultAvatar(value, form.getValues("name"))}
                             targetType="logo"
-                            buttonColor="secondary"
+                            buttonColor="minimal"
                             testIdentifier="logo"
                           />
                           {showRemoveLogoButton && (
@@ -274,7 +273,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
             {t("team_profile_danger_zone")}
           </Label>
           {team?.membership.role === "OWNER" && (
-            <p className="text-subtle text-sm">{t("team_profile_disband_team_cannot_be_undone")}</p>
+            <p className="text-subtle text-sm">{t("action_cannot_be_undone")}</p>
           )}
         </div>
         {team?.membership.role === "OWNER" ? (
@@ -282,7 +281,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
             <DialogTrigger asChild>
               <Button
                 color="destructive"
-                className="border-border border"
+                variant="button"
                 StartIcon="trash-2"
                 data-testid="disband-team-button">
                 {t("team_profile_disband_team")}
@@ -296,11 +295,12 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
               </DialogHeader>
 
               <DialogFooter>
-                <Button color="secondary" onClick={() => setOpen(false)}>
+                <Button color="secondary" variant="button" onClick={() => setOpen(false)}>
                   {t("cancel")}
                 </Button>
                 <Button
                   color="destructive"
+                  variant="button"
                   onClick={() => {
                     disbandTeam();
                   }}>
@@ -316,24 +316,27 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                 {t("leave_team")}
               </Button>
             </DialogTrigger>
+
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t("leave_team")}</DialogTitle>
+                <DialogTitle>{t("team_profile_leave_team")}</DialogTitle>
+                <DialogDescription>{t("team_profile_leave_team_confirmation_message")}</DialogDescription>
               </DialogHeader>
-              <p>{t("leave_team_confirmation_message")}</p>
+
+              <DialogFooter>
+                <Button color="secondary" onClick={() => setOpen(false)}>
+                  {t("cancel")}
+                </Button>
+                <Button
+                  color="destructive"
+                  variant="button"
+                  onClick={() => {
+                    leaveTeam();
+                  }}>
+                  {t("leave_team")}
+                </Button>
+              </DialogFooter>
             </DialogContent>
-            <DialogFooter>
-              <Button color="secondary" onClick={() => setOpen(false)}>
-                {t("cancel")}
-              </Button>
-              <Button
-                color="destructive"
-                onClick={() => {
-                  leaveTeam();
-                }}>
-                {t("confirm_leave_team")}
-              </Button>
-            </DialogFooter>
           </Dialog>
         )}
       </div>

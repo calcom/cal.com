@@ -4,8 +4,7 @@ import { useCallback } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
-
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { TRPCClientError } from "@trpc/client";
 
 import { LIMIT } from "../types/event-types";
@@ -32,7 +31,7 @@ export const useEventTypesMutations = (
   const eventTypeOrderMutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
-      showToast("Failed to update event order. Order has been reverted.", "error");
+      triggerToast("Failed to update event order. Order has been reverted.", "error");
     },
   });
 
@@ -65,17 +64,17 @@ export const useEventTypesMutations = (
         utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(queryKey, context.previousValue);
       }
       console.error(err.message);
-      showToast("Failed to update event visibility", "error");
+      triggerToast("Failed to update event visibility", "error");
     },
     onSuccess: () => {
-      showToast("Event visibility updated", "success");
+      triggerToast("Event visibility updated", "success");
     },
   });
 
   // Delete mutation
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: () => {
-      showToast(t("event_type_deleted_successfully"), "success");
+      triggerToast(t("event_type_deleted_successfully"), "success");
     },
     onMutate: async ({ id }) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
@@ -105,11 +104,11 @@ export const useEventTypesMutations = (
 
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       } else if (err instanceof TRPCClientError) {
-        showToast(err.message, "error");
+        triggerToast(err.message, "error");
       } else {
-        showToast("Failed to delete event type", "error");
+        triggerToast("Failed to delete event type", "error");
       }
     },
   });
@@ -167,13 +166,13 @@ export const useEventTypesMutations = (
         const allIds = [...reorderedIds, ...otherIds];
 
         await eventTypeOrderMutation.mutateAsync({ ids: allIds });
-        showToast("Event order updated successfully", "success");
+        triggerToast("Event order updated successfully", "success");
       } catch (error) {
         console.error("Failed to reorder events:", error);
 
         // Invalidate and refetch on error
         await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate(queryKey);
-        showToast("Failed to update event order. Order has been reverted.", "error");
+        triggerToast("Failed to update event order. Order has been reverted.", "error");
       }
     },
     [utils, queryKey, eventTypeOrderMutation]

@@ -13,7 +13,7 @@ export function ShellMainAppDir(props: LayoutProps) {
         <div
           className={classNames(
             "flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+            props.smallHeading ? "lg:mb-7" : "lg:mb-4"
           )}>
           {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}
           {props.heading && <Header heading={props.heading} subtitle={props.subtitle} />}

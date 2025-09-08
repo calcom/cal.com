@@ -98,7 +98,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
             }
-          }}>
+          }}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
           {t("cancel")}
         </Button>
       </div>
@@ -112,12 +113,11 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       username: inputUsernameValue,
     });
   };
-  console.log("Rest props: ", rest);
 
   return (
     <div>
       <div className="flex rounded-md">
-        <div className="relative w-full ">
+        <div className="relative w-full">
           <TextField
             ref={usernameRef}
             name="username"
@@ -126,9 +126,9 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mb-0 mt-0 rounded-md rounded-l-none",
+              "w-full px-3 py-2 text-sm border-0 rounded-r-md focus:outline-none focus:ring-0",
               markAsError
-                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                 : ""
             )}
             onChange={(event) => {
@@ -139,14 +139,12 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             {...rest}
           />
           {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex h-7 flex-row">
-              <span className={classNames("bg-default mx-0 p-3")}>
-                {usernameIsAvailable ? (
-                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
-                ) : (
-                  <></>
-                )}
-              </span>
+            <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center">
+              {usernameIsAvailable ? (
+                <Icon name="check" className="h-4 w-4 text-green-500" />
+              ) : (
+                <></>
+              )}
             </div>
           )}
         </div>

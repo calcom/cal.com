@@ -2,12 +2,12 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@calid/features/ui/components/tooltip";
+import { Badge } from "@calid/features/ui/components/badge";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import classNames from "@calcom/ui/classNames";
+
 import React from "react";
 
 import type { EventTypesHeaderProps } from "../types/event-types";
@@ -28,75 +28,35 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
   const publicUrl = currentTeam?.teamId
     ? `${bookerUrl}/${currentTeam?.profile.slug}`
     : `${bookerUrl}/${currentTeam?.profile.slug}`;
+  const cleanPublicUrl = publicUrl.replace(/^https?:\/\//, '');
+  const { t } = useLocale();
 
   return (
-    <div className="w-full max-w-full space-y-3 py-4 pt-3">
-      <div className="flex items-center justify-between space-x-3">
-        <div className="flex flex-1 items-center space-x-3">
+    <div className="w-full max-w-full mb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-1 items-center space-x-2">
           {/* Search Bar */}
-          <div className="relative w-72">
-            <Icon
-              name="search"
-              className="text-muted-foreground absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 transform"
-            />
-            <input
-              type="text"
-              placeholder="Search events..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="border-border bg-background w-full rounded-md border py-1.5 pl-8 pr-3 text-sm"
-            />
-          </div>
+          <TextField
+            addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+            addOnClassname="!border-muted"
+            containerClassName={classNames("focus:!ring-offset-0 py-2")}
+            type="search"
+            autoComplete="false"
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={t("search_events")}
+          >
+          </TextField>
 
           {/* Public URL Display */}
-          <div className="bg-muted text-muted-foreground relative flex items-center space-x-1 rounded px-2 py-1 text-xs">
-            <span className="text-xs">
-              {currentTeam?.bookerUrl || bookerUrl}/{currentTeam?.profile.slug}
-            </span>
-
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={onCopyPublicLink}
-                    className="hover:bg-muted flex items-center justify-center rounded p-0.5">
-                    <Icon name="copy" className="h-3 w-3" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-sm px-2 py-1 text-xs" side="bottom" sideOffset={4}>
-                  Copy
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => window.open(publicUrl, "_blank")}
-                    className="hover:bg-muted flex items-center justify-center rounded p-0.5">
-                    <Icon name="external-link" className="h-3 w-3" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-sm px-2 py-1 text-xs" side="bottom" sideOffset={4}>
-                  Preview
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {copiedPublicLink && (
-              <div className="animate-fade-in absolute left-1/2 top-full z-50 ml-2 mt-1 whitespace-nowrap rounded border border-gray-200 bg-white px-2 py-1 text-xs text-black shadow-md">
-                Copied!
-              </div>
-            )}
-          </div>
+          <Badge variant="secondary" isPublicUrl={true} className="rounded-md">
+            {cleanPublicUrl}
+          </Badge>
         </div>
 
         {/* New Button with Dropdown */}
         <div className="relative" ref={newDropdownRef}>
-          <Button onClick={onToggleNewDropdown} size="sm" disabled={currentTeam?.metadata?.readOnly}>
-            <Icon name="plus" className="mr-1 h-3 w-3" />
-            New
+          <Button StartIcon="plus" onClick={onToggleNewDropdown}  disabled={currentTeam?.metadata?.readOnly}>
+            {t("new")}
           </Button>
 
           {showNewDropdown && (

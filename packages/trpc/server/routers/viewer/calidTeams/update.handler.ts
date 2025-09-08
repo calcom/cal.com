@@ -38,7 +38,7 @@ export const updateCalidTeamHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!team) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "team_not_found" });
+    throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
   }
 
   const isTeamAdminOrOwner = await prisma.calIdMembership.findFirst({
@@ -52,7 +52,7 @@ export const updateCalidTeamHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!isTeamAdminOrOwner) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "unauthorized_to_update_team" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized to update this team" });
   }
 
   if (slug) {
@@ -67,7 +67,7 @@ export const updateCalidTeamHandler = async ({ ctx, input }: UpdateOptions) => {
   if (bookingFrequency) {
     const isValid = checkIntervalLimitOrder(bookingFrequency);
     if (!isValid)
-      throw new TRPCError({ code: "BAD_REQUEST", message: "frequency_limits_must_be_in_ascending_order" });
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Frequency limits must be in ascending order" });
   }
 
   let logoUrl: string | null = logo || null;

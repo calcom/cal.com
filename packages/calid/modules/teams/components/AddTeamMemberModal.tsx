@@ -4,7 +4,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogContent, DialogTrigger } from "@calid/features/ui/components/dialog";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -178,8 +178,8 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button StartIcon="plus" size="sm" variant="button" color="primary">
-          Add Member
+        <Button StartIcon="plus" variant="button">
+          {t("add_team_member")}
         </Button>
       </DialogTrigger>
 

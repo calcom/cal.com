@@ -20,7 +20,13 @@ import {
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@calid/features/ui/components/tooltip";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import React from "react";
@@ -117,7 +123,9 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
         <div className="mb-4">
           <ul className="mt-2 space-y-2">
             {teamInvitation.map((team) => (
-              <li key={team.id} className="flex items-center justify-between rounded-lg border p-4">
+              <li
+                key={team.id}
+                className="border-subtle flex items-center justify-between rounded-md border p-4">
                 <div className="flex items-center space-x-2">
                   <Avatar
                     size="md"
@@ -131,18 +139,23 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                   </Badge>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Badge variant="attention" size="sm">
-                    {t("pending")}
-                  </Badge>
-                  <Button
-                    color="minimal"
-                    variant="icon"
-                    type="button"
-                    StartIcon="external-link"
-                    onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
-                    data-testid={`view-team-invite-${team.id}`}>
-                    {t("view_team")}
-                  </Button>
+                  <Badge variant="attention">{t("pending")}</Badge>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          color="minimal"
+                          variant="icon"
+                          size="sm"
+                          type="button"
+                          StartIcon="external-link"
+                          onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
+                          data-testid={`view-team-invite-${team.id}`}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>{t("view_team")}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </li>
             ))}
@@ -171,7 +184,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
               <li
                 key={team.id}
                 className="border-subtle flex items-center justify-between rounded-md border p-4">
-                <div className="flex flex-row items-center space-x-2">
+                <div className="flex items-center space-x-2">
                   <Avatar
                     size="md"
                     shape="square"
@@ -189,7 +202,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                   </Badge>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button StartIcon="ellipsis" variant="icon" color="minimal" />
+                      <Button StartIcon="ellipsis" variant="icon" size="sm" color="minimal" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       {checkAdminOrOwner(team.role) && (

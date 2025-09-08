@@ -48,7 +48,7 @@ export const buttonClasses = cva(
   {
     variants: {
       variant: {
-        button: "",
+        button: "border border-border",
         icon: "flex justify-center",
         fab: "min-w-14 min-h-14 md:min-w-min md:min-h-min rounded-md justify-center radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
       },
@@ -57,10 +57,20 @@ export const buttonClasses = cva(
           // Base colors
           "bg-cal-active",
           "text-white",
-          // Disabled
-          "disabled:opacity-30",
-          // Shadows and effects
-          "enabled:hover:shadow-button-solid-brand-hover",
+          // Hover state
+          // Focus state
+          "focus-visible:bg-subtle",
+          "focus-visible:outline-none",
+          "focus-visible:ring-0",
+          "focus-visible:shadow-outline-gray-focused",
+         // Border
+         "border border-active",
+         // Disabled
+         "disabled:opacity-30",
+         // Shadows and effects
+          "transition-shadow",
+          "transition-transform",
+          "duration-100",
         ],
 
         primary_dim: [
@@ -91,7 +101,6 @@ export const buttonClasses = cva(
           "focus-visible:ring-0",
           "focus-visible:shadow-outline-gray-focused",
           // Shadows and effects
-          "shadow-outline-gray-rested",
           "enabled:hover:shadow-outline-gray-hover",
           "enabled:active:shadow-outline-gray-active",
           "transition-shadow",
@@ -100,10 +109,9 @@ export const buttonClasses = cva(
 
         minimal: [
           // Base color
+          "text-subtle",
           // Hover
-          "enabled:hover:bg-subtle",
-          "enabled:hover:text-emphasis",
-          "enabled:hover:border-subtle hover:border",
+          "enabled:hover:border-emphasis hover:border",
           // Disabled
           "disabled:opacity-30",
           // Focus
@@ -121,6 +129,7 @@ export const buttonClasses = cva(
 
         destructive: [
           // Base colors
+          "text-default",
           // Hover state
           "dark:hover:text-red-600",
           "hover:border-semantic-error",
@@ -200,7 +209,7 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "base",
-        className: "min-h-[36px] min-w-[36px] !p-2 hover:border-default",
+        className: "!p-2 hover:border-default",
       },
       {
         variant: "icon",
@@ -210,7 +219,7 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "sm",
-        className: "h-5 w-5 !p-1 rounded-md",
+        className: "h-6 w-6 !p-1 rounded-md",
       },
       {
         variant: "icon",

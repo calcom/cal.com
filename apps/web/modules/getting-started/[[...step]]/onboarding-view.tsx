@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import type { TFunction } from "i18next";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,14 +14,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { StepCard } from "@calcom/ui/components/card";
-import { Steps } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
+import { StepCard } from "@calid/features/ui/components/card";
+import { Steps } from "@calid/features/ui/components/card";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
@@ -136,73 +132,64 @@ const OnboardingPage = (props: PageProps) => {
   };
 
   return (
-    <div
-      className={classNames(
-        "dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
-        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
-        "[--cal-brand-subtle:#9CA3AF]",
-        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]"
-      )}
-      data-testid="onboarding"
-      key={pathname}>
-      <div className="mx-auto py-6 sm:px-4 md:py-24">
+    <div className="min-h-screen bg-white flex items-center justify-center" data-testid="onboarding" key={pathname}>
+      <div className="px-4 py-8 w-full max-w-[600px]">
         <div className="relative">
-          <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
-            <div className="mx-auto px-4 sm:max-w-[520px]">
-              <header>
-                <p className="font-cal mb-3 text-[28px] font-medium leading-7">
-                  {headers[currentStepIndex]?.title || "Undefined title"}
+          <div className="mx-auto sm:max-w-[520px]">
+            <header className="text-center">
+              <h1 className="text-emphasis mb-3 text-[32px] font-bold leading-8">
+                {headers[currentStepIndex]?.title || "Undefined title"}
+              </h1>
+
+              {headers[currentStepIndex]?.subtitle.map((subtitle, index) => (
+                <p className="text-subtle mb-1 text-sm font-normal" key={index}>
+                  {subtitle}
                 </p>
-
-                {headers[currentStepIndex]?.subtitle.map((subtitle, index) => (
-                  <p className="text-subtle font-sans text-sm font-normal" key={index}>
-                    {subtitle}
-                  </p>
-                ))}
-              </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
-            </div>
-            <StepCard>
-              <Suspense fallback={<Icon name="loader" />}>
-                {currentStep === "user-settings" && (
-                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
-                )}
-                {currentStep === "connected-calendar" && (
-                  <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
-                )}
-
-                {currentStep === "connected-video" && (
-                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
-                )}
-
-                {currentStep === "setup-availability" && (
-                  <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
-                )}
-                {currentStep === "user-profile" && <UserProfile />}
-              </Suspense>
-            </StepCard>
-
-            {headers[currentStepIndex]?.skipText && (
-              <div className="flex w-full flex-row justify-center">
-                <Button
-                  color="minimal"
-                  data-testid="skip-step"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    goToNextStep();
-                  }}
-                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
-                  {headers[currentStepIndex]?.skipText}
-                </Button>
-              </div>
-            )}
+              ))}
+            </header>
+            <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
           </div>
+          <StepCard>
+            <Suspense fallback={<Icon name="loader" />}>
+              {currentStep === "user-settings" && (
+                <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
+              )}
+              {currentStep === "connected-calendar" && (
+                <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+              )}
+
+              {currentStep === "connected-video" && (
+                <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+              )}
+
+              {currentStep === "setup-availability" && (
+                <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
+              )}
+              {currentStep === "user-profile" && <UserProfile />}
+            </Suspense>
+          </StepCard>
+
+          {headers[currentStepIndex]?.skipText && (
+            <div className="flex w-full flex-row justify-center">
+              <Button
+                color="secondary"
+                data-testid="skip-step"
+                onClick={(event) => {
+                  event.preventDefault();
+                  goToNextStep();
+                }}
+                className="mt-4 cursor-pointer text-sm font-medium">
+                {headers[currentStepIndex]?.skipText}
+              </Button>
+            </div>
+          )}
+
           <div className="flex w-full flex-row justify-center">
             <Button
               color="minimal"
               data-testid="sign-out"
               onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-              className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+              className="mt-8 cursor-pointer text-sm font-medium hover:text-emphasis border-none">
               {t("sign_out")}
             </Button>
           </div>

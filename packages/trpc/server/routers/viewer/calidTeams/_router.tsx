@@ -7,6 +7,7 @@ import { ZGetMemberSchema } from "./getMember.schema";
 import { ZInviteMemberSchema } from "./inviteMember.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZRemoveMemberSchema } from "./removeMember.schema";
+import { ZLeaveTeamSchema } from "./leaveTeam.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
 
@@ -41,13 +42,19 @@ export const calIdTeamsRouter = router({
     return deleteCalidTeamHandler({ ctx, input });
   }),
 
+  // Leave a calidTeam
+  leaveTeam: authedProcedure.input(ZLeaveTeamSchema).mutation(async ({ ctx, input }) => {
+    const { leaveTeamHandler } = await import("./leaveTeam.handler");
+    return leaveTeamHandler({ ctx, input });
+  }),
+
   // Invite a member to a calidTeam
   inviteMember: authedProcedure.input(ZInviteMemberSchema).mutation(async ({ ctx, input }) => {
     const { inviteMemberHandler } = await import("./inviteMember.handler");
     return inviteMemberHandler({ ctx, input });
   }),
 
-  // Remove a member from a calidTeam
+  // Remove members from a calidTeam
   removeMember: authedProcedure.input(ZRemoveMemberSchema).mutation(async ({ ctx, input }) => {
     const { removeMemberHandler } = await import("./removeMember.handler");
     return removeMemberHandler({ ctx, input });
@@ -69,5 +76,11 @@ export const calIdTeamsRouter = router({
   listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
     const { listMembersHandler } = await import("./listMembers.handler");
     return listMembersHandler({ ctx, input });
+  }),
+
+  // Check if user has pending invitations
+  listPendingInvitations: authedProcedure.query(async ({ ctx }) => {
+    const { listPendingInvitationsHandler } = await import("./listPendingInvitations.handler");
+    return listPendingInvitationsHandler({ ctx });
   }),
 });

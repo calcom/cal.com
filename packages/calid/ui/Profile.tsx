@@ -14,6 +14,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
 interface ProfileProps {
   small?: boolean;
@@ -36,7 +37,7 @@ export const Profile = ({ small }: ProfileProps) => {
         window.open("https://docs.cal.id", "_blank");
         break;
       case "contact":
-        window.location.href = "mailto:support@onehash.ai";
+        window.location.href = SUPPORT_MAIL_ADDRESS
         break;
     }
   };

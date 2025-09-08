@@ -13,15 +13,15 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border bg-primary text-primary hover:bg-primary/80",
-        secondary: "bg-muted text-subtle hover:bg-subtle/80",
-        destructive: "border bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        default: "border bg-primary text-primary",
+        secondary: "bg-muted text-subtle",
+        destructive: "border bg-destructive text-destructive-foreground",
         outline: "text-default text-sm",
         success: "border bg-white border-green-600 text-green-600",
-        attention: "border bg-yellow-50 rounded-md border-yellow-600 text-yellow-600",
+        attention: "bg-yellow-50 text-yellow-600",
       },
       size: {
-        sm: "h-4 px-2 text-[10px]",
+        sm: "h-5 px-1.5 text-xs",
         md: "h-5 px-2 py-3 text-xs",
         lg: "h-7 px-3 text-base",
       },
@@ -78,14 +78,17 @@ export const Badge = function Badge(props: BadgeProps) {
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
   const StartIcon = startIcon;
   const classes = cn(badgeVariants({ variant, size }), className);
+  const [isCopied, setIsCopied] = React.useState(false);
 
-  const handleCopyUrl = (e: React.MouseEvent) => {
+  const handleCopyUrl = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (typeof children === "string") {
-      navigator.clipboard.writeText(children);
+      navigator.clipboard.writeText(children).then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 1500);
+      });
     }
   };
-
   const handleRedirectUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (typeof children === "string") {
@@ -101,23 +104,33 @@ export const Badge = function Badge(props: BadgeProps) {
         </svg>
       ) : null}
       {customStartIcon ||
-        (StartIcon ? <Icon name={StartIcon} data-testid="start-icon" className="h-3 w-3" /> : null)}
+        (StartIcon ? <Icon name={StartIcon} data-testid="start-icon" className="h-3 w-3 mr-1" /> : null)}
       {children}
       {isPublicUrl && (
         <div className="ml-1 flex items-center">
           <TooltipProvider delayDuration={0}>
-            <Tooltip>
+            <Tooltip
+              open={isCopied ? true : undefined}
+              onOpenChange={(open) => {
+                if (!isCopied) {
+                  return;
+                }
+                if (!open) {
+                  setIsCopied(false);
+                }
+              }}>
               <TooltipTrigger asChild>
                 <Button
                   variant="icon"
                   StartIcon="copy"
                   color="minimal"
-                  size="sm"
+                  className="border-none"
+                  size="xs"
                   onClick={handleCopyUrl}
                   data-testid="copy-url-button"
                 />
               </TooltipTrigger>
-              <TooltipContent>{t("copy")}</TooltipContent>
+              <TooltipContent>{isCopied ? t("copied") : t("copy")}</TooltipContent>{" "}
             </Tooltip>
           </TooltipProvider>
           <TooltipProvider delayDuration={0}>
@@ -127,7 +140,8 @@ export const Badge = function Badge(props: BadgeProps) {
                   variant="icon"
                   StartIcon="external-link"
                   color="minimal"
-                  size="sm"
+                  className="border-none"
+                  size="xs"
                   onClick={handleRedirectUrl}
                   data-testid="redirect-url-button"
                 />

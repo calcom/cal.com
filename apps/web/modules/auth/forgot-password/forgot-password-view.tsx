@@ -7,8 +7,8 @@ import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { EmailField } from "@calcom/ui/components/form";
+import { Button } from "@calid/features/ui/components/button";
+import { EmailField } from "@calid/features/ui/components/input/input";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -76,11 +76,18 @@ export default function ForgotPassword(props: PageProps) {
 
   const Success = () => {
     return (
-      <div className="space-y-6 text-sm leading-normal ">
-        <p className="">{t("password_reset_email", { email })}</p>
-        <p className="">{t("password_reset_leading")}</p>
-        {error && <p className="text-center text-red-600">{error.message}</p>}
-        <Button color="secondary" className="w-full justify-center" href="/auth/login">
+      <div className="text-center">
+        <div className="flex justify-center mb-8">
+          <span className="text-2xl font-bold text-gray-900">Cal ID</span>
+        </div>
+        <h1 className="text-2xl font-bold text-emphasis">{t("reset_link_sent")}</h1>
+        <p className="text-subtle mb-6">{t("password_reset_email", { email })}</p>
+        <p className="text-subtle mb-8">{t("password_reset_leading")}</p>
+        {error && <p className="text-center text-red-600 mb-4">{error.message}</p>}
+        <Button 
+          color="primary" 
+          className="w-full justify-center py-3"
+          href="/auth/login">
           {t("back_to_signin")}
         </Button>
       </div>
@@ -88,46 +95,35 @@ export default function ForgotPassword(props: PageProps) {
   };
 
   return (
-    <AuthContainer
-      showLogo
-      heading={!success ? t("forgot_password") : t("reset_link_sent")}
-      footerText={
-        !success && (
-          <>
-            <Link href="/auth/login" className="text-emphasis font-medium">
-              {t("back_to_signin")}
-            </Link>
-          </>
-        )
-      }>
-      {success && <Success />}
-      {!success && (
-        <>
-          <div className="space-y-6">{error && <p className="text-red-600">{error.message}</p>}</div>
-          <form
-            className="space-y-6"
-            onSubmit={handleSubmit}
-            action="#"
-            style={
-              {
-                "--cal-brand": "#111827",
-                "--cal-brand-emphasis": "#101010",
-                "--cal-brand-text": "Black",
-                "--cal-brand-subtle": "#9CA3AF",
-              } as CSSProperties
-            }>
-            <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
-            <EmailField
-              onChange={handleChange}
-              id="email"
-              name="email"
-              label={t("email_address")}
-              placeholder="john.doe@example.com"
-              required
-            />
-            <div className="space-y-2">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="max-w-lg border border-subtle shadow-xl rounded-2xl p-8">
+        {success ? (
+          <Success />
+        ) : (
+          <div className="text-center">
+            {/* logo */}
+            <div className="flex justify-center mb-8">
+              <span className="text-2xl font-bold text-gray-900">Cal ID</span>
+            </div>
+            
+            <h1 className="text-3xl font-bold text-emphasis">{t("forgot_password")}</h1>
+            <p className="text-subtle mb-8">{t("forgot_password_description")}</p>
+            
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
+              {error && <p className="text-red-600 text-sm">{error.message}</p>}
+              <div className="text-left">
+                <EmailField
+                  onChange={handleChange}
+                  id="email"
+                  name="email"
+                  label={t("email_address")}
+                  placeholder="john@example.com"
+                  required
+                />
+              </div>
               <Button
-                className="w-full justify-center bg-white hover:bg-black hover:text-white"
+                className="w-full justify-center py-3"
                 type="submit"
                 color="primary"
                 disabled={loading}
@@ -135,10 +131,16 @@ export default function ForgotPassword(props: PageProps) {
                 loading={loading}>
                 {t("request_password_reset")}
               </Button>
+            </form>
+            
+            <div className="mt-4 text-center">
+              <Link href="/auth/login" className="text-subtle hover:text-emphasis text-sm">
+                Back to sign in
+              </Link>
             </div>
-          </form>
-        </>
-      )}
-    </AuthContainer>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -1,18 +1,19 @@
 import { prisma } from "@calcom/prisma";
+import { CalIdMembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
-import type { ZGetCalidTeamInput } from "./get.schema";
+import type { ZLeaveTeamInput } from "./leaveTeam.schema";
 
-type GetTeamOptions = {
+type LeaveTeamOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: ZGetCalidTeamInput;
+  input: ZLeaveTeamInput;
 };
 
-export const getCalidTeamHandler = async ({ ctx, input }: GetTeamOptions) => {
+export const leaveTeamHandler = async ({ ctx, input }: LeaveTeamOptions) => {
   const { teamId } = input;
   const userId = ctx.user.id;
 
@@ -27,26 +28,24 @@ export const getCalidTeamHandler = async ({ ctx, input }: GetTeamOptions) => {
 
   if (!calIdMembership) {
     throw new TRPCError({
-      code: "UNAUTHORIZED",
+      code: "NOT_FOUND",
       message: "You are not a member of this team",
     });
   }
 
-  const calIdTeam = await prisma.calIdTeam.findUnique({
-    where: {
-      id: calIdMembership.calIdTeamId,
-    },
-  });
-
-  if (!calIdTeam) {
+  if (calIdMembership.role === CalIdMembershipRole.OWNER) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Team not found",
+      code: "FORBIDDEN",
+      message: "You cannot leave a team as the owner",
     });
   }
 
-  return {
-    ...calIdTeam,
-    membership: calIdMembership,
-  };
+  await prisma.calIdMembership.delete({
+    where: {
+      userId_calIdTeamId: {
+        userId,
+        calIdTeamId: teamId,
+      },
+    },
+  });
 };
