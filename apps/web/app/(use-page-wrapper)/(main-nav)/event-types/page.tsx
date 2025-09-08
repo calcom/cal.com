@@ -17,7 +17,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 const EventTypes = dynamic(
   () => import("~/event-types/views/event-types-listing-view").then((mod) => mod.default),
   {
-    loading: () => <div>Loading event types...</div>,
+    loading: () => <div aria-busy="true" role="status" />,
   }
 );
 
