@@ -1,6 +1,6 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
-import { eventOwnerProcedure } from "../../../../procedures/eventOwnerProcedure";
 import { router } from "../../../../trpc";
+import { eventOwnerProcedure } from "../util";
 import { ZBulkUpdateToDefaultLocationInputSchema } from "./bulkUpdateToDefaultLocation.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";

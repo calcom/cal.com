@@ -23,11 +23,8 @@ export default async function handler({
 
   return delegationCredentials.map((delegation) => {
     // Let's not parse the service account key here, we should be able to fix the item with the problem, so we always try to return the complete list
-    const serviceAccountKey = encryptedServiceAccountKeySchema.safeParse(delegation.serviceAccountKey);
+    const _serviceAccountKey = encryptedServiceAccountKeySchema.safeParse(delegation.serviceAccountKey);
 
-    return ensureNoServiceAccountKey({
-      ...delegation,
-      serviceAccountClientId: serviceAccountKey.success ? serviceAccountKey.data?.client_id ?? null : null,
-    });
+    return ensureNoServiceAccountKey(delegation);
   });
 }

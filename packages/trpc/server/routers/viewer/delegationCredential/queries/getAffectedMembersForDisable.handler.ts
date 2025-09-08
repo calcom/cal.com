@@ -43,6 +43,6 @@ export default function getAffectedMembersForDisableHandler({
   input: TDelegationCredentialGetAffectedMembersForDisableSchema;
 }) {
   return getAffectedMembersForDisable({
-    delegationCredentialId: input.id,
+    delegationCredentialId: input.credentialId,
   });
 }
