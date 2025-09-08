@@ -1,13 +1,15 @@
-import dayjs from "@calcom/dayjs";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
-import { buildBooking, buildUser } from "@calcom/lib/test/builder";
-import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
-import { v4 as uuid } from "uuid";
-import { beforeAll, describe, expect, it, vi } from "vitest";
 import CalendarManagerMock from "../../../tests/libs/__mocks__/CalendarManager";
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
-import { getIntervalEndDate, getIntervalStartDate } from "./getLuckyUser";
+import { v4 as uuid } from "uuid";
+import { expect, it, describe, vi, beforeAll } from "vitest";
+
+import dayjs from "@calcom/dayjs";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import { buildUser, buildBooking } from "@calcom/lib/test/builder";
+import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
+
+import { getIntervalStartDate, getIntervalEndDate } from "./getLuckyUser";
 
 const luckyUserService = getLuckyUserService();
 

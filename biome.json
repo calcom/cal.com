@@ -120,23 +120,7 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": {
-          "level": "on",
-          "options": {
-            "groups": [
-              "(.*)/__mocks__/(.*)",
-              "(.*)bookingScenario(.*)",
-              ":PACKAGE:",
-              "^@(calcom|ee)/(.*)$",
-              "^@lib/(.*)$",
-              "^@components/(.*)$",
-              "^@(server|trpc)/(.*)$",
-              "^~/(.*)$",
-              ":BLANK_LINE:",
-              ":PATH:"
-            ]
-          }
-        }
+        "organizeImports": "off"
       }
     }
   }
