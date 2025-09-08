@@ -3,15 +3,19 @@ import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import { TeamsCTA } from "./CTA";
-
+const TeamsListing = dynamic(
+  () => import("@calcom/features/ee/teams/components/TeamsListing").then((mod) => mod.TeamsListing),
+  {
+    loading: () => <div aria-busy="true" role="status" />,
+  }
+);
+const TeamsCTA = dynamic(() => import("./CTA").then((mod) => mod.TeamsCTA));
 const getCachedTeams = unstable_cache(
   async (userId: number) => {
     const teamRepo = new TeamRepository(prisma);
