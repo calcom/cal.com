@@ -1498,9 +1498,7 @@ export class AvailableSlotsService {
     };
   }
 
-  /**
-   * Get attendee hosts for reschedule availability check.
-   */
+  // Get attendee hosts for reschedule availability check
   private async getAttendeeHostsForReschedule({
     rescheduleUid,
     loggerWithEventDetails,
