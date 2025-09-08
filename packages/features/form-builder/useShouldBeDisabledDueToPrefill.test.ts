@@ -3,6 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { describe, expect, vi, beforeEach, test } from "vitest";
 
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { trpc } from "@calcom/trpc/react";
 
 import { useShouldBeDisabledDueToPrefill } from "./useShouldBeDisabledDueToPrefill";
 
@@ -17,6 +18,98 @@ vi.mock("react-hook-form", async () => {
     ...actual,
     useFormContext: vi.fn(),
   };
+});
+
+vi.mock("@calcom/trpc/react", () => ({
+  trpc: {
+    viewer: {
+      organizations: {
+        listCurrent: {
+          useQuery: vi.fn().mockReturnValue({ data: null }),
+        },
+      },
+    },
+  },
+}));
+
+describe("Organization-level autofill disable", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("should return true when organization setting disables autofill", () => {
+    const field = {
+      ...defaultField,
+      disableOnPrefill: false,
+    };
+
+    const mockUseQuery = vi.fn().mockReturnValue({
+      data: {
+        organizationSettings: {
+          disableAutofillOnBookingPage: true,
+        },
+      },
+    });
+
+    vi.mocked(trpc.viewer.organizations.listCurrent.useQuery).mockImplementation(mockUseQuery);
+
+    mockScenario({
+      formState: buildFormStateWithNoErrors(),
+      responses: {},
+      searchParams: {},
+    });
+
+    const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+    expect(shouldBeDisabled).toBe(true);
+  });
+
+  test("should return false when organization setting allows autofill", () => {
+    const field = {
+      ...defaultField,
+      disableOnPrefill: false,
+    };
+
+    const mockUseQuery = vi.fn().mockReturnValue({
+      data: {
+        organizationSettings: {
+          disableAutofillOnBookingPage: false,
+        },
+      },
+    });
+
+    vi.mocked(trpc.viewer.organizations.listCurrent.useQuery).mockImplementation(mockUseQuery);
+
+    mockScenario({
+      formState: buildFormStateWithNoErrors(),
+      responses: {},
+      searchParams: {},
+    });
+
+    const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+    expect(shouldBeDisabled).toBe(false);
+  });
+
+  test("should return false when no organization data", () => {
+    const field = {
+      ...defaultField,
+      disableOnPrefill: false,
+    };
+
+    const mockUseQuery = vi.fn().mockReturnValue({
+      data: null,
+    });
+
+    vi.mocked(trpc.viewer.organizations.listCurrent.useQuery).mockImplementation(mockUseQuery);
+
+    mockScenario({
+      formState: buildFormStateWithNoErrors(),
+      responses: {},
+      searchParams: {},
+    });
+
+    const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+    expect(shouldBeDisabled).toBe(false);
+  });
 });
 
 const defaultField = {
