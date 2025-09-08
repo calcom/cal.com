@@ -1,19 +1,21 @@
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+
+import { createFallbackRoute } from "@calcom/app-store/routing-forms/lib/createFallbackRoute";
+import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
+import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import isRouterLinkedField from "@calcom/app-store/routing-forms/lib/isRouterLinkedField";
+import type { SerializableForm } from "@calcom/app-store/routing-forms/types/types";
+import { zodFields, zodRouterRoute, zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
+import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { createFallbackRoute } from "../lib/createFallbackRoute";
-import { getSerializableForm } from "../lib/getSerializableForm";
-import { isFallbackRoute } from "../lib/isFallbackRoute";
-import isRouter from "../lib/isRouter";
-import isRouterLinkedField from "../lib/isRouterLinkedField";
-import type { SerializableForm } from "../types/types";
-import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
 import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
@@ -66,8 +68,8 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
 
   inputFields = inputFields || [];
   inputRoutes = inputRoutes || [];
-  type InputFields = typeof inputFields;
-  type InputRoutes = typeof inputRoutes;
+  type InputFields = NonNullable<typeof inputFields>;
+  type InputRoutes = NonNullable<typeof inputRoutes>;
   let routes: InputRoutes;
   let fields: InputFields;
   type DuplicateFrom = NonNullable<typeof duplicateFrom>;
