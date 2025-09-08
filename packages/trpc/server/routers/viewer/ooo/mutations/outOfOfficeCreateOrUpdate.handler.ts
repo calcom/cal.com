@@ -15,7 +15,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { isAdminForUser } from "./outOfOffice.utils";
+import { isAdminForUser } from "../outOfOffice.utils";
 import { type TOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 
 type TBookingRedirect = {

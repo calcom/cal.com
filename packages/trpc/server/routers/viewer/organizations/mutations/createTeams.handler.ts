@@ -13,7 +13,7 @@ import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod
 
 import { TRPCError } from "@trpc/server";
 
-import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
+import { inviteMembersWithNoInviterPermissionCheck } from "../../teams/mutations/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
 const log = logger.getSubLogger({ prefix: ["viewer/organizations/createTeams.handler"] });

@@ -1,6 +1,6 @@
 import type { TrpcSessionUser } from "../../../../types";
+import { addMembersToTeams } from "../utils";
 import type { TAddMembersToTeams } from "./addMembersToTeams.schema";
-import { addMembersToTeams } from "./utils";
 
 type AddBulkTeamsHandler = {
   ctx: {

@@ -13,7 +13,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import assignUserToAttributeHandler from "../attributes/assignUserToAttribute.handler";
+import assignUserToAttributeHandler from "../../attributes/mutations/assignUserToAttribute.handler";
 import type { TUpdateUserInputSchema } from "./updateUser.schema";
 
 type UpdateUserOptions = {

@@ -6,8 +6,8 @@ import prisma from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
+import { addMembersToTeams } from "../utils";
 import type { TAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
-import { addMembersToTeams } from "./utils";
 
 type AddBulkToEventTypeHandler = {
   ctx: {
