@@ -380,7 +380,7 @@ export class BookingRepository {
     });
   }
 
-  async findBookingById(bookingId: number) {
+  async findByIdIncludeUserAndAttendees(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,

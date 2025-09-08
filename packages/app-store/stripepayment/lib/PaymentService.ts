@@ -224,7 +224,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
 
       const bookingRepository = new BookingRepository(prisma);
-      const booking = await bookingRepository.findBookingById(bookingId);
+      const booking = await bookingRepository.findByIdIncludeUserAndAttendees(bookingId);
 
       if (!booking) {
         throw new Error(`Booking ${bookingId} not found`);
