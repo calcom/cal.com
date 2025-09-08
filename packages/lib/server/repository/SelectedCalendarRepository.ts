@@ -5,7 +5,16 @@ export class SelectedCalendarRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async findById(id: string) {
-    return await this.prismaClient.selectedCalendar.findUnique({ where: { id } });
+    return this.prismaClient.selectedCalendar.findUnique({
+      where: { id },
+      include: {
+        credential: {
+          select: {
+            delegationCredential: true,
+          },
+        },
+      },
+    });
   }
 
   async findByChannelId(channelId: string) {

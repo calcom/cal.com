@@ -4,13 +4,14 @@ import { v4 as uuid } from "uuid";
 import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import type {
   ICalendarSubscriptionPort,
   CalendarSubscriptionResult,
   CalendarSubscriptionEvent,
   CalendarSubscriptionEventItem,
+  CalendarCredential,
+  WebhookContext,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] });
@@ -19,21 +20,34 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   private GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
   private GOOGLE_WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL;
 
-  private auth: CalendarAuth;
-  constructor(credential: CredentialForCalendarServiceWithEmail) {
-    this.auth = new CalendarAuth(credential);
+  async validate(context: WebhookContext): Promise<boolean> {
+    const token = context?.headers?.get("X-Goog-Channel-Token");
+    if (token !== this.GOOGLE_WEBHOOK_TOKEN) {
+      log.warn("Invalid webhook token", { token });
+      return false;
+    }
+    return true;
   }
 
-  private async getClient() {
-    return await this.auth.getClient();
+  async extractChannelId(context: WebhookContext): Promise<string | null> {
+    const channelId = context?.headers?.get("X-Goog-Channel-ID");
+    if (!channelId) {
+      log.warn("Missing channel ID in webhook");
+      return null;
+    }
+    return channelId;
   }
 
-  async subscribe(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionResult> {
+  async subscribe(
+    selectedCalendar: SelectedCalendar,
+    credential: CalendarCredential
+  ): Promise<CalendarSubscriptionResult> {
     log.debug("Attempt to subscribe to Google Calendar", { externalId: selectedCalendar.externalId });
+    selectedCalendar;
 
-    const ONE_MONTH_IN_MS = 1000 * 60 * 60 * 24 * 30;
+    const MONTH_IN_SECONDS = 60 * 60 * 24 * 30;
 
-    const client = await this.getClient();
+    const client = await this.getClient(credential);
     const result = await client.events.watch({
       calendarId: selectedCalendar.externalId,
       requestBody: {
@@ -42,7 +56,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
         address: this.GOOGLE_WEBHOOK_URL,
         token: this.GOOGLE_WEBHOOK_TOKEN,
         params: {
-          ttl: (ONE_MONTH_IN_MS / 1000).toFixed(0),
+          ttl: MONTH_IN_SECONDS.toFixed(0),
         },
       },
     });
@@ -58,10 +72,10 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       expiration,
     };
   }
-  async unsubscribe(selectedCalendar: SelectedCalendar): Promise<void> {
+  async unsubscribe(selectedCalendar: SelectedCalendar, credential: CalendarCredential): Promise<void> {
     log.debug("Attempt to unsubscribe from Google Calendar", { externalId: selectedCalendar.externalId });
 
-    const client = await this.getClient();
+    const client = await this.getClient(credential);
     await client.channels
       .stop({
         requestBody: {
@@ -74,10 +88,13 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       });
   }
 
-  async fetchEvents(selectedCalendar: SelectedCalendar): Promise<CalendarSubscriptionEvent> {
-    const client = await this.getClient();
+  async fetchEvents(
+    selectedCalendar: SelectedCalendar,
+    credential: CalendarCredential
+  ): Promise<CalendarSubscriptionEvent> {
+    const client = await this.getClient(credential);
 
-    let syncToken = selectedCalendar.syncToken || undefined;
+    let syncToken = selectedCalendar.lastSyncToken || undefined;
     let pageToken;
 
     const events: calendar_v3.Schema$Event[] = [];
@@ -103,17 +120,28 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   }
 
   private sanitizeEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
-    return events.map((event) => ({
-      id: event.id,
-      kind: event.kind,
-      iCalUID: event.iCalUID,
-      status: event.status,
-      start: event.start?.dateTime,
-      end: event.end?.dateTime,
-      summary: event.summary,
-      description: event.description,
-      // used to update cache only
-      transparency: event.transparency === "opaque" ? "opaque" : "transparent",
-    }));
+    return events.map((event) => {
+      const start = event.start?.dateTime ?? event.start?.date ?? null;
+      const end = event.end?.dateTime ?? event.end?.date ?? null;
+      const transparency = event.transparency === "transparent" ? "transparent" : "opaque"; // default busy
+
+      return {
+        id: event.id,
+        kind: event.kind,
+        iCalUID: event.iCalUID,
+        status: event.status,
+        start,
+        end,
+        summary: event.summary,
+        description: event.description,
+        // used to update cache only
+        transparency,
+      };
+    });
+  }
+
+  private async getClient(credential: CalendarCredential) {
+    const auth = new CalendarAuth(credential);
+    return await auth.getClient();
   }
 }

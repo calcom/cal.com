@@ -916,6 +916,8 @@ model SelectedCalendar {
   lastSyncErrorAt DateTime?
   syncErrorCount  Int       @default(0)
 
+  cacheEnabled Boolean @default(true)
+
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
 
