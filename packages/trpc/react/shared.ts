@@ -70,6 +70,7 @@ export const ENDPOINTS = [
   "delegationCredential/queries",
   "delegationCredential/mutations",
   "routingForms",
+  "routingForms/mutations",
   "credits",
   "credits/queries",
   "credits/mutations",
