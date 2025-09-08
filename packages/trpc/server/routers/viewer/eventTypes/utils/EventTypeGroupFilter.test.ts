@@ -53,8 +53,8 @@ describe("EventTypeGroupFilter", () => {
   };
 
   const mockPermissionsMap = new Map<number, TeamPermissions>([
-    [1, { canCreate: true, canEdit: true, canDelete: true }],
-    [2, { canCreate: false, canEdit: true, canDelete: false }],
+    [1, { canCreate: true, canEdit: true, canDelete: true, canRead: true }],
+    [2, { canCreate: false, canEdit: true, canDelete: false, canRead: true }],
   ]);
 
   const allGroups = [mockUserGroup, mockTeamGroup1, mockTeamGroup2];
@@ -99,7 +99,7 @@ describe("EventTypeGroupFilter", () => {
     it("should return empty array for unknown permission", () => {
       const teamOnlyGroups = [mockTeamGroup1, mockTeamGroup2];
       const result = filterEvents(teamOnlyGroups, mockPermissionsMap)
-        .has("unknown.permission" as any)
+        .has("unknown.permission" as "eventType.read")
         .get();
 
       expect(result).toHaveLength(0);

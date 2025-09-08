@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -57,7 +58,7 @@ describe("getUserEventGroups", () => {
     profile: {
       upId: "user-123",
     },
-  } as any;
+  } as unknown as NonNullable<Parameters<typeof getUserEventGroups>[0]["ctx"]["user"]>;
 
   const mockProfile = {
     id: 1,
@@ -66,11 +67,13 @@ describe("getUserEventGroups", () => {
     avatarUrl: null,
     organizationId: null,
     organization: null,
-  } as any;
+  } as unknown as NonNullable<
+    Awaited<ReturnType<typeof import("@calcom/lib/server/repository/profile").ProfileRepository.findByUpId>>
+  >;
 
   const mockCtx = {
     user: mockUser,
-    prisma: {} as any,
+    prisma: {} as PrismaClient,
   };
 
   beforeEach(() => {
@@ -142,7 +145,13 @@ describe("getUserEventGroups", () => {
           parent: null,
           metadata: {},
         },
-      } as any;
+      } as unknown as NonNullable<
+        Awaited<
+          ReturnType<
+            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+          >
+        >
+      >[0];
 
       vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
@@ -196,7 +205,13 @@ describe("getUserEventGroups", () => {
           parent: null,
           metadata: {},
         },
-      } as any;
+      } as unknown as NonNullable<
+        Awaited<
+          ReturnType<
+            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+          >
+        >
+      >[0];
 
       vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
@@ -244,7 +259,13 @@ describe("getUserEventGroups", () => {
           parent: null,
           metadata: {},
         },
-      } as any;
+      } as unknown as NonNullable<
+        Awaited<
+          ReturnType<
+            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+          >
+        >
+      >[0];
 
       vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
@@ -257,10 +278,10 @@ describe("getUserEventGroups", () => {
         input: null,
       });
 
-      // Member role should have edit but not create/delete permissions
+      // Member role should not have create/update/delete permissions
       expect(result.profiles[1]).toMatchObject({
         canCreateEventTypes: false,
-        canUpdateEventTypes: true,
+        canUpdateEventTypes: false,
       });
     });
   });
@@ -277,7 +298,11 @@ describe("getUserEventGroups", () => {
             lockEventTypeCreationForUsers: true,
           },
         },
-      };
+      } as unknown as NonNullable<
+        Awaited<
+          ReturnType<typeof import("@calcom/lib/server/repository/profile").ProfileRepository.findByUpId>
+        >
+      >;
 
       vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfileWithOrg);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([]);
@@ -317,7 +342,13 @@ describe("getUserEventGroups", () => {
           parent: null,
           metadata: {},
         },
-      } as any;
+      } as unknown as NonNullable<
+        Awaited<
+          ReturnType<
+            typeof import("@calcom/lib/server/repository/membership").MembershipRepository.findAllByUpIdIncludeTeam
+          >
+        >
+      >[0];
 
       vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
