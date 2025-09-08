@@ -1021,6 +1021,9 @@ export async function getAllWorkflowsFromRoutingForm(routingForm: {
           routingFormId: routingForm.id,
         },
       },
+      trigger: {
+        in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT],
+      },
     },
     select: {
       id: true,
