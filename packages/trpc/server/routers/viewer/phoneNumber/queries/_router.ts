@@ -1,0 +1,14 @@
+import authedProcedure from "../../../../procedures/authedProcedure";
+import { router } from "../../../../trpc";
+import { ZListInputSchema } from "./list.schema";
+
+export const phoneNumberQueriesRouter = router({
+  list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
+    const { listHandler } = await import("./list.handler");
+
+    return listHandler({
+      ctx,
+      input,
+    });
+  }),
+});
