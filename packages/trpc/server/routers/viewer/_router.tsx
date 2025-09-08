@@ -19,7 +19,6 @@ import { appsQueriesRouter } from "./apps/queries/_router";
 import { attributesMutationsRouter } from "./attributes/mutations/_router";
 import { attributesQueriesRouter } from "./attributes/queries/_router";
 import { authMutationsRouter } from "./auth/mutations/_router";
-import { availabilityMutationsRouter } from "./availability/mutations/_router";
 import { availabilityQueriesRouter } from "./availability/queries/_router";
 import { bookingsMutationsRouter } from "./bookings/mutations/_router";
 import { bookingsQueriesRouter } from "./bookings/queries/_router";
@@ -48,11 +47,9 @@ import { oAuthMutationsRouter } from "./oAuth/mutations/_router";
 import { oAuthQueriesRouter } from "./oAuth/queries/_router";
 import { oooMutationsRouter } from "./ooo/mutations/_router";
 import { oooQueriesRouter } from "./ooo/queries/_router";
-import { viewerOrganizationsMutationsRouter } from "./organizations/mutations/_router";
-import { viewerOrganizationsQueriesRouter } from "./organizations/queries/_router";
+import { organizationsMutationsRouter } from "./organizations/mutations/_router";
+import { organizationsQueriesRouter } from "./organizations/queries/_router";
 import { paymentsMutationsRouter } from "./payments/mutations/_router";
-import { permissionsMutationsRouter } from "./pbac/mutations/_router";
-import { permissionsQueriesRouter } from "./pbac/queries/_router";
 import { phoneNumberMutationsRouter } from "./phoneNumber/mutations/_router";
 import { phoneNumberQueriesRouter } from "./phoneNumber/queries/_router";
 import { routingFormsMutationsRouter } from "./routing-forms/mutations/_router";
@@ -60,8 +57,8 @@ import { slotsMutationsRouter } from "./slots/mutations/_router";
 import { slotsQueriesRouter } from "./slots/queries/_router";
 import { ssoMutationsRouter } from "./sso/mutations/_router";
 import { ssoQueriesRouter } from "./sso/queries/_router";
-import { viewerTeamsMutationsRouter } from "./teams/mutations/_router";
-import { viewerTeamsQueriesRouter } from "./teams/queries/_router";
+import { teamsMutationsRouter } from "./teams/mutations/_router";
+import { teamsQueriesRouter } from "./teams/queries/_router";
 import { travelSchedulesQueriesRouter } from "./travelSchedules/queries/_router";
 import { webhookMutationsRouter } from "./webhook/mutations/_router";
 import { webhookQueriesRouter } from "./webhook/queries/_router";
@@ -106,16 +103,15 @@ export const viewerRouter = router({
   }),
   availability: router({
     queries: availabilityQueriesRouter,
-    mutations: availabilityMutationsRouter,
   }),
   teams: router({
-    queries: viewerTeamsQueriesRouter,
-    mutations: viewerTeamsMutationsRouter,
+    queries: teamsQueriesRouter,
+    mutations: teamsMutationsRouter,
   }),
   timezones: timezonesRouter,
   organizations: router({
-    queries: viewerOrganizationsQueriesRouter,
-    mutations: viewerOrganizationsMutationsRouter,
+    queries: organizationsQueriesRouter,
+    mutations: organizationsMutationsRouter,
   }),
   delegationCredential: router({
     queries: delegationCredentialQueriesRouter,
@@ -155,10 +151,6 @@ export const viewerRouter = router({
   filterSegments: router({
     queries: filterSegmentsQueriesRouter,
     mutations: filterSegmentsMutationsRouter,
-  }),
-  pbac: router({
-    queries: permissionsQueriesRouter,
-    mutations: permissionsMutationsRouter,
   }),
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
