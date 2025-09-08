@@ -107,6 +107,7 @@ export class BookingReferenceRepository {
               : { userId: { in: teamMembersUserIds } }),
           },
           credentialId: null,
+          deleted: null,
           ...(isCalendarApp
             ? {
                 externalCalendarId: {

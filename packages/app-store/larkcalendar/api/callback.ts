@@ -109,7 +109,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
         // Use repository to trigger reconnect hook; fall back to newly created credential id
         const { SelectedCalendarRepository } = await import("@calcom/lib/server/repository/selectedCalendar");
-        await SelectedCalendarRepository.create({
+        await SelectedCalendarRepository.upsert({
           userId: req.session?.user.id,
           integration: "lark_calendar",
           externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
