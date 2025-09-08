@@ -89,7 +89,7 @@ export default function WebhookListItem(props: {
               {webhook.subscriberUrl}
             </p>
           </Tooltip>
-          {!!props.permissions.canEditWebhook && (
+          {!props.permissions.canEditWebhook && (
             <Badge variant="gray" className="ml-2 ">
               {t("readonly")}
             </Badge>
@@ -114,7 +114,7 @@ export default function WebhookListItem(props: {
           <Switch
             defaultChecked={webhook.active}
             data-testid="webhook-switch"
-            disabled={!canEditWebhook}
+            disabled={!props.permissions.canEditWebhook}
             onCheckedChange={() =>
               toggleWebhook.mutate({
                 id: webhook.id,
@@ -167,11 +167,6 @@ export default function WebhookListItem(props: {
                   </DropdownItem>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem>
-                <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
-                  {t("delete")}
-                </DropdownItem>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </Dropdown>
         </div>
