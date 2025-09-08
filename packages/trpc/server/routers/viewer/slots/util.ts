@@ -778,20 +778,13 @@ export class AvailableSlotsService {
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     
-    // Add Cal.com attendees to availability check during reschedule
-    if (
-      input.rescheduleUid &&
-      eventType.schedulingType !== SchedulingType.COLLECTIVE &&
-      eventType.schedulingType !== SchedulingType.ROUND_ROBIN
-    ) {
-      const userIdAndEmailObj: { [key: number]: string } = {};
-      userIdAndEmailMap.forEach((email, userId) => {
-        userIdAndEmailObj[userId] = email;
-      });
-      
+    // Add Cal.com attendees to the availability check for reschedule scenarios
+    // This ensures attendee availability is considered upstream in the main availability calculation
+    // by including them in userIdAndEmailMap, which flows through to all booking and busy time queries
+    if (input.rescheduleUid) {
       await this.addAttendeeAvailabilityForReschedule({
         rescheduleUid: input.rescheduleUid,
-        userIdAndEmailMap: userIdAndEmailObj,
+        userIdAndEmailMap,
         loggerWithEventDetails,
       });
     }
@@ -1456,67 +1449,9 @@ export class AvailableSlotsService {
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
-    // Filter out slots that conflict with Cal.com attendee availability during host reschedules
-    let finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
-    if (
-      input.rescheduleUid &&
-      eventType.schedulingType !== SchedulingType.COLLECTIVE && 
-      eventType.schedulingType !== SchedulingType.ROUND_ROBIN
-    ) {
-      const hostEmails = (usersWithCredentials.map((u) => u.email).filter(Boolean) as string[]) || [];
-      const attendeeUsersWithCredentials = await this.getAttendeeUsersWithCredentialsForReschedule(input.rescheduleUid, hostEmails);
-      
-      if (attendeeUsersWithCredentials.length) {
-        const attendeeBusyTimesPromises: Promise<any[]>[] = [];
-        attendeeUsersWithCredentials.forEach((attendee) => {
-          attendeeBusyTimesPromises.push(
-            this.dependencies.busyTimesService.getBusyTimes({
-              credentials: attendee.credentials,
-              startTime: startTime.format(),
-              endTime: endTime.format(),
-              eventTypeId: eventType.id,
-              userId: attendee.id,
-              userEmail: attendee.email,
-              username: attendee.username || `user-${attendee.id}`,
-              selectedCalendars: attendee.selectedCalendars,
-              rescheduleUid: input.rescheduleUid || undefined,
-              seatedEvent: !!eventType?.seatsPerTimeSlot,
-              bypassBusyCalendarTimes,
-            }).catch((error: any) => {
-              loggerWithEventDetails.warn("Failed to get busy times for attendee", { 
-                email: attendee.email, 
-                error: error instanceof Error ? error.message : String(error) 
-              });
-              return [];
-            })
-          );
-        });
-        
-        const attendeeBusyTimesResults = await Promise.all(attendeeBusyTimesPromises);
-        const attendeeBusy = attendeeBusyTimesResults.flat().map((b) => ({ start: b.start, end: b.end }));
-        const eventLength = input.duration || eventType.length;
-
-        // Only show slots where attendees are actually available
-        finalSlotsMappedToDate = {};
-        for (const date in withinBoundsSlotsMappedToDate) {
-          if (withinBoundsSlotsMappedToDate.hasOwnProperty(date)) {
-            const slots = withinBoundsSlotsMappedToDate[date];
-            const availableSlots = slots.filter((slot) =>
-              !checkForConflicts({
-                time: dayjs(slot.time),
-                busy: attendeeBusy,
-                eventLength,
-                currentSeats,
-              })
-            );
-            // Keep dates that have at least one free slot
-            if (availableSlots.length > 0) {
-              finalSlotsMappedToDate[date] = availableSlots;
-            }
-          }
-        }
-      }
-    }
+    // With the upstream approach, attendee availability is already included in the main calculation
+    // No need for additional downstream slot filtering
+    const finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
 
     // We only want to run this on single targeted events and not dynamic
     if (!Object.keys(finalSlotsMappedToDate).length && input.usernameList?.length === 1) {
@@ -1566,135 +1501,84 @@ export class AvailableSlotsService {
     };
   }
 
-  // Get user IDs of Cal.com attendees from a booking for reschedule conflict checking
-  //Get attendee users with their credentials and selected calendars for calendar integration
-  private async getAttendeeUsersWithCredentialsForReschedule(rescheduleUid: string, excludeEmails: string[]) {
-    try {
-      const booking = await this.dependencies.bookingRepo.findBookingByUid({
-        bookingUid: rescheduleUid,
-      });
-
-      if (!booking || !booking.attendees) return [];
-
-      const MAX_ATTENDEES = 10;
-      const exclude = new Set((excludeEmails || []).map((e) => e.toLowerCase()));
-      const emailsLowerToOriginal = new Map<string, string>();
-      for (const a of booking.attendees || []) {
-        const status = (a as any)?.status ?? "ACCEPTED";
-        const emailOriginal = String((a as any)?.email || "");
-        const emailLower = emailOriginal.toLowerCase();
-        if (!emailLower || exclude.has(emailLower) || status !== "ACCEPTED") continue;
-        if (!emailsLowerToOriginal.has(emailLower)) emailsLowerToOriginal.set(emailLower, emailOriginal);
-        if (emailsLowerToOriginal.size >= MAX_ATTENDEES) break;
-      }
-      const limitedEmails = Array.from(emailsLowerToOriginal.values());
-      if (limitedEmails.length === 0) return [];
-
-      // Get users in parallel
-      const userResults = await Promise.allSettled(
-        limitedEmails.map((email) => this.dependencies.userRepo.findByEmail({ email }))
-      );
-      const foundUsers = userResults
-        .filter((r: any) => r.status === "fulfilled")
-        .map((r: any) => r.value)
-        .filter((u: any) => !!u && typeof u.id === "number");
-
-      // Get credentials for valid users in parallel
-      const credsResults = await Promise.allSettled(
-        foundUsers.map((u: any) => this.dependencies.userRepo.findUserWithCredentials({ id: u.id }))
-      );
-      const usersWithCredentials = credsResults
-        .map((r: any, idx: number) => ({ r, u: foundUsers[idx] }))
-        .filter((x: any) => x.r.status === "fulfilled" && !!x.r.value)
-        .map(({ r, u }: any) => ({ ...r.value, email: u.email, username: u.username }));
-
-      // Log failures (structured)
-      userResults
-        .filter((r: any) => r.status === "rejected")
-        .forEach((r: any) => log.warn("Failed to resolve attendee user by email", { reason: String(r.reason) }));
-      credsResults
-        .filter((r: any) => r.status === "rejected")
-        .forEach((r: any, idx: number) =>
-          log.warn("Failed to load attendee credentials", { userId: foundUsers[idx]?.id, reason: String(r.reason) })
-        );
-      
-      return usersWithCredentials;
-    } catch (error) {
-      log.error("Error fetching attendee users with credentials", {
-        rescheduleUid,
-        reason: error instanceof Error ? error.message : String(error),
-      });
-      return [];
-    }
-  }
-
-
-  // Alternative method that adds attendees upstream instead of filtering afterwards
-  // Currently unused - we're using the slot filtering approach above instead
+  /**
+   * Add Cal.com attendees directly to the userIdAndEmailMap for upstream availability calculation.
+   * This ensures attendee availability is checked as part of the main availability flow
+   * rather than filtering slots afterwards.
+   */
   private async addAttendeeAvailabilityForReschedule({
     rescheduleUid,
     userIdAndEmailMap,
     loggerWithEventDetails,
   }: {
     rescheduleUid: string;
-    userIdAndEmailMap: { [key: number]: string };
+    userIdAndEmailMap: Map<number, string>;
     loggerWithEventDetails: Logger<unknown>;
   }) {
     try {
       const bookingRepo = this.dependencies.bookingRepo;
       const userRepo = this.dependencies.userRepo;
-      
+
       const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
       if (!originalBooking?.attendees?.length) return;
 
       const existingEmails: string[] = [];
-      Object.keys(userIdAndEmailMap).forEach((key) => {
-        const email = userIdAndEmailMap[Number(key)];
+      userIdAndEmailMap.forEach((email) => {
         if (email) existingEmails.push(String(email).toLowerCase());
       });
-      
-      const attendeeEmailsMap: { [key: string]: boolean } = {};
+
       const MAX_ATTENDEES = 10;
+      const attendeeEmailsMap: { [key: string]: boolean } = {};
       const attendeeEmails: string[] = [];
-      
+
       originalBooking.attendees
+        .filter((a: { status?: string }) => (a?.status ?? "ACCEPTED") === "ACCEPTED")
         .forEach((a: { email?: string }) => {
-          const email = String(a.email || "").toLowerCase();
+          const email = String(a?.email || "").toLowerCase();
           if (email && existingEmails.indexOf(email) === -1 && !attendeeEmailsMap[email]) {
             attendeeEmailsMap[email] = true;
             attendeeEmails.push(email);
           }
         });
-      
-      // Limit to first 10 attendees
+
       const limitedAttendeeEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
 
       if (!limitedAttendeeEmails.length) return;
 
-      const attendeeResults: Array<{ status: string; value?: any; reason?: any }> = [];
-      for (let i = 0; i < limitedAttendeeEmails.length; i++) {
-        try {
-          const user = await userRepo.findByEmail({ email: limitedAttendeeEmails[i] });
-          attendeeResults.push({ status: "fulfilled", value: user });
-        } catch (error) {
-          attendeeResults.push({ status: "rejected", reason: error });
-        }
-      }
-      
+      const attendeeResults = await Promise.allSettled(
+        limitedAttendeeEmails.map(async (email: string) => {
+          const user = await userRepo.findByEmail({ email });
+          return user;
+        })
+      );
+
       attendeeResults.forEach((res) => {
         if (res.status === "fulfilled") {
           const user = res.value as { id?: number; email?: string } | null;
           if (user?.id && user?.email) {
-            userIdAndEmailMap[user.id] = user.email;
+            userIdAndEmailMap.set(user.id, user.email);
+            loggerWithEventDetails.debug("Added attendee to availability check", { 
+              userId: user.id, 
+              email: user.email 
+            });
           }
+        } else {
+          loggerWithEventDetails.warn("Failed to find attendee user", { 
+            reason: res.reason instanceof Error ? res.reason.message : String(res.reason) 
+          });
         }
       });
 
+      loggerWithEventDetails.info("Added attendees to availability calculation", { 
+        attendeeCount: attendeeResults.filter(r => r.status === "fulfilled").length,
+        totalAttendees: limitedAttendeeEmails.length
+      });
     } catch (error) {
-      loggerWithEventDetails.error("Failed to add attendees for reschedule", {
+      loggerWithEventDetails.error("Failed to add attendee availability for reschedule", {
         rescheduleUid,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
+
 }
