@@ -197,7 +197,6 @@ const fetchRoutingFormOptions = async ({
     select: {
       id: true,
       name: true,
-      disabled: true,
     },
     orderBy: [
       {

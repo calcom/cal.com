@@ -24,7 +24,7 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
   if (bookingExists) return false;
 
   // Check for duplicate form submissions
-  const hasDuplicate = await hasDuplicateSubmission(formId, responseId, responses, submittedAt);
+  const hasDuplicate = await hasDuplicateSubmission({ formId, responseId, responses, submittedAt });
   if (hasDuplicate) {
     return false;
   }
@@ -61,12 +61,17 @@ export function getSubmitterEmail(responses: any) {
 /**
  * Check for duplicate form submissions within the last 60 minutes
  */
-async function hasDuplicateSubmission(
-  formId: string,
-  responses: any,
-  responseId: number,
-  submittedAt?: Date
-): Promise<boolean> {
+async function hasDuplicateSubmission({
+  formId,
+  responses,
+  responseId,
+  submittedAt,
+}: {
+  formId: string;
+  responses: any;
+  responseId: number;
+  submittedAt?: Date;
+}): Promise<boolean> {
   const submitterEmail = getSubmitterEmail(responses);
 
   if (!submitterEmail) return false;
