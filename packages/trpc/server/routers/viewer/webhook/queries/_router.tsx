@@ -1,5 +1,5 @@
 import { router } from "../../../../trpc";
-import { webhookProcedure } from "../../../util";
+import { webhookProcedure } from "../util";
 import { ZGetInputSchema } from "./get.schema";
 import { ZListInputSchema } from "./list.schema";
 
