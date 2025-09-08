@@ -113,18 +113,12 @@ export class VerificationAtomsService {
     existingPrimaryEmail: string;
     email: string;
   }): Promise<boolean> {
-    const existingPrimaryEmailWithoutOauthClientId = existingPrimaryEmail.replace(/\+([^+]+)@/, "@");
     const existingSecondaryEmail = await this.atomsRepository.getExistingSecondaryEmailByUserAndEmail(
       userId,
       email
     );
-    const alreadyExistingEmail = await this.atomsRepository.getExistingSecondaryEmailByEmail(email);
 
-    if (alreadyExistingEmail) {
-      throw new BadRequestException("Email already exists");
-    }
-
-    if (existingPrimaryEmailWithoutOauthClientId === email || existingSecondaryEmail === email) {
+    if (existingPrimaryEmail === email || existingSecondaryEmail === email) {
       return true;
     }
 
