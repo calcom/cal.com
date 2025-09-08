@@ -16,6 +16,7 @@
     "db-up": "docker compose up -d || docker-compose up -d",
     "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
+    "format":" prisma format",
     "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
