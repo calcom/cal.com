@@ -39,6 +39,7 @@ export const formSchema = z.object({
         .optional()
         .nullable(),
       senderName: z.string().optional().nullable(),
+      allowedCountryCodes: z.array(z.string()).optional(),
     })
     .array(),
   selectAll: z.boolean(),

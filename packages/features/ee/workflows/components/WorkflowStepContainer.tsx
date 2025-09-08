@@ -603,8 +603,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </>
                     )
                   )}
-                  {(isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) ||
-                    isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) && (
+                  {form.getValues(`steps.${step.stepNumber - 1}.action`) === "SMS_ATTENDEE" && (
                     <div className="mt-3 space-y-1">
                       <Label htmlFor={`steps.${step.stepNumber - 1}.allowedCountryCodes`}>
                         {t("allowed_country_codes")}

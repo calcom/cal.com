@@ -33,7 +33,7 @@ import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableT
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: (WorkflowStep & { senderName: string | null })[];
+  steps: (WorkflowStep & { senderName: string | null; allowedCountryCodes?: string[] })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
