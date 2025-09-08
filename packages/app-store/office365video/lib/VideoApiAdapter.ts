@@ -37,7 +37,6 @@ const getO365VideoAppKeys = async () => {
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
-  console.log("TeamsVideoApiAdapter--credential: ", credential);
   const log = logger.getSubLogger({ prefix: ["TeamsVideoApiAdapter"] });
   let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
@@ -203,6 +202,10 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           },
         });
 
+        if (!response.ok || response.status < 200 || response.status >= 300) {
+          throw Error(response.statusText);
+        }
+
         const resultString = await response.text();
         const resultObject = JSON.parse(resultString);
 
@@ -213,6 +216,9 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           url: resultObject.joinWebUrl || resultObject.joinUrl,
         });
       } catch (error) {
+        if (error instanceof Error && error.message === "Internal Server Error") {
+          throw error;
+        }
         log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
         throw new HttpError({
           statusCode: 500,
@@ -224,11 +230,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      console.log("=======>createMeeting: ");
-
       const url = `${await getUserEndpoint()}/onlineMeetings`;
-      console.log("urllllllllllll: ", url);
-      console.log("translateEvent(event): ", translateEvent(event));
       try {
         const response = await auth.requestRaw({
           url,
@@ -237,8 +239,12 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
             body: JSON.stringify(translateEvent(event)),
           },
         });
-        const resultString = await response.text();
 
+        if (!response.ok || response.status < 200 || response.status >= 300) {
+          throw Error(response.statusText);
+        }
+
+        const resultString = await response.text();
         const resultObject = JSON.parse(resultString);
 
         if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
@@ -255,6 +261,9 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           url: resultObject.joinWebUrl || resultObject.joinUrl,
         });
       } catch (error) {
+        if (error instanceof Error && error.message === "Internal Server Error") {
+          throw error;
+        }
         log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
         throw new HttpError({
           statusCode: 500,
