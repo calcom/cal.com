@@ -68,6 +68,8 @@ export const ENDPOINTS = [
   "slots/mutations",
   "teams",
   "organizations",
+  "organizations/queries",
+  "organizations/mutations",
   "travelSchedules",
   "travelSchedules/queries",
   "users",

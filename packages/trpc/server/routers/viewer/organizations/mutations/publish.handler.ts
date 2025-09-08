@@ -26,7 +26,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
     where: {
       id: orgId,
     },
-    include: { members: true },
+    include: { members: {} },
   });
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Organization not found." });
@@ -64,10 +64,10 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   }
 
   const { requestedSlug, ...newMetadata } = metadata.data;
-  let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
+  let _updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
 
   try {
-    updatedTeam = await prisma.team.update({
+    _updatedTeam = await prisma.team.update({
       where: { id: orgId },
       data: {
         slug: requestedSlug,

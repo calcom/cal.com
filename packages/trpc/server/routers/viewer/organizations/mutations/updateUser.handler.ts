@@ -76,7 +76,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
               },
             },
             include: {
-              members: true,
+              members: {},
             },
           },
         },

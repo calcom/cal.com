@@ -23,7 +23,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
       id: id,
     },
     include: {
-      organizationSettings: true,
+      organizationSettings: {},
     },
   });
 

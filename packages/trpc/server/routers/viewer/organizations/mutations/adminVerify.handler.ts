@@ -25,7 +25,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
           role: "OWNER",
         },
         include: {
-          user: true,
+          user: {},
         },
       },
     },

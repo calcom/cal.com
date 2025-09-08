@@ -27,7 +27,7 @@ export async function checkIfOrgNeedsUpgradeHandler({ ctx }: GetUpgradeableOptio
       },
     },
     include: {
-      team: true,
+      team: {},
     },
   });
 
