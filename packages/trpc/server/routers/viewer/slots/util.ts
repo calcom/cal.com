@@ -1500,7 +1500,6 @@ export class AvailableSlotsService {
 
   /**
    * Get attendee hosts for reschedule availability check.
-   * Converts Cal.com attendees from the original booking into host objects for availability calculation.
    */
   private async getAttendeeHostsForReschedule({
     rescheduleUid,
@@ -1508,27 +1507,12 @@ export class AvailableSlotsService {
   }: {
     rescheduleUid: string;
     loggerWithEventDetails: Logger<unknown>;
-  }): Promise<{
-    isFixed?: boolean;
-    groupId?: string | null;
-    user: GetAvailabilityUserWithDelegationCredentials;
-  }[]> {
-    loggerWithEventDetails.info("🔍 DEBUGGING: Starting getAttendeeHostsForReschedule", { 
-      rescheduleUid,
-    });
-
+  }) {
     try {
       const bookingRepo = this.dependencies.bookingRepo;
       const userRepo = this.dependencies.userRepo;
 
       const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
-      
-      loggerWithEventDetails.info("🔍 DEBUGGING: Original booking found", { 
-        hasBooking: !!originalBooking,
-        attendeesCount: originalBooking?.attendees?.length || 0,
-        attendees: originalBooking?.attendees?.map(a => ({ email: a.email, name: a.name })) || []
-      });
-
       if (!originalBooking?.attendees?.length) return [];
 
       const MAX_ATTENDEES = 10;
@@ -1544,81 +1528,30 @@ export class AvailableSlotsService {
         }
       });
 
-      const limitedAttendeeEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
+      const limitedEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
+      if (!limitedEmails.length) return [];
 
-      if (!limitedAttendeeEmails.length) return [];
-
-      const attendeeResults = await Promise.all(
-        limitedAttendeeEmails.map(async (email: string) => {
-          try {
-            const user = await userRepo.findByEmail({ email });
-            return { success: true, user, email };
-          } catch (error) {
-            return { success: false, user: null, email, error };
+      const attendeeHosts = [];
+      
+      for (const email of limitedEmails) {
+        try {
+          const user = await userRepo.findByEmail({ email });
+          if (user?.id && user?.email) {
+            attendeeHosts.push({
+              isFixed: false,
+              groupId: null,
+              user: user as GetAvailabilityUserWithDelegationCredentials,
+            });
           }
-        })
-      );
-
-      const attendeeHosts: {
-        isFixed?: boolean;
-        groupId?: string | null;
-        user: GetAvailabilityUserWithDelegationCredentials;
-      }[] = [];
-
-      let calComUsersAdded = 0;
-      let externalAttendeesSkipped = 0;
-
-      attendeeResults.forEach((res) => {
-        loggerWithEventDetails.info("🔍 DEBUGGING: Processing attendee result for host", { 
-          email: res.email,
-          success: res.success,
-          hasUser: !!res.user,
-          userId: res.user?.id,
-          userEmail: res.user?.email
-        });
-
-        if (res.success && res.user?.id && res.user?.email) {
-          // Convert user to host format
-          const attendeeHost = {
-            isFixed: false, // Attendees are not fixed hosts
-            groupId: null,
-            user: res.user as GetAvailabilityUserWithDelegationCredentials,
-          };
-
-          attendeeHosts.push(attendeeHost);
-          calComUsersAdded++;
-          
-          loggerWithEventDetails.info("✅ DEBUGGING: Added Cal.com attendee as host for availability check", { 
-            userId: res.user.id, 
-            email: res.user.email,
-            totalHostsAdded: attendeeHosts.length
-          });
-        } else {
-          // Attendee email exists but is not a Cal.com user - cannot check their calendar availability
-          externalAttendeesSkipped++;
-          loggerWithEventDetails.info("⚠️ DEBUGGING: Skipped external attendee (not a Cal.com user)", { 
-            email: res.email,
-            reason: res.success ? "No Cal.com account" : "Error during lookup",
-            error: res.success ? undefined : res.error
-          });
+        } catch {
+          // Skip failed lookups
         }
-      });
-
-      loggerWithEventDetails.info("🔍 DEBUGGING: Attendee hosts processing summary", { 
-        totalAttendeesInBooking: originalBooking.attendees.length,
-        limitedAttendeeEmailsCount: limitedAttendeeEmails.length,
-        calComUsersAdded,
-        externalAttendeesSkipped,
-        attendeeHostsReturned: attendeeHosts.length
-      });
+      }
 
       return attendeeHosts;
 
     } catch (error) {
-      loggerWithEventDetails.error("Failed to get attendee hosts for reschedule", {
-        rescheduleUid,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      loggerWithEventDetails.error("Failed to get attendee hosts", { rescheduleUid });
       return [];
     }
   }
