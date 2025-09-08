@@ -2,7 +2,7 @@ import { organizationScenarios } from "@calcom/lib/server/repository/__mocks__/o
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
