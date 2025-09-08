@@ -1,6 +1,6 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
-import { bookingsProcedure } from "../../../../util";
+import { bookingsProcedure } from "../util";
 import { ZAddGuestsInputSchema } from "./addGuests.schema";
 import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";

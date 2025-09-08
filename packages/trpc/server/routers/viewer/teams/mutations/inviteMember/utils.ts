@@ -27,7 +27,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { isEmail } from "../../../../util";
+import { isEmail } from "../../../util";
 import type { TeamWithParent } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
@@ -88,15 +88,7 @@ export async function getTeamOrThrow(teamId: number) {
     where: {
       id: teamId,
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      bio: true,
-      hideBranding: true,
-      isOrganization: true,
-      metadata: true,
-      parentId: true,
+    include: {
       organizationSettings: {
         select: {
           id: true,
@@ -107,10 +99,7 @@ export async function getTeamOrThrow(teamId: number) {
         },
       },
       parent: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
+        include: {
           organizationSettings: {
             select: {
               id: true,
