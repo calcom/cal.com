@@ -135,6 +135,13 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
 
     const { id, expand } = parse.data;
 
+    const userId = Number.parseInt(request.user!.id);
+    // Check if event type exists and belongs to user
+    const bookingExists = await bookingService.bookingExists(userId, id);
+    if (!bookingExists) {
+      return ResponseFormatter.notFound(reply, "Booking not found");
+    }
+
     const booking = await bookingService.getBookingById(id, Array.isArray(expand) ? expand : expand ? [expand] : []);
     if (!booking) {
       return ResponseFormatter.error(reply, 'Booking not found', 404);
@@ -167,6 +174,14 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     const { id } = parse.data;
+
+    const userId = Number.parseInt(request.user!.id);
+    // Check if event type exists and belongs to user
+    const bookingExists = await bookingService.bookingExists(userId, id);
+    if (!bookingExists) {
+      return ResponseFormatter.notFound(reply, "Booking not found");
+    }
+
     const deleted = await bookingService.deleteBookingById(id);
     if (!deleted) {
       return ResponseFormatter.error(reply, 'Booking not found', 404);
@@ -202,8 +217,16 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   }, async (request: AuthRequest, reply: FastifyReply) => {
     const idRaw = (request.params as any)?.id;
     const id = typeof idRaw === 'string' ? parseInt(idRaw, 10) : idRaw;
+
     if (!Number.isInteger(id) || id <= 0) {
       return ResponseFormatter.error(reply, 'Validation failed: id must be a positive integer', 400);
+    }
+
+    const userId = Number.parseInt(request.user!.id);
+    // Check if event type exists and belongs to user
+    const bookingExists = await bookingService.bookingExists(userId, id);
+    if (!bookingExists) {
+      return ResponseFormatter.notFound(reply, "Booking not found");
     }
 
     const parsed = cancelBookingBodySchema.safeParse(request.body);
@@ -267,6 +290,13 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
         return ResponseFormatter.error(reply, 'Validation failed: id must be a positive integer', 400);
       }
 
+    const userId = Number.parseInt(request.user!.id);
+      // Check if event type exists and belongs to user
+      const bookingExists = await bookingService.bookingExists(userId, id);
+      if (!bookingExists) {
+        return ResponseFormatter.notFound(reply, "Booking not found");
+      }
+
       const parsed = bookingConfirmPatchBodySchema.omit({ bookingId: true }).safeParse(request.body);
       if (!parsed.success) {
         return ResponseFormatter.error(reply, `Validation failed: ${parsed.error.errors[0].message}`, 400);
@@ -327,6 +357,12 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     const id = typeof idRaw === 'string' ? parseInt(idRaw, 10) : idRaw;
 
     const userId = Number.parseInt(request.user!.id);
+
+    // Check if event type exists and belongs to user
+    const bookingExists = await bookingService.bookingExists(userId, id);
+    if (!bookingExists) {
+      return ResponseFormatter.notFound(reply, "Booking not found");
+    }
 
     const booking = await bookingService.getBookingById(Number(id));
     if (!booking) {

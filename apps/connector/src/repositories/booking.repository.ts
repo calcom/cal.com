@@ -88,6 +88,14 @@ export class BookingRepository extends BaseRepository<User> {
     }
   }
 
-
-
+  async existsByUserIdAndId(userId: number, id: number): Promise<boolean> {
+    try {
+      const count = await this.prisma.booking.count({
+        where: { id, userId },
+      });
+      return count > 0;
+    } catch (error) {
+      this.handleDatabaseError(error, "check booking exists by user id and id");
+    }
+  }
 }

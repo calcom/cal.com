@@ -128,7 +128,7 @@ export class SlotsService extends BaseService {
     if (body.reservationDuration && !authUserId) {
       throw new Error("reservationDuration can only be used for authenticated requests");
     }
-  
+
     const DEFAULT_RESERVATION_DURATION_MIN = 5;
   
     // Get existing reservation
@@ -250,5 +250,14 @@ export class SlotsService extends BaseService {
 
   async deleteSelectedSlotByUid(uid: string) {
     return this.slotsRepository.deleteSelectedSlotByUid(uid);
+  }
+
+  async slotExists(userId: number, uid: string): Promise<boolean> {
+    try {
+      return await this.slotsRepository.existsByUserIdAndUid(userId, uid);
+    } catch (error) {
+      this.logError("eventTypeExists", error);
+      throw error;
+    }
   }
 }

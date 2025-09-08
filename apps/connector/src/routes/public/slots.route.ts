@@ -93,6 +93,15 @@ export async function slotsRoutes(fastify: FastifyInstance) {
       ) {
         const { uid } = request.params;
 
+        const userId = Number.parseInt(request.user!.id);
+
+        // Check if event type exists and belongs to user
+        const slotExists = await slotsService.slotExists(userId, uid);
+
+        if (!slotExists) {
+          return ResponseFormatter.notFound(reply, "Slot not found");
+        }
+
         const slotResult = await slotsService.getSelectedSlotByUid(uid);
 
         return ResponseFormatter.success(reply, slotResult, 'Selected slot');
@@ -118,6 +127,15 @@ export async function slotsRoutes(fastify: FastifyInstance) {
         reply: FastifyReply
       ) {
         const { uid } = request.params;
+
+        const userId = Number.parseInt(request.user!.id);
+
+        // Check if event type exists and belongs to user
+        const slotExists = await slotsService.slotExists(userId, uid);
+
+        if (!slotExists) {
+          return ResponseFormatter.notFound(reply, "Slot not found");
+        }
 
         const slotResult = await slotsService.deleteSelectedSlotByUid(uid);
 
@@ -146,6 +164,16 @@ export async function slotsRoutes(fastify: FastifyInstance) {
         reply: FastifyReply
       ) {
         const { uid } = request.params;
+
+        const userId = Number.parseInt(request.user!.id);
+
+        // Check if event type exists and belongs to user
+        const slotExists = await slotsService.slotExists(userId, uid);
+
+        if (!slotExists) {
+          return ResponseFormatter.notFound(reply, "Slot not found");
+        }
+
         try {
           const body = request.body as z.infer<typeof reservationBodySchema>;
           const authUserId =
@@ -161,4 +189,5 @@ export async function slotsRoutes(fastify: FastifyInstance) {
       },
     }
   );
+
 }

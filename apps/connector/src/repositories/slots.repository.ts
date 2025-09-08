@@ -122,5 +122,16 @@ export class SlotsRepository extends BaseRepository<User> {
   async deleteSelectedSlotByUid(uid: string) {
     return this.prisma.selectedSlots.deleteMany({ where: { uid: uid } });
   }
+
+  async existsByUserIdAndUid(userId: number, uid: string): Promise<boolean> {
+    try {
+      const count = await this.prisma.selectedSlots.count({
+        where: { uid, userId },
+      });
+      return count > 0;
+    } catch (error) {
+      this.handleDatabaseError(error, "check slot exists by user id and id");
+    }
+  }
 }
 

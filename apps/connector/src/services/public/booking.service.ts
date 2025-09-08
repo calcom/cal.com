@@ -61,7 +61,7 @@ export class BookingService extends BaseService {
     } else if (eventType?.teamId) {
       oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
     }
-    // Last resort check the hosts of the event-type
+
     if (!oAuthClient && eventType?.teamId) {
       oAuthClient = await this.oAuthClientRepository.getByEventTypeHosts(eventTypeId);
     }
@@ -76,7 +76,15 @@ export class BookingService extends BaseService {
         areCalendarEventsEnabled: oAuthClient.areCalendarEventsEnabled,
       };
     }
-
     return undefined;
+  }
+
+  async bookingExists(userId: number, id: number): Promise<boolean> {
+    try {
+      return await this.bookingRepository.existsByUserIdAndId(userId, id);
+    } catch (error) {
+      this.logError("eventTypeExists", error);
+      throw error;
+    }
   }
 }
