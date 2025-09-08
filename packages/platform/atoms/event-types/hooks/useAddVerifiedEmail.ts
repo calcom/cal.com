@@ -3,6 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 
+import { useAtomsContext } from "../../hooks/useAtomsContext";
+import { appendClientIdToEmail } from "../../lib/appendClientIdToEmail";
 import http from "../../lib/http";
 
 interface IUseAddVerifiedEmail {
@@ -20,6 +22,8 @@ export const useAddVerifiedEmail = (
     },
   }
 ) => {
+  const { clientId } = useAtomsContext();
+
   const verifiedEmailEntry = useMutation<
     ApiResponse<{
       status: string;
@@ -34,17 +38,17 @@ export const useAddVerifiedEmail = (
   >({
     mutationFn: (data) => {
       const { email } = data;
+      const appendEmailAndOauthClientId = appendClientIdToEmail(email, clientId);
 
       return http
         .post(`/atoms/emails/verified-emails`, {
-          email,
+          email: appendEmailAndOauthClientId,
         })
         .then((res) => {
           return res.data;
         });
     },
     onSuccess: (data) => {
-      console.log(data, "this is the error");
       if (data.status === SUCCESS_STATUS) {
         onSuccess?.(data);
       } else {
