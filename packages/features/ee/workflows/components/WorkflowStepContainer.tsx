@@ -937,6 +937,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       disabled={props.readOnly}
                       defaultChecked={form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false}
                       description={t("make_phone_number_required")}
+                      descriptionClassName="ml-0"
                       onChange={(e) =>
                         form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
                       }
