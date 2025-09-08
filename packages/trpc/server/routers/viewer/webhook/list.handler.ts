@@ -59,11 +59,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       const teamIds = user?.teams.map((membership) => membership.teamId) || [];
       const authorizedTeamIds = teamIds.filter((teamId) => teamsWithReadPermission.includes(teamId));
 
+      if (authorizedTeamIds.length === 0) {
+        return [];
+      }
+
       where.AND?.push({
-        OR: [
-          { userId: ctx.user.id },
-          { teamId: { in: authorizedTeamIds.length > 0 ? authorizedTeamIds : teamIds } },
-        ],
+        OR: [{ userId: ctx.user.id }, { teamId: { in: authorizedTeamIds } }],
       });
     }
 

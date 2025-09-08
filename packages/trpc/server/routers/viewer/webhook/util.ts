@@ -1,6 +1,3 @@
-import type { Membership } from "@prisma/client";
-
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
@@ -32,10 +29,11 @@ export const createWebhookPbacProcedure = (
       // Check if user is authorized to edit webhook
       const webhook = await prisma.webhook.findUnique({
         where: { id },
-        include: {
-          user: true,
-          team: true,
-          eventType: true,
+        select: {
+          id: true,
+          userId: true,
+          teamId: true,
+          eventTypeId: true,
         },
       });
 
