@@ -3,11 +3,16 @@ import { useCheckTeamBilling } from "@calcom/web/lib/hooks/settings/platform/bil
 import { usePlatformMe } from "./usePlatformMe";
 
 export const useGetUserAttributes = () => {
-  const { data: platformUser, isLoading: isPlatformUserLoading } = usePlatformMe();
-  const { data: userBillingData, isFetching: isUserBillingDataLoading } = useCheckTeamBilling(
-    platformUser?.organizationId,
-    platformUser?.organization?.isPlatform ?? false
-  );
+  const {
+    data: platformUser,
+    isLoading: isPlatformUserLoading,
+    refetch: refetchPlatformUser,
+  } = usePlatformMe();
+  const {
+    data: userBillingData,
+    isFetching: isUserBillingDataLoading,
+    refetch: refetchTeamBilling,
+  } = useCheckTeamBilling(platformUser?.organizationId, platformUser?.organization?.isPlatform ?? false);
   const isPlatformUser = platformUser?.organization?.isPlatform ?? false;
   const isPaidUser = userBillingData?.valid;
   const userOrgId = platformUser?.organizationId;
@@ -19,5 +24,7 @@ export const useGetUserAttributes = () => {
     isPaidUser,
     userBillingData,
     userOrgId,
+    refetchTeamBilling,
+    refetchPlatformUser,
   };
 };
