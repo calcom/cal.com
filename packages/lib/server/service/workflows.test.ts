@@ -137,6 +137,9 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       {
         responseId: 123,
         responses: mockResponses,
+        smsReminderNumber: "+1234567890",
+        hideBranding: false,
+        submittedAt: expect.any(Date),
         form: {
           id: "form-123",
           userId: 101,
