@@ -1053,13 +1053,21 @@ export class AvailableSlotsService {
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
 
-    // Include attendees in availability check when rescheduling 
-    if (input.rescheduleUid) {
+    // Include attendees only for 1:1-style reschedules; skip collective/round-robin
+    if (
+      input.rescheduleUid &&
+      eventType.schedulingType !== SchedulingType.COLLECTIVE &&
+      eventType.schedulingType !== SchedulingType.ROUND_ROBIN
+    ) {
       const attendeeHosts = await this.getAttendeeHostsForReschedule({
         rescheduleUid: input.rescheduleUid,
         loggerWithEventDetails,
       });
-      allHosts.push(...attendeeHosts);
+      const existingIds: { [key: string]: boolean } = {};
+      allHosts.forEach((h) => {
+        existingIds[h.user.id] = true;
+      });
+      allHosts.push(...attendeeHosts.filter((h) => !existingIds[h.user.id]));
     }
 
     const twoWeeksFromNow = dayjs().add(2, "week");
@@ -1512,45 +1520,51 @@ export class AvailableSlotsService {
       const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
       if (!originalBooking?.attendees?.length) return [];
 
+      // ACCEPTED-only, dedupe case-insensitively, preserve original-case for lookup
       const MAX_ATTENDEES = 10;
-      const attendeeEmailsMap: { [key: string]: boolean } = {};
-      const attendeeEmails: string[] = [];
-
-      // Collect unique attendee emails
-      originalBooking.attendees.forEach((attendee) => {
-        const email = String(attendee.email || "").toLowerCase();
-        if (email && !attendeeEmailsMap[email]) {
-          attendeeEmailsMap[email] = true;
-          attendeeEmails.push(email);
+      const lowerToOriginal: { [key: string]: string } = {};
+      for (const a of originalBooking.attendees) {
+        const status = (a as any)?.status ?? "ACCEPTED";
+        const original = String((a as any)?.email ?? "");
+        const lower = original.toLowerCase();
+        if (!lower || status !== "ACCEPTED") continue;
+        if (!lowerToOriginal[lower]) {
+          lowerToOriginal[lower] = original;
+          if (Object.keys(lowerToOriginal).length >= MAX_ATTENDEES) break;
         }
-      });
+      }
+      const emails = Object.keys(lowerToOriginal).map(key => lowerToOriginal[key]);
+      if (!emails.length) return [];
 
-      const limitedEmails = attendeeEmails.slice(0, MAX_ATTENDEES);
-      if (!limitedEmails.length) return [];
-
+      // Sequential lookups with isolated error handling
       const attendeeHosts = [];
-      
-      for (const email of limitedEmails) {
+      for (const email of emails) {
         try {
           const user = await this.dependencies.userAvailabilityService.getUser({ email });
           if (user?.id && user?.email) {
             attendeeHosts.push({
               isFixed: false,
+              groupId: null,
               createdAt: null,
               user,
             });
           }
-        } catch {
-          // Skip failed lookups
+        } catch (error) {
+          loggerWithEventDetails.warn("Failed to lookup attendee user", {
+            email,
+            reason: error instanceof Error ? error.message : String(error),
+          });
+          // Continue with other attendees
         }
       }
 
       return attendeeHosts;
 
     } catch (error) {
-      loggerWithEventDetails.error("Failed to get attendee hosts", { rescheduleUid });
+      loggerWithEventDetails.error("Failed to get attendee hosts", {
+        rescheduleUid,
+        reason: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
-  }
-
-}
+  }}
