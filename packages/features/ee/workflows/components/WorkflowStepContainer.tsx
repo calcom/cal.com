@@ -256,11 +256,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
-  const hasAiAction = hasCalAIAction(form.getValues("steps"));
-  const hasSMSAction = form.getValues("steps").some((step) => isSMSAction(step.action));
+  const steps = useWatch({
+    control: form.control,
+    name: "steps",
+  });
+
+  const hasAiAction = hasCalAIAction(steps);
+  const hasSMSAction = steps.some((s) => isSMSAction(s.action));
+  const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
+
+  const disallowFormTriggers = hasAiAction || hasSMSAction || hasEmailToHostAction;
 
   const filteredTriggerOptions = triggerOptions.filter(
-    (option) => !(isFormTrigger(option.value) && (hasAiAction || hasSMSAction))
+    (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
   );
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
