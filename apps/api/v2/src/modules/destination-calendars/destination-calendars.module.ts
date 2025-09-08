@@ -1,4 +1,5 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -16,6 +17,7 @@ import { Module } from "@nestjs/common";
   providers: [
     CalendarsRepository,
     CalendarsService,
+    CalendarsCacheService,
     DestinationCalendarsService,
     DestinationCalendarsRepository,
     UsersRepository,
