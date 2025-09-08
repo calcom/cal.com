@@ -1,4 +1,5 @@
 import { AvailabilityService } from '@/services/public/availability.service';
+import { RescheduleBookingInput } from "@calcom/platform-types";
 import { confirmHandler } from '@calcom/trpc/server/routers/viewer/bookings/confirm.handler';
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
@@ -84,8 +85,6 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       // Optional platform location override (mirrors API controller usage)
       const platformBookingLocation = (body?.locationUrl as string | undefined) ?? undefined;
 
-      console.log("Got here")
-
       const booking = await handleNewBooking({
         bookingData: body as Record<string, unknown>,
         userId: -1, // public route; no authenticated user context
@@ -136,6 +135,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     const { id, expand } = parse.data;
 
     const userId = Number.parseInt(request.user!.id);
+
     // Check if event type exists and belongs to user
     const bookingExists = await bookingService.bookingExists(userId, id);
     if (!bookingExists) {
@@ -344,7 +344,6 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.object({
-          newUserId: z.number(),
           bookingId: z.number(),
         }), 'Booking reassigned')),
         400: zodToJsonSchema(responseSchemas.badRequest()),
@@ -416,7 +415,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.patch('/:id/reassignBookingToUser', {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
-      description: 'Reassign booking to automatically via round robin',
+      description: 'Reassign booking to a certain user',
       tags: ['Public - Bookings'],
       security: [
         { bearerAuth: [] },
@@ -496,5 +495,95 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       newUserId: newBooking.userId,
       bookingId: newBooking.id,
     }, 'Booking reassigned');
+  })
+
+  fastify.patch('/:id/reschedule', {
+    preHandler: AuthGuards.authenticateFlexible(),
+    schema: {
+      description: 'Reschedule booking by id',
+      tags: ['Public - Bookings'],
+      security: [
+        { bearerAuth: [] },
+        { apiKey: [] },
+      ],
+      params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
+      body: zodToJsonSchema(z.object({
+        start: z.string().min(1),
+        reschedulingReason: z.string().optional(),
+        rescheduledBy: z.string().email().optional(),
+        seatUid: z.string().optional(),
+      })),
+      response: {
+        200: zodToJsonSchema(responseSchemas.success(z.object({
+          newUserId: z.number(),
+          bookingId: z.number(),
+        }), 'Booking reassigned')),
+        400: zodToJsonSchema(responseSchemas.badRequest()),
+        404: zodToJsonSchema(responseSchemas.notFound('Booking not found')),
+        401: zodToJsonSchema(responseSchemas.unauthorized()),
+      },
+    },
+  }, async (request: AuthRequest, reply: FastifyReply) => {
+    const idRaw = (request.params as any)?.id;
+    const id = typeof idRaw === 'string' ? parseInt(idRaw, 10) : idRaw;
+
+    const userId = Number.parseInt(request.user!.id);
+
+    const booking = await bookingService.getBookingById(Number(id));
+    if (!booking) {
+      return ResponseFormatter.error(reply, 'Booking not found', 404);
+    }
+
+    const platformClientParams = booking.eventTypeId
+      ? await bookingService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
+    const user = await userService.getUserById(userId);
+
+    try {
+      const bookingRequest = await bookingService.buildRescheduleBookingRequest({
+        originalBookingId: Number(id),
+        body: request.body as any,
+        headers: request.headers as Record<string, string | undefined>,
+      });
+
+      await handleNewBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId ?? -1,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "no_available_users_found_error") {
+          return ResponseFormatter.error(reply, 'Conflicting reschedule', 400);
+        }
+      }
+      throw error;
+    }
+
+    // const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
+    // if (!reassigned) {
+    //   throw new NotFoundException(`Reassigned booking with uid=${bookingUid} was not found in the database`);
+    // }
+
+    // return this.outputService.getOutputReassignedBooking(reassigned);
+
+    const newBooking = await bookingService.getBookingById(Number(id));
+    
+    if (!newBooking) {
+      return ResponseFormatter.error(reply, 'Booking not rescheduled', 500);
+    }
+
+    return ResponseFormatter.success(reply, {
+      bookingId: newBooking.id,
+    }, 'Booking rescheduled');
   })
 }

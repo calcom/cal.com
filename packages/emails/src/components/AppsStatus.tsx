@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-
+import React from "react"
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";

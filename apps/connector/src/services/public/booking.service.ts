@@ -6,6 +6,7 @@ import { BaseService } from "../base.service";
 import { BookingRepository } from "@/repositories/booking.repository";
 import { EventTypeRepository, OAuthClientRepository } from "@/repositories";
 import { PlatformOAuthClient } from "@calcom/prisma/client";
+import type { RescheduleBookingInput } from "@calcom/platform-types";
 
 export class BookingService extends BaseService {
   private bookingRepository: BookingRepository;
@@ -86,5 +87,97 @@ export class BookingService extends BaseService {
       this.logError("eventTypeExists", error);
       throw error;
     }
+  }
+
+  async buildRescheduleBookingRequest(params: {
+    originalBookingId: number;
+    body: RescheduleBookingInput & { rescheduledBy?: string };
+    headers: Record<string, string | undefined>;
+  }): Promise<{
+    body: Record<string, unknown>;
+    userId: number | undefined;
+    headers: { host?: string };
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+    platformBookingLocation?: string | undefined;
+    arePlatformEmailsEnabled: boolean;
+    areCalendarEventsEnabled: boolean;
+  }> {
+    const { originalBookingId, body, headers } = params;
+
+    const booking = await this.bookingRepository.getBookingById(originalBookingId);
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+    if (!booking.eventTypeId) {
+      throw new Error("Booking is missing event type");
+    }
+
+    // Fetch event type to get duration and defaults
+    const eventType = await this.eventTypesRepository.findById(booking.eventTypeId);
+    if (!eventType) {
+      throw new Error("Event type not found");
+    }
+
+    // Determine attendee context from original booking
+    const firstAttendee = booking.attendees?.[0];
+    const responses = (booking as any).responses || {};
+    const attendeeEmail: string | undefined = responses.email || firstAttendee?.email;
+    const attendeeName: string | undefined = responses.name || firstAttendee?.name;
+    const attendeePhoneNumber: string | undefined = responses.attendeePhoneNumber || firstAttendee?.phoneNumber;
+    const attendeeTimeZone: string | undefined = firstAttendee?.timeZone || (booking as any).timeZone || undefined;
+    const attendeeLanguage: string | undefined = firstAttendee?.locale || (booking as any).language || "en";
+
+    const startIso = (body as any).start as string;
+    if (!startIso) {
+      throw new Error("start is required to reschedule");
+    }
+
+    const lengthInMinutes = eventType.length || 0;
+    const startDate = new Date(startIso);
+    const endDate = new Date(startDate.getTime() + lengthInMinutes * 60 * 1000);
+
+    // OAuth client params (if any)
+    const platformClientParams = await this.getOAuthClientParams(eventType.id);
+
+    // Determine who is rescheduling; if different from attendee, omit for now (no users repository here)
+    const rescheduledBy = (body as any).rescheduledBy as string | undefined;
+    const resolvedUserId = undefined;
+
+    const rescheduleUid = (body as any).seatUid ? (body as any).seatUid : (booking as any).uid;
+
+    const transformedBody: Record<string, unknown> = {
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      eventTypeId: eventType.id,
+      timeZone: attendeeTimeZone,
+      language: attendeeLanguage,
+      metadata: (booking as any).metadata || {},
+      hasHashedBookingLink: false,
+      guests: responses.guests || [],
+      responses: {
+        ...responses,
+        name: attendeeName,
+        email: attendeeEmail,
+        attendeePhoneNumber,
+        rescheduledReason: (body as any).reschedulingReason,
+      },
+      rescheduleUid,
+    };
+
+    return {
+      body: transformedBody,
+      userId: resolvedUserId,
+      headers: { host: headers.host },
+      platformClientId: platformClientParams?.platformClientId,
+      platformRescheduleUrl: platformClientParams?.platformRescheduleUrl,
+      platformCancelUrl: platformClientParams?.platformCancelUrl,
+      platformBookingUrl: platformClientParams?.platformBookingUrl,
+      platformBookingLocation: (booking as any).location || undefined,
+      arePlatformEmailsEnabled: platformClientParams?.arePlatformEmailsEnabled ?? true,
+      areCalendarEventsEnabled: platformClientParams?.areCalendarEventsEnabled ?? true,
+    };
   }
 }

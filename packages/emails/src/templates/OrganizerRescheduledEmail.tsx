@@ -1,4 +1,5 @@
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
+import React from "react"
 
 export const OrganizerRescheduledEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => (
   <OrganizerScheduledEmail
