@@ -1,6 +1,7 @@
 import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
+import dynamic from "next/dynamic";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
