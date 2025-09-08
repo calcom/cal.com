@@ -3,33 +3,31 @@ import { describe, it, expect } from "vitest";
 import { findFieldValueByIdentifier } from "./findFieldValueByIdentifier";
 import type { RoutingFormResponseData } from "./responseData/types";
 
-const createMockRoutingFormResponseData = (
-  data: Partial<RoutingFormResponseData>
-): RoutingFormResponseData => {
-  return {
-    fields: [],
-    response: {},
-    ...data,
-  } as unknown as RoutingFormResponseData;
-};
-
 describe("findFieldValueByIdentifier", () => {
-  it("should return success when field is found", () => {
-    const data = createMockRoutingFormResponseData({
-      fields: [{ id: "name", type: "text", label: "Name" } as any],
-      response: { name: { value: "John" } } as any,
-    });
+  const responseData: RoutingFormResponseData = {
+    response: {
+      "field-123": { value: "test@example.com" },
+      "field-456": { value: "John Doe" },
+    },
+    fields: [
+      { id: "field-123", label: "E-mail", identifier: "email", type: "text" },
+      { id: "field-456", label: "Name", identifier: "name", type: "text" },
+    ],
+  };
 
-    const result = findFieldValueByIdentifier(data, "name");
-
-    expect(result).toEqual({ success: true, data: "John" });
+  it("returns the correct value for an existing field identifier", async () => {
+    const result = findFieldValueByIdentifier(responseData, "email");
+    expect(result.success).toBe(true);
+    // @ts-expect-error we know data is defined here
+    expect(result.data).toBe("test@example.com");
   });
 
-  it("should return error when field is not found", () => {
-    const data = createMockRoutingFormResponseData({ fields: [], response: {} as any });
+  it("throws an error and logs when identifier is not found", () => {
+    const invalidIdentifier = "unknown";
 
-    const result = findFieldValueByIdentifier(data, "nonexistent");
-
-    expect(result).toEqual({ success: false, error: "Field with identifier nonexistent not found" });
+    const result = findFieldValueByIdentifier(responseData, invalidIdentifier);
+    expect(result.success).toBe(false);
+    // @ts-expect-error we know error is defined here
+    expect(result.error).toBe(`Field with identifier ${invalidIdentifier} not found`);
   });
 });
