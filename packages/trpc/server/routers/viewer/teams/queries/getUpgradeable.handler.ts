@@ -32,7 +32,6 @@ export const getUpgradeableHandler = async ({ userId }: GetUpgradeableOptions) =
           id: true,
           name: true,
           slug: true,
-          logo: true,
           bio: true,
           hideBranding: true,
           isOrganization: true,
