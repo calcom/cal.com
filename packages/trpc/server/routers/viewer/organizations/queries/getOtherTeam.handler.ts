@@ -3,7 +3,7 @@ import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TGetOtherTeamInputSchema } from "./getOtherTeam.schema";
 
 type GetOptions = {

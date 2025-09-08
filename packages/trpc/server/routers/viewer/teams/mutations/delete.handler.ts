@@ -3,7 +3,7 @@ import { TeamService } from "@calcom/lib/server/service/teamService";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TDeleteInputSchema } from "./delete.schema";
 
 type DeleteOptions = {

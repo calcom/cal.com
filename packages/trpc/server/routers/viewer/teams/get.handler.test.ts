@@ -3,9 +3,10 @@
 // TODO: Bring this test back with the correct setup (no illegal imports)
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import getTeam from "./get.handler";
 
+// eslint-disable-next-line playwright/no-skipped-test
 describe.skip("getTeam", () => {
   beforeEach(() => {
     // Reset all mocks before each test
