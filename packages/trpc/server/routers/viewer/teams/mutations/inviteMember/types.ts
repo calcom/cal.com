@@ -12,5 +12,22 @@ export type InviteMemberOptions = {
 };
 
 export type TeamWithParent = Team & {
-  parent: Team | null;
+  parent:
+    | (Team & {
+        organizationSettings: {
+          id: number;
+          isOrganizationVerified: boolean;
+          isOrganizationConfigured: boolean;
+          orgAutoAcceptEmail: string | null;
+          isAdminAPIEnabled: boolean;
+        } | null;
+      })
+    | null;
+  organizationSettings: {
+    id: number;
+    isOrganizationVerified: boolean;
+    isOrganizationConfigured: boolean;
+    orgAutoAcceptEmail: string | null;
+    isAdminAPIEnabled: boolean;
+  } | null;
 };

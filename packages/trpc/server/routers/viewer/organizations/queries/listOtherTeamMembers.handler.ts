@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import z from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -8,16 +7,7 @@ import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
-
-export const ZListOtherTeamMembersSchema = z.object({
-  teamId: z.number(),
-  query: z.string().optional(),
-  limit: z.number(),
-  offset: z.number().optional(),
-  cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
-});
-
-export type TListOtherTeamMembersSchema = z.infer<typeof ZListOtherTeamMembersSchema>;
+import type { TListOtherTeamMembersSchema } from "./listOtherTeamMembers.schema";
 
 type ListOptions = {
   ctx: {

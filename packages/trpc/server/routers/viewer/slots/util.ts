@@ -61,7 +61,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots";
-import type { GetScheduleOptions } from "./types";
+import type { GetScheduleOptions } from "./queries/types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
@@ -84,7 +84,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  troubleshooter?: any;
+  troubleshooter?: Record<string, unknown>;
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -1174,7 +1174,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone!;
+          : restrictionSchedule.timeZone || "UTC";
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({

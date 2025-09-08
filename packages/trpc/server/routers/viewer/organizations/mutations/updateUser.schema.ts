@@ -3,7 +3,7 @@ import { z } from "zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { assignUserToAttributeSchema } from "../attributes/assignUserToAttribute.schema";
+import { assignUserToAttributeSchema } from "../../attributes/mutations/assignUserToAttribute.schema";
 
 export const ZUpdateUserInputSchema = z.object({
   userId: z.number(),

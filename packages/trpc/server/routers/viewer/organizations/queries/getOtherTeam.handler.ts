@@ -1,17 +1,10 @@
-import { z } from "zod";
-
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
-
-export const ZGetOtherTeamInputSchema = z.object({
-  teamId: z.number(),
-});
-
-export type TGetOtherTeamInputSchema = z.infer<typeof ZGetOtherTeamInputSchema>;
+import type { TGetOtherTeamInputSchema } from "./getOtherTeam.schema";
 
 type GetOptions = {
   ctx: {

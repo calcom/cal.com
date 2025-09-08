@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { reserveSlotSchema } from "./types";
+import { reserveSlotSchema } from "../queries/types";
 
 export const ZReserveSlotInputSchema = reserveSlotSchema;
 

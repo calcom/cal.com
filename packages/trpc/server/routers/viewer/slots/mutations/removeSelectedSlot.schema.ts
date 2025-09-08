@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { removeSelectedSlotSchema } from "./types";
+import { removeSelectedSlotSchema } from "../queries/types";
 
 export const ZRemoveSelectedSlotInputSchema = removeSelectedSlotSchema;
 
