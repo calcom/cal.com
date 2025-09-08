@@ -5,7 +5,7 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { prisma } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 
 type CheckForGCalOptions = {
   ctx: {
@@ -21,17 +21,6 @@ const credentialsSchema = z.object({
   id_token: z.string().optional(),
   scope: z.string().optional(),
 });
-
-export const checkForGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
-  const gWorkspacePresent = await prisma.credential.findFirst({
-    where: {
-      type: "google_workspace_directory",
-      userId: ctx.user.id,
-    },
-  });
-
-  return { id: gWorkspacePresent?.id };
-};
 
 export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
   const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
@@ -56,7 +45,7 @@ export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
 
   // Create a new instance of the Admin SDK directory API
   const directory = new admin_directory_v1.Admin({
-    auth: oAuth2Client as any,
+    auth: oAuth2Client,
   });
   const { data } = await directory.users.list({
     maxResults: 200, // Up this if we ever need to get more than 200 users
@@ -66,16 +55,4 @@ export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
   // We only want their email addresses
   const emails = data.users?.map((user) => user.primaryEmail as string) ?? ([] as string[]);
   return emails;
-};
-
-export const removeCurrentGoogleWorkspaceConnection = async ({ ctx }: CheckForGCalOptions) => {
-  // There should only ever be one google_workspace_directory credential per user but we delete many as we can't make type unique
-  const gWorkspacePresent = await prisma.credential.deleteMany({
-    where: {
-      type: "google_workspace_directory",
-      userId: ctx.user.id,
-    },
-  });
-
-  return { deleted: gWorkspacePresent?.count };
 };

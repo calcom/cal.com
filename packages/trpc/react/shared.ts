@@ -73,6 +73,8 @@ export const ENDPOINTS = [
   "webhook/mutations",
   "workflows",
   "googleWorkspace",
+  "googleWorkspace/queries",
+  "googleWorkspace/mutations",
   "oAuth",
   "oAuth/queries",
   "oAuth/mutations",
