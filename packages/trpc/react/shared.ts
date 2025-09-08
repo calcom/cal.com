@@ -28,6 +28,8 @@ export const ENDPOINTS = [
   "deploymentSetup/queries",
   "deploymentSetup/mutations",
   "dsync",
+  "dsync/queries",
+  "dsync/mutations",
   "eventTypes",
   "eventTypes/queries",
   "eventTypes/mutations",
