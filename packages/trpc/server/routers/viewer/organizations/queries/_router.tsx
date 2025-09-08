@@ -10,7 +10,7 @@ import { ZGetUserInput } from "./getUser.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.schema";
 
-export const organizationsQueriesRouter = router({
+export const organizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./getOrganizationOnboarding.handler");
     return handler(opts);

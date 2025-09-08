@@ -39,7 +39,7 @@ const checkDelegationCredentialFeature = async ({
   return next();
 };
 
-export const delegationCredentialQueriesRouter = router({
+export const delegationCredentialRouter = router({
   check: authedOrgAdminProcedure.query(async (opts) => {
     return await checkDelegationCredentialFeature({
       ctx: opts.ctx,

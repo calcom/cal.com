@@ -8,7 +8,7 @@ import {
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 
-export const filterSegmentsMutationsRouter = router({
+export const filterSegmentsRouter = router({
   create: authedProcedure.input(ZCreateFilterSegmentInputSchema).mutation(async ({ input, ctx }) => {
     const { createFilterSegmentHandler } = await import("./create.handler");
 

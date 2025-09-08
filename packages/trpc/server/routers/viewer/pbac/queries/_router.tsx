@@ -15,7 +15,7 @@ const permissionStringSchema = z.custom<PermissionString>((val) => {
   return isValidPermissionString(val);
 }, "Invalid permission string format. Must be 'resource.action' where resource and action are valid enums");
 
-export const pbacQueriesRouter = router({
+export const pbacRouter = router({
   getUserPermissions: authedProcedure.query(async ({ ctx }) => {
     if (!ctx.user?.id) return {};
 

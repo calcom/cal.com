@@ -2,7 +2,7 @@ import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { ZFindKeyOfTypeInputSchema } from "./findKeyOfType.schema";
 
-export const apiKeysQueriesRouter = router({
+export const apiKeysRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
     const { listHandler } = await import("./list.handler");
 

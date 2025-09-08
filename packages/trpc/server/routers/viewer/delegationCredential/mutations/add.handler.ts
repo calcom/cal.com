@@ -10,7 +10,7 @@ import {
   ensureDelegationCredentialNotAlreadyConfigured,
   ensureNoServiceAccountKey,
   handleDelegationCredentialError,
-} from "./utils";
+} from "../utils";
 
 export default async function handler({
   input,

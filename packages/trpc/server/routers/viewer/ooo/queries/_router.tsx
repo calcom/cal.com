@@ -2,7 +2,7 @@ import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { ZOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
 
-export const oooQueriesRouter = router({
+export const oooRouter = router({
   outOfOfficeEntriesList: authedProcedure.input(ZOutOfOfficeEntriesListSchema).query(async (opts) => {
     const { outOfOfficeEntriesList } = await import("./outOfOfficeEntriesList.handler");
     return outOfOfficeEntriesList(opts);

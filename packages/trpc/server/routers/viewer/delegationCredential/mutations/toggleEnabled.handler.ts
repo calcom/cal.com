@@ -9,7 +9,7 @@ import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegation
 
 import { getAffectedMembersForDisable } from "./getAffectedMembersForDisable.handler";
 import type { DelegationCredentialToggleEnabledSchema } from "./schema";
-import { ensureNoServiceAccountKey } from "./utils";
+import { ensureNoServiceAccountKey } from "../utils";
 
 const log = logger.getSubLogger({ prefix: ["viewer", "delegationCredential", "toggleEnabled"] });
 

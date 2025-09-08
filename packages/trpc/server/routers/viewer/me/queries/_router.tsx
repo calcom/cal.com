@@ -2,7 +2,7 @@ import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { get } from "../procedures/get";
 
-export const meQueriesRouter = router({
+export const meRouter = router({
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
     const handler = (await import("./bookingUnconfirmedCount.handler")).bookingUnconfirmedCountHandler;
     return handler({ ctx });

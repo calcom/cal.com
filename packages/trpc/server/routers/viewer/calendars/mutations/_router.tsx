@@ -4,7 +4,7 @@ import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 
-export const calendarsMutationsRouter = router({
+export const calendarsRouter = router({
   setDestinationCalendar: authedProcedure
     .input(ZSetDestinationCalendarInputSchema)
     .mutation(async ({ ctx, input }) => {

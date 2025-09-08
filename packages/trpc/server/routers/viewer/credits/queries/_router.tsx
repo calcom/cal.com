@@ -3,7 +3,7 @@ import { router } from "../../../../trpc";
 import { ZDownloadExpenseLogSchema } from "./downloadExpenseLog.schema";
 import { ZGetAllCreditsSchema } from "./getAllCredits.schema";
 
-export const creditsQueriesRouter = router({
+export const creditsRouter = router({
   getAllCredits: authedProcedure.input(ZGetAllCreditsSchema).query(async ({ input, ctx }) => {
     const { getAllCreditsHandler } = await import("./getAllCredits.handler");
 

@@ -6,7 +6,7 @@ import { ZGetInputSchema } from "./get.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 
-export const bookingsQueriesRouter = router({
+export const bookingsRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
     const { getHandler } = await import("./get.handler");
 

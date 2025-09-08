@@ -5,7 +5,7 @@ import { router } from "../../../../trpc";
 import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 
-export const slotsMutationsRouter = router({
+export const slotsRouter = router({
   reserveSlot: publicProcedure.input(ZReserveSlotInputSchema).mutation(async ({ input, ctx }) => {
     const { reserveSlotHandler } = await import("./reserveSlot.handler");
 

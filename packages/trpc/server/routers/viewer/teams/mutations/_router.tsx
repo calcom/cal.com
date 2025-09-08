@@ -22,7 +22,7 @@ import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
-export const teamsMutationsRouter = router({
+export const teamsRouter = router({
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./create.handler");
     return handler(opts);

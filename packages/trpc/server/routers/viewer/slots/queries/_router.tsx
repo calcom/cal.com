@@ -5,7 +5,7 @@ import { router } from "../../../../trpc";
 import { ZIsAvailableInputSchema, ZIsAvailableOutputSchema } from "./isAvailable.schema";
 import { ZGetScheduleInputSchema } from "./types";
 
-export const slotsQueriesRouter = router({
+export const slotsRouter = router({
   getSchedule: publicProcedure.input(ZGetScheduleInputSchema).query(async ({ input, ctx }) => {
     const { getScheduleHandler } = await import("./getSchedule.handler");
 

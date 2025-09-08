@@ -5,7 +5,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZEditInputSchema } from "./edit.schema";
 import { ZTestTriggerInputSchema } from "./testTrigger.schema";
 
-export const webhookMutationsRouter = router({
+export const webhookRouter = router({
   create: webhookProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     const { createHandler } = await import("./create.handler");
 

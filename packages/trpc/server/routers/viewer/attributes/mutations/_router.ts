@@ -7,7 +7,7 @@ import { deleteAttributeSchema } from "./delete.schema";
 import { editAttributeSchema } from "./edit.schema";
 import { toggleActiveSchema } from "./toggleActive.schema";
 
-export const attributesMutationsRouter = router({
+export const attributesRouter = router({
   create: authedOrgAdminProcedure.input(createAttributeSchema).mutation(async ({ ctx, input }) => {
     const { default: handler } = await import("./create.handler");
     return handler({ ctx, input });

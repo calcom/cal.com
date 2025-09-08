@@ -7,7 +7,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
-export const eventTypesMutationsRouter = router({
+export const eventTypesRouter = router({
   delete: eventOwnerProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
     const { deleteHandler } = await import("./delete.handler");
 

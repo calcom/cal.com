@@ -332,7 +332,7 @@ const TeamRolesNavItem = ({
 };
 
 const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: teams } = trpc.viewer.teams.queries.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();

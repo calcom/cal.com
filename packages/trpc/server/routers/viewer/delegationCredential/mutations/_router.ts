@@ -44,7 +44,7 @@ const checkDelegationCredentialFeature = async ({
   return next();
 };
 
-export const delegationCredentialMutationsRouter = router({
+export const delegationCredentialRouter = router({
   update: authedOrgAdminProcedure
     .use(checkDelegationCredentialFeature)
     .input(DelegationCredentialUpdateSchema)

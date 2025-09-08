@@ -3,7 +3,7 @@ import { router } from "../../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 
-export const dsyncMutationsRouter = router({
+export const dsyncRouter = router({
   // Create directory sync connection
   create: authedOrgAdminProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./create.handler");

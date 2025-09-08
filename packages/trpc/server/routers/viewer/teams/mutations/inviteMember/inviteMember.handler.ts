@@ -16,7 +16,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
-import type { Invitation } from "./utils";
+import type { Invitation } from "../utils";
 import {
   ensureAtleastAdminPermissions,
   findUsersWithInviteStatus,
@@ -27,7 +27,7 @@ import {
   handleExistingUsersInvites,
   handleNewUsersInvites,
   INVITE_STATUS,
-} from "./utils";
+} from "../utils";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
 

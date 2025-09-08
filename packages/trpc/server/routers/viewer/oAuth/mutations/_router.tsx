@@ -4,7 +4,7 @@ import { router } from "../../../../trpc";
 import { ZAddClientInputSchema } from "./addClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 
-export const oAuthMutationsRouter = router({
+export const oAuthRouter = router({
   addClient: authedAdminProcedure.input(ZAddClientInputSchema).mutation(async ({ input }) => {
     const { addClientHandler } = await import("./addClient.handler");
 

@@ -15,7 +15,7 @@ import {
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
 
-export const adminMutationsRouter = router({
+export const adminRouter = router({
   sendPasswordReset: authedAdminProcedure.input(ZAdminPasswordResetSchema).mutation(async (opts) => {
     const { default: handler } = await import("./sendPasswordReset.handler");
     return handler(opts);

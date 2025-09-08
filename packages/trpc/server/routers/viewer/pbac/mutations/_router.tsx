@@ -21,7 +21,7 @@ const roleInputSchema = z.object({
   permissions: z.array(permissionStringSchema),
 });
 
-export const pbacMutationsRouter = router({
+export const pbacRouter = router({
   createRole: authedProcedure.input(roleInputSchema).mutation(async ({ ctx, input }) => {
     if (!ctx.user?.id) {
       throw new Error("Unauthorized");

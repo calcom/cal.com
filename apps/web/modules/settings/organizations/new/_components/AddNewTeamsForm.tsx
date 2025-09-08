@@ -33,7 +33,7 @@ const schema = z.object({
 });
 
 export const AddNewTeamsForm = () => {
-  const { data: teams, isLoading } = trpc.viewer.teams.listOwnedTeams.useQuery();
+  const { data: teams, isLoading } = trpc.viewer.teams.queries.listOwnedTeams.useQuery();
 
   if (isLoading) {
     return (

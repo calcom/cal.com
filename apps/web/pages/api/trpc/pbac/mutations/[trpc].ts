@@ -1,4 +1,4 @@
 import { createNextApiHandler } from "@calcom/trpc/server/createNextApiHandler";
-import { pbacMutationsRouter } from "@calcom/trpc/server/routers/viewer/pbac/mutations/_router";
+import { pbacRouter } from "@calcom/trpc/server/routers/viewer/pbac/mutations/_router";
 
-export default createNextApiHandler(pbacMutationsRouter);
+export default createNextApiHandler(pbacRouter);

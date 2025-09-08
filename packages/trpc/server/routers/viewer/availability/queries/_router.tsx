@@ -4,7 +4,7 @@ import { ZCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 import { ZListTeamAvailaiblityScheme } from "./listTeamAvailability.schema";
 import { ZUserInputSchema } from "./user.schema";
 
-export const availabilityQueriesRouter = router({
+export const availabilityRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
     const { listHandler } = await import("./list.handler");
 

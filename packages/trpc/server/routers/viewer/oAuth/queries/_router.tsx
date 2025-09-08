@@ -2,7 +2,7 @@ import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { ZGetClientInputSchema } from "./getClient.schema";
 
-export const oAuthQueriesRouter = router({
+export const oAuthRouter = router({
   getClient: authedProcedure.input(ZGetClientInputSchema).query(async ({ input }) => {
     const { getClientHandler } = await import("./getClient.handler");
 

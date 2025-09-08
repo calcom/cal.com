@@ -1,7 +1,7 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 
-export const googleWorkspaceMutationsRouter = router({
+export const googleWorkspaceRouter = router({
   getUsersFromGWorkspace: authedProcedure.mutation(async ({ ctx }) => {
     const { getUsersFromGWorkspace } = await import("./getUsersFromGWorkspace.handler");
 

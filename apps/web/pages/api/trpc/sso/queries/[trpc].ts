@@ -1,4 +1,4 @@
 import { createNextApiHandler } from "@calcom/trpc/server/createNextApiHandler";
-import { ssoQueriesRouter } from "@calcom/trpc/server/routers/viewer/sso/queries/_router";
+import { ssoRouter } from "@calcom/trpc/server/routers/viewer/sso/queries/_router";
 
-export default createNextApiHandler(ssoQueriesRouter);
+export default createNextApiHandler(ssoRouter);

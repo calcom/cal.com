@@ -4,15 +4,15 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateOIDCInputSchema } from "./updateOIDC.schema";
 
-type SSOMutationsRouterHandlerCache = {
+type SSORouterHandlerCache = {
   update?: typeof import("./update.handler").updateHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
   updateOIDC?: typeof import("./updateOIDC.handler").updateOIDCHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: SSOMutationsRouterHandlerCache = {};
+const UNSTABLE_HANDLER_CACHE: SSORouterHandlerCache = {};
 
-export const ssoMutationsRouter = router({
+export const ssoRouter = router({
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.update) {
       UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);

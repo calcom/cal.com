@@ -6,7 +6,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZImportInputSchema } from "./import.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
-export const phoneNumberMutationsRouter = router({
+export const phoneNumberRouter = router({
   buy: authedProcedure.input(ZBuyInputSchema).mutation(async ({ ctx, input }) => {
     const { buyHandler } = await import("./buy.handler");
 

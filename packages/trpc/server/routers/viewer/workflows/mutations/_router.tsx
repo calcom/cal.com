@@ -9,7 +9,7 @@ import { ZVerifyEmailCodeInputSchema } from "./verifyEmailCode.schema";
 import { ZVerifyPhoneNumberInputSchema } from "./verifyPhoneNumber.schema";
 import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
 
-export const workflowsMutationsRouter = router({
+export const workflowsRouter = router({
   create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     const { createHandler } = await import("./create.handler");
     return createHandler({

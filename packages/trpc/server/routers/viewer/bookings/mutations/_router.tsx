@@ -6,7 +6,7 @@ import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 
-export const bookingsMutationsRouter = router({
+export const bookingsRouter = router({
   requestReschedule: authedProcedure.input(ZRequestRescheduleInputSchema).mutation(async ({ input, ctx }) => {
     const { requestRescheduleHandler } = await import("./requestReschedule.handler");
 

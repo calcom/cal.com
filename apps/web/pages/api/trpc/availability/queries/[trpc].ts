@@ -1,4 +1,4 @@
 import { createNextApiHandler } from "@calcom/trpc/server/createNextApiHandler";
-import { availabilityQueriesRouter } from "@calcom/trpc/server/routers/viewer/availability/queries/_router";
+import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/queries/_router";
 
-export default createNextApiHandler(availabilityQueriesRouter);
+export default createNextApiHandler(availabilityRouter);

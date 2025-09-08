@@ -8,7 +8,7 @@ import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 
-export const eventTypesQueriesRouter = router({
+export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
   getByViewer: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {
     const { getByViewerHandler } = await import("./getByViewer.handler");

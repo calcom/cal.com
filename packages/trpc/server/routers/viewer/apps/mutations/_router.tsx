@@ -6,7 +6,7 @@ import { ZToggleInputSchema } from "./toggle.schema";
 import { ZUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
 import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 
-export const appsMutationsRouter = router({
+export const appsRouter = router({
   toggle: authedAdminProcedure.input(ZToggleInputSchema).mutation(async ({ ctx, input }) => {
     const { toggleHandler } = await import("./toggle.handler");
     return toggleHandler({

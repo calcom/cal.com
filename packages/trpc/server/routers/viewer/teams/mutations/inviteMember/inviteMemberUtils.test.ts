@@ -7,8 +7,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TeamWithParent } from "./types";
-import type { UserWithMembership } from "./utils";
-import { INVITE_STATUS } from "./utils";
+import type { UserWithMembership } from "../utils";
+import { INVITE_STATUS } from "../utils";
 import {
   ensureAtleastAdminPermissions,
   getUniqueInvitationsOrThrowIfEmpty,
@@ -17,7 +17,7 @@ import {
   canBeInvited,
   getAutoJoinStatus,
   checkInputEmailIsValid,
-} from "./utils";
+} from "../utils";
 
 vi.mock("@calcom/lib/server/queries/teams", () => {
   return {

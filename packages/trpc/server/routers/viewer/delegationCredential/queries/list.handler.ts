@@ -2,7 +2,7 @@ import { DelegationCredentialRepository } from "@calcom/lib/server/repository/de
 import { encryptedServiceAccountKeySchema } from "@calcom/lib/server/serviceAccountKey";
 import type { PrismaClient } from "@calcom/prisma";
 
-import { ensureNoServiceAccountKey } from "./utils";
+import { ensureNoServiceAccountKey } from "../utils";
 
 export default async function handler({
   ctx,

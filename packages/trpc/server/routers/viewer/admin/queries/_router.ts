@@ -2,7 +2,7 @@ import { authedAdminProcedure } from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { ZListMembersSchema } from "./listPaginated.schema";
 
-export const adminQueriesRouter = router({
+export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
     const { default: handler } = await import("./listPaginated.handler");
     return handler(opts);

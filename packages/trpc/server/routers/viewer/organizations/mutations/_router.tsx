@@ -24,7 +24,7 @@ import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
 
-export const organizationsMutationsRouter = router({
+export const organizationsRouter = router({
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./create.handler");
     return handler(opts);

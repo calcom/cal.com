@@ -4,7 +4,7 @@ import { router } from "../../../../trpc";
 import { ZFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 import { ZResponseInputSchema } from "./response.schema";
 
-export const routingFormsMutationsRouter = router({
+export const routingFormsRouter = router({
   findTeamMembersMatchingAttributeLogicOfRoute: authedProcedure
     .input(ZFindTeamMembersMatchingAttributeLogicOfRouteInputSchema)
     .mutation(async ({ ctx, input }) => {

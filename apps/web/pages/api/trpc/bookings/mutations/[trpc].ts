@@ -1,4 +1,4 @@
 import { createNextApiHandler } from "@calcom/trpc/server/createNextApiHandler";
-import { bookingsMutationsRouter } from "@calcom/trpc/server/routers/viewer/bookings/mutations/_router";
+import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/mutations/_router";
 
-export default createNextApiHandler(bookingsMutationsRouter);
+export default createNextApiHandler(bookingsRouter);

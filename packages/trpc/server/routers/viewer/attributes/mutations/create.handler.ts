@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { ZCreateAttributeSchema } from "./create.schema";
-import { getOptionsWithValidContains } from "./utils";
+import { getOptionsWithValidContains } from "../utils";
 
 type GetOptions = {
   ctx: {

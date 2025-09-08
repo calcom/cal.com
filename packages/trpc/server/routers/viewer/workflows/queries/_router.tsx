@@ -7,7 +7,7 @@ import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
 import { ZListInputSchema } from "./list.schema";
 
-export const workflowsQueriesRouter = router({
+export const workflowsRouter = router({
   list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
     const { listHandler } = await import("./list.handler");
     return listHandler({

@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/queries/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

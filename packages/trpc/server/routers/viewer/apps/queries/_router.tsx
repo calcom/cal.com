@@ -8,7 +8,7 @@ import { ZListLocalInputSchema } from "./listLocal.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 
-export const appsQueriesRouter = router({
+export const appsRouter = router({
   appById: authedProcedure.input(ZAppByIdInputSchema).query(async ({ ctx, input }) => {
     const { appByIdHandler } = await import("./appById.handler");
     return appByIdHandler({ ctx, input });

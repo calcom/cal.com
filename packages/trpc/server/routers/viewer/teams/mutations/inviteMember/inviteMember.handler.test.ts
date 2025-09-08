@@ -20,7 +20,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../../../types";
 import inviteMemberHandler from "./inviteMember.handler";
-import { INVITE_STATUS } from "./utils";
+import { INVITE_STATUS } from "../utils";
 
 vi.mock("@trpc/server", () => {
   return {

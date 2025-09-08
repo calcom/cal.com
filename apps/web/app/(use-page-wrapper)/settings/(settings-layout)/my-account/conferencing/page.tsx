@@ -3,7 +3,7 @@ import { _generateMetadata } from "app/_utils";
 
 import { ConferencingAppsViewWebWrapper } from "@calcom/atoms/connect/conferencing-apps/ConferencingAppsViewWebWrapper";
 import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/queries/_router";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

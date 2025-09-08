@@ -39,7 +39,7 @@ export const CreateTeamEventType = () => {
     );
   };
 
-  const { data: team } = trpc.viewer.teams.get.useQuery(
+  const { data: team } = trpc.viewer.teams.queries.get.useQuery(
     { teamId: teamId ?? -1, isOrg: false },
     { enabled: !!teamId }
   );

@@ -6,7 +6,7 @@ import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/works
 import { TRPCError } from "@trpc/server";
 
 import type { workspacePlatformCreateSchema } from "./schema";
-import { ensureNoServiceAccountKey } from "./utils";
+import { ensureNoServiceAccountKey } from "../utils";
 
 export default async function addHandler({
   input,

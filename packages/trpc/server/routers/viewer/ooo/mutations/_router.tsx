@@ -3,7 +3,7 @@ import { router } from "../../../../trpc";
 import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 import { ZOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
 
-export const oooMutationsRouter = router({
+export const oooRouter = router({
   outOfOfficeCreateOrUpdate: authedProcedure
     .input(ZOutOfOfficeInputSchema)
     .mutation(async ({ ctx, input }) => {

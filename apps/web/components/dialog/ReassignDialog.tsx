@@ -77,7 +77,7 @@ export const ReassignDialog = ({
   const debouncedSearch = useDebounce(searchTerm, 500);
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
-    trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
+    trpc.viewer.teams.queries.getRoundRobinHostsToReassign.useInfiniteQuery(
       {
         bookingId,
         exclude: "fixedHosts",
@@ -114,7 +114,7 @@ export const ReassignDialog = ({
     },
   });
 
-  const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
+  const roundRobinReassignMutation = trpc.viewer.teams.queries.roundRobinReassign.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
@@ -129,7 +129,7 @@ export const ReassignDialog = ({
     },
   });
 
-  const roundRobinManualReassignMutation = trpc.viewer.teams.roundRobinManualReassign.useMutation({
+  const roundRobinManualReassignMutation = trpc.viewer.teams.queries.roundRobinManualReassign.useMutation({
     onSuccess: async () => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);

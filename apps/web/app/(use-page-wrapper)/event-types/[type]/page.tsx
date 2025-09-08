@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/queries/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

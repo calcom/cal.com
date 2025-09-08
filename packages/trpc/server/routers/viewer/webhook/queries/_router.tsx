@@ -3,7 +3,7 @@ import { webhookProcedure } from "../util";
 import { ZGetInputSchema } from "./get.schema";
 import { ZListInputSchema } from "./list.schema";
 
-export const webhookQueriesRouter = router({
+export const webhookRouter = router({
   list: webhookProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
     const { listHandler } = await import("./list.handler");
 

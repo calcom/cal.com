@@ -4,7 +4,7 @@ import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schem
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZGetMeetingInformationInputSchema } from "./getMeetingInformation.schema";
 
-export const calVideoQueriesRouter = router({
+export const calVideoRouter = router({
   getCalVideoRecordings: authedProcedure
     .input(ZGetCalVideoRecordingsInputSchema)
     .query(async ({ ctx, input }) => {

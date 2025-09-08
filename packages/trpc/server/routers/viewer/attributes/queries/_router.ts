@@ -4,7 +4,7 @@ import { ZFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMem
 import { getAttributeSchema } from "./get.schema";
 import { getByUserIdSchema } from "./getByUserId.schema";
 
-export const attributesQueriesRouter = router({
+export const attributesRouter = router({
   list: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./list.handler");
     return handler(opts);

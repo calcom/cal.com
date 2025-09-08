@@ -3,7 +3,7 @@ import { router } from "../../../../trpc";
 import { ZGetInputSchema } from "./get.schema";
 import { ZListInputSchema } from "./list.schema";
 
-export const aiVoiceAgentQueriesRouter = router({
+export const aiVoiceAgentRouter = router({
   list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
     const { listHandler } = await import("./list.handler");
 

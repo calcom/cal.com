@@ -8,7 +8,7 @@ import { ZResendVerifyEmailSchema } from "./resendVerifyEmail.schema";
 import { ZSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
 
-export const authMutationsRouter = router({
+export const authRouter = router({
   changePassword: authedProcedure.input(ZChangePasswordInputSchema).mutation(async ({ input, ctx }) => {
     const { changePasswordHandler } = await import("./changePassword.handler");
 

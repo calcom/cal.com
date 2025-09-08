@@ -13,7 +13,7 @@ import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 
-export const teamsQueriesRouter = router({
+export const teamsRouter = router({
   // Retrieves team by id
   get: authedProcedure.input(ZGetSchema).query(async (opts) => {
     const { default: handler } = await import("./get.handler");

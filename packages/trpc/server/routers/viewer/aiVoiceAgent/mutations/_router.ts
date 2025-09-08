@@ -5,7 +5,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZTestCallInputSchema } from "./testCall.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
-export const aiVoiceAgentMutationsRouter = router({
+export const aiVoiceAgentRouter = router({
   create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     const { createHandler } = await import("./create.handler");
 
