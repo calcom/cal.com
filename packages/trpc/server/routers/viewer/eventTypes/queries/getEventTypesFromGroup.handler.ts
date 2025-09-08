@@ -7,8 +7,8 @@ import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../../types";
+import { mapEventType } from "../util";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
-import { mapEventType } from "./util";
 
 type GetByViewerOptions = {
   ctx: {

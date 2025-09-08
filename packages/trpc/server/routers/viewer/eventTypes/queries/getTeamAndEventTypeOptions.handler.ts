@@ -10,7 +10,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
-import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
+import { listOtherTeamHandler } from "../../organizations/queries/listOtherTeams.handler";
 import type { TGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 
 type GetTeamAndEventTypeOptions = {
