@@ -3,6 +3,8 @@ export * from "@trpc/react-query/shared";
 export const ENDPOINTS = [
   "loggedInViewerRouter",
   "admin",
+  "admin/queries",
+  "admin/mutations",
   "apiKeys",
   "appRoutingForms",
   "apps",
