@@ -1,11 +1,11 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
   CredentialsWithUserEmail,
 } from "@/modules/credentials/credentials.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { RedisService } from "@/modules/redis/redis.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
@@ -28,12 +28,6 @@ import {
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
-export const REDIS_CALENDARS_CACHE_KEY = (userId: number) => `apiv2:user:${userId}:calendars`;
-
-type ConnectedDestinationCalendars = Awaited<
-  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
->;
-
 @Injectable()
 export class CalendarsService {
   private oAuthCalendarResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
@@ -45,7 +39,7 @@ export class CalendarsService {
     private readonly calendarsRepository: CalendarsRepository,
     private readonly dbWrite: PrismaWriteService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly redisService: RedisService
+    private readonly calendarsCacheService: CalendarsCacheService
   ) {}
 
   private buildNonDelegationCredentials<TCredential>(credentials: TCredential[]) {
@@ -60,7 +54,7 @@ export class CalendarsService {
   }
 
   async getCalendars(userId: number) {
-    const cachedResult = await this.getCalendarCache(userId);
+    const cachedResult = await this.calendarsCacheService.getConnectedAndDestinationCalendarsCache(userId);
 
     if (cachedResult) {
       return cachedResult;
@@ -83,7 +77,7 @@ export class CalendarsService {
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
     console.log("saving cache", JSON.stringify(result));
-    await this.setCalendarCache(userId, result);
+    await this.calendarsCacheService.setConnectedAndDestinationCalendarsCache(userId, result);
 
     return result;
   }
@@ -206,26 +200,11 @@ export class CalendarsService {
       calendarType
     );
 
-    await this.deleteCalendarCache(userId);
+    await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
   }
 
-  async deleteCalendarCache(userId: number) {
-    await this.redisService.del(REDIS_CALENDARS_CACHE_KEY(userId));
-  }
-
-  async getCalendarCache(userId: number) {
-    const cachedResult = await this.redisService.get<ConnectedDestinationCalendars>(
-      REDIS_CALENDARS_CACHE_KEY(userId)
-    );
-    return cachedResult;
-  }
-
-  async setCalendarCache(userId: number, calendars: ConnectedDestinationCalendars) {
-    await this.redisService.set(
-      REDIS_CALENDARS_CACHE_KEY(userId),
-      JSON.stringify(calendars),
-      { ttl: 10000 } // 10 sec
-    );
+  async deleteConnectedAndDestinationCalendarsCache(userId: number) {
+    await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
   }
 
   async checkCalendarCredentialValidity(userId: number, credentialId: number, type: string) {
