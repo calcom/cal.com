@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { RetellWebClient } from "retell-client-js-sdk";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -53,9 +52,8 @@ export function WebCallDialog({
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const callStatusRef = useRef<CallStatus>("idle");
-  const isEmbed = useIsEmbed();
 
-  const { data: creditsData, isLoading: creditsLoading } = trpc.viewer.credits.getAllCredits.useQuery(
+  const { data: hasCredits, isLoading: creditsLoading } = trpc.viewer.credits.hasAvailableCredits.useQuery(
     { teamId },
     { enabled: open }
   );
@@ -64,12 +62,6 @@ export function WebCallDialog({
     if (!teamId) return "/settings/billing";
     return isOrganization ? "/settings/organizations/billing" : `/settings/teams/${teamId}/billing`;
   };
-
-  const totalAvailableCredits = creditsData
-    ? (creditsData.credits.totalRemainingMonthlyCredits || 0) + (creditsData.credits.additionalCredits || 0)
-    : 0;
-  const hasCredits = creditsData ? totalAvailableCredits > 0 : false;
-  const creditsAmount = totalAvailableCredits;
 
   const createWebCallMutation = trpc.viewer.aiVoiceAgent.createWebCall.useMutation({
     onSuccess: async (data) => {
@@ -285,15 +277,11 @@ export function WebCallDialog({
   };
 
   useEffect(() => {
-    if (isEmbed) {
-      return;
-    }
-
     if (transcriptEndRef.current) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed
       transcriptEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [transcript, isEmbed]);
+  }, [transcript]);
 
   useEffect(() => {
     return () => {
@@ -362,7 +350,7 @@ export function WebCallDialog({
             title={t("credits_required")}
             message={
               hasCredits ? (
-                t("web_call_credits_info", { credits: creditsAmount })
+                t("web_call_credits_info")
               ) : (
                 <>
                   {t("web_call_no_credits")}{" "}

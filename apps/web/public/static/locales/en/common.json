@@ -3623,7 +3623,7 @@
   "search_variables": "Search variables",
   "no_variables_found": "No variables found",
   "credits_required": "Credits Required",
-  "web_call_credits_info": "Web calls consume credits. You have {{credits}} credits remaining.",
+  "web_call_credits_info": "Web calls consume credits. Make sure you have enough credits to start a call.",
   "web_call_no_credits": "Web calls require credits. You have 0 credits remaining.",
   "purchase_credits": "Purchase Credits",
   "credits_required_tooltip": "This action requires credits to proceed",
