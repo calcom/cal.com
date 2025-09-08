@@ -10,6 +10,7 @@ type CreditsCache = {
   getAllCredits?: typeof import("./getAllCredits.handler").getAllCreditsHandler;
   buyCredits?: typeof import("./buyCredits.handler").buyCreditsHandler;
   downloadExpenseLog?: typeof import("./downloadExpenseLog.handler").downloadExpenseLogHandler;
+  hasAvailableCredits?: typeof import("./hasAvailableCredits.handler").hasAvailableCreditsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: CreditsCache = {};
