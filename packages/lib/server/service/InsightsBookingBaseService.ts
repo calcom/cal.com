@@ -654,7 +654,7 @@ export class InsightsBookingBaseService {
       SELECT
         DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
         "timeStatus",
-        "noShowHost",
+        COALESCE("noShowHost", false) AS "noShowHost",
         COUNT(*) as "bookingsCount"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
@@ -665,7 +665,7 @@ export class InsightsBookingBaseService {
       SELECT
         DATE(b."createdAt" AT TIME ZONE ${timeZone}) as "date",
         b."timeStatus",
-        b."noShowHost",
+        COALESCE(b."noShowHost", false) AS "noShowHost",
         COUNT(CASE WHEN a."noShow" = true THEN 1 END) as "noShowGuests"
       FROM "BookingTimeStatusDenormalized" b
       INNER JOIN "Attendee" a ON a."bookingId" = b.id
