@@ -43,7 +43,7 @@ export const bookingCancelSchema = z.object({
   id: z.number(),
   allRemainingBookings: z.boolean().optional(),
   cancelSubsequentBookings: z.boolean().optional(),
-  cancellationReason: z.string().optional(),
+  cancellationReason: z.string().optional().min(1),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
