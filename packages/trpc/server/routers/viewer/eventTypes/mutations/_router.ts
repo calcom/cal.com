@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
-import { eventOwnerProcedure } from "../util";
+import { eventOwnerProcedure } from "../../util";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
