@@ -11,13 +11,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { ServerTeamsListing } from "./server-page";
 
-// Just execute the dynamic imports without assigning to variables
-dynamic(() => import("@calcom/features/ee/teams/components/TeamsListing").then((mod) => mod.TeamsListing), {
-  loading: () => <div>Loading teams list...</div>,
-});
-
-dynamic(() => import("./CTA").then((mod) => mod.TeamsCTA));
-
+// <lines 14–20 have been removed; no-op dynamic() calls are gone>
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("teams"),
