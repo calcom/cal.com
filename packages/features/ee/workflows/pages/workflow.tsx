@@ -154,6 +154,7 @@ function WorkflowPage({
 
   const handleNameSubmit = () => {
     form.setValue("name", nameValue);
+    setIsEditingName(false);
   };
 
   const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -424,15 +425,15 @@ function WorkflowPage({
                     onChange={handleNameChange}
                     onKeyDown={handleNameKeyDown}
                     onBlur={handleNameSubmit}
-                    className="text-default h-auto w-full whitespace-nowrap border-none p-0 pl-1 text-sm font-semibold leading-none focus:ring-0"
+                    className="text-default focus:shadow-outline-gray-focused h-auto w-full whitespace-nowrap border-none p-1 text-sm font-semibold leading-none focus:ring-0"
                     autoFocus
                   />
                 ) : (
                   <div className="group flex items-center gap-1">
                     <span
-                      className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
+                      className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
                       onClick={() => setIsEditingName(true)}>
-                      {watchedName ? watchedName : isPending ? "Loading..." : t("untitled")}
+                      {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
                     </span>
                     <Button
                       variant="icon"

@@ -159,7 +159,7 @@ export default function WorkflowDetailsPage(props: Props) {
                       </div>
                     }
                     deleteField={
-                      !props.readOnly && (form.getValues("steps")?.length || 0) > 1
+                      !props.readOnly
                         ? {
                             check: () => true,
                             fn: () => {

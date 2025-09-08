@@ -7,6 +7,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
+import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
@@ -29,9 +30,6 @@ import classNames from "@calcom/ui/classNames";
 import { Badge, InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { AddVariablesDropdown } from "@calcom/ui/components/editor";
-import { Editor } from "@calcom/ui/components/editor";
-import { CheckboxField } from "@calcom/ui/components/form";
 import {
   Dropdown,
   DropdownItem,
@@ -39,6 +37,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { AddVariablesDropdown } from "@calcom/ui/components/editor";
+import { Editor } from "@calcom/ui/components/editor";
+import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
@@ -50,7 +51,6 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import {
   isSMSAction,
@@ -65,10 +65,10 @@ import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/ge
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
+import "../style/styles.css";
 import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
 import { TestAgentDialog } from "./TestAgentDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
-import { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -141,8 +141,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const utils = trpc.useUtils();
   const params = useParams();
 
-  const { step, form, reload, setReload, teamId, selectedOptions, setSelectedOptions, isOrganization, allOptions, agentData, isAgentLoading, isDeleteStepDialogOpen, setIsDeleteStepDialogOpen } =
-    props;
+  const {
+    step,
+    form,
+    reload,
+    setReload,
+    teamId,
+    selectedOptions,
+    setSelectedOptions,
+    isOrganization,
+    allOptions,
+    agentData,
+    isAgentLoading,
+    isDeleteStepDialogOpen,
+    setIsDeleteStepDialogOpen,
+  } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
     { enabled: !!teamId }
@@ -300,7 +313,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
@@ -457,12 +472,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           {selectedOptions && setSelectedOptions && allOptions && (
             <div className={classNames(!!timeSectionText && "mb-3")}>
               {isOrganization ? (
-                <div className="mb-2 flex items-center gap-2 text-default">
+                <div className="text-default mb-2 flex items-center gap-2">
                   <Label>{t("which_team_apply")}</Label>
                   <InfoBadge content={t("team_select_info")} />
                 </div>
               ) : (
-                <Label className="mb-2 block text-default">{t("which_event_type_apply")}</Label>
+                <Label className="text-default mb-2 block">{t("which_event_type_apply")}</Label>
               )}
               <Controller
                 name="activeOn"
@@ -507,7 +522,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
           {!!timeSectionText && (
             <div className="mt-3">
-              <Label className="mb-0 text-default">{timeSectionText}</Label>
+              <Label className="text-default mb-0">{timeSectionText}</Label>
               <TimeTimeUnitInput disabled={props.readOnly} />
               {!props.readOnly && (
                 <div className="mt-1 flex text-gray-500">
@@ -679,10 +694,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                       // Ensure the action is still set correctly after save
                       if (updatedStep.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
-                        form.setValue(
-                          `steps.${currentStepIndex}.action`,
-                          WorkflowActions.CAL_AI_PHONE_CALL
-                        );
+                        form.setValue(`steps.${currentStepIndex}.action`, WorkflowActions.CAL_AI_PHONE_CALL);
                       }
 
                       if (updatedStep && updatedStep.id) {
@@ -782,11 +794,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <div className="pt-4">
                       <div className="flex items-center">
                         <Label>{t("sender_id")}</Label>
-                        <Tooltip content={t("sender_id_info")}>
-                          <span>
-                            <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
-                          </span>
-                        </Tooltip>
+                        {/* <Tooltip content={t("sender_id_info")}> */}
+                        {/* </Tooltip> */}
                       </div>
                       <Input
                         type="text"
@@ -795,10 +804,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         maxLength={11}
                         {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                       />
+                      <div className="mt-1.5 flex items-center gap-1">
+                        <Icon name="info" size="10" className="text-gray-500" />
+                        <div className="text-subtle text-xs">{t("sender_id_info")}</div>
+                      </div>
                     </div>
                     {form.formState.errors.steps &&
                       form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                        <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                        <p className="text-error mt-1 text-xs">{t("sender_id_error_message")}</p>
                       )}
                   </>
                 ) : (
@@ -818,16 +831,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             )}
 
           {isPhoneNumberNeeded && (
-            <div className="bg-muted border-muted border rounded-2xl mt-3 p-4 pt-0">
+            <div className="bg-muted border-muted mt-3 rounded-2xl border p-4 pt-0">
               <Label className="pt-4">{t("custom_phone_number")}</Label>
-              <div className="block sm:flex">
+              <div className="block items-center gap-2 sm:flex">
                 <Controller
                   name={`steps.${step.stepNumber - 1}.sendTo`}
                   render={({ field: { value, onChange } }) => (
                     <PhoneInput
                       placeholder={t("phone_number")}
                       id={`steps.${step.stepNumber - 1}.sendTo`}
-                      className="min-w-fit w-full sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                      className="h-8 w-full min-w-fit rounded-xl"
+                      inputStyle={{ borderRadius: "10px", height: "30px" }}
+                      flagButtonStyle={{ borderTopLeftRadius: "10px", borderBottomLeftRadius: "10px" }}
                       required
                       disabled={props.readOnly}
                       value={value}
@@ -843,9 +858,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
                 <Button
                   color="secondary"
+                  size="sm"
                   disabled={numberVerified || props.readOnly || false}
                   className={classNames(
-                    "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                    "min-w-fit text-sm font-medium ",
                     numberVerified ? "hidden" : "mt-3 sm:mt-0"
                   )}
                   onClick={() =>
@@ -857,12 +873,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </Button>
               </div>
 
-              {form.formState.errors.steps &&
-                form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                  </p>
-                )}
+              {form.formState.errors.steps && form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                <p className="text-error mt-1 text-xs">
+                  {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                </p>
+              )}
               {numberVerified ? (
                 <div className="mt-1">
                   <Badge variant="green">{t("number_verified")}</Badge>
@@ -870,34 +885,39 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               ) : (
                 !props.readOnly && (
                   <>
-                    <div className="mt-3 flex">
-                      <TextField
-                        className="h-[36px] rounded-r-none border-r-transparent"
-                        placeholder="Verification code"
-                        disabled={props.readOnly}
-                        value={verificationCode}
-                        onChange={(e) => {
-                          setVerificationCode(e.target.value);
-                        }}
-                        required
-                      />
-                      <Button
-                        color="secondary"
-                        className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
-                        disabled={verifyPhoneNumberMutation.isPending || props.readOnly}
-                        onClick={() => {
-                          verifyPhoneNumberMutation.mutate({
-                            phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
-                            code: verificationCode,
-                            teamId,
-                          });
-                        }}>
-                        {t("verify")}
-                      </Button>
+                    <div className="mt-6 flex w-full flex-col">
+                      <Label className="">{t("verification_code")}</Label>
+                      <div className="flex w-full items-center">
+                        <TextField
+                          containerClassName="w-full"
+                          className="h-8 rounded-xl"
+                          placeholder={t("code")}
+                          disabled={props.readOnly}
+                          value={verificationCode}
+                          onChange={(e) => {
+                            setVerificationCode(e.target.value);
+                          }}
+                          required
+                        />
+                        <Button
+                          color="secondary"
+                          size="sm"
+                          className="ml-2 min-w-fit rounded-xl"
+                          disabled={verifyPhoneNumberMutation.isPending || props.readOnly}
+                          onClick={() => {
+                            verifyPhoneNumberMutation.mutate({
+                              phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                              code: verificationCode,
+                              teamId,
+                            });
+                          }}>
+                          {t("verify")}
+                        </Button>
+                      </div>
                     </div>
                     {form.formState.errors.steps &&
                       form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                        <p className="mt-1 text-xs text-red-500">
+                        <p className="text-error mt-1 text-xs">
                           {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                         </p>
                       )}
@@ -915,9 +935,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   render={() => (
                     <CheckboxField
                       disabled={props.readOnly}
-                      defaultChecked={
-                        form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
-                      }
+                      defaultChecked={form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false}
                       description={t("make_phone_number_required")}
                       onChange={(e) =>
                         form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
@@ -927,64 +945,67 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
             )}
-          {isEmailAddressNeeded &&
-            !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-              <div className="bg-muted border border-muted mt-5 rounded-2xl p-4">
-                <Label>{t("email_address")}</Label>
-                <div className="block sm:flex">
-                  <Controller
-                    name={`steps.${step.stepNumber - 1}.sendTo`}
-                    render={({ field: { value, onChange } }) => (
-                      <EmailField
-                        required
-                        containerClassName="w-full"
-                        className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
-                        placeholder={t("email_address")}
-                        value={value}
-                        disabled={props.readOnly}
-                        onChange={(val) => {
-                          const isAlreadyVerified = !!verifiedEmails
-                            ?.concat([])
-                            .find((email) => email === val.target.value);
-                          setEmailVerified(isAlreadyVerified);
-                          onChange(val);
-                        }}
-                      />
-                    )}
-                  />
-                  <Button
-                    color="secondary"
-                    disabled={emailVerified || props.readOnly || false}
-                    className={classNames(
-                      "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
-                      emailVerified ? "hidden" : "mt-3 sm:mt-0"
-                    )}
-                    onClick={() => {
-                      const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
-                      sendEmailVerificationCodeMutation.mutate({
-                        email,
-                        isVerifyingEmail: true,
-                      });
-                    }}>
-                    {t("send_code")}
-                  </Button>
+          {isEmailAddressNeeded && !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+            <div className="bg-muted border-muted mt-5 rounded-2xl border p-4">
+              <Label>{t("email_address")}</Label>
+              <div className="block items-center gap-2 sm:flex">
+                <Controller
+                  name={`steps.${step.stepNumber - 1}.sendTo`}
+                  render={({ field: { value, onChange } }) => (
+                    <EmailField
+                      required
+                      containerClassName="w-full"
+                      className="h-8 min-w-fit"
+                      placeholder={t("email_address")}
+                      value={value}
+                      disabled={props.readOnly}
+                      onChange={(val) => {
+                        const isAlreadyVerified = !!verifiedEmails
+                          ?.concat([])
+                          .find((email) => email === val.target.value);
+                        setEmailVerified(isAlreadyVerified);
+                        onChange(val);
+                      }}
+                    />
+                  )}
+                />
+                <Button
+                  color="secondary"
+                  size="sm"
+                  disabled={emailVerified || props.readOnly || false}
+                  className={classNames(
+                    "min-w-fit text-sm font-medium",
+                    emailVerified ? "hidden" : "mt-3 sm:mt-0"
+                  )}
+                  onClick={() => {
+                    const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
+                    sendEmailVerificationCodeMutation.mutate({
+                      email,
+                      isVerifyingEmail: true,
+                    });
+                  }}>
+                  {t("send_code")}
+                </Button>
+              </div>
+              {form.formState.errors.steps && form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                <p className="text-error mt-1 text-xs">
+                  {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                </p>
+              )}
+              {emailVerified ? (
+                <div className="mt-1">
+                  <Badge variant="green">{t("email_verified")}</Badge>
                 </div>
-                {form.formState.errors.steps && form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                  </p>
-                )}
-                {emailVerified ? (
-                  <div className="mt-1">
-                    <Badge variant="green">{t("email_verified")}</Badge>
-                  </div>
-                ) : (
-                  !props.readOnly && (
-                    <>
-                      <div className="mt-3 flex">
+              ) : (
+                !props.readOnly && (
+                  <>
+                    <div className="mt-3 flex w-full flex-col">
+                      <Label className="">{t("verification_code")}</Label>
+                      <div className="flex w-full items-center">
                         <TextField
-                          className="h-[36px] rounded-r-none border-r-transparent"
-                          placeholder="Verification code"
+                          containerClassName="w-full"
+                          className="h-8 rounded-xl"
+                          placeholder={t("code")}
                           disabled={props.readOnly}
                           value={verificationCode}
                           onChange={(e) => {
@@ -994,7 +1015,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         />
                         <Button
                           color="secondary"
-                          className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
+                          size="sm"
+                          className="ml-2 min-w-fit rounded-xl"
                           disabled={verifyEmailCodeMutation.isPending || props.readOnly}
                           onClick={() => {
                             verifyEmailCodeMutation.mutate({
@@ -1006,17 +1028,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           {t("verify")}
                         </Button>
                       </div>
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                          </p>
-                        )}
-                    </>
-                  )
-                )}
-              </div>
-            )}
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                        <p className="text-error mt-1 text-xs">
+                          {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                        </p>
+                      )}
+                  </>
+                )
+              )}
+            </div>
+          )}
           {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
             <div className="mt-3">
               <Label>{t("message_template")}</Label>
@@ -1082,124 +1105,121 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           option.needsTeamsUpgrade &&
                           !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                       }))}
-                      isOptionDisabled={(option: {
-                        label: string;
-                        value: any;
-                        needsTeamsUpgrade: boolean;
-                      }) => option.needsTeamsUpgrade}
+                      //eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      isOptionDisabled={(option: { label: string; value: any; needsTeamsUpgrade: boolean }) =>
+                        option.needsTeamsUpgrade
+                      }
                     />
                   );
                 }}
               />
             </div>
           )}
-              {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-                <div className="bg-muted border border-muted mt-3 rounded-2xl pt-2 md:p-6 md:pt-4">
-                  {isEmailSubjectNeeded && (
-                    <div className="mb-6">
-                      <div className="flex items-center">
-                        <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
-                          {t("email_subject")}
-                        </Label>
-                        {!props.readOnly && (
-                          <div className="flex-grow text-right">
-                            <AddVariablesDropdown
-                              addVariable={addVariableEmailSubject}
-                              variables={DYNAMIC_TEXT_VARIABLES}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <TextArea
-                        ref={(e) => {
-                          emailSubjectFormRef?.(e);
-                          refEmailSubject.current = e;
-                        }}
-                        rows={2}
-                        disabled={props.readOnly || !hasActiveTeamPlan}
-                        className="my-0 focus:ring-transparent"
-                        required
-                        {...restEmailSubjectForm}
-                      />
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
-                          </p>
-                        )}
-                    </div>
-                  )}
-                  <div className="mb-2 flex items-center pb-1">
-                    <Label className="mb-0 flex-none">
-                      {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+          {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+            <div className="bg-muted border-muted mt-3 rounded-2xl border p-3">
+              {isEmailSubjectNeeded && (
+                <div className="mb-6">
+                  <div className="flex items-center">
+                    <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
+                      {t("email_subject")}
                     </Label>
+                    {!props.readOnly && (
+                      <div className="flex-grow text-right">
+                        <AddVariablesDropdown
+                          addVariable={addVariableEmailSubject}
+                          variables={DYNAMIC_TEXT_VARIABLES}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <Editor
-                    getText={() => {
-                      return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                  <TextArea
+                    ref={(e) => {
+                      emailSubjectFormRef?.(e);
+                      refEmailSubject.current = e;
                     }}
-                    setText={(text: string) => {
-                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                      props.form.clearErrors();
-                    }}
-                    variables={DYNAMIC_TEXT_VARIABLES}
-                    addVariableButtonTop={isSMSAction(step.action)}
-                    height="200px"
-                    updateTemplate={updateTemplate}
-                    firstRender={firstRender}
-                    setFirstRender={setFirstRender}
-                    editable={
-                      !props.readOnly &&
-                      !isWhatsappAction(step.action) &&
-                      (hasActiveTeamPlan || isSMSAction(step.action))
-                    }
-                    excludedToolbarItems={
-                      !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
-                    }
-                    plainText={isSMSAction(step.action)}
+                    rows={2}
+                    disabled={props.readOnly || !hasActiveTeamPlan}
+                    className="my-0 focus:ring-transparent"
+                    required
+                    {...restEmailSubjectForm}
                   />
-
                   {form.formState.errors.steps &&
-                    form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
+                      <p className="text-error mt-1 text-xs">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
                       </p>
                     )}
-                  {isEmailSubjectNeeded && (
-                    <div className="mt-2">
-                      <Controller
-                        name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
-                        control={form.control}
-                        render={() => (
-                          <CheckboxField
-                            disabled={props.readOnly}
-                            defaultChecked={
-                              form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
-                            }
-                            description={t("include_calendar_event")}
-                            onChange={(e) =>
-                              form.setValue(
-                                `steps.${step.stepNumber - 1}.includeCalendarEvent`,
-                                e.target.checked
-                              )
-                            }
-                          />
-                        )}
-                      />
-                    </div>
-                  )}
-                  {!props.readOnly && (
-                    <div className="mt-3 ">
-                      <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                        <div className="text-default mt-2 flex text-sm">
-                          <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                          <p className="text-left">{t("using_booking_questions_as_variables")}</p>
-                        </div>
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
+              <div className="mb-2 flex items-center pb-1">
+                <Label className="mb-0 flex-none">
+                  {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                </Label>
+              </div>
+              <Editor
+                getText={() => {
+                  return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                }}
+                setText={(text: string) => {
+                  props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                  props.form.clearErrors();
+                }}
+                variables={DYNAMIC_TEXT_VARIABLES}
+                addVariableButtonTop={isSMSAction(step.action)}
+                height="200px"
+                updateTemplate={updateTemplate}
+                firstRender={firstRender}
+                setFirstRender={setFirstRender}
+                editable={
+                  !props.readOnly &&
+                  !isWhatsappAction(step.action) &&
+                  (hasActiveTeamPlan || isSMSAction(step.action))
+                }
+                excludedToolbarItems={
+                  !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
+                }
+                plainText={isSMSAction(step.action)}
+              />
+
+              {form.formState.errors.steps &&
+                form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
+                  <p className="text-error mt-1 text-sm">
+                    {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
+                  </p>
+                )}
+              {isEmailSubjectNeeded && (
+                <div className="mt-2">
+                  <Controller
+                    name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                    control={form.control}
+                    render={() => (
+                      <CheckboxField
+                        disabled={props.readOnly}
+                        defaultChecked={
+                          form.getValues(`steps.${step.stepNumber - 1}.includeCalendarEvent`) || false
+                        }
+                        description={t("include_calendar_event")}
+                        descriptionClassName="ml-0"
+                        onChange={(e) =>
+                          form.setValue(`steps.${step.stepNumber - 1}.includeCalendarEvent`, e.target.checked)
+                        }
+                      />
+                    )}
+                  />
+                </div>
+              )}
+              {!props.readOnly && (
+                <div className="ml-1 mt-2">
+                  <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                    <div className="text-subtle ml-1 flex items-center gap-2">
+                      <Icon name="circle-help" className="h-3 w-3" />
+                      <p className="text-left text-xs">{t("using_booking_questions_as_variables")}</p>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
@@ -1399,22 +1419,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   subscriptionStatus: phone.subscriptionStatus ?? undefined,
                 }))
               ).length > 0 && (
-                  <div className="bg-muted rounded-lg p-3">
-                    <div className="flex items-center gap-2">
-                      <Icon name="phone" className="text-emphasis h-4 w-4" />
-                      <span className="text-emphasis text-sm font-medium">
-                        {formatPhoneNumber(
-                          getActivePhoneNumbers(
-                            agentData?.outboundPhoneNumbers?.map((phone) => ({
-                              ...phone,
-                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                            }))
-                          )?.[0]?.phoneNumber
-                        )}
-                      </span>
-                    </div>
+                <div className="bg-muted rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Icon name="phone" className="text-emphasis h-4 w-4" />
+                    <span className="text-emphasis text-sm font-medium">
+                      {formatPhoneNumber(
+                        getActivePhoneNumbers(
+                          agentData?.outboundPhoneNumbers?.map((phone) => ({
+                            ...phone,
+                            subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                          }))
+                        )?.[0]?.phoneNumber
+                      )}
+                    </span>
                   </div>
-                )}
+                </div>
+              )}
               <p className="text-subtle text-sm">{t("the_action_will_disconnect_phone_number")}</p>
             </div>
             <DialogFooter showDivider>
