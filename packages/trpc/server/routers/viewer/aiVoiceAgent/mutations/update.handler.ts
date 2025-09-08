@@ -12,7 +12,7 @@ type UpdateHandlerOptions = {
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateHandlerOptions) => {
-  const { id, teamId, name, enabled, ...retellUpdates } = input;
+  const { id, teamId, name, enabled: _enabled, ...retellUpdates } = input;
 
   const aiService = createDefaultAIPhoneServiceProvider();
 

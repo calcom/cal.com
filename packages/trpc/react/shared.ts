@@ -78,6 +78,8 @@ export const ENDPOINTS = [
   "filterSegments/queries",
   "filterSegments/mutations",
   "aiVoiceAgent",
+  "aiVoiceAgent/queries",
+  "aiVoiceAgent/mutations",
   "phoneNumber",
   "phoneNumber/queries",
   "phoneNumber/mutations",
