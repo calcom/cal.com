@@ -231,7 +231,7 @@ export class OnFormSubmittedTriggerDto {
   type: typeof FORM_SUBMITTED = FORM_SUBMITTED;
 }
 
-export class OnFormSubmittedNoEventTriggerDto {
+export class OnFormSubmittedNoEventTriggerDto extends TriggerOffsetDTO {
   @ApiProperty({
     description: "Trigger type for the workflow",
     example: FORM_SUBMITTED_NO_EVENT,

@@ -536,9 +536,8 @@ export async function isAuthorizedToAddActiveOnIds({
 
     if (!routingForm) return false;
 
-    // User owns the form directly
-    if (routingForm.userId === userId) {
-      return true;
+    if (teamId && teamId !== routingForm.teamId) {
+      return false;
     }
 
     // Form belongs to a team that the user is a member of
@@ -549,6 +548,15 @@ export async function isAuthorizedToAddActiveOnIds({
       if (isTeamMember) {
         return true;
       }
+    }
+
+    if (
+      !teamId &&
+      userId &&
+      routingForm.userId !== userId &&
+      !routingForm?.team?.members.some((member) => member.userId === userId && member.accepted)
+    ) {
+      return false;
     }
   }
 

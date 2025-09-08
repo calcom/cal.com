@@ -17,7 +17,7 @@ type ListOptions = {
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowType[] = [];
 
-  const excludeFormTriggersWhereClause = input?.includeOnlyEventTypeWorkflows
+  const excludeFormTriggersWhereClause = input.includeOnlyEventTypeWorkflows
     ? {
         trigger: {
           not: {
@@ -32,12 +32,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       isOrganization: true,
       children: {
         some: {
-          id: input?.teamId,
+          id: input.teamId,
         },
       },
       members: {
         some: {
-          userId: input?.userId || ctx.user.id,
+          userId: input.userId || ctx.user.id,
           accepted: true,
         },
       },
@@ -69,7 +69,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
               some: {
                 team: {
                   OR: [
-                    { id: input?.teamId },
+                    { id: input.teamId },
                     {
                       members: {
                         some: {
