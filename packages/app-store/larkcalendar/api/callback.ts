@@ -68,14 +68,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    let newCredential;
     if (!currentCredential) {
-      req.session?.user.id &&
-        (await CredentialRepository.create({
-          type: "lark_calendar",
-          key,
-          userId: req.session?.user.id,
-          appId: "lark-calendar",
-        }));
+      newCredential = req.session?.user.id
+        ? await CredentialRepository.create({
+            type: "lark_calendar",
+            key,
+            userId: req.session?.user.id,
+            appId: "lark-calendar",
+          })
+        : null;
     } else {
       await prisma.credential.update({
         data: {
@@ -105,13 +107,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       const primaryCalendar = await primaryCalendarResponse.json();
 
       if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
-        await prisma.selectedCalendar.create({
-          data: {
-            userId: req.session?.user.id,
-            integration: "lark_calendar",
-            externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
-            credentialId: currentCredential?.id,
-          },
+        // Use repository to trigger reconnect hook; fall back to newly created credential id
+        const { SelectedCalendarRepository } = await import("@calcom/lib/server/repository/selectedCalendar");
+        await SelectedCalendarRepository.create({
+          userId: req.session?.user.id,
+          integration: "lark_calendar",
+          externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
+          credentialId: currentCredential?.id ?? newCredential?.id ?? undefined,
         });
       }
     }

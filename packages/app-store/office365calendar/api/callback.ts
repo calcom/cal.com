@@ -6,6 +6,7 @@ import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -170,6 +171,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
       return;
     }
+
+    // Ensure calendar-scoped booking references are re-linked now that the selected calendar exists
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
   }
 
   res.redirect(

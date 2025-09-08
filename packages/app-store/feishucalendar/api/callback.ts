@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -68,14 +69,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    let createdCredential;
     if (!currentCredential) {
-      req.session?.user.id &&
-        (await CredentialRepository.create({
-          type: "feishu_calendar",
-          key,
-          userId: req.session.user.id,
-          appId: "feishu-calendar",
-        }));
+      createdCredential = req.session?.user.id
+        ? await CredentialRepository.create({
+            type: "feishu_calendar",
+            key,
+            userId: req.session.user.id,
+            appId: "feishu-calendar",
+          })
+        : null;
     } else {
       await prisma.credential.update({
         data: {
@@ -105,13 +108,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       const primaryCalendar = await primaryCalendarResponse.json();
 
       if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
-        await prisma.selectedCalendar.create({
-          data: {
-            userId: req.session?.user.id,
-            integration: "feishu_calendar",
-            externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
-            credentialId: currentCredential?.id,
-          },
+        await SelectedCalendarRepository.create({
+          userId: req.session?.user.id,
+          integration: "feishu_calendar",
+          externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
+          credentialId: currentCredential?.id ?? createdCredential?.id ?? undefined,
         });
       }
     }

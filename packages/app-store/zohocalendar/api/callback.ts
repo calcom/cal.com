@@ -7,6 +7,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -148,6 +149,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       );
       return;
     }
+    // Ensure calendar-scoped booking references are re-linked now that the selected calendar exists
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
   }
 
   res.redirect(

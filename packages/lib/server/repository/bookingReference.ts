@@ -2,10 +2,8 @@ import type { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
+import { prisma, safeCredentialSelect } from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
-
-import { CredentialRepository } from "./credential";
 
 const bookingReferenceSelect = {
   id: true,
@@ -69,7 +67,7 @@ export class BookingReferenceRepository {
    */
   static async reconnectWithNewCredential(newCredentialId: number) {
     try {
-      const newCredential = await CredentialRepository.findByIdWithSelectedCalendar({
+      const newCredential = await BookingReferenceRepository.findCredentialByIdWithSelectedCalendar({
         id: newCredentialId,
       });
 
@@ -91,6 +89,14 @@ export class BookingReferenceRepository {
         teamMembersUserIds = members.map((member) => member.userId);
       }
 
+      const isCalendarApp = newCredential.type.endsWith("_calendar");
+      // For calendar apps, wait until a SelectedCalendar exists
+      if (
+        isCalendarApp &&
+        (!newCredential.selectedCalendars || newCredential.selectedCalendars.length === 0)
+      ) {
+        return;
+      }
       //Detect bookingReferences to connect with new Credential.
       const bookingReferences = await prisma.bookingReference.findMany({
         where: {
@@ -101,15 +107,15 @@ export class BookingReferenceRepository {
               : { userId: { in: teamMembersUserIds } }),
           },
           credentialId: null,
-          ...(!newCredential.selectedCalendars || newCredential.selectedCalendars.length === 0
-            ? { externalCalendarId: null } // for non-calendar apps
-            : {
+          ...(isCalendarApp
+            ? {
                 externalCalendarId: {
-                  in: newCredential.selectedCalendars
-                    .filter((selectedCalendar) => !!selectedCalendar.externalId)
-                    .map((selectedCalendar) => selectedCalendar.externalId as string),
+                  in: (newCredential.selectedCalendars ?? [])
+                    .filter((s) => !!s.externalId)
+                    .map((s) => s.externalId as string),
                 },
-              }),
+              }
+            : { externalCalendarId: null }),
         },
         select: {
           id: true,
@@ -158,5 +164,19 @@ export class BookingReferenceRepository {
         safeStringify(error)
       );
     }
+  }
+
+  static async findCredentialByIdWithSelectedCalendar({ id }: { id: number }) {
+    return await prisma.credential.findFirst({
+      where: { id },
+      select: {
+        ...safeCredentialSelect,
+        selectedCalendars: {
+          select: {
+            externalId: true,
+          },
+        },
+      },
+    });
   }
 }
