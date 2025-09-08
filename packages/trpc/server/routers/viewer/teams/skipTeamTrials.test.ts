@@ -4,12 +4,14 @@ import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-bill
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 
-import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
+import { skipTeamTrialsHandler } from "./mutations/skipTeamTrials.handler";
 
 // Instead of completely mocking the handler, we'll use the real implementation
 // and mock its dependencies
-vi.mock("./skipTeamTrials.handler", async () => {
-  const actual = await vi.importActual<typeof import("./skipTeamTrials.handler")>("./skipTeamTrials.handler");
+vi.mock("./mutations/skipTeamTrials.handler", async () => {
+  const actual = await vi.importActual<typeof import("./mutations/skipTeamTrials.handler")>(
+    "./mutations/skipTeamTrials.handler"
+  );
   return {
     ...actual,
     // We keep this for spying purposes
@@ -93,7 +95,7 @@ describe("skipTeamTrialsHandler", () => {
     const mockTeams = [
       { id: 101, name: "Team 1" },
       { id: 102, name: "Team 2" },
-    ] as any;
+    ] as Array<{ id: number; name: string }>;
 
     vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce(mockTeams);
 
