@@ -4,8 +4,8 @@ import { IsNumber, IsOptional, IsString, IsEmail } from "class-validator";
 export class GetVerifiedEmailsParams {
   @ApiPropertyOptional({ example: "12345" })
   @IsOptional()
-  @IsNumber()
-  teamId?: number;
+  @IsString()
+  teamId?: string;
 }
 
 export class GetVerifiedEmailsInput {

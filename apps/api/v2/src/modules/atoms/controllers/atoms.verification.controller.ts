@@ -120,7 +120,7 @@ export class AtomsVerificationController {
     const verifiedEmails = await this.verificationService.getVerifiedEmails({
       userId: user.id,
       userEmail: user.email,
-      teamId: query.teamId,
+      teamId: Number(query.teamId),
     });
 
     return {
