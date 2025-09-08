@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
@@ -7,16 +8,16 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
-import getFieldIdentifier from "../lib/getFieldIdentifier";
-import type { SerializableField, OrderedResponses } from "../types/types";
-import type { FormResponse, SerializableForm } from "../types/types";
+import { TRPCError } from "@trpc/server";
 
-const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
+import type { FormResponse, SerializableForm, SerializableField, OrderedResponses } from "../types/types";
+
+const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/formSubmissionUtils"] });
 
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
 export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
@@ -257,3 +258,67 @@ function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: numb
   const isTeamForm = form.teamId;
   return { userId: isTeamForm ? null : form.user.id, teamId: isTeamForm ? form.teamId : null };
 }
+
+export type TargetRoutingFormForResponse = SerializableForm<
+  App_RoutingForms_Form & {
+    user: {
+      id: number;
+      email: string;
+      timeFormat: number | null;
+      locale: string | null;
+    };
+    team: {
+      parentId: number | null;
+    } | null;
+  }
+>;
+
+/**
+ * A wrapper over onFormSubmission that handles building the data needed for onFormSubmission
+ */
+export const onSubmissionOfFormResponse = async ({
+  form,
+  formResponseInDb,
+  chosenRouteAction,
+}: {
+  form: TargetRoutingFormForResponse;
+  formResponseInDb: { id: number; response: Prisma.JsonValue };
+  chosenRouteAction: {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+  } | null;
+}) => {
+  if (!form.fields) {
+    // There is no point in submitting a form that doesn't have fields defined
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+    });
+  }
+  const settings = RoutingFormSettings.parse(form.settings);
+  let userWithEmails: string[] = [];
+
+  if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
+    const whereClause: Prisma.MembershipWhereInput = { teamId: form.teamId };
+    if (!settings?.sendToAll) {
+      whereClause.userId = { in: settings.sendUpdatesTo };
+    }
+    const userEmails = await prisma.membership.findMany({
+      where: whereClause,
+      select: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
+  }
+
+  await onFormSubmission(
+    { ...form, fields: form.fields, userWithEmails },
+    formResponseInDb.response as FormResponse,
+    formResponseInDb.id,
+    chosenRouteAction ?? undefined
+  );
+};
