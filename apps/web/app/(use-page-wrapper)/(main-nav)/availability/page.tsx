@@ -19,7 +19,7 @@ import { ShellMainAppDir } from "../ShellMainAppDir";
 const AvailabilityList = dynamic(
   () => import("~/availability/availability-view").then((mod) => mod.AvailabilityList),
   {
-    loading: () => <div>Loading availability...</div>,
+    loading: () => <div aria-busy="true" role="status" />,
   }
 );
 
