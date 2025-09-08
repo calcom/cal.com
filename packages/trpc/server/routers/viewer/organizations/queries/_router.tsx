@@ -3,12 +3,12 @@ import authedProcedure, {
   authedOrgAdminProcedure,
 } from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
-import { ZGetOtherTeamInputSchema } from "../getOtherTeam.handler";
-import { ZListOtherTeamMembersSchema } from "../listOtherTeamMembers.handler";
 import { ZAdminGet } from "./adminGet.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
+import { ZGetOtherTeamInputSchema } from "./getOtherTeam.schema";
 import { ZGetUserInput } from "./getUser.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
+import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.schema";
 
 export const organizationsQueriesRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
