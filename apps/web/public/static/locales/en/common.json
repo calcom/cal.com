@@ -1726,6 +1726,7 @@
   "team_url": "Team URL",
   "team_members": "Team members",
   "more": "More",
+  "cal_ai_workflows": "Cal.ai Workflows",
   "and_count_more": "and {{count}} more",
   "more_page_footer": "We view the mobile application as an extension of the web application. If you are performing any complicated actions, please refer back to the web application.",
   "workflow_example_1": "Send SMS reminder 24 hours before event starts to attendee",

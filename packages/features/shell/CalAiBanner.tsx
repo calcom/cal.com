@@ -43,7 +43,7 @@ export function CalAiBanner() {
           <button
             onClick={handleTryNow}
             className="rounded-[10px] bg-gradient-to-b from-[#6349EA] to-[#875FE0] px-5 py-2 text-sm font-medium text-white hover:from-[#5A42D1] hover:to-[#7B6FD7]">
-            Try now
+            {t("try_now")}
           </button>
         </div>
 

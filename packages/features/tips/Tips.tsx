@@ -159,8 +159,8 @@ export const tips: Tip[] = [
 const CalAIWorkflowsTip: Tip = {
   id: 18,
   thumbnailUrl: "https://img.youtube.com/vi/fMHW6jYPIb8/0.jpg",
-  title: "Cal.ai Workflows",
-  description: "Lifelike AI agents that book meetings, send reminders, and follow up with customers!",
+  title: "cal_ai_workflows",
+  description: "supercharge_your_workflows_with_cal_ai_description",
   href: "/workflows",
   coverPhoto: "/cal-ai-workflow-sidebar.jpg",
   variant: "NewLaunchSidebarCard",
@@ -216,7 +216,7 @@ function Tips() {
         }}>
         {list.map((tip) => {
           const isTopTip = baseOriginalList.indexOf(tip) === 0;
-          const isCalAIWorkflowsTip = tip.title === "Cal.ai Workflows";
+          const isCalAIWorkflowsTip = tip.title === "cal_ai_workflows";
           return (
             <div
               className="relative"
@@ -237,8 +237,8 @@ function Tips() {
                   thumbnailUrl={tip.thumbnailUrl}
                   coverPhoto={tip.coverPhoto}
                   mediaLink={isTopTip ? tip.mediaLink : undefined}
-                  title={tip.title}
-                  description={tip.description}
+                  title={t(tip.title)}
+                  description={t(tip.description)}
                   learnMore={
                     isTopTip
                       ? {
