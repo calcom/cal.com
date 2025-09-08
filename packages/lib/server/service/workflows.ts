@@ -6,35 +6,10 @@ import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { tasker } from "@calcom/features/tasker";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { FormResponse } from "@calcom/routing-forms/types/types";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
-
-type FormResponse = Record<
-  // Field ID
-  string,
-  {
-    value: number | string | string[];
-    label: string;
-    identifier?: string;
-  }
->;
-
-type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
-type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
-  string,
-  {
-    /**
-     * Deprecates `value` prop as it now has both the id(that doesn't change) and the label(that can change but is human friendly)
-     */
-    response: number | string | string[] | SelectFieldWebhookResponse | SelectFieldWebhookResponse[];
-    /**
-     * @deprecated Use `response` instead
-     */
-    value: FormResponse[keyof FormResponse]["value"];
-  }
->;
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
