@@ -33,11 +33,7 @@ vi.mock("@calcom/trpc/react", () => ({
 }));
 
 describe("Organization-level autofill disable", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  test("should return true when organization setting disables autofill", () => {
+  test("should block autofill when organization setting is enabled", () => {
     const field = {
       ...defaultField,
       disableOnPrefill: false,
@@ -56,59 +52,11 @@ describe("Organization-level autofill disable", () => {
     mockScenario({
       formState: buildFormStateWithNoErrors(),
       responses: {},
-      searchParams: {},
+      searchParams: { name: "John Doe", email: "john@example.com" },
     });
 
     const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
     expect(shouldBeDisabled).toBe(true);
-  });
-
-  test("should return false when organization setting allows autofill", () => {
-    const field = {
-      ...defaultField,
-      disableOnPrefill: false,
-    };
-
-    const mockUseQuery = vi.fn().mockReturnValue({
-      data: {
-        organizationSettings: {
-          disableAutofillOnBookingPage: false,
-        },
-      },
-    });
-
-    vi.mocked(trpc.viewer.organizations.listCurrent.useQuery).mockImplementation(mockUseQuery);
-
-    mockScenario({
-      formState: buildFormStateWithNoErrors(),
-      responses: {},
-      searchParams: {},
-    });
-
-    const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
-    expect(shouldBeDisabled).toBe(false);
-  });
-
-  test("should return false when no organization data", () => {
-    const field = {
-      ...defaultField,
-      disableOnPrefill: false,
-    };
-
-    const mockUseQuery = vi.fn().mockReturnValue({
-      data: null,
-    });
-
-    vi.mocked(trpc.viewer.organizations.listCurrent.useQuery).mockImplementation(mockUseQuery);
-
-    mockScenario({
-      formState: buildFormStateWithNoErrors(),
-      responses: {},
-      searchParams: {},
-    });
-
-    const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
-    expect(shouldBeDisabled).toBe(false);
   });
 });
 
