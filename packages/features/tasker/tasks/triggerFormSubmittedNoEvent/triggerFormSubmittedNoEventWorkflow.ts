@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import logger from "@calcom/lib/logger";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { ZWorkflow } from "@calcom/trpc/server/routers/viewer/workflows/getAllActiveWorkflows.schema";
 
 import { shouldTriggerFormSubmittedNoEvent } from "./formSubmissionValidation";
@@ -43,14 +43,14 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
   if (!shouldTrigger) return;
 
   try {
-    await scheduleWorkflowReminders({
+    await WorkflowService.scheduleWorkflows({
+      workflows: [workflow as Workflow],
       smsReminderNumber,
       formData: {
         responses,
         user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
       },
       hideBranding,
-      workflows: [workflow as Workflow],
     });
   } catch (error) {
     log.error("Error while triggering form submitted no event workflows", JSON.stringify({ error }));
