@@ -24,6 +24,7 @@ export class WebhookService implements IWebhookService {
     subscriber: WebhookSubscriber
   ): Promise<WebhookDeliveryResult> {
     try {
+      // TODO: Ideally we should inject this flag as well. Would be awesome when we would be able to unit test without mocking env variables too. Also with trigger.dev, this would be further worked on, so we can leave this as is for now
       if (process.env.TASKER_ENABLE_WEBHOOKS === "1") {
         return await this.scheduleWebhook(trigger, payload, subscriber);
       } else {
