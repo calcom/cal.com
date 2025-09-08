@@ -1,3 +1,4 @@
+import getConnectedForms from "@calcom/app-store/routing-forms/lib/getConnectedForms";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -5,7 +6,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import getConnectedForms from "../lib/getConnectedForms";
 import type { TDeleteFormInputSchema } from "./deleteForm.schema";
 import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
