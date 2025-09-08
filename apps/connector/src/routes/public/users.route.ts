@@ -78,7 +78,7 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
         { bearerAuth: [] },
         { apiKey: [] },
       ],
-      body: zodToJsonSchema(updateProfileBodySchema),
+      body: zodToJsonSchema(updateProfileBodySchema.omit({avatarUrl: true})),
       response: {
         200: zodToJsonSchema(
           responseSchemas.success(
@@ -104,6 +104,62 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
 
       console.error('Profile update error:', error);
       return ResponseFormatter.error(reply, 'Failed to update profile', 500);
+    }
+  });
+
+  fastify.post('/edit-profile/avatar', {
+    preHandler: AuthGuards.authenticateFlexible(),
+    schema: {
+      description: 'Upload avatar via multipart/form-data',
+      tags: ['API Auth - Users'],
+      consumes: ['multipart/form-data'],
+      security: [
+        { bearerAuth: [] },
+        { apiKey: [] },
+      ],
+      response: {
+        200: zodToJsonSchema(
+          responseSchemas.success(
+            z.object({ avatarUrl: z.string() }),
+            'Avatar updated successfully'
+          )
+        ),
+        400: zodToJsonSchema(responseSchemas.badRequest()),
+        401: zodToJsonSchema(responseSchemas.unauthorized()),
+      },
+    },
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      // Ensure multipart plugin is registered and file is present
+      const file = await request.file();
+      if (!file) {
+        return ResponseFormatter.error(reply, 'No file uploaded', 400);
+      }
+
+      const allowedMimeTypes = new Set([
+        'image/png',
+        'image/jpeg',
+        'image/jpg',
+        'image/svg+xml',
+      ]);
+
+      if (!allowedMimeTypes.has(file.mimetype)) {
+        return ResponseFormatter.error(reply, 'Unsupported file type', 400);
+      }
+
+      const buffer: Buffer = await file.toBuffer();
+      const dataUrl = `data:${file.mimetype};base64,${buffer.toString('base64')}`;
+
+      const userId = Number(request.user!.id);
+      const resized = await resizeBase64Image(dataUrl);
+      const avatarUrl = await uploadAvatar({ avatar: resized, userId });
+
+      await prisma.user.update({ where: { id: userId }, data: { avatarUrl } });
+
+      return ResponseFormatter.success(reply, { avatarUrl }, 'Avatar updated successfully');
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      return ResponseFormatter.error(reply, 'Failed to update avatar', 500);
     }
   });
 

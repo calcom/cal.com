@@ -6,6 +6,7 @@ import corsPlugin from "./cors";
 import prismaPlugin from "./prisma";
 import rateLimitPlugin from "./rateLimit";
 import swaggerPlugin from "./swagger";
+import multipartPlugin from "./multipart";
 
 export async function registerPlugins(fastify: FastifyInstance): Promise<void> {
   console.log("🔌 Registering plugins...");
@@ -19,6 +20,9 @@ export async function registerPlugins(fastify: FastifyInstance): Promise<void> {
 
   await fastify.register(authGuardsPlugin);
   console.log("✅ Auth guards plugin registered");
+
+  await fastify.register(multipartPlugin);
+  console.log("✅ Multipart plugin registered");
 
   await fastify.register(rateLimitPlugin);
   console.log("✅ Rate limit plugin registered");

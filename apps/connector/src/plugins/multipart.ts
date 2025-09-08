@@ -12,7 +12,7 @@ async function multipartPlugin(fastify: FastifyInstance): Promise<void> {
       files: 2, // Max number of file fields
       headerPairs: 2000, // Max number of header key=>value pairs
     },
-    attachFieldsToBody: true, // Don't automatically attach fields to body
+    attachFieldsToBody: false, // Don't automatically attach fields to body
   });
 
   fastify.log.info("Multipart plugin registered successfully");

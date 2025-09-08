@@ -1,7 +1,10 @@
 // import { Button } from "@calcom/ui/components/button";
-import { Button, TextField, Switch, Tooltip } from "@calid/features/ui";
+import {Button} from "@calid/features/ui/components/button";
+import {TextField} from "@calid/features/ui/components/input/input";
+import {Switch} from "@calid/features/ui/components/switch";
+import {Tooltip} from "@calid/features/ui/components/tooltip";
 // import { DialogFooter } from "@calcom/ui/components/dialog";
-import { DialogFooter } from "@calid/features/ui";
+import { DialogFooter } from "@calid/features/ui/components/dialog";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";

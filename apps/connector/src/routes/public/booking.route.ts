@@ -425,7 +425,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     const user = await userService.getUserById(userId);
 
     try {
-      const reassigned = await roundRobinManualReassignment({
+      await roundRobinManualReassignment({
         bookingId: booking.id,
         newUserId,
         orgId: user?.organizationId || null,
