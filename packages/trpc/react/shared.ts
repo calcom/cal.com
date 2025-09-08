@@ -69,6 +69,8 @@ export const ENDPOINTS = [
   "workflows",
   "googleWorkspace",
   "oAuth",
+  "oAuth/queries",
+  "oAuth/mutations",
   "attributes",
   "attributes/queries",
   "attributes/mutations",
