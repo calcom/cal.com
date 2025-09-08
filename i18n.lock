@@ -1646,6 +1646,9 @@ checksums:
     embeds: b4eddec9f7233622c508db34d1ac1d45
     impersonation: 5cc8e11e5a89d71adf5882da844a33f1
     impersonation_description: fab0bda0e574a42f2208f0a7ea641f96
+    recent_impersonations: e36ff59adaecb6bc12717260914f1dea
+    quick_impersonate: 794eda9730f3ca5e682ae074dfdfc94d
+    no_recent_impersonations: 42b140bd547053431fb157710abb4ad7
     users: fe42f97809c24d700d3912c8d02ed452
     user: 61073457a5c3901084b557d065f876be
     profile_description: fe677c83722fcbddcdc6a3b349cd1d8f
