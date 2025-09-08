@@ -188,27 +188,6 @@ export function CalendarListContainer({
               </Suspense>
             </>
           )}
-
-          {/* Calendar Notifications Section */}
-          <div className="border-subtle mt-8 rounded-b-xl border-x border-b px-4 pb-8 pt-6 sm:px-6">
-            <ShellSubHeading
-              title={t("calendar_notifications")}
-              subtitle={t("calendar_notifications_description")}
-            />
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex-grow">
-                <h3 className="text-emphasis text-sm font-medium leading-6">
-                  {t("unreachable_calendar_alerts")}
-                </h3>
-                <p className="text-subtle mt-1 text-sm">{t("unreachable_calendar_alerts_description")}</p>
-              </div>
-              <Switch
-                checked={isNotifyCalendarAlertsChecked}
-                onCheckedChange={handleCalendarNotificationToggle}
-                disabled={loading}
-              />
-            </div>
-          </div>
         </>
       ) : fromOnboarding ? (
         <>
@@ -219,27 +198,6 @@ export function CalendarListContainer({
             />
           )}
           <CalendarList onChanged={onChanged} />
-
-          {/* Calendar Notifications Section */}
-          <div className="border-subtle mt-8 rounded-b-xl border-x border-b px-4 pb-8 pt-6 sm:px-6">
-            <ShellSubHeading
-              title={t("calendar_notifications")}
-              subtitle={t("calendar_notifications_description")}
-            />
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex-grow">
-                <h3 className="text-emphasis text-sm font-medium leading-6">
-                  {t("unreachable_calendar_alerts")}
-                </h3>
-                <p className="text-subtle mt-1 text-sm">{t("unreachable_calendar_alerts_description")}</p>
-              </div>
-              <Switch
-                checked={isNotifyCalendarAlertsChecked}
-                onCheckedChange={handleCalendarNotificationToggle}
-                disabled={loading}
-              />
-            </div>
-          </div>
         </>
       ) : (
         <EmptyScreen

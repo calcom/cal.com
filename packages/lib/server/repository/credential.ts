@@ -24,6 +24,10 @@ type CredentialUpdateInput = {
   appId?: string;
   delegationCredentialId?: string | null;
   invalid?: boolean;
+};
+
+type CredentialReachabilityUpdateInput = {
+  id: number;
   isUnreachable?: boolean;
   lastNotified?: Date | null;
 };
@@ -84,6 +88,20 @@ export class CredentialRepository {
     await prisma.credential.update({
       where: { id },
       data,
+    });
+  }
+
+  static async updateReachabilityById({
+    id,
+    isUnreachable,
+    lastNotified,
+  }: CredentialReachabilityUpdateInput) {
+    await prisma.credential.update({
+      where: { id },
+      data: {
+        ...(isUnreachable !== undefined && { isUnreachable }),
+        ...(lastNotified !== undefined && { lastNotified }),
+      },
     });
   }
 

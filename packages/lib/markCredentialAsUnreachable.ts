@@ -44,12 +44,10 @@ export async function markCredentialAsUnreachable(credentialId: number, error?: 
     );
 
     // Update the credential status
-    await CredentialRepository.updateCredentialById({
+    await CredentialRepository.updateReachabilityById({
       id: credentialId,
-      data: {
-        isUnreachable: true,
-        lastNotified: shouldNotify ? now : credential.lastNotified,
-      },
+      isUnreachable: true,
+      lastNotified: shouldNotify ? now : credential.lastNotified,
     });
 
     // Send notification email if appropriate
@@ -78,11 +76,9 @@ export async function markCredentialAsUnreachable(credentialId: number, error?: 
  */
 export async function markCredentialAsReachable(credentialId: number) {
   try {
-    await CredentialRepository.updateCredentialById({
+    await CredentialRepository.updateReachabilityById({
       id: credentialId,
-      data: {
-        isUnreachable: false,
-      },
+      isUnreachable: false,
     });
 
     console.log(`Marked credential ${credentialId} as reachable`);
