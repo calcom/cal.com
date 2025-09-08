@@ -398,18 +398,4 @@ export class TeamRepository {
       },
     });
   }
-
-  async findTeamWithParentHideBranding({ teamId }: { teamId: number }) {
-    return await this.prismaClient.team.findUnique({
-      where: { id: teamId },
-      select: {
-        hideBranding: true,
-        parent: {
-          select: {
-            hideBranding: true,
-          },
-        },
-      },
-    });
-  }
 }
