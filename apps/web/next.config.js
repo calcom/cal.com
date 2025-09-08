@@ -502,14 +502,12 @@ const nextConfig = (phase) => {
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
         {
-        {
           source: "/icons/sprite.svg",
           headers: [
             CORP_CROSS_ORIGIN_HEADER,
             ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
             { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
           ],
-        },
         },
         ...(isOrganizationsEnabled
           ? [
