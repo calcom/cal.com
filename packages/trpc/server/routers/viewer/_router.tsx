@@ -8,82 +8,200 @@ import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
 import { timezonesRouter } from "../publicViewer/timezones/_router";
-import { adminRouter } from "./admin/_router";
-import { aiVoiceAgentRouter } from "./aiVoiceAgent/_router";
-import { apiKeysRouter } from "./apiKeys/_router";
-import { appsRouter } from "./apps/_router";
-import { attributesRouter } from "./attributes/_router";
-import { authRouter } from "./auth/_router";
-import { availabilityRouter } from "./availability/_router";
-import { bookingsRouter } from "./bookings/_router";
-import { calVideoRouter } from "./calVideo/_router";
-import { calendarsRouter } from "./calendars/_router";
-import { credentialsRouter } from "./credentials/_router";
-import { creditsRouter } from "./credits/_router";
-import { delegationCredentialRouter } from "./delegationCredential/_router";
-import { deploymentSetupRouter } from "./deploymentSetup/_router";
-import { dsyncRouter } from "./dsync/_router";
-import { eventTypesRouter } from "./eventTypes/_router";
-import { filterSegmentsRouter } from "./filterSegments/_router";
-import { googleWorkspaceRouter } from "./googleWorkspace/_router";
-import { i18nRouter } from "./i18n/_router";
-import { meRouter } from "./me/_router";
-import { oAuthRouter } from "./oAuth/_router";
-import { oooRouter } from "./ooo/_router";
-import { viewerOrganizationsRouter } from "./organizations/_router";
-import { paymentsRouter } from "./payments/_router";
-import { permissionsRouter } from "./pbac/_router";
-import { phoneNumberRouter } from "./phoneNumber/_router";
-import { routingFormsRouter } from "./routing-forms/_router";
-import { slotsRouter } from "./slots/_router";
-import { ssoRouter } from "./sso/_router";
-import { viewerTeamsRouter } from "./teams/_router";
-import { travelSchedulesRouter } from "./travelSchedules/_router";
-import { webhookRouter } from "./webhook/_router";
-import { workflowsRouter } from "./workflows/_router";
+import { adminMutationsRouter } from "./admin/mutations/_router";
+import { adminQueriesRouter } from "./admin/queries/_router";
+import { aiVoiceAgentMutationsRouter } from "./aiVoiceAgent/mutations/_router";
+import { aiVoiceAgentQueriesRouter } from "./aiVoiceAgent/queries/_router";
+import { apiKeysMutationsRouter } from "./apiKeys/mutations/_router";
+import { apiKeysQueriesRouter } from "./apiKeys/queries/_router";
+import { appsMutationsRouter } from "./apps/mutations/_router";
+import { appsQueriesRouter } from "./apps/queries/_router";
+import { attributesMutationsRouter } from "./attributes/mutations/_router";
+import { attributesQueriesRouter } from "./attributes/queries/_router";
+import { authMutationsRouter } from "./auth/mutations/_router";
+import { availabilityMutationsRouter } from "./availability/mutations/_router";
+import { availabilityQueriesRouter } from "./availability/queries/_router";
+import { bookingsMutationsRouter } from "./bookings/mutations/_router";
+import { bookingsQueriesRouter } from "./bookings/queries/_router";
+import { calVideoQueriesRouter } from "./calVideo/queries/_router";
+import { calendarsMutationsRouter } from "./calendars/mutations/_router";
+import { calendarsQueriesRouter } from "./calendars/queries/_router";
+import { credentialsMutationsRouter } from "./credentials/mutations/_router";
+import { creditsMutationsRouter } from "./credits/mutations/_router";
+import { creditsQueriesRouter } from "./credits/queries/_router";
+import { delegationCredentialMutationsRouter } from "./delegationCredential/mutations/_router";
+import { delegationCredentialQueriesRouter } from "./delegationCredential/queries/_router";
+import { deploymentSetupMutationsRouter } from "./deploymentSetup/mutations/_router";
+import { deploymentSetupQueriesRouter } from "./deploymentSetup/queries/_router";
+import { dsyncMutationsRouter } from "./dsync/mutations/_router";
+import { dsyncQueriesRouter } from "./dsync/queries/_router";
+import { eventTypesMutationsRouter } from "./eventTypes/mutations/_router";
+import { eventTypesQueriesRouter } from "./eventTypes/queries/_router";
+import { filterSegmentsMutationsRouter } from "./filterSegments/mutations/_router";
+import { filterSegmentsQueriesRouter } from "./filterSegments/queries/_router";
+import { googleWorkspaceMutationsRouter } from "./googleWorkspace/mutations/_router";
+import { googleWorkspaceQueriesRouter } from "./googleWorkspace/queries/_router";
+import { i18nQueriesRouter } from "./i18n/queries/_router";
+import { meMutationsRouter } from "./me/mutations/_router";
+import { meQueriesRouter } from "./me/queries/_router";
+import { oAuthMutationsRouter } from "./oAuth/mutations/_router";
+import { oAuthQueriesRouter } from "./oAuth/queries/_router";
+import { oooMutationsRouter } from "./ooo/mutations/_router";
+import { oooQueriesRouter } from "./ooo/queries/_router";
+import { viewerOrganizationsMutationsRouter } from "./organizations/mutations/_router";
+import { viewerOrganizationsQueriesRouter } from "./organizations/queries/_router";
+import { paymentsMutationsRouter } from "./payments/mutations/_router";
+import { permissionsMutationsRouter } from "./pbac/mutations/_router";
+import { permissionsQueriesRouter } from "./pbac/queries/_router";
+import { phoneNumberMutationsRouter } from "./phoneNumber/mutations/_router";
+import { phoneNumberQueriesRouter } from "./phoneNumber/queries/_router";
+import { routingFormsMutationsRouter } from "./routing-forms/mutations/_router";
+import { slotsMutationsRouter } from "./slots/mutations/_router";
+import { slotsQueriesRouter } from "./slots/queries/_router";
+import { ssoMutationsRouter } from "./sso/mutations/_router";
+import { ssoQueriesRouter } from "./sso/queries/_router";
+import { viewerTeamsMutationsRouter } from "./teams/mutations/_router";
+import { viewerTeamsQueriesRouter } from "./teams/queries/_router";
+import { travelSchedulesQueriesRouter } from "./travelSchedules/queries/_router";
+import { webhookMutationsRouter } from "./webhook/mutations/_router";
+import { webhookQueriesRouter } from "./webhook/queries/_router";
+import { workflowsMutationsRouter } from "./workflows/mutations/_router";
+import { workflowsQueriesRouter } from "./workflows/queries/_router";
 
 export const viewerRouter = router({
   loggedInViewerRouter,
-  apps: appsRouter,
-  me: meRouter,
+  apps: router({
+    queries: appsQueriesRouter,
+    mutations: appsMutationsRouter,
+  }),
+  me: router({
+    queries: meQueriesRouter,
+    mutations: meMutationsRouter,
+  }),
   public: publicViewerRouter,
-  auth: authRouter,
-  deploymentSetup: deploymentSetupRouter,
-  bookings: bookingsRouter,
-  calendars: calendarsRouter,
-  calVideo: calVideoRouter,
-  credentials: credentialsRouter,
-  eventTypes: eventTypesRouter,
-  availability: availabilityRouter,
-  teams: viewerTeamsRouter,
+  auth: router({
+    mutations: authMutationsRouter,
+  }),
+  deploymentSetup: router({
+    queries: deploymentSetupQueriesRouter,
+    mutations: deploymentSetupMutationsRouter,
+  }),
+  bookings: router({
+    queries: bookingsQueriesRouter,
+    mutations: bookingsMutationsRouter,
+  }),
+  calendars: router({
+    queries: calendarsQueriesRouter,
+    mutations: calendarsMutationsRouter,
+  }),
+  calVideo: router({
+    queries: calVideoQueriesRouter,
+  }),
+  credentials: router({
+    mutations: credentialsMutationsRouter,
+  }),
+  eventTypes: router({
+    queries: eventTypesQueriesRouter,
+    mutations: eventTypesMutationsRouter,
+  }),
+  availability: router({
+    queries: availabilityQueriesRouter,
+    mutations: availabilityMutationsRouter,
+  }),
+  teams: router({
+    queries: viewerTeamsQueriesRouter,
+    mutations: viewerTeamsMutationsRouter,
+  }),
   timezones: timezonesRouter,
-  organizations: viewerOrganizationsRouter,
-  delegationCredential: delegationCredentialRouter,
-  webhook: webhookRouter,
-  apiKeys: apiKeysRouter,
-  slots: slotsRouter,
-  workflows: workflowsRouter,
-  saml: ssoRouter,
-  dsync: dsyncRouter,
-  i18n: i18nRouter,
+  organizations: router({
+    queries: viewerOrganizationsQueriesRouter,
+    mutations: viewerOrganizationsMutationsRouter,
+  }),
+  delegationCredential: router({
+    queries: delegationCredentialQueriesRouter,
+    mutations: delegationCredentialMutationsRouter,
+  }),
+  webhook: router({
+    queries: webhookQueriesRouter,
+    mutations: webhookMutationsRouter,
+  }),
+  apiKeys: router({
+    queries: apiKeysQueriesRouter,
+    mutations: apiKeysMutationsRouter,
+  }),
+  slots: router({
+    queries: slotsQueriesRouter,
+    mutations: slotsMutationsRouter,
+  }),
+  workflows: router({
+    queries: workflowsQueriesRouter,
+    mutations: workflowsMutationsRouter,
+  }),
+  saml: router({
+    queries: ssoQueriesRouter,
+    mutations: ssoMutationsRouter,
+  }),
+  dsync: router({
+    queries: dsyncQueriesRouter,
+    mutations: dsyncMutationsRouter,
+  }),
+  i18n: router({
+    queries: i18nQueriesRouter,
+  }),
   insights: insightsRouter,
-  payments: paymentsRouter,
-  filterSegments: filterSegmentsRouter,
-  pbac: permissionsRouter,
+  payments: router({
+    mutations: paymentsMutationsRouter,
+  }),
+  filterSegments: router({
+    queries: filterSegmentsQueriesRouter,
+    mutations: filterSegmentsMutationsRouter,
+  }),
+  pbac: router({
+    queries: permissionsQueriesRouter,
+    mutations: permissionsMutationsRouter,
+  }),
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
   appRoutingForms: app_RoutingForms,
   appBasecamp3: app_Basecamp3,
   features: featureFlagRouter,
   users: userAdminRouter,
-  oAuth: oAuthRouter,
-  googleWorkspace: googleWorkspaceRouter,
-  admin: adminRouter,
-  attributes: attributesRouter,
-  routingForms: routingFormsRouter,
-  credits: creditsRouter,
-  ooo: oooRouter,
-  travelSchedules: travelSchedulesRouter,
-  aiVoiceAgent: aiVoiceAgentRouter,
-  phoneNumber: phoneNumberRouter,
+  oAuth: router({
+    queries: oAuthQueriesRouter,
+    mutations: oAuthMutationsRouter,
+  }),
+  googleWorkspace: router({
+    queries: googleWorkspaceQueriesRouter,
+    mutations: googleWorkspaceMutationsRouter,
+  }),
+  admin: router({
+    queries: adminQueriesRouter,
+    mutations: adminMutationsRouter,
+  }),
+  attributes: router({
+    queries: attributesQueriesRouter,
+    mutations: attributesMutationsRouter,
+  }),
+  routingForms: router({
+    mutations: routingFormsMutationsRouter,
+  }),
+  credits: router({
+    queries: creditsQueriesRouter,
+    mutations: creditsMutationsRouter,
+  }),
+  ooo: router({
+    queries: oooQueriesRouter,
+    mutations: oooMutationsRouter,
+  }),
+  travelSchedules: router({
+    queries: travelSchedulesQueriesRouter,
+  }),
+  aiVoiceAgent: router({
+    queries: aiVoiceAgentQueriesRouter,
+    mutations: aiVoiceAgentMutationsRouter,
+  }),
+  phoneNumber: router({
+    queries: phoneNumberQueriesRouter,
+    mutations: phoneNumberMutationsRouter,
+  }),
 });
