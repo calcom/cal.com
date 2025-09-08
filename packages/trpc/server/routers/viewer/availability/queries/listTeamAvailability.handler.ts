@@ -21,7 +21,7 @@ type GetOptions = {
 
 async function getTeamMembers({
   teamId,
-  organizationId,
+  organizationId: _organizationId,
   teamIds,
   cursor,
   limit,

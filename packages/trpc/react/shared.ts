@@ -8,6 +8,7 @@ export const ENDPOINTS = [
   "apiKeys",
   "apiKeys/queries",
   "apiKeys/mutations",
+  "availability/queries",
   "appRoutingForms",
   "apps",
   "apps/queries",
