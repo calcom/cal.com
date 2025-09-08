@@ -5,7 +5,7 @@ import PageWrapper from "@components/PageWrapperAppDir";
 
 export default async function PageWrapperLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
-  const nonce = h.get("x-nonce") ?? undefined;
+  const nonce = h.get("x-csp-nonce") ?? undefined;
   const headScript = process.env.NEXT_PUBLIC_HEAD_SCRIPTS;
   const bodyScript = process.env.NEXT_PUBLIC_BODY_SCRIPTS;
 

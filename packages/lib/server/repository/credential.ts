@@ -238,6 +238,63 @@ export class CredentialRepository {
     return prisma.credential.update({ where: { id }, data });
   }
 
+  static async findPaymentCredentialByAppIdAndTeamId({
+    appId,
+    teamId,
+  }: {
+    appId: string | null;
+    teamId: number;
+  }) {
+    return await prisma.credential.findFirst({
+      where: {
+        teamId,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
+
+  static async findPaymentCredentialByAppIdAndUserId({
+    appId,
+    userId,
+  }: {
+    appId: string | null;
+    userId: number;
+  }) {
+    return await prisma.credential.findFirst({
+      where: {
+        userId,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
+
+  static async findPaymentCredentialByAppIdAndUserIdOrTeamId({
+    appId,
+    userId,
+    teamId,
+  }: {
+    appId: string | null;
+    userId: number;
+    teamId?: number | null;
+  }) {
+    const idToSearchObject = teamId ? { teamId } : { userId };
+    return await prisma.credential.findFirst({
+      where: {
+        ...idToSearchObject,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
+
   static async findByIdWithSelectedCalendar({ id }: { id: number }) {
     return await prisma.credential.findFirst({
       where: { id },

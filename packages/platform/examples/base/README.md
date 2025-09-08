@@ -19,7 +19,7 @@ REDIS_URL="redis://localhost:6379"
 ```
 
 3. Start "apps/api/v2" api using `yarn dev`.
-4. Setup "packages/platform/atoms" by running `yarn atoms-dev-on` in the example app directory - it will pack atoms into a dev .tgz and switch the dependency to point to it. When you are done with development, run `yarn atoms-dev-off` to switch back to the published version because otherwise examples app would have entry in the yarn.lock file pointing to the dev .tgz and installation would fail in prod because dev tar file exists only locally.
+4. Start "packages/platform/atoms" atoms package with `yarn dev`.
 5. Start "apps/web" cal web app using `yarn dx`.
 6. Open your browser at "http://localhost:3000/" and login with admin username `admin@example.com` and password `ADMINadmin2022!`.
 7. In the web app navigate to `http://localhost:3000/settings/organizations/new` and create a sample organization. When asked for phone verification code enter `111111`.

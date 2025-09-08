@@ -15,4 +15,12 @@ export class DeploymentRepository implements IDeploymentRepository {
     });
     return deployment?.licenseKey || null;
   }
+
+  async getSignatureToken(id: number): Promise<string | null> {
+    const deployment = await (this.prisma as PrismaClientWithoutExtensions).deployment.findUnique({
+      where: { id },
+      select: { signatureTokenEncrypted: true },
+    });
+    return deployment?.signatureTokenEncrypted || null;
+  }
 }

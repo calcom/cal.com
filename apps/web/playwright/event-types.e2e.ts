@@ -77,10 +77,7 @@ test.describe("Event Types tests", () => {
 
       // fix the race condition
       await page.waitForSelector('[data-testid="event-title"]');
-      await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-        "aria-current",
-        "page"
-      );
+      await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
@@ -419,6 +416,64 @@ test.describe("Event Types tests", () => {
       // After enabling recurring, offerSeats should now be disabled
       await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
       await expect(offerSeatsToggle).toBeDisabled();
+    });
+    test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
+      page,
+      users,
+    }) => {
+      await gotoFirstEventType(page);
+      await expect(page.locator("[data-testid=event-title]")).toBeVisible();
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await page.click("[data-testid=lock-timezone-toggle]");
+      await page.click("[data-testid=timezone-select]");
+      await page.locator('[aria-label="Timezone Select"]').fill("New York");
+      await page.keyboard.press("Enter");
+
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+        action: () => page.locator("[data-testid=update-eventtype]").click(),
+      });
+      await page.goto("/event-types");
+      const previewLink = await page
+        .locator("[data-testid=preview-link-button]")
+        .first()
+        .getAttribute("href");
+
+      await page.goto(previewLink ?? "");
+      const currentTimezone = page.locator('[data-testid="event-meta-current-timezone"]');
+      await expect(currentTimezone).toBeVisible();
+      await expect(currentTimezone).toHaveClass(/cursor-not-allowed/);
+      await expect(page.getByText("New York")).toBeVisible();
+    });
+    test("should create recurring event and successfully book multiple occurrences", async ({ page }) => {
+      const nonce = randomString(3);
+      const eventTitle = `Recurring Event Test ${nonce}`;
+
+      await createNewUserEventType(page, { eventTitle });
+
+      await page.waitForSelector('[data-testid="event-title"]');
+      await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+      await page.click("[data-testid=vertical-tab-recurring]");
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
+      await page.click("[data-testid=recurring-event-check]");
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
+
+      await page.locator("[data-testid=recurring-event-collapsible] input[type=number]").nth(1).fill("3");
+
+      await saveEventType(page);
+
+      await gotoBookingPage(page);
+
+      await expect(page.locator("[data-testid=occurrence-input]")).toHaveValue("3");
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      await expect(page.locator("[data-testid=recurring-dates]")).toBeVisible();
+
+      await bookTimeSlot(page, { isRecurringEvent: true });
+
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+      await expect(page.locator("text=3 occurrences")).toBeVisible();
     });
   });
 

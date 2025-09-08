@@ -106,7 +106,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     },
   });
   // Upload logo, create doesn't allow logo removal
-  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+  if (
+    input.logo &&
+    (input.logo.startsWith("data:image/png;base64,") ||
+      input.logo.startsWith("data:image/jpeg;base64,") ||
+      input.logo.startsWith("data:image/jpg;base64,"))
+  ) {
     const logoUrl = await uploadLogo({
       logo: await resizeBase64Image(input.logo),
       teamId: createdTeam.id,

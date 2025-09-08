@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -7,7 +7,7 @@ import type { PartialReference } from "@calcom/types/EventManager";
 
 import { CredentialRepository } from "./credential";
 
-const bookingReferenceSelect = Prisma.validator<Prisma.BookingReferenceSelect>()({
+const bookingReferenceSelect = {
   id: true,
   type: true,
   uid: true,
@@ -16,7 +16,7 @@ const bookingReferenceSelect = Prisma.validator<Prisma.BookingReferenceSelect>()
   credentialId: true,
   deleted: true,
   bookingId: true,
-});
+} satisfies Prisma.BookingReferenceSelect;
 
 const log = logger.getSubLogger({
   prefix: ["BookingReferenceRepository"],

@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -53,6 +53,8 @@ export class CalendarEventBuilder {
     seatsShowAttendees?: boolean | null;
     seatsShowAvailabilityCount?: boolean | null;
     customReplyToEmail?: string | null;
+    disableRescheduling?: boolean;
+    disableCancelling?: boolean;
   }) {
     this.event = {
       ...this.event,
@@ -68,6 +70,8 @@ export class CalendarEventBuilder {
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
+      disableRescheduling: eventType.disableRescheduling ?? false,
+      disableCancelling: eventType.disableCancelling ?? false,
     };
     return this;
   }
@@ -262,7 +266,7 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  build(): CalendarEvent {
+  build(): CalendarEvent | null {
     // Validate required fields
     if (
       !this.event.startTime ||
@@ -271,7 +275,7 @@ export class CalendarEventBuilder {
       !this.event.bookerUrl ||
       !this.event.title
     ) {
-      throw new Error("Missing required fields for calendar event");
+      return null;
     }
 
     return this.event as CalendarEvent;

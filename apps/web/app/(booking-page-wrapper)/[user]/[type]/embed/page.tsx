@@ -11,6 +11,15 @@ import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps
 
 import TypePage, { type PageProps as ClientPageProps } from "~/users/views/users-type-public-view";
 
+export const generateMetadata = async () => {
+  return {
+    robots: {
+      follow: false,
+      index: false,
+    },
+  };
+};
+
 const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {

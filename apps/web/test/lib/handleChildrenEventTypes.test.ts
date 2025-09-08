@@ -26,7 +26,12 @@ vi.mock("@calcom/emails/email-manager", () => {
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
-    getTranslation: (key: string) => key,
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    },
   };
 });
 
@@ -116,6 +121,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateDescriptionEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -177,6 +183,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -287,6 +294,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -351,6 +359,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -416,6 +425,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -438,8 +448,8 @@ describe("handleChildrenEventTypes", () => {
         schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
-        lockedTimeZone: "Europe/London",
         useEventTypeDestinationCalendarEmail: false,
+        showOptimizedSlots: false,
         workflows: [],
         parentId: 1,
         locations: [],

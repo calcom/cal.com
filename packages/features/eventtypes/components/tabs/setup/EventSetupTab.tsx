@@ -5,8 +5,6 @@ import type { MultiValue } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
-import Locations from "@calcom/features/eventtypes/components/Locations";
 import type {
   EventTypeSetupProps,
   InputClassNames,
@@ -27,6 +25,9 @@ import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+
+import Locations from "../../locations/Locations";
+import type { LocationCustomClassNames } from "../../locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -208,9 +209,12 @@ export const EventSetupTab = (
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             data-testid="event-slug"
-            containerClassName={classNames(customClassNames?.titleSection?.urlInput?.container)}
+            containerClassName={classNames(
+              "[&>div]:gap-0",
+              customClassNames?.titleSection?.urlInput?.container
+            )}
             labelClassName={classNames(customClassNames?.titleSection?.urlInput?.label)}
-            className={classNames(customClassNames?.titleSection?.urlInput?.input)}
+            className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
                 <>

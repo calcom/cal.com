@@ -176,7 +176,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const organizerCalendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const organizerCalendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           update: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID_2",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID_2",

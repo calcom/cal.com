@@ -1,42 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Test helper functions
-type fakeCurrentDocumentUrlParams = {
-  origin?: string;
-  path?: string;
-  params?: Record<string, string>;
-};
+import { fakeCurrentDocumentUrl, nextTick } from "../embed-iframe/__tests__/test-utils";
 
 beforeEach(() => {
   // Ensure that we have it globally so that unexpected errors like 'document is not defined' don't happen due to timer being fired when test is shutting down
   vi.useFakeTimers();
 });
 
-function fakeCurrentDocumentUrl({
-  origin = "https://example.com",
-  path = "",
-  params = {},
-}: fakeCurrentDocumentUrlParams = {}) {
-  const url = new URL(path, origin);
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.set(key, value);
-  });
-  return mockDocumentUrl(url);
-}
-
-function mockDocumentUrl(url: URL | string) {
-  return vi.spyOn(document, "URL", "get").mockReturnValue(url.toString());
-}
-
 afterEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
   vi.useRealTimers();
+  vi.clearAllTimers();
 });
-
-function nextTick() {
-  vi.advanceTimersByTime(100);
-}
 
 describe("embedStore.router.ensureQueryParamsInUrl", async () => {
   let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;

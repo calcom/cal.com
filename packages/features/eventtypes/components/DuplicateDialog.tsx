@@ -151,6 +151,9 @@ const DuplicateDialog = () => {
                   </>
                 }
                 {...register("slug")}
+                 onChange={(e) => {
+                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                }}
               />
             )}
 

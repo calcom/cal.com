@@ -52,7 +52,7 @@ export class OrganizationsDelegationCredentialController {
   @HttpCode(HttpStatus.CREATED)
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
-  @ApiOperation({ summary: "Save delegation credentials for your organization." })
+  @ApiOperation({ summary: "Save delegation credentials for your organization" })
   async createDelegationCredential(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() delegatedServiceAccountUser: User,
@@ -72,7 +72,7 @@ export class OrganizationsDelegationCredentialController {
   @Patch("/:credentialId")
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
-  @ApiOperation({ summary: "Update delegation credentials of your organization." })
+  @ApiOperation({ summary: "Update delegation credentials of your organization" })
   async updateDelegationCredential(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() delegatedServiceAccountUser: User,

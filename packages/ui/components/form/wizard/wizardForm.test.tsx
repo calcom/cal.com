@@ -2,7 +2,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
-import WizardForm from "./WizardForm";
+import { WizardForm } from "./WizardForm";
 
 vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => ({
   useCompatSearchParams() {
@@ -17,6 +17,13 @@ vi.mock("next/navigation", () => ({
   useSearchParams() {
     return { get: vi.fn().mockReturnValue(currentStepNavigation) };
   },
+}));
+
+vi.mock("nuqs", () => ({
+  useQueryState: vi.fn(() => [currentStepNavigation, vi.fn()]),
+  createParser: vi.fn(() => ({
+    withDefault: vi.fn(() => ({})),
+  })),
 }));
 
 const steps = [

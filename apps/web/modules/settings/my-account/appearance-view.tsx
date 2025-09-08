@@ -1,5 +1,7 @@
 "use client";
 
+import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
+import { revalidateHasTeamPlan } from "app/cache/membership";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -8,11 +10,11 @@ import type { z } from "zod";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -23,37 +25,8 @@ import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
-
-const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
-        <SkeletonText className="h-8 w-1/3" />
-      </div>
-      <div className="border-subtle space-y-6 border-x px-4 py-6 sm:px-6">
-        <div className="[&>*]:bg-emphasis flex w-full items-center justify-center gap-x-2 [&>*]:animate-pulse">
-          <div className="h-32 flex-1 rounded-md p-5" />
-          <div className="h-32 flex-1 rounded-md p-5" />
-          <div className="h-32 flex-1 rounded-md p-5" />
-        </div>
-        <div className="flex justify-between">
-          <SkeletonText className="h-8 w-1/3" />
-          <SkeletonText className="h-8 w-1/3" />
-        </div>
-
-        <SkeletonText className="h-8 w-full" />
-      </div>
-      <div className="rounded-b-lg">
-        <SectionBottomActions align="end">
-          <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-        </SectionBottomActions>
-      </div>
-    </SkeletonContainer>
-  );
-};
 
 const useBrandColors = (
   currentTheme: string | null,
@@ -158,6 +131,8 @@ const AppearanceView = ({
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
+      revalidateSettingsAppearance();
+      revalidateHasTeamPlan();
       showToast(t("settings_updated_successfully"), "success");
       resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
       resetBookerLayoutThemeReset({ metadata: data.metadata });
@@ -173,11 +148,13 @@ const AppearanceView = ({
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
+      revalidateSettingsAppearance();
+      revalidateHasTeamPlan();
     },
   });
 
   return (
-    <div>
+    <SettingsHeader title={t("appearance")} description={t("appearance_description")}>
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
           <p className="text-default text-base font-semibold">{t("app_theme")}</p>
@@ -425,17 +402,8 @@ const AppearanceView = ({
           />
         </>
       )}
-    </div>
+    </SettingsHeader>
   );
 };
 
-const AppearancePage = () => {
-  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
-  const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
-
-  if (isPending || isTeamPlanStatusLoading || !user) return <SkeletonLoader />;
-
-  return <AppearanceView user={user} hasPaidPlan={hasPaidPlan} />;
-};
-
-export default AppearancePage;
+export default AppearanceView;

@@ -74,11 +74,16 @@ export const zoomUserSettingsSchema = z.object({
       default_password_for_scheduled_meetings: z.string().nullish(),
     })
     .nullish(),
+  in_meeting: z
+    .object({
+      waiting_room: z.boolean(),
+    })
+    .nullish(),
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording";
+const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,waiting_room";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -169,6 +174,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
+    const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -184,7 +190,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         participant_video: true,
         cn_meeting: false, // TODO: true if host meeting in China
         in_meeting: false, // TODO: true if host meeting in India
-        join_before_host: true,
+        join_before_host: !waitingRoomEnabled,
         mute_upon_entry: false,
         watermark: false,
         use_pmi: false,
@@ -193,6 +199,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         auto_recording: userSettings?.recording?.auto_recording || "none",
         enforce_login: false,
         registrants_email_notification: true,
+        waiting_room: waitingRoomEnabled,
       },
       ...recurrence,
     };

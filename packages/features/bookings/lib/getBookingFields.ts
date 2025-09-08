@@ -1,7 +1,10 @@
 import type { EventTypeCustomInput, EventType } from "@prisma/client";
 import type { z } from "zod";
 
-import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+} from "@calcom/features/bookings/lib/SystemField";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
@@ -49,6 +52,29 @@ export const getSmsReminderNumberSource = ({
   type: "workflow",
   label: "Workflow",
   fieldRequired: isSmsReminderNumberRequired,
+  editUrl: `/workflows/${workflowId}`,
+});
+
+export const getAIAgentCallPhoneNumberField = () =>
+  ({
+    name: CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+    type: "phone",
+    defaultLabel: "phone_number_for_ai_call",
+    defaultPlaceholder: "enter_phone_number",
+    editable: "system",
+  } as const);
+
+export const getAIAgentCallPhoneNumberSource = ({
+  workflowId,
+  isAIAgentCallPhoneNumberRequired,
+}: {
+  workflowId: Workflow["id"];
+  isAIAgentCallPhoneNumberRequired: boolean;
+}) => ({
+  id: `${workflowId}`,
+  type: "workflow",
+  label: "Workflow",
+  fieldRequired: isAIAgentCallPhoneNumberRequired,
   editUrl: `/workflows/${workflowId}`,
 });
 

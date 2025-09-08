@@ -218,7 +218,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                           <ListLinkItem
                             href={`${appUrl}/form-edit/${form.id}`}
                             heading={form.name}
-                            disabled={readOnly}
+                            readOnly={readOnly}
                             subHeading={description}
                             className="space-x-2 rtl:space-x-reverse"
                             actions={

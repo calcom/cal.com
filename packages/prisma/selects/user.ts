@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
-export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
+export const availabilityUserSelect = {
   id: true,
   timeZone: true,
   email: true,
@@ -10,6 +10,7 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   endTime: true,
   timeFormat: true,
   defaultScheduleId: true,
+  isPlatformManaged: true,
   // Relationships
   schedules: {
     select: {
@@ -28,9 +29,9 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   availability: true,
   selectedCalendars: true,
   travelSchedules: true,
-});
+} satisfies Prisma.UserSelect;
 
-export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
+export const baseUserSelect = {
   name: true,
   destinationCalendar: true,
   locale: true,
@@ -39,9 +40,9 @@ export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
   brandColor: true,
   darkBrandColor: true,
   ...availabilityUserSelect,
-});
+} satisfies Prisma.UserSelect;
 
-export const userSelect = Prisma.validator<Prisma.UserArgs>()({
+export const userSelect = {
   select: {
     name: true,
     allowDynamicBooking: true,
@@ -55,4 +56,4 @@ export const userSelect = Prisma.validator<Prisma.UserArgs>()({
     locked: true,
     ...availabilityUserSelect,
   },
-});
+} satisfies Prisma.UserArgs;

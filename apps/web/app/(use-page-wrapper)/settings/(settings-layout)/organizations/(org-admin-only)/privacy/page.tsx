@@ -1,7 +1,15 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
+import { headers, cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import PrivacyView from "@calcom/features/ee/organizations/pages/settings/privacy";
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { MembershipRole } from "@calcom/prisma/enums";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -13,11 +21,36 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
+  const [t, _headers, _cookies] = await Promise.all([getTranslate(), headers(), cookies()]);
+
+  const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
+
+  if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
+    return redirect("/settings/profile");
+  }
+
+  const { canRead, canEdit } = await getResourcePermissions({
+    userId: session.user.id,
+    teamId: session.user.profile.organizationId,
+    resource: Resource.Organization,
+    userRole: session.user.org.role,
+    fallbackRoles: {
+      read: {
+        roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      update: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  if (!canRead) {
+    return redirect("/settings/profile");
+  }
 
   return (
     <SettingsHeader title={t("privacy")} description={t("privacy_organization_description")}>
-      <PrivacyView />
+      <PrivacyView permissions={{ canRead, canEdit }} />
     </SettingsHeader>
   );
 };

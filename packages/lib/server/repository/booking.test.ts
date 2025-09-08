@@ -104,7 +104,8 @@ describe("BookingRepository", () => {
       it("it should not include bookings where the attendee is a no show", async () => {
         await createAttendeeNoShowTestBookings();
 
-        const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+        const bookingRepo = new BookingRepository(prismaMock);
+        const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
           startDate: new Date(),
@@ -118,7 +119,8 @@ describe("BookingRepository", () => {
       it("it should include bookings where the attendee is a no show", async () => {
         await createAttendeeNoShowTestBookings();
 
-        const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+        const bookingRepo = new BookingRepository(prismaMock);
+        const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
           startDate: new Date(),
@@ -132,7 +134,8 @@ describe("BookingRepository", () => {
       it("it should not include bookings where the host is a no show", async () => {
         await createHostNoShowTestBookings();
 
-        const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+        const bookingRepo = new BookingRepository(prismaMock);
+        const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
           startDate: new Date(),
@@ -146,7 +149,8 @@ describe("BookingRepository", () => {
       it("it should include bookings where the host is a no show", async () => {
         await createHostNoShowTestBookings();
 
-        const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+        const bookingRepo = new BookingRepository(prismaMock);
+        const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
           startDate: new Date(),
@@ -161,7 +165,8 @@ describe("BookingRepository", () => {
         await createHostNoShowTestBookings();
         await createAttendeeNoShowTestBookings();
 
-        const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+        const bookingRepo = new BookingRepository(prismaMock);
+        const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
           startDate: new Date(),
@@ -176,7 +181,8 @@ describe("BookingRepository", () => {
         await createHostNoShowTestBookings();
         await createAttendeeNoShowTestBookings();
 
-        const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+        const bookingRepo = new BookingRepository(prismaMock);
+        const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
           startDate: new Date(),
@@ -232,7 +238,8 @@ describe("BookingRepository", () => {
         }),
       ]);
 
-      const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+      const bookingRepo = new BookingRepository(prismaMock);
+      const bookings = await bookingRepo.getAllBookingsForRoundRobin({
         users: [{ id: 1, email: "organizer1@example.com" }],
         eventTypeId: 1,
         startDate: new Date("2025-06-01T00:00:00.000Z"),

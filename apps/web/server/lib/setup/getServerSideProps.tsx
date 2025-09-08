@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { LicenseKeySingleton } from "@calcom/features/ee/common/server/LicenseKeyService";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import prisma from "@calcom/prisma";
@@ -37,12 +38,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
+  // Check if there's already a valid license using LicenseKeyService
+  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+  const hasValidLicense = await licenseKeyService.checkLicense();
+
   const isFreeLicense = (await getDeploymentKey(deploymentRepo)) === "";
 
   return {
     props: {
       isFreeLicense,
       userCount,
+      hasValidLicense,
     },
   };
 }

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -14,7 +14,7 @@ import { CalendarEventClass } from "./class";
 
 const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "builder"] });
 const translator = short();
-const userSelect = Prisma.validator<Prisma.UserArgs>()({
+const userSelect = {
   select: {
     id: true,
     email: true,
@@ -26,7 +26,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
     destinationCalendar: true,
     locale: true,
   },
-});
+} satisfies Prisma.UserArgs;
 
 type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
@@ -147,6 +147,8 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           destinationCalendar: true,
           hideCalendarNotes: true,
           hideCalendarEventDetails: true,
+          disableCancelling: true,
+          disableRescheduling: true,
         },
       });
     } catch (error) {

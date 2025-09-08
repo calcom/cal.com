@@ -6,6 +6,7 @@ import z from "zod";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -24,12 +25,6 @@ export const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
   default_currency: z.string(),
   stripe_publishable_key: z.string(),
-});
-
-const stripeAppKeysSchema = z.object({
-  client_id: z.string(),
-  payment_fee_fixed: z.number(),
-  payment_fee_percentage: z.number(),
 });
 
 export class PaymentService implements IAbstractPaymentService {
@@ -241,11 +236,6 @@ export class PaymentService implements IAbstractPaymentService {
 
       const setupIntent = paymentObject.setupIntent;
 
-      // Parse keys with zod
-      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
-
-      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
-
       // Ensure that the stripe customer & payment method still exists
       const customer = await this.stripe.customers.retrieve(setupIntent.customer as string, {
         stripeAccount: this.credentials.stripe_user_id,
@@ -265,7 +255,6 @@ export class PaymentService implements IAbstractPaymentService {
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
-        application_fee_amount: paymentFee,
         customer: setupIntent.customer as string,
         payment_method: setupIntent.payment_method as string,
         off_session: true,
@@ -296,7 +285,28 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
-      throw new Error(ErrorCode.ChargeCardFailure);
+
+      const errorMappings = {
+        "your card was declined": "your_card_was_declined",
+        "your card does not support this type of purchase":
+          "your_card_does_not_support_this_type_of_purchase",
+        "amount must convert to at least": "amount_must_convert_to_at_least",
+      };
+
+      let userMessage = "could_not_charge_card";
+
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+
+        for (const [key, message] of Object.entries(errorMappings)) {
+          if (errorMessage.includes(key)) {
+            userMessage = message;
+            break;
+          }
+        }
+      }
+
+      throw new ErrorWithCode(ErrorCode.ChargeCardFailure, userMessage);
     }
   }
 
@@ -348,9 +358,14 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
+    const attendeesToEmail = event.attendeeSeatId 
+      ? event.attendees.filter(attendee => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
+      : event.attendees;
+
     await sendAwaitingPaymentEmailAndSMS(
       {
         ...event,
+        attendees: attendeesToEmail,
         paymentInfo: {
           link: createPaymentLink({
             paymentUid: paymentData.uid,
