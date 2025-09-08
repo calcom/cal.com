@@ -19,6 +19,7 @@ type AddVerifiedEmailProps = {
 const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [isEmailVerificationModalVisible, setIsEmailVerificationModalVisible] = useState(false);
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const { refetch: refetchVerifiedEmails } = useGetVerifiedEmails();
   const { mutate: addVerifiedEmail } = useAddVerifiedEmail({
@@ -43,10 +44,7 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
     onSuccess: async () => {
       setIsEmailVerificationModalVisible(false);
       setVerifiedEmail("");
-      // this is where I have to add the mutation for adding verified email to secondary emails
-      // this is the right place
 
-      // showToast("Email verified successfully!", "success");
       await addVerifiedEmail({
         email: verifiedEmail,
       });
@@ -75,8 +73,10 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
                 size="sm"
                 StartIcon="arrow-right"
                 onClick={() => {
-                  setIsEmailVerificationModalVisible(true);
-                  handleVerifyEmail();
+                  if (!!verifiedEmail && isValidEmail(verifiedEmail)) {
+                    setIsEmailVerificationModalVisible(true);
+                    handleVerifyEmail();
+                  }
                 }}
               />
             </Tooltip>
