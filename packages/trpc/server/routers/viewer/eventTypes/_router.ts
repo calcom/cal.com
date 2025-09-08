@@ -1,20 +1,16 @@
 import { z } from "zod";
 
 import { logP } from "@calcom/lib/perf";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
-import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
-import { ZUpdateInputSchema } from "./update.schema";
-import { createEventPbacProcedure } from "./util";
+import { eventOwnerProcedure } from "./util";
 
 type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
@@ -23,11 +19,8 @@ type BookingsRouterHandlerCache = {
   getTeamAndEventTypeOptions?: typeof import("./getTeamAndEventTypeOptions.handler").getTeamAndEventTypeOptions;
   list?: typeof import("./list.handler").listHandler;
   listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
-  create?: typeof import("./create.handler").createHandler;
   get?: typeof import("./get.handler").getHandler;
-  update?: typeof import("./update.handler").updateHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
-  duplicate?: typeof import("./duplicate.handler").duplicateHandler;
   bulkEventFetch?: typeof import("./bulkEventFetch.handler").bulkEventFetchHandler;
   bulkUpdateToDefaultLocation?: typeof import("./bulkUpdateToDefaultLocation.handler").bulkUpdateToDefaultLocationHandler;
 };
@@ -116,49 +109,16 @@ export const eventTypesRouter = router({
     });
   }),
 
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
-    const { createHandler } = await import("./create.handler");
+  get,
 
-    return createHandler({
+  delete: eventOwnerProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
+    const { deleteHandler } = await import("./delete.handler");
+
+    return deleteHandler({
       ctx,
       input,
     });
   }),
-
-  get,
-
-  update: createEventPbacProcedure("eventType.update", [MembershipRole.ADMIN, MembershipRole.OWNER])
-    .input(ZUpdateInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { updateHandler } = await import("./update.handler");
-
-      return updateHandler({
-        ctx,
-        input,
-      });
-    }),
-
-  delete: createEventPbacProcedure("eventType.delete", [MembershipRole.ADMIN, MembershipRole.OWNER])
-    .input(ZDeleteInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { deleteHandler } = await import("./delete.handler");
-
-      return deleteHandler({
-        ctx,
-        input,
-      });
-    }),
-
-  duplicate: createEventPbacProcedure("eventType.create", [MembershipRole.ADMIN, MembershipRole.OWNER])
-    .input(ZDuplicateInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { duplicateHandler } = await import("./duplicate.handler");
-
-      return duplicateHandler({
-        ctx,
-        input,
-      });
-    }),
 
   bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
     const { bulkEventFetchHandler } = await import("./bulkEventFetch.handler");
