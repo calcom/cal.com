@@ -240,7 +240,7 @@ export function Card({
         </a>
       )}
       {variant === "NewLaunchSidebarCard" && coverPhoto && (
-        <img alt="cover" className="mt-3" src={coverPhoto} />
+        <img alt="cover" className="mt-3 w-full" src={coverPhoto} />
       )}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}

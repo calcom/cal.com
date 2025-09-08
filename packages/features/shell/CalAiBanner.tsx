@@ -33,8 +33,8 @@ export function CalAiBanner() {
         <Icon name="x" className="h-4 w-4 text-white" />
       </button>
 
-      <div className="flex items-center justify-between p-6 lg:p-8">
-        <div className="flex-1 pr-6">
+      <div className="relative flex items-center justify-between">
+        <div className="flex-1 p-6 pr-6 lg:p-8">
           <h2 className="font-cal font-subtle text-lg">{t("supercharge_your_workflows_with_cal_ai")}</h2>
           <p className="text-subtle mb-4 text-sm">
             {t("supercharge_your_workflows_with_cal_ai_description")}
@@ -47,7 +47,7 @@ export function CalAiBanner() {
           </button>
         </div>
 
-        <img src="/cal-ai-workflow-sidebar.jpg" alt="Cal.ai Banner" className="max-h-sm max-w-36" />
+        <img src="/cal-ai-banner.svg" alt="Cal.ai Banner" className="absolute bottom-0 right-4 h-40" />
       </div>
     </div>
   );
