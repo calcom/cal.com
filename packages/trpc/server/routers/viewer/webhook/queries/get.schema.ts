@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { webhookIdAndEventTypeIdSchema } from "./types";
+import { webhookIdAndEventTypeIdSchema } from "../types";
 
 export const ZGetInputSchema = webhookIdAndEventTypeIdSchema.extend({
   webhookId: z.string().optional(),

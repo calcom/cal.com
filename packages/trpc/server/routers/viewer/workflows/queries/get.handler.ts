@@ -4,8 +4,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { isAuthorized } from "../util";
 import type { TGetInputSchema } from "./get.schema";
-import { isAuthorized } from "./util";
 
 type GetOptions = {
   ctx: {

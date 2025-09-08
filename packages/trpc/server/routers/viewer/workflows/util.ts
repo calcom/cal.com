@@ -42,9 +42,9 @@ import type { CalEventResponses } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
+import type { ZWorkflows } from "./queries/getAllActiveWorkflows.schema";
 
-const log = logger.getSubLogger({ prefix: ["workflow"] });
+const _log = logger.getSubLogger({ prefix: ["workflow"] });
 
 export const bookingSelect = {
   userPrimaryEmail: true,
@@ -486,7 +486,11 @@ export async function isAuthorizedToAddActiveOnIds(
               id: true,
             },
           },
-          children: true,
+          children: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 

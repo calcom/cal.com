@@ -6,8 +6,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { isAuthorized, removeSmsReminderFieldForEventTypes } from "../util";
 import type { TDeleteInputSchema } from "./delete.schema";
-import { isAuthorized, removeSmsReminderFieldForEventTypes } from "./util";
 
 type DeleteOptions = {
   ctx: {

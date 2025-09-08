@@ -1,6 +1,6 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
-import { ZFilteredListInputSchema } from "./filteredList.schema";
+import { ZFilteredListInputSchema } from "../filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
 import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
@@ -48,7 +48,7 @@ export const workflowsQueriesRouter = router({
   }),
 
   filteredList: authedProcedure.input(ZFilteredListInputSchema).query(async ({ ctx, input }) => {
-    const { filteredListHandler } = await import("./filteredList.handler");
+    const { filteredListHandler } = await import("../filteredList.handler");
     return filteredListHandler({
       ctx,
       input,

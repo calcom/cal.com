@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 
-import { webhookIdAndEventTypeIdSchema } from "./types";
+import { webhookIdAndEventTypeIdSchema } from "../types";
 
 export const ZListInputSchema = webhookIdAndEventTypeIdSchema
   .extend({

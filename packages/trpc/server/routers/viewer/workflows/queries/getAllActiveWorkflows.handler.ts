@@ -4,8 +4,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { getAllWorkflowsFromEventType, getEventTypeWorkflows } from "../util";
 import type { TGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
-import { getAllWorkflowsFromEventType, getEventTypeWorkflows } from "./util";
 
 type GetAllActiveWorkflowsOptions = {
   ctx: {

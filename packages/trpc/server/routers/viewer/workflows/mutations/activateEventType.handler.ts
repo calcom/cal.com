@@ -12,8 +12,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { removeSmsReminderFieldForEventTypes, upsertSmsReminderFieldForEventTypes } from "../util";
 import type { TActivateEventTypeInputSchema } from "./activateEventType.schema";
-import { removeSmsReminderFieldForEventTypes, upsertSmsReminderFieldForEventTypes } from "./util";
 
 type ActivateEventTypeOptions = {
   ctx: {
