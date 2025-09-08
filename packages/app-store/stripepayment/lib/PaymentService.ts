@@ -250,6 +250,10 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error(`Stripe paymentMethod does not exist for setupIntent ${setupIntent.id}`);
       }
 
+      if (!booking.attendees[0]) {
+        throw new Error(`Booking attendees are empty for setupIntent ${setupIntent.id}`);
+      }
+
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
