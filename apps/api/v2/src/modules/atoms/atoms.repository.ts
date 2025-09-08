@@ -75,4 +75,37 @@ export class AtomsRepository {
       },
     });
   }
+
+  async getExistingSecondaryEmailByUserAndEmail(userId: number, email: string) {
+    const existingSecondaryEmailRecord = await this.dbRead.prisma.secondaryEmail.findUnique({
+      where: {
+        userId,
+        email,
+      },
+    });
+
+    return existingSecondaryEmailRecord?.email;
+  }
+
+  async getExistingSecondaryEmailByEmail(email: string) {
+    const existingSecondaryEmailRecord = await this.dbRead.prisma.secondaryEmail.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    return existingSecondaryEmailRecord?.email;
+  }
+
+  async addSecondaryEmail(userId: number, email: string) {
+    const existingSecondaryEmailRecord = await this.dbRead.prisma.secondaryEmail.create({
+      data: {
+        userId,
+        email,
+        emailVerified: new Date(),
+      },
+    });
+
+    return existingSecondaryEmailRecord?.email;
+  }
 }

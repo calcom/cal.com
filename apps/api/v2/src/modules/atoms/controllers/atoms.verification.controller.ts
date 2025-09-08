@@ -1,5 +1,6 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
+import { AddVerifiedEmailInput } from "@/modules/atoms/inputs/add-verified-email.input";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
 import { GetVerifiedEmailsParams } from "@/modules/atoms/inputs/get-verified-emails-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
@@ -124,6 +125,26 @@ export class AtomsVerificationController {
 
     return {
       data: verifiedEmails,
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Post("/emails/verified-emails")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async addVerifiedEmails(
+    @Body() body: AddVerifiedEmailInput,
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<{ emailVerfied: boolean }>> {
+    const emailVerfied = await this.verificationService.addVerifiedEmail({
+      userId: user.id,
+      existingPrimaryEmail: user.email,
+      email: body.email,
+    });
+
+    return {
+      data: { emailVerfied },
       status: SUCCESS_STATUS,
     };
   }

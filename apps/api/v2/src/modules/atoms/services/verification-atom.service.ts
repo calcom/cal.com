@@ -68,17 +68,48 @@ export class VerificationAtomsService {
 
   async getVerifiedEmails(input: GetVerifiedEmailsInput): Promise<string[]> {
     const { userId, userEmail, teamId } = input;
+    const userEmailWithoutOauthClientId = userEmail.replace(/\+([^+]+)@/, "@");
+
     if (teamId) {
       // implement team logic here
       // and then return here only
       return [];
     }
 
-    let verifiedEmails = [userEmail];
+    let verifiedEmails = [userEmailWithoutOauthClientId];
 
     const secondaryEmails = await this.atomsRepository.getSecondaryEmails(userId);
     verifiedEmails = verifiedEmails.concat(secondaryEmails.map((secondaryEmail) => secondaryEmail.email));
 
     return verifiedEmails;
+  }
+
+  async addVerifiedEmail({
+    userId,
+    existingPrimaryEmail,
+    email,
+  }: {
+    userId: number;
+    existingPrimaryEmail: string;
+    email: string;
+  }): Promise<boolean> {
+    const existingPrimaryEmailWithoutOauthClientId = existingPrimaryEmail.replace(/\+([^+]+)@/, "@");
+    const existingSecondaryEmail = await this.atomsRepository.getExistingSecondaryEmailByUserAndEmail(
+      userId,
+      email
+    );
+    const alreadyExistingEmail = await this.atomsRepository.getExistingSecondaryEmailByEmail(email);
+
+    if (alreadyExistingEmail) {
+      throw new BadRequestException("Email already exists");
+    }
+
+    if (existingPrimaryEmailWithoutOauthClientId === email || existingSecondaryEmail === email) {
+      return true;
+    }
+
+    await this.atomsRepository.addSecondaryEmail(userId, email);
+
+    return true;
   }
 }
