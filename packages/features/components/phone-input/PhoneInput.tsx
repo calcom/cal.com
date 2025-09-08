@@ -6,6 +6,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { reverseGeocode, getCountryFromTimezone } from "@calcom/lib/countryDetection";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 
@@ -45,7 +46,7 @@ function BasePhoneInput({
     if (value !== sanitized) {
       onChange(sanitized);
     }
-  }, []);
+  }, [value, onChange]);
 
   if (!isPlatform) {
     return (
@@ -99,7 +100,7 @@ function BasePhoneInputWeb({
   value,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
-  const defaultCountry = useDefaultCountry();
+  const { defaultCountry } = useDefaultCountry();
 
   return (
     <PhoneInput
@@ -142,6 +143,8 @@ function BasePhoneInputWeb({
 
 const useDefaultCountry = () => {
   const [defaultCountry, setDefaultCountry] = useState("us");
+  const [isDetecting, setIsDetecting] = useState(true);
+
   const query = trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -149,20 +152,64 @@ const useDefaultCountry = () => {
   });
 
   useEffect(
-    function refactorMeWithoutEffect() {
-      const data = query.data;
-      if (!data?.countryCode) {
-        return;
-      }
+    function detectCountryWithFallbacks() {
+      const detectCountry = async () => {
+        try {
+          if (query.data?.countryCode && isSupportedCountry(query.data.countryCode)) {
+            setDefaultCountry(query.data.countryCode.toLowerCase());
+            setIsDetecting(false);
+            return;
+          }
 
-      isSupportedCountry(data?.countryCode)
-        ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+          if (navigator.geolocation && "geolocation" in navigator) {
+            try {
+              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  timeout: 5000,
+                  enableHighAccuracy: false,
+                  maximumAge: 300000,
+                });
+              });
+
+              const countryCode = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+              if (countryCode && isSupportedCountry(countryCode)) {
+                setDefaultCountry(countryCode.toLowerCase());
+                setIsDetecting(false);
+                return;
+              }
+            } catch (geoError) {
+              // Geolocation failed
+            }
+          }
+
+          const timezoneCountry = getCountryFromTimezone();
+          if (timezoneCountry && isSupportedCountry(timezoneCountry)) {
+            setDefaultCountry(timezoneCountry.toLowerCase());
+            setIsDetecting(false);
+            return;
+          }
+
+          const browserCountry = navigator.language.split("-")[1]?.toLowerCase();
+          if (browserCountry && isSupportedCountry(browserCountry)) {
+            setDefaultCountry(browserCountry);
+            setIsDetecting(false);
+            return;
+          }
+
+          setDefaultCountry("us");
+          setIsDetecting(false);
+        } catch (error) {
+          setDefaultCountry("us");
+          setIsDetecting(false);
+        }
+      };
+
+      detectCountry();
     },
     [query.data]
   );
 
-  return defaultCountry;
+  return { defaultCountry, isDetecting };
 };
 
 export default BasePhoneInput;
