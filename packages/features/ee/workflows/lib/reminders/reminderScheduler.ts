@@ -1,3 +1,4 @@
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import {
   isAttendeeAction,
   isSMSAction,
@@ -16,7 +17,6 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
