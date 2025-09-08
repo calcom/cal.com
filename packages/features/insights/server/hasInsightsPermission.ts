@@ -7,7 +7,7 @@ export async function hasInsightsPermission({
   organizationId,
 }: {
   userId: number;
-  organizationId: number | undefined;
+  organizationId: number | null | undefined;
 }) {
   if (organizationId) {
     const permissionCheckService = new PermissionCheckService();
