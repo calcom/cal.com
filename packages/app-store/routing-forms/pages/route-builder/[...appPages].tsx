@@ -13,10 +13,10 @@ import type { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
+import type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
-import { SchedulingType } from "@calcom/prisma/client";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
@@ -62,8 +62,6 @@ import type {
 } from "../../types/types";
 import type { zodRoutes } from "../../zod";
 import { RouteActionType } from "../../zod";
-
-type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
@@ -141,7 +139,7 @@ const buildEventsData = ({
   form,
   route,
 }: {
-  eventTypesByGroup: EventTypesByGroup | undefined;
+  eventTypesByGroup: EventTypesByViewer | undefined;
   form: Form;
   route: EditFormRoute;
 }) => {
@@ -372,7 +370,7 @@ const Route = ({
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
   disabled?: boolean;
-  eventTypesByGroup: EventTypesByGroup;
+  eventTypesByGroup: EventTypesByViewer;
   attributes?: Attribute[];
   cardOptions?: {
     collapsible?: boolean;
@@ -1129,7 +1127,7 @@ const Routes = ({
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   appUrl: string;
   attributes?: Attribute[];
-  eventTypesByGroup: EventTypesByGroup;
+  eventTypesByGroup: EventTypesByViewer;
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();

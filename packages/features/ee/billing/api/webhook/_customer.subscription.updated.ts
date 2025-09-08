@@ -1,6 +1,6 @@
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import { prisma } from "@calcom/prisma";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/client";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
