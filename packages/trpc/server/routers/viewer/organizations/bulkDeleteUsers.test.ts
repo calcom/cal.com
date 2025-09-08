@@ -7,7 +7,7 @@ import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import { bulkDeleteUsersHandler } from "./bulkDeleteUsers.handler";
 
 const getBaseUserInfo = (
@@ -34,7 +34,7 @@ const getBaseUserInfo = (
   };
 };
 
-describe.skip("Bulk Delete Users handler", () => {
+describe("Bulk Delete Users handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

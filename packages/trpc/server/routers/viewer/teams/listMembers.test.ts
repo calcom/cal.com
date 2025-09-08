@@ -3,7 +3,7 @@
 // TODO: Bring this test back with the correct setup (no illegal imports)
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import listMembers from "./listMembers.handler";
 
 const createTeamWithMembers = async ({ isPrivate = false }: { isPrivate?: boolean }) => {
@@ -89,7 +89,7 @@ const createTeamWithMembers = async ({ isPrivate = false }: { isPrivate?: boolea
   };
 };
 
-describe.skip("listMembers", () => {
+describe("listMembers", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
