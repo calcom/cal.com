@@ -513,7 +513,7 @@ async function handler(
     }
 
     try {
-      await verifyCodeUnAuthenticated({ email: bookerEmail, code: verificationCode });
+      await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
     } catch (error) {
       throw new HttpError({
         statusCode: 400,

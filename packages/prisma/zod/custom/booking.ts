@@ -50,6 +50,7 @@ export const bookingCreateBodySchema = z.object({
   }).optional(),
   dub_id: z.string().nullish(),
   creationSource: z.nativeEnum(CreationSource).optional(),
+  verificationCode: z.string().optional(),
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
