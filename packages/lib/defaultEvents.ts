@@ -1,6 +1,6 @@
 import type { Prisma, SelectedCalendar } from "@prisma/client";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
@@ -94,6 +94,7 @@ const commons = {
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
   hideOrganizerEmail: false,
+  showOptimizedSlots: false,
   id: 0,
   hideCalendarNotes: false,
   hideCalendarEventDetails: false,

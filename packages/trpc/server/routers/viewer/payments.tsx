@@ -1,15 +1,18 @@
 import { z } from "zod";
 
-import appStore from "@calcom/app-store";
+import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import dayjs from "@calcom/dayjs";
+import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -41,7 +44,40 @@ export const paymentsRouter = router({
             },
           },
           attendees: true,
-          eventType: true,
+          eventType: {
+            select: {
+              schedulingType: true,
+              owner: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+              hosts: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              customReplyToEmail: true,
+              slug: true,
+              metadata: true,
+              workflows: {
+                select: {
+                  workflow: {
+                    select: workflowSelect,
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
@@ -74,6 +110,10 @@ export const paymentsRouter = router({
 
       const attendeesList = await Promise.all(attendeesListPromises);
 
+      const orgId = await getOrgIdFromMemberOrTeamId({ memberId: ctx.user.id });
+      const workflows = await getAllWorkflowsFromEventType(booking.eventType, ctx.user.id);
+      const bookerUrl = await getBookerBaseUrl(orgId ?? null);
+
       const evt: CalendarEvent = {
         type: booking?.eventType?.slug as string,
         title: booking.title,
@@ -92,6 +132,7 @@ export const paymentsRouter = router({
           paymentOption: payment.paymentOption,
         },
         customReplyToEmail: booking.eventType?.customReplyToEmail,
+        bookerUrl,
       };
 
       const paymentCredential = await prisma.credential.findFirst({
@@ -108,26 +149,28 @@ export const paymentsRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
       }
 
-      const paymentApp = (await appStore[
-        paymentCredential?.app?.dirName as keyof typeof appStore
-      ]?.()) as PaymentApp | null;
+      const key = paymentCredential?.app?.dirName;
+      const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
+      if (!paymentAppImportFn) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Payment app not implemented" });
+      }
 
-      if (!(paymentApp && paymentApp.lib && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+      const paymentApp = await paymentAppImportFn;
+      if (!(paymentApp && "PaymentService" in paymentApp && paymentApp?.PaymentService)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
       }
 
-      const PaymentService = paymentApp.lib.PaymentService;
+      const PaymentService = paymentApp.PaymentService;
       const paymentInstance = new PaymentService(paymentCredential);
 
       try {
-        const paymentData = await paymentInstance.chargeCard(payment);
+        const paymentData = await paymentInstance.chargeCard(payment, booking.id);
 
         if (!paymentData) {
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
         }
 
         const userId = ctx.user.id || 0;
-        const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId });
         const eventTypeId = booking.eventTypeId || 0;
         const webhooks = await WebhookService.init({
           userId,
@@ -148,6 +191,31 @@ export const paymentsRouter = router({
           evt,
           booking?.eventType?.metadata as EventTypeMetadata
         );
+
+        if (workflows.length > 0) {
+          try {
+            await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+              workflows,
+              smsReminderNumber: booking.smsReminderNumber,
+              calendarEvent: {
+                ...evt,
+                bookerUrl,
+                eventType: {
+                  ...booking.eventType,
+                  slug: booking.eventType?.slug || "",
+                },
+              },
+              hideBranding: !!booking.eventType?.owner?.hideBranding,
+              triggers: [WorkflowTriggerEvents.BOOKING_PAID],
+            });
+          } catch (error) {
+            // Silently fail
+            console.error(
+              "Error while scheduling workflow reminders for BOOKING_PAID:",
+              error instanceof Error ? error.message : String(error)
+            );
+          }
+        }
 
         return paymentData;
       } catch (err) {

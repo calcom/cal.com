@@ -81,7 +81,11 @@ export type Language =
 // Request/response types
 export type CreateLLMRequest = Retell.LlmCreateParams;
 export type CreatePhoneNumberParams = Retell.PhoneNumberCreateParams;
-export type CreatePhoneCallParams = Retell.CallCreatePhoneCallParams;
+export type CreatePhoneCallParams = {
+  fromNumber: string;
+  toNumber: string;
+  dynamicVariables?: RetellDynamicVariables;
+};
 export type UpdatePhoneNumberParams = Retell.PhoneNumberUpdateParams;
 export type ImportPhoneNumberParams = Retell.PhoneNumberImportParams;
 export type RetellLLMGeneralTools = Retell.LlmCreateParams["general_tools"];
@@ -97,9 +101,14 @@ export type RetellAgentWithDetails = {
   name: string;
   providerAgentId: string;
   enabled: boolean;
-  userId: number;
+  userId: number | null;
   teamId: number | null;
-  outboundPhoneNumbers: Agent["outboundPhoneNumbers"];
+  outboundPhoneNumbers: Array<{
+    id: number;
+    phoneNumber: string;
+    subscriptionStatus: string | null;
+    provider: string | null;
+  }>;
   retellData: {
     agentId: RetellAgent["agent_id"];
     agentName: RetellAgent["agent_name"];

@@ -121,6 +121,7 @@ export const IS_TEAM_BILLING_ENABLED_CLIENT =
   !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
 
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
+export const API_NAME_LENGTH_MAX_LIMIT = 80;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER === "1";
 // Needed for orgs
@@ -178,7 +179,7 @@ export const CLOUDFLARE_USE_TURNSTILE_IN_BOOKER = process.env.NEXT_PUBLIC_CLOUDF
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
 export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 0;
-export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 2;
+export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 1;
 
 export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || "https://goblin.cal.com";
 export const WEBSITE_PRIVACY_POLICY_URL =
@@ -233,3 +234,21 @@ export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "
 export const NEXTJS_CACHE_TTL = 3600; // 1 hour
 
 export const DEFAULT_GROUP_ID = "default_group_id";
+
+const _rawCalAiPrice = process.env.NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE;
+export const CAL_AI_PHONE_NUMBER_MONTHLY_PRICE = (() => {
+  const parsed = _rawCalAiPrice && _rawCalAiPrice.trim() !== "" ? Number(_rawCalAiPrice) : NaN;
+  return Number.isFinite(parsed) ? parsed : 5;
+})();
+
+// Retell AI test mode configuration
+export const RETELL_AI_TEST_MODE = process.env.RETELL_AI_TEST_MODE === "true";
+export const RETELL_AI_TEST_EVENT_TYPE_MAP = (() => {
+  if (!process.env.RETELL_AI_TEST_EVENT_TYPE_MAP) return null;
+  try {
+    return JSON.parse(process.env.RETELL_AI_TEST_EVENT_TYPE_MAP);
+  } catch (e) {
+    console.warn("Failed to parse RETELL_AI_TEST_EVENT_TYPE_MAP", e);
+    return null;
+  }
+})();
