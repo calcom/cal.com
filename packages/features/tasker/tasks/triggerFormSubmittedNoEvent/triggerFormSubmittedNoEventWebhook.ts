@@ -5,8 +5,6 @@ import incompleteBookingActionFunctions from "@calcom/app-store/routing-forms/li
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import prisma from "@calcom/prisma";
 
-import { getSubmitterEmail } from "./formSubmissionValidation";
-
 export type ResponseData = {
   responseId: number;
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
@@ -127,7 +125,6 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       // Get action function
       const bookingActionFunction = incompleteBookingActionFunctions[actionType];
 
-      const emailValue = getSubmitterEmail(responses);
       if (emailValue) {
         await bookingActionFunction(incompleteBookingAction, emailValue);
       }

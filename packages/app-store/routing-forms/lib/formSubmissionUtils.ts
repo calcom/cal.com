@@ -159,7 +159,16 @@ export async function _onFormSubmission(
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
   };
 
+  const subscriberOptionsFormSubmittedNoEvent = {
+    userId,
+    teamId,
+    orgId,
+    triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  };
+
   const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
+
+  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
 
   const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
     sendGenericWebhookPayload({
