@@ -50,7 +50,7 @@ export const useCreateEventType = (
     onSuccess: async ({ eventType }) => {
       onSuccessMutation(eventType);
 
-      await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
+      await utils.viewer.eventTypes.queries.getEventTypesFromGroup.fetchInfinite({
         group: { teamId: eventType.teamId, parentId: eventType.parentId },
         searchQuery: debouncedSearchTerm,
         limit: 10,

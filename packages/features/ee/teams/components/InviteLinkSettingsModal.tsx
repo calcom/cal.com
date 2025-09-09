@@ -32,7 +32,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
     onSuccess: () => {
       showToast(t("invite_link_deleted"), "success");
       trpcContext.viewer.teams.get.invalidate();
-      trpcContext.viewer.teams.list.invalidate();
+      trpcContext.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
       props.onExit();
     },
@@ -45,7 +45,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
     onSuccess: () => {
       showToast(t("invite_link_updated"), "success");
       trpcContext.viewer.teams.get.invalidate();
-      trpcContext.viewer.teams.list.invalidate();
+      trpcContext.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
     },
     onError: (e) => {

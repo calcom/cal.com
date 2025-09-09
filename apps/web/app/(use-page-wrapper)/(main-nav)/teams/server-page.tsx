@@ -21,7 +21,7 @@ const getCachedTeams = unstable_cache(
     });
   },
   undefined,
-  { revalidate: 3600, tags: ["viewer.teams.list"] } // Cache for 1 hour
+  { revalidate: 3600, tags: ["viewer.teams.queries.list"] } // Cache for 1 hour
 );
 
 export const ServerTeamsListing = async ({

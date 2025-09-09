@@ -29,7 +29,7 @@ const MembersView = () => {
     data: team,
     isPending: isTeamsLoading,
     error: teamError,
-  } = trpc.viewer.teams.get.useQuery(
+  } = trpc.viewer.teams.queries.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,

@@ -113,7 +113,7 @@ const MembersView = () => {
     }
   );
   const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
-    trpc.viewer.organizations.getMembers.useQuery(
+    trpc.viewer.organizations.queries.getMembers.useQuery(
       {
         teamIdToExclude: teamId,
         distinctUser: true,
@@ -155,11 +155,11 @@ const MembersView = () => {
   }, []);
 
   const isPending = isTeamLoading || isOrgListLoading;
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+  const inviteMemberMutation = trpc.viewer.teams.mutations.inviteMember.useMutation({
     onSuccess: () => {
       utils.viewer.organizations.getMembers.invalidate();
       utils.viewer.organizations.listOtherTeams.invalidate();
-      utils.viewer.teams.list.invalidate();
+      utils.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
       utils.viewer.organizations.listOtherTeamMembers.invalidate();
     },
@@ -222,7 +222,7 @@ const MembersView = () => {
                   },
                   {
                     onSuccess: async (data) => {
-                      await utils.viewer.teams.get.invalidate();
+                      await utils.viewer.teams.queries.get.invalidate();
                       setShowMemberInvitationModal(false);
 
                       if (Array.isArray(data.usernameOrEmail)) {

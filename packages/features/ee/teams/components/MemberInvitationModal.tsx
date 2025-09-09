@@ -92,7 +92,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
     async onSuccess({ inviteLink }) {
       trpcContext.viewer.teams.get.invalidate();
-      trpcContext.viewer.teams.list.invalidate();
+      trpcContext.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
     },
     onError: (error) => {
@@ -489,7 +489,7 @@ export const MemberInvitationModalWithoutMembers = ({
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
-    trpc.viewer.organizations.getMembers.useQuery(
+    trpc.viewer.organizations.queries.getMembers.useQuery(
       {
         teamIdToExclude: teamId,
         distinctUser: true,
@@ -521,7 +521,7 @@ export const MemberInvitationModalWithoutMembers = ({
           {
             onSuccess: async (data) => {
               await utils.viewer.teams.get.invalidate();
-              await utils.viewer.teams.listMembers.invalidate();
+              await utils.viewer.teams.queries.listMembers.invalidate();
               await utils.viewer.organizations.getMembers.invalidate();
               hideInvitationModal();
 

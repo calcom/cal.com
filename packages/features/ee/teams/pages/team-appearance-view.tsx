@@ -210,7 +210,7 @@ const ProfileViewWrapper = () => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.get.useQuery(
+  } = trpc.viewer.teams.queries.get.useQuery(
     { teamId: Number(params.id) },
     {
       enabled: !!Number(params.id),

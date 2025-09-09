@@ -65,7 +65,7 @@ const OrgAppearanceView = ({
       showToast(err.message, "error");
     },
     async onSuccess(res) {
-      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.queries.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
 
       showToast(t("your_team_updated_successfully"), "success");

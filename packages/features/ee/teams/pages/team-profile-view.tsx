@@ -97,7 +97,7 @@ const ProfileView = () => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.get.useQuery(
+  } = trpc.viewer.teams.queries.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,
@@ -126,7 +126,7 @@ const ProfileView = () => {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       revalidateTeamsList();
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.teams.queries.list.invalidate();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
       await utils.viewer.eventTypes.getByViewer.invalidate();
@@ -142,7 +142,7 @@ const ProfileView = () => {
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
@@ -282,7 +282,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
       // TODO: Not all changes require list invalidation
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
 
       if (res?.slug) {

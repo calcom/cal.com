@@ -24,7 +24,7 @@ const CreateTeamDialog = (props: CreateTeamDialogProps) => {
           onCancel={() => onOpenChange(false)}
           onSuccess={async () => {
             await utils.viewer.dsync.teamGroupMapping.get.invalidate();
-            await utils.viewer.teams.list.invalidate();
+            await utils.viewer.teams.queries.list.invalidate();
             revalidateTeamsList();
             onOpenChange(false);
           }}

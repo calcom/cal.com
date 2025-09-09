@@ -59,10 +59,10 @@ export default function TeamListItem(props: Props) {
     onSuccess: (_data, variables) => {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
-      utils.viewer.teams.list.invalidate();
+      utils.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
       utils.viewer.teams.hasTeamPlan.invalidate();
-      utils.viewer.teams.listInvites.invalidate();
+      utils.viewer.teams.queries.listInvites.invalidate();
       const userOrganizationId = orgId ?? undefined;
       const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
       const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;

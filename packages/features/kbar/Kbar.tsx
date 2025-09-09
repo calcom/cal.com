@@ -39,7 +39,7 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
 
 const useEventTypesAction = () => {
   const router = useRouter();
-  const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+  const { data } = trpc.viewer.eventTypes.queries.getEventTypesFromGroup.useInfiniteQuery(
     {
       limit: 10,
       group: { teamId: null, parentId: null },

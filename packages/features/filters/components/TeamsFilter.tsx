@@ -37,7 +37,7 @@ export const TeamsFilter = ({
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
 
-  const { data: teams } = trpc.viewer.teams.list.useQuery(undefined, {
+  const { data: teams } = trpc.viewer.teams.queries.list.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
   });

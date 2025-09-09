@@ -70,7 +70,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 };
 
 const ProfileImpersonationViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.queries.get.useQuery();
   if (isPending || !user) return <SkeletonLoader />;
 
   return <ProfileImpersonationView user={user} />;

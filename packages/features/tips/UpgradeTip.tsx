@@ -28,7 +28,7 @@ export function UpgradeTip({
 }) {
   const { resolvedTheme } = useGetTheme();
   const { isPending, hasTeamPlan } = useHasTeamPlan();
-  const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
+  const { data } = trpc.viewer.teams.queries.getUpgradeable.useQuery();
   const imageSrc = `${background}${resolvedTheme === "dark" ? "-dark" : ""}.jpg`;
 
   const hasEnterprisePlan = false;

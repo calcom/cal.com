@@ -204,8 +204,8 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         banner: (res.data?.bannerUrl || "") as string,
         calVideoLogo: (res.data?.calVideoLogo || "") as string,
       });
-      await utils.viewer.teams.get.invalidate();
-      await utils.viewer.organizations.listCurrent.invalidate();
+      await utils.viewer.teams.queries.get.invalidate();
+      await utils.viewer.organizations.queries.listCurrent.invalidate();
       showToast(t("your_organization_updated_sucessfully"), "success");
     },
   });

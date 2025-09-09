@@ -301,7 +301,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 };
 
 const PasswordViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.queries.get.useQuery({ includePasswordAdded: true });
   const { t } = useLocale();
   if (isPending || !user) return <SkeletonLoader />;
 

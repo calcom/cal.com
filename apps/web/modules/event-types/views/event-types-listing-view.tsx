@@ -97,7 +97,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const query = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+  const query = trpc.viewer.eventTypes.queries.getEventTypesFromGroup.useInfiniteQuery(
     {
       limit: LIMIT,
       searchQuery: debouncedSearchTerm,
@@ -264,14 +264,14 @@ export const InfiniteEventTypeList = ({
     onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+      await utils.viewer.eventTypes.queries.getEventTypesFromGroup.cancel();
     },
   });
 
   const setHiddenMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
     onMutate: async (data) => {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+      await utils.viewer.eventTypes.queries.getEventTypesFromGroup.cancel();
+      const previousValue = utils.viewer.eventTypes.queries.getEventTypesFromGroup.getInfiniteData({
         limit: LIMIT,
         searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
@@ -291,7 +291,7 @@ export const InfiniteEventTypeList = ({
     },
     onError: async (err, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+        utils.viewer.eventTypes.queries.getEventTypesFromGroup.setInfiniteData(
           {
             limit: LIMIT,
             searchQuery: debouncedSearchTerm,
@@ -326,15 +326,15 @@ export const InfiniteEventTypeList = ({
     newOrder[pageNo].eventTypes[index % LIMIT] = newPositionEventType;
     newOrder[newPageNo].eventTypes[newIdx] = currentPositionEventType;
 
-    await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-    const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+    await utils.viewer.eventTypes.queries.getEventTypesFromGroup.cancel();
+    const previousValue = utils.viewer.eventTypes.queries.getEventTypesFromGroup.getInfiniteData({
       limit: LIMIT,
       searchQuery: debouncedSearchTerm,
       group: { teamId: group?.teamId, parentId: group?.parentId },
     });
 
     if (previousValue) {
-      utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+      utils.viewer.eventTypes.queries.getEventTypesFromGroup.setInfiniteData(
         {
           limit: LIMIT,
           searchQuery: debouncedSearchTerm,
@@ -387,15 +387,15 @@ export const InfiniteEventTypeList = ({
       setDeleteDialogOpen(false);
     },
     onMutate: async ({ id }) => {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+      await utils.viewer.eventTypes.queries.getEventTypesFromGroup.cancel();
+      const previousValue = utils.viewer.eventTypes.queries.getEventTypesFromGroup.getInfiniteData({
         limit: LIMIT,
         searchQuery: debouncedSearchTerm,
         group: { teamId: group?.teamId, parentId: group?.parentId },
       });
 
       if (previousValue) {
-        await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+        await utils.viewer.eventTypes.queries.getEventTypesFromGroup.setInfiniteData(
           {
             limit: LIMIT,
             searchQuery: debouncedSearchTerm,
@@ -423,7 +423,7 @@ export const InfiniteEventTypeList = ({
     },
     onError: (err, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+        utils.viewer.eventTypes.queries.getEventTypesFromGroup.setInfiniteData(
           {
             limit: LIMIT,
             searchQuery: debouncedSearchTerm,

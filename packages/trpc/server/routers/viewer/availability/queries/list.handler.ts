@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../../types";
-import { getDefaultScheduleId } from "./util";
+import { getDefaultScheduleId } from "../util";
 
 type ListOptions = {
   ctx: {

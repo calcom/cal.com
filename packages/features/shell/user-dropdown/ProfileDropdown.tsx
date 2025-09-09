@@ -18,7 +18,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
-  const { data } = trpc.viewer.me.get.useQuery();
+  const { data } = trpc.viewer.me.queries.get.useQuery();
   const [menuOpen, setMenuOpen] = useState(false);
   const refreshData = useRefreshData();
 

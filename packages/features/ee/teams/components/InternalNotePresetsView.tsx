@@ -24,7 +24,7 @@ const OTHER_FIELD_ID = -1;
 const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { data: _loadedPresets } = trpc.viewer.teams.getInternalNotesPresets.useQuery({
+  const { data: _loadedPresets } = trpc.viewer.teams.queries.getInternalNotesPresets.useQuery({
     teamId: team?.id as number,
   });
 

@@ -28,7 +28,7 @@ interface Props {
 export default function TeamAvailabilityTimes(props: Props) {
   const { t } = useLocale();
 
-  const { data, isPending } = trpc.viewer.teams.getMemberAvailability.useQuery(
+  const { data, isPending } = trpc.viewer.teams.queries.getMemberAvailability.useQuery(
     {
       teamId: props.teamId,
       memberId: props.memberId,

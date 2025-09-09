@@ -50,7 +50,7 @@ export const updateRoleInCache = ({
   memberId: number;
   customRoles?: { id: string; name: string }[];
 }) => {
-  utils.viewer.teams.listMembers.setInfiniteData(
+  utils.viewer.teams.queries.listMembers.setInfiniteData(
     {
       limit: 10,
       teamId,
@@ -119,8 +119,8 @@ export default function MemberChangeRoleModal(props: {
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
-      await utils.viewer.teams.listMembers.cancel();
-      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
+      await utils.viewer.teams.queries.listMembers.cancel();
+      const previousValue = utils.viewer.teams.queries.listMembers.getInfiniteData({
         limit: 10,
         teamId,
         searchTerm: props.searchTerm,

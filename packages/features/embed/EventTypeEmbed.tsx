@@ -8,7 +8,7 @@ import { useEmbedTypes } from "./lib/hooks";
 
 export const EventTypeEmbedDialog = () => {
   const types = useEmbedTypes();
-  const { data: user } = trpc.viewer.me.get.useQuery();
+  const { data: user } = trpc.viewer.me.queries.get.useQuery();
 
   return (
     <EmbedDialog

@@ -135,7 +135,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { enabled: !!teamId }
   );
 
-  const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
+  const { data: userTeams } = trpc.viewer.teams.queries.list.useQuery({}, { enabled: !teamId });
   const [agentConfigurationSheet, setAgentConfigurationSheet] = useState<{
     open: boolean;
     activeTab?: "prompt" | "phoneNumber";

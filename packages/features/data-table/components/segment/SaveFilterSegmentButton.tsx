@@ -69,7 +69,7 @@ export function SaveFilterSegmentButton() {
     setSaveMode(selectedSegment && selectedSegment.type === "user" ? "update" : "create");
   }, [selectedSegment, isOpen]);
 
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: teams } = trpc.viewer.teams.queries.list.useQuery();
 
   const { mutate: createSegment } = trpc.viewer.filterSegments.create.useMutation({
     onSuccess: (segment) => {

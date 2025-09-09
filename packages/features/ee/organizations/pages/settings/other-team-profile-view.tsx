@@ -61,12 +61,12 @@ const OtherTeamProfileView = () => {
     document.body.focus();
   }, []);
 
-  const mutation = trpc.viewer.teams.update.useMutation({
+  const mutation = trpc.viewer.teams.mutations.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
     async onSuccess() {
-      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.queries.get.invalidate();
       if (team?.slug) {
         // Org admins editing another team's profile should purge the cached team data
         revalidateTeamDataCache({
@@ -133,10 +133,10 @@ const OtherTeamProfileView = () => {
     },
   });
 
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+  const removeMemberMutation = trpc.viewer.teams.mutations.removeMember.useMutation({
     async onSuccess() {
-      await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.teams.queries.get.invalidate();
+      await utils.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");

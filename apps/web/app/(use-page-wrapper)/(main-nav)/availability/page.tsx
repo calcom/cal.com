@@ -9,7 +9,7 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
+import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/queries/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

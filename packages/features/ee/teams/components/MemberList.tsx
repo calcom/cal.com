@@ -189,7 +189,7 @@ function MemberListContent(props: Props) {
   const { searchTerm } = useDataTable();
 
   const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
-    trpc.viewer.teams.listMembers.useInfiniteQuery(
+    trpc.viewer.teams.queries.listMembers.useInfiniteQuery(
       {
         limit: 10,
         searchTerm,
@@ -221,7 +221,7 @@ function MemberListContent(props: Props) {
     teamId: number;
     searchTerm: string;
   }) => {
-    utils.viewer.teams.listMembers.setInfiniteData(
+    utils.viewer.teams.queries.listMembers.setInfiniteData(
       {
         limit: 10,
         teamId,
@@ -248,8 +248,8 @@ function MemberListContent(props: Props) {
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onMutate: async ({ teamIds }) => {
-      await utils.viewer.teams.listMembers.cancel();
-      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
+      await utils.viewer.teams.queries.listMembers.cancel();
+      const previousValue = utils.viewer.teams.queries.listMembers.getInfiniteData({
         limit: 10,
         teamId: teamIds[0],
         searchTerm,

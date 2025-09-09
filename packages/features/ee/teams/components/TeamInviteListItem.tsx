@@ -43,7 +43,7 @@ export default function TeamInviteListItem(props: Props) {
       showToast(t("success"), "success");
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.hasTeamPlan.invalidate();
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();
       await utils.viewer.organizations.listMembers.invalidate();
     },

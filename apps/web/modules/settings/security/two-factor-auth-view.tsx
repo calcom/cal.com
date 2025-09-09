@@ -29,7 +29,7 @@ const TwoFactorAuthView = () => {
   const utils = trpc.useUtils();
 
   const { t } = useLocale();
-  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.queries.get.useQuery({ includePasswordAdded: true });
 
   const [enableModalOpen, setEnableModalOpen] = useState<boolean>(false);
   const [disableModalOpen, setDisableModalOpen] = useState<boolean>(false);

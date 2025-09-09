@@ -8,7 +8,7 @@ export function useHasPaidPlan() {
 
   const { data: hasTeamPlan, isPending: isPendingTeamQuery } = trpc.viewer.teams.hasTeamPlan.useQuery();
 
-  const { data: user, isPending: isPendingUserQuery } = trpc.viewer.me.get.useQuery();
+  const { data: user, isPending: isPendingUserQuery } = trpc.viewer.me.queries.get.useQuery();
 
   const isPending = isPendingTeamQuery || isPendingUserQuery;
 
@@ -21,7 +21,7 @@ export function useHasPaidPlan() {
 }
 
 export function useTeamInvites() {
-  const listInvites = trpc.viewer.teams.listInvites.useQuery();
+  const listInvites = trpc.viewer.teams.queries.listInvites.useQuery();
 
   return { isPending: listInvites.isPending, listInvites: listInvites.data };
 }

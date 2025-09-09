@@ -196,7 +196,7 @@ const useTabs = ({
   permissions?: SettingsPermissions;
 }) => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
+  const { data: user } = trpc.viewer.me.queries.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
@@ -525,7 +525,7 @@ const SettingsSidebarContainer = ({
     permissions,
   });
 
-  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+  const { data: otherTeams } = trpc.viewer.organizations.queries.listOtherTeams.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
 

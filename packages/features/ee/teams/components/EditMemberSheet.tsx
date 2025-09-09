@@ -106,7 +106,7 @@ export function EditMemberSheet({
     },
   });
 
-  const { data: getUserConnectedApps, isPending } = trpc.viewer.teams.getUserConnectedApps.useQuery({
+  const { data: getUserConnectedApps, isPending } = trpc.viewer.teams.queries.getUserConnectedApps.useQuery({
     userIds: [selectedUser.id],
     teamId,
   });
@@ -115,8 +115,8 @@ export function EditMemberSheet({
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
-      await utils.viewer.teams.listMembers.cancel();
-      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
+      await utils.viewer.teams.queries.listMembers.cancel();
+      const previousValue = utils.viewer.teams.queries.listMembers.getInfiniteData({
         limit: 10,
         teamId,
         searchTerm: undefined,
@@ -139,7 +139,7 @@ export function EditMemberSheet({
       setRole(role as string);
       setMutationLoading(false);
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.listMembers.invalidate();
+      await utils.viewer.teams.queries.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
       setEditMode(false);
 

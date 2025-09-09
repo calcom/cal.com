@@ -90,7 +90,7 @@ export const AddNewTeamMembersForm = () => {
 
   const teamIds = teams.filter((team) => team.isBeingMigrated && team.id > 0).map((team) => team.id);
 
-  const results = trpc.useQueries((t) => teamIds.map((teamId) => t.viewer.teams.listMembers({ teamId })));
+  const results = trpc.useQueries((t) => teamIds.map((teamId) => t.viewer.teams.queries.listMembers({ teamId })));
 
   const isLoading = results.some((result) => result.isLoading);
 

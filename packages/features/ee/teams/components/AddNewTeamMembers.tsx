@@ -32,7 +32,7 @@ const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const telemetry = useTelemetry();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
-  const teamQuery = trpc.viewer.teams.get.useQuery(
+  const teamQuery = trpc.viewer.teams.queries.get.useQuery(
     { teamId, isOrg },
     { enabled: session.status === "authenticated" }
   );
@@ -60,8 +60,8 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isPending } = trpc.viewer.teams.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
-  const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
+  const { data: team, isPending } = trpc.viewer.teams.queries.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
+  const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.queries.getMembers.useQuery(
     {
       teamIdToExclude: teamId,
       distinctUser: true,
@@ -72,7 +72,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
   );
 
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    trpc.viewer.teams.listMembers.useInfiniteQuery(
+    trpc.viewer.teams.queries.listMembers.useInfiniteQuery(
       {
         limit: 10,
         teamId,
@@ -211,7 +211,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.listMembers.invalidate();
+      await utils.viewer.teams.queries.listMembers.invalidate();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("member_removed"), "success");
     },
