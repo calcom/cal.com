@@ -185,6 +185,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookingId: bookingInfo.id,
     },
     select: {
+      appId: true,
       success: true,
       refunded: true,
       currency: true,

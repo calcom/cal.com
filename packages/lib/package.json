@@ -24,7 +24,6 @@
     "jimp": "^0.16.1",
     "lingo.dev": "^0.111.1",
     "next-collect": "^0.2.1",
-    "next-i18next": "^15.4.2",
     "rrule": "^2.7.1",
     "sharp": "0.33.5",
     "sonner": "^1.7.4",

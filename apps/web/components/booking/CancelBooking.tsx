@@ -132,6 +132,7 @@ export default function CancelBooking(props: Props) {
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
   const [acknowledgeCancellationNoShowFee, setAcknowledgeCancellationNoShowFee] = useState(false);
 
+
   const isCancellationReasonRequired = () => {
     if (!props.teamCancellationSettings) return props.isHost;
 
@@ -177,6 +178,41 @@ export default function CancelBooking(props: Props) {
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
 
+
+  const getAppMetadata = (appId: string): Record<string, unknown> | null => {
+    if (!eventTypeMetadata?.apps || !appId) return null;
+    const apps = eventTypeMetadata.apps as Record<string, unknown>;
+    return (apps[appId] as Record<string, unknown>) || null;
+  };
+
+  const timeValue = booking?.payment?.appId
+    ? (getAppMetadata(booking.payment.appId) as Record<string, unknown> | null)?.autoChargeNoShowFeeTimeValue
+    : null;
+  const timeUnit = booking?.payment?.appId
+    ? (getAppMetadata(booking.payment.appId) as Record<string, unknown> | null)?.autoChargeNoShowFeeTimeUnit
+    : null;
+
+  const autoChargeNoShowFee = () => {
+    if (props.isHost) return false; // Hosts/organizers are exempt
+
+    if (!booking?.startTime) return false;
+
+    if (!booking?.payment) return false;
+
+    return shouldChargeNoShowCancellationFee({
+      eventTypeMetadata: eventTypeMetadata || null,
+      booking,
+      payment: booking.payment,
+    });
+  };
+
+  const cancellationNoShowFeeWarning = autoChargeNoShowFee();
+
+  const hostMissingCancellationReason =
+    props.isHost &&
+    (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
+  const cancellationNoShowFeeNotAcknowledged =
+    !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
