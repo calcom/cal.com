@@ -1,7 +1,7 @@
 import { ErrorMessage } from "@hookform/error-message";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
-import { getEventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeSync } from "@calcom/app-store/locations";
 import type { LocationFormValues, FormValues } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,7 +30,7 @@ const DefaultLocationSettings = ({
     name: "locations",
   });
   const defaultLocation = field;
-  const eventLocationType = getEventLocationType(field.type);
+  const eventLocationType = getEventLocationTypeSync(field.type);
 
   if (!eventLocationType) return null;
 

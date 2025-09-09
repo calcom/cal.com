@@ -10,7 +10,7 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAppFromSlugSync } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -1067,7 +1067,7 @@ async function handler(
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+      const app = getAppFromSlugSync(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
       if (isManagedEventType || isTeamEventType) {
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
@@ -1195,12 +1195,12 @@ async function handler(
       optionValue: "",
     };
 
-  const eventName = getEventName(eventNameObject);
+  const eventName = await getEventName(eventNameObject);
 
   const builtEvt = new CalendarEventBuilder()
     .withBasicDetails({
       bookerUrl,
-      title: eventName,
+      title: eventName || "",
       startTime: dayjs(reqBody.start).utc().format(),
       endTime: dayjs(reqBody.end).utc().format(),
       additionalNotes,
@@ -1610,7 +1610,7 @@ async function handler(
       const { booking: dryRunBooking, troubleshooterData: _troubleshooterData } = buildDryRunBooking({
         eventTypeId,
         organizerUser,
-        eventName,
+        eventName: eventName || "",
         startTime: reqBody.start,
         endTime: reqBody.end,
         contactOwnerFromReq,

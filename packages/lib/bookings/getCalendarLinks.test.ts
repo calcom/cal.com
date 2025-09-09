@@ -65,7 +65,11 @@ describe("getCalendarLinks", () => {
   });
 
   it("should return all calendar links", async () => {
-    const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
+    const result = await getCalendarLinks({
+      booking: baseMockBooking,
+      eventType: baseMockEventType,
+      t: mockT,
+    });
     const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
     const microsoftOfficeLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OFFICE);
     const microsoftOutlookLink = result.find((link) => link.id === CalendarLinkType.MICROSOFT_OUTLOOK);
@@ -122,7 +126,7 @@ describe("getCalendarLinks", () => {
       metadata: { videoCallUrl },
     };
 
-    const result = getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
+    const result = await getCalendarLinks({ booking, eventType: baseMockEventType, t: mockT });
 
     // Check that all links contain the videoCallUrl
     const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
@@ -146,7 +150,7 @@ describe("getCalendarLinks", () => {
       isDynamic: true, // This makes it use the custom title
     };
 
-    const result = getCalendarLinks({ booking, eventType, t: mockT });
+    const result = await getCalendarLinks({ booking, eventType, t: mockT });
 
     const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
     expect(googleLink?.link).toContain(`details=${encodeURIComponent(eventType.description)}`);
@@ -181,7 +185,7 @@ describe("getCalendarLinks", () => {
     const mockRRuleString = "FREQ=WEEKLY;INTERVAL=1;COUNT=5";
     vi.spyOn(RRule.prototype, "toString").mockReturnValue(mockRRuleString);
 
-    const result = getCalendarLinks({ booking: baseMockBooking, eventType, t: mockT });
+    const result = await getCalendarLinks({ booking: baseMockBooking, eventType, t: mockT });
     const googleLink = result.find((link) => link.id === "googleCalendar");
 
     expect(googleLink).toBeDefined();
@@ -195,7 +199,11 @@ describe("getCalendarLinks", () => {
     // Mock console.error to avoid test output noise
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    const result = getCalendarLinks({ booking: baseMockBooking, eventType: baseMockEventType, t: mockT });
+    const result = await getCalendarLinks({
+      booking: baseMockBooking,
+      eventType: baseMockEventType,
+      t: mockT,
+    });
     const icsLink = result.find((link) => link.id === "ics");
 
     expect(icsLink).toBeDefined();

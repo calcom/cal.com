@@ -6,7 +6,7 @@ import { useForm, useFormContext } from "react-hook-form";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { EventNameObjectType } from "@calcom/lib/event";
-import { getEventName, validateCustomEventName } from "@calcom/lib/event";
+import { getEventNameSync, validateCustomEventName } from "@calcom/lib/event";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -65,7 +65,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
     close();
   };
 
-  const previewText = getEventName({ ...event, eventName: watch("customEventName") });
+  const previewText = getEventNameSync({ ...event, eventName: watch("customEventName") });
   const placeHolder_ = watch("customEventName") === "" ? previewText : placeHolder;
 
   return (

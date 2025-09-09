@@ -4,7 +4,7 @@
 import type { TFunction } from "i18next";
 import { z } from "zod";
 
-import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
+import { LocationMetadataMap } from "@calcom/app-store/location.metadata.generated";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
@@ -230,55 +230,83 @@ export type BookingLocationValue = string;
 
 export const AppStoreLocationType: Record<string, string> = {};
 
-const locationsFromApps: EventLocationTypeFromApp[] = [];
+let cachedLocationApps: EventLocationTypeFromApp[] | null = null;
 
-for (const [appName, meta] of Object.entries(appStoreMetadata)) {
-  const location = meta.appData?.location;
-  if (location) {
-    // TODO: This template variable replacement should happen once during app-store:build.
-    for (const [key, value] of Object.entries(location)) {
-      if (typeof value === "string") {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
+async function getLocationApps(): Promise<EventLocationTypeFromApp[]> {
+  if (cachedLocationApps) return cachedLocationApps;
+
+  const locationsFromApps: EventLocationTypeFromApp[] = [];
+  for (const [appName, appImport] of Object.entries(LocationMetadataMap)) {
+    try {
+      const appMeta = await appImport;
+      const meta = (appMeta as any).metadata;
+      if (meta?.appData?.location) {
+        const location = meta.appData.location;
+        // TODO: This template variable replacement should happen once during app-store:build.
+        for (const [key, value] of Object.entries(location)) {
+          if (typeof value === "string") {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
+          }
+        }
+        const newLocation: EventLocationTypeFromApp = {
+          type: location.type,
+          label: location.label,
+          linkType: (location.linkType as "static" | "dynamic") || "static",
+          messageForOrganizer: (location as any).messageForOrganizer || `Set ${location.label} link`,
+          iconUrl: meta.logo,
+          // For All event location apps, locationLink is where we store the input
+          // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
+          variable: (location as any).variable || "locationLink",
+          defaultValueVariable: (location as any).defaultValueVariable || "link",
+        };
+
+        // Static links always require organizer to input
+        if (newLocation.linkType === "static") {
+          (newLocation as any).organizerInputType = (location as any).organizerInputType || "text";
+          if ((newLocation as any).organizerInputPlaceholder?.match(/https?:\/\//)) {
+            // HACK: Translation ends up removing https? if it's in the beginning :(
+            (newLocation as any).organizerInputPlaceholder = ` ${
+              (newLocation as any).organizerInputPlaceholder
+            }`;
+          }
+        } else {
+          (newLocation as any).organizerInputType = null;
+        }
+
+        AppStoreLocationType[appName] = newLocation.type;
+
+        locationsFromApps.push(newLocation);
       }
+    } catch (error) {
+      console.warn(`Failed to load location app ${appName}:`, error);
     }
-    const newLocation = {
-      ...location,
-      messageForOrganizer: location.messageForOrganizer || `Set ${location.label} link`,
-      iconUrl: meta.logo,
-      // For All event location apps, locationLink is where we store the input
-      // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
-      variable: location.variable || "locationLink",
-      defaultValueVariable: location.defaultValueVariable || "link",
-    };
-
-    // Static links always require organizer to input
-    if (newLocation.linkType === "static") {
-      newLocation.organizerInputType = location.organizerInputType || "text";
-      if (newLocation.organizerInputPlaceholder?.match(/https?:\/\//)) {
-        // HACK: Translation ends up removing https? if it's in the beginning :(
-        newLocation.organizerInputPlaceholder = ` ${newLocation.organizerInputPlaceholder}`;
-      }
-    } else {
-      newLocation.organizerInputType = null;
-    }
-
-    AppStoreLocationType[appName] = newLocation.type;
-
-    locationsFromApps.push({
-      ...newLocation,
-    });
   }
+
+  cachedLocationApps = locationsFromApps;
+  return locationsFromApps;
 }
 
+const locationsFromApps: EventLocationTypeFromApp[] = [];
 const locations = [...defaultLocations, ...locationsFromApps];
 
-export const getLocationFromApp = (locationType: string) =>
-  locationsFromApps.find((l) => l.type === locationType);
+export const getLocationFromApp = async (locationType: string) => {
+  const locationApps = await getLocationApps();
+  return locationApps.find((l) => l.type === locationType);
+};
 
 // TODO: Rename this to getLocationByType()
-export const getEventLocationType = (locationType: string | undefined | null) =>
+export const getEventLocationType = async (locationType: string | undefined | null) => {
+  const locationApps = await getLocationApps();
+  const allLocations = [...defaultLocations, ...locationApps];
+  return allLocations.find((l) => l.type === locationType);
+};
+
+export const getLocationFromAppSync = (locationType: string) =>
+  locationsFromApps.find((l) => l.type === locationType);
+
+export const getEventLocationTypeSync = (locationType: string | undefined | null) =>
   locations.find((l) => l.type === locationType);
 
 const getStaticLinkLocationByValue = (value: string | undefined | null) => {
@@ -293,8 +321,15 @@ const getStaticLinkLocationByValue = (value: string | undefined | null) => {
   });
 };
 
-export const guessEventLocationType = (locationTypeOrValue: string | undefined | null) =>
-  getEventLocationType(locationTypeOrValue) || getStaticLinkLocationByValue(locationTypeOrValue);
+export const guessEventLocationType = async (locationTypeOrValue: string | undefined | null) => {
+  const eventLocationType = await getEventLocationType(locationTypeOrValue);
+  return eventLocationType || getStaticLinkLocationByValue(locationTypeOrValue);
+};
+
+export const guessEventLocationTypeSync = (locationTypeOrValue: string | undefined | null) => {
+  const eventLocationType = getEventLocationTypeSync(locationTypeOrValue);
+  return eventLocationType || getStaticLinkLocationByValue(locationTypeOrValue);
+};
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
@@ -302,7 +337,7 @@ type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link"
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
   const locationsAfterPrivacyFilter = locations.map((location) => {
-    const eventLocationType = getEventLocationType(location.type);
+    const eventLocationType = getEventLocationTypeSync(location.type);
     if (!eventLocationType) {
       logger.debug(`Couldn't find location type. App might be uninstalled: ${location.type} `);
     }
@@ -327,7 +362,7 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
  * @returns string
  */
 export const getMessageForOrganizer = (location: string, t: TFunction) => {
-  const videoLocation = getLocationFromApp(location);
+  const videoLocation = getLocationFromAppSync(location);
   const defaultLocation = defaultLocations.find((l) => l.type === location);
   if (defaultLocation) {
     return t(defaultLocation.messageForOrganizer);
@@ -353,7 +388,7 @@ export const getHumanReadableLocationValue = (
   }
 
   // Just in case linkValue is a `locationType.type`(for old bookings)
-  const eventLocationType = getEventLocationType(linkValue);
+  const eventLocationType = getEventLocationTypeSync(linkValue);
   const isDefault = eventLocationType?.default;
   if (eventLocationType) {
     // If we can find a video location based on linkValue then it means that the linkValue is something like integrations:google-meet and in that case we don't have the meeting URL to show.
@@ -365,7 +400,7 @@ export const getHumanReadableLocationValue = (
 };
 
 export const locationKeyToString = (location: LocationObject) => {
-  const eventLocationType = getEventLocationType(location.type);
+  const eventLocationType = getEventLocationTypeSync(location.type);
   if (!eventLocationType) {
     return null;
   }
@@ -399,7 +434,7 @@ export const getLocationValueForDB = (
 
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
-      const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
+      const eventLocationType = getEventLocationTypeSync(bookingLocationTypeOrValue);
       conferenceCredentialId = location.credentialId;
       if (!eventLocationType) {
         return;
@@ -422,7 +457,7 @@ export const getLocationValueForDB = (
 };
 
 export const getEventLocationValue = (eventLocations: LocationObject[], bookingLocation: LocationObject) => {
-  const eventLocationType = getEventLocationType(bookingLocation?.type);
+  const eventLocationType = getEventLocationTypeSync(bookingLocation?.type);
   if (!eventLocationType) {
     return "";
   }
@@ -451,7 +486,7 @@ export function getSuccessPageLocationMessage(
   t: TFunction,
   bookingStatus?: BookingStatus
 ) {
-  const eventLocationType = getEventLocationType(location);
+  const eventLocationType = getEventLocationTypeSync(location);
   let locationToDisplay = location;
   if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "dynamic") {
     const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
@@ -469,9 +504,9 @@ export function getSuccessPageLocationMessage(
   return locationToDisplay;
 }
 
-export const getTranslatedLocation = (
+export const getTranslatedLocation = async (
   location: PrivacyFilteredLocationObject,
-  eventLocationType: ReturnType<typeof getEventLocationType>,
+  eventLocationType: Awaited<ReturnType<typeof getEventLocationType>>,
   t: TFunction
 ) => {
   if (!eventLocationType) return null;
@@ -485,8 +520,35 @@ export const getTranslatedLocation = (
   return translatedLocation;
 };
 
-export const getOrganizerInputLocationTypes = () => {
+export const getTranslatedLocationSync = (
+  location: PrivacyFilteredLocationObject,
+  eventLocationType: ReturnType<typeof getEventLocationTypeSync>,
+  t: TFunction
+) => {
+  if (!eventLocationType) return null;
+  const locationKey = z.string().default("").parse(locationKeyToString(location));
+  const translatedLocation = location.type.startsWith("integrations:")
+    ? eventLocationType.label
+    : translateAbleKeys.includes(locationKey)
+    ? t(locationKey)
+    : locationKey;
+
+  return translatedLocation;
+};
+
+export const getOrganizerInputLocationTypes = async () => {
   const result: DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"][] = [];
+
+  const locationApps = await getLocationApps();
+  const allLocations = [...defaultLocations, ...locationApps];
+  const organizerInputTypeLocations = allLocations.filter((location) => !!location.organizerInputType);
+  organizerInputTypeLocations?.forEach((l) => result.push(l.type));
+
+  return result;
+};
+
+export const getOrganizerInputLocationTypesSync = () => {
+  const result: (DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"])[] = [];
 
   const organizerInputTypeLocations = locations.filter((location) => !!location.organizerInputType);
   organizerInputTypeLocations?.forEach((l) => result.push(l.type));
@@ -494,7 +556,18 @@ export const getOrganizerInputLocationTypes = () => {
   return result;
 };
 
-export const isAttendeeInputRequired = (locationType: string) => {
+export const isAttendeeInputRequired = async (locationType: string) => {
+  const locationApps = await getLocationApps();
+  const allLocations = [...defaultLocations, ...locationApps];
+  const location = allLocations.find((l) => l.type === locationType);
+  if (!location) {
+    // Consider throwing an error here. This shouldn't happen normally.
+    return false;
+  }
+  return location.attendeeInputType;
+};
+
+export const isAttendeeInputRequiredSync = (locationType: string) => {
   const location = locations.find((l) => l.type === locationType);
   if (!location) {
     // Consider throwing an error here. This shouldn't happen normally.

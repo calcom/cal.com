@@ -63,8 +63,8 @@ const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a:
   return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
 };
 
-export const getLocationRequestFromIntegration = (location: string) => {
-  const eventLocationType = getLocationFromApp(location);
+export const getLocationRequestFromIntegration = async (location: string) => {
+  const eventLocationType = await getLocationFromApp(location);
   if (eventLocationType) {
     const requestId = uuidv5(location, uuidv5.URL);
 

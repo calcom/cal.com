@@ -24,14 +24,14 @@ describe("BookingLocationService", () => {
 
   describe("getOrganizerDefaultConferencingAppLocation", () => {
     describe("Dynamic conferencing apps", () => {
-      it("should return the app location type for a dynamic app like Google Meet", () => {
+      it("should return the app location type for a dynamic app like Google Meet", async () => {
         const mockMetadata = {
           defaultConferencingApp: {
             appSlug: "google-meet",
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue({
+        vi.mocked(getAppFromSlug).mockResolvedValue({
           appData: {
             location: {
               type: "integrations:google:meet",
@@ -39,7 +39,7 @@ describe("BookingLocationService", () => {
           },
         } as any);
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
@@ -50,14 +50,14 @@ describe("BookingLocationService", () => {
         expect(getAppFromSlug).toHaveBeenCalledWith("google-meet");
       });
 
-      it("should return the app location type for Zoom", () => {
+      it("should return the app location type for Zoom", async () => {
         const mockMetadata = {
           defaultConferencingApp: {
             appSlug: "zoom",
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue({
+        vi.mocked(getAppFromSlug).mockResolvedValue({
           appData: {
             location: {
               type: "integrations:zoom",
@@ -65,7 +65,7 @@ describe("BookingLocationService", () => {
           },
         } as any);
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
@@ -75,16 +75,16 @@ describe("BookingLocationService", () => {
         });
       });
 
-      it("should return null when app is not found", () => {
+      it("should return null when app is not found", async () => {
         const mockMetadata = {
           defaultConferencingApp: {
             appSlug: "unknown-app",
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue(null);
+        vi.mocked(getAppFromSlug).mockResolvedValue(null);
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
@@ -93,7 +93,7 @@ describe("BookingLocationService", () => {
     });
 
     describe("Static link apps", () => {
-      it("should return static link for apps with appLink", () => {
+      it("should return static link for apps with appLink", async () => {
         const mockMetadata = {
           defaultConferencingApp: {
             appSlug: "custom-video",
@@ -101,7 +101,7 @@ describe("BookingLocationService", () => {
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue({
+        vi.mocked(getAppFromSlug).mockResolvedValue({
           appData: {
             location: {
               type: "integrations:custom-video",
@@ -109,7 +109,7 @@ describe("BookingLocationService", () => {
           },
         } as any);
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
@@ -122,10 +122,10 @@ describe("BookingLocationService", () => {
     });
 
     describe("Fallback scenarios", () => {
-      it("should return null when no conferencing app is set", () => {
+      it("should return null when no conferencing app is set", async () => {
         const mockMetadata = {};
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
@@ -133,16 +133,16 @@ describe("BookingLocationService", () => {
         expect(getAppFromSlug).not.toHaveBeenCalled();
       });
 
-      it("should handle null metadata gracefully", () => {
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+      it("should handle null metadata gracefully", async () => {
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: null,
         });
 
         expect(result).toBeNull();
       });
 
-      it("should handle undefined metadata gracefully", () => {
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+      it("should handle undefined metadata gracefully", async () => {
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: undefined,
         });
 
@@ -151,26 +151,26 @@ describe("BookingLocationService", () => {
     });
 
     describe("Invalid metadata parsing", () => {
-      it("should handle invalid metadata structure", () => {
+      it("should handle invalid metadata structure", async () => {
         const invalidMetadata = {
           defaultConferencingApp: "not-an-object",
         };
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: invalidMetadata,
         });
 
         expect(result).toBeNull();
       });
 
-      it("should handle metadata with missing appSlug", () => {
+      it("should handle metadata with missing appSlug", async () => {
         const mockMetadata = {
           defaultConferencingApp: {
             appLink: "https://some-link.com",
           },
         };
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
@@ -179,36 +179,36 @@ describe("BookingLocationService", () => {
     });
 
     describe("Edge cases", () => {
-      it("should handle app with no appData", () => {
+      it("should handle app with no appData", async () => {
         const mockMetadata = {
           defaultConferencingApp: {
             appSlug: "app-without-data",
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue({} as any);
+        vi.mocked(getAppFromSlug).mockResolvedValue({} as any);
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
         expect(result).toBeNull();
       });
 
-      it("should handle app with no location type", () => {
+      it("should handle app with no location type", async () => {
         const mockMetadata = {
           defaultConferencingApp: {
             appSlug: "app-without-location-type",
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue({
+        vi.mocked(getAppFromSlug).mockResolvedValue({
           appData: {
             location: {},
           },
         } as any);
 
-        const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
+        const result = await BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
         });
 
@@ -218,14 +218,14 @@ describe("BookingLocationService", () => {
   });
 
   describe("getLocationForHost", () => {
-    it("should use organizer default when allowed and available", () => {
+    it("should use organizer default when allowed and available", async () => {
       const mockHostMetadata = {
         defaultConferencingApp: {
           appSlug: "zoom",
         },
       };
 
-      vi.mocked(getAppFromSlug).mockReturnValue({
+      vi.mocked(getAppFromSlug).mockResolvedValue({
         appData: {
           location: {
             type: "integrations:zoom",
@@ -233,7 +233,7 @@ describe("BookingLocationService", () => {
         },
       } as any);
 
-      const result = BookingLocationService.getLocationForHost({
+      const result = await BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
         eventTypeLocations: [{ type: "conferencing" }],
         isTeamEventType: true,
@@ -246,7 +246,7 @@ describe("BookingLocationService", () => {
       });
     });
 
-    it("should use static link when organizer default is a static link app", () => {
+    it("should use static link when organizer default is a static link app", async () => {
       const mockHostMetadata = {
         defaultConferencingApp: {
           appSlug: "custom-video",
@@ -254,7 +254,7 @@ describe("BookingLocationService", () => {
         },
       };
 
-      vi.mocked(getAppFromSlug).mockReturnValue({
+      vi.mocked(getAppFromSlug).mockResolvedValue({
         appData: {
           location: {
             type: "integrations:custom-video",
@@ -262,7 +262,7 @@ describe("BookingLocationService", () => {
         },
       } as any);
 
-      const result = BookingLocationService.getLocationForHost({
+      const result = await BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
         eventTypeLocations: [{ type: "conferencing" }],
         isTeamEventType: true,
@@ -274,10 +274,10 @@ describe("BookingLocationService", () => {
       });
     });
 
-    it("should fallback to first real location when organizer default not available", () => {
+    it("should fallback to first real location when organizer default not available", async () => {
       const mockHostMetadata = {};
 
-      const result = BookingLocationService.getLocationForHost({
+      const result = await BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
         eventTypeLocations: [{ type: "conferencing" }, { type: "integrations:google:meet" }],
         isTeamEventType: true,
@@ -290,10 +290,10 @@ describe("BookingLocationService", () => {
       });
     });
 
-    it("should default to Cal Video when no locations configured", () => {
+    it("should default to Cal Video when no locations configured", async () => {
       const mockHostMetadata = {};
 
-      const result = BookingLocationService.getLocationForHost({
+      const result = await BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
         eventTypeLocations: [{ type: "conferencing" }],
         isTeamEventType: true,
@@ -306,14 +306,14 @@ describe("BookingLocationService", () => {
       });
     });
 
-    it("should not use organizer default for non-team and non-managed events", () => {
+    it("should not use organizer default for non-team and non-managed events", async () => {
       const mockHostMetadata = {
         defaultConferencingApp: {
           appSlug: "zoom",
         },
       };
 
-      vi.mocked(getAppFromSlug).mockReturnValue({
+      vi.mocked(getAppFromSlug).mockResolvedValue({
         appData: {
           location: {
             type: "integrations:zoom",
@@ -321,7 +321,7 @@ describe("BookingLocationService", () => {
         },
       } as any);
 
-      const result = BookingLocationService.getLocationForHost({
+      const result = await BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
         eventTypeLocations: [{ type: "conferencing" }, { type: "integrations:google:meet" }],
         isTeamEventType: false,

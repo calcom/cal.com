@@ -126,23 +126,27 @@ const _sendScheduledEmailsAndSMS = async (
   }
 
   if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
-    emailsToSend.push(
-      ...formattedCalEvent.attendees.map((attendee) => {
-        return sendEmail(
+    for (const attendee of formattedCalEvent.attendees) {
+      let eventTitle = formattedCalEvent.title;
+      if (eventNameObject) {
+        const generatedTitle = await getEventName({ ...eventNameObject, t: attendee.language.translate });
+        eventTitle = generatedTitle ?? formattedCalEvent.title;
+      }
+
+      emailsToSend.push(
+        sendEmail(
           () =>
             new AttendeeScheduledEmail(
               {
                 ...formattedCalEvent,
                 ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
-                ...(eventNameObject && {
-                  title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
-                }),
+                title: eventTitle,
               },
               attendee
             )
-        );
-      })
-    );
+        )
+      );
+    }
   }
 
   await Promise.all(emailsToSend);
@@ -503,29 +507,32 @@ export const sendCancelledEmailsAndSMS = async (
   }
 
   if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
-    emailsToSend.push(
-      ...calendarEvent.attendees.map((attendee) => {
-        return sendEmail(
+    for (const attendee of calendarEvent.attendees) {
+      const generatedTitle = await getEventName({
+        ...eventNameObject,
+        t: attendee.language.translate,
+        attendeeName: attendee.name,
+        host: calendarEvent.organizer.name,
+        eventType: calendarEvent.title,
+        eventDuration,
+      });
+      const eventTitle = generatedTitle ?? calendarEvent.title;
+
+      emailsToSend.push(
+        sendEmail(
           () =>
             new AttendeeCancelledEmail(
               {
                 ...calendarEvent,
-                title: getEventName({
-                  ...eventNameObject,
-                  t: attendee.language.translate,
-                  attendeeName: attendee.name,
-                  host: calendarEvent.organizer.name,
-                  eventType: calendarEvent.title,
-                  eventDuration,
-                  ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
-                  ...(calendarEvent.location && { location: calendarEvent.location }),
-                }),
+                title: eventTitle,
+                ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
+                ...(calendarEvent.location && { location: calendarEvent.location }),
               },
               attendee
             )
-        );
-      })
-    );
+        )
+      );
+    }
   }
 
   await Promise.all(emailsToSend);

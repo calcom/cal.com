@@ -35,7 +35,7 @@ function replaceVariablePlaceholders(text: string) {
   return text.replace(/\{([A-Z0-9_]+)_VARIABLE}/g, (_, base) => `{${base}}`);
 }
 
-const customTemplate = (
+const customTemplate = async (
   text: string,
   variables: VariablesType,
   locale: string,
@@ -54,7 +54,8 @@ const customTemplate = (
   text = replaceVariablePlaceholders(text);
 
   if (text.includes("{LOCATION}")) {
-    locationString = guessEventLocationType(locationString)?.label || locationString;
+    const locationType = await guessEventLocationType(locationString);
+    locationString = locationType?.label || locationString;
   }
 
   const cancelLink = variables.cancelLink ?? "";
