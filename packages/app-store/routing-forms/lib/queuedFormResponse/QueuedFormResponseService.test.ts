@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import type logger from "@calcom/lib/logger";
 
-import type { QueuedFormResponseRepositoryInterface } from "../../repository/routingForm/queuedFormResponse/QueuedFormResponseRepository.interface";
+import type { QueuedFormResponseRepositoryInterface } from "./QueuedFormResponseRepository.interface";
 import { QueuedFormResponseService } from "./QueuedFormResponseService";
 
 describe("QueuedFormResponseService", () => {
@@ -130,7 +130,7 @@ describe("QueuedFormResponseService", () => {
 
     it("should stop when batch is not full", async () => {
       // Return partial batch
-      mockRepo.findMany.mockResolvedValueOnce([{ id: "1" }, { id: "2" }, { id: "3" }]);
+      mockRepo.findMany.mockResolvedValueOnce([{ id: "1" }, { id: "2" }, { id: "3" }] as any);
       mockRepo.deleteByIds.mockResolvedValueOnce({ count: 3 });
 
       const result = await service.cleanupExpiredResponses({ batchSize: 5 });
