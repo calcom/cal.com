@@ -81,7 +81,7 @@
     "querystring": "^0.2.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "stripe": "^9.16.0",
+    "stripe": "^15.3.0",
     "uuid": "^8.3.2",
     "winston": "^3.13.0",
     "winston-transport": "^4.7.0",

@@ -2768,7 +2768,7 @@ __metadata:
     reflect-metadata: ^0.1.13
     rxjs: ^7.8.1
     source-map-support: ^0.5.21
-    stripe: ^9.16.0
+    stripe: ^15.3.0
     supertest: ^6.3.3
     ts-jest: ^29.1.1
     ts-loader: ^9.4.3
@@ -4145,7 +4145,7 @@ __metadata:
     "@types/react-dom": ^18.0.9
     "@types/uuid": ^10.0.0
     "@wojtekmaj/react-daterange-picker": ^3.3.1
-    class-variance-authority: ^0.7.1
+    class-variance-authority: ^0.4.0
     cmdk: ^0.2.0
     cmk: ^0.1.1
     date-fns: ^3.6.0
@@ -4165,7 +4165,7 @@ __metadata:
     react-select: ^5.7.0
     tailwind-merge: ^1.13.2
     typescript: ^5.9.0
-    uuid: ^8.3.2
+    uuid: ^11.1.0
   languageName: unknown
   linkType: soft
 
@@ -44740,6 +44740,16 @@ __metadata:
     "@types/node": ">=8.1.0"
     qs: ^6.10.3
   checksum: 0ccf3c66a259450a63b8d6f27920e04be1fad1207fb6a9c93bdffc250008e1dc915c44bac1d8b4a63be10fcd1865d4aa3de90c79f7966798c43fecab7e4f489d
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^15.3.0":
+  version: 15.12.0
+  resolution: "stripe@npm:15.12.0"
+  dependencies:
+    "@types/node": ">=8.1.0"
+    qs: ^6.11.0
+  checksum: 9a4b5fd1ab4f71918d98744f1d36d9be1b25cb1a0ab7a342feaa6c5fa0af70dc5493e46efdec93e1c96d89973851b473de953dcd08ac9d3831192b63f3635317
   languageName: node
   linkType: hard
 
