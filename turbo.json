@@ -258,7 +258,9 @@
     "NEXT_PUBLIC_API_V2_URL",
     "NEXT_PUBLIC_WEBAPP_URL",
     "NEXT_PUBLIC_WEBSITE_URL",
-    "BUILD_STANDALONE"
+    "BUILD_STANDALONE",
+    "MICROSOFT_WEBHOOK_URL",
+    "MICROSOFT_WEBHOOK_TOKEN"
   ],
   "tasks": {
     "@calcom/prisma#build": {

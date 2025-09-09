@@ -9,7 +9,7 @@ export type CalendarSubscriptionProvider = "google" | "microsoft";
 export type CalendarSubscriptionWebhookContext = {
   headers?: Headers;
   query?: URLSearchParams;
-  body?: unknown | null;
+  body?: any;
 };
 
 export type CalendarSubscriptionResult = {
@@ -26,6 +26,7 @@ export type CalendarSubscriptionEventItem = {
   start?: Date;
   end?: Date;
   busy: boolean;
+  isAllDay?: boolean;
   summary?: string | null;
   description?: string | null;
   kind?: string | null;

@@ -148,6 +148,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           location: event.location,
           kind: event.kind,
           status: event.status,
+          isAllDay: !!event.start?.date && !event.start?.dateTime,
         };
       })
       .filter((e) => !!e.id) // safely remove events with no ID
