@@ -1,5 +1,3 @@
-import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
-import { captureException } from "@sentry/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
@@ -17,9 +15,19 @@ export function defaultResponder<T>(
     let ok = false;
     try {
       performance.mark("Start");
-      const result = endpointRoute
-        ? await wrapApiHandlerWithSentry(f, endpointRoute)(req, res)
-        : await f(req, res);
+      if (process.env.NODE_ENV === "development") {
+        ok = true;
+        return await f(req, res);
+      }
+
+      let result;
+      if (endpointRoute) {
+        const { wrapApiHandlerWithSentry } = await import("@sentry/nextjs");
+        result = await wrapApiHandlerWithSentry(f, endpointRoute)(req, res);
+      } else {
+        result = f(req, res);
+      }
+
       ok = true;
       if (result && !res.writableEnded) {
         return res.json(result);
@@ -29,6 +37,7 @@ export function defaultResponder<T>(
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
         console.error(error);
+        const { captureException } = await import("@sentry/nextjs");
         captureException(error);
       }
       return res
