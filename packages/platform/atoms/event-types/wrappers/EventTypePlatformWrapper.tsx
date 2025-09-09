@@ -96,14 +96,18 @@ const EventType = forwardRef<
   const { data: user, isLoading: isUserLoading } = useMe();
 
   const handleDeleteSuccess = () => {
-    showToast(t("event_type_deleted_successfully"), "success");
+    if (!disableToasts) {
+      showToast(t("event_type_deleted_successfully"), "success");
+    }
     isTeamEventTypeDeleted.current = true;
     setSlugExistsChildrenDialogOpen([]);
     onDeleteSuccess?.();
   };
 
   const handleDeleteError = (err: Error) => {
-    showToast(err.message, "error");
+    if (!disableToasts) {
+      showToast(err.message, "error");
+    }
     onDeleteError?.(err.message);
   };
 
@@ -137,7 +141,9 @@ const EventType = forwardRef<
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
-      toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      if (!disableToasts) {
+        toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      }
       onSuccess?.(currentValues);
       callbacksRef.current?.onSuccess?.();
     },
@@ -148,9 +154,11 @@ const EventType = forwardRef<
       const currentValues = form.getValues();
       const message = err?.message;
       const description = message ? t(message) : t(err.message);
-      toast({ description });
+      if (!disableToasts) {
+        toast({ description });
+      }
       onError?.(currentValues, err);
-      
+
       const errorObj = new Error(description);
       callbacksRef.current?.onError?.(errorObj);
     },
@@ -175,24 +183,27 @@ const EventType = forwardRef<
 
   const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
 
-  const handleFormSubmit = useCallback((customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
-    if (customCallbacks) {
-      callbacksRef.current = customCallbacks;
-    }
+  const handleFormSubmit = useCallback(
+    (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+      if (customCallbacks) {
+        callbacksRef.current = customCallbacks;
+      }
 
-    if (saveButtonRef.current) {
-      saveButtonRef.current.click();
-    } else {
-      form.handleSubmit((data) => {
-        try {
-          handleSubmit(data);
-          customCallbacks?.onSuccess?.();
-        } catch (error) {
-          customCallbacks?.onError?.(error as Error);
-        }
-      })();
-    }
-  }, [handleSubmit, form]);
+      if (saveButtonRef.current) {
+        saveButtonRef.current.click();
+      } else {
+        form.handleSubmit((data) => {
+          try {
+            handleSubmit(data);
+            customCallbacks?.onSuccess?.();
+          } catch (error) {
+            customCallbacks?.onError?.(error as Error);
+          }
+        })();
+      }
+    },
+    [handleSubmit, form]
+  );
 
   const validateForm = useCallback(async () => {
     const isValid = await form.trigger();
@@ -383,6 +394,7 @@ export const EventTypePlatformWrapper = forwardRef<
     allowDelete = true,
     customClassNames,
     isDryRun,
+    disableToasts,
     onFormStateChange,
   } = props;
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
@@ -418,6 +430,7 @@ export const EventTypePlatformWrapper = forwardRef<
       isDryRun={isDryRun}
       onFormStateChange={onFormStateChange}
       ref={ref}
+      disableToasts={disableToasts}
     />
   );
 });

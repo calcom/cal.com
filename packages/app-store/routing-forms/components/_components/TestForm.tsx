@@ -16,8 +16,8 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { TRPCClientError } from "@trpc/react-query";
 
-import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import { findMatchingRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import type { SingleFormComponentProps } from "../../types/shared";
 import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/types";
 import FormInputFields from "../FormInputFields";
@@ -92,7 +92,6 @@ export const TestForm = ({
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
-  const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -128,25 +127,27 @@ export const TestForm = ({
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
-    let eventTypeRedirectUrl: string | null = null;
 
-    if (route?.action?.type === "eventTypeRedirectUrl") {
-      if ("team" in form) {
-        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-          eventTypeRedirectUrl: route.action.value,
-          form,
-          allURLSearchParams: new URLSearchParams(),
-        });
-        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
-      }
+    // Create a copy of the route with substituted variables for display
+    let displayRoute = route;
+    if (route && form.fields && route.action.type === "eventTypeRedirectUrl") {
+      const substitutedUrl = substituteVariables(route.action.value, response, form.fields);
+      displayRoute = {
+        ...route,
+        action: {
+          ...route.action,
+          value: substitutedUrl,
+        },
+      };
     }
 
-    setChosenRoute(route || null);
+    setChosenRoute(displayRoute || null);
     setShowResults(true);
 
     if (!route) return;
 
-    if (supportsTeamMembersMatchingLogic) {
+    // Custom Event Type Redirect URL has eventTypeId=0. Also, findTeamMembersMatchingAttributeLogicMutation can't work without eventTypeId
+    if (supportsTeamMembersMatchingLogic && route.action.eventTypeId) {
       findTeamMembersMatchingAttributeLogicMutation.mutate({
         formId: form.id,
         response,

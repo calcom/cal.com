@@ -15,7 +15,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isCalAIAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -27,7 +27,6 @@ interface WorkflowPermissions {
   canView: boolean;
   canUpdate: boolean;
   canDelete: boolean;
-  canManage: boolean;
   readOnly: boolean; // Keep for backward compatibility
 }
 
@@ -42,6 +41,7 @@ interface Props {
   isOrg: boolean;
   allOptions: Option[];
   permissions?: WorkflowPermissions;
+  onSaveWorkflow?: () => Promise<void>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
@@ -58,11 +58,15 @@ export default function WorkflowDetailsPage(props: Props) {
   const { t } = useLocale();
   const router = useRouter();
 
+  const hasCalAIAction = () => {
+    const steps = form.getValues("steps") || [];
+    return steps.some((step) => isCalAIAction(step.action));
+  };
+
   const permissions = _permissions || {
     canView: !teamId ? true : !props.readOnly,
     canUpdate: !teamId ? true : !props.readOnly,
     canDelete: !teamId ? true : !props.readOnly,
-    canManage: !teamId ? true : !props.readOnly,
     readOnly: !teamId ? false : props.readOnly,
   };
 
@@ -168,25 +172,27 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
-          <div className="mt-3">
-            <Controller
-              name="selectAll"
-              render={({ field: { value, onChange } }) => (
-                <CheckboxField
-                  description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
-                  disabled={props.readOnly}
-                  onChange={(e) => {
-                    onChange(e);
-                    if (e.target.value) {
-                      setSelectedOptions(allOptions);
-                      form.setValue("activeOn", allOptions);
-                    }
-                  }}
-                  checked={value}
-                />
-              )}
-            />
-          </div>
+          {!hasCalAIAction() && (
+            <div className="mt-3">
+              <Controller
+                name="selectAll"
+                render={({ field: { value, onChange } }) => (
+                  <CheckboxField
+                    description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
+                    disabled={props.readOnly}
+                    onChange={(e) => {
+                      onChange(e);
+                      if (e.target.value) {
+                        setSelectedOptions(allOptions);
+                        form.setValue("activeOn", allOptions);
+                      }
+                    }}
+                    checked={value}
+                  />
+                )}
+              />
+            </div>
+          )}
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
           {permissions.canDelete && (
             <Button
@@ -210,6 +216,8 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                isOrganization={isOrg}
+                onSaveWorkflow={props.onSaveWorkflow}
               />
             </div>
           )}
@@ -226,6 +234,8 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    isOrganization={isOrg}
+                    onSaveWorkflow={props.onSaveWorkflow}
                   />
                 );
               })}

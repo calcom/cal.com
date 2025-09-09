@@ -4,18 +4,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import {
-  DEFAULT_PROMPT_VALUE,
-  DEFAULT_BEGIN_MESSAGE,
-} from "@calcom/features/calAIPhone/promptTemplates";
+import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   FormValues,
   EventTypeSetupProps,
   EventTypeUpdateInput,
 } from "@calcom/features/eventtypes/lib/types";
-import { validateCustomEventName } from "@calcom/lib/event";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
@@ -145,6 +142,7 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
+      showOptimizedSlots: eventType.showOptimizedSlots ?? false,
     };
   }, [eventType, periodDates]);
 
@@ -331,8 +329,9 @@ export const useEventTypeForm = ({
     } = dirtyValues;
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
-    const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? values.seatsPerTimeSlot;
-    const finalRecurringEvent = recurringEvent ?? values.recurringEvent;
+    const finalSeatsPerTimeSlot =
+      seatsPerTimeSlot === undefined ? eventType.seatsPerTimeSlot : seatsPerTimeSlot;
+    const finalRecurringEvent = recurringEvent === undefined ? eventType.recurringEvent : recurringEvent;
 
     if (finalSeatsPerTimeSlot && finalRecurringEvent) {
       throw new Error(t("recurring_event_seats_error"));

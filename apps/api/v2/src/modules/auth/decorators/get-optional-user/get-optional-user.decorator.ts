@@ -2,6 +2,8 @@ import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.st
 import { ExecutionContext } from "@nestjs/common";
 import { createParamDecorator } from "@nestjs/common";
 
+export type AuthOptionalUser = ApiAuthGuardUser | null;
+
 export const GetOptionalUser = createParamDecorator<
   keyof ApiAuthGuardUser | (keyof ApiAuthGuardUser)[],
   ExecutionContext
