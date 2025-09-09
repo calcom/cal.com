@@ -4,7 +4,7 @@ import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import Shell from "@calcom/features/shell/Shell";
-import { NavigationPermissionsWrapper } from "@calcom/features/shell/context/NavigationPermissionsWrapper";
+import { NavigationPermissionsProvider } from "@calcom/features/shell/context/NavigationPermissionsProvider";
 import { checkNavigationPermissions } from "@calcom/features/shell/context/utils/checkNavigationPermissions";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -28,9 +28,9 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <>
-      <NavigationPermissionsWrapper permissions={navigationPermissions}>
+      <NavigationPermissionsProvider value={navigationPermissions}>
         <Shell withoutMain={true}>{children}</Shell>
-      </NavigationPermissionsWrapper>
+      </NavigationPermissionsProvider>
     </>
   );
 };

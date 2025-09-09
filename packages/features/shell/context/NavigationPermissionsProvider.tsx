@@ -72,5 +72,7 @@ export function NavigationPermissionsProvider({
   value: NavigationPermissions;
   children: React.ReactNode;
 }) {
-  return React.createElement(NavigationPermissionsContext.Provider, { value }, children);
+  return (
+    <NavigationPermissionsContext.Provider value={value}>{children}</NavigationPermissionsContext.Provider>
+  );
 }
