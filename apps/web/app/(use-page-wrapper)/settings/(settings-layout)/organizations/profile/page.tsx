@@ -1,8 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LegacyPage from "@calcom/features/ee/organizations/pages/settings/profile";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
@@ -10,7 +8,7 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { validateUserHasOrg } from "../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -22,20 +20,20 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await validateUserHasOrg();
   const t = await getTranslate();
 
-  const orgRole = session?.user.profile?.organization.members?.find(
-    (member: Membership) => member.userId === session?.user.id
+  const orgRole = session.user.profile.organization.members?.find(
+    (member: Membership) => member.userId === session.user.id
   )?.role;
 
-  if (!session?.user.id || !session?.user.profile?.organizationId || !orgRole) {
+  if (!orgRole) {
     return redirect("/settings/profile");
   }
 
   const { canRead, canEdit, canDelete } = await getResourcePermissions({
     userId: session.user.id,
-    teamId: session?.user.profile?.organizationId,
+    teamId: session.user.profile.organizationId,
     resource: Resource.Organization,
     userRole: orgRole,
     fallbackRoles: {

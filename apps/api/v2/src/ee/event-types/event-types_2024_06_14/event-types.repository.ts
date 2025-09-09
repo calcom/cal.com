@@ -75,6 +75,16 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
+  async getUserEventTypesPublic(userId: number) {
+    return this.dbRead.prisma.eventType.findMany({
+      where: {
+        userId,
+        hidden: false,
+      },
+      include: { users: true, schedule: true, destinationCalendar: true },
+    });
+  }
+
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
