@@ -13,7 +13,7 @@ export const generateMetadata = async () =>
     (t) => t("manage_billing_description"),
     undefined,
     undefined,
-    "/settings/billing"
+    "/settings/organizations/billing"
   );
 
 const Page = async () => {
