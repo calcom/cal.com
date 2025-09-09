@@ -1,5 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
+import { validateOrgAdminAccess } from "@calcom/features/auth/lib/validateOrgAdminAccess";
 import DelegationCredentialList from "@calcom/features/ee/organizations/pages/settings/delegationCredential";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -13,7 +14,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
+  const [t, _session] = await Promise.all([getTranslate(), validateOrgAdminAccess()]);
 
   return (
     <SettingsHeader

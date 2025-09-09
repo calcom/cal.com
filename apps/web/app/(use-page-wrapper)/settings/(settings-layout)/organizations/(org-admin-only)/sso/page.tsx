@@ -1,15 +1,11 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { headers, cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { validateOrgAdminAccess } from "@calcom/features/auth/lib/validateOrgAdminAccess";
 import OrgSSOView from "@calcom/features/ee/sso/page/orgs-sso-view";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -21,12 +17,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-
-  if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
-    return redirect("/settings/organizations/general");
-  }
+  const [t, session] = await Promise.all([getTranslate(), validateOrgAdminAccess()]);
 
   const { canEdit } = await getResourcePermissions({
     userId: session.user.id,
