@@ -20,6 +20,8 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
+import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   FormValues,
   EventTypeSetupProps,
@@ -38,8 +40,6 @@ import {
   APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
-import type { EventNameObjectType } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";

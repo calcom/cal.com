@@ -1,6 +1,6 @@
 import type logger from "@calcom/lib/logger";
+import type { RoutingFormResponseRepositoryInterface } from "@calcom/lib/server/repository/RoutingFormResponseRepository.interface";
 
-import type { RoutingFormResponseRepositoryInterface } from "../../repository/RoutingFormResponseRepository.interface";
 import { parseRoutingFormResponse } from "./responseData/parseRoutingFormResponse";
 
 interface Dependencies {

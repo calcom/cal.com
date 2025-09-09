@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { findFieldValueByIdentifier } from "./findFieldValueByIdentifier";
-import type { RoutingFormResponseData } from "./types";
+import type { RoutingFormResponseData } from "./responseData/types";
 
 describe("findFieldValueByIdentifier", () => {
   const responseData: RoutingFormResponseData = {
