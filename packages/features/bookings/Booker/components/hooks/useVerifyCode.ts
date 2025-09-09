@@ -6,7 +6,7 @@ import { trpc } from "@calcom/trpc/react";
 export type UseVerifyCodeReturnType = ReturnType<typeof useVerifyCode>;
 
 type UseVerifyCodeProps = {
-  onSuccess: (isVerified: boolean) => void;
+  onSuccess: (isVerified: boolean, verificationCode?: string) => void;
 };
 
 export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
@@ -20,7 +20,7 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
   const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
     onSuccess: (data) => {
       setIsPending(false);
-      onSuccess(data);
+      onSuccess(data, value);
     },
     onError: (err) => {
       setIsPending(false);
@@ -34,7 +34,7 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
   const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
     onSuccess: (data) => {
       setIsPending(false);
-      onSuccess(data);
+      onSuccess(data, value);
     },
     onError: (err) => {
       setIsPending(false);
