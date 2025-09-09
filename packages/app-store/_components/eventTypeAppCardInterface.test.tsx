@@ -1,8 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import type { CredentialOwner } from "types";
+import type { AppCardApp } from "types";
 import { vi } from "vitest";
-
-import type { RouterOutputs } from "@calcom/trpc";
 
 import { DynamicComponent } from "./DynamicComponent";
 import { EventTypeAppCard } from "./EventTypeAppCardInterface";
@@ -26,9 +24,7 @@ const mockProps = {
     name: "TestApp",
     slug: "testapp",
     credentialOwner: {},
-  } as RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
-    credentialOwner?: CredentialOwner;
-  },
+  } as AppCardApp,
   eventType: {},
   getAppData: getAppDataMock,
   setAppData: setAppDataMock,

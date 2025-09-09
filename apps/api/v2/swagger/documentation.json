@@ -9132,8 +9132,6 @@
           {
             "name": "credentialId",
             "in": "query",
-            "description": "The ID of the user's calendar credential used to access the calendar. Retrieve this from your connected calendar credentials via the `/v2/credentials` endpoint.",
-            "example": 135,
             "required": true,
             "schema": {
               "type": "number"
@@ -9142,8 +9140,6 @@
           {
             "name": "externalId",
             "in": "query",
-            "description": "The external calendar identifier from the calendar provider (e.g., email address for Google Calendar). This is returned when listing connected calendars.",
-            "example": "user@gmail.com",
             "required": true,
             "schema": {
               "type": "string"
@@ -9862,6 +9858,7 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypes",
         "summary": "Get all event types",
+        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9916,6 +9913,33 @@
             "description": "ID of the organization of the user you want the get the event-types of, orgSlug is not needed when using this parameter",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -23642,7 +23666,12 @@
                 "afterEvent",
                 "rescheduleEvent",
                 "afterHostsCalVideoNoShow",
-                "afterGuestsCalVideoNoShow"
+                "afterGuestsCalVideoNoShow",
+                "bookingRejected",
+                "bookingRequested",
+                "bookingPaymentInitiated",
+                "bookingPaid",
+                "bookingNoShowUpdated"
               ]
             ],
             "description": "Trigger type for the workflow"
