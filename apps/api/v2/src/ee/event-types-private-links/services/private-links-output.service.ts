@@ -1,6 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 
+import {
+  PrivateLinkOutput,
+  TimeBasedPrivateLinkOutput,
+  UsageBasedPrivateLinkOutput,
+} from "@calcom/platform-types";
+
 export type PrivateLinkData = {
   id: string;
   eventTypeId: number;
@@ -10,7 +16,6 @@ export type PrivateLinkData = {
   maxUsageCount?: number | null;
   usageCount?: number;
 };
-import { PrivateLinkOutput, TimeBasedPrivateLinkOutput, UsageBasedPrivateLinkOutput } from "@calcom/platform-types";
 
 @Injectable()
 export class PrivateLinksOutputService {
@@ -39,5 +44,3 @@ export class PrivateLinksOutputService {
     return data.map((item) => this.transformToOutput(item));
   }
 }
-
-

@@ -7,6 +7,14 @@ import logger from "../logger";
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { i18n } = require("@calcom/config/next-i18next.config");
+const log = logger.getSubLogger({ prefix: ["[i18n]"] });
+
+// Import only English translations directly to avoid HTTP requests
+// Other languages will be loaded dynamically to minimize bundle size
+const englishTranslations: Record<
+  string,
+  string
+> = require("../../../apps/web/public/static/locales/en/common.json");
 
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
@@ -14,6 +22,8 @@ const SUPPORTED_NAMESPACES = ["common"];
 
 /**
  * Loads translations for a specific locale and namespace with optimized caching
+ * English translations are bundled as englishTranslations for reliability,
+ * other languages use dynamic imports with HTTP fallback to minimize bundle size
  * @param {string} _locale - The locale code (e.g., 'en', 'fr', 'zh')
  * @param {string} ns - The namespace for the translations
  * @returns {Promise<Record<string, string>>} Translations object or fallback translations on failure
@@ -28,28 +38,41 @@ export async function loadTranslations(_locale: string, _ns: string) {
     return translationCache.get(cacheKey);
   }
 
-  const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
+  if (locale === "en") {
+    translationCache.set(cacheKey, englishTranslations);
+    return englishTranslations;
+  }
+
   try {
-    const response = await fetchWithTimeout(
-      url,
-      {
-        cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-      },
-      process.env.NODE_ENV === "development" ? 30000 : 3000
+    const { default: localeTranslations } = await import(
+      `../../../apps/web/public/static/locales/${locale}/${ns}.json`
     );
 
-    if (!response.ok) {
-      logger.error(`Failed to fetch translations: ${response.status}`);
-      return {};
+    translationCache.set(cacheKey, localeTranslations);
+    return localeTranslations;
+  } catch (dynamicImportErr) {
+    log.warn(`Dynamic import failed for locale ${locale}:`, dynamicImportErr);
+
+    // Try HTTP fallback as second option
+    try {
+      const response = await fetchWithTimeout(
+        `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`,
+        {
+          cache: "no-store",
+        },
+        3000
+      );
+      if (response.ok) {
+        const httpTranslations = await response.json();
+        translationCache.set(cacheKey, httpTranslations);
+        return httpTranslations;
+      }
+    } catch (httpErr) {
+      log.error(`HTTP fallback also failed for locale ${locale}:`, httpErr);
     }
 
-    const translations = await response.json();
-    translationCache.set(cacheKey, translations);
-    return translations;
-  } catch (err) {
-    console.error("loadTranslations Error:", err);
-
-    return {};
+    log.info(`Falling back to English for locale: ${locale}`);
+    return englishTranslations;
   }
 }
 

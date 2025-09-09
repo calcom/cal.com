@@ -97,3 +97,7 @@ apps/auth
 !.yarn/sdks
 !.yarn/versions
 i18n.cache
+packages/**/.yarn/ci-cache/
+
+# AI
+.claude

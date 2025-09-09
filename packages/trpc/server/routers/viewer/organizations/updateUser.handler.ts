@@ -47,7 +47,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
 
   try {
-    await roleManager.checkPermissionToChangeRole(userId, organizationId);
+    await roleManager.checkPermissionToChangeRole(userId, organizationId, "org");
   } catch (error) {
     if (error instanceof RoleManagementError) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: error.message });

@@ -6,7 +6,6 @@ import {
 import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-import type { PrismaClient } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
@@ -15,7 +14,6 @@ import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
 export interface IQualifiedHostsService {
-  prisma: PrismaClient;
   bookingRepo: BookingRepository;
   filterHostsService: FilterHostsService;
 }
@@ -227,65 +225,3 @@ export class QualifiedHostsService {
     "findQualifiedHostsWithDelegationCredentials"
   );
 }
-
-const _findQualifiedHostsWithDelegationCredentials = async <
-  T extends {
-    email: string;
-    id: number;
-    credentials: CredentialPayload[];
-    userLevelSelectedCalendars: SelectedCalendar[];
-  } & Record<string, unknown>
->({
-  eventType,
-  rescheduleUid,
-  routedTeamMemberIds,
-  contactOwnerEmail,
-  routingFormResponse,
-}: {
-  eventType: {
-    id: number;
-    schedulingType: SchedulingType | null;
-    hosts?: Host<T>[];
-    users: T[];
-    maxLeadThreshold?: number | null;
-    team?: {
-      parentId?: number | null;
-      rrResetInterval: string | null;
-      rrTimestampBasis: string | null;
-    } | null;
-    isRRWeightsEnabled: boolean;
-    rescheduleWithSameRoundRobinHost: boolean;
-    teamId?: number;
-    includeNoShowInRRCalculation: boolean;
-  } & EventType;
-  rescheduleUid: string | null;
-  routedTeamMemberIds: number[];
-  contactOwnerEmail: string | null;
-  routingFormResponse: RoutingFormResponse | null;
-}) => {
-  const { prisma } = await import("@calcom/prisma");
-  const { BookingRepository } = await import("@calcom/lib/server/repository/booking");
-  const { FilterHostsService } = await import("@calcom/lib/bookings/filterHostsBySameRoundRobinHost");
-
-  const bookingRepo = new BookingRepository(prisma);
-  const filterHostsService = new FilterHostsService({ bookingRepo });
-
-  const service = new QualifiedHostsService({
-    prisma,
-    bookingRepo,
-    filterHostsService,
-  });
-
-  return service.findQualifiedHostsWithDelegationCredentials({
-    eventType,
-    rescheduleUid,
-    routedTeamMemberIds,
-    contactOwnerEmail,
-    routingFormResponse,
-  });
-};
-
-export const findQualifiedHostsWithDelegationCredentials = withReporting(
-  _findQualifiedHostsWithDelegationCredentials,
-  "findQualifiedHostsWithDelegationCredentials"
-);

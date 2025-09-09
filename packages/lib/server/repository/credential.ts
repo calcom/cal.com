@@ -229,4 +229,61 @@ export class CredentialRepository {
   static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {
     return prisma.credential.update({ where: { id }, data });
   }
+
+  static async findPaymentCredentialByAppIdAndTeamId({
+    appId,
+    teamId,
+  }: {
+    appId: string | null;
+    teamId: number;
+  }) {
+    return await prisma.credential.findFirst({
+      where: {
+        teamId,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
+
+  static async findPaymentCredentialByAppIdAndUserId({
+    appId,
+    userId,
+  }: {
+    appId: string | null;
+    userId: number;
+  }) {
+    return await prisma.credential.findFirst({
+      where: {
+        userId,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
+
+  static async findPaymentCredentialByAppIdAndUserIdOrTeamId({
+    appId,
+    userId,
+    teamId,
+  }: {
+    appId: string | null;
+    userId: number;
+    teamId?: number | null;
+  }) {
+    const idToSearchObject = teamId ? { teamId } : { userId };
+    return await prisma.credential.findFirst({
+      where: {
+        ...idToSearchObject,
+        appId,
+      },
+      include: {
+        app: true,
+      },
+    });
+  }
 }
