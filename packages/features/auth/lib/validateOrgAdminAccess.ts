@@ -15,10 +15,11 @@ export async function validateOrgAdminAccess() {
   }
 
   return session as typeof session & {
-    user: {
-      id: number;
-      profile: { organizationId: number };
-      org: { role: string };
+    user: typeof session.user & {
+      profile: NonNullable<typeof session.user.profile> & {
+        organizationId: NonNullable<typeof session.user.profile.organizationId>;
+      };
+      org: NonNullable<typeof session.user.org>;
     };
   };
 }
