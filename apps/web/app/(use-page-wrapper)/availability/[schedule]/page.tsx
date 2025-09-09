@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/queries/_router";
-import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
+import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/queries/_router";
 
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
