@@ -3,7 +3,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import DelegationCredentialList from "@calcom/features/ee/organizations/pages/settings/delegationCredential";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import { validateUserHasOrgAdmin } from "../../_actions/validateUserHasOrgAdmin";
+import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

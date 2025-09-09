@@ -5,7 +5,7 @@ import { OtherTeamsListing } from "@calcom/features/ee/organizations/pages/compo
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
-import { validateUserHasOrg } from "../../../_actions/validateUserHasOrg";
+import { validateUserHasOrg } from "../../../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

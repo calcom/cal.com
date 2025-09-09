@@ -157,7 +157,7 @@ describe("validateUserHasOrg", () => {
     it("should redirect when user has no user id", async () => {
       const mockSession = createMockSession({
         user: {
-          id: undefined as any,
+          id: undefined as unknown as number,
           email: "test@example.com",
           name: "Test User",
           org: {

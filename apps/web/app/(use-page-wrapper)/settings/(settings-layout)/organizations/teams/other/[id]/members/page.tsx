@@ -5,7 +5,7 @@ import LegacyPage, {
 } from "@calcom/features/ee/organizations/pages/settings/other-team-members-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import { validateUserHasOrg } from "../../../../_actions/validateUserHasOrg";
+import { validateUserHasOrg } from "../../../../actions/validateUserHasOrg";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
