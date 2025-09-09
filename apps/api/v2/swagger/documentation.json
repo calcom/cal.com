@@ -23638,7 +23638,12 @@
                 "afterEvent",
                 "rescheduleEvent",
                 "afterHostsCalVideoNoShow",
-                "afterGuestsCalVideoNoShow"
+                "afterGuestsCalVideoNoShow",
+                "bookingRejected",
+                "bookingRequested",
+                "bookingPaymentInitiated",
+                "bookingPaid",
+                "bookingNoShowUpdated"
               ]
             ],
             "description": "Trigger type for the workflow"
