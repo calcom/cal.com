@@ -1,102 +1,128 @@
+// -------------------- Imports --------------------
 import type { UseFormReturn } from "react-hook-form";
 
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type { PrismaClient } from "@calcom/prisma";
 import type {
-  EventType,
+  PrismaClient,
   Prisma,
+  EventType,
   User,
-  WorkflowReminder,
+  CalIdWorkflowReminder,
   WorkflowTemplates,
-  Membership,
+  CalIdMembership,
 } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
-type Workflow = {
+// -------------------- Workflow Core --------------------
+export type CalIdWorkflow = {
   id: number;
   name: string;
   trigger: WorkflowTriggerEvents;
   time: number | null;
   timeUnit: TimeUnit | null;
   userId: number | null;
-  teamId: number | null;
-  steps: WorkflowStep[];
+  calIdTeamId: number | null;
+  steps: CalIdWorkflowStep[];
 };
 
-type WorkflowStep = {
+export type CalIdWorkflowStep = {
+  id: number;
   workflowId: number;
   action: WorkflowActions;
-  sendTo: string | null;
   template: WorkflowTemplates;
+  stepNumber: number;
+
+  // Optional fields
+  sendTo: string | null;
   reminderBody: string | null;
   emailSubject: string | null;
-  id: number;
   sender: string | null;
   includeCalendarEvent: boolean;
   numberVerificationPending: boolean;
   numberRequired: boolean | null;
-  stepNumber: number;
-  // disableOnMarkNoShow: boolean | null;
 };
 
-// Core types for workflow management
-interface WorkflowPageProps {
+// Workflow with relations
+export type CalIdWorkflowType = CalIdWorkflow & {
+  calIdTeam: {
+    id: number;
+    name: string;
+    members: CalIdMembership[];
+    slug: string | null;
+    logoUrl?: string | null;
+  } | null;
+  steps: CalIdWorkflowStep[];
+  activeOnTeams?: {
+    calIdTeam: { id: number; name?: string | null };
+  }[];
+  activeOn?: {
+    eventType: {
+      id: number;
+      title: string;
+      parentId: number | null;
+      _count: { children: number };
+    };
+  }[];
+  readOnly?: boolean;
+  isActiveOnAll?: boolean;
+  disabled?: boolean;
+};
+
+// -------------------- Workflow UI --------------------
+export interface CalIdWorkflowPageProps {
   workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
   verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
   verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
 }
 
-interface WorkflowFormValues {
+export interface CalIdWorkflowFormValues {
   name: string;
-  activeOn: Array<{
-    value: string;
-    label: string;
-  }>;
-  steps: Array<WorkflowStep & { senderName: string | null }>;
+  activeOn: Array<{ value: string; label: string }>;
+  steps: Array<CalIdWorkflowStep & { senderName: string | null }>;
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
   selectAll: boolean;
 }
 
-interface WorkflowActionOption {
+export interface CalIdWorkflowActionOption {
   label: string;
   value: WorkflowActions;
   needsTeamsUpgrade: boolean;
 }
 
-interface WorkflowStepComponentProps {
-  step: WorkflowStep;
+export interface CalIdWorkflowStepComponentProps {
+  step: CalIdWorkflowStep;
   index: number;
-  form: UseFormReturn<WorkflowFormValues>;
-  teamId?: number;
+  form: UseFormReturn<CalIdWorkflowFormValues>;
+  calIdTeamId?: number;
   readOnly: boolean;
-  actionOptions?: WorkflowActionOption[];
+  actionOptions?: CalIdWorkflowActionOption[];
   userTimeFormat?: number;
   onRemove?: (id: number) => void;
 }
 
-// Legacy interface - kept for compatibility
-interface ActionModule {
-  id: number;
-  sendVia: string;
-  message: string;
-  messageTemplate: string;
+export interface CalIdWorkflowCardProps {
+  workflow: CalIdWorkflowType;
+  onEdit: (workflowId: number) => void;
+  onToggle: (workflowId: number, enabled: boolean) => void;
+  onDuplicate: (workflowId: number) => void;
+  onDelete: (workflowId: number) => void;
+  onCopyLink: (workflowId: number) => void;
+  copiedLink: number | null;
 }
 
-type PartialWorkflowStep =
-  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
-  | null;
+export interface CalIdWorkflowsProps {
+  setHeaderMeta?: (meta: any) => void;
+  filteredList?: any;
+}
 
-type Booking = Prisma.BookingGetPayload<{
-  include: {
-    attendees: true;
-  };
-}>;
+// -------------------- Booking Related --------------------
+export type Booking = Prisma.BookingGetPayload<{ include: { attendees: true } }>;
 
-type PartialBooking =
+export type PartialBooking =
   | (Pick<
       Booking,
       | "startTime"
@@ -120,70 +146,56 @@ type PartialBooking =
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
         | null;
-    } & {
       user: Partial<User> | null;
     })
   | null;
 
-export type PartialWorkflowReminder = Pick<
-  WorkflowReminder,
+export type PartialCalIdWorkflowStep =
+  | (Partial<CalIdWorkflowStep> & { workflow: { userId?: number; calIdTeamId?: number } })
+  | null;
+
+export type PartialCalIdWorkflowReminder = Pick<
+  CalIdWorkflowReminder,
   "id" | "isMandatoryReminder" | "scheduledDate"
 > & {
   booking: PartialBooking | null;
-  // attendee: Attendee | null;
-} & { workflowStep: PartialWorkflowStep };
+  workflowStep: PartialCalIdWorkflowStep;
+};
 
-const BATCH_PROCESSING_SIZE = 90;
-interface ScheduleReminderArgs {
-  evt: BookingInfo;
+// -------------------- Scheduling --------------------
+export interface CalIdScheduleReminderArgs {
+  evt: CalIdBookingInfo;
   triggerEvent: WorkflowTriggerEvents;
-  timeSpan: {
-    time: number | null;
-    timeUnit: TimeUnit | null;
-  };
+  timeSpan: { time: number | null; timeUnit: TimeUnit | null };
   template?: WorkflowTemplates;
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
   attendeeId?: number;
 }
-type WorkflowType = Workflow & {
-  team: {
-    id: number;
-    name: string;
-    members: Membership[];
-    slug: string | null;
-    logo?: string | null;
-  } | null;
-  steps: WorkflowStep[];
-  activeOnTeams?: {
-    team: {
-      id: number;
-      name?: string | null;
-    };
-  }[];
-  activeOn?: {
-    eventType: {
-      id: number;
-      title: string;
-      parentId: number | null;
-      _count: {
-        children: number;
-      };
-    };
-  }[];
-  readOnly?: boolean;
-  isOrg?: boolean;
-  isActiveOnAll?: boolean;
-  disabled?: boolean;
-};
 
-type ScheduleEmailReminderAction = Extract<
+export type CalIdScheduleEmailReminderAction = Extract<
   WorkflowActions,
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-type AttendeeInBookingInfo = {
+export type CalIdScheduleTextReminderAction = Extract<
+  WorkflowActions,
+  "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
+>;
+
+export interface CalIdScheduleTextReminderArgs extends CalIdScheduleReminderArgs {
+  reminderPhone: string | null;
+  message: string;
+  action: CalIdScheduleTextReminderAction;
+  userId?: number | null;
+  calIdTeamId?: number | null;
+  isVerificationPending?: boolean;
+  prisma?: PrismaClient;
+}
+
+// -------------------- Booking Info --------------------
+export type CalIdAttendeeInBookingInfo = {
   id?: number;
   name: string;
   firstName?: string;
@@ -194,24 +206,24 @@ type AttendeeInBookingInfo = {
   language: { locale: string };
 };
 
-type BookingInfo = {
+export type CalIdBookingInfo = {
   uid?: string | null;
   bookerUrl: string;
-  attendees: AttendeeInBookingInfo[];
+  attendees: CalIdAttendeeInBookingInfo[];
   organizer: {
-    language: { locale: string };
     name: string;
     email: string;
     timeZone: string;
+    language: { locale: string };
     timeFormat?: TimeFormat;
     username?: string;
   };
   eventTypeId?: number | null;
   eventType: {
+    id?: number;
     title?: string;
     slug?: string;
     recurringEvent?: RecurringEvent | null;
-    id?: number;
   };
   startTime: string;
   endTime: string;
@@ -222,72 +234,28 @@ type BookingInfo = {
   metadata?: Prisma.JsonValue;
 };
 
-interface ScheduleReminderArgs {
-  evt: BookingInfo;
-  triggerEvent: WorkflowTriggerEvents;
-  timeSpan: {
-    time: number | null;
-    timeUnit: TimeUnit | null;
-  };
-  template?: WorkflowTemplates;
-  sender?: string | null;
-  workflowStepId?: number;
-  seatReferenceUid?: string;
-  attendeeId?: number;
-}
-type ScheduleTextReminderAction = Extract<
-  WorkflowActions,
-  "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
->;
-export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
-  reminderPhone: string | null;
-  message: string;
-  action: ScheduleTextReminderAction;
-  userId?: number | null;
-  teamId?: number | null;
-  isVerificationPending?: boolean;
-  prisma?: PrismaClient;
-}
-export type {
-  Workflow,
-  WorkflowType,
-  WorkflowStep,
-  WorkflowPageProps,
-  WorkflowFormValues,
-  WorkflowActionOption,
-  WorkflowStepComponentProps,
-  ActionModule,
-  ScheduleEmailReminderAction,
-  ScheduleReminderArgs,
-  BookingInfo,
-  AttendeeInBookingInfo,
-  ScheduleTextReminderAction,
-};
-
-export interface WorkflowCardProps {
-  workflow: WorkflowType;
-  onEdit: (workflowId: number) => void;
-  onToggle: (workflowId: number, enabled: boolean) => void;
-  onDuplicate: (workflowId: number) => void;
-  onDelete: (workflowId: number) => void;
-  onCopyLink: (workflowId: number) => void;
-  copiedLink: number | null;
-}
-
-export interface TeamProfile {
+// -------------------- Teams --------------------
+export interface CalIdTeamProfile {
   readOnly?: boolean;
   slug: string | null;
   name: string | null;
-  teamId: number | null;
-  image?: string | null;
+  calIdTeamId: number | null;
+  logoUrl?: string | null;
 }
 
-export interface TeamFiltersState {
+export interface CalIdTeamFiltersState {
   userId: number | null;
-  teamIds: number[];
+  calIdTeamIds: number[];
 }
 
-export interface WorkflowsProps {
-  setHeaderMeta?: (meta: any) => void;
-  filteredList?: any;
+// -------------------- Constants --------------------
+export const BATCH_PROCESSING_SIZE = 90;
+
+// -------------------- Legacy --------------------
+/** Legacy interface - kept for compatibility */
+export interface CalIdActionModule {
+  id: number;
+  sendVia: string;
+  message: string;
+  messageTemplate: string;
 }

@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, CalIdMembershipRole } from "@calcom/prisma/enums";
+import { CalIdMembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
@@ -13,7 +13,6 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
-import { MembershipRepository } from "./membership";
 import { CalIdMembershipRepository } from "./calIdMembership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
@@ -709,7 +708,7 @@ export class EventTypeRepository {
           eventTypeId: true,
         },
       },
-      workflows: {
+      calIdWorkflows: {
         include: {
           workflow: {
             select: {
@@ -929,6 +928,31 @@ export class EventTypeRepository {
           },
         },
       },
+      calIdTeamId: true,
+      calIdTeam: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+
+          members: {
+            select: {
+              role: true,
+              acceptedInvitation: true,
+              user: {
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       restrictionScheduleId: true,
       useBookerTimezone: true,
       users: {
@@ -999,7 +1023,7 @@ export class EventTypeRepository {
           eventTypeId: true,
         },
       },
-      workflows: {
+      calIdWorkflows: {
         include: {
           workflow: {
             select: {
@@ -1084,7 +1108,15 @@ export class EventTypeRepository {
     });
   }
 
-  async findFirstEventTypeId({ slug, calIdTeamId, userId }: { slug: string; calIdTeamId?: number; userId?: number }) {
+  async findFirstEventTypeId({
+    slug,
+    calIdTeamId,
+    userId,
+  }: {
+    slug: string;
+    calIdTeamId?: number;
+    userId?: number;
+  }) {
     return this.prismaClient.eventType.findFirst({
       where: {
         slug,

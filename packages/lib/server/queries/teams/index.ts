@@ -427,6 +427,16 @@ export async function isTeamMember(userId: number, teamId: number) {
   }));
 }
 
+export async function isCalIdTeamMember(userId: number, teamId: number) {
+  return !!(await prisma.calIdMembership.findFirst({
+    where: {
+      userId,
+      calIdTeamId: teamId,
+      acceptedInvitation: true,
+    },
+  }));
+}
+
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,

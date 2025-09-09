@@ -1,5 +1,5 @@
-import type { CalIdWorkflowType as WorkflowType } from "@calid/features/modules/workflows/config/types";
-import type { CalIdWorkflowStep as WorkflowStep } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflowType } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflowStep } from "@calid/features/modules/workflows/config/types";
 import { deleteScheduledEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
 import { deleteScheduledSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
 import { deleteScheduledWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
@@ -7,22 +7,20 @@ import { z } from "zod";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { CalIdMembershipRole } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
-import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
-import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
-import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
+import type { TCalIdFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/calid/filteredList.schema";
+import type { TCalIdGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/calid/getVerifiedEmails.schema";
+import type { TCalIdGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/calid/getVerifiedNumbers.schema";
 
 import logger from "../../logger";
 
-export const ZGetInputSchema = z.object({
+export const ZCalIdGetInputSchema = z.object({
   id: z.number(),
 });
 
-export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
-
-// const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
+export type TCalIdGetInputSchema = z.infer<typeof ZCalIdGetInputSchema>;
 
 const { include: includedFields } = {
   include: {
@@ -44,7 +42,7 @@ const { include: includedFields } = {
     },
     activeOnTeams: {
       select: {
-        team: {
+        calIdTeam: {
           select: {
             id: true,
             name: true,
@@ -53,24 +51,23 @@ const { include: includedFields } = {
       },
     },
     steps: true,
-    team: {
+    calIdTeam: {
       select: {
         id: true,
         slug: true,
         name: true,
         members: true,
         logoUrl: true,
-        isOrganization: true,
       },
     },
   },
-} satisfies Prisma.WorkflowDefaultArgs;
+} satisfies Prisma.CalIdWorkflowDefaultArgs;
 
-export class WorkflowRepository {
-  private static log = logger.getSubLogger({ prefix: ["workflow"] });
+export class CalIdWorkflowRepository {
+  private static log = logger.getSubLogger({ prefix: ["calIdWorkflow"] });
 
-  static async getById({ id }: TGetInputSchema) {
-    return await prisma.workflow.findUnique({
+  static async getById({ id }: TCalIdGetInputSchema) {
+    return await prisma.calIdWorkflow.findUnique({
       where: {
         id,
       },
@@ -78,15 +75,14 @@ export class WorkflowRepository {
         id: true,
         name: true,
         userId: true,
-        teamId: true,
+        calIdTeamId: true,
         isActiveOnAll: true,
-        team: {
+        calIdTeam: {
           select: {
             id: true,
             slug: true,
             members: true,
             name: true,
-            isOrganization: true,
           },
         },
         time: true,
@@ -98,7 +94,7 @@ export class WorkflowRepository {
         },
         activeOnTeams: {
           select: {
-            team: true,
+            calIdTeam: true,
           },
         },
         trigger: true,
@@ -113,14 +109,14 @@ export class WorkflowRepository {
 
   static async getVerifiedNumbers({
     userId,
-    teamId,
-  }: TGetVerifiedNumbersInputSchema & { userId: number | null }) {
+    calIdTeamId,
+  }: TCalIdGetVerifiedNumbersInputSchema & { userId: number | null }) {
     if (!userId) {
       throw new Error("User Id not found");
     }
     const verifiedNumbers = await prisma.verifiedNumber.findMany({
       where: {
-        OR: [{ userId }, { teamId }],
+        OR: [{ userId }, { calIdTeamId }],
       },
     });
 
@@ -130,8 +126,8 @@ export class WorkflowRepository {
   static async getVerifiedEmails({
     userEmail,
     userId,
-    teamId,
-  }: TGetVerifiedEmailsInputSchema & { userEmail: string | null; userId: number | null }) {
+    calIdTeamId,
+  }: TCalIdGetVerifiedEmailsInputSchema & { userEmail: string | null; userId: number | null }) {
     if (!userId) {
       throw new Error("User Id not found");
     }
@@ -150,12 +146,13 @@ export class WorkflowRepository {
       },
     });
     verifiedEmails = verifiedEmails.concat(secondaryEmails.map((secondaryEmail) => secondaryEmail.email));
-    if (teamId) {
-      const teamMembers = await prisma.user.findMany({
+
+    if (calIdTeamId) {
+      const calIdTeamMembers = await prisma.user.findMany({
         where: {
-          teams: {
+          calIdTeams: {
             some: {
-              teamId,
+              calIdTeamId,
             },
           },
         },
@@ -174,17 +171,17 @@ export class WorkflowRepository {
           },
         },
       });
-      if (!teamMembers.length) {
-        throw new Error("Team not found");
+      if (!calIdTeamMembers.length) {
+        throw new Error("CalId Team not found");
       }
 
-      const isTeamMember = teamMembers.some((member) => member.id === userId);
+      const isTeamMember = calIdTeamMembers.some((member) => member.id === userId);
 
       if (!isTeamMember) {
-        throw new Error("You are not a member of this team");
+        throw new Error("You are not a member of this CalId team");
       }
 
-      teamMembers.forEach((member) => {
+      calIdTeamMembers.forEach((member) => {
         if (member.id === userId) {
           return;
         }
@@ -198,7 +195,7 @@ export class WorkflowRepository {
     const emails = (
       await prisma.verifiedEmail.findMany({
         where: {
-          OR: [{ userId }, { teamId }],
+          OR: [{ userId }, { calIdTeamId }],
         },
       })
     ).map((verifiedEmail) => verifiedEmail.email);
@@ -208,23 +205,23 @@ export class WorkflowRepository {
     return verifiedEmails;
   }
 
-  static async getFilteredList({ userId, input }: { userId?: number; input: TFilteredListInputSchema }) {
+  static async getFilteredList({ userId, input }: { userId?: number; input: TCalIdFilteredListInputSchema }) {
     const filters = input?.filters;
 
     const filtered = filters && hasFilter(filters);
 
-    const allWorkflows = await prisma.workflow.findMany({
+    const allWorkflows = await prisma.calIdWorkflow.findMany({
       where: {
         OR: [
           {
             userId,
           },
           {
-            team: {
+            calIdTeam: {
               members: {
                 some: {
                   userId,
-                  accepted: true,
+                  acceptedInvitation: true,
                 },
               },
             },
@@ -243,12 +240,12 @@ export class WorkflowRepository {
     });
 
     if (!filtered) {
-      const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
-        const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+      const workflowsWithReadOnly: CalIdWorkflowType[] = allWorkflows.map((workflow) => {
+        const readOnly = !!workflow.calIdTeam?.members?.find(
+          (member) => member.userId === userId && member.role === CalIdMembershipRole.MEMBER
         );
 
-        return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
+        return { readOnly, ...workflow };
       });
 
       return {
@@ -258,20 +255,20 @@ export class WorkflowRepository {
     }
 
     const where = {
-      OR: [] as Prisma.WorkflowWhereInput[],
+      OR: [] as Prisma.CalIdWorkflowWhereInput[],
     };
 
     if (filtered) {
-      if (!!filters.teamIds) {
+      if (!!filters.calIdTeamIds) {
         where.OR.push({
-          team: {
+          calIdTeam: {
             id: {
-              in: filters.teamIds ?? [],
+              in: filters.calIdTeamIds ?? [],
             },
             members: {
               some: {
                 userId,
-                accepted: true,
+                acceptedInvitation: true,
               },
             },
           },
@@ -283,11 +280,11 @@ export class WorkflowRepository {
           userId: {
             in: filters.userIds,
           },
-          teamId: null,
+          calIdTeamId: null,
         });
       }
 
-      const filteredWorkflows = await prisma.workflow.findMany({
+      const filteredWorkflows = await prisma.calIdWorkflow.findMany({
         where,
         include: includedFields,
         orderBy: {
@@ -295,12 +292,12 @@ export class WorkflowRepository {
         },
       });
 
-      const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
-        const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+      const workflowsWithReadOnly: CalIdWorkflowType[] = filteredWorkflows.map((workflow) => {
+        const readOnly = !!workflow.calIdTeam?.members?.find(
+          (member) => member.userId === userId && member.role === CalIdMembershipRole.MEMBER
         );
 
-        return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
+        return { readOnly, ...workflow };
       });
 
       return {
@@ -309,9 +306,10 @@ export class WorkflowRepository {
       };
     }
   }
+
   static async getRemindersFromRemovedTeams(
     removedTeams: number[],
-    workflowSteps: WorkflowStep[],
+    workflowSteps: CalIdWorkflowStep[],
     activeOn?: number[]
   ) {
     const remindersToDeletePromise: Prisma.PrismaPromise<
@@ -322,15 +320,15 @@ export class WorkflowRepository {
       }[]
     >[] = [];
 
-    removedTeams.forEach((teamId) => {
-      const reminderToDelete = prisma.workflowReminder.findMany({
+    removedTeams.forEach((calIdTeamId) => {
+      const reminderToDelete = prisma.calIdWorkflowReminder.findMany({
         where: {
           OR: [
             {
-              //team event types + children managed event types
+              // CalId team event types + children managed event types
               booking: {
                 eventType: {
-                  OR: [{ teamId }, { teamId: null, parent: { teamId } }],
+                  OR: [{ calIdTeamId }, { calIdTeamId: null, parent: { calIdTeamId } }],
                 },
               },
             },
@@ -339,19 +337,19 @@ export class WorkflowRepository {
               booking: {
                 user: {
                   AND: [
-                    // user is part of team that got removed
+                    // user is part of CalId team that got removed
                     {
-                      teams: {
+                      calIdTeams: {
                         some: {
-                          teamId: teamId,
+                          calIdTeamId: calIdTeamId,
                         },
                       },
                     },
-                    // and user is not part of any team were the workflow is still active on
+                    // and user is not part of any CalId team where the workflow is still active on
                     {
-                      teams: {
+                      calIdTeams: {
                         none: {
-                          teamId: {
+                          calIdTeamId: {
                             in: activeOn,
                           },
                         },
@@ -360,8 +358,8 @@ export class WorkflowRepository {
                   ],
                 },
                 eventType: {
-                  teamId: null,
-                  parentId: null, // children managed event types are handled above with team event types
+                  calIdTeamId: null,
+                  parentId: null, // children managed event types are handled above with CalId team event types
                 },
               },
             },
@@ -413,7 +411,7 @@ export class WorkflowRepository {
     results.forEach((result, index) => {
       if (result.status !== "fulfilled") {
         this.log.error(
-          `An error occurred when deleting reminder ${remindersToDelete[index].id}, method: ${remindersToDelete[index].method}`,
+          `An error occurred when deleting CalId workflow reminder ${remindersToDelete[index].id}, method: ${remindersToDelete[index].method}`,
           result.reason
         );
       }

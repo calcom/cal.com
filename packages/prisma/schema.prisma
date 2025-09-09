@@ -210,8 +210,10 @@ model EventType {
 
   workflowInsights WorkflowInsights[]
 
-  calIdTeam   CalIdTeam? @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
-  calIdTeamId Int?
+  calIdTeam             CalIdTeam?                   @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId           Int?
+  calIdWorkflows        CalIdWorkflowsOnEventTypes[]
+  calIdWorkflowInsights CalIdWorkflowInsights[]
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -433,6 +435,8 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   integrationAccounts            IntegrationAccounts[]
   calIdTeams                     CalIdMembership[]
+  calIdWorkflows                 CalIdWorkflow[]
+  calIdWorkflowReminders         CalIdWorkflowReminder[]       @relation("UserCalIdWorkflowReminders")
 
   @@unique([email])
   @@unique([email, username])
@@ -843,6 +847,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
+  calIdWorkflowReminders       CalIdWorkflowReminder[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -2542,13 +2547,15 @@ model CalIdTeam {
   bookingFrequency    Json?
   filterSegments      FilterSegment[]
 
-  credentials  Credential[] // Teams can have credentials for integrations
-  accessCodes  AccessCode[] // Teams can have OAuth access codes
-  routingForms App_RoutingForms_Form[] // Teams can own routing forms
-  apiKeys      ApiKey[] // Teams can have API keys for external access
-  attributes   Attribute[] // Teams can define custom attributes
-  roles        Role[] // Teams can have custom roles
-  features     CalIdTeamFeatures[] // Teams can have feature flags enabled
+  credentials     Credential[] // Teams can have credentials for integrations
+  accessCodes     AccessCode[] // Teams can have OAuth access codes
+  routingForms    App_RoutingForms_Form[] // Teams can own routing forms
+  apiKeys         ApiKey[] // Teams can have API keys for external access
+  attributes      Attribute[] // Teams can define custom attributes
+  roles           Role[] // Teams can have custom roles
+  features        CalIdTeamFeatures[] // Teams can have feature flags enabled
+  workflows       CalIdWorkflow[]
+  activeWorkflows CalIdWorkflowsOnTeams[]
 
   @@unique([slug])
 }
@@ -2589,4 +2596,109 @@ model CalIdTeamFeatures {
 
   @@id([calIdTeamId, featureId])
   @@index([calIdTeamId, featureId])
+}
+
+// CalId Workflow Models - Duplicates of Workflow models with CalId prefix
+
+model CalIdWorkflowStep {
+  id                        Int                     @id @default(autoincrement())
+  stepNumber                Int
+  action                    WorkflowActions
+  workflowId                Int
+  workflow                  CalIdWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo                    String?
+  reminderBody              String?
+  emailSubject              String?
+  template                  WorkflowTemplates       @default(REMINDER)
+  workflowReminders         CalIdWorkflowReminder[]
+  numberRequired            Boolean?
+  sender                    String?
+  numberVerificationPending Boolean                 @default(true)
+  includeCalendarEvent      Boolean                 @default(false)
+  verifiedAt                DateTime?
+
+  @@index([workflowId])
+}
+
+model CalIdWorkflow {
+  id               Int                          @id @default(autoincrement())
+  position         Int                          @default(0)
+  name             String
+  userId           Int?
+  user             User?                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calIdTeam        CalIdTeam?                   @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId      Int?
+  activeOn         CalIdWorkflowsOnEventTypes[]
+  activeOnTeams    CalIdWorkflowsOnTeams[]
+  isActiveOnAll    Boolean                      @default(false)
+  trigger          WorkflowTriggerEvents
+  time             Int?
+  timeUnit         TimeUnit?
+  steps            CalIdWorkflowStep[]
+  workflowInsights CalIdWorkflowInsights[]
+  disabled         Boolean                      @default(false)
+
+  @@index([userId])
+  @@index([calIdTeamId])
+}
+
+model CalIdWorkflowsOnEventTypes {
+  id          Int           @id @default(autoincrement())
+  workflow    CalIdWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  Int
+  eventType   EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
+
+  @@unique([workflowId, eventTypeId])
+  @@index([workflowId])
+  @@index([eventTypeId])
+}
+
+model CalIdWorkflowsOnTeams {
+  id          Int           @id @default(autoincrement())
+  workflow    CalIdWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  Int
+  calIdTeam   CalIdTeam     @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId Int
+
+  @@unique([workflowId, calIdTeamId])
+  @@index([workflowId])
+  @@index([calIdTeamId])
+}
+
+model CalIdWorkflowReminder {
+  id                  Int                @id @default(autoincrement())
+  uuid                String?            @unique @default(uuid())
+  bookingUid          String?
+  booking             Booking?           @relation(fields: [bookingUid], references: [uid])
+  method              WorkflowMethods
+  scheduledDate       DateTime
+  referenceId         String?            @unique
+  scheduled           Boolean
+  workflowStepId      Int?
+  workflowStep        CalIdWorkflowStep? @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  cancelled           Boolean?
+  seatReferenceId     String?
+  isMandatoryReminder Boolean?           @default(false)
+  retryCount          Int                @default(0)
+  userId              Int?
+  user                User?              @relation("UserCalIdWorkflowReminders", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([bookingUid])
+  @@index([workflowStepId])
+  @@index([seatReferenceId])
+  @@index([method, scheduled, scheduledDate])
+  @@index([cancelled, scheduledDate])
+}
+
+model CalIdWorkflowInsights {
+  msgId       String          @unique
+  eventTypeId Int
+  eventType   EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  workflowId  Int?
+  workflow    CalIdWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type        WorkflowMethods
+  status      WorkflowStatus
+  metadata    Json?
+  createdAt   DateTime        @default(now())
 }

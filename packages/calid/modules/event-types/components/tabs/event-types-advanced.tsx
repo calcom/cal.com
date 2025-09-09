@@ -7,17 +7,17 @@ import {
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
+import { Input } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
+import { RadioGroup } from "@calid/features/ui/components/radio-group";
+import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
 import { Select } from "@calid/features/ui/components/select";
 import { SelectTrigger } from "@calid/features/ui/components/select";
 import { SelectValue } from "@calid/features/ui/components/select";
 import { SelectContent } from "@calid/features/ui/components/select";
 import { SelectItem } from "@calid/features/ui/components/select";
-import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
-import { RadioGroup } from "@calid/features/ui/components/radio-group";
-import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
-import { Label } from "@calid/features/ui/components/label";
-import { Input } from "@calid/features/ui/components/input/input";
-import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
@@ -375,7 +375,7 @@ const DestinationCalendarSettings = ({
                   placeholder={
                     selectedSecondaryEmailId === -1 && (
                       <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                        <Badge variant="blue">{t("default")}</Badge> {userEmail}
+                        <Badge variant="default">{t("default")}</Badge> {userEmail}
                       </span>
                     )
                   }
@@ -771,7 +771,9 @@ const RequiresConfirmationController = ({
                             descriptionAsLabel
                             description={t("require_confirmation_for_free_email")}
                             className={customClassNames?.conditionalConfirmationRadio?.checkbox}
-                            descriptionClassName={customClassNames?.conditionalConfirmationRadio?.checkboxDescription}
+                            descriptionClassName={
+                              customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                            }
                           />
                           <label className="text-foreground text-sm">
                             {t("require_confirmation_for_free_email")}
@@ -869,8 +871,8 @@ export const EventAdvanced = ({
   const formMethods = useFormContext<FormValues>();
 
   // Fetch verified emails for the team or user
-  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
-    teamId: team?.id,
+  const { data: verifiedEmails } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery({
+    calIdTeamId: team?.id,
   });
 
   // UI state management
@@ -1290,7 +1292,7 @@ export const EventAdvanced = ({
                   name="forwardParamsSuccessRedirect"
                   render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
                     <div className="flex items-center gap-2">
-                     <CheckboxField
+                      <CheckboxField
                         checked={forwardValue}
                         disabled={lockedFields.successRedirectUrl.disabled}
                         onCheckedChange={forwardOnChange}
@@ -1469,11 +1471,7 @@ export const EventAdvanced = ({
               </div>
             </SettingsToggle>
 
-            {noShowFeeEnabled && (
-              <Alert variant="warning">
-                <AlertTitle>{t("seats_and_no_show_fee_error")}</AlertTitle>
-              </Alert>
-            )}
+            {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
           </>
         )}
       />
@@ -1683,9 +1681,7 @@ export const EventAdvanced = ({
                 />
                 {lightModeError && (
                   <div className="mt-4">
-                    <Alert variant="warning">
-                      <AlertDescription>{t("event_type_color_light_theme_contrast_error")}</AlertDescription>
-                    </Alert>
+                    <Alert severity="warning" message={t("event_type_color_light_theme_contrast_error")} />
                   </div>
                 )}
               </div>
@@ -1705,9 +1701,7 @@ export const EventAdvanced = ({
                 />
                 {darkModeError && (
                   <div className="mt-4">
-                    <Alert variant="warning">
-                      <AlertDescription>{t("event_type_color_dark_theme_contrast_error")}</AlertDescription>
-                    </Alert>
+                    <Alert severity="warning" message={t("event_type_color_dark_theme_contrast_error")} />
                   </div>
                 )}
               </div>

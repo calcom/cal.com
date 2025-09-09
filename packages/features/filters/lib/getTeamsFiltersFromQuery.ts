@@ -29,9 +29,10 @@ export const filterQuerySchema = z.object({
 });
 
 export const filterQuerySchemaStrict = z.object({
-  teamIds: z.number().array().optional(),
+  teamIds: z.number().array().optional().nullable(),
   userIds: z.number().array().optional(),
   upIds: z.string().array().optional(),
+  calIdTeamIds: z.number().array().optional(),
 });
 
 export const getTeamsFiltersFromQuery = (query: ParsedUrlQuery) => {

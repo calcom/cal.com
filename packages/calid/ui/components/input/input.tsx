@@ -206,7 +206,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           size={size}
           className={cn(
             className,
-            "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed" 
+            "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}
           readOnly={readOnly}
@@ -267,17 +267,18 @@ export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(functi
         <TooltipProvider>
           <Tooltip content={textLabel}>
             <TooltipTrigger>
-              <button className="text-emphasis"
-              tabIndex={-1}
-              type="button"
-              onClick={() => toggleIsPasswordVisible()}>
-              {isPasswordVisible ? (
-                <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
-              ) : (
-                <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
-              )}
-              <span className="sr-only">{textLabel}</span>
-            </button>
+              <button
+                className="text-emphasis"
+                tabIndex={-1}
+                type="button"
+                onClick={() => toggleIsPasswordVisible()}>
+                {isPasswordVisible ? (
+                  <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+                ) : (
+                  <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+                )}
+                <span className="sr-only">{textLabel}</span>
+              </button>
             </TooltipTrigger>
             <TooltipContent>{textLabel}</TooltipContent>
           </Tooltip>

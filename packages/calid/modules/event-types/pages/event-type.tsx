@@ -1,6 +1,7 @@
 "use client";
 
-import { Icon } from "@calid/features/ui/components/icon";
+import { HorizontalTabs, type HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
@@ -23,9 +24,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
-import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
@@ -34,7 +33,6 @@ import { TRPCClientError } from "@trpc/react-query";
 // Import the new actions component
 import { EventTypeActions } from "../components/event-types-action";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
-import { HorizontalTabs, type HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
 
 // Dynamic imports for tab components
 const ManagedEventTypeDialog = dynamic(
@@ -183,10 +181,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     onlyInstalled: true,
   });
 
-  const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+  const { data: allActiveWorkflows } = trpc.viewer.workflows.calid_getAllActiveWorkflows.useQuery({
     eventType: {
       id,
-      teamId: eventType.teamId,
+      calIdTeamId: eventType.teamId,
       userId: eventType.userId,
       parent: eventType.parent,
       metadata: eventType.metadata,
@@ -409,11 +407,11 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
             ...tab,
             isActive: tab.href.includes(`tabName=${activeTab}`),
             onClick: (name: string) => {
-              const tabId = availableTabs.find(t => t.name === name)?.href.split('tabName=')[1];
+              const tabId = availableTabs.find((t) => t.name === name)?.href.split("tabName=")[1];
               if (tabId) {
                 setQuery("tabName", tabId);
               }
-            }
+            },
           }))}
           linkShallow={true}
         />

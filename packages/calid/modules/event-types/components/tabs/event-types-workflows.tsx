@@ -1,6 +1,6 @@
 // Workflow-specific imports
 import SkeletonLoader from "@calid/features/modules/workflows/components/event_workflow_tab_skeleton";
-import type { WorkflowType } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflowType as WorkflowType } from "@calid/features/modules/workflows/config/types";
 import { getActionIcon } from "@calid/features/modules/workflows/utils/getActionicon";
 // UI components
 import { Alert } from "@calid/features/ui/components/alert";
@@ -8,6 +8,7 @@ import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
 import Link from "next/link";
@@ -29,7 +30,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 // Type definitions for better type safety
-type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
+type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "steps" | "id" | "readOnly">;
 type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 
 export interface EventWorkflowsProps {
@@ -256,7 +257,7 @@ const WorkflowListItem = React.memo(
       onSuccess: async () => {
         const offOn = isActive ? "off" : "on";
         revalidateEventTypeEditPage(eventType.id);
-        await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
+        await utils.viewer.workflows.calid_getAllActiveWorkflows.invalidate();
         await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
         showToast(
           t("workflow_turned_on_successfully", {
@@ -464,8 +465,8 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
   const lockedText = workflowsLockProps.isLocked ? "locked" : "unlocked";
 
   // Fetch available workflows
-  const { data, isPending } = trpc.viewer.workflows.list.useQuery({
-    teamId: eventType.team?.id,
+  const { data, isPending } = trpc.viewer.workflows.calid_list.useQuery({
+    calIdTeamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
 
@@ -509,14 +510,16 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
     <>
       {/* Permission Management Alert */}
       {(isManagedEventType || isChildrenManagedEventType) && (
-        <Alert variant={workflowsLockProps.isLocked ? "neutral" : "info"} className="mb-2">
-          <AlertTitle>
+        <Alert
+          severity={workflowsLockProps.isLocked ? "neutral" : "info"}
+          className="mb-2"
+          title={
             <ServerTrans
               t={t}
               i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
             />
-          </AlertTitle>
-          <AlertDescription>
+          }
+          message={
             <div className="flex items-center">
               <ServerTrans
                 t={t}
@@ -526,8 +529,8 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
               />
               <div className="ml-2 flex h-full items-center">{workflowsLockProps.LockedIcon}</div>
             </div>
-          </AlertDescription>
-        </Alert>
+          }
+        />
       )}
 
       {/* Workflows List or Empty State */}
