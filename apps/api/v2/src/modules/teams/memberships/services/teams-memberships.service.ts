@@ -1,20 +1,24 @@
-import { MembershipsService } from "@/modules/memberships/services/memberships.service";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { TeamService } from "@calcom/platform-libraries";
+
+export const PLATFORM_USER_BEING_ADDED_TO_REGULAR_TEAM_ERROR = `Can't add user to team - the user is platform managed user but team is not because team probably was not created using OAuth credentials.`;
+export const REGULAR_USER_BEING_ADDED_TO_PLATFORM_TEAM_ERROR = `Can't add user to team - the user is not platform managed user but team is platform managed. Both have to be created using OAuth credentials.`;
+export const PLATFORM_USER_AND_PLATFORM_TEAM_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR = `Can't add user to team - managed user and team were created using different OAuth clients.`;
 
 @Injectable()
 export class TeamsMembershipsService {
   constructor(
     private readonly teamsMembershipsRepository: TeamsMembershipsRepository,
-    private readonly membershipsService: MembershipsService
+    private readonly oAuthClientsRepository: OAuthClientRepository
   ) {}
 
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
-    await this.membershipsService.canUserBeAddedToTeam(data.userId, teamId);
+    await this.canUserBeAddedToTeam(data.userId, teamId);
     const teamMembership = await this.teamsMembershipsRepository.createTeamMembership(teamId, data);
     return teamMembership;
   }
@@ -58,5 +62,39 @@ export class TeamsMembershipsService {
     await TeamService.removeMembers({ teamIds: [teamId], userIds: [teamMembership.userId], isOrg: false });
 
     return teamMembership;
+  }
+
+  async canUserBeAddedToTeam(userId: number, teamId: number) {
+    const [userOAuthClient, teamOAuthClient] = await Promise.all([
+      this.oAuthClientsRepository.getByUserId(userId),
+      this.oAuthClientsRepository.getByTeamId(teamId),
+    ]);
+
+    const userAndTeamAreNotPlatform = !userOAuthClient && !teamOAuthClient;
+    if (userAndTeamAreNotPlatform) {
+      return true;
+    }
+
+    const userAndTeamAreCreatedBySameOAuthClient =
+      userOAuthClient && teamOAuthClient && userOAuthClient.id === teamOAuthClient.id;
+    if (userAndTeamAreCreatedBySameOAuthClient) {
+      return true;
+    }
+
+    if (userOAuthClient && !teamOAuthClient) {
+      throw new BadRequestException(PLATFORM_USER_BEING_ADDED_TO_REGULAR_TEAM_ERROR);
+    }
+
+    if (!userOAuthClient && teamOAuthClient) {
+      throw new BadRequestException(REGULAR_USER_BEING_ADDED_TO_PLATFORM_TEAM_ERROR);
+    }
+
+    if (userOAuthClient && teamOAuthClient && userOAuthClient.id !== teamOAuthClient.id) {
+      throw new BadRequestException(
+        PLATFORM_USER_AND_PLATFORM_TEAM_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR
+      );
+    }
+
+    return true;
   }
 }

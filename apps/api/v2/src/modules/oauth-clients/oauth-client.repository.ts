@@ -119,6 +119,14 @@ export class OAuthClientRepository {
     });
   }
 
+  async getByOrgId(organizationId: number) {
+    return this.dbRead.prisma.platformOAuthClient.findMany({
+      where: {
+        organizationId,
+      },
+    });
+  }
+
   async getByEventTypeHosts(eventTypeId: number) {
     const hostWithUserPlatformClient = await this.dbRead.prisma.host.findFirst({
       select: {

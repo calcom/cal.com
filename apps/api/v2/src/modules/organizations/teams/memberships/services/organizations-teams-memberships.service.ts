@@ -1,7 +1,7 @@
-import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
+import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { TeamService } from "@calcom/platform-libraries";
@@ -10,11 +10,11 @@ import { TeamService } from "@calcom/platform-libraries";
 export class OrganizationsTeamsMembershipsService {
   constructor(
     private readonly organizationsTeamsMembershipsRepository: OrganizationsTeamsMembershipsRepository,
-    private readonly membershipsService: MembershipsService
+    private readonly teamsMembershipsService: TeamsMembershipsService
   ) {}
 
   async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
-    await this.membershipsService.canUserBeAddedToTeam(data.userId, teamId);
+    await this.teamsMembershipsService.canUserBeAddedToTeam(data.userId, teamId);
     const teamMembership = await this.organizationsTeamsMembershipsRepository.createOrgTeamMembership(
       teamId,
       data
