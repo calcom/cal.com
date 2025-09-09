@@ -111,7 +111,7 @@ const informAboutDuplicateTranslations = () => {
 informAboutDuplicateTranslations();
 const plugins = [];
 
-if (process.env.VERCEL_BOTID_ENABLED === true) {
+if (process.env.VERCEL_BOTID_ENABLED === "true") {
   plugins.push(withBotId);
 }
 
