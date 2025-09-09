@@ -64,6 +64,13 @@ export const BookingFields = ({
           readOnly = false;
         }
 
+        if (field.name === SystemField.Enum.attendeePhoneNumber) {
+          if (locationResponse?.value === "phone" && locationResponse?.optionValue) {
+            setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, locationResponse?.optionValue);
+          }
+          readOnly = false;
+        }
+
         if (field.name === SystemField.Enum.smsReminderNumber) {
           // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
@@ -72,7 +79,33 @@ export const BookingFields = ({
             // Just don't render the field now, as the value is already connected to attendee phone location
             return null;
           }
+          
+          // Consolidation: Hide smsReminderNumber if attendeePhoneNumber is visible to avoid duplicate phone inputs
+          const attendeePhoneField = fields.find(f => f.name === SystemField.Enum.attendeePhoneNumber);
+          if (attendeePhoneField && !attendeePhoneField.hidden) {
+            // Sync the value to attendeePhoneNumber and hide this field
+            const smsValue = watch(`responses.${SystemField.Enum.smsReminderNumber}`);
+            if (smsValue) {
+              setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, smsValue);
+            }
+            return null;
+          }
+          
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
+          readOnly = false;
+        }
+
+        if (field.name === SystemField.Enum.aiAgentCallPhoneNumber) {
+          // Consolidation: Hide aiAgentCallPhoneNumber if attendeePhoneNumber is visible to avoid duplicate phone inputs
+          const attendeePhoneField = fields.find(f => f.name === SystemField.Enum.attendeePhoneNumber);
+          if (attendeePhoneField && !attendeePhoneField.hidden) {
+            // Sync the value to attendeePhoneNumber and hide this field
+            const aiValue = watch(`responses.${SystemField.Enum.aiAgentCallPhoneNumber}`);
+            if (aiValue) {
+              setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, aiValue);
+            }
+            return null;
+          }
           readOnly = false;
         }
 
