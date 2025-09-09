@@ -132,7 +132,7 @@ export default function CancelBooking(props: Props) {
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
   const [acknowledgeCancellationNoShowFee, setAcknowledgeCancellationNoShowFee] = useState(false);
 
-  const isCancellationReasonRequired = () => {
+  const getIsCancellationReasonRequired = () => {
     if (!props.teamCancellationSettings) return props.isHost;
 
     if (props.isHost) return props.teamCancellationSettings.mandatoryCancellationReasonForHost;
@@ -140,7 +140,8 @@ export default function CancelBooking(props: Props) {
     return props.teamCancellationSettings.mandatoryCancellationReasonForAttendee;
   };
 
-  const isRequired = isCancellationReasonRequired();
+  const isCancellationReasonRequired = getIsCancellationReasonRequired();
+
   const getAppMetadata = (appId: string): Record<string, unknown> | null => {
     if (!eventTypeMetadata?.apps || !appId) return null;
     const apps = eventTypeMetadata.apps as Record<string, unknown>;
@@ -224,7 +225,11 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{isRequired ? t("cancellation_reason_required") : t("cancellation_reason_optional")}</Label>
+          <Label>
+            {isCancellationReasonRequired
+              ? t("cancellation_reason_required")
+              : t("cancellation_reason_optional")}
+          </Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -270,7 +275,11 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={hostMissingCancellationReason || cancellationNoShowFeeNotAcknowledged}
+                disabled={
+                  isCancellationReasonRequired ||
+                  hostMissingCancellationReason ||
+                  cancellationNoShowFeeNotAcknowledged
+                }
                 onClick={async () => {
                   setLoading(true);
 
