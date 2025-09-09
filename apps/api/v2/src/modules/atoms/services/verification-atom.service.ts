@@ -117,6 +117,11 @@ export class VerificationAtomsService {
       userId,
       email
     );
+    const alreadyExistingEmail = await this.atomsRepository.getExistingSecondaryEmail(email);
+
+    if (alreadyExistingEmail) {
+      throw new BadRequestException("Email already exists");
+    }
 
     if (existingPrimaryEmail === email || existingSecondaryEmail === email) {
       return true;

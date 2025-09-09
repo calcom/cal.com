@@ -86,6 +86,16 @@ export class AtomsRepository {
     return existingSecondaryEmailRecord?.email;
   }
 
+  async getExistingSecondaryEmail(email: string) {
+    const existingSecondaryEmailRecord = await this.dbRead.prisma.secondaryEmail.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    return existingSecondaryEmailRecord?.email;
+  }
+
   async addSecondaryEmail(userId: number, email: string) {
     const existingSecondaryEmailRecord = await this.dbWrite.prisma.secondaryEmail.create({
       data: {
