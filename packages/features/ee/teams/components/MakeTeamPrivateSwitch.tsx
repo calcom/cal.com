@@ -20,7 +20,7 @@ const MakeTeamPrivateSwitch = ({
 
   const utils = trpc.useUtils();
 
-  const mutation = trpc.viewer.teams.update.useMutation({
+  const mutation = trpc.viewer.teams.mutations.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },

@@ -52,7 +52,7 @@ const WorkflowListItem = (props: ItemProps) => {
 
   const utils = trpc.useUtils();
 
-  const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
+  const activateEventTypeMutation = trpc.viewer.workflows.mutations.activateEventType.useMutation({
     onSuccess: async () => {
       const offOn = isActive ? "off" : "on";
       revalidateEventTypeEditPage(eventType.id);
@@ -193,7 +193,7 @@ function EventWorkflowsTab(props: Props) {
 
   const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
   const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
-  const { data, isPending } = trpc.viewer.workflows.list.useQuery({
+  const { data, isPending } = trpc.viewer.workflows.queries.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
@@ -228,7 +228,7 @@ function EventWorkflowsTab(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
 
-  const createMutation = trpc.viewer.workflows.create.useMutation({
+  const createMutation = trpc.viewer.workflows.mutations.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace(`/workflows/${workflow.id}?eventTypeId=${eventType.id}`);
     },

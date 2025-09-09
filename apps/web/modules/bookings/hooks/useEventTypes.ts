@@ -9,7 +9,7 @@ export function useEventTypes() {
   const { data: user } = useSession();
   const { t } = useLocale();
 
-  const eventTypesQuery = trpc.viewer.eventTypes.listWithTeam.useQuery(undefined, {
+  const eventTypesQuery = trpc.viewer.eventTypes.queries.listWithTeam.useQuery(undefined, {
     enabled: !!user,
   });
 

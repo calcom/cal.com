@@ -39,7 +39,7 @@ export function RoutingFormResponsesTable() {
   const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
 
   const { data: headers, isSuccess: isHeadersSuccess } =
-    trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
+    trpc.viewer.insights.queries.routingFormResponsesHeaders.useQuery({
       userId,
       teamId,
       isAll,
@@ -56,7 +56,7 @@ export function RoutingFormResponsesTable() {
   const insightsRoutingParams = useInsightsRoutingParameters();
   const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
-  const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
+  const { data, isPending } = trpc.viewer.insights.queries.routingFormResponses.useQuery({
     ...insightsRoutingParams,
     sorting,
     limit,

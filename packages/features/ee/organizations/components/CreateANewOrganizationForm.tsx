@@ -79,7 +79,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     },
   });
 
-  const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
+  const intentToCreateOrgMutation = trpc.viewer.organizations.mutations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
       // TODO: To be moved to _invoice.paid.org.ts
       // telemetry.event(telemetryEventTypes.org_created);

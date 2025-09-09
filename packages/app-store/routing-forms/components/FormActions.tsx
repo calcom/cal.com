@@ -70,7 +70,7 @@ function NewFormDialog({
   const action = newFormDialogState?.action;
   const target = newFormDialogState?.target;
 
-  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const mutation = trpc.viewer.appRoutingForms.mutations.formMutation.useMutation({
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
@@ -205,7 +205,7 @@ function Dialogs({
   const router = useRouter();
   const { t } = useLocale();
 
-  const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
+  const deleteMutation = trpc.viewer.appRoutingForms.mutations.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
@@ -305,7 +305,7 @@ export function FormActionsProvider({
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const toggleMutation = trpc.viewer.appRoutingForms.mutations.formMutation.useMutation({
     onMutate: async ({ id: formId, disabled }) => {
       await utils.viewer.appRoutingForms.forms.cancel();
       const previousValue = utils.viewer.appRoutingForms.forms.getData();

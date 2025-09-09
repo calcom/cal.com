@@ -13,8 +13,8 @@ const mockGetAttributesForTeam = (
   arg: { data: Attributes; isPending: false } | { data: undefined; isPending: true }
 ) => {
   (
-    trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery as Mock<
-      typeof trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery
+    trpc.viewer.appRoutingForms.queries.getAttributesForTeam.useQuery as Mock<
+      typeof trpc.viewer.appRoutingForms.queries.getAttributesForTeam.useQuery
     >
   )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,8 +33,8 @@ const mockGetMatchingTeamMembers = (
       }
 ) => {
   (
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery as Mock<
-      typeof trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery
+    trpc.viewer.attributes.queries.findTeamMembersMatchingAttributeLogic.useQuery as Mock<
+      typeof trpc.viewer.attributes.queries.findTeamMembersMatchingAttributeLogic.useQuery
     >
   )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

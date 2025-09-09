@@ -9,7 +9,7 @@ const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonati
 
   const { t } = useLocale();
 
-  const mutation = trpc.viewer.me.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.mutations.updateProfile.useMutation({
     onSuccess: async () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
       await utils.viewer.me.invalidate();

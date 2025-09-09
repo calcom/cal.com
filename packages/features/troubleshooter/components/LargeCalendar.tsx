@@ -19,7 +19,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const { data: session } = useSession();
   const startDate = selectedDate ? dayjs(selectedDate) : dayjs();
 
-  const { data: busyEvents } = trpc.viewer.availability.user.useQuery(
+  const { data: busyEvents } = trpc.viewer.availability.queries.user.useQuery(
     {
       username: session?.user?.username || "",
       dateFrom: startDate.startOf("day").utc().format(),

@@ -13,7 +13,7 @@ export const BookingKPICards = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.bookingKPIStats.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.bookingKPIStats.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,

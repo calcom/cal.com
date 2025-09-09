@@ -22,7 +22,7 @@ const SkeletonLoader = () => {
 export default function SSOConfiguration({ teamId }: { teamId: number | null }) {
   const { t } = useLocale();
 
-  const { data: connection, isPending, error } = trpc.viewer.saml.get.useQuery({ teamId });
+  const { data: connection, isPending, error } = trpc.viewer.saml.queries.get.useQuery({ teamId });
 
   if (isPending) {
     return <SkeletonLoader />;

@@ -88,7 +88,7 @@ export default function InstantEventController({
 
   const isOrg = !!session.data?.user?.org?.id;
 
-  const { data, isPending } = trpc.viewer.availability.list.useQuery(undefined);
+  const { data, isPending } = trpc.viewer.availability.queries.list.useQuery(undefined);
 
   if (session.status === "loading" || isPending || !data) return <></>;
 
@@ -264,11 +264,11 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
   const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
 
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery({
+  const { data: webhooks } = trpc.viewer.webhook.queries.list.useQuery({
     eventTypeId: eventType.id,
     eventTriggers: [WebhookTriggerEvents.INSTANT_MEETING],
   });
-  const { data: installedApps, isPending } = trpc.viewer.apps.integrations.useQuery({
+  const { data: installedApps, isPending } = trpc.viewer.apps.queries.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
   });
@@ -277,7 +277,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
 
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+  const editWebhookMutation = trpc.viewer.webhook.mutations.edit.useMutation({
     async onSuccess() {
       setEditModalOpen(false);
       await utils.viewer.webhook.list.invalidate();
@@ -288,7 +288,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
     },
   });
 
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
+  const createWebhookMutation = trpc.viewer.webhook.mutations.create.useMutation({
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();

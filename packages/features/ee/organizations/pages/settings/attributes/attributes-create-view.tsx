@@ -24,7 +24,7 @@ type FormValues = z.infer<typeof CreateAttributeSchema>;
 
 function CreateAttributesPage() {
   const router = useRouter();
-  const mutation = trpc.viewer.attributes.create.useMutation({
+  const mutation = trpc.viewer.attributes.mutations.create.useMutation({
     onSuccess: () => {
       showToast("Attribute created successfully", "success");
       revalidateAttributesList();

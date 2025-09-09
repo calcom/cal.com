@@ -136,7 +136,7 @@ export const useSchedule = ({
     eventTypeId: eventId ?? undefined,
   });
 
-  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
+  const schedule = trpc.viewer.slots.queries.getSchedule.useQuery(input, {
     ...options,
     // Only enable if we're not using API V2
     enabled: options.enabled && !isCallingApiV2Slots,

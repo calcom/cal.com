@@ -97,7 +97,7 @@ const OrgProfileView = ({
     data: currentOrganisation,
     isPending,
     error,
-  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
+  } = trpc.viewer.organizations.queries.listCurrent.useQuery(undefined, {});
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -186,7 +186,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     resolver: zodResolver(orgProfileFormSchema),
   });
 
-  const mutation = trpc.viewer.organizations.update.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.update.useMutation({
     onError: (err) => {
       // Handle JSON parsing errors from body size limit exceeded
       if (err.message.includes("Unexpected token") && err.message.includes("Body excee")) {

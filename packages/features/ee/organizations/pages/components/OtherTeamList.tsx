@@ -27,7 +27,7 @@ export default function OtherTeamList(props: Props) {
     }
   }
 
-  const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
+  const deleteTeamMutation = trpc.viewer.organizations.mutations.deleteTeam.useMutation({
     async onSuccess() {
       await utils.viewer.organizations.listOtherTeams.invalidate();
       trackFormbricksAction("team_disbanded");

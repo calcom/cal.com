@@ -119,7 +119,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
     );
   }, [searchQuery, t, scope]);
 
-  const createMutation = trpc.viewer.pbac.createRole.useMutation({
+  const createMutation = trpc.viewer.pbac.mutations.createRole.useMutation({
     onSuccess: async () => {
       showToast(t("role_created_successfully"), "success");
       form.reset();
@@ -132,7 +132,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
     },
   });
 
-  const updateMutation = trpc.viewer.pbac.updateRole.useMutation({
+  const updateMutation = trpc.viewer.pbac.mutations.updateRole.useMutation({
     onSuccess: async () => {
       showToast(t("role_updated_successfully"), "success");
       onOpenChange(false);

@@ -18,7 +18,7 @@ export default function UpgradePage() {
   const { t } = useLocale();
 
   const router = useRouter();
-  const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
+  const publishOrgMutation = trpc.viewer.organizations.mutations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },
@@ -27,7 +27,7 @@ export default function UpgradePage() {
     },
   });
 
-  const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
+  const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.queries.checkIfOrgNeedsUpgrade.useQuery();
 
   return (
     <Shell>

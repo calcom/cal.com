@@ -260,7 +260,7 @@ export const InfiniteEventTypeList = ({
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.mutations.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
@@ -381,7 +381,7 @@ export const InfiniteEventTypeList = ({
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+  const deleteMutation = trpc.viewer.eventTypes.mutations.delete.useMutation({
     onSuccess: () => {
       showToast(t("event_type_deleted_successfully"), "success");
       setDeleteDialogOpen(false);

@@ -81,7 +81,7 @@ function EmptyCalendarToggleItem() {
 
 export function CalendarToggleContainer() {
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.calendars.connectedCalendars.useQuery();
+  const { data, isLoading } = trpc.viewer.calendars.queries.connectedCalendars.useQuery();
 
   const hasConnectedCalendars = data && data?.connectedCalendars.length > 0;
 

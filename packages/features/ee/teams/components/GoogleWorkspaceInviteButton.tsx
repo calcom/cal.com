@@ -42,11 +42,11 @@ export function GoogleWorkspaceInviteButton(
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
   const [googleWorkspaceLoading, setGoogleWorkspaceLoading] = useState(false);
-  const { data: credential } = trpc.viewer.googleWorkspace.checkForGWorkspace.useQuery();
-  const { data: hasGcalInstalled } = trpc.viewer.apps.checkGlobalKeys.useQuery({
+  const { data: credential } = trpc.viewer.googleWorkspace.queries.checkForGWorkspace.useQuery();
+  const { data: hasGcalInstalled } = trpc.viewer.apps.queries.checkGlobalKeys.useQuery({
     slug: "google-calendar",
   });
-  const mutation = trpc.viewer.googleWorkspace.getUsersFromGWorkspace.useMutation({
+  const mutation = trpc.viewer.googleWorkspace.mutations.getUsersFromGWorkspace.useMutation({
     onSuccess: (data) => {
       if (Array.isArray(data) && data.length !== 0) {
         props.onSuccess(data);
@@ -55,7 +55,7 @@ export function GoogleWorkspaceInviteButton(
   });
 
   const removeConnectionMutation =
-    trpc.viewer.googleWorkspace.removeCurrentGoogleWorkspaceConnection.useMutation({
+    trpc.viewer.googleWorkspace.mutations.removeCurrentGoogleWorkspaceConnection.useMutation({
       onSuccess: () => {
         showToast(t("app_removed_successfully"), "success");
       },

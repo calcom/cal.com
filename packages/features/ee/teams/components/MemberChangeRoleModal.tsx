@@ -117,7 +117,7 @@ export default function MemberChangeRoleModal(props: {
   const [errorMessage, setErrorMessage] = useState("");
   const utils = trpc.useUtils();
 
-  const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
+  const changeRoleMutation = trpc.viewer.teams.mutations.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
       await utils.viewer.teams.queries.listMembers.cancel();
       const previousValue = utils.viewer.teams.queries.listMembers.getInfiniteData({

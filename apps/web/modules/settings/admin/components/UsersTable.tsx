@@ -31,7 +31,7 @@ type Team = {
 };
 
 function UsersTable({ setSMSLockState }: Props) {
-  const { data: usersAndTeams } = trpc.viewer.admin.getSMSLockStateTeamsUsers.useQuery();
+  const { data: usersAndTeams } = trpc.viewer.admin.queries.getSMSLockStateTeamsUsers.useQuery();
 
   if (!usersAndTeams) {
     return <></>;

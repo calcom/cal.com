@@ -123,7 +123,7 @@ const ProfileView = () => {
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
+  const deleteTeamMutation = trpc.viewer.teams.mutations.delete.useMutation({
     async onSuccess() {
       revalidateTeamsList();
       await utils.viewer.teams.queries.list.invalidate();
@@ -139,7 +139,7 @@ const ProfileView = () => {
     },
   });
 
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+  const removeMemberMutation = trpc.viewer.teams.mutations.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.queries.list.invalidate();
@@ -267,7 +267,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const mutation = trpc.viewer.teams.update.useMutation({
+  const mutation = trpc.viewer.teams.mutations.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
@@ -318,7 +318,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
 
   const isDisabled = isSubmitting || !isDirty;
 
-  const publishMutation = trpc.viewer.teams.publish.useMutation({
+  const publishMutation = trpc.viewer.teams.mutations.publish.useMutation({
     async onSuccess(data: { url?: string }) {
       if (data.url) {
         router.push(data.url);

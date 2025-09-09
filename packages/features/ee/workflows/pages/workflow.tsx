@@ -76,7 +76,7 @@ function WorkflowPage({
     isError: _isError,
     error,
     isPending: _isPendingWorkflow,
-  } = trpc.viewer.workflows.get.useQuery(
+  } = trpc.viewer.workflows.queries.get.useQuery(
     { id: +workflowId },
     {
       enabled: workflowDataProp ? false : !!workflowId,
@@ -87,7 +87,7 @@ function WorkflowPage({
   const isPendingWorkflow = workflowDataProp ? false : _isPendingWorkflow;
   const isError = workflowDataProp ? false : _isError;
 
-  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+  const { data: verifiedNumbersData } = trpc.viewer.workflows.queries.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
       enabled: verifiedNumbersProp ? false : !!workflow?.id,
@@ -95,7 +95,7 @@ function WorkflowPage({
   );
   const verifiedNumbers = verifiedNumbersProp || verifiedNumbersData;
 
-  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
+  const { data: verifiedEmailsData } = trpc.viewer.workflows.queries.getVerifiedEmails.useQuery(
     {
       teamId: workflow?.team?.id,
     },
@@ -107,7 +107,7 @@ function WorkflowPage({
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
+  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.queries.getTeamAndEventTypeOptions.useQuery(
     { teamId, isOrg },
     { enabled: !isPendingWorkflow }
   );
@@ -233,7 +233,7 @@ function WorkflowPage({
     }
   }
 
-  const updateMutation = trpc.viewer.workflows.update.useMutation({
+  const updateMutation = trpc.viewer.workflows.mutations.update.useMutation({
     onSuccess: async ({ workflow }) => {
       utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
       setFormData(workflow);

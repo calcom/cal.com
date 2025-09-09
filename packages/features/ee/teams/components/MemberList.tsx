@@ -246,7 +246,7 @@ function MemberListContent(props: Props) {
     );
   };
 
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+  const removeMemberMutation = trpc.viewer.teams.mutations.removeMember.useMutation({
     onMutate: async ({ teamIds }) => {
       await utils.viewer.teams.queries.listMembers.cancel();
       const previousValue = utils.viewer.teams.queries.listMembers.getInfiniteData({
@@ -277,7 +277,7 @@ function MemberListContent(props: Props) {
     },
   });
 
-  const resendInvitationMutation = trpc.viewer.teams.resendInvitation.useMutation({
+  const resendInvitationMutation = trpc.viewer.teams.mutations.resendInvitation.useMutation({
     onSuccess: () => {
       showToast(t("invitation_resent"), "success");
     },

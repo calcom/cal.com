@@ -26,7 +26,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
     user?.disableImpersonation
   );
 
-  const mutation = trpc.viewer.me.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.mutations.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
     },

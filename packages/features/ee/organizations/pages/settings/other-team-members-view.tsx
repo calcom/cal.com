@@ -69,7 +69,7 @@ export const memberInvitationModalRef = {
 export const TeamMembersCTA = () => {
   const { t } = useLocale();
   const session = useSession();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+  const { data: currentOrg } = trpc.viewer.organizations.queries.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
 
@@ -106,7 +106,7 @@ const MembersView = () => {
     data: team,
     isPending: isTeamLoading,
     error: otherTeamError,
-  } = trpc.viewer.organizations.getOtherTeam.useQuery(
+  } = trpc.viewer.organizations.queries.getOtherTeam.useQuery(
     { teamId },
     {
       enabled: !Number.isNaN(teamId),

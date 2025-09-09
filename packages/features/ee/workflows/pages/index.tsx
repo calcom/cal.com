@@ -37,7 +37,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
-  const { data, isPending: _isPending } = trpc.viewer.workflows.filteredList.useQuery(
+  const { data, isPending: _isPending } = trpc.viewer.workflows.queries.filteredList.useQuery(
     {
       filters,
     },
@@ -48,7 +48,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
   const filteredWorkflows = filteredList ?? data;
   const isPending = filteredList ? false : _isPending;
 
-  const createMutation = trpc.viewer.workflows.create.useMutation({
+  const createMutation = trpc.viewer.workflows.mutations.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace(`/workflows/${workflow.id}`);
     },

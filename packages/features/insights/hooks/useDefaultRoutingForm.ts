@@ -24,7 +24,7 @@ export function useDefaultRoutingForm({
   const hasSetDefault = useRef(false);
 
   // Query to get routing forms list
-  const { data: routingForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
+  const { data: routingForms } = trpc.viewer.insights.queries.getRoutingFormsForFilters.useQuery(
     {
       userId: userId ?? undefined,
       teamId: teamId ?? undefined,

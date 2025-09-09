@@ -17,7 +17,7 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
   const [value, setValue] = useState("");
   const [hasVerified, setHasVerified] = useState(false);
 
-  const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
+  const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.mutations.verifyCode.useMutation({
     onSuccess: (data) => {
       setIsPending(false);
       onSuccess(data);
@@ -31,7 +31,7 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
     },
   });
 
-  const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
+  const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.mutations.verifyCodeUnAuthenticated.useMutation({
     onSuccess: (data) => {
       setIsPending(false);
       onSuccess(data);

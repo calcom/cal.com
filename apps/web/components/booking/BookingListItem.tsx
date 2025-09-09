@@ -144,7 +144,7 @@ function BookingListItem(booking: BookingItemProps) {
     };
   });
 
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.mutations.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
       // Invalidate and refetch the bookings query to update the UI
@@ -155,7 +155,7 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
-  const mutation = trpc.viewer.bookings.confirm.useMutation({
+  const mutation = trpc.viewer.bookings.mutations.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
         setRejectionDialogIsOpen(false);
@@ -290,7 +290,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
-  const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
+  const setLocationMutation = trpc.viewer.bookings.mutations.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
@@ -920,7 +920,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.mutations.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
       await utils.viewer.bookings.invalidate();
@@ -1013,7 +1013,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   });
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.mutations.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
@@ -1118,7 +1118,7 @@ const NoShowAttendeesDialog = ({
   );
 
   const utils = trpc.useUtils();
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.mutations.markNoShow.useMutation({
     onSuccess: async (data) => {
       const newValue = data.attendees[0];
       setNoShowAttendees((old) =>

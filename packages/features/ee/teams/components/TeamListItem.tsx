@@ -55,7 +55,7 @@ export default function TeamListItem(props: Props) {
   const [openInviteLinkSettingsModal, setOpenInviteLinkSettingsModal] = useState(false);
   const refreshData = useRefreshData();
 
-  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
+  const acceptOrLeaveMutation = trpc.viewer.teams.mutations.acceptOrLeave.useMutation({
     onSuccess: (_data, variables) => {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
@@ -331,7 +331,7 @@ export default function TeamListItem(props: Props) {
 const TeamPublishButton = ({ teamId }: { teamId: number }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+  const publishTeamMutation = trpc.viewer.teams.mutations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },
@@ -356,7 +356,7 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
 
 const TeamPublishSection = ({ children, teamId }: { children: React.ReactNode; teamId: number }) => {
   const router = useRouter();
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+  const publishTeamMutation = trpc.viewer.teams.mutations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },

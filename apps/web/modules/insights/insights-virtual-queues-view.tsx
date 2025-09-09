@@ -12,7 +12,7 @@ import { Select } from "@calcom/ui/components/form";
 export default function InsightsVirtualQueuesPage() {
   const { t } = useLocale();
   const { data: routingForms, isLoading: isRoutingFormsLoading } =
-    trpc.viewer.insights.getUserRelevantTeamRoutingForms.useQuery();
+    trpc.viewer.insights.queries.getUserRelevantTeamRoutingForms.useQuery();
 
   const [selectedForm, setSelectedForm] = useState<RoutingForm | undefined>(
     routingForms && routingForms.length > 0 ? routingForms[0] : undefined

@@ -19,7 +19,7 @@ export default function DeleteBulkTeamMembers({ users, onRemove, isOrg, teamId }
   const { t } = useLocale();
   const selectedRows = users; // Get selected rows from table
   const utils = trpc.useUtils();
-  const deleteMutation = trpc.viewer.teams.removeMember.useMutation({
+  const deleteMutation = trpc.viewer.teams.mutations.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();

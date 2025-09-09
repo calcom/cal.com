@@ -45,7 +45,7 @@ type AttributesContextType = {
 const AttributesContext = createContext<AttributesContextType | null>(null);
 
 function AttributesProvider({ children }: PropsWithChildren) {
-  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes } = trpc.viewer.attributes.queries.list.useQuery();
   const [selectedAttribute, setSelectedAttribute] = useState<string>();
   const [selectedAttributeOptions, setSelectedAttributeOptions] = useState<string[]>([]);
 
@@ -236,7 +236,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
+  const bulkAssignAttributes = trpc.viewer.attributes.mutations.bulkAssignAttributes.useMutation({
     onSuccess: (success) => {
       setSelectedAttribute(undefined);
       setSelectedAttributeOptions([]);

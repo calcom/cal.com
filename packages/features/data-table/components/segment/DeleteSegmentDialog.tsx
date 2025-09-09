@@ -17,7 +17,7 @@ export function DeleteSegmentDialog({
   const utils = trpc.useUtils();
   const { segmentId, setSegmentId } = useDataTable();
 
-  const { mutate: deleteSegment, isPending } = trpc.viewer.filterSegments.delete.useMutation({
+  const { mutate: deleteSegment, isPending } = trpc.viewer.filterSegments.mutations.delete.useMutation({
     onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_deleted"), "success");

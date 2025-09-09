@@ -1147,7 +1147,7 @@ const Routes = ({
     hookForm,
   });
 
-  const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
+  const { data: allForms } = trpc.viewer.appRoutingForms.queries.forms.useQuery();
 
   const notHaveAttributesQuery = ({ form }: { form: { routes: z.infer<typeof zodRoutes> } }) => {
     return form.routes?.every((route) => {
@@ -1376,13 +1376,13 @@ function Page({
   const { t } = useLocale();
   const values = hookForm.getValues();
   const { data: attributes, isPending: isAttributesLoading } =
-    trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery(
+    trpc.viewer.appRoutingForms.queries.getAttributesForTeam.useQuery(
       { teamId: values.teamId! },
       { enabled: !!values.teamId }
     );
 
   const { data: eventTypesByGroup, isLoading: areEventsLoading } =
-    trpc.viewer.eventTypes.getByViewer.useQuery({
+    trpc.viewer.eventTypes.queries.getByViewer.useQuery({
       forRoutingForms: true,
     });
 

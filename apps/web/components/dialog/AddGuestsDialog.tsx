@@ -28,7 +28,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   const [multiEmailValue, setMultiEmailValue] = useState<string[]>([""]);
   const [isInvalidEmail, setIsInvalidEmail] = useState(false);
 
-  const addGuestsMutation = trpc.viewer.bookings.addGuests.useMutation({
+  const addGuestsMutation = trpc.viewer.bookings.mutations.addGuests.useMutation({
     onSuccess: async () => {
       showToast(t("guests_added"), "success");
       setIsOpenDialog(false);

@@ -112,7 +112,7 @@ function SingleForm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
-  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const mutation = trpc.viewer.appRoutingForms.mutations.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
     },
@@ -227,7 +227,7 @@ function SingleForm({
 }
 
 export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
-  const { data: form, isPending } = trpc.viewer.appRoutingForms.formQuery.useQuery(
+  const { data: form, isPending } = trpc.viewer.appRoutingForms.queries.formQuery.useQuery(
     { id: _form.id },
     {
       initialData: _form,

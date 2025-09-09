@@ -155,7 +155,7 @@ function UserListTableContent({
 
   const { limit, offset, searchTerm, ctaContainerRef } = useDataTable();
 
-  const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
+  const { data, isPending } = trpc.viewer.organizations.queries.listMembers.useQuery(
     {
       limit,
       offset,

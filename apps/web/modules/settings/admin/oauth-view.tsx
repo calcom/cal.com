@@ -27,7 +27,7 @@ export default function OAuthView() {
   const [logo, setLogo] = useState("");
   const { t } = useLocale();
 
-  const mutation = trpc.viewer.oAuth.addClient.useMutation({
+  const mutation = trpc.viewer.oAuth.mutations.addClient.useMutation({
     onSuccess: async (data) => {
       setClientSecret(data.clientSecret);
       setClientId(data.clientId);

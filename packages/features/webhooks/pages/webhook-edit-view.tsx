@@ -29,7 +29,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
-  const { data: installedApps, isPending } = trpc.viewer.apps.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.apps.queries.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
@@ -37,11 +37,11 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
     }
   );
 
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
+  const { data: webhooks } = trpc.viewer.webhook.queries.list.useQuery(undefined, {
     suspense: true,
     enabled: !!webhook,
   });
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+  const editWebhookMutation = trpc.viewer.webhook.mutations.edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.webhook.get.invalidate({ webhookId: webhook?.id });

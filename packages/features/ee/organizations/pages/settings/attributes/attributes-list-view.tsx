@@ -44,7 +44,7 @@ function AttributeItem({
 }) {
   const { t } = useLocale();
   const [isEnabled, setIsEnabled] = useState(attribute.enabled);
-  const mutation = trpc.viewer.attributes.toggleActive.useMutation({
+  const mutation = trpc.viewer.attributes.mutations.toggleActive.useMutation({
     onSuccess: () => {
       showToast(t("attribute_updated_successfully"), "success");
       revalidateAttributesList();
@@ -138,7 +138,7 @@ function OrganizationAttributesPage({
   permissions: { canEdit: boolean; canDelete: boolean; canCreate: boolean };
 }) {
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
+  const { data, isLoading } = trpc.viewer.attributes.queries.list.useQuery();
   const [attributeToDelete, setAttributeToDelete] = useState<AttributeItemProps>();
   if (isLoading) {
     return (

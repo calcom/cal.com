@@ -190,7 +190,7 @@ export default function Success(props: PageProps) {
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
-  const mutation = trpc.viewer.public.submitRating.useMutation({
+  const mutation = trpc.viewer.public.mutations.submitRating.useMutation({
     onSuccess: async () => {
       setIsFeedbackSubmitted(true);
       showToast("Thank you, feedback submitted", "success");
@@ -200,7 +200,7 @@ export default function Success(props: PageProps) {
     },
   });
 
-  const hostNoShowMutation = trpc.viewer.public.markHostAsNoShow.useMutation({
+  const hostNoShowMutation = trpc.viewer.public.mutations.markHostAsNoShow.useMutation({
     onSuccess: async () => {
       showToast("Thank you, feedback submitted", "success");
     },

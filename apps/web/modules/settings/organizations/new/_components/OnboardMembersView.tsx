@@ -37,7 +37,7 @@ const useOrgCreation = () => {
   const { useOnboardingStore, isBillingEnabled } = useOnboarding();
   const { reset } = useOnboardingStore();
 
-  const checkoutMutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
+  const checkoutMutation = trpc.viewer.organizations.mutations.createWithPaymentIntent.useMutation({
     onSuccess: (data) => {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
@@ -48,7 +48,7 @@ const useOrgCreation = () => {
     },
   });
 
-  const createOrgMutation = trpc.viewer.organizations.createSelfHosted.useMutation({
+  const createOrgMutation = trpc.viewer.organizations.mutations.createSelfHosted.useMutation({
     onSuccess: async (data) => {
       if (data.organization) {
         // Invalidate the organizations query to ensure fresh data on the next page

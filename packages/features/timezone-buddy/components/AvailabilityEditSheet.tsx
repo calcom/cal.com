@@ -129,7 +129,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
   const utils = trpc.useUtils();
 
   const { data: hasEditPermission, isPending: loadingPermissions } =
-    trpc.viewer.teams.hasEditPermissionForUser.useQuery({
+    trpc.viewer.teams.queries.hasEditPermissionForUser.useQuery({
       memberId: userId,
     });
 

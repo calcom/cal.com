@@ -22,7 +22,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
   const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
 
-  const { mutate: rescheduleApi, isPending } = trpc.viewer.bookings.requestReschedule.useMutation({
+  const { mutate: rescheduleApi, isPending } = trpc.viewer.bookings.mutations.requestReschedule.useMutation({
     async onSuccess() {
       showToast(t("reschedule_request_sent"), "success");
       setIsOpenDialog(false);

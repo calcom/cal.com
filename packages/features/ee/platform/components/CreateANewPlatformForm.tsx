@@ -51,7 +51,7 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
     },
   });
 
-  const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
+  const createOrganizationMutation = trpc.viewer.organizations.mutations.create.useMutation({
     onSuccess: async (data) => {
       telemetry.event(telemetryEventTypes.org_created);
       // This is necessary so that server token has the updated upId

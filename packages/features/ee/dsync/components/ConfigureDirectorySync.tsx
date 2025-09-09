@@ -19,9 +19,9 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
   const utils = trpc.useUtils();
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
-  const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ organizationId });
+  const { data, isLoading, isError, error } = trpc.viewer.dsync.queries.get.useQuery({ organizationId });
 
-  const deleteMutation = trpc.viewer.dsync.delete.useMutation({
+  const deleteMutation = trpc.viewer.dsync.mutations.delete.useMutation({
     async onSuccess() {
       showToast(t("directory_sync_deleted"), "success");
       await utils.viewer.dsync.invalidate();

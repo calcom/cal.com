@@ -19,7 +19,7 @@ export function DeleteMemberModal({
   const { t } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+  const removeMemberMutation = trpc.viewer.teams.mutations.removeMember.useMutation({
     onSuccess() {
       utils.viewer.organizations.listMembers.invalidate();
       utils.viewer.teams.get.invalidate();

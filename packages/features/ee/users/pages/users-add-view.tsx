@@ -14,7 +14,7 @@ const UsersAddView = () => {
   const pathname = usePathname();
   const router = useRouter();
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.users.add.useMutation({
+  const mutation = trpc.viewer.users.mutations.add.useMutation({
     onSuccess: async () => {
       showToast("User added successfully", "success");
       await utils.viewer.users.list.invalidate();

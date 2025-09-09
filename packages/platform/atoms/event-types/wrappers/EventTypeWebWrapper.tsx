@@ -94,7 +94,7 @@ export type EventTypeWebWrapperProps = {
 };
 
 export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.queries.get.useQuery(
     { id },
     { enabled: !serverFetchedData }
   );
@@ -126,7 +126,7 @@ const EventTypeWeb = ({
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
-  const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
+  const { data: eventTypeApps } = trpc.viewer.apps.queries.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
@@ -185,7 +185,7 @@ const EventTypeWeb = ({
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
 
-  const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+  const { data: allActiveWorkflows } = trpc.viewer.workflows.queries.getAllActiveWorkflows.useQuery({
     eventType: {
       id,
       teamId: eventType.teamId,
@@ -323,7 +323,7 @@ const EventTypeWeb = ({
     data: { tabName },
   } = useTypedQuery(querySchema);
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+  const deleteMutation = trpc.viewer.eventTypes.mutations.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       if (team?.slug) {

@@ -33,7 +33,7 @@ export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
   const [showModal, setShowModal] = useState(false);
   const { t } = useLocale();
 
-  const mutation = trpc.viewer.organizations.update.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.update.useMutation({
     onSuccess: async () => {
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");

@@ -19,7 +19,7 @@ export function CreateButtonWithTeamsList(
     };
   }
 ) {
-  const query = trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery({
+  const query = trpc.viewer.loggedInViewerRouter.queries.teamsAndUserProfilesQuery.useQuery({
     includeOrg: props.includeOrg,
     withPermission: props.withPermission
       ? {

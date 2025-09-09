@@ -23,7 +23,7 @@ export function useBottomNavItems({
   const { isTrial } = useHasActiveTeamPlanAsOwner();
   const utils = trpc.useUtils();
 
-  const skipTeamTrialsMutation = trpc.viewer.teams.skipTeamTrials.useMutation({
+  const skipTeamTrialsMutation = trpc.viewer.teams.mutations.skipTeamTrials.useMutation({
     onSuccess: () => {
       utils.viewer.teams.hasActiveTeamPlan.invalidate();
       showToast(t("team_trials_skipped_successfully"), "success");

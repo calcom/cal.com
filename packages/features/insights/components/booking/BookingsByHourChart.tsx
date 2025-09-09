@@ -97,7 +97,7 @@ export const BookingsByHourChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.bookingsByHourStats.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.bookingsByHourStats.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,

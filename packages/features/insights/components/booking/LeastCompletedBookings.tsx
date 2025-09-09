@@ -28,16 +28,14 @@ export const LeastCompletedTeamMembersTable = () => {
     endDate: currentTime,
   };
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLeastCompletedBookings.useQuery(
-    insightsBookingParams,
-    {
+  const { data, isSuccess, isPending } =
+    trpc.viewer.insights.queries.membersWithLeastCompletedBookings.useQuery(insightsBookingParams, {
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
-    }
-  );
+    });
 
   if (isPending) return <LoadingInsight />;
 

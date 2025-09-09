@@ -12,7 +12,7 @@ export const LowestRatedMembersTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLowestRatings.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.membersWithLowestRatings.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,

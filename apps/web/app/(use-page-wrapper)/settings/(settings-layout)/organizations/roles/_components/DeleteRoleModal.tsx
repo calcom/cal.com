@@ -24,7 +24,7 @@ export function DeleteRoleModal({ roleId, roleName, teamId, onDeleted }: DeleteR
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
-  const deleteMutation = trpc.viewer.pbac.deleteRole.useMutation({
+  const deleteMutation = trpc.viewer.pbac.mutations.deleteRole.useMutation({
     onSuccess: async () => {
       showToast(t("role_deleted_successfully"), "success");
       setIsModalOpen(false);

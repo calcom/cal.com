@@ -4,9 +4,9 @@ import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { DestinationCalendarSettings } from "../DestinationCalendar";
 
 export const DestinationCalendarSettingsWebWrapper = () => {
-  const calendars = trpc.viewer.calendars.connectedCalendars.useQuery();
+  const calendars = trpc.viewer.calendars.queries.connectedCalendars.useQuery();
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.calendars.setDestinationCalendar.useMutation({
+  const mutation = trpc.viewer.calendars.mutations.setDestinationCalendar.useMutation({
     onSuccess: () => {
       utils.viewer.calendars.connectedCalendars.invalidate();
     },

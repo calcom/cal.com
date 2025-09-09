@@ -708,7 +708,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const eventId = embedParams.eventId;
   const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
-  const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
+  const { data: eventTypeData } = trpc.viewer.eventTypes.queries.get.useQuery(
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );

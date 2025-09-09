@@ -65,7 +65,7 @@ const OrgGeneralView = ({
     data: currentOrg,
     isPending,
     error,
-  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
+  } = trpc.viewer.organizations.queries.listCurrent.useQuery(undefined, {});
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -103,7 +103,7 @@ const OrgGeneralView = ({
 const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) => {
   const { t } = useLocale();
 
-  const mutation = trpc.viewer.organizations.update.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.update.useMutation({
     onSuccess: async () => {
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");

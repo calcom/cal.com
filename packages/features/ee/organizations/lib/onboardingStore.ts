@@ -124,7 +124,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin) || process.env.NEXT_PUBLIC_IS_E2E;
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
-    trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
+    trpc.viewer.organizations.queries.getOrganizationOnboarding.useQuery();
   const { reset, onboardingId } = useOnboardingStore();
   const step = params?.step ?? null;
   useEffect(() => {

@@ -40,7 +40,7 @@ export const UsersEditView = ({ user }: { user: User }) => {
   const router = useRouter();
 
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.users.update.useMutation({
+  const mutation = trpc.viewer.users.mutations.update.useMutation({
     onSuccess: async () => {
       Promise.all([utils.viewer.users.list.invalidate(), utils.viewer.users.get.invalidate()]);
       showToast("User updated successfully", "success");

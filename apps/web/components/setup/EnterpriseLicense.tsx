@@ -59,7 +59,7 @@ const EnterpriseLicense = (
   const { onSubmit, onSuccess = noop, onSuccessValidate = noop, ...rest } = props;
   const { t } = useLocale();
   const [checkLicenseLoading, setCheckLicenseLoading] = useState(false);
-  const mutation = trpc.viewer.deploymentSetup.update.useMutation({
+  const mutation = trpc.viewer.deploymentSetup.mutations.update.useMutation({
     onSuccess,
   });
 

@@ -40,7 +40,7 @@ export default function TeamList(props: Props) {
     }
   }
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
+  const deleteTeamMutation = trpc.viewer.teams.mutations.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.queries.list.invalidate();
       revalidateTeamsList();

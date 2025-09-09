@@ -39,7 +39,7 @@ export default function CredentialActionsDropdown({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [disconnectModalOpen, setDisconnectModalOpen] = useState(false);
 
-  const deleteCacheMutation = trpc.viewer.calendars.deleteCache.useMutation({
+  const deleteCacheMutation = trpc.viewer.calendars.mutations.deleteCache.useMutation({
     onSuccess: () => {
       showToast(t("cache_deleted_successfully"), "success");
       onSuccess?.();
@@ -50,7 +50,7 @@ export default function CredentialActionsDropdown({
   });
 
   const utils = trpc.useUtils();
-  const disconnectMutation = trpc.viewer.credentials.delete.useMutation({
+  const disconnectMutation = trpc.viewer.credentials.mutations.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       onSuccess?.();

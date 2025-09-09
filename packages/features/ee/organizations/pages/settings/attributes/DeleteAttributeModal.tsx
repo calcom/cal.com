@@ -20,7 +20,7 @@ export function DeleteAttributeModal({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteMutation = trpc.viewer.attributes.delete.useMutation({
+  const deleteMutation = trpc.viewer.attributes.mutations.delete.useMutation({
     onSuccess: () => {
       showToast(t("attribute_deleted_successfully"), "success");
       utils.viewer.attributes.list.invalidate();

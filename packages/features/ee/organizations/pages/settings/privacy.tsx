@@ -5,7 +5,7 @@ import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeam
 import { trpc } from "@calcom/trpc/react";
 
 const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit: boolean } }) => {
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: currentOrg } = trpc.viewer.organizations.queries.listCurrent.useQuery();
   const isInviteOpen = !currentOrg?.user.accepted;
 
   const isDisabled = !permissions.canEdit || isInviteOpen;

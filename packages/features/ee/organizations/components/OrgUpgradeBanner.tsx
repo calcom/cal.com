@@ -16,7 +16,7 @@ export function OrgUpgradeBanner({ data }: OrgUpgradeBannerProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
 
-  const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
+  const publishOrgMutation = trpc.viewer.organizations.mutations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },

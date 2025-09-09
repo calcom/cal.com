@@ -31,16 +31,17 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
   });
 
   // Check if team has restriction schedule feature enabled
-  const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(
-    {
-      teamId: props.eventType.team?.id || 0,
-      feature: "restriction-schedule",
-    },
-    {
-      enabled: !!props.eventType.team?.id,
-      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    }
-  );
+  const { data: isRestrictionScheduleEnabled = false } =
+    trpc.viewer.features.queries.checkTeamFeature.useQuery(
+      {
+        teamId: props.eventType.team?.id || 0,
+        feature: "restriction-schedule",
+      },
+      {
+        enabled: !!props.eventType.team?.id,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      }
+    );
 
   const { isPending: isSchedulePending, data: scheduleQueryData } =
     trpc.viewer.availability.schedule.get.useQuery(
@@ -62,7 +63,7 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
     );
 
   const { data: schedulesQueryData, isPending: isSchedulesPending } =
-    trpc.viewer.availability.list.useQuery(undefined);
+    trpc.viewer.availability.queries.list.useQuery(undefined);
 
   const hostSchedulesQuery = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery;
 

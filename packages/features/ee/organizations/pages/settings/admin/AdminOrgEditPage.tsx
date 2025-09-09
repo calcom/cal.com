@@ -29,7 +29,7 @@ export const OrgForm = ({
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.organizations.adminUpdate.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.adminUpdate.useMutation({
     onSuccess: async () => {
       await Promise.all([
         utils.viewer.organizations.adminGetAll.invalidate(),

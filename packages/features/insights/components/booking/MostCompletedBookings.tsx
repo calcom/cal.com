@@ -28,16 +28,14 @@ export const MostCompletedTeamMembersTable = () => {
     endDate: currentTime,
   };
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCompletedBookings.useQuery(
-    insightsBookingParams,
-    {
+  const { data, isSuccess, isPending } =
+    trpc.viewer.insights.queries.membersWithMostCompletedBookings.useQuery(insightsBookingParams, {
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
-    }
-  );
+    });
 
   if (isPending) return <LoadingInsight />;
 

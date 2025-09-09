@@ -56,7 +56,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
     append({ id: OTHER_FIELD_ID, name: "" });
   };
 
-  const updatePresetsMutation = trpc.viewer.teams.updateInternalNotesPresets.useMutation({
+  const updatePresetsMutation = trpc.viewer.teams.mutations.updateInternalNotesPresets.useMutation({
     onSuccess: () => {
       showToast(t("internal_note_presets_updated_successfully"), "success");
       utils.viewer.teams.getInternalNotesPresets.invalidate();

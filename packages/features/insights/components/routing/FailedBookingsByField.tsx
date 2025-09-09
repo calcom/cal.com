@@ -132,7 +132,7 @@ function FormCard({ formName, fields }: FormCardProps) {
 export function FailedBookingsByField() {
   const { t } = useLocale();
   const insightsRoutingParams = useInsightsRoutingParameters();
-  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery(insightsRoutingParams);
+  const { data } = trpc.viewer.insights.queries.failedBookingsByField.useQuery(insightsRoutingParams);
 
   if (!data || Object.entries(data).length === 0) return null;
 

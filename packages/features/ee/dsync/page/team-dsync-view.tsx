@@ -16,7 +16,7 @@ const DirectorySync = ({ permissions }: { permissions?: { canEdit: boolean } }) 
   const { t } = useLocale();
   const router = useRouter();
 
-  const { data: currentOrg, isLoading, error } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: currentOrg, isLoading, error } = trpc.viewer.organizations.queries.listCurrent.useQuery();
 
   useEffect(() => {
     if (!HOSTED_CAL_FEATURES) {

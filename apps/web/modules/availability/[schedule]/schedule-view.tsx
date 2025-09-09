@@ -37,7 +37,7 @@ export const AvailabilitySettingsWebWrapper = ({
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
-    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+    trpc.viewer.eventTypes.queries.bulkEventFetch.useQuery();
 
   const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(

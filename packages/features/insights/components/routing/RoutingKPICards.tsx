@@ -13,7 +13,7 @@ export const RoutingKPICards = () => {
   const { t } = useLocale();
   const insightsRoutingParameters = useInsightsRoutingParameters();
 
-  const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(insightsRoutingParameters, {
+  const { data, isPending } = trpc.viewer.insights.queries.routingFormsByStatus.useQuery(insightsRoutingParameters, {
     staleTime: 30000,
     trpc: {
       context: { skipBatch: true },

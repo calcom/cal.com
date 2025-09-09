@@ -128,7 +128,7 @@ const AppearanceView = ({
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark"));
 
-  const mutation = trpc.viewer.me.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.mutations.updateProfile.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();

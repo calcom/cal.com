@@ -7,8 +7,8 @@ import { Select } from "@calcom/ui/components/form";
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({}) => {
   const [projects, setProjects] = useState();
   const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
-  const { data } = trpc.viewer.appBasecamp3.projects.useQuery();
-  const setProject = trpc.viewer.appBasecamp3.projectMutation.useMutation();
+  const { data } = trpc.viewer.appBasecamp3.queries.projects.useQuery();
+  const setProject = trpc.viewer.appBasecamp3.mutations.projectMutation.useMutation();
 
   useEffect(
     function refactorMeWithoutEffect() {

@@ -72,11 +72,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const { disableCopyLink = false, isOrg = false } = props;
   const trpcContext = trpc.useUtils();
   const session = useSession();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+  const { data: currentOrg } = trpc.viewer.organizations.queries.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
 
-  const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
+  const checkIfMembershipExistsMutation = trpc.viewer.teams.mutations.checkIfMembershipExists.useMutation();
 
   // Check current org role and not team role
   const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
@@ -89,7 +89,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL"
   );
 
-  const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
+  const createInviteMutation = trpc.viewer.teams.mutations.createInvite.useMutation({
     async onSuccess({ inviteLink }) {
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.queries.list.invalidate();
@@ -486,7 +486,7 @@ export const MemberInvitationModalWithoutMembers = ({
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
 
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
+  const inviteMemberMutation = trpc.viewer.teams.mutations.inviteMember.useMutation();
 
   const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
     trpc.viewer.organizations.queries.getMembers.useQuery(

@@ -124,7 +124,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   }, document.querySelector('[role="dialog"]'));
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
-    trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
+    trpc.viewer.ooo.queries.outOfOfficeReasonList.useQuery();
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
     value: reason.id,
@@ -161,7 +161,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
 
-  const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
+  const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.mutations.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
         currentlyEditingOutOfOfficeEntry

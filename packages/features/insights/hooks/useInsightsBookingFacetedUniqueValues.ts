@@ -26,7 +26,7 @@ export const useInsightsBookingFacetedUniqueValues = ({
   isAll: boolean;
 }) => {
   const { t } = useLocale();
-  const { data: users } = trpc.viewer.insights.userList.useQuery(
+  const { data: users } = trpc.viewer.insights.queries.userList.useQuery(
     {
       teamId,
       isAll,
@@ -36,7 +36,7 @@ export const useInsightsBookingFacetedUniqueValues = ({
     }
   );
 
-  const { data: eventTypes } = trpc.viewer.insights.eventTypeList.useQuery(
+  const { data: eventTypes } = trpc.viewer.insights.queries.eventTypeList.useQuery(
     {
       teamId,
       userId,

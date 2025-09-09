@@ -70,7 +70,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     checkUsername(debouncedUsername);
   }, [debouncedUsername, currentUsername]);
 
-  const updateUsernameMutation = trpc.viewer.me.updateProfile.useMutation({
+  const updateUsernameMutation = trpc.viewer.me.mutations.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);

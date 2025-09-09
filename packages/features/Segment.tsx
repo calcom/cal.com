@@ -19,7 +19,7 @@ import cn from "@calcom/ui/classNames";
 
 export type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 export function useAttributes(teamId: number) {
-  const { data: attributes, isPending } = trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery({
+  const { data: attributes, isPending } = trpc.viewer.appRoutingForms.queries.getAttributesForTeam.useQuery({
     teamId,
   });
   return {
@@ -114,7 +114,7 @@ function MatchingTeamMembers({
     : false;
 
   const { data: matchingTeamMembersWithResult, isPending } =
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
+    trpc.viewer.attributes.queries.findTeamMembersMatchingAttributeLogic.useQuery(
       {
         teamId,
         attributesQueryValue: queryValue,

@@ -73,7 +73,7 @@ export const EventTrendsChart = () => {
     data: eventTrends,
     isSuccess,
     isPending,
-  } = trpc.viewer.insights.eventTrends.useQuery(insightsBookingParams, {
+  } = trpc.viewer.insights.queries.eventTrends.useQuery(insightsBookingParams, {
     staleTime: 180000,
     refetchOnWindowFocus: false,
     trpc: {

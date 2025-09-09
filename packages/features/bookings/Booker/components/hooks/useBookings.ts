@@ -179,7 +179,7 @@ export const useBookings = ({
     }
   }, [eventTypeId, isInstantMeeting]);
 
-  const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
+  const _instantBooking = trpc.viewer.bookings.queries.getInstantBookingLocation.useQuery(
     {
       bookingId: bookingId,
     },

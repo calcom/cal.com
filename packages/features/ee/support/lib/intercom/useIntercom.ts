@@ -26,7 +26,7 @@ const useIntercomHook = isInterComEnabled
 export const useIntercom = () => {
   const hookData = useIntercomHook();
   const { data } = trpc.viewer.me.queries.get.useQuery();
-  const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
+  const { data: statsData } = trpc.viewer.me.queries.myStats.useQuery(undefined, {
     trpc: {
       context: {
         skipBatch: true,
@@ -129,7 +129,7 @@ export const useIntercom = () => {
 export const useBootIntercom = () => {
   const { boot } = useIntercom();
   const { data: user } = trpc.viewer.me.queries.get.useQuery();
-  const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
+  const { data: statsData } = trpc.viewer.me.queries.myStats.useQuery(undefined, {
     trpc: {
       context: {
         skipBatch: true,

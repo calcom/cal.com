@@ -64,7 +64,7 @@ const IntegrationContainer = ({
     }
   };
 
-  const enableAppMutation = trpc.viewer.apps.toggle.useMutation({
+  const enableAppMutation = trpc.viewer.apps.mutations.toggle.useMutation({
     onSuccess: (enabled) => {
       utils.viewer.apps.listLocal.invalidate({ category });
       setDisableDialog(false);
@@ -209,7 +209,7 @@ const EditKeysModal: FC<{
     resolver: zodResolver(appKeySchema),
   });
 
-  const saveKeysMutation = trpc.viewer.apps.saveKeys.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.mutations.saveKeys.useMutation({
     onSuccess: () => {
       showToast(fromEnabled ? t("app_is_enabled", { appName }) : t("keys_have_been_saved"), "success");
       utils.viewer.apps.listLocal.invalidate();
@@ -283,7 +283,7 @@ const AdminAppsListContainer = () => {
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
 
-  const { data: apps, isPending } = trpc.viewer.apps.listLocal.useQuery(
+  const { data: apps, isPending } = trpc.viewer.apps.queries.listLocal.useQuery(
     { category },
     { enabled: searchParams !== null }
   );

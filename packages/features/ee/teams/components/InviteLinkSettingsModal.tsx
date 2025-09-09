@@ -28,7 +28,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
   const { t } = useLocale();
   const trpcContext = trpc.useUtils();
 
-  const deleteInviteMutation = trpc.viewer.teams.deleteInvite.useMutation({
+  const deleteInviteMutation = trpc.viewer.teams.mutations.deleteInvite.useMutation({
     onSuccess: () => {
       showToast(t("invite_link_deleted"), "success");
       trpcContext.viewer.teams.get.invalidate();
@@ -41,7 +41,7 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
     },
   });
 
-  const setInviteExpirationMutation = trpc.viewer.teams.setInviteExpiration.useMutation({
+  const setInviteExpirationMutation = trpc.viewer.teams.mutations.setInviteExpiration.useMutation({
     onSuccess: () => {
       showToast(t("invite_link_updated"), "success");
       trpcContext.viewer.teams.get.invalidate();

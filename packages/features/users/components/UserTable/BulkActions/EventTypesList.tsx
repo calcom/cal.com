@@ -32,10 +32,10 @@ export function EventTypesList({ table, orgTeams }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const teamIds = orgTeams?.map((team) => team.id);
-  const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
+  const { data } = trpc.viewer.eventTypes.queries.getByViewer.useQuery({
     filters: { teamIds, schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
-  const addMutation = trpc.viewer.organizations.addMembersToEventTypes.useMutation({
+  const addMutation = trpc.viewer.organizations.mutations.addMembersToEventTypes.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },
@@ -54,7 +54,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
       table.toggleAllRowsSelected(false);
     },
   });
-  const removeHostsMutation = trpc.viewer.organizations.removeHostsFromEventTypes.useMutation({
+  const removeHostsMutation = trpc.viewer.organizations.mutations.removeHostsFromEventTypes.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },

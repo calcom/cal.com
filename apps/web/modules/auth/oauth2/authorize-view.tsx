@@ -30,7 +30,7 @@ export default function Authorize() {
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
-  const { data: client, isPending: isPendingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
+  const { data: client, isPending: isPendingGetClient } = trpc.viewer.oAuth.queries.getClient.useQuery(
     {
       clientId: client_id as string,
     },
@@ -40,9 +40,9 @@ export default function Authorize() {
   );
 
   const { data, isPending: isPendingProfiles } =
-    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery();
+    trpc.viewer.loggedInViewerRouter.queries.teamsAndUserProfilesQuery.useQuery();
 
-  const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
+  const generateAuthCodeMutation = trpc.viewer.oAuth.mutations.generateAuthCode.useMutation({
     onSuccess: (data) => {
       window.location.href = `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
     },

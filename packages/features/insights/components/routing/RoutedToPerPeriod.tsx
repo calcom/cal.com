@@ -177,7 +177,7 @@ export function RoutedToPerPeriod() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const { data, isLoading } = trpc.viewer.insights.routedToPerPeriod.useQuery(
+  const { data, isLoading } = trpc.viewer.insights.queries.routedToPerPeriod.useQuery(
     {
       ...routingParams,
       period: selectedPeriod,

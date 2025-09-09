@@ -17,7 +17,7 @@ function VerifyEmailPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const { t, isLocaleReady } = useLocale();
-  const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const mutation = trpc.viewer.auth.mutations.resendVerifyEmail.useMutation();
 
   useEffect(() => {
     if (data?.isVerified) {

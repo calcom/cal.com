@@ -16,7 +16,7 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
   const { t } = useLocale();
   const selectedRows = users; // Get selected rows from table
   const utils = trpc.useUtils();
-  const deleteMutation = trpc.viewer.organizations.bulkDeleteUsers.useMutation({
+  const deleteMutation = trpc.viewer.organizations.mutations.bulkDeleteUsers.useMutation({
     onSuccess: () => {
       showToast("Deleted Users", "success");
       utils.viewer.organizations.listMembers.invalidate();

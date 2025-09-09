@@ -281,16 +281,16 @@ function DelegationFormFields({
 function DelegationCredentialList() {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: delegations, isLoading, error } = trpc.viewer.delegationCredential.list.useQuery();
+  const { data: delegations, isLoading, error } = trpc.viewer.delegationCredential.queries.list.useQuery();
 
-  const updateMutation = trpc.viewer.delegationCredential.update.useMutation({
+  const updateMutation = trpc.viewer.delegationCredential.mutations.update.useMutation({
     onSuccess: () => utils.viewer.delegationCredential.list.invalidate(),
     onError: (error) => {
       showToast(error.message, "error");
     },
   });
 
-  const toggleEnabledMutation = trpc.viewer.delegationCredential.toggleEnabled.useMutation({
+  const toggleEnabledMutation = trpc.viewer.delegationCredential.mutations.toggleEnabled.useMutation({
     onSuccess: (data) => {
       if (data) {
         showToast(
@@ -305,14 +305,14 @@ function DelegationCredentialList() {
     },
   });
 
-  const createMutation = trpc.viewer.delegationCredential.add.useMutation({
+  const createMutation = trpc.viewer.delegationCredential.mutations.add.useMutation({
     onSuccess: () => utils.viewer.delegationCredential.list.invalidate(),
     onError: (error) => {
       showToast(error.message, "error");
     },
   });
 
-  const deleteMutation = trpc.viewer.delegationCredential.delete.useMutation({
+  const deleteMutation = trpc.viewer.delegationCredential.mutations.delete.useMutation({
     onSuccess: () => utils.viewer.delegationCredential.list.invalidate(),
     onError: (error) => {
       showToast(error.message, "error");
@@ -350,7 +350,7 @@ function DelegationCredentialList() {
   });
 
   const { data: workspacePlatforms, isLoading: isLoadingWorkspacePlatforms } =
-    trpc.viewer.delegationCredential.listWorkspacePlatforms.useQuery();
+    trpc.viewer.delegationCredential.queries.listWorkspacePlatforms.useQuery();
 
   const enabledWorkspacePlatforms = workspacePlatforms?.filter((platform) => platform.enabled) || [];
 
@@ -465,7 +465,7 @@ function MembersThatWillBeAffectedOnDisablingDelegationCredential({
 }) {
   const { t } = useLocale();
   const { data: affectedMembers, isLoading: isLoadingAffectedMembers } =
-    trpc.viewer.delegationCredential.getAffectedMembersForDisable.useQuery({ id: delegationCredentialId });
+    trpc.viewer.delegationCredential.queries.getAffectedMembersForDisable.useQuery({ id: delegationCredentialId });
 
   return (
     <div className="mt-4">

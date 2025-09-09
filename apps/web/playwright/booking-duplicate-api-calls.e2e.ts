@@ -16,7 +16,7 @@ test.describe("Duplicate API Calls Prevention", () => {
     const trpcCalls: string[] = [];
     const apiV2Calls: string[] = [];
 
-    // Intercept tRPC getSchedule calls - pattern matches trpc.viewer.slots.getSchedule.useQuery()
+    // Intercept tRPC getSchedule calls - pattern matches trpc.viewer.slots.queries.getSchedule.useQuery()
     await page.route("**/api/trpc/viewer.slots.getSchedule**", async (route) => {
       trpcCalls.push(route.request().url());
       await route.continue();

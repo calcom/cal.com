@@ -27,7 +27,7 @@ export const useVerifyEmail = ({
   const { data: session } = useSession();
 
   const { t } = useLocale();
-  const sendEmailVerificationByCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+  const sendEmailVerificationByCodeMutation = trpc.viewer.auth.mutations.sendVerifyEmailCode.useMutation({
     onSuccess: () => {
       setEmailVerificationModalVisible(true);
       showToast(t("email_sent"), "success");
@@ -38,7 +38,7 @@ export const useVerifyEmail = ({
   });
 
   const { data: isEmailVerificationRequired } =
-    trpc.viewer.public.checkIfUserEmailVerificationRequired.useQuery(
+    trpc.viewer.public.queries.checkIfUserEmailVerificationRequired.useQuery(
       {
         userSessionEmail: session?.user.email || "",
         email: debouncedEmail,

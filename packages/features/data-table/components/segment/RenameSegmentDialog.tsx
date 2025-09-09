@@ -28,7 +28,7 @@ export function RenameSegmentDialog({
   });
   const utils = trpc.useUtils();
 
-  const { mutate: updateSegment, isPending } = trpc.viewer.filterSegments.update.useMutation({
+  const { mutate: updateSegment, isPending } = trpc.viewer.filterSegments.mutations.update.useMutation({
     onSuccess: () => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_updated"), "success");

@@ -92,7 +92,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     teamId,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.viewer.apps.locationOptions.useQuery({ teamId });
+  const locationsQuery = trpc.viewer.apps.queries.locationOptions.useQuery({ teamId });
 
   useEffect(() => {
     if (selection) {

@@ -29,7 +29,7 @@ export default function ApiKeyDialogForm({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
+  const updateApiKeyMutation = trpc.viewer.apiKeys.mutations.edit.useMutation({
     onSuccess() {
       utils.viewer.apiKeys.list.invalidate();
       revalidateApiKeysList();

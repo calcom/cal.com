@@ -29,9 +29,9 @@ function CreateAttributesPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id || "";
   // ensure string with zod
-  const attribute = trpc.viewer.attributes.get.useQuery({ id });
+  const attribute = trpc.viewer.attributes.queries.get.useQuery({ id });
 
-  const mutation = trpc.viewer.attributes.edit.useMutation({
+  const mutation = trpc.viewer.attributes.mutations.edit.useMutation({
     onSuccess: () => {
       showToast(t("attribute_edited_successfully"), "success");
       utils.viewer.attributes.get.invalidate({

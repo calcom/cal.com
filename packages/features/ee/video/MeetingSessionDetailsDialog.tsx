@@ -62,7 +62,7 @@ const MeetingSessionDetailsSkeleton = () => {
 const MeetingSessionDetailsList = ({ roomName }: { roomName: string }) => {
   const { t } = useLocale();
 
-  const { data: meetingInfo, isLoading } = trpc.viewer.calVideo.getMeetingInformation.useQuery(
+  const { data: meetingInfo, isLoading } = trpc.viewer.calVideo.queries.getMeetingInformation.useQuery(
     { roomName },
     {
       suspense: true,

@@ -59,7 +59,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
     },
   });
 
-  const mutation = trpc.viewer.admin.createSelfHostedLicense.useMutation({
+  const mutation = trpc.viewer.admin.mutations.createSelfHostedLicense.useMutation({
     onSuccess: async (values) => {
       showToast(`Success: We have created a stripe payment URL for this billing email`, "success");
       setStripeCheckoutUrl(values.stripeCheckoutUrl);

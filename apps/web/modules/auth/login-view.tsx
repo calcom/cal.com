@@ -165,7 +165,7 @@ export default function Login({
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
-  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
+  const { data, isPending, error } = trpc.viewer.public.queries.ssoConnections.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {

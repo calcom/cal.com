@@ -61,7 +61,7 @@ export function EditMemberSheet({
   const bookingLink = !!selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
 
   // Load custom roles for the team
-  const { data: customRoles, isPending: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+  const { data: customRoles, isPending: isLoadingRoles } = trpc.viewer.pbac.queries.getTeamRoles.useQuery(
     { teamId },
     {
       enabled: !!teamId,
@@ -113,7 +113,7 @@ export function EditMemberSheet({
 
   const connectedApps = getUserConnectedApps?.[selectedUser.id];
 
-  const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
+  const changeRoleMutation = trpc.viewer.teams.mutations.changeMemberRole.useMutation({
     onMutate: async ({ teamId, memberId, role }) => {
       await utils.viewer.teams.queries.listMembers.cancel();
       const previousValue = utils.viewer.teams.queries.listMembers.getInfiniteData({

@@ -37,21 +37,21 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const query = trpc.viewer.apps.integrations.useQuery({
+  const query = trpc.viewer.apps.queries.integrations.useQuery({
     variant,
     exclude,
     onlyInstalled: true,
     includeTeamInstalledApps: true,
   });
 
-  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.apps.queries.getUsersDefaultConferencingApp.useQuery();
 
-  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.apps.mutations.updateUserDefaultConferencingApp.useMutation();
 
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+  const updateLocationsMutation = trpc.viewer.eventTypes.mutations.bulkUpdateToDefaultLocation.useMutation();
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
-    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+    trpc.viewer.eventTypes.queries.bulkEventFetch.useQuery();
 
   const handleUpdateUserDefaultConferencingApp = ({
     appSlug,
@@ -210,7 +210,7 @@ export default function InstalledApps({ category, connectedCalendars, installedC
     updateData({ isOpen: true, credentialId, teamId });
   };
 
-  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.mutations.delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(

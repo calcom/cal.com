@@ -94,12 +94,12 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     apiKey: z.string().trim(),
     webhookSecret: z.string().optional(),
   });
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "btcpayserver" });
+  const integrations = trpc.viewer.apps.queries.integrations.useQuery({ variant: "payment", appId: "btcpayserver" });
   const [btcPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = btcPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
 
-  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.mutations.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");
@@ -108,7 +108,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
       showToast(error.message, "error");
     },
   });
-  const deleteMutation = trpc.viewer.credentials.delete.useMutation({
+  const deleteMutation = trpc.viewer.credentials.mutations.delete.useMutation({
     onSuccess: () => {
       router.push("/apps/btcpayserver");
     },

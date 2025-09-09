@@ -59,9 +59,9 @@ export const InstalledConferencingApps = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.apps.mutations.updateUserDefaultConferencingApp.useMutation();
 
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+  const updateLocationsMutation = trpc.viewer.eventTypes.mutations.bulkUpdateToDefaultLocation.useMutation();
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
     utils.viewer.apps.integrations.invalidate();
@@ -199,7 +199,7 @@ export const ConferencingAppsViewWebWrapper = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.mutations.delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(

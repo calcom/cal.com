@@ -34,7 +34,7 @@ export function DuplicateSegmentDialog({
   const session = useSession();
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
-  const { mutate: createSegment, isPending } = trpc.viewer.filterSegments.create.useMutation({
+  const { mutate: createSegment, isPending } = trpc.viewer.filterSegments.mutations.create.useMutation({
     onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_duplicated"), "success");

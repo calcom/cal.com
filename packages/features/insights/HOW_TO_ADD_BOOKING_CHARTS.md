@@ -29,7 +29,7 @@ export const MyNewChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.myNewChartData.useQuery(insightsBookingParams, {
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.myNewChartData.useQuery(insightsBookingParams, {
     staleTime: 180000, // 3 minutes
     refetchOnWindowFocus: false,
     trpc: { context: { skipBatch: true } },

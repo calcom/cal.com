@@ -38,7 +38,7 @@ export default function TeamInviteListItem(props: Props) {
   const utils = trpc.useUtils();
   const team = props.team;
 
-  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
+  const acceptOrLeaveMutation = trpc.viewer.teams.mutations.acceptOrLeave.useMutation({
     onSuccess: async () => {
       showToast(t("success"), "success");
       await utils.viewer.teams.get.invalidate();

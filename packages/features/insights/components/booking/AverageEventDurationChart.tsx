@@ -69,7 +69,7 @@ export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.averageEventDuration.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,

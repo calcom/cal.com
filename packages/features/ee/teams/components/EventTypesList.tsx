@@ -30,10 +30,10 @@ interface Props {
 export function EventTypesList({ table, teamId }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
+  const { data } = trpc.viewer.eventTypes.queries.getByViewer.useQuery({
     filters: { teamIds: [teamId], schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
-  const addMutation = trpc.viewer.teams.addMembersToEventTypes.useMutation({
+  const addMutation = trpc.viewer.teams.mutations.addMembersToEventTypes.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },
@@ -51,7 +51,7 @@ export function EventTypesList({ table, teamId }: Props) {
       table.toggleAllRowsSelected(false);
     },
   });
-  const removeHostsMutation = trpc.viewer.teams.removeHostsFromEventTypes.useMutation({
+  const removeHostsMutation = trpc.viewer.teams.mutations.removeHostsFromEventTypes.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },

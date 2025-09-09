@@ -47,7 +47,7 @@ const useQuickAvailabilityChecks = ({
     };
   });
 
-  const isAvailableQuery = trpc.viewer.slots.isAvailable.useQuery(
+  const isAvailableQuery = trpc.viewer.slots.queries.isAvailable.useQuery(
     {
       slots: slotsToCheck,
       // enabled flag can't be true if eventTypeId is nullish
@@ -91,7 +91,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
       shallow
     );
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
-  const reserveSlotMutation = trpc.viewer.slots.reserveSlot.useMutation({
+  const reserveSlotMutation = trpc.viewer.slots.mutations.reserveSlot.useMutation({
     trpc: {
       context: {
         skipBatch: true,
@@ -101,7 +101,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
       setSlotReservationId(data.uid);
     },
   });
-  const removeSelectedSlot = trpc.viewer.slots.removeSelectedSlotMark.useMutation({
+  const removeSelectedSlot = trpc.viewer.slots.mutations.removeSelectedSlotMark.useMutation({
     trpc: { context: { skipBatch: true } },
   });
 

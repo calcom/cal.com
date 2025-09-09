@@ -115,7 +115,7 @@ export const useTeamMembersWithSegment = ({
   value,
 }: UseTeamMembersWithSegmentProps) => {
   const { data: matchingTeamMembersWithResult, isPending } =
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
+    trpc.viewer.attributes.queries.findTeamMembersMatchingAttributeLogic.useQuery(
       {
         teamId: teamId || 0,
         attributesQueryValue: queryValue as AttributesQueryValue,

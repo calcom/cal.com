@@ -19,7 +19,7 @@ export const DisablePhoneOnlySMSNotificationsSwitch = ({ currentOrg }: GeneralVi
     !!currentOrg.organizationSettings.disablePhoneOnlySMSNotifications
   );
 
-  const mutation = trpc.viewer.organizations.update.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.update.useMutation({
     onSuccess: async () => {
       showToast(t("settings_updated_successfully"), "success");
     },

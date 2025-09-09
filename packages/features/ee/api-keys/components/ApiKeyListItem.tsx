@@ -32,7 +32,7 @@ const ApiKeyListItem = ({
   const isExpired = apiKey?.expiresAt ? apiKey.expiresAt < new Date() : null;
   const neverExpires = apiKey?.expiresAt === null;
 
-  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
+  const deleteApiKey = trpc.viewer.apiKeys.mutations.delete.useMutation({
     async onSuccess() {
       await utils.viewer.apiKeys.list.invalidate();
       revalidateApiKeysList();

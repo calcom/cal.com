@@ -5,7 +5,7 @@ export function OrganizationBanner() {
     data: currentOrganisation,
     isPending: isPendingOrg,
     error,
-  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
+  } = trpc.viewer.organizations.queries.listCurrent.useQuery(undefined, {});
 
   return (
     <>

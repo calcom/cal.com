@@ -27,7 +27,7 @@ export const useInsightsRoutingFacetedUniqueValues = ({
   teamId: number | undefined;
   isAll: boolean;
 }) => {
-  const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
+  const { data: forms } = trpc.viewer.insights.queries.getRoutingFormsForFilters.useQuery(
     {
       userId,
       teamId,
@@ -38,7 +38,7 @@ export const useInsightsRoutingFacetedUniqueValues = ({
     }
   );
 
-  const { data: users } = trpc.viewer.insights.userList.useQuery(
+  const { data: users } = trpc.viewer.insights.queries.userList.useQuery(
     {
       teamId,
       isAll,
@@ -48,7 +48,7 @@ export const useInsightsRoutingFacetedUniqueValues = ({
     }
   );
 
-  const { data: eventTypes } = trpc.viewer.insights.eventTypeList.useQuery(
+  const { data: eventTypes } = trpc.viewer.insights.queries.eventTypeList.useQuery(
     {
       teamId,
       userId,

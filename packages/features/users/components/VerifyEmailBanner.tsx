@@ -13,7 +13,7 @@ export type VerifyEmailBannerProps = {
 function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
   const flags = useFlagMap();
   const { t } = useLocale();
-  const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const mutation = trpc.viewer.auth.mutations.resendVerifyEmail.useMutation();
 
   if (!data || !flags["email-verification"]) return null;
 

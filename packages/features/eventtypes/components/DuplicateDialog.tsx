@@ -70,13 +70,13 @@ const DuplicateDialog = () => {
     }
   }, [searchParams?.get("dialog")]);
 
-  const duplicateMutation = trpc.viewer.eventTypes.heavy.duplicate.useMutation({
+  const duplicateMutation = trpc.viewer.eventTypes.mutations.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}`);
 
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
-      await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+      await utils.viewer.eventTypes.queries.getEventTypesFromGroup.invalidate({
         limit: 10,
         searchQuery: debouncedSearchTerm,
         group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
@@ -151,7 +151,7 @@ const DuplicateDialog = () => {
                   </>
                 }
                 {...register("slug")}
-                 onChange={(e) => {
+                onChange={(e) => {
                   form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
                 }}
               />

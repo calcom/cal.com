@@ -46,7 +46,7 @@ const LicenseSelection = (
   } = props;
   const [value, setValue] = useState<LicenseOption>(initialValue);
   const { t } = useLocale();
-  const mutation = trpc.viewer.deploymentSetup.update.useMutation({
+  const mutation = trpc.viewer.deploymentSetup.mutations.update.useMutation({
     onSuccess,
   });
 
@@ -55,7 +55,7 @@ const LicenseSelection = (
 
   // Use TRPC query for validation
   const { data: licenseValidation, isLoading: checkLicenseLoading } =
-    trpc.viewer.deploymentSetup.validateLicense.useQuery(
+    trpc.viewer.deploymentSetup.queries.validateLicense.useQuery(
       { licenseKey: licenseKeyInput },
       {
         enabled: licenseTouched && licenseKeyInput.trim().length > 0,

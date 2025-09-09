@@ -122,7 +122,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
   const { t: tParam, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
   const { t } = useLocale();
   const [secondsLeft, setSecondsLeft] = useState(30);
-  const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery(
+  const { data } = trpc.viewer.public.queries.stripeCheckoutSession.useQuery(
     {
       stripeCustomerId,
       checkoutSessionId: sessionId,

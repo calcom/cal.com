@@ -58,7 +58,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
-  const sessionMutation = trpc.viewer.me.updateProfile.useMutation({
+  const sessionMutation = trpc.viewer.me.mutations.updateProfile.useMutation({
     onSuccess: (data) => {
       showToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());
@@ -87,7 +87,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       showToast(`${t("session_timeout_change_error")}, ${error.message}`, "error");
     },
   });
-  const passwordMutation = trpc.viewer.auth.changePassword.useMutation({
+  const passwordMutation = trpc.viewer.auth.mutations.changePassword.useMutation({
     onSuccess: () => {
       showToast(t("password_has_been_changed"), "success");
       formMethods.resetField("oldPassword");
@@ -113,7 +113,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     },
   });
 
-  const createAccountPasswordMutation = trpc.viewer.auth.createAccountPassword.useMutation({
+  const createAccountPasswordMutation = trpc.viewer.auth.mutations.createAccountPassword.useMutation({
     onSuccess: () => {
       showToast(t("password_reset_email", { email: user.email }), "success");
     },

@@ -60,7 +60,7 @@ const CreateConnectionDialog = ({
   const utils = trpc.useUtils();
   const form = useForm<FormValues>();
 
-  const mutation = trpc.viewer.saml.update.useMutation({
+  const mutation = trpc.viewer.saml.mutations.update.useMutation({
     async onSuccess() {
       showToast(
         t("sso_connection_created_successfully", {

@@ -25,7 +25,7 @@ const ConnectedVideoStepInner = ({
   setAnyInstalledVideoApps: Dispatch<SetStateAction<boolean>>;
   user: RouterOutputs["viewer"]["me"]["get"];
 }) => {
-  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
+  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.queries.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
 

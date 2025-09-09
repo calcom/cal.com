@@ -40,7 +40,7 @@ export type TimezoneSelectProps = SelectProps & {
   grow?: boolean;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
-  const { data = [], isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
+  const { data = [], isPending } = trpc.viewer.timezones.queries.cityTimezones.useQuery(
     {
       CalComVersion: CALCOM_VERSION,
     },

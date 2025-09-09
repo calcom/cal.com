@@ -19,7 +19,7 @@ export const DeleteDialog = (props: IDeleteDialog) => {
   const { isOpenDialog, setIsOpenDialog, workflowId, additionalFunction } = props;
   const utils = trpc.useUtils();
 
-  const deleteMutation = trpc.viewer.workflows.delete.useMutation({
+  const deleteMutation = trpc.viewer.workflows.mutations.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.workflows.filteredList.invalidate();
       additionalFunction();

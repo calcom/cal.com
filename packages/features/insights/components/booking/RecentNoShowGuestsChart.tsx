@@ -16,7 +16,7 @@ export const RecentNoShowGuestsChart = () => {
   const insightsBookingParams = useInsightsBookingParameters();
   const timeZone = insightsBookingParams.timeZone;
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.recentNoShowGuests.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.recentNoShowGuests.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,

@@ -60,7 +60,10 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isPending } = trpc.viewer.teams.queries.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
+  const { data: team, isPending } = trpc.viewer.teams.queries.get.useQuery(
+    { teamId, isOrg },
+    { enabled: !!teamId }
+  );
   const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.queries.getMembers.useQuery(
     {
       teamIdToExclude: teamId,
@@ -90,7 +93,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as TeamMember[];
   const totalFetched = flatData.length;
 
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+  const publishTeamMutation = trpc.viewer.teams.mutations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },
@@ -208,7 +211,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const session = useSession();
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
   const bookerUrl = member.bookerUrl;
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+  const removeMemberMutation = trpc.viewer.teams.mutations.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.queries.listMembers.invalidate();

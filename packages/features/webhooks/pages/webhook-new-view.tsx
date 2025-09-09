@@ -31,7 +31,7 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
   const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
 
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
+  const createWebhookMutation = trpc.viewer.webhook.mutations.create.useMutation({
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();

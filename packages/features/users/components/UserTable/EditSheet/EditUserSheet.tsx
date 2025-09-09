@@ -31,7 +31,7 @@ export function EditUserSheet({
   const { user: selectedUser } = state.editSheet;
   const orgBranding = useOrgBranding();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
-  const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery(
+  const { data: loadedUser, isPending } = trpc.viewer.organizations.queries.getUser.useQuery(
     {
       userId: selectedUser?.id,
     },
@@ -41,7 +41,7 @@ export function EditUserSheet({
   );
 
   const { data: usersAttributes, isPending: usersAttributesPending } =
-    trpc.viewer.attributes.getByUserId.useQuery(
+    trpc.viewer.attributes.queries.getByUserId.useQuery(
       {
         // @ts-expect-error We know it exists as it is only called when selectedUser is defined
         userId: selectedUser?.id,

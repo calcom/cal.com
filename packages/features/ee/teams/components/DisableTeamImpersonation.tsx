@@ -20,7 +20,7 @@ const DisableTeamImpersonation = ({
 
   const query = trpc.viewer.teams.queries.getMembershipbyUser.useQuery({ teamId, memberId });
 
-  const mutation = trpc.viewer.teams.updateMembership.useMutation({
+  const mutation = trpc.viewer.teams.mutations.updateMembership.useMutation({
     onSuccess: async () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
       await utils.viewer.teams.getMembershipbyUser.invalidate();

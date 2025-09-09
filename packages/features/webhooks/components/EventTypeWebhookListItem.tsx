@@ -40,7 +40,7 @@ export default function EventTypeWebhookListItem(props: {
   const utils = trpc.useUtils();
   const { webhook } = props;
 
-  const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
+  const deleteWebhook = trpc.viewer.webhook.mutations.delete.useMutation({
     async onSuccess() {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       showToast(t("webhook_removed_successfully"), "success");
@@ -49,7 +49,7 @@ export default function EventTypeWebhookListItem(props: {
       await utils.viewer.eventTypes.get.invalidate();
     },
   });
-  const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
+  const toggleWebhook = trpc.viewer.webhook.mutations.edit.useMutation({
     async onSuccess(data) {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       // TODO: Better success message

@@ -23,7 +23,7 @@ export default function DisconnectIntegration(props: {
   const [modalOpen, setModalOpen] = useState(false);
   const utils = trpc.useUtils();
 
-  const mutation = trpc.viewer.credentials.delete.useMutation({
+  const mutation = trpc.viewer.credentials.mutations.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       setModalOpen(false);

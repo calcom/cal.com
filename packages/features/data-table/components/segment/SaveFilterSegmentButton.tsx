@@ -71,7 +71,7 @@ export function SaveFilterSegmentButton() {
 
   const { data: teams } = trpc.viewer.teams.queries.list.useQuery();
 
-  const { mutate: createSegment } = trpc.viewer.filterSegments.create.useMutation({
+  const { mutate: createSegment } = trpc.viewer.filterSegments.mutations.create.useMutation({
     onSuccess: (segment) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_saved"), "success");
@@ -83,7 +83,7 @@ export function SaveFilterSegmentButton() {
     },
   });
 
-  const { mutate: updateSegment } = trpc.viewer.filterSegments.update.useMutation({
+  const { mutate: updateSegment } = trpc.viewer.filterSegments.mutations.update.useMutation({
     onSuccess: () => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_updated"), "success");

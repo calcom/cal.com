@@ -13,7 +13,7 @@ export function RoutingFunnel() {
   const { t } = useLocale();
   const insightsRoutingParams = useInsightsRoutingParameters();
   const { enabledLegend, toggleSeries } = useToggleableLegend(legend);
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.queries.getRoutingFunnelData.useQuery(
     insightsRoutingParams,
     {
       staleTime: 30000,

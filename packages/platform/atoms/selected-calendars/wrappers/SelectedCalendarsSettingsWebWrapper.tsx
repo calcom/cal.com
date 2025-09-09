@@ -149,7 +149,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
     eventTypeId = null,
   } = props;
 
-  const query = trpc.viewer.calendars.connectedCalendars.useQuery(
+  const query = trpc.viewer.calendars.queries.connectedCalendars.useQuery(
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,

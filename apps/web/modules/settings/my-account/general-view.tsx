@@ -63,7 +63,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
 
-  const mutation = trpc.viewer.me.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.mutations.updateProfile.useMutation({
     onSuccess: async (res) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsGeneral();

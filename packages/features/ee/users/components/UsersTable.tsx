@@ -38,7 +38,7 @@ function UsersTableBare() {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const router = useRouter();
 
-  const mutation = trpc.viewer.users.delete.useMutation({
+  const mutation = trpc.viewer.users.mutations.delete.useMutation({
     onSuccess: async () => {
       showToast("User has been deleted", "success");
       // Lets not invalidate the whole cache, just remove the user from the cache.
@@ -81,19 +81,19 @@ function UsersTableBare() {
     }
   );
 
-  const sendPasswordResetEmail = trpc.viewer.admin.sendPasswordReset.useMutation({
+  const sendPasswordResetEmail = trpc.viewer.admin.mutations.sendPasswordReset.useMutation({
     onSuccess: () => {
       showToast("Password reset email has been sent", "success");
     },
   });
 
-  const removeTwoFactor = trpc.viewer.admin.removeTwoFactor.useMutation({
+  const removeTwoFactor = trpc.viewer.admin.mutations.removeTwoFactor.useMutation({
     onSuccess: () => {
       showToast("2FA has been removed", "success");
     },
   });
 
-  const lockUserAccount = trpc.viewer.admin.lockUserAccount.useMutation({
+  const lockUserAccount = trpc.viewer.admin.mutations.lockUserAccount.useMutation({
     onSuccess: ({ userId, locked }) => {
       showToast(locked ? "User was locked" : "User was unlocked", "success");
       utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (cachedData) => {
@@ -119,13 +119,13 @@ function UsersTableBare() {
     },
   });
 
-  const verifyWorkflows = trpc.viewer.admin.verifyWorkflows.useMutation({
+  const verifyWorkflows = trpc.viewer.admin.mutations.verifyWorkflows.useMutation({
     onSuccess: () => {
       showToast("Workflows verified", "success");
       utils.viewer.admin.listPaginated.invalidate();
     },
   });
-  const whitelistUserWorkflows = trpc.viewer.admin.whitelistUserWorkflows.useMutation({
+  const whitelistUserWorkflows = trpc.viewer.admin.mutations.whitelistUserWorkflows.useMutation({
     onSuccess: (data) => {
       showToast(
         data.whitelistWorkflows ? t("user_workflows_whitelisted") : t("user_workflows_unwhitelisted"),

@@ -174,7 +174,7 @@ export const TestForm = ({
   }
 
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
+    trpc.viewer.routingForms.mutations.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
       onSuccess(data) {
         setMembersMatchResult({
           isUsingAttributeWeights: data.isUsingAttributeWeights,

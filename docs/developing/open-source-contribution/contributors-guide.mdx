@@ -94,7 +94,7 @@ export class HashedLinkService { ... }
 
 
 <Note>
-New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.  
+New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.
 We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
 </Note>
 
@@ -104,7 +104,7 @@ Cal.com makes use of the TRPC calls for CRUD operations on the database by utili
 
 Here’s an example usage of useQuery at cal.com:
 ```JS
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
+  const { data: webhooks } = trpc.viewer.webhook.queries.list.useQuery(undefined, {
     suspense: true,
     enabled: session.status === "authenticated",
   });
@@ -112,7 +112,7 @@ Here’s an example usage of useQuery at cal.com:
 
 Here’s an example usage of useMutation at cal.com:
 ```JS
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
+  const createWebhookMutation = trpc.viewer.webhook.mutations.create.useMutation({
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
@@ -127,11 +127,11 @@ Both the examples are taken from [packages/features/webhooks/pages/webhook-new-v
 
 The path prior to the useQuery or useMutation hook represents the actual path of the procedure: in this case, [packages/trpc/server/routers/viewer/webhook](https://github.com/calcom/cal.com/tree/main/packages/trpc/server/routers/viewer/webhook). You will find `create.handler.ts` in case of
 ```js
-trpc.viewer.webhook.create.useMutation()
+trpc.viewer.webhook.mutations.create.useMutation()
 ```
 & `list.handler.ts` in case of
 ```js
-trpc.viewer.webhook.list.useQuery()
+trpc.viewer.webhook.queries.list.useQuery()
 ```
 in the path mentioned above. There is usually a schema file in the same directory for each handler as well (_name_.schema.ts). This is generally how we make use of the TRPC calls in the cal.com repo.
 

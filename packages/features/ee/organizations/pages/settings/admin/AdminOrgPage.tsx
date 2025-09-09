@@ -18,7 +18,7 @@ export function AdminOrgTable() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
-  const updateMutation = trpc.viewer.organizations.adminUpdate.useMutation({
+  const updateMutation = trpc.viewer.organizations.mutations.adminUpdate.useMutation({
     onSuccess: async (_data, variables) => {
       showToast(t("org_has_been_processed"), "success");
       await invalidateQueries(utils, {
@@ -30,7 +30,7 @@ export function AdminOrgTable() {
     },
   });
 
-  const deleteMutation = trpc.viewer.organizations.adminDelete.useMutation({
+  const deleteMutation = trpc.viewer.organizations.mutations.adminDelete.useMutation({
     onSuccess: async (res, variables) => {
       showToast(res.message, "success");
       await invalidateQueries(utils, variables);

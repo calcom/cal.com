@@ -19,7 +19,7 @@ export function InviteMemberModal(props: Props) {
   const { data: platformUser } = usePlatformMe();
   const utils = trpc.useUtils();
   const { t, i18n } = useLocale();
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+  const inviteMemberMutation = trpc.viewer.teams.mutations.inviteMember.useMutation({
     async onSuccess(data) {
       props.dispatch({ type: "CLOSE_MODAL" });
       // Need to figure out if invalidating here is the right approach - we could have already

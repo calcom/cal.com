@@ -130,7 +130,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const params = useParams();
 
   const { step, form, reload, setReload, teamId } = props;
-  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+  const { data: _verifiedNumbers } = trpc.viewer.workflows.queries.getVerifiedNumbers.useQuery(
     { teamId },
     { enabled: !!teamId }
   );
@@ -150,11 +150,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
-  const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
+  const { data: _verifiedEmails } = trpc.viewer.workflows.queries.getVerifiedEmails.useQuery({ teamId });
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
-  const createAgentMutation = trpc.viewer.aiVoiceAgent.create.useMutation({
+  const createAgentMutation = trpc.viewer.aiVoiceAgent.mutations.create.useMutation({
     onSuccess: async (data) => {
       showToast(t("agent_created_successfully"), "success");
 
@@ -174,12 +174,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
 
-  const { data: agentData, isPending: isAgentLoading } = trpc.viewer.aiVoiceAgent.get.useQuery(
+  const { data: agentData, isPending: isAgentLoading } = trpc.viewer.aiVoiceAgent.queries.get.useQuery(
     { id: stepAgentId || "" },
     { enabled: !!stepAgentId }
   );
 
-  const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
+  const updateAgentMutation = trpc.viewer.aiVoiceAgent.mutations.update.useMutation({
     onSuccess: async () => {
       showToast(t("agent_updated_successfully"), "success");
       if (stepAgentId) {
@@ -191,7 +191,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const unsubscribePhoneNumberMutation = trpc.viewer.phoneNumber.update.useMutation({
+  const unsubscribePhoneNumberMutation = trpc.viewer.phoneNumber.mutations.update.useMutation({
     onSuccess: async () => {
       showToast(t("phone_number_unsubscribed_successfully"), "success");
       setIsUnsubscribeDialogOpen(false);
@@ -240,7 +240,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
 
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
+  const { data: actionOptions } = trpc.viewer.workflows.queries.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
@@ -307,7 +307,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     }
   };
 
-  const sendVerificationCodeMutation = trpc.viewer.workflows.sendVerificationCode.useMutation({
+  const sendVerificationCodeMutation = trpc.viewer.workflows.mutations.sendVerificationCode.useMutation({
     onSuccess: async () => {
       showToast(t("verification_code_sent"), "success");
     },
@@ -316,7 +316,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
+  const verifyPhoneNumberMutation = trpc.viewer.workflows.mutations.verifyPhoneNumber.useMutation({
     onSuccess: async (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
@@ -340,7 +340,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+  const sendEmailVerificationCodeMutation = trpc.viewer.auth.mutations.sendVerifyEmailCode.useMutation({
     onSuccess() {
       showToast(t("email_sent"), "success");
     },
@@ -349,7 +349,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
+  const verifyEmailCodeMutation = trpc.viewer.workflows.mutations.verifyEmailCode.useMutation({
     onSuccess: (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setEmailVerified(true);
@@ -370,7 +370,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       }
     },
   });
-  /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
+  /* const testActionMutation = trpc.viewer.workflows.mutations.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
     },

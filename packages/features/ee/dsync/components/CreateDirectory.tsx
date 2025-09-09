@@ -22,7 +22,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
   const form = useForm({ defaultValues });
   const [openModal, setOpenModal] = useState(false);
 
-  const mutation = trpc.viewer.dsync.create.useMutation({
+  const mutation = trpc.viewer.dsync.mutations.create.useMutation({
     async onSuccess() {
       showToast(t("directory_sync_created"), "success");
       await utils.viewer.dsync.invalidate();

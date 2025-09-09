@@ -337,7 +337,7 @@ function OutOfOfficeEntriesListContent() {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.mutations.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);

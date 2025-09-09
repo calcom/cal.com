@@ -57,7 +57,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
   const { reset: resetBrandColors } = brandColorsFormMethods;
 
-  const mutation = trpc.viewer.teams.update.useMutation({
+  const mutation = trpc.viewer.teams.mutations.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },

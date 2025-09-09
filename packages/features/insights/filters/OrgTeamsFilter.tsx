@@ -27,7 +27,7 @@ export const OrgTeamsFilter = () => {
 
   const [query, setQuery] = useState<string>("");
 
-  const { data } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
+  const { data } = trpc.viewer.insights.queries.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
     trpc: {

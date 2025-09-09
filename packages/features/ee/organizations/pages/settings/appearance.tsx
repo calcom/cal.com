@@ -60,7 +60,7 @@ const OrgAppearanceView = ({
     },
   });
 
-  const mutation = trpc.viewer.organizations.update.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
@@ -198,7 +198,7 @@ const OrgAppearanceView = ({
 
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
-  const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: currentOrg, isPending, error } = trpc.viewer.organizations.queries.listCurrent.useQuery();
   const session = useSession();
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 

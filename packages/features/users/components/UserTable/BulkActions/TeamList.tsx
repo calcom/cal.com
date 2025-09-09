@@ -26,11 +26,11 @@ interface Props {
 }
 
 export function TeamListBulkAction({ table }: Props) {
-  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
+  const { data: teams } = trpc.viewer.organizations.queries.getTeams.useQuery();
   const [selectedValues, setSelectedValues] = useState<Set<number>>(new Set());
   const [removeFromTeams, setRemoveFromTeams] = useState<Set<number>>(new Set());
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.organizations.addMembersToTeams.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.addMembersToTeams.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },
@@ -49,7 +49,7 @@ export function TeamListBulkAction({ table }: Props) {
     },
   });
 
-  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+  const removeMemberMutation = trpc.viewer.teams.mutations.removeMember.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },

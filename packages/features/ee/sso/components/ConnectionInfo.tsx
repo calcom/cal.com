@@ -23,7 +23,7 @@ export default function ConnectionInfo({
   const connectionType = connection.type.toUpperCase();
 
   // Delete SSO connection
-  const mutation = trpc.viewer.saml.delete.useMutation({
+  const mutation = trpc.viewer.saml.mutations.delete.useMutation({
     async onSuccess() {
       showToast(
         t("sso_connection_deleted_successfully", {

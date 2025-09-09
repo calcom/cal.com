@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Icon } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 const PaymentStatusView = () => {
   const { t } = useLocale();
@@ -21,7 +21,7 @@ const PaymentStatusView = () => {
   const [organizationCreated, setOrganizationCreated] = useState<boolean>(false);
   const { name } = useOnboardingStore();
 
-  const { data: organization } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+  const { data: organization } = trpc.viewer.organizations.queries.listCurrent.useQuery(undefined, {
     refetchInterval: 2000, // Poll every 2 seconds until org is created
     enabled: !organizationCreated,
   });

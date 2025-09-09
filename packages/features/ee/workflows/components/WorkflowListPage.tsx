@@ -68,7 +68,7 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const router = useRouter();
 
-  const mutation = trpc.viewer.workflows.workflowOrder.useMutation({
+  const mutation = trpc.viewer.workflows.mutations.workflowOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.workflows.filteredList.cancel();

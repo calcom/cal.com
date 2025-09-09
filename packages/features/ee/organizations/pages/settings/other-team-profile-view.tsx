@@ -87,7 +87,7 @@ const OtherTeamProfileView = () => {
     data: team,
     isPending,
     error: teamError,
-  } = trpc.viewer.organizations.getOtherTeam.useQuery(
+  } = trpc.viewer.organizations.queries.getOtherTeam.useQuery(
     { teamId: teamId },
     {
       enabled: !Number.isNaN(teamId),
@@ -124,7 +124,7 @@ const OtherTeamProfileView = () => {
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
-  const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
+  const deleteTeamMutation = trpc.viewer.organizations.mutations.deleteTeam.useMutation({
     async onSuccess() {
       await utils.viewer.organizations.listOtherTeams.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
@@ -146,7 +146,7 @@ const OtherTeamProfileView = () => {
     },
   });
 
-  const publishMutation = trpc.viewer.teams.publish.useMutation({
+  const publishMutation = trpc.viewer.teams.mutations.publish.useMutation({
     async onSuccess(data: { url?: string }) {
       if (data.url) {
         router.push(data.url);

@@ -33,7 +33,7 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
     },
   });
 
-  const mutation = trpc.viewer.teams.update.useMutation({
+  const mutation = trpc.viewer.teams.mutations.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },

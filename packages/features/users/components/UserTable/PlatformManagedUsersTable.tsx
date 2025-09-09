@@ -80,7 +80,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const limit = pageSize;
   const offset = pageIndex * pageSize;
 
-  const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
+  const { data, isPending } = trpc.viewer.organizations.queries.listMembers.useQuery(
     {
       limit,
       offset,

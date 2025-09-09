@@ -12,16 +12,14 @@ export const MostCancelledBookingsTables = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCancelledBookings.useQuery(
-    insightsBookingParams,
-    {
+  const { data, isSuccess, isPending } =
+    trpc.viewer.insights.queries.membersWithMostCancelledBookings.useQuery(insightsBookingParams, {
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
-    }
-  );
+    });
 
   if (isPending) return <LoadingInsight />;
 

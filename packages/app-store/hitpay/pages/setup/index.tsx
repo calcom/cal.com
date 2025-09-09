@@ -102,12 +102,12 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
       }),
   });
 
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "hitpay" });
+  const integrations = trpc.viewer.apps.queries.integrations.useQuery({ variant: "payment", appId: "hitpay" });
   const [HitPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = HitPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
 
-  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.mutations.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");
@@ -117,7 +117,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     },
   });
 
-  const deleteMutation = trpc.viewer.credentials.delete.useMutation({
+  const deleteMutation = trpc.viewer.credentials.mutations.delete.useMutation({
     onSuccess: () => {
       router.push("/apps/hitpay");
     },

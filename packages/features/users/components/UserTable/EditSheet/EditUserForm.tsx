@@ -98,7 +98,7 @@ export function EditForm({
 
   const isOwner = org?.role === MembershipRole.OWNER;
 
-  const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+  const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.queries.getTeamRoles.useQuery(
     // @ts-expect-error this query is only ran when we have an orgId so can ignore this
     { teamId: org?.id },
     {
@@ -144,7 +144,7 @@ export function EditForm({
     return options;
   }, [t, isOwner, teamRoles]);
 
-  const mutation = trpc.viewer.organizations.updateUser.useMutation({
+  const mutation = trpc.viewer.organizations.mutations.updateUser.useMutation({
     onSuccess: () => {
       dispatch({ type: "CLOSE_MODAL" });
       utils.viewer.organizations.listMembers.invalidate();
@@ -280,10 +280,10 @@ type DefaultValueType = {
 
 function AttributesList(props: { selectedUserId: number }) {
   const { data: usersAttributes, isPending: usersAttributesPending } =
-    trpc.viewer.attributes.getByUserId.useQuery({
+    trpc.viewer.attributes.queries.getByUserId.useQuery({
       userId: props.selectedUserId,
     });
-  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes } = trpc.viewer.attributes.queries.list.useQuery();
   const enabledAttributes = attributes?.filter((attr) => attr.enabled);
 
   const { t } = useLocale();

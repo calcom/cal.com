@@ -27,9 +27,9 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
 
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
+  const { data: webhooks } = trpc.viewer.webhook.queries.list.useQuery({ eventTypeId: eventType.id });
 
-  const { data: installedApps, isLoading } = trpc.viewer.apps.integrations.useQuery({
+  const { data: installedApps, isLoading } = trpc.viewer.apps.queries.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
   });
@@ -38,7 +38,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
 
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+  const editWebhookMutation = trpc.viewer.webhook.mutations.edit.useMutation({
     async onSuccess() {
       setEditModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);
@@ -51,7 +51,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     },
   });
 
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
+  const createWebhookMutation = trpc.viewer.webhook.mutations.create.useMutation({
     async onSuccess() {
       setCreateModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);

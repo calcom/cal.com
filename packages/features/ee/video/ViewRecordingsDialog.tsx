@@ -60,7 +60,7 @@ const getTimeSpan = ({ startTime, endTime, locale, hour12 }: GetTimeSpanProps) =
 
 const useRecordingDownload = () => {
   const [recordingId, setRecordingId] = useState("");
-  const { isFetching, data } = trpc.viewer.calVideo.getDownloadLinkOfCalVideoRecordings.useQuery(
+  const { isFetching, data } = trpc.viewer.calVideo.queries.getDownloadLinkOfCalVideoRecordings.useQuery(
     {
       recordingId,
     },
@@ -100,7 +100,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
   const { setRecordingId, isFetching, recordingId } = useRecordingDownload();
   const router = useRouter();
 
-  const { data: recordings } = trpc.viewer.calVideo.getCalVideoRecordings.useQuery(
+  const { data: recordings } = trpc.viewer.calVideo.queries.getCalVideoRecordings.useQuery(
     { roomName },
     {
       suspense: true,

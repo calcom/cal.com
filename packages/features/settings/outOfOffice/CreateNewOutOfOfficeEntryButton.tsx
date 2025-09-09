@@ -22,7 +22,7 @@ const CreateNewOutOfOfficeEntry = ({
 }) => {
   const { t } = useLocale();
   const me = useMeQuery();
-  const { data: orgData } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: orgData } = trpc.viewer.organizations.queries.listCurrent.useQuery();
   const isOrgAdminOrOwner = orgData && checkAdminOrOwner(orgData.user.role);
   const hasTeamOOOAdminAccess = isOrgAdminOrOwner || me?.data?.isTeamAdminOrOwner;
 

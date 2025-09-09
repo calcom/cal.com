@@ -112,7 +112,7 @@ export const MultiplePrivateLinksController = ({
           );
 
           // Query all links at once instead of individually
-          const { data: allLinksData } = trpc.viewer.eventTypes.getHashedLinks.useQuery(
+          const { data: allLinksData } = trpc.viewer.eventTypes.queries.getHashedLinks.useQuery(
             { linkIds: convertedValue.map((val) => val.link) },
             {
               enabled: convertedValue.length > 0,

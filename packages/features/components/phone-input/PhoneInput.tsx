@@ -142,7 +142,7 @@ function BasePhoneInputWeb({
 
 const useDefaultCountry = () => {
   const [defaultCountry, setDefaultCountry] = useState("us");
-  const query = trpc.viewer.public.countryCode.useQuery(undefined, {
+  const query = trpc.viewer.public.queries.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,

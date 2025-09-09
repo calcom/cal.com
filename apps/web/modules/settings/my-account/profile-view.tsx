@@ -73,7 +73,7 @@ const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.mutations.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
@@ -101,7 +101,7 @@ const ProfileView = ({ user }: Props) => {
       }
     },
   });
-  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
+  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.mutations.unlinkConnectedAccount.useMutation({
     onSuccess: async (res) => {
       showToast(t(res.message), "success");
       utils.viewer.me.invalidate();
@@ -112,7 +112,7 @@ const ProfileView = ({ user }: Props) => {
     },
   });
 
-  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
+  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.mutations.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
       setShowSecondaryEmailModalOpen(false);
       setNewlyAddedSecondaryEmail(res?.data?.email);
@@ -124,7 +124,7 @@ const ProfileView = ({ user }: Props) => {
     },
   });
 
-  const resendVerifyEmailMutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const resendVerifyEmailMutation = trpc.viewer.auth.mutations.resendVerifyEmail.useMutation();
 
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
   const [tempFormValues, setTempFormValues] = useState<ExtendedFormValues | null>(null);
@@ -154,7 +154,7 @@ const ProfileView = ({ user }: Props) => {
     }
   };
 
-  const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
+  const confirmPasswordMutation = trpc.viewer.auth.mutations.verifyPassword.useMutation({
     onSuccess() {
       if (tempFormValues) updateProfileMutation.mutate(tempFormValues);
       setConfirmPasswordOpen(false);
@@ -168,7 +168,7 @@ const ProfileView = ({ user }: Props) => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.viewer.me.deleteMe.useMutation({
+  const deleteMeMutation = trpc.viewer.me.mutations.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
@@ -176,7 +176,7 @@ const ProfileView = ({ user }: Props) => {
       revalidateSettingsProfile();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.mutations.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
@@ -586,7 +586,7 @@ const ProfileForm = ({
   };
 
   const { data: usersAttributes, isPending: usersAttributesPending } =
-    trpc.viewer.attributes.getByUserId.useQuery({
+    trpc.viewer.attributes.queries.getByUserId.useQuery({
       userId: user.id,
     });
 

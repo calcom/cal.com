@@ -37,7 +37,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const createMutation = trpc.viewer.workflows.create.useMutation({
+  const createMutation = trpc.viewer.workflows.mutations.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace(`/workflows/${workflow.id}`);
     },

@@ -24,7 +24,7 @@ export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?
     shallow
   );
 
-  const event = trpc.viewer.public.event.useQuery(
+  const event = trpc.viewer.public.queries.event.useQuery(
     {
       username: username ?? "",
       eventSlug: eventSlug ?? "",

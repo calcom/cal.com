@@ -31,7 +31,7 @@ export function SAMLLogin({
   const methods = useFormContext();
   const [lastUsed, setLastUsed] = useLastUsed();
 
-  const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
+  const mutation = trpc.viewer.public.mutations.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
       setLastUsed("saml");
       await signIn("saml", {}, { tenant: data.tenant, product: data.product });

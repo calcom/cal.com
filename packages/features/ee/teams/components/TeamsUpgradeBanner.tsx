@@ -16,7 +16,7 @@ export function TeamsUpgradeBanner({ data }: TeamsUpgradeBannerProps) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+  const publishTeamMutation = trpc.viewer.teams.mutations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },

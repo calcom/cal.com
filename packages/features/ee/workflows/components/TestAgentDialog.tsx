@@ -25,7 +25,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId, form }: T
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
-  const testCallMutation = trpc.viewer.aiVoiceAgent.testCall.useMutation({
+  const testCallMutation = trpc.viewer.aiVoiceAgent.mutations.testCall.useMutation({
     onSuccess: async (data) => {
       showToast(data?.message ?? t("call_initiated_successfully"), "success");
       onOpenChange(false);

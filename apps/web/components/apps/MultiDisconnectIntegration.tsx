@@ -36,7 +36,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
   } | null>(null);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
-  const mutation = trpc.viewer.credentials.delete.useMutation({
+  const mutation = trpc.viewer.credentials.mutations.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       onSuccess && onSuccess();

@@ -86,14 +86,14 @@ export default function BillingCredits() {
 
   const shouldRender = IS_SMS_CREDITS_ENABLED && !(orgId && !isOrgScopedPath && !orgBranding?.slug);
 
-  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
+  const { data: creditsData, isLoading } = trpc.viewer.credits.queries.getAllCredits.useQuery(
     { teamId },
     { enabled: shouldRender }
   );
 
   if (!shouldRender) return null;
 
-  const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
+  const buyCreditsMutation = trpc.viewer.credits.mutations.buyCredits.useMutation({
     onSuccess: (data) => {
       if (data.sessionUrl) {
         router.push(data.sessionUrl);

@@ -11,13 +11,16 @@ export const PopularEventsTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.popularEvents.useQuery(insightsBookingParams, {
-    staleTime: 180000,
-    refetchOnWindowFocus: false,
-    trpc: {
-      context: { skipBatch: true },
-    },
-  });
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.popularEvents.useQuery(
+    insightsBookingParams,
+    {
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isPending) return <LoadingInsight />;
 

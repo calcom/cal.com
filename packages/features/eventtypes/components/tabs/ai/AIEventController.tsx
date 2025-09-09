@@ -146,7 +146,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   const [calApiKey, setCalApiKey] = useState("");
 
-  const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
+  const createCallMutation = trpc.viewer.organizations.mutations.createPhoneCall.useMutation({
     onSuccess: (data) => {
       if (!!data?.callId) {
         showToast("Phone Call Created successfully", "success");

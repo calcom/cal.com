@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ZTestTriggerInputSchema } from "@calcom/trpc/server/routers/viewer/webhook/testTrigger.schema";
+import { ZTestTriggerInputSchema } from "@calcom/trpc/server/routers/viewer/webhook/mutations/testTrigger.schema";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
@@ -14,7 +14,7 @@ export default function WebhookTestDisclosure() {
   const [subscriberUrl, webhookSecret]: [string, string] = useWatch({ name: ["subscriberUrl", "secret"] });
   const payloadTemplate = useWatch({ name: "payloadTemplate" }) || null;
   const { t } = useLocale();
-  const mutation = trpc.viewer.webhook.testTrigger.useMutation({
+  const mutation = trpc.viewer.webhook.mutations.testTrigger.useMutation({
     onError(err) {
       showToast(err.message, "error");
     },

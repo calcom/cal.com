@@ -13,7 +13,7 @@ interface IWipeMyCalActionButtonProps {
 const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
   const { bookingsEmpty, bookingStatus } = props;
   const [openDialog, setOpenDialog] = useState(false);
-  const { isSuccess, isPending, data } = trpc.viewer.apps.integrations.useQuery({
+  const { isSuccess, isPending, data } = trpc.viewer.apps.queries.integrations.useQuery({
     variant: "other",
     onlyInstalled: undefined,
   });

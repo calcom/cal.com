@@ -192,7 +192,7 @@ export function AgentConfigurationSheet({
   //   name: "generalTools",
   // });
 
-  const buyNumberMutation = trpc.viewer.phoneNumber.buy.useMutation({
+  const buyNumberMutation = trpc.viewer.phoneNumber.mutations.buy.useMutation({
     onSuccess: async (data: { checkoutUrl?: string; message?: string; phoneNumber?: unknown }) => {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
@@ -212,7 +212,7 @@ export function AgentConfigurationSheet({
     },
   });
 
-  const importNumberMutation = trpc.viewer.phoneNumber.import.useMutation({
+  const importNumberMutation = trpc.viewer.phoneNumber.mutations.import.useMutation({
     onSuccess: async (_data: unknown) => {
       showToast(t("phone_number_imported_successfully"), "success");
       setIsImportDialogOpen(false);
@@ -228,7 +228,7 @@ export function AgentConfigurationSheet({
     },
   });
 
-  const cancelSubscriptionMutation = trpc.viewer.phoneNumber.cancel.useMutation({
+  const cancelSubscriptionMutation = trpc.viewer.phoneNumber.mutations.cancel.useMutation({
     onSuccess: async (data: { message?: string }) => {
       showToast(data.message || t("phone_number_subscription_cancelled_successfully"), "success");
       setCancellingNumberId(null);
@@ -244,7 +244,7 @@ export function AgentConfigurationSheet({
     },
   });
 
-  const deletePhoneNumberMutation = trpc.viewer.phoneNumber.delete.useMutation({
+  const deletePhoneNumberMutation = trpc.viewer.phoneNumber.mutations.delete.useMutation({
     onSuccess: async () => {
       showToast(t("phone_number_deleted_successfully"), "success");
       setNumberToDelete(null);
@@ -259,7 +259,7 @@ export function AgentConfigurationSheet({
     },
   });
 
-  const agentQuery = trpc.viewer.aiVoiceAgent.get.useQuery(
+  const agentQuery = trpc.viewer.aiVoiceAgent.queries.get.useQuery(
     { id: agentId || "" },
     {
       enabled: !!agentId,
@@ -267,7 +267,7 @@ export function AgentConfigurationSheet({
     }
   );
 
-  const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
+  const updateAgentMutation = trpc.viewer.aiVoiceAgent.mutations.update.useMutation({
     onSuccess: () => {
       if (agentId) {
         agentQuery.refetch();

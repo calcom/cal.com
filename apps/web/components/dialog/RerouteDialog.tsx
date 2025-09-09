@@ -315,7 +315,7 @@ const NewRoutingManager = ({
   const enableChosenEventTypeQuery = !!chosenEventTypeId;
   // TODO: Get bare minimum eventType details
   const { data: chosenEventTypeData, isPending: isChosenEventTypePending } =
-    trpc.viewer.eventTypes.get.useQuery(
+    trpc.viewer.eventTypes.queries.get.useQuery(
       // enabled prop ensures that the query is not run if the chosenEventTypeId is not there
       { id: chosenEventTypeId! },
       {
@@ -703,7 +703,7 @@ const RerouteDialogContentAndFooter = ({
     data: responseWithForm,
     isPending: isRoutingFormLoading,
     error: formResponseFetchError,
-  } = trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
+  } = trpc.viewer.appRoutingForms.queries.getResponseWithFormFields.useQuery({
     formResponseId: booking.routedFromRoutingFormReponse.id,
   });
 
@@ -773,7 +773,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
   >([]);
 
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
+    trpc.viewer.routingForms.mutations.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
       onSuccess(data) {
         setTeamMembersMatchingAttributeLogic(data.result ? data.result.users : data.result);
       },

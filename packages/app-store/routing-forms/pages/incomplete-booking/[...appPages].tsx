@@ -24,11 +24,11 @@ import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
+  const { data, isLoading } = trpc.viewer.appRoutingForms.queries.getIncompleteBookingSettings.useQuery({
     formId: form.id,
   });
 
-  const mutation = trpc.viewer.appRoutingForms.saveIncompleteBookingSettings.useMutation({
+  const mutation = trpc.viewer.appRoutingForms.mutations.saveIncompleteBookingSettings.useMutation({
     onSuccess: () => {
       showToast(t("success"), "success");
     },

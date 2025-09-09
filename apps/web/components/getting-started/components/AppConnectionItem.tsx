@@ -28,7 +28,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
   const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const setDefaultConferencingApp = trpc.viewer.apps.setDefaultConferencingApp.useMutation({
+  const setDefaultConferencingApp = trpc.viewer.apps.mutations.setDefaultConferencingApp.useMutation({
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
     },

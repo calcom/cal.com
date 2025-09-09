@@ -12,7 +12,7 @@ export const HighestNoShowHostTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostNoShow.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.membersWithMostNoShow.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,

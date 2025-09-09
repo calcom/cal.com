@@ -12,7 +12,7 @@ export const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostBookings.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.queries.membersWithMostBookings.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
