@@ -94,7 +94,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     logger.info("Office365 Calendar: Received calendar response", {
-      // @ts-expect-error - TODO: add proper NextAuth session typing
       userId: req.session?.user?.id,
       status: calRequest.status,
       statusText: calRequest.statusText,
@@ -104,7 +103,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let calBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(calRequest);
 
     logger.info("Office365 Calendar: handleErrorsJson completed", {
-      // @ts-expect-error - TODO: add proper NextAuth session typing
       userId: req.session?.user?.id,
       calendarCount: calBody.value.length ?? 0,
     });
@@ -126,19 +124,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // @ts-expect-error - TODO: add proper NextAuth session typing
   if (defaultCalendar?.id && req.session?.user?.id) {
     const credential = await prisma.credential.create({
       data: {
         type: "office365_calendar",
         key: responseBody,
-        // @ts-expect-error - TODO: add proper NextAuth session typing
         userId: req.session?.user?.id,
         appId: "office365-calendar",
       },
     });
     const selectedCalendarWhereUnique = {
-      // @ts-expect-error - TODO: add proper NextAuth session typing
       userId: req.session?.user.id,
       integration: "office365_calendar",
       externalId: defaultCalendar.id,

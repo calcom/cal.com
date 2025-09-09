@@ -114,7 +114,6 @@ const customTemplate = (
     return variable.replace("{", "").replace("}", "");
   });
 
-  // event date/time with formatting
   // @ts-expect-error - Parameter 'variable' implicitly has an 'any' type
   customInputvariables?.forEach((variable) => {
     if (
