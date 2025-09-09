@@ -863,7 +863,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             const stats = response.body.data;
             expect(stats.created).toEqual(4);
-            expect(stats.completed).toEqual(4);
+            expect(stats.accepted).toEqual(4);
             expect(stats.rescheduled).toEqual(0);
             expect(stats.cancelled).toEqual(0);
             expect(stats.pending).toEqual(0);
@@ -886,7 +886,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             const stats = response.body.data;
             expect(stats.created).toEqual(2);
-            expect(stats.completed).toEqual(2);
+            expect(stats.accepted).toEqual(2);
             expect(typeof stats.averageRating).toBe("number");
             expect(typeof stats.csatScore).toBe("number");
           });
@@ -905,7 +905,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             const stats = response.body.data;
             expect(stats.created).toEqual(1);
-            expect(stats.completed).toEqual(1);
+            expect(stats.accepted).toEqual(1);
             expect(typeof stats.averageRating).toBe("number");
             expect(typeof stats.csatScore).toBe("number");
           });
@@ -929,7 +929,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             const stats = response.body.data;
             expect(stats.created).toEqual(4);
-            expect(stats.completed).toEqual(4);
+            expect(stats.accepted).toEqual(4);
           });
       });
 
@@ -951,7 +951,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             const stats = response.body.data;
             expect(stats.created).toEqual(0);
-            expect(stats.completed).toEqual(0);
+            expect(stats.accepted).toEqual(0);
             expect(stats.rescheduled).toEqual(0);
             expect(stats.cancelled).toEqual(0);
             expect(stats.pending).toEqual(0);
@@ -1004,7 +1004,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             const stats = response.body.data;
             expect(stats.created).toEqual(4);
-            expect(stats.completed).toEqual(4);
+            expect(stats.accepted).toEqual(4);
             expect(stats.cancelled).toEqual(0);
             expect(stats.pending).toEqual(0);
           });
@@ -1037,7 +1037,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             const stats = response.body.data;
             expect(stats.created).toEqual(0);
-            expect(stats.completed).toEqual(0);
+            expect(stats.accepted).toEqual(0);
             expect(stats.cancelled).toEqual(0);
             expect(stats.pending).toEqual(0);
             expect(stats.rescheduled).toEqual(0);

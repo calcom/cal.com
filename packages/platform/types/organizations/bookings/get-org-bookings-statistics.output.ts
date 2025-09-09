@@ -10,8 +10,8 @@ class BookingsStatistics {
   created!: number;
 
   @IsNumber()
-  @ApiProperty({ example: 120, description: "Number of completed bookings" })
-  completed!: number;
+  @ApiProperty({ example: 120, description: "Number of accepted bookings" })
+  accepted!: number;
 
   @IsNumber()
   @ApiProperty({ example: 15, description: "Number of rescheduled bookings" })
@@ -30,7 +30,7 @@ class BookingsStatistics {
   noShow!: number;
 
   @IsNumber()
-  @ApiProperty({ example: 4.2, description: "Average rating from completed bookings" })
+  @ApiProperty({ example: 4.2, description: "Average rating from accepted bookings" })
   averageRating!: number;
 
   @IsNumber()

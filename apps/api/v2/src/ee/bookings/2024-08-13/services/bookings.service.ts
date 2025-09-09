@@ -1138,7 +1138,7 @@ export class BookingsService_2024_08_13 {
 
     const statistics = {
       created: bookings.length,
-      completed: bookings.filter((b) => b.status === "ACCEPTED").length,
+      accepted: bookings.filter((b) => b.status === "ACCEPTED").length,
       rescheduled: bookings.filter((b) => b.rescheduled).length,
       cancelled: bookings.filter((b) => b.status === "CANCELLED").length,
       pending: bookings.filter((b) => b.status === "PENDING" || b.status === "AWAITING_HOST").length,
