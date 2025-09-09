@@ -127,10 +127,14 @@ checksums:
     price: 6e3258d4cf5835177d174a5259a9cfd6
     paid: 5e2fa7af50cd5d877d9c54fd87bb3bb5
     refunded: dc61a49d169634b04452274c9c82d7c5
+    record: 30b4a4f437ee201679741ebe5a34f769
+    transcribe: ae093eae9d0ba608221ed83ddb844ede
     payment: 95142d3fd8b6a6f551aba771842e9c11
     missing_card_fields: 4058c35da951b5305375f531f58db045
     pay_now: 9f0624f296aa513df5d1072ce5026a31
     general_prompt: a2020a9450e308f870cecbfe60fc6929
+    transcription_powered_by_ai: 29ea459ce565fda50b7a732bc20f256b
+    start_or_stop_recording: c9def3afdbea73af80650647d07aed04
     begin_message: 84cad8e85b31272d1fac456e465ece28
     codebase_has_to_stay_opensource: 1c31cfa7fff0f771d5799146390e01d0
     cannot_repackage_codebase: 357fd3ad360ae6be67c7d044227b7675
@@ -663,6 +667,8 @@ checksums:
     somewhere_else: f8618b6cc854e1f7c8abb99bcdc5bce1
     custom_attendee_location: 6a31f12d40c3d3e6a9605faf157479c8
     continue_as_guest: 4728780da99534520c138768d3eb7b0a
+    join_as_guest: 9fe30abb68ee6b7eada0e75766853598
+    ideal_for_one_time_calls: 221360f17abf0eb24191c72f77a9568b
     any_location: edad9a60bd6a08f556b6ed2b7c74d562
     yes: ec580fd11a45779b039466f1e35eed2a
     no: 8c708225830b06df2d1141c536f2a0d6
@@ -1416,10 +1422,13 @@ checksums:
     after_hosts_cal_video_no_show: 3ad095ab31649d79abbaf4fff4460bf5
     after_guests_cal_video_no_show: edf9db3ae09d0d89406efb1656d31820
     join_video_call: 914c9291764528c3aabc10909bb0747b
-    sign_in_to_cal_com: c8ce993be525694e8050d00d8acc575b
+    sign_in_to_cal_com: 766281ee9f94c3fd32f464efc33234bc
     log_in_to_cal_com: 8c4f9de09d60b5513e52fa120a270705
     track_your_meetings: 416dea072f9cf5cdd88c6ab1096b12a7
+    track_meetings_and_manage_schedule: 4133e447b4d636b68863e3fe0e69dd1e
+    failed_to_join_call: 03224c6e11166ebf1c8394e14c8d6a19
     choose_how_you_d_like_to_join_call: e7a484b87bb6d74f429f7a9ce75875e4
+    choose_how_you_d_like_to_appear_on_the_call: 6738ea979c61bef0171f3498f940c313
     new_event_trigger: fbee38b5765412419941add7ff1e3fb9
     email_host_action: 9566929caf21c96cedc11447e1de34ff
     email_attendee_action: 3ca2ca348baef93742f3a1889ffcc96b
@@ -1646,6 +1655,9 @@ checksums:
     embeds: b4eddec9f7233622c508db34d1ac1d45
     impersonation: 5cc8e11e5a89d71adf5882da844a33f1
     impersonation_description: fab0bda0e574a42f2208f0a7ea641f96
+    recent_impersonations: e36ff59adaecb6bc12717260914f1dea
+    quick_impersonate: 794eda9730f3ca5e682ae074dfdfc94d
+    no_recent_impersonations: 42b140bd547053431fb157710abb4ad7
     users: fe42f97809c24d700d3912c8d02ed452
     user: 61073457a5c3901084b557d065f876be
     profile_description: fe677c83722fcbddcdc6a3b349cd1d8f

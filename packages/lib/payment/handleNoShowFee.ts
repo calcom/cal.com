@@ -69,23 +69,17 @@ export const handleNoShowFee = async ({
     throw new Error("User ID is required");
   }
 
-  const attendeesListPromises = [];
+  const bookingAttendee = booking.attendees[0];
 
-  for (const attendee of booking.attendees) {
-    const attendeeObject = {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-    };
-
-    attendeesListPromises.push(attendeeObject);
-  }
-
-  const attendeesList = await Promise.all(attendeesListPromises);
+  const attendee = {
+    name: bookingAttendee.name,
+    email: bookingAttendee.email,
+    timeZone: bookingAttendee.timeZone,
+    language: {
+      translate: await getTranslation(bookingAttendee.locale ?? "en", "common"),
+      locale: bookingAttendee.locale ?? "en",
+    },
+  };
 
   const evt: CalendarEvent = {
     type: (booking?.eventType?.title as string) || booking?.title,
@@ -98,7 +92,7 @@ export const handleNoShowFee = async ({
       timeZone: booking.user?.timeZone || "",
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
-    attendees: attendeesList,
+    attendees: [attendee],
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     paymentInfo: {
       amount: payment.amount,
@@ -164,7 +158,7 @@ export const handleNoShowFee = async ({
       throw new Error("Payment processing failed");
     }
 
-    await sendNoShowFeeChargedEmail(attendeesListPromises[0], evt, eventTypeMetdata);
+    await sendNoShowFeeChargedEmail(attendee, evt, eventTypeMetdata);
 
     return paymentData;
   } catch (err) {
