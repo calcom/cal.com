@@ -1,6 +1,6 @@
 import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -128,10 +128,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
   const params = useParams();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const { step, form, reload, setReload, teamId, onSaveWorkflow } = props;
+  const { step, form, reload, setReload, teamId } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
     { enabled: !!teamId }
@@ -160,6 +158,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (data) => {
       showToast(t("agent_created_successfully"), "success");
 
+      // Update the step's agentId in the form state
       if (step) {
         const stepIndex = step.stepNumber - 1;
         form.setValue(`steps.${stepIndex}.agentId`, data.id);
@@ -240,62 +239,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
-  const [autoAgentCreationAttempted, setAutoAgentCreationAttempted] = useState(false);
-
-  useEffect(() => {
-    const autoCreateAgent = searchParams?.get("autoCreateAgent");
-
-    if (
-      autoCreateAgent === "true" &&
-      !autoAgentCreationAttempted &&
-      step &&
-      step.action === WorkflowActions.CAL_AI_PHONE_CALL &&
-      !stepAgentId &&
-      step.id &&
-      onSaveWorkflow
-    ) {
-      setAutoAgentCreationAttempted(true);
-
-      const createAgent = async () => {
-        try {
-          await onSaveWorkflow?.();
-
-          const updatedSteps = form.getValues("steps");
-          const currentStepIndex = step.stepNumber - 1;
-          const updatedStep = updatedSteps[currentStepIndex];
-
-          if (updatedStep?.id) {
-            createAgentMutation.mutate({
-              teamId,
-              workflowStepId: updatedStep.id,
-            });
-
-            const url = new URL(window.location.href);
-            url.searchParams.delete("autoCreateAgent");
-            router.replace(url.pathname + url.search);
-          } else {
-            showToast(t("failed_to_get_workflow_step_id"), "error");
-          }
-        } catch (error) {
-          console.error("Failed to auto-create agent:", error);
-          showToast(t("failed_to_create_agent"), "error");
-        }
-      };
-
-      createAgent();
-    }
-  }, [
-    searchParams,
-    autoAgentCreationAttempted,
-    step,
-    stepAgentId,
-    teamId,
-    onSaveWorkflow,
-    createAgentMutation,
-    form,
-    t,
-    router,
-  ]);
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
@@ -738,8 +681,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       color="secondary"
                       onClick={async () => {
                         // save the workflow first to get the step id
-                        if (onSaveWorkflow) {
-                          await onSaveWorkflow();
+                        if (props.onSaveWorkflow) {
+                          await props.onSaveWorkflow();
 
                           // After saving, get the updated step ID from the form
                           const updatedSteps = form.getValues("steps");
