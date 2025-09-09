@@ -1,8 +1,13 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
+import {
+  SlotsInputService_2024_09_04,
+  InternalGetSlotsQuery,
+  InternalGetSlotsQueryWithRouting,
+} from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
@@ -17,9 +22,13 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getAvailableSlots } from "@calcom/platform-libraries/slots";
-import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
-import { Booking, EventType } from "@calcom/prisma/client";
+import { SlotFormat } from "@calcom/platform-enums";
+import {
+  GetSlotsInput_2024_09_04,
+  GetSlotsInputWithRouting_2024_09_04,
+  ReserveSlotInput_2024_09_04,
+} from "@calcom/platform-types";
+import { EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({
@@ -29,6 +38,7 @@ const eventTypeMetadataSchema = z
 
 const DEFAULT_RESERVATION_DURATION = 5;
 
+type InternalSlotsQuery = InternalGetSlotsQuery | InternalGetSlotsQueryWithRouting;
 @Injectable()
 export class SlotsService_2024_09_04 {
   constructor(
@@ -38,24 +48,22 @@ export class SlotsService_2024_09_04 {
     private readonly slotsInputService: SlotsInputService_2024_09_04,
     private readonly membershipsService: MembershipsService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly teamsRepository: TeamsRepository
+    private readonly teamsRepository: TeamsRepository,
+    private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
-  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
+  private async fetchAndFormatSlots(queryTransformed: InternalSlotsQuery, format?: SlotFormat) {
     try {
-      const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
-      const availableSlots: TimeSlots = await getAvailableSlots({
-        input: {
-          ...queryTransformed,
-          routingFormResponseId: queryTransformed.routingFormResponseId ?? undefined,
-        },
+      const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
+        input: queryTransformed,
         ctx: {},
       });
+
       const formatted = await this.slotsOutputService.getAvailableSlots(
         availableSlots,
         queryTransformed.eventTypeId,
         queryTransformed.duration,
-        query.format,
+        format,
         queryTransformed.timeZone
       );
 
@@ -70,6 +78,16 @@ export class SlotsService_2024_09_04 {
       }
       throw error;
     }
+  }
+
+  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
+    const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+    return this.fetchAndFormatSlots(queryTransformed, query.format);
+  }
+
+  async getAvailableSlotsWithRouting(query: GetSlotsInputWithRouting_2024_09_04) {
+    const queryTransformed = await this.slotsInputService.transformRoutingGetSlotsQuery(query);
+    return this.fetchAndFormatSlots(queryTransformed, query.format);
   }
 
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {

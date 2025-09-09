@@ -57,7 +57,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
     }
   }
 
-  const { profile } = await UserRepository.enrichUserWithItsProfile({
+  const { profile } = await new UserRepository(prisma).enrichUserWithItsProfile({
     user: user,
   });
 

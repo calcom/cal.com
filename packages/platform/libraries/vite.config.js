@@ -25,6 +25,9 @@ export default defineConfig({
         workflows: resolve(__dirname, "./workflows.ts"),
         slots: resolve(__dirname, "./slots.ts"),
         conferencing: resolve(__dirname, "./conferencing.ts"),
+        repositories: resolve(__dirname, "./repositories.ts"),
+        bookings: resolve(__dirname, "./bookings.ts"),
+        "private-links": resolve(__dirname, "./private-links.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",
@@ -184,6 +187,9 @@ export default defineConfig({
   plugins: [react(), dts()],
   resolve: {
     alias: {
+      "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
+      "./server/i18n": path.resolve(__dirname, "./i18n.ts"),
+      "../server/i18n": path.resolve(__dirname, "./i18n.ts"),
       "@": path.resolve(__dirname, "./src"),
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
       "@calcom/trpc": resolve("../../trpc"),

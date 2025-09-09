@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
@@ -36,6 +36,16 @@ import {
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   OnAfterCalVideoHostsNoShowTriggerDto,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  OnNoShowUpdateTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnPaidTriggerDto,
+  BOOKING_REQUESTED,
+  BOOKING_REJECTED,
+  BOOKING_PAYMENT_INITIATED,
+  BOOKING_PAID,
+  BOOKING_NO_SHOW_UPDATED,
 } from "./workflow-trigger.input";
 
 export type UpdateWorkflowStepDto =
@@ -113,6 +123,28 @@ export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWha
   id?: number;
 }
 
+@ApiExtraModels(
+  OnBeforeEventTriggerDto,
+  OnAfterEventTriggerDto,
+  OnCancelTriggerDto,
+  OnCreationTriggerDto,
+  OnRescheduleTriggerDto,
+  OnNoShowUpdateTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnPaidTriggerDto,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterCalVideoHostsNoShowTriggerDto,
+  UpdateEmailAddressWorkflowStepDto,
+  UpdateEmailAttendeeWorkflowStepDto,
+  UpdateEmailHostWorkflowStepDto,
+  UpdatePhoneAttendeeWorkflowStepDto,
+  UpdatePhoneWhatsAppNumberWorkflowStepDto,
+  UpdateWhatsAppAttendeePhoneWorkflowStepDto,
+  UpdatePhoneNumberWorkflowStepDto,
+  BaseWorkflowTriggerDto
+)
 export class UpdateWorkflowDto {
   @ApiPropertyOptional({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
@@ -128,6 +160,25 @@ export class UpdateWorkflowDto {
   @IsOptional()
   activation?: WorkflowActivationDto;
 
+  @ApiPropertyOptional({
+    description: "Trigger configuration for the workflow",
+    oneOf: [
+      { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
+      { $ref: getSchemaPath(OnAfterEventTriggerDto) },
+      { $ref: getSchemaPath(OnCancelTriggerDto) },
+      { $ref: getSchemaPath(OnCreationTriggerDto) },
+      { $ref: getSchemaPath(OnRescheduleTriggerDto) },
+      { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnRejectedTriggerDto) },
+      { $ref: getSchemaPath(OnRequestedTriggerDto) },
+      { $ref: getSchemaPath(OnPaidTriggerDto) },
+      { $ref: getSchemaPath(OnPaymentInitiatedTriggerDto) },
+      { $ref: getSchemaPath(OnNoShowUpdateTriggerDto) },
+    ],
+  })
+  @IsOptional()
+  @ValidateNested()
   @Type(() => BaseWorkflowTriggerDto, {
     discriminator: {
       property: "type",
@@ -139,30 +190,40 @@ export class UpdateWorkflowDto {
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
         { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
+        { value: OnRequestedTriggerDto, name: BOOKING_REQUESTED },
+        { value: OnRejectedTriggerDto, name: BOOKING_REJECTED },
+        { value: OnPaymentInitiatedTriggerDto, name: BOOKING_PAYMENT_INITIATED },
+        { value: OnPaidTriggerDto, name: BOOKING_PAID },
+        { value: OnNoShowUpdateTriggerDto, name: BOOKING_NO_SHOW_UPDATED },
       ],
     },
   })
-  trigger!:
+  trigger?:
     | OnAfterEventTriggerDto
     | OnBeforeEventTriggerDto
     | OnCreationTriggerDto
     | OnRescheduleTriggerDto
     | OnCancelTriggerDto
+    | OnRejectedTriggerDto
+    | OnRequestedTriggerDto
+    | OnPaidTriggerDto
+    | OnPaymentInitiatedTriggerDto
+    | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
     | OnAfterCalVideoHostsNoShowTriggerDto;
+
   @ApiPropertyOptional({
     description: "Steps to execute as part of the workflow",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateEmailHostWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
-      ],
-    },
+    oneOf: [
+      { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdateEmailHostWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
+    ],
+    type: "array",
   })
   @ValidateNested({ each: true })
   @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })

@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { GOOGLE_MEET_TYPE } from "@calcom/platform-constants";
 
@@ -9,7 +9,7 @@ import { GOOGLE_MEET_TYPE } from "@calcom/platform-constants";
 export class ConferencingRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  private readonly credentialSelect = Prisma.validator<Prisma.CredentialSelect>()({
+  private readonly credentialSelect = {
     id: true,
     type: true,
     userId: true,
@@ -20,7 +20,7 @@ export class ConferencingRepository {
     billingCycleStart: true,
     invalid: true,
     delegationCredentialId: true,
-  });
+  } satisfies Prisma.CredentialSelect;
 
   async findConferencingApps(userId: number) {
     return this.dbRead.prisma.credential.findMany({

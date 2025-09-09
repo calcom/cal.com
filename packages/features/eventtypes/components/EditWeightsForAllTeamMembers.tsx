@@ -143,19 +143,25 @@ export const EditWeightsForAllTeamMembers = ({
 
   const handleSave = () => {
     // Create a map of existing hosts for easy lookup
-    const existingHostsMap = new Map(value.map((host) => [host.userId.toString(), host]));
+    const existingHostsMap = new Map(
+      value.filter((host) => !host.isFixed).map((host) => [host.userId.toString(), host])
+    );
 
     // Create the updated value by processing all team members
-    const updatedValue = teamMembers.map((member) => {
-      const existingHost = existingHostsMap.get(member.value);
-      return {
-        ...existingHost,
-        userId: parseInt(member.value, 10),
-        isFixed: existingHost?.isFixed ?? false,
-        priority: existingHost?.priority ?? 0,
-        weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
-      };
-    });
+    const updatedValue = teamMembers
+      .map((member) => {
+        const existingHost = existingHostsMap.get(member.value);
+        if (!existingHost) return null;
+        return {
+          ...existingHost,
+          userId: parseInt(member.value, 10),
+          isFixed: existingHost?.isFixed ?? false,
+          priority: existingHost?.priority ?? 0,
+          weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
+          groupId: existingHost?.groupId ?? null,
+        };
+      })
+      .filter(Boolean) as Host[];
 
     onChange(updatedValue);
     setIsOpen(false);
@@ -235,7 +241,10 @@ export const EditWeightsForAllTeamMembers = ({
       )
       .filter((member) => {
         // When assignAllTeamMembers is false, only include members that exist in value array
-        return assignAllTeamMembers || value.some((host) => host.userId === parseInt(member.value, 10));
+        return (
+          assignAllTeamMembers ||
+          value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10))
+        );
       });
   }, [teamMembers, localWeights, searchQuery, assignAllTeamMembers, value]);
 

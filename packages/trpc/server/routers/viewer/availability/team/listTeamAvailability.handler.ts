@@ -71,11 +71,12 @@ async function getTeamMembers({
     distinct: ["userId"],
   });
 
+  const userRepo = new UserRepository(prisma);
   const membershipWithUserProfile = [];
   for (const membership of memberships) {
     membershipWithUserProfile.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await userRepo.enrichUserWithItsProfile({
         user: membership.user,
       }),
     });

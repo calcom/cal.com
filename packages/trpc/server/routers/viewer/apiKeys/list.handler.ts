@@ -1,4 +1,4 @@
-import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKey";
+import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -9,5 +9,5 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx }: ListOptions) => {
-  return ApiKeyRepository.findApiKeysFromUserId({ userId: ctx.user.id });
+  return PrismaApiKeyRepository.findApiKeysFromUserId({ userId: ctx.user.id });
 };

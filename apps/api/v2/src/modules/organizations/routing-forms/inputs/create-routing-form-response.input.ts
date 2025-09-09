@@ -6,9 +6,9 @@ import { GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
 
 export class CreateRoutingFormResponseInput extends GetAvailableSlotsInput_2024_09_04 {
   @Transform(({ value }: { value: string | boolean }) => {
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'string') {
-      return value.toLowerCase() === 'true';
+    if (typeof value === "boolean") return value;
+    if (typeof value === "string") {
+      return value.toLowerCase() === "true";
     }
     return undefined;
   })
@@ -20,4 +20,4 @@ export class CreateRoutingFormResponseInput extends GetAvailableSlotsInput_2024_
     example: true,
   })
   queueResponse?: boolean;
-} 
+}

@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
+import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
 import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
@@ -30,7 +31,7 @@ import {
   GOOGLE_CALENDAR_ID,
 } from "@calcom/platform-constants";
 import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
-import { ICS_CALENDAR } from "@calcom/platform-constants/apps";
+import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
 import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
@@ -245,6 +246,35 @@ describe("Platform Calendars Endpoints", () => {
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
+  });
+
+  it(`/GET/v2/calendars with access token`, async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/v2/calendars`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(200);
+
+    const data: ConnectedCalendarsData = response.body.data;
+    expect(data.connectedCalendars).toBeDefined();
+    expect(data.connectedCalendars).toHaveLength(3);
+
+    const googleConnectedCalendar = data.connectedCalendars.find(
+      (calendar) => calendar.integration.type === GOOGLE_CALENDAR_TYPE
+    );
+    const office365ConnectedCalendar = data.connectedCalendars.find(
+      (calendar) => calendar.integration.type === OFFICE_365_CALENDAR_TYPE
+    );
+    const icsConnectedCalendar = data.connectedCalendars.find(
+      (calendar) => calendar.integration.type === ICS_CALENDAR_TYPE
+    );
+
+    expect(googleConnectedCalendar).toBeDefined();
+    expect(office365ConnectedCalendar).toBeDefined();
+    expect(icsConnectedCalendar).toBeDefined();
+
+    expect(data.destinationCalendar).toBeDefined();
+    expect(data.destinationCalendar.integration).toEqual(GOOGLE_CALENDAR_TYPE);
   });
 
   it.skip(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {

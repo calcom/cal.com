@@ -16,7 +16,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select } from "../lib/getWorkflowReminders";
+import { select, getWorkflowRecipientEmail } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -35,6 +35,7 @@ export async function handler(req: NextRequest) {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
+        gte: new Date(),
         lte: dayjs().add(2, "hour").toISOString(),
       },
       retryCount: {
@@ -107,10 +108,20 @@ export async function handler(req: NextRequest) {
           reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
         );
 
+        const recipientEmail = getWorkflowRecipientEmail({
+          action: reminder.workflowStep.action || WorkflowActions.SMS_NUMBER,
+          attendeeEmail: reminder.booking.attendees[0].email,
+          organizerEmail: reminder.booking.user?.email,
+        });
+
         const urls = {
           meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || "",
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true` || "",
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}` || "",
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
+            recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+          }`,
+          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
+            recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+          }`,
         };
 
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =

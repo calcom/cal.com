@@ -7,7 +7,6 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
@@ -76,7 +75,15 @@ const SkeletonLoader = () => {
   );
 };
 
-const OrgProfileView = () => {
+const OrgProfileView = ({
+  permissions,
+}: {
+  permissions?: {
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
+}) => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -105,8 +112,6 @@ const OrgProfileView = () => {
     return <SkeletonLoader />;
   }
 
-  const isOrgAdminOrOwner = checkAdminOrOwner(currentOrganisation.user.role);
-
   const isBioEmpty =
     !currentOrganisation ||
     !currentOrganisation.bio ||
@@ -128,7 +133,7 @@ const OrgProfileView = () => {
   return (
     <LicenseRequired>
       <>
-        {isOrgAdminOrOwner ? (
+        {permissions?.canEdit ? (
           <>
             <OrgProfileForm defaultValues={defaultValues} />
             <OrgAppearanceViewWrapper />

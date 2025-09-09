@@ -60,5 +60,28 @@ export class MembershipsService {
     }
 
     return true;
+
+  async isUserOrgAdminOrOwnerOfAnotherUser(userId: number, anotherUserId: number) {
+    const orgIdsWhereUserIsAdminOrOwner = await this.membershipsRepository.getOrgIdsWhereUserIsAdminOrOwner(
+      userId
+    );
+
+    if (orgIdsWhereUserIsAdminOrOwner.length === 0) {
+      return false;
+    }
+
+    const anotherUserOrgMembership = await this.membershipsRepository.getUserMembershipInOneOfOrgs(
+      anotherUserId,
+      orgIdsWhereUserIsAdminOrOwner
+    );
+
+    if (anotherUserOrgMembership) return true;
+
+    const anotherUserOrgTeamMembership = await this.membershipsRepository.getUserMembershipInOneOfOrgsTeams(
+      anotherUserId,
+      orgIdsWhereUserIsAdminOrOwner
+    );
+
+    return !!anotherUserOrgTeamMembership;
   }
 }

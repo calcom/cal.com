@@ -21,6 +21,7 @@ import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
@@ -55,6 +56,13 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
         reset({
           bookingLimits: res.bookingLimits,
           includeManagedEventsInLimits: res.includeManagedEventsInLimits,
+        });
+      }
+      if (team?.slug) {
+        // Booking limits are enforced during slot generation, which relies on the same cached team data.
+        revalidateTeamDataCache({
+          teamSlug: team.slug,
+          orgSlug: team.parent?.slug ?? null,
         });
       }
       showToast(t("booking_limits_updated_successfully"), "success");

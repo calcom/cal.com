@@ -14,6 +14,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
 import {
@@ -56,7 +57,10 @@ import { Team } from "@calcom/prisma/client";
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsController {
-  constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
+  constructor(
+    private organizationsTeamsService: OrganizationsTeamsService,
+    private organizationsMembershipService: OrganizationsMembershipService
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "Get all teams" })
@@ -84,12 +88,11 @@ export class OrganizationsTeamsController {
     @GetUser() user: UserWithProfile
   ): Promise<OrgMeTeamsOutputResponseDto> {
     const { skip, take } = queryParams;
-    const teams = await this.organizationsTeamsService.getPaginatedOrgUserTeams(
-      orgId,
-      user.id,
-      skip ?? 0,
-      take ?? 250
-    );
+    const isOrgAdminOrOwner = await this.organizationsMembershipService.isOrgAdminOrOwner(orgId, user.id);
+    const teams = isOrgAdminOrOwner
+      ? await this.organizationsTeamsService.getPaginatedOrgTeamsWithMembers(orgId, skip ?? 0, take ?? 250)
+      : await this.organizationsTeamsService.getPaginatedOrgUserTeams(orgId, user.id, skip ?? 0, take ?? 250);
+
     return {
       status: SUCCESS_STATUS,
       data: teams.map((team) => {

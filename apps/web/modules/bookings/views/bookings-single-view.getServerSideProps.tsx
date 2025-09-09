@@ -77,7 +77,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let rescheduledToUid: string | null = null;
   if (bookingInfo.rescheduled) {
-    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+    const bookingRepo = new BookingRepository(prisma);
+    const rescheduledTo = await bookingRepo.findFirstBookingByReschedule({
       originalBookingUid: bookingInfo.uid,
     });
     rescheduledToUid = rescheduledTo?.uid ?? null;
@@ -89,7 +90,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } | null = null;
 
   if (bookingInfo.fromReschedule) {
-    previousBooking = await BookingRepository.findReschedulerByUid({
+    const bookingRepo = new BookingRepository(prisma);
+    previousBooking = await bookingRepo.findReschedulerByUid({
       uid: bookingInfo.fromReschedule,
     });
   }
@@ -182,6 +184,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookingId: bookingInfo.id,
     },
     select: {
+      appId: true,
       success: true,
       refunded: true,
       currency: true,
@@ -226,16 +229,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
       : previousBooking;
 
+  const isPlatformBooking = eventType.users[0]?.isPlatformManaged || eventType.team?.createdByOAuthClientId;
+
   return {
     props: {
       orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
-      hideBranding: await shouldHideBrandingForEvent({
-        eventTypeId: eventType.id,
-        team: eventType.team,
-        owner: eventType.users[0] ?? null,
-        organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
-      }),
+      hideBranding: isPlatformBooking
+        ? true
+        : await shouldHideBrandingForEvent({
+            eventTypeId: eventType.id,
+            team: eventType.team,
+            owner: eventType.users[0] ?? null,
+            organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+          }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),

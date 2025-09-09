@@ -320,12 +320,14 @@ export default function IncompleteBookingPage({
   form,
   appUrl,
   enrichedWithUserProfileForm,
+  permissions,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <SingleForm
       form={form}
       appUrl={appUrl}
       enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+      permissions={permissions}
       Page={Page}
     />
   );

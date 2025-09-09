@@ -7,6 +7,15 @@ import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 
 import TeamPage, { type PageProps as ClientPageProps } from "~/team/team-view";
 
+export const generateMetadata = async () => {
+  return {
+    robots: {
+      follow: false,
+      index: false,
+    },
+  };
+};
+
 const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {

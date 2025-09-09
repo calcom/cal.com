@@ -35,4 +35,6 @@ process.env = {
   VAPID_PRIVATE_KEY: "6cJtkASCar5sZWguIAW7OjvyixpBw9p8zL8WDDwk9Jk",
   CALENDSO_ENCRYPTION_KEY: "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX",
   INTEGRATION_TEST_MODE: "true",
+  e2e: "true",
+  SLOTS_CACHE_TTL: "1"
 };

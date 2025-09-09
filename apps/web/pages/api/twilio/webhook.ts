@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import { CreditUsageType } from "@calcom/prisma/enums";
 import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPublishedOrgIdFromMemberOrTeamId } from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -84,6 +85,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         where: {
           userId: parsedUserId,
           accepted: true,
+          team: {
+            slug: { not: null },
+          },
         },
         select: {
           teamId: true,
@@ -98,6 +102,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         bookingUid: parsedBookingUid,
         smsSid,
         credits: 0,
+        creditFor: CreditUsageType.SMS,
       });
 
       return res.status(200).send(`SMS to US and CA are free for teams. Credits set to 0`);
@@ -132,6 +137,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       bookingUid: parsedBookingUid,
       smsSid,
       credits: 0,
+      creditFor: CreditUsageType.SMS,
     });
 
     return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
@@ -148,6 +154,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     smsSid,
     bookingUid: parsedBookingUid,
     smsSegments: numSegments ?? undefined,
+    creditFor: CreditUsageType.SMS,
   });
 
   if (chargedUserOrTeamId) {

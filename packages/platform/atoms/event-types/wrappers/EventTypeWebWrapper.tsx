@@ -20,6 +20,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import { TRPCClientError } from "@trpc/react-query";
@@ -107,7 +108,12 @@ export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWe
   return <EventTypeWeb {...eventTypeQueryData} id={id} />;
 };
 
-const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventTypeWeb = ({
+  id,
+  ...rest
+}: EventTypeSetupProps & {
+  id: number;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();
@@ -125,7 +131,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
   });
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 
@@ -138,6 +144,15 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
+      if (eventType.team?.slug) {
+        // When an event-type is updated,
+        // guests could still hit a stale cache and see the old page.
+        revalidateTeamEventTypeCache({
+          teamSlug: eventType.team.slug,
+          meetingSlug: eventType.slug,
+          orgSlug: eventType.team.parent?.slug ?? null,
+        });
+      }
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
@@ -311,6 +326,15 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
+      if (team?.slug) {
+        // When a team event-type is deleted,
+        // guests could still hit a stale cache and see the old page.
+        revalidateTeamEventTypeCache({
+          teamSlug: team.slug,
+          meetingSlug: eventType.slug,
+          orgSlug: team.parent?.slug ?? null,
+        });
+      }
       showToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
       appRouter.push("/event-types");

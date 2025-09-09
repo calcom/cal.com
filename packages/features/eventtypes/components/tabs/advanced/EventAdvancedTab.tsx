@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useState, Suspense, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -10,8 +10,10 @@ import {
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapperSkeleton,
 } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
+import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -40,6 +42,7 @@ import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -108,7 +111,10 @@ type BookingField = z.infer<typeof fieldSchema>;
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
-    Pick<RouterOutputs["viewer"]["me"]["get"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
+    Pick<
+      RouterOutputs["viewer"]["me"]["get"],
+      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
+    >
   >;
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
@@ -516,6 +522,8 @@ export const EventAdvancedTab = ({
     eventType.allowReschedulingCancelledBookings ?? false
   );
 
+  const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
+
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
@@ -528,6 +536,14 @@ export const EventAdvancedTab = ({
       darkEventTypeColor: DEFAULT_DARK_BRAND_COLOR,
     }
   );
+
+  const userTimeZone = extractHostTimezone({
+    userId: eventType.userId,
+    teamId: eventType.teamId,
+    hosts: eventType.hosts,
+    owner: eventType.owner,
+    team: eventType.team,
+  });
 
   let verifiedSecondaryEmails = [
     {
@@ -551,6 +567,10 @@ export const EventAdvancedTab = ({
     }));
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
+
+  const TimezoneSelect = useMemo(() => {
+    return isPlatform ? PlatformTimzoneSelect : WebTimezoneSelect;
+  }, [isPlatform]);
 
   return (
     <div className="flex flex-col space-y-4">
@@ -855,7 +875,12 @@ export const EventAdvancedTab = ({
                 }}>
                 {!isManagedEventType && (
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                    <MultiplePrivateLinksController
+                      team={team}
+                      bookerUrl={eventType.bookerUrl}
+                      setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                      userTimeZone={userTimeZone}
+                    />
                   </div>
                 )}
               </SettingsToggle>
@@ -1016,23 +1041,63 @@ export const EventAdvancedTab = ({
       />
       <Controller
         name="lockTimeZoneToggleOnBookingPage"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
-            descriptionClassName={customClassNames?.timezoneLock?.description}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.timezoneLock?.container
-            )}
-            title={t("lock_timezone_toggle_on_booking_page")}
-            {...lockTimeZoneToggleOnBookingPageLocked}
-            description={t("description_lock_timezone_toggle_on_booking_page")}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            data-testid="lock-timezone-toggle"
-          />
-        )}
+        render={({ field: { value, onChange } }) => {
+          // Calculate if we should show the selector based on current form state & handle backward compatibility
+          const currentLockedTimeZone = formMethods.getValues("lockedTimeZone");
+          const showSelector =
+            value &&
+            (!(eventType.lockTimeZoneToggleOnBookingPage && !eventType.lockedTimeZone) ||
+              !!currentLockedTimeZone);
+
+          return (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
+              descriptionClassName={customClassNames?.timezoneLock?.description}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.timezoneLock?.container,
+                showSelector && "rounded-b-none"
+              )}
+              title={t("lock_timezone_toggle_on_booking_page")}
+              {...lockTimeZoneToggleOnBookingPageLocked}
+              description={t("description_lock_timezone_toggle_on_booking_page")}
+              checked={value}
+              onCheckedChange={(e) => {
+                onChange(e);
+                const lockedTimeZone = e ? eventType.lockedTimeZone ?? "Europe/London" : null;
+                formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
+              }}
+              data-testid="lock-timezone-toggle"
+              childrenClassName="lg:ml-0">
+              {showSelector && (
+                <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+                  <div>
+                    <Controller
+                      name="lockedTimeZone"
+                      control={formMethods.control}
+                      render={({ field: { value } }) => (
+                        <>
+                          <Label className="text-default mb-2 block text-sm font-medium">
+                            <>{t("timezone")}</>
+                          </Label>
+                          <TimezoneSelect
+                            id="lockedTimeZone"
+                            value={value ?? "Europe/London"}
+                            onChange={(event) => {
+                              if (event)
+                                formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
+                            }}
+                          />
+                        </>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+            </SettingsToggle>
+          );
+        }}
       />
       <Controller
         name="allowReschedulingPastBookings"
@@ -1200,6 +1265,29 @@ export const EventAdvancedTab = ({
             </div>
           </SettingsToggle>
         )}
+      />
+      <Controller
+        name="showOptimizedSlots"
+        render={({ field: { onChange, value } }) => {
+          const isChecked = value;
+          return (
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              labelClassName="text-sm"
+              title={t("show_optimized_slots")}
+              description={t("show_optimized_slots_description")}
+              checked={isChecked}
+              {...showOptimizedSlotsLocked}
+              onCheckedChange={(active) => {
+                onChange(active ?? false);
+              }}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                isChecked && "rounded-b-none"
+              )}
+            />
+          );
+        }}
       />
       {isRoundRobinEventType && (
         <Controller

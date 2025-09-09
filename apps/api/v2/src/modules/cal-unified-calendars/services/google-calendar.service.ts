@@ -5,12 +5,13 @@ import { calendar_v3 } from "@googleapis/calendar";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { JWT } from "googleapis-common";
 
 import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
 
-import { UnifiedCalendarEventOutput } from "../outputs/get-unified-calendar-event";
+import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
+import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
 
 @Injectable()
 export class GoogleCalendarService {
@@ -50,6 +51,44 @@ export class GoogleCalendarService {
       return event.data as GoogleCalendarEventResponse;
     } catch (error) {
       throw new NotFoundException("Failed to retrieve meeting details");
+    }
+  }
+
+  async updateEventDetails(
+    eventUid: string,
+    updateData: UpdateUnifiedCalendarEventInput
+  ): Promise<GoogleCalendarEventResponse> {
+    const bookingReference =
+      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
+
+    if (!bookingReference) {
+      throw new NotFoundException("Booking reference not found");
+    }
+
+    const ownerUserEmail = bookingReference?.booking?.user?.email;
+
+    const calendar = await this.getAuthorizedCalendarInstance(
+      ownerUserEmail,
+      bookingReference.credential?.key,
+      bookingReference.delegationCredential
+    );
+
+
+    const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
+
+    try {
+      const event = await calendar.events.patch({
+        calendarId: bookingReference?.externalCalendarId ?? "primary",
+        eventId: bookingReference?.uid,
+        requestBody: updatePayload,
+      });
+
+      if (!event.data) {
+        throw new NotFoundException("Failed to update meeting");
+      }
+      return event.data as GoogleCalendarEventResponse;
+    } catch (error) {
+      throw new NotFoundException("Failed to update meeting details");
     }
   }
 

@@ -70,7 +70,7 @@ const DuplicateDialog = () => {
     }
   }, [searchParams?.get("dialog")]);
 
-  const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
+  const duplicateMutation = trpc.viewer.eventTypes.heavy.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}`);
 
@@ -151,6 +151,9 @@ const DuplicateDialog = () => {
                   </>
                 }
                 {...register("slug")}
+                 onChange={(e) => {
+                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                }}
               />
             )}
 

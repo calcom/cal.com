@@ -1,3 +1,7 @@
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
@@ -27,16 +31,6 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   if (!formId || appPages.length > 1) {
     return {
       notFound: true,
-    };
-  }
-
-  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
-  if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/403",
-      },
     };
   }
 
@@ -99,10 +93,62 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
 
+  const userRepo = new UserRepository(prisma);
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
   };
+
+  // Get PBAC permissions for team-scoped routing forms
+  let permissions = {
+    canCreate: false,
+    canRead: false,
+    canEdit: false,
+    canDelete: false,
+  };
+
+  if (!form.teamId) {
+    // For personal forms (teamId = null),
+    // check if the form belongs to the current user
+    if (form.userId !== user.id) {
+      return {
+        notFound: true,
+      };
+    }
+
+    permissions = {
+      canCreate: true,
+      canRead: true,
+      canEdit: true,
+      canDelete: true,
+    };
+  } else {
+    // team-scoped routing form
+    // Get user's role in the team
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      userId: user.id,
+      teamId: form.teamId,
+    });
+
+    if (!membership) {
+      return {
+        notFound: true,
+      };
+    }
+
+    permissions = await getResourcePermissions({
+      userId: user.id,
+      teamId: form.teamId,
+      resource: Resource.RoutingForm,
+      userRole: membership.role,
+      fallbackRoles: {
+        read: { roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER] },
+        create: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        update: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        delete: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+      },
+    });
+  }
 
   return {
     props: {
@@ -110,6 +156,12 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       enrichedWithUserProfileForm: await getSerializableForm({
         form: enrichFormWithMigrationData(formWithUserInfoProfile),
       }),
+      permissions: {
+        canCreate: permissions.canCreate,
+        canRead: permissions.canRead,
+        canEdit: permissions.canEdit,
+        canDelete: permissions.canDelete,
+      },
     },
   };
 };

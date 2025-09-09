@@ -192,7 +192,7 @@ export const SearchDialog = (props: ISearchDialog) => {
             </Button>
           </div>
         )}
-        <DialogFooter>
+        <DialogFooter noSticky>
           <DialogClose
             color="minimal"
             tabIndex={-1}

@@ -6,7 +6,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { SchedulingType, User } from "@prisma/client";
+import { User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -24,6 +24,7 @@ import {
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
@@ -725,6 +726,7 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               type: "name",
               slug: "name",
+              label: "your_name",
               required: true,
               disableOnPrefill: false,
             },
@@ -822,6 +824,7 @@ describe("Organizations Event Types Endpoints", () => {
               type: "name",
               slug: "name",
               required: true,
+              label: "your_name",
               disableOnPrefill: false,
             },
             {
@@ -1155,6 +1158,56 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           collectiveEventType = responseBody.data;
+        });
+    });
+
+    it("should create a managed team event-type without hosts", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation managed without hosts",
+        slug: "coding-consultation-managed-without-hosts",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "MANAGED",
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+
+          const teammate1EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate1.id);
+          const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);
+          const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+
+          const teammate1HasThisEvent = teammate1EventTypes.some((eventType) => eventType.slug === body.slug);
+          const teammate2HasThisEvent = teammate2EventTypes.some((eventType) => eventType.slug === body.slug);
+          expect(teammate1HasThisEvent).toBe(false);
+          expect(teammate2HasThisEvent).toBe(false);
+          expect(
+            teamEventTypes.filter(
+              (eventType) => eventType.schedulingType === "MANAGED" && eventType.slug === body.slug
+            ).length
+          ).toEqual(1);
+
+          const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
+          expect(responseTeamEvent).toBeDefined();
+          expect(responseTeamEvent?.hosts).toEqual([]);
+
+          if (!responseTeamEvent) {
+            throw new Error("Team event not found");
+          }
         });
     });
 

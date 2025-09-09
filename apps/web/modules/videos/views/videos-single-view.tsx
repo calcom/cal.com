@@ -21,7 +21,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
+import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -37,6 +37,7 @@ export default function JoinCall(props: PageProps) {
     overrideName,
     showRecordingButton,
     enableAutomaticTranscription,
+    enableAutomaticRecordingForOrganizer,
     showTranscriptionButton,
     rediectAttendeeToOnExit,
   } = props;
@@ -84,7 +85,7 @@ export default function JoinCall(props: PageProps) {
             ...(showTranscriptionButton
               ? {
                   transcription: {
-                    label: "Cal.ai",
+                    label: "Transcribe",
                     tooltip: "Transcription powered by AI",
                     iconPath: TRANSCRIPTION_STOPPED_ICON,
                     iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
@@ -116,8 +117,9 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe
+        <CalVideoPremiumFeatures
           showRecordingButton={showRecordingButton}
+          enableAutomaticRecordingForOrganizer={enableAutomaticRecordingForOrganizer}
           enableAutomaticTranscription={enableAutomaticTranscription}
           showTranscriptionButton={showTranscriptionButton}
         />
@@ -286,6 +288,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
+  const timeZone = booking.user?.timeZone;
 
   useDailyEvent("left-meeting", () => {
     if (rediectAttendeeToOnExit) {
@@ -304,11 +307,11 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>
-          <p>{booking.user?.timeZone}</p>
+          <p>{timeZone}</p>
           <h3>{t("when")}:</h3>
           <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
-            {formatToLocalizedTime(startTime)}
+            {formatToLocalizedTime({ date: startTime, timeZone })}
           </p>
           <h3>{t("time_left")}</h3>
           <ProgressBar

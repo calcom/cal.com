@@ -1,6 +1,6 @@
 import { EmbedElement } from "../EmbedElement";
+import { getErrorString } from "../lib/utils";
 import loaderCss from "../loader.css";
-import { getErrorString } from "../utils";
 import modalBoxHtml, { getSkeletonData } from "./ModalBoxHtml";
 
 export class ModalBox extends EmbedElement {

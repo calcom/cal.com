@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
@@ -33,6 +33,11 @@ import {
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   BaseWorkflowTriggerDto,
   BEFORE_EVENT,
+  BOOKING_NO_SHOW_UPDATED,
+  BOOKING_PAID,
+  BOOKING_PAYMENT_INITIATED,
+  BOOKING_REJECTED,
+  BOOKING_REQUESTED,
   EVENT_CANCELLED,
   NEW_EVENT,
   OnAfterCalVideoGuestsNoShowTriggerDto,
@@ -41,6 +46,11 @@ import {
   OnBeforeEventTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
+  OnNoShowUpdateTriggerDto,
+  OnPaidTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
   OnRescheduleTriggerDto,
   RESCHEDULE_EVENT,
 } from "./workflow-trigger.input";
@@ -73,7 +83,35 @@ export type TriggerDtoType =
   | OnRescheduleTriggerDto
   | OnCancelTriggerDto
   | OnAfterCalVideoGuestsNoShowTriggerDto
+  | OnRejectedTriggerDto
+  | OnRequestedTriggerDto
+  | OnPaymentInitiatedTriggerDto
+  | OnPaidTriggerDto
+  | OnNoShowUpdateTriggerDto
   | OnAfterCalVideoHostsNoShowTriggerDto;
+
+@ApiExtraModels(
+  OnBeforeEventTriggerDto,
+  OnAfterEventTriggerDto,
+  OnCancelTriggerDto,
+  OnCreationTriggerDto,
+  OnRescheduleTriggerDto,
+  OnNoShowUpdateTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnPaidTriggerDto,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterCalVideoHostsNoShowTriggerDto,
+  WorkflowEmailAddressStepDto,
+  WorkflowEmailAttendeeStepDto,
+  WorkflowEmailHostStepDto,
+  WorkflowPhoneWhatsAppAttendeeStepDto,
+  WorkflowPhoneWhatsAppNumberStepDto,
+  WorkflowPhoneNumberStepDto,
+  WorkflowPhoneAttendeeStepDto,
+  BaseWorkflowTriggerDto
+)
 export class CreateWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
@@ -86,17 +124,20 @@ export class CreateWorkflowDto {
 
   @ApiProperty({
     description: "Trigger configuration for the workflow",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
-        { $ref: getSchemaPath(OnAfterEventTriggerDto) },
-        { $ref: getSchemaPath(OnCancelTriggerDto) },
-        { $ref: getSchemaPath(OnCreationTriggerDto) },
-        { $ref: getSchemaPath(OnRescheduleTriggerDto) },
-        { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
-        { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
-      ],
-    },
+    oneOf: [
+      { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
+      { $ref: getSchemaPath(OnAfterEventTriggerDto) },
+      { $ref: getSchemaPath(OnCancelTriggerDto) },
+      { $ref: getSchemaPath(OnCreationTriggerDto) },
+      { $ref: getSchemaPath(OnRescheduleTriggerDto) },
+      { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnRejectedTriggerDto) },
+      { $ref: getSchemaPath(OnRequestedTriggerDto) },
+      { $ref: getSchemaPath(OnPaidTriggerDto) },
+      { $ref: getSchemaPath(OnPaymentInitiatedTriggerDto) },
+      { $ref: getSchemaPath(OnNoShowUpdateTriggerDto) },
+    ],
   })
   @ValidateNested()
   @Type(() => BaseWorkflowTriggerDto, {
@@ -110,6 +151,11 @@ export class CreateWorkflowDto {
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
         { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
+        { value: OnRequestedTriggerDto, name: BOOKING_REQUESTED },
+        { value: OnRejectedTriggerDto, name: BOOKING_REJECTED },
+        { value: OnPaymentInitiatedTriggerDto, name: BOOKING_PAYMENT_INITIATED },
+        { value: OnPaidTriggerDto, name: BOOKING_PAID },
+        { value: OnNoShowUpdateTriggerDto, name: BOOKING_NO_SHOW_UPDATED },
       ],
     },
   })
@@ -119,22 +165,26 @@ export class CreateWorkflowDto {
     | OnCreationTriggerDto
     | OnRescheduleTriggerDto
     | OnCancelTriggerDto
+    | OnRejectedTriggerDto
+    | OnRequestedTriggerDto
+    | OnPaidTriggerDto
+    | OnPaymentInitiatedTriggerDto
+    | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
     | OnAfterCalVideoHostsNoShowTriggerDto;
 
   @ApiProperty({
     description: "Steps to execute as part of the workflow",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(WorkflowEmailAddressStepDto) },
-        { $ref: getSchemaPath(WorkflowEmailAttendeeStepDto) },
-        { $ref: getSchemaPath(WorkflowEmailHostStepDto) },
-        { $ref: getSchemaPath(WorkflowPhoneWhatsAppAttendeeStepDto) },
-        { $ref: getSchemaPath(WorkflowPhoneWhatsAppNumberStepDto) },
-        { $ref: getSchemaPath(WorkflowPhoneNumberStepDto) },
-        { $ref: getSchemaPath(WorkflowPhoneAttendeeStepDto) },
-      ],
-    },
+    oneOf: [
+      { $ref: getSchemaPath(WorkflowEmailAddressStepDto) },
+      { $ref: getSchemaPath(WorkflowEmailAttendeeStepDto) },
+      { $ref: getSchemaPath(WorkflowEmailHostStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneWhatsAppAttendeeStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneWhatsAppNumberStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneNumberStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneAttendeeStepDto) },
+    ],
+    type: "array",
   })
   @ValidateNested({ each: true })
   @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })

@@ -1,6 +1,6 @@
 import type { Prisma, SelectedCalendar } from "@prisma/client";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
@@ -56,6 +56,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   timeFormat: 12,
   travelSchedules: [],
   locked: false,
+  isPlatformManaged: false,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -93,6 +94,7 @@ const commons = {
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
   hideOrganizerEmail: false,
+  showOptimizedSlots: false,
   id: 0,
   hideCalendarNotes: false,
   hideCalendarEventDetails: false,
@@ -100,6 +102,7 @@ const commons = {
   destinationCalendar: null,
   team: null,
   lockTimeZoneToggleOnBookingPage: false,
+  lockedTimeZone: null,
   requiresConfirmation: false,
   requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,
@@ -144,6 +147,8 @@ const commons = {
   instantMeetingScheduleId: null,
   instantMeetingParameters: [],
   eventTypeColor: null,
+  hostGroups: [],
+  bookingRequiresAuthentication: false,
 };
 
 export const dynamicEvent = {

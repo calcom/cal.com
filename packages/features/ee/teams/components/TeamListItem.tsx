@@ -36,7 +36,7 @@ import { TeamRole } from "./TeamPill";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["list"][number];
-  user: RouterOutputs["viewer"]["me"]["get"];
+  orgId: number | null;
   key: number;
   onActionSelect: (text: string) => void;
   isPending?: boolean;
@@ -48,7 +48,7 @@ export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { team, user } = props;
+  const { team, orgId } = props;
 
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
@@ -63,7 +63,7 @@ export default function TeamListItem(props: Props) {
       revalidateTeamsList();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
-      const userOrganizationId = user?.profile?.organization?.id;
+      const userOrganizationId = orgId ?? undefined;
       const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
       const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
       // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.

@@ -11,6 +11,7 @@ export const apiHandlers = {
   "baa-for-hipaa": import("./baa-for-hipaa/api"),
   basecamp3: import("./basecamp3/api"),
   bolna: import("./bolna/api"),
+  btcpayserver: import("./btcpayserver/api"),
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
   chatbase: import("./chatbase/api"),

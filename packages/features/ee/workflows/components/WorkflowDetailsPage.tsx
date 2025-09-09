@@ -15,13 +15,20 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isCalAIAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
+
+interface WorkflowPermissions {
+  canView: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  readOnly: boolean; // Keep for backward compatibility
+}
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -33,12 +40,35 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  permissions?: WorkflowPermissions;
+  onSaveWorkflow?: () => Promise<void>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
+  const {
+    form,
+    workflowId,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+    permissions: _permissions,
+  } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const hasCalAIAction = () => {
+    const steps = form.getValues("steps") || [];
+    return steps.some((step) => isCalAIAction(step.action));
+  };
+
+  const permissions = _permissions || {
+    canView: !teamId ? true : !props.readOnly,
+    canUpdate: !teamId ? true : !props.readOnly,
+    canDelete: !teamId ? true : !props.readOnly,
+    readOnly: !teamId ? false : props.readOnly,
+  };
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
 
@@ -93,6 +123,7 @@ export default function WorkflowDetailsPage(props: Props) {
       numberVerificationPending: false,
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
+      agentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
@@ -140,27 +171,29 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
-          <div className="mt-3">
-            <Controller
-              name="selectAll"
-              render={({ field: { value, onChange } }) => (
-                <CheckboxField
-                  description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
-                  disabled={props.readOnly}
-                  onChange={(e) => {
-                    onChange(e);
-                    if (e.target.value) {
-                      setSelectedOptions(allOptions);
-                      form.setValue("activeOn", allOptions);
-                    }
-                  }}
-                  checked={value}
-                />
-              )}
-            />
-          </div>
+          {!hasCalAIAction() && (
+            <div className="mt-3">
+              <Controller
+                name="selectAll"
+                render={({ field: { value, onChange } }) => (
+                  <CheckboxField
+                    description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
+                    disabled={props.readOnly}
+                    onChange={(e) => {
+                      onChange(e);
+                      if (e.target.value) {
+                        setSelectedOptions(allOptions);
+                        form.setValue("activeOn", allOptions);
+                      }
+                    }}
+                    checked={value}
+                  />
+                )}
+              />
+            </div>
+          )}
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
-          {!props.readOnly && (
+          {permissions.canDelete && (
             <Button
               type="button"
               StartIcon="trash-2"
@@ -182,6 +215,8 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                isOrganization={isOrg}
+                onSaveWorkflow={props.onSaveWorkflow}
               />
             </div>
           )}
@@ -198,6 +233,8 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    isOrganization={isOrg}
+                    onSaveWorkflow={props.onSaveWorkflow}
                   />
                 );
               })}

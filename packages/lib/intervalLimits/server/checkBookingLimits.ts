@@ -2,69 +2,73 @@ import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";
 import { parseBookingLimit } from "../isBookingLimits";
 
-async function _checkBookingLimits(
-  bookingLimits: IntervalLimit,
-  eventStartDate: Date,
-  eventId: number,
-  rescheduleUid?: string | undefined,
-  timeZone?: string | null,
-  includeManagedEvents?: boolean
-) {
-  const parsedBookingLimits = parseBookingLimit(bookingLimits);
-  if (!parsedBookingLimits) return false;
-
-  // not iterating entries to preserve types
-  const limitCalculations = ascendingLimitKeys.map((key) =>
-    checkBookingLimit({
-      key,
-      limitingNumber: parsedBookingLimits[key],
-      eventStartDate,
-      eventId,
-      timeZone,
-      rescheduleUid,
-      includeManagedEvents,
-    })
-  );
-
-  try {
-    return !!(await Promise.all(limitCalculations));
-  } catch (error) {
-    throw new HttpError({ message: getErrorFromUnknown(error).message, statusCode: 401 });
-  }
+export interface ICheckBookingLimitsService {
+  bookingRepo: BookingRepository;
 }
 
-export const checkBookingLimits = withReporting(_checkBookingLimits, "checkBookingLimits");
+export class CheckBookingLimitsService {
+  constructor(private readonly dependencies: ICheckBookingLimitsService) {}
 
-async function _checkBookingLimit({
-  eventStartDate,
-  eventId,
-  key,
-  limitingNumber,
-  rescheduleUid,
-  timeZone,
-  teamId,
-  user,
-  includeManagedEvents = false,
-}: {
-  eventStartDate: Date;
-  eventId?: number;
-  key: IntervalLimitKey;
-  limitingNumber: number | undefined;
-  rescheduleUid?: string | undefined;
-  timeZone?: string | null;
-  teamId?: number;
-  user?: { id: number; email: string };
-  includeManagedEvents?: boolean;
-}) {
-  {
+  private async _checkBookingLimits(
+    bookingLimits: IntervalLimit,
+    eventStartDate: Date,
+    eventId: number,
+    rescheduleUid?: string | undefined,
+    timeZone?: string | null,
+    includeManagedEvents?: boolean
+  ) {
+    const parsedBookingLimits = parseBookingLimit(bookingLimits);
+    if (!parsedBookingLimits) return false;
+
+    // not iterating entries to preserve types
+    const limitCalculations = ascendingLimitKeys.map((key) =>
+      this.checkBookingLimit({
+        key,
+        limitingNumber: parsedBookingLimits[key],
+        eventStartDate,
+        eventId,
+        timeZone,
+        rescheduleUid,
+        includeManagedEvents,
+      })
+    );
+
+    try {
+      return !!(await Promise.all(limitCalculations));
+    } catch (error) {
+      throw new HttpError({ message: getErrorFromUnknown(error).message, statusCode: 401 });
+    }
+  }
+
+  checkBookingLimits = withReporting(this._checkBookingLimits.bind(this), "checkBookingLimits");
+
+  private async _checkBookingLimit({
+    eventStartDate,
+    eventId,
+    key,
+    limitingNumber,
+    rescheduleUid,
+    timeZone,
+    teamId,
+    user,
+    includeManagedEvents = false,
+  }: {
+    eventStartDate: Date;
+    eventId?: number;
+    key: IntervalLimitKey;
+    limitingNumber: number | undefined;
+    rescheduleUid?: string | undefined;
+    timeZone?: string | null;
+    teamId?: number;
+    user?: { id: number; email: string };
+    includeManagedEvents?: boolean;
+  }) {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
 
     if (!limitingNumber) return;
@@ -77,7 +81,7 @@ async function _checkBookingLimit({
     let bookingsInPeriod;
 
     if (teamId && user) {
-      bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+      bookingsInPeriod = await this.dependencies.bookingRepo.getAllAcceptedTeamBookingsOfUser({
         user: { id: user.id, email: user.email },
         teamId,
         startDate: startDate,
@@ -87,21 +91,11 @@ async function _checkBookingLimit({
         includeManagedEvents,
       });
     } else {
-      bookingsInPeriod = await prisma.booking.count({
-        where: {
-          status: BookingStatus.ACCEPTED,
-          eventTypeId: eventId,
-          // FIXME: bookings that overlap on one side will never be counted
-          startTime: {
-            gte: startDate,
-          },
-          endTime: {
-            lte: endDate,
-          },
-          uid: {
-            not: rescheduleUid,
-          },
-        },
+      bookingsInPeriod = await this.dependencies.bookingRepo.countBookingsByEventTypeAndDateRange({
+        eventTypeId: eventId!,
+        startDate,
+        endDate,
+        excludedUid: rescheduleUid,
       });
     }
 
@@ -112,6 +106,6 @@ async function _checkBookingLimit({
       statusCode: 403,
     });
   }
-}
 
-export const checkBookingLimit = withReporting(_checkBookingLimit, "checkBookingLimit");
+  checkBookingLimit = withReporting(this._checkBookingLimit.bind(this), "checkBookingLimit");
+}
