@@ -1,3 +1,4 @@
+import { platform } from "@todesktop/client-core";
 import type { IncomingMessage } from "http";
 import { dir } from "i18next";
 import type { DocumentContext, DocumentProps } from "next/document";
@@ -5,7 +6,7 @@ import Document, { Head, Html, Main, NextScript } from "next/document";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { applyTheme } from "./_applyThemeForDocument";
+import { applyTheme, applyToDesktopClass } from "./../lib/pages/document/_applyThemeForDocument";
 
 type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 
@@ -37,6 +38,14 @@ class MyDocument extends Document<Props> {
     const newLocale = this.props.newLocale || "en";
     const newDir = dir(newLocale);
 
+    const isDesktopApp = (() => {
+      try {
+        return platform.todesktop.isDesktopApp();
+      } catch {
+        return false;
+      }
+    })();
+
     return (
       <Html
         lang={newLocale}
@@ -49,7 +58,9 @@ class MyDocument extends Document<Props> {
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";
+              window.calIsDesktopApp = ${isDesktopApp};
               (${applyTheme.toString()})();
+              (${applyToDesktopClass.toString()})();
             `,
             }}
           />

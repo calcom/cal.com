@@ -12,6 +12,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User, Schedule, EventType } from "@prisma/client";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -30,6 +31,7 @@ import {
   NoticeThresholdUnitEnum,
   FrequencyInput,
 } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
 import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
@@ -39,7 +41,6 @@ import {
   NotesDefaultFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { SchedulingType } from "@calcom/prisma/enums";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -88,11 +89,16 @@ describe("Event types Endpoints", () => {
     let schedulesRepostoryFixture: SchedulesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+    let apiKeyString: string;
+    let apiKeyOrgUser: string;
+
     const userEmail = `event-types-2024-06-14-user-${randomString()}@api.com`;
     const falseTestEmail = `event-types-2024-06-14-false-user-${randomString()}@api.com`;
     const name = `event-types-2024-06-14-user-${randomString()}`;
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
+    let hiddenEventType: EventTypeOutput_2024_06_14;
     let user: User;
     let orgUser: User;
     let falseTestUser: User;
@@ -165,13 +171,10 @@ describe("Event types Endpoints", () => {
     };
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          providers: [PrismaExceptionFilter, HttpExceptionFilter],
-          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
-        })
-      )
+      const moduleRef = await Test.createTestingModule({
+        providers: [PrismaExceptionFilter, HttpExceptionFilter],
+        imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+      })
         .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
@@ -198,12 +201,20 @@ describe("Event types Endpoints", () => {
         name,
         username,
       });
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
+      apiKeyString = `cal_test_${keyString}`;
 
       orgUser = await userRepositoryFixture.create({
         email: `event-types-2024-06-14-org-user-${randomString()}@example.com`,
         name: `event-types-2024-06-14-org-user-${randomString()}`,
         username: `event-types-2024-06-14-org-user-${randomString()}`,
       });
+      const { keyString: orgUserApiKeyString } = await apiKeysRepositoryFixture.createApiKey(
+        orgUser.id,
+        null
+      );
+      apiKeyOrgUser = `cal_test_${orgUserApiKeyString}`;
 
       profileRepositoryFixture.create({
         uid: `usr-${orgUser.id}`,
@@ -334,6 +345,7 @@ describe("Event types Endpoints", () => {
       return request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(404);
     });
@@ -370,6 +382,7 @@ describe("Event types Endpoints", () => {
       const response = await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(400);
 
@@ -395,6 +408,7 @@ describe("Event types Endpoints", () => {
       return request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(400);
     });
@@ -498,11 +512,13 @@ describe("Event types Endpoints", () => {
           lightThemeHex: "#fafafa",
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
+        bookingRequiresAuthentication: true,
       };
 
       return request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(201)
         .then(async (response) => {
@@ -570,25 +586,57 @@ describe("Event types Endpoints", () => {
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
+          expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
           eventType = responseBody.data;
         });
     });
 
+    it("should create a hidden event type", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class hidden",
+        slug: "coding-class-hidden",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        hidden: true,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const createdEventType = responseBody.data;
+      expect(createdEventType).toHaveProperty("id");
+      expect(createdEventType.title).toEqual(body.title);
+      expect(createdEventType.hidden).toEqual(body.hidden);
+      expect(createdEventType.ownerId).toEqual(user.id);
+      hiddenEventType = responseBody.data;
+    });
+
     it(`/GET/event-types by username`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${username}`)
+        .get(`/api/v2/event-types?username=${user.username}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data?.length).toEqual(1);
+      expect(responseBody.data?.length).toEqual(2);
 
-      const fetchedEventType = responseBody.data?.[0];
+      const fetchedEventType = responseBody.data?.find((et) => et.id === eventType.id);
+      const fetchedHiddenEventType = responseBody.data?.find((et) => et.id === hiddenEventType.id);
 
       expect(fetchedEventType?.id).toEqual(eventType.id);
       expect(fetchedEventType?.title).toEqual(eventType.title);
@@ -600,33 +648,149 @@ describe("Event types Endpoints", () => {
         eventType.bookingFields.sort(orderBySlug).filter((f) => ("hidden" in f ? !f?.hidden : true))
       );
       expect(fetchedEventType?.ownerId).toEqual(user.id);
-      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
-      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
-      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
-      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
-      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
-      expect(fetchedEventType.bookerLayouts).toEqual(eventType.bookerLayouts);
-      expect(fetchedEventType.confirmationPolicy).toEqual(eventType.confirmationPolicy);
-      expect(fetchedEventType.recurrence).toEqual(eventType.recurrence);
-      expect(fetchedEventType.customName).toEqual(eventType.customName);
-      expect(fetchedEventType.requiresBookerEmailVerification).toEqual(
+      expect(fetchedEventType?.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
+      expect(fetchedEventType?.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
+      expect(fetchedEventType?.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
+      expect(fetchedEventType?.offsetStart).toEqual(eventType.offsetStart);
+      expect(fetchedEventType?.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType?.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType?.confirmationPolicy).toEqual(eventType.confirmationPolicy);
+      expect(fetchedEventType?.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType?.customName).toEqual(eventType.customName);
+      expect(fetchedEventType?.requiresBookerEmailVerification).toEqual(
         eventType.requiresBookerEmailVerification
       );
-      expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
-      expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
-      expect(fetchedEventType.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
-      expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
+      expect(fetchedEventType?.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType?.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType?.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
+      expect(fetchedEventType?.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
-      expect(fetchedEventType.color).toEqual(eventType.color);
+      expect(fetchedEventType?.color).toEqual(eventType.color);
+      expect(fetchedEventType?.hidden).toEqual(false);
+
+      expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
+      expect(fetchedHiddenEventType?.hidden).toEqual(true);
+    });
+
+    it(`/GET/event-types by username should not return hidden event type if auth of non event type owner provided`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyOrgUser}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+
+      const fetchedEventType = responseBody.data?.find((et) => et.id === eventType.id);
+
+      expect(fetchedEventType?.id).toEqual(eventType.id);
+      expect(fetchedEventType?.ownerId).toEqual(user.id);
+      expect(fetchedEventType?.hidden).toEqual(false);
+    });
+
+    it(`/GET/event-types by username should not return hidden event type if no auth provided`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+
+      const fetchedEventType = responseBody.data?.find((et) => et.id === eventType.id);
+
+      expect(fetchedEventType?.id).toEqual(eventType.id);
+      expect(fetchedEventType?.ownerId).toEqual(user.id);
+      expect(fetchedEventType?.hidden).toEqual(false);
+    });
+
+    it(`/GET/event-types by username and eventSlug`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}&eventSlug=${eventType.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+
+      const fetchedEventType = responseBody.data?.find((et) => et.id === eventType.id);
+
+      expect(fetchedEventType?.id).toEqual(eventType.id);
+      expect(fetchedEventType?.title).toEqual(eventType.title);
+      expect(fetchedEventType?.description).toEqual(eventType.description);
+      expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
+      expect(fetchedEventType?.locations).toEqual(eventType.locations);
+      expect(fetchedEventType?.bookingFields.sort(orderBySlug)).toEqual(
+        eventType.bookingFields.sort(orderBySlug).filter((f) => ("hidden" in f ? !f?.hidden : true))
+      );
+      expect(fetchedEventType?.ownerId).toEqual(user.id);
+      expect(fetchedEventType?.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
+      expect(fetchedEventType?.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
+      expect(fetchedEventType?.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
+      expect(fetchedEventType?.offsetStart).toEqual(eventType.offsetStart);
+      expect(fetchedEventType?.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType?.bookerLayouts).toEqual(eventType.bookerLayouts);
+      expect(fetchedEventType?.confirmationPolicy).toEqual(eventType.confirmationPolicy);
+      expect(fetchedEventType?.recurrence).toEqual(eventType.recurrence);
+      expect(fetchedEventType?.customName).toEqual(eventType.customName);
+      expect(fetchedEventType?.requiresBookerEmailVerification).toEqual(
+        eventType.requiresBookerEmailVerification
+      );
+      expect(fetchedEventType?.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
+      expect(fetchedEventType?.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType?.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
+      expect(fetchedEventType?.lockTimeZoneToggleOnBookingPage).toEqual(
+        eventType.lockTimeZoneToggleOnBookingPage
+      );
+      expect(fetchedEventType?.color).toEqual(eventType.color);
+      expect(fetchedEventType?.hidden).toEqual(false);
+    });
+
+    it(`/GET/event-types by username and eventSlug should not return hidden event type if auth of non event type owner provided`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}&eventSlug=${hiddenEventType.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyOrgUser}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(0);
+    });
+
+    it(`/GET/event-types by username and eventSlug should not return hidden event type if no auth provided`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}&eventSlug=${hiddenEventType.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(0);
     });
 
     it(`/GET/event-types by username and orgSlug`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
@@ -645,8 +809,7 @@ describe("Event types Endpoints", () => {
           `/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}&eventSlug=${orgUserEventType1.slug}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
@@ -661,8 +824,7 @@ describe("Event types Endpoints", () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${orgUser.username}&orgId=${organization.id}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
@@ -703,6 +865,7 @@ describe("Event types Endpoints", () => {
       await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(400);
     });
@@ -730,6 +893,7 @@ describe("Event types Endpoints", () => {
       const createResponse = await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(201);
 
@@ -746,6 +910,7 @@ describe("Event types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send({
           seats: {
@@ -777,6 +942,7 @@ describe("Event types Endpoints", () => {
 
       await request(app.getHttpServer())
         .post("/api/v2/event-types")
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(400);
@@ -797,6 +963,7 @@ describe("Event types Endpoints", () => {
 
       const createResponse = await request(app.getHttpServer())
         .post("/api/v2/event-types")
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(201);
@@ -815,6 +982,7 @@ describe("Event types Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${createdEventType.id}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send({
           seats: {
             seatsPerTimeSlot: 4,
@@ -842,6 +1010,7 @@ describe("Event types Endpoints", () => {
       const createResponse = await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(201);
 
@@ -858,6 +1027,7 @@ describe("Event types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send({
           locations: [
@@ -895,6 +1065,7 @@ describe("Event types Endpoints", () => {
 
       await request(app.getHttpServer())
         .post("/api/v2/event-types")
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(400);
@@ -916,6 +1087,7 @@ describe("Event types Endpoints", () => {
 
       const createResponse = await request(app.getHttpServer())
         .post("/api/v2/event-types")
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(201);
@@ -933,6 +1105,7 @@ describe("Event types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send({
           confirmationPolicy: {
@@ -1026,11 +1199,13 @@ describe("Event types Endpoints", () => {
           lightThemeHex: "#fafafa",
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
+        bookingRequiresAuthentication: false,
       };
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${eventType.id}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .send(body)
         .expect(200)
         .then(async (response) => {
@@ -1120,6 +1295,8 @@ describe("Event types Endpoints", () => {
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
+
+          expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
         });
     });
 
@@ -1130,6 +1307,7 @@ describe("Event types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${eventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(404);
@@ -1147,6 +1325,7 @@ describe("Event types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${eventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
         .expect(400);
@@ -1156,8 +1335,7 @@ describe("Event types Endpoints", () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${eventType.id}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
@@ -1198,8 +1376,7 @@ describe("Event types Endpoints", () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${username}&eventSlug=${eventType.slug}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
@@ -1240,13 +1417,16 @@ describe("Event types Endpoints", () => {
       await request(app.getHttpServer())
         .get(`/api/v2/event-types/1000`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
-        .set("Authorization", `Bearer whatever`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(404);
     });
 
     it("should delete event type", async () => {
-      return request(app.getHttpServer()).delete(`/api/v2/event-types/${eventType.id}`).expect(200);
+      return request(app.getHttpServer())
+        .delete(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200);
     });
 
     afterAll(async () => {
@@ -2028,7 +2208,6 @@ describe("Event types Endpoints", () => {
     const username = name;
     let user: User;
     let legacyEventTypeId1: number;
-    let legacyEventTypeId2: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -2145,6 +2324,51 @@ describe("Event types Endpoints", () => {
             { type: "unknown", location: JSON.stringify(eventTypeInput.locations[0]) },
           ]);
         });
+    });
+
+    describe("EventType Hidden Property", () => {
+      let createdEventTypeId: number;
+
+      it("should create an event type with hidden=true", async () => {
+        const createPayload = {
+          title: "Hidden Event",
+          slug: "hidden-event",
+          lengthInMinutes: 30,
+          hidden: true,
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(createPayload)
+          .expect(201);
+
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const createdEventType = responseBody.data;
+        expect(createdEventType).toHaveProperty("id");
+        expect(createdEventType.title).toEqual(createPayload.title);
+        expect(createdEventType.slug).toEqual(createPayload.slug);
+        expect(createdEventType.lengthInMinutes).toEqual(createPayload.lengthInMinutes);
+        expect(createdEventType.hidden).toBe(true);
+
+        createdEventTypeId = createdEventType.id;
+      });
+
+      it("should update the hidden property to false", async () => {
+        const updatePayload = {
+          hidden: false,
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/api/v2/event-types/${createdEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(updatePayload)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const updatedEventType = responseBody.data;
+        +expect(updatedEventType.hidden).toBe(false);
+      });
     });
 
     afterAll(async () => {

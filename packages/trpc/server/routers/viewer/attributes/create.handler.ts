@@ -3,7 +3,8 @@ import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permi
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
-import { Prisma, MembershipRole } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
