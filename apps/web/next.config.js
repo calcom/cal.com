@@ -1,4 +1,7 @@
+const { withBotId } = require("botid/next/config");
+
 require("dotenv").config({ path: "../../.env" });
+
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { version } = require("./package.json");
@@ -107,6 +110,11 @@ const informAboutDuplicateTranslations = () => {
 
 informAboutDuplicateTranslations();
 const plugins = [];
+
+if (process.env.VERCEL_BOTID_ENABLED === true) {
+  plugins.push(withBotId);
+}
+
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
   const withBundleAnalyzer = require("@next/bundle-analyzer")({

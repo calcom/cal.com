@@ -2,6 +2,7 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 import * as Sentry from "@sentry/nextjs";
+import { initBotId } from "botid/client/core";
 
 if (process.env.NODE_ENV === "production") {
   Sentry.init({
@@ -40,6 +41,29 @@ if (process.env.NODE_ENV === "production") {
       };
       return event;
     },
+  });
+}
+
+if (process.env.VERCEL_BOTID_ENABLED === true) {
+  initBotId({
+    protect: [
+      {
+        path: "/router",
+        method: "GET",
+      },
+      {
+        path: "/router",
+        method: "POST",
+      },
+      {
+        path: "/router/embed",
+        method: "GET",
+      },
+      {
+        path: "/router/embed",
+        method: "POST",
+      },
+    ],
   });
 }
 
