@@ -2,7 +2,7 @@ import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
 import { useParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -815,7 +815,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange={(val) => {
                             const isAlreadyVerified = !!verifiedNumbers
                               ?.concat([])
-                              .find((number) => number.replace(/\s/g, "") === val?.replace(/\s/g, ""));
+                              .find(
+                                (number: string) => number.replace(/\s/g, "") === val?.replace(/\s/g, "")
+                              );
                             setNumberVerified(isAlreadyVerified);
                             onChange(val);
                           }}
@@ -996,7 +998,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange={(val) => {
                             const isAlreadyVerified = !!verifiedEmails
                               ?.concat([])
-                              .find((email) => email === val.target.value);
+                              .find((email: string) => email === val.target.value);
                             setEmailVerified(isAlreadyVerified);
                             onChange(val);
                           }}
@@ -1100,7 +1102,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             onChange={(val) => {
                               const isAlreadyVerified = !!verifiedEmails
                                 ?.concat([])
-                                .find((email) => email === val.target.value);
+                                .find((email: string) => email === val.target.value);
                               setEmailVerified(isAlreadyVerified);
                               onChange(val);
                             }}
@@ -1195,7 +1197,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 action,
                                 locale: i18n.language,
                                 t,
-                                template: val.value ?? WorkflowTemplates.REMINDER,
+                                template: (val.value as WorkflowTemplates) ?? WorkflowTemplates.REMINDER,
                                 timeFormat,
                               });
 
@@ -1227,7 +1229,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 }
                               }
                               field.onChange(val.value);
-                              form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.template`,
+                                val.value as WorkflowTemplates
+                              );
                               setUpdateTemplate(!updateTemplate);
                             }
                           }}
