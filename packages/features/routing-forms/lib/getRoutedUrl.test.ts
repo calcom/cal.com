@@ -1,4 +1,3 @@
-import "../../../tests/libs/__mocks__/prisma";
 import "@calcom/lib/__mocks__/logger";
 
 import { createHash } from "crypto";
@@ -94,6 +93,7 @@ describe("getRoutedUrl", () => {
         () =>
           ({
             enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any)
       );
     }
