@@ -1,5 +1,3 @@
-import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
-import { captureException } from "@sentry/nextjs";
 import type { Params } from "app/_types";
 import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
@@ -21,10 +19,13 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
     let ok = false;
     try {
       performance.mark("Start");
-
-      const result = endpointRoute
-        ? await wrapApiHandlerWithSentry(async () => await handler(req, { params }), endpointRoute)()
-        : await handler(req, { params });
+      let result;
+      if (endpointRoute) {
+        const { wrapApiHandlerWithSentry } = await import("@sentry/nextjs");
+        result = await wrapApiHandlerWithSentry(async () => await handler(req, { params }), endpointRoute)();
+      } else {
+        result = await handler(req, { params });
+      }
 
       ok = true;
       if (result) {
@@ -49,6 +50,7 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
       // Don't report 400-499 errors to Sentry/console
       if (!(serverError.statusCode >= 400 && serverError.statusCode < 500)) {
         console.error(serverError);
+        const { captureException } = await import("@sentry/nextjs");
         captureException(error);
       }
 
