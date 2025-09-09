@@ -3609,7 +3609,12 @@ checksums:
     you_have_one_team: 77ca75609e3693390e756100580f8d19
     consider_consolidating_one_team_org: 17f63fc8749f3a2caac9d545bba4a511
     consider_consolidating_multi_team_org: c800dc24c5b9d2e7551e00d4550ffbe1
+    message_sent: 9645b288ddc5dec42ae0fbc00e5a32e0
+    support_message_sent_description: fd470f42c8f67c0ec2614fc311d4cbca
     search_variables: 109713c41acc0d58dcb26bd70f0fa3b3
+    support_message_placeholder: d7296df7d933eb151ce83c4994e169ef
+    send_another_message: 13dd55d64292dea6666fc42b2cd81ca5
+    sending: 841166a79844bd7474536877016a29f0
     no_variables_found: ff245d81f9b63e74656862119685bb55
     api_key_name_too_long: 1175b1d59bbe58c2a1b1e86de785dce8
     auto_charge_for_last_minute_cancellation: 8d438d61dc249f0ca003734e4a9dac18
