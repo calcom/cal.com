@@ -251,12 +251,11 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     const attachments = includeCalendarEvent
       ? [
           {
-            content: Buffer.from(
+            content:
               generateIcsString({
                 event: emailEvent,
                 status,
-              }) || ""
-            ).toString("base64"),
+              }) || "",
             filename: "event.ics",
             type: "text/calendar; method=REQUEST",
             disposition: "attachment",
