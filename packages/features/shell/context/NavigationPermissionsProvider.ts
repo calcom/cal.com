@@ -1,4 +1,6 @@
-import { createContext, useContext, createElement } from "react";
+"use client";
+
+import React, { createContext, useContext } from "react";
 
 /**
  * Navigation permission mapping for menu items
@@ -37,8 +39,14 @@ const NavigationPermissionsContext = createContext<NavigationPermissions | null>
  */
 export function useNavigationPermissions(): NavigationPermissions {
   const context = useContext(NavigationPermissionsContext);
-  if (!context) {
-    throw new Error("useNavigationPermissions must be used within NavigationPermissionsProvider");
+  if (context === null) {
+    return {
+      insights: false,
+      workflows: false,
+      routing: false,
+      teams: false,
+      members: false,
+    };
   }
   return context;
 }
@@ -64,5 +72,5 @@ export function NavigationPermissionsProvider({
   value: NavigationPermissions;
   children: React.ReactNode;
 }) {
-  return createElement(NavigationPermissionsContext.Provider, { value }, children);
+  return React.createElement(NavigationPermissionsContext.Provider, { value }, children);
 }
