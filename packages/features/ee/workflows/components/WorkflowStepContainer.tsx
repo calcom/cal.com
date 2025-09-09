@@ -495,7 +495,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="mt-5">
                 <Label>{timeSectionText}</Label>
                 <TimeTimeUnitInput disabled={props.readOnly} />
-                {!props.readOnly && trigger !== WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT && (
+                {!props.readOnly && (
                   <div className="mt-1 flex text-gray-500">
                     <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
                     <p className="text-sm">{t("testing_workflow_info_message")}</p>

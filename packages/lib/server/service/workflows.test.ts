@@ -1,7 +1,7 @@
 import { describe, expect, vi, beforeEach } from "vitest";
 
 import { tasker } from "@calcom/features/tasker";
-import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates, TimeUnit } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { scheduleWorkflowReminders } from "../../../features/ee/workflows/lib/reminders/reminderScheduler";
@@ -93,67 +93,6 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       hideBranding: false,
       workflows: [workflows[0]],
     });
-  });
-
-  test("should create tasker for FORM_SUBMITTED_NO_EVENT triggers", async () => {
-    const workflows = [
-      {
-        id: 2,
-        name: "Form Follow-up",
-        userId: 101,
-        teamId: null,
-        trigger: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
-        time: 30,
-        timeUnit: TimeUnit.MINUTE,
-        steps: [
-          {
-            id: 2,
-            action: WorkflowActions.EMAIL_ATTENDEE,
-            sendTo: null,
-            reminderBody: "Follow up message",
-            emailSubject: "Follow Up",
-            template: WorkflowTemplates.CUSTOM,
-            verifiedAt: new Date(),
-            includeCalendarEvent: false,
-            numberVerificationPending: false,
-            numberRequired: false,
-            sender: null,
-          },
-        ],
-      },
-    ];
-
-    mockTasker.create.mockResolvedValue({ id: "task-123" });
-
-    await WorkflowService.scheduleFormWorkflows({
-      workflows,
-      responses: mockResponses,
-      responseId: 123,
-      form: mockForm,
-    });
-
-    expect(mockTasker.create).toHaveBeenCalledWith(
-      "triggerFormSubmittedNoEventWorkflow",
-      {
-        responseId: 123,
-        responses: mockResponses,
-        smsReminderNumber: "+1234567890",
-        hideBranding: false,
-        submittedAt: expect.any(Date),
-        form: {
-          id: "form-123",
-          userId: 101,
-          teamId: undefined,
-          user: {
-            email: "formowner@example.com",
-            timeFormat: 12,
-            locale: "en",
-          },
-        },
-        workflow: workflows[0],
-      },
-      { scheduledAt: expect.any(Date) }
-    );
   });
 
   test("should handle forms without phone fields by passing null smsReminderNumber", async () => {
