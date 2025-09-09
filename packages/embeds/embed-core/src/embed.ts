@@ -483,9 +483,7 @@ export class Cal {
         // Ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed could show-up without any user action
         return;
       }
-      if (this.iframe) {
-        this.iframe.style.visibility = "";
-      }
+      this.iframe!.style.visibility = "";
 
       // Removes the loader
       // TODO: We should be using consistent approach of "state" attribute for modalBox and inlineEl.

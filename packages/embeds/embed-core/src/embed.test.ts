@@ -26,7 +26,7 @@ type ExpectedIframeUrlObject = {
   origin: string | null;
 };
 
-function log(...args: unknown[]) {
+function log(...args: any[]) {
   console.log("Test:", ...args);
 }
 
