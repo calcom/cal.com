@@ -1,6 +1,5 @@
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
 import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -39,16 +38,13 @@ const getCachedResourcePermissions = unstable_cache(
 export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
-  if (!userId) {
-    return redirect("/auth/login");
-  }
 
   let teamFeatures: Record<number, TeamFeatures> | null = null;
   let canViewRoles = false;
   const orgId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
 
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
-  if (orgId) {
+  if (orgId && userId) {
     const [features, rolePermissions] = await Promise.all([
       getTeamFeatures(orgId),
       getCachedResourcePermissions(userId, orgId, Resource.Role),
