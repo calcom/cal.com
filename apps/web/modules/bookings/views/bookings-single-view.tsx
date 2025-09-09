@@ -26,10 +26,10 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
