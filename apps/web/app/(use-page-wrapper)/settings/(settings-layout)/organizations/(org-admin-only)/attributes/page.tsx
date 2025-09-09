@@ -22,10 +22,6 @@ const Page = async () => {
   const t = await getTranslate();
   const session = await validateUserHasOrgAdmin();
 
-  if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
-    return redirect("/settings/profile");
-  }
-
   const { canRead, canEdit, canDelete, canCreate } = await getResourcePermissions({
     userId: session.user.id,
     teamId: session.user.profile.organizationId,

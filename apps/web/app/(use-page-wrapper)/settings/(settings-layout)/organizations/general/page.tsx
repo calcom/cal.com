@@ -1,5 +1,4 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { redirect } from "next/navigation";
 
 import LegacyPage from "@calcom/features/ee/organizations/pages/settings/general";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
@@ -22,10 +21,6 @@ const Page = async () => {
   const t = await getTranslate();
 
   const session = await validateUserHasOrg();
-
-  if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
-    return redirect("/settings/profile");
-  }
 
   const { canRead, canEdit } = await getResourcePermissions({
     userId: session.user.id,

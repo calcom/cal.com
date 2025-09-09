@@ -23,17 +23,17 @@ const Page = async () => {
   const session = await validateUserHasOrg();
   const t = await getTranslate();
 
-  const orgRole = session?.user.profile?.organization.members?.find(
-    (member: Membership) => member.userId === session?.user.id
+  const orgRole = session.user.profile.organization.members?.find(
+    (member: Membership) => member.userId === session.user.id
   )?.role;
 
-  if (!session?.user.id || !session?.user.profile?.organizationId || !orgRole) {
+  if (!orgRole) {
     return redirect("/settings/profile");
   }
 
   const { canRead, canEdit, canDelete } = await getResourcePermissions({
     userId: session.user.id,
-    teamId: session?.user.profile?.organizationId,
+    teamId: session.user.profile.organizationId,
     resource: Resource.Organization,
     userRole: orgRole,
     fallbackRoles: {
