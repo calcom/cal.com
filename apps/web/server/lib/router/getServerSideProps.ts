@@ -1,4 +1,5 @@
 import { wrapGetServerSidePropsWithSentry } from "@sentry/nextjs";
+import { checkBotId } from "botid/server";
 import type { GetServerSidePropsContext } from "next";
 
 import { getRoutedUrl, hasEmbedPath } from "@calcom/features/routing-forms/lib/getRoutedUrl";
@@ -8,6 +9,10 @@ import { TRPCError } from "@trpc/server";
 export const getServerSideProps = wrapGetServerSidePropsWithSentry(async function getServerSideProps(
   context: GetServerSidePropsContext
 ) {
+  const verification = await checkBotId();
+  if (verification.isBot) {
+    throw new Error("Access denied");
+  }
   try {
     return await getRoutedUrl(context);
   } catch (error) {
