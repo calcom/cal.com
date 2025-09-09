@@ -59,6 +59,7 @@ const Actions = ({
   setIsTestPreviewOpen,
   isTestPreviewOpen,
   isMobile = false,
+  permissions,
 }: {
   form: RoutingFormWithResponseCount;
   setIsTestPreviewOpen: (value: boolean) => void;
@@ -66,6 +67,12 @@ const Actions = ({
   appUrl: string;
   isTestPreviewOpen: boolean;
   isMobile?: boolean;
+  permissions: {
+    canCreate: boolean;
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
@@ -165,6 +172,7 @@ const Actions = ({
               className="w-full"
               type="button"
               color="destructive"
+              disabled={!permissions.canDelete}
               StartIcon="trash">
               {t("delete")}
             </FormAction>
@@ -182,6 +190,7 @@ const Actions = ({
           <Button
             data-testid={isMobile ? "update-form-mobile" : "update-form"}
             loading={isSaving}
+            disabled={!permissions.canEdit}
             type="submit"
             color="primary">
             {t("save")}
@@ -206,6 +215,7 @@ export function Header({
   setShowInfoLostDialog,
   setIsTestPreviewOpen,
   isTestPreviewOpen,
+  permissions,
 }: {
   routingForm: RoutingFormWithResponseCount;
   isSaving: boolean;
@@ -213,6 +223,12 @@ export function Header({
   setShowInfoLostDialog: (value: boolean) => void;
   setIsTestPreviewOpen: (value: boolean) => void;
   isTestPreviewOpen: boolean;
+  permissions: {
+    canCreate: boolean;
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
@@ -324,7 +340,8 @@ export function Header({
             isSaving={isSaving}
             appUrl={appUrl}
             isMobile={true}
-          />
+            permissions={permissions}
+          />{" "}
         </div>
       </div>
 
@@ -357,6 +374,7 @@ export function Header({
           isTestPreviewOpen={isTestPreviewOpen}
           isSaving={isSaving}
           appUrl={appUrl}
+          permissions={permissions}
         />
       </div>
     </div>

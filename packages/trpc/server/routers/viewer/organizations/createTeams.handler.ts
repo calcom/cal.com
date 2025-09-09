@@ -9,7 +9,7 @@ import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -95,21 +95,18 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     teamNames.map((item) => slugify(item)).includes(slug)
   );
 
-  await Promise.all(
-    moveTeams
-      .filter((team) => team.shouldMove)
-      .map(async ({ id: teamId, newSlug }) => {
-        await moveTeam({
-          teamId,
-          newSlug,
-          org: {
-            ...organization,
-            ownerId: organizationOwner.id,
-          },
-          creationSource,
-        });
-      })
-  );
+  // Process team migrations sequentially to avoid race conditions - Moving a team invites members to the organization again and there are known unique constraints failure in membership and profile creation if done in parallel and a user happens to be part of more than one team
+  for (const team of moveTeams.filter((team) => team.shouldMove)) {
+    await moveTeam({
+      teamId: team.id,
+      newSlug: team.newSlug,
+      org: {
+        ...organization,
+        ownerId: organizationOwner.id,
+      },
+      creationSource,
+    });
+  }
 
   if (duplicatedSlugs.length === teamNames.length) {
     return { duplicatedSlugs };
@@ -136,12 +133,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   return { duplicatedSlugs };
 };
-
-class NoUserError extends TRPCError {
-  constructor() {
-    super({ code: "BAD_REQUEST", message: "no_user" });
-  }
-}
 
 class NotAuthorizedError extends TRPCError {
   constructor() {
@@ -214,10 +205,12 @@ async function moveTeam({
   });
 
   if (!team) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Team with id: ${teamId} not found`,
+    log.warn(`Team with id: ${teamId} not found. Skipping migration.`, {
+      teamId,
+      orgId: org.id,
+      orgSlug: org.slug,
     });
+    return;
   }
 
   if (team.parent?.isPlatform) {
@@ -302,7 +295,7 @@ async function tryToCancelSubscription(subscriptionId: string) {
 }
 
 function getSubscriptionId(metadata: Prisma.JsonValue) {
-  const parsedMetadata = teamMetadataSchema.safeParse(metadata);
+  const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
   if (parsedMetadata.success) {
     const subscriptionId = parsedMetadata.data?.subscriptionId;
     if (!subscriptionId) {
@@ -325,12 +318,12 @@ async function addTeamRedirect({
 }) {
   logger.info(`Adding redirect for team: ${oldTeamSlug} -> ${teamSlug}`);
   if (!oldTeamSlug) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No oldSlug for team. Not adding the redirect",
-    });
+    // This can happen for unpublished teams that don't have a slug yet
+    logger.warn(`No oldSlug for team. Not adding the redirect`);
+    return;
   }
   if (!teamSlug) {
+    // This should not happen as org onboarding ensures teams have slugs
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "No slug for team. Not adding the redirect",

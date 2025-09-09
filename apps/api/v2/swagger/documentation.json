@@ -4384,6 +4384,292 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links": {
+      "post": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_createPrivateLink",
+        "summary": "Create a private link for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivateLinkInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      },
+      "get": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_getPrivateLinks",
+        "summary": "Get all private links for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPrivateLinksOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId}": {
+      "patch": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_updatePrivateLink",
+        "summary": "Update a private link for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_deletePrivateLink",
+        "summary": "Delete a private link for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getAllOrgTeamMemberships",
@@ -5261,6 +5547,97 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/schedules": {
+      "get": {
+        "operationId": "OrganizationsTeamsSchedulesController_getTeamSchedules",
+        "summary": "Get all team member schedules",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Schedules"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
@@ -5432,6 +5809,22 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           },
           {
@@ -8563,6 +8956,69 @@
         ]
       }
     },
+    "/v2/calendars/{calendar}/events/{eventUid}": {
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "google"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cal Unified Calendars"
+        ]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -9890,6 +10346,198 @@
         },
         "tags": [
           "Event Types / Webhooks"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/private-links": {
+      "post": {
+        "operationId": "EventTypesPrivateLinksController_createPrivateLink",
+        "summary": "Create a private link for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivateLinkInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypesPrivateLinksController_getPrivateLinks",
+        "summary": "Get all private links for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPrivateLinksOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/private-links/{linkId}": {
+      "patch": {
+        "operationId": "EventTypesPrivateLinksController_updatePrivateLink",
+        "summary": "Update a private link for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePrivateLinkBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypesPrivateLinksController_deletePrivateLink",
+        "summary": "Delete a private link for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
         ]
       }
     },
@@ -12671,6 +13319,71 @@
         },
         "tags": [
           "Teams / Memberships"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/schedules": {
+      "get": {
+        "operationId": "TeamsSchedulesController_getTeamSchedules",
+        "summary": "Get all team member schedules",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Schedules"
         ]
       }
     },
@@ -15705,6 +16418,10 @@
           "redirectUrlOnExit": {
             "type": "object",
             "description": "URL to which participants are redirected when they exit the call"
+          },
+          "enableAutomaticRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, enables the automatic recording for the event when organizer joins the call"
           }
         }
       },
@@ -15958,6 +16675,14 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "locations": {
             "type": "array",
@@ -17621,6 +18346,13 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -17650,6 +18382,8 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
           "ownerId",
           "users"
         ]
@@ -17969,6 +18703,14 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "locations": {
             "type": "array",
@@ -19798,6 +20540,14 @@
               }
             ]
           },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+          },
           "schedulingType": {
             "type": "string",
             "enum": [
@@ -20231,6 +20981,13 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "teamId": {
             "type": "number"
@@ -20677,6 +21434,14 @@
                 "$ref": "#/components/schemas/CalVideoSettings"
               }
             ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "default": false,
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
           },
           "hosts": {
             "type": "array",
@@ -21789,7 +22554,12 @@
               "afterEvent",
               "rescheduleEvent",
               "afterHostsCalVideoNoShow",
-              "afterGuestsCalVideoNoShow"
+              "afterGuestsCalVideoNoShow",
+              "bookingRejected",
+              "bookingRequested",
+              "bookingPaymentInitiated",
+              "bookingPaid",
+              "bookingNoShowUpdated"
             ]
           },
           "offset": {
@@ -21852,7 +22622,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ]
           },
           "recipient": {
@@ -22043,6 +22814,11 @@
           },
           "unit": {
             "type": "object",
+            "enum": [
+              "hour",
+              "minute",
+              "day"
+            ],
             "description": "Unit for the offset time",
             "example": "hour"
           }
@@ -22066,6 +22842,9 @@
           "type": {
             "type": "string",
             "default": "beforeEvent",
+            "enum": [
+              "beforeEvent"
+            ],
             "description": "Trigger type for the workflow",
             "example": "beforeEvent"
           }
@@ -22089,6 +22868,9 @@
           "type": {
             "type": "string",
             "default": "afterEvent",
+            "enum": [
+              "afterEvent"
+            ],
             "description": "Trigger type for the workflow",
             "example": "afterEvent"
           }
@@ -22104,6 +22886,9 @@
           "type": {
             "type": "string",
             "default": "eventCancelled",
+            "enum": [
+              "eventCancelled"
+            ],
             "description": "Trigger type for the workflow"
           }
         },
@@ -22117,6 +22902,9 @@
           "type": {
             "type": "string",
             "default": "newEvent",
+            "enum": [
+              "newEvent"
+            ],
             "description": "Trigger type for the workflow"
           }
         },
@@ -22130,6 +22918,74 @@
           "type": {
             "type": "string",
             "default": "rescheduleEvent",
+            "enum": [
+              "rescheduleEvent"
+            ],
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnNoShowUpdateTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingNoShowUpdated",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnRejectedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingRejected",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnRequestedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingRequested",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnPaymentInitiatedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingPaymentInitiated",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnPaidTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingPaid",
             "description": "Trigger type for the workflow"
           }
         },
@@ -22151,6 +23007,9 @@
           "type": {
             "type": "string",
             "default": "afterGuestsCalVideoNoShow",
+            "enum": [
+              "afterGuestsCalVideoNoShow"
+            ],
             "description": "Trigger type for the workflow",
             "example": "afterGuestsCalVideoNoShow"
           }
@@ -22174,6 +23033,9 @@
           "type": {
             "type": "string",
             "default": "afterHostsCalVideoNoShow",
+            "enum": [
+              "afterHostsCalVideoNoShow"
+            ],
             "description": "Trigger type for the workflow",
             "example": "afterHostsCalVideoNoShow"
           }
@@ -22214,7 +23076,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_address",
             "description": "Action to perform, send an email to a specific email address",
@@ -22299,7 +23162,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_attendee",
             "description": "Action to perform, send an email to the attendees of the event",
@@ -22375,7 +23239,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_host",
             "description": "Action to perform, send an email to the host of the event",
@@ -22470,7 +23335,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_attendee",
             "description": "Action to perform",
@@ -22539,7 +23405,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_number",
             "description": "Action to perform, send a text message via whatsapp to a specific phone number",
@@ -22617,7 +23484,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_number",
             "description": "Action to perform, send a text message to a specific phone number",
@@ -22695,7 +23563,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_attendee",
             "description": "Action to perform, send a text message to the phone numbers of the attendees",
@@ -22761,6 +23630,22 @@
         "properties": {
           "type": {
             "type": "object",
+            "enum": [
+              [
+                "beforeEvent",
+                "eventCancelled",
+                "newEvent",
+                "afterEvent",
+                "rescheduleEvent",
+                "afterHostsCalVideoNoShow",
+                "afterGuestsCalVideoNoShow",
+                "bookingRejected",
+                "bookingRequested",
+                "bookingPaymentInitiated",
+                "bookingPaid",
+                "bookingNoShowUpdated"
+              ]
+            ],
             "description": "Trigger type for the workflow"
           }
         },
@@ -22832,6 +23717,21 @@
               },
               {
                 "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRejectedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRequestedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaidTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaymentInitiatedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnNoShowUpdateTriggerDto"
               }
             ]
           },
@@ -22884,7 +23784,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_address",
             "description": "Action to perform, send an email to a specific email address",
@@ -22974,7 +23875,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_attendee",
             "description": "Action to perform, send an email to the attendees of the event",
@@ -23055,7 +23957,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_host",
             "description": "Action to perform, send an email to the host of the event",
@@ -23136,7 +24039,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_attendee",
             "description": "Action to perform, send a text message to the phone numbers of the attendees",
@@ -23214,7 +24118,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_number",
             "description": "Action to perform, send a text message via whatsapp to a specific phone number",
@@ -23297,7 +24202,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_attendee",
             "description": "Action to perform",
@@ -23371,7 +24277,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_number",
             "description": "Action to perform, send a text message to a specific phone number",
@@ -23481,6 +24388,21 @@
               },
               {
                 "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRejectedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRequestedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaidTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaymentInitiatedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnNoShowUpdateTriggerDto"
               }
             ]
           },
@@ -23514,6 +24436,213 @@
             }
           }
         }
+      },
+      "CreatePrivateLinkInput": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date for time-based links",
+            "format": "date-time",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times the link can be used. If omitted and expiresAt is not provided, defaults to 1 (one time use).",
+            "example": 10,
+            "minimum": 1,
+            "default": 1
+          }
+        }
+      },
+      "TimeBasedPrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string",
+            "description": "The private link ID",
+            "example": "abc123def456"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event type ID this link belongs to",
+            "example": 123
+          },
+          "isExpired": {
+            "type": "boolean",
+            "description": "Whether the link is currently expired",
+            "example": false
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full booking URL for this private link",
+            "format": "uri",
+            "example": "https://cal.com/d/abc123def456/30min"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date for this time-based link",
+            "format": "date-time",
+            "example": "2025-12-31T23:59:59.000Z"
+          }
+        },
+        "required": [
+          "linkId",
+          "eventTypeId",
+          "isExpired",
+          "bookingUrl",
+          "expiresAt"
+        ]
+      },
+      "UsageBasedPrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string",
+            "description": "The private link ID",
+            "example": "abc123def456"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event type ID this link belongs to",
+            "example": 123
+          },
+          "isExpired": {
+            "type": "boolean",
+            "description": "Whether the link is currently expired",
+            "example": false
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full booking URL for this private link",
+            "format": "uri",
+            "example": "https://cal.com/d/abc123def456/30min"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times this link can be used",
+            "example": 10
+          },
+          "usageCount": {
+            "type": "number",
+            "description": "Current usage count for this link",
+            "example": 3
+          }
+        },
+        "required": [
+          "linkId",
+          "eventTypeId",
+          "isExpired",
+          "bookingUrl",
+          "maxUsageCount",
+          "usageCount"
+        ]
+      },
+      "CreatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Created private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetPrivateLinksOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of private links for the event type (mix of time-based and usage-based)",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+                },
+                {
+                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Updated private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeletePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Deleted link information",
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "message": {
+                "type": "string",
+                "example": "Private link deleted successfully"
+              }
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "StripConnectOutputDto": {
         "type": "object",
@@ -25362,6 +26491,23 @@
           "status",
           "data"
         ]
+      },
+      "UpdatePrivateLinkBody": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "New expiration date for time-based links",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "New maximum number of times the link can be used",
+            "example": 10,
+            "minimum": 1
+          }
+        }
       },
       "MeOrgOutput": {
         "type": "object",
@@ -28347,7 +29493,7 @@
       },
       "CalendarEventResponseStatus": {
         "type": "string",
-        "description": "Host's response to the invitation",
+        "description": "Response status of the attendee",
         "enum": [
           "accepted",
           "pending",
@@ -28380,6 +29526,11 @@
             "type": "boolean",
             "nullable": true,
             "description": "Indicates if this attendee's attendance is optional"
+          },
+          "host": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the host"
           }
         },
         "required": [
@@ -28412,6 +29563,23 @@
             "nullable": true,
             "example": "accepted",
             "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "calendarEventOwner": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the event host"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name of the event host"
           }
         },
         "required": [
@@ -28514,6 +29682,15 @@
               "$ref": "#/components/schemas/CalendarEventHost"
             }
           },
+          "calendarEventOwner": {
+            "nullable": true,
+            "description": "The calendar account that owns this event. This is the primary calendar where the event is stored and cannot be modified without appropriate permissions. Changing this would require moving the event to a different calendar",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/calendarEventOwner"
+              }
+            ]
+          },
           "source": {
             "example": "google",
             "$ref": "#/components/schemas/CalendarSource"
@@ -28546,6 +29723,91 @@
           "status",
           "data"
         ]
+      },
+      "UpdateCalendarEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          },
+          "self": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the current user"
+          },
+          "optional": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee's attendance is optional"
+          },
+          "host": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the host"
+          }
+        }
+      },
+      "UpdateUnifiedCalendarEventInput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "Start date and time of the calendar event with timezone information"
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "End date and time of the calendar event with timezone information"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the calendar event"
+          },
+          "attendees": {
+            "nullable": true,
+            "description": "List of attendees. CAUTION: You must pass the entire array with all updated values. Any attendees not included in this array will be removed from the event.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateCalendarEventAttendee"
+            }
+          },
+          "status": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventStatus"
+          }
+        }
       },
       "RequestEmailVerificationInput": {
         "type": "object",

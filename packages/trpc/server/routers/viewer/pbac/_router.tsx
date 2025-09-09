@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
+import prisma from "@calcom/prisma";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
@@ -12,21 +13,7 @@ import { router } from "../../../trpc";
 
 // Create a Zod schema for PermissionString that validates the format
 const permissionStringSchema = z.custom<PermissionString>((val) => {
-  if (typeof val !== "string") return false;
-
-  const [resource, action] = val.split(".");
-
-  const isValidResource = Object.values(Resource).includes(resource as Resource);
-
-  if (action === "_resource") {
-    return true;
-  }
-
-  const isValidAction =
-    Object.values(CrudAction).includes(action as CrudAction) ||
-    Object.values(CustomAction).includes(action as CustomAction);
-
-  return isValidResource && isValidAction;
+  return isValidPermissionString(val);
 }, "Invalid permission string format. Must be 'resource.action' where resource and action are valid enums");
 
 // Schema for creating/updating roles
@@ -193,7 +180,7 @@ export const permissionsRouter = router({
         throw new Error("Unauthorized");
       }
 
-      const featureRepo = new FeaturesRepository();
+      const featureRepo = new FeaturesRepository(prisma);
       const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
 
       if (!teamHasPBACFeature) {

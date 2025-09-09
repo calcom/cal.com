@@ -157,7 +157,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
             },
@@ -396,7 +396,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
             },
@@ -785,7 +785,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1013,7 +1013,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1261,7 +1261,7 @@ describe("handleNewBooking", () => {
               })
             );
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1478,7 +1478,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -1720,7 +1720,7 @@ describe("handleNewBooking", () => {
               metadataLookupKey: "dailyvideo",
             });
 
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
               create: {
                 uid: "MOCK_ID",
               },
@@ -2006,7 +2006,7 @@ describe("handleNewBooking", () => {
     });
     describe("Team event-type", () => {
       test(
-        "should send correct schedule/cancellation emails to hosts when round robin is rescheduled to different host",
+        "should send correct schedule/cancellation/reassigned emails to hosts when round robin is rescheduled to different host",
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
@@ -2158,6 +2158,7 @@ describe("handleNewBooking", () => {
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost2,
             emails,
+            bookerReschedule: true,
           });
         },
         timeout
@@ -2827,5 +2828,282 @@ describe("handleNewBooking", () => {
         timeout
       );
     });
+
+    test(
+      "should use correct credentials when round robin reschedule changes host - original host credentials for deletion, new host for creation",
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const originalHost = getOrganizer({
+          name: "Original Host",
+          email: "originalhost@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstMorningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const newHost = getOrganizer({
+          name: "New Host",
+          email: "newhost@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstEveningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "credential-test-booking-uid";
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                users: [{ id: 101 }, { id: 102 }],
+                schedulingType: SchedulingType.ROUND_ROBIN,
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                  {
+                    type: appStoreMetadata.googlecalendar.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: undefined,
+                  },
+                ],
+              },
+            ],
+            organizer: originalHost,
+            usersApartFromOrganizer: [newHost],
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        const videoMock = mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+        });
+
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: { uid: "NEW_EVENT_ID" },
+          update: { uid: "UPDATED_EVENT_ID" },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: uidOfBookingToBeRescheduled,
+            start: `${plus1DateString}T14:00:00.000Z`,
+            end: `${plus1DateString}T14:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        expectSuccessfulCalendarEventDeletionInCalendar(calendarMock, {
+          externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+          calEvent: {
+            organizer: expect.objectContaining({
+              email: originalHost.email,
+            }),
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            uid: uidOfBookingToBeRescheduled,
+          },
+          uid: "MOCK_ID",
+        });
+
+        // Verify that creation occurred with new host credentials
+        expect(calendarMock.createEventCalls.length).toBe(1);
+        const createCall = calendarMock.createEventCalls[0];
+        expect(createCall.args.calEvent.organizer.email).toBe(newHost.email);
+
+        expect(createdBooking.userId).toBe(newHost.id);
+        expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T14:00:00.000Z`);
+        expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T14:15:00.000Z`);
+      },
+      timeout
+    );
+
+    test(
+      "should set correct booking reference when rescheduling with phone location change",
+      async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "test@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_RESCHEDULED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [
+                  {
+                    type: "phone", // ← Original generic phone location
+                  },
+                ],
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                references: [
+                  getMockBookingReference({
+                    type: "google_calendar",
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-google-meet.example.com",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: 1,
+                  }),
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: booker.name,
+                    email: booker.email,
+                  }),
+                ],
+                // Different location from the one in the new booking
+                location: "+15552234567",
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: [],
+            apps: [TestData.apps["google-calendar"]],
+          })
+        );
+
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: { uid: "NEW_EVENT_ID" },
+          update: { uid: "UPDATED_EVENT_ID" },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: uidOfBookingToBeRescheduled,
+            start: `${plus1DateString}T06:00:00.000Z`,
+            end: `${plus1DateString}T06:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "+15551234567", value: "+15551234567" },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        logger.silly("Created booking", { createdBooking });
+
+        await expectBookingInDBToBeRescheduledFromTo({
+          from: {
+            uid: uidOfBookingToBeRescheduled,
+          },
+          to: {
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBooking.uid!,
+            eventTypeId: 1,
+            // Only recurring event can have recurringEventId
+            recurringEventId: null,
+            location: "+15551234567",
+            status: BookingStatus.ACCEPTED,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
+          },
+        });
+
+        // ✅ THE CRITICAL TEST: Ensure BookingReference has proper values
+        const newBooking = await prismaMock.booking.findFirst({
+          where: {
+            uid: createdBooking.uid,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(newBooking?.references).toHaveLength(1);
+        const reference = newBooking!.references[0];
+
+        // Valid reference should have uid
+        expect(reference.uid).toBe("UPDATED_EVENT_ID");
+      },
+      timeout
+    );
   });
 });

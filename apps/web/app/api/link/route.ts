@@ -30,6 +30,10 @@ const querySchema = z.object({
 const decryptedSchema = z.object({
   bookingUid: z.string(),
   userId: z.number().int(),
+  platformClientId: z.string().optional(),
+  platformRescheduleUrl: z.string().optional(),
+  platformCancelUrl: z.string().optional(),
+  platformBookingUrl: z.string().optional(),
 });
 
 // Move the sessionGetter function outside the GET function
@@ -64,7 +68,14 @@ async function handler(request: NextRequest) {
     symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || "")
   );
 
-  const { bookingUid, userId } = decryptedSchema.parse(decryptedData);
+  const {
+    bookingUid,
+    userId,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
+  } = decryptedSchema.parse(decryptedData);
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: { uid: bookingUid },
@@ -97,6 +108,14 @@ async function handler(request: NextRequest) {
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,
       reason,
+      platformClientParams: platformClientId
+        ? {
+            platformClientId,
+            platformRescheduleUrl,
+            platformCancelUrl,
+            platformBookingUrl,
+          }
+        : undefined,
     });
   } catch (e) {
     let message = "Error confirming booking";

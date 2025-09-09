@@ -26,7 +26,9 @@
       "@calcom/platform-libraries/app-store": ["../../../packages/platform/libraries/app-store.ts"],
       "@calcom/platform-libraries/workflows": ["../../../packages/platform/libraries/workflows.ts"],
       "@calcom/platform-libraries/conferencing": ["../../../packages/platform/libraries/conferencing.ts"],
-      "@calcom/platform-libraries/repositories": ["../../../packages/platform/libraries/repositories.ts"]
+      "@calcom/platform-libraries/repositories": ["../../../packages/platform/libraries/repositories.ts"],
+      "@calcom/platform-libraries/bookings": ["../../../packages/platform/libraries/bookings.ts"],
+      "@calcom/platform-libraries/private-links": ["../../../packages/platform/libraries/private-links.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,

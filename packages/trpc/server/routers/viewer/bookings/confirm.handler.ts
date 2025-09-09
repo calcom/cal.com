@@ -18,15 +18,18 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
   BookingStatus,
   MembershipRole,
   WebhookTriggerEvents,
+  WorkflowTriggerEvents,
   UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -214,6 +217,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: {
+      id: booking.user?.id,
       email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
       name: booking.user?.name || "Nameless",
       username: booking.user?.username || undefined,
@@ -381,6 +385,30 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
+    try {
+      await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+        workflows,
+        smsReminderNumber: booking.smsReminderNumber,
+        calendarEvent: {
+          ...evt,
+          bookerUrl: bookerUrl,
+          eventType: {
+            ...eventTypeInfo,
+            slug: booking.eventType?.slug as string,
+          },
+        },
+        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
+      });
+    } catch (error) {
+      // Silently fail
+      console.error(
+        "Error while scheduling workflow reminders for BOOKING_REJECTED:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
@@ -444,5 +472,63 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
     if (membership) return;
   }
 
+  if (bookingUserId && (await isLoggedInUserOrgAdminOfBookingUser(loggedInUserId, bookingUserId))) {
+    return;
+  }
+
   throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };
+
+async function isLoggedInUserOrgAdminOfBookingUser(loggedInUserId: number, bookingUserId: number) {
+  const orgIdsWhereLoggedInUserAdmin = await getOrgIdsWhereAdmin(loggedInUserId);
+
+  if (orgIdsWhereLoggedInUserAdmin.length === 0) {
+    return false;
+  }
+
+  const bookingUserOrgMembership = await prisma.membership.findFirst({
+    where: {
+      userId: bookingUserId,
+      teamId: {
+        in: orgIdsWhereLoggedInUserAdmin,
+      },
+      team: {
+        parentId: null,
+      },
+    },
+  });
+
+  if (bookingUserOrgMembership) return true;
+
+  const bookingUserOrgTeamMembership = await prisma.membership.findFirst({
+    where: {
+      userId: bookingUserId,
+      team: {
+        parentId: {
+          in: orgIdsWhereLoggedInUserAdmin,
+        },
+      },
+    },
+  });
+
+  return !!bookingUserOrgTeamMembership;
+}
+
+async function getOrgIdsWhereAdmin(loggedInUserId: number) {
+  const loggedInUserOrgMemberships = await prisma.membership.findMany({
+    where: {
+      userId: loggedInUserId,
+      role: {
+        in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      },
+      team: {
+        parentId: null,
+      },
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
+  return loggedInUserOrgMemberships.map((m) => m.teamId);
+}

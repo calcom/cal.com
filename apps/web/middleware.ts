@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-import { csp } from "./lib/csp";
+import { getCspHeader, getCspNonce } from "@lib/csp";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
@@ -38,6 +38,17 @@ export function checkStaticFiles(pathname: string) {
   }
 }
 
+const isPagePathRequest = (url: URL) => {
+  const isNonPagePathPrefix = /^\/(?:_next|api)\//;
+  const isFile = /\..*$/;
+  const { pathname } = url;
+  return !isNonPagePathPrefix.test(pathname) && !isFile.test(pathname);
+};
+
+const shouldEnforceCsp = (url: URL) => {
+  return url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login");
+};
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
@@ -46,27 +57,12 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   if (isStaticFile) return isStaticFile;
 
   const url = req.nextUrl;
-  const requestHeaders = new Headers(req.headers);
-
-  if (!url.pathname.startsWith("/api")) {
-    //
-    // NOTE: When tRPC hits an error a 500 is returned, when this is received
-    //       by the application the user is automatically redirected to /auth/login.
-    //
-    //     - For this reason our matchers are sufficient for an app-wide maintenance page.
-    //
-    // Check whether the maintenance page should be shown
-    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
-    // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isInMaintenanceMode) {
-      req.nextUrl.pathname = `/maintenance`;
-      return NextResponse.rewrite(req.nextUrl);
-    }
-  }
+  const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
+  const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
 
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
   if (routingFormRewriteResponse) {
-    return responseWithHeaders({ url, res: routingFormRewriteResponse, req });
+    return responseWithHeaders({ url, res: routingFormRewriteResponse, req: reqWithEnrichedHeaders });
   }
 
   if (url.pathname.startsWith("/api/auth/signup")) {
@@ -78,16 +74,13 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  if (url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login")) {
-    // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
-    requestHeaders.set("x-csp-enforce", "true");
-  }
-
   if (url.pathname.startsWith("/apps/installed")) {
-    const returnTo = req.cookies.get("return-to");
+    const returnTo = reqWithEnrichedHeaders.cookies.get("return-to");
 
     if (returnTo?.value) {
-      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      const response = NextResponse.redirect(new URL(returnTo.value, reqWithEnrichedHeaders.url), {
+        headers: requestHeaders,
+      });
       response.cookies.delete("return-to");
       return response;
     }
@@ -103,7 +96,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     res.cookies.delete("next-auth.session-token");
   }
 
-  return responseWithHeaders({ url, res, req });
+  return responseWithHeaders({ url, res, req: reqWithEnrichedHeaders });
 };
 
 const routingForms = {
@@ -138,17 +131,28 @@ const embeds = {
 
 const contentSecurityPolicy = {
   addResponseHeaders: ({ res, req }: { res: NextResponse; req: NextRequest }) => {
-    const { nonce } = csp(req, res ?? null);
-
-    if (!process.env.CSP_POLICY) {
-      res.headers.set("x-csp", "not-opted-in");
-    } else if (!res.headers.get("x-csp")) {
-      // If x-csp not set by gSSP, then it's initialPropsOnly
-      res.headers.set("x-csp", "initialPropsOnly");
-    } else {
-      res.headers.set("x-csp", nonce ?? "");
+    const nonce = req.headers.get("x-csp-nonce");
+    if (!nonce) {
+      res.headers.set("x-csp-status", "not-opted-in");
+      return res;
+    }
+    const cspHeader = getCspHeader({ shouldEnforceCsp: shouldEnforceCsp(req.nextUrl), nonce });
+    if (cspHeader) {
+      res.headers.set(cspHeader.name, cspHeader.value);
     }
     return res;
+  },
+  addRequestHeaders: ({ req }: { req: NextRequest }) => {
+    if (!process.env.CSP_POLICY) {
+      return req;
+    }
+    const isCspApplicable = isPagePathRequest(req.nextUrl);
+    if (!isCspApplicable) {
+      return req;
+    }
+    const nonce = getCspNonce();
+    req.headers.set("x-csp-nonce", nonce);
+    return req;
   },
 };
 
@@ -156,6 +160,11 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
   const resWithCSP = contentSecurityPolicy.addResponseHeaders({ res, req });
   const resWithEmbeds = embeds.addResponseHeaders({ url, res: resWithCSP });
   return resWithEmbeds;
+}
+
+function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
+  const reqWithCSP = contentSecurityPolicy.addRequestHeaders({ req });
+  return reqWithCSP;
 }
 
 export const config = {
