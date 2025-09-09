@@ -1,7 +1,8 @@
 import type { TFunction } from "i18next";
 import z from "zod";
 
-// Commented out restricted import: import { guessEventLocationType } from "@calcom/app-store/locations";
+// eslint-disable-next-line no-restricted-imports
+import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
@@ -45,9 +46,8 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let locationString = eventNameObj.location || "";
 
   if (eventNameObj.eventName.includes("{Location}") || eventNameObj.eventName.includes("{LOCATION}")) {
-    const eventLocationType = null; // guessEventLocationType(eventNameObj.location);
+    const eventLocationType = guessEventLocationType(eventNameObj.location);
     if (eventLocationType) {
-      // @ts-expect-error - eventLocationType is null due to commented out guessEventLocationType import
       locationString = eventLocationType.label;
     }
     eventName = eventName.replace("{Location}", locationString);
@@ -97,8 +97,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
           const valueAsString = bookingFieldValue.value?.toString();
           fieldValue =
             variable === "location"
-              ? // @ts-expect-error - guessEventLocationType import commented out due to restricted import
-                null?.label || valueAsString // guessEventLocationType(valueAsString)?.label || valueAsString
+              ? guessEventLocationType(valueAsString)?.label || valueAsString
               : valueAsString;
         } else if (variable === "name" && "firstName" in bookingFieldValue) {
           const lastName = "lastName" in bookingFieldValue ? bookingFieldValue.lastName : "";
