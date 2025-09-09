@@ -104,7 +104,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
     if (!userAgent) {
       logger.error("Missing user agent in web middleware");
-      return NextResponse.status(200);
+      return NextResponse.next();
     }
 
     try {
@@ -114,7 +114,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       }
     } catch (error) {
       logger.error("Error checking if user agent is a bot in web middlware:", error);
-      return NextResponse.status(200);
+      return NextResponse.next();
     }
   }
 
