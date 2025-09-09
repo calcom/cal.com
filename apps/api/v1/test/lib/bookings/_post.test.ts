@@ -11,9 +11,9 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { buildBooking, buildEventType, buildWebhook, buildUser } from "@calcom/lib/test/builder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, BookingStatus } from "@calcom/prisma/enums";
 
 import handler from "../../../pages/api/bookings/_post";
 
@@ -537,7 +537,7 @@ describe("POST /api/bookings", () => {
         const previousBooking = await prisma.booking.findUnique({
           where: { uid: "original-booking-uid" },
         });
-        expect(previousBooking?.status).toBe("cancelled");
+        expect(previousBooking?.status).toBe(BookingStatus.CANCELLED);
       });
 
       test("Creates source as api_v1", async () => {
