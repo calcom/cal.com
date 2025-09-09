@@ -48,8 +48,6 @@ const createNewSeat = async (
     return { ...attendee, language: { translate: tAttendees, locale: attendeeLanguage ?? "en" } };
   });
 
-  evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
-
   if (
     eventType.seatsPerTimeSlot &&
     eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
@@ -75,9 +73,6 @@ const createNewSeat = async (
   await prisma.booking.update({
     where: {
       uid: seatedBooking.uid,
-    },
-    include: {
-      attendees: true,
     },
     data: {
       attendees: {
@@ -108,8 +103,16 @@ const createNewSeat = async (
     },
   });
 
-  evt.attendeeSeatId = attendeeUniqueId;
+  const newBookingSeat = await prisma.bookingSeat.findUnique({
+    where: {
+      referenceUid: attendeeUniqueId,
+    },
+  });
 
+  const attendeeWithSeat = { ...inviteeToAdd, bookingSeat: newBookingSeat ?? null };
+
+  evt = { ...evt, attendees: [...bookingAttendees, attendeeWithSeat] };
+  evt.attendeeSeatId = attendeeUniqueId;
   const newSeat = seatedBooking.attendees.length !== 0;
 
   /**

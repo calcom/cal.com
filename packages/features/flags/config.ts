@@ -28,6 +28,7 @@ export type AppFlags = {
   "cal-ai-voice-agents": boolean;
   "calendar-subscription-cache": boolean;
   "calendar-subscription-sync": boolean;
+  "tiered-support-chat": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;
