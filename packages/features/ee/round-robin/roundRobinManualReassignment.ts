@@ -290,6 +290,7 @@ export const roundRobinManualReassignment = async ({
     },
     attendees: attendeeList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     destinationCalendar,
     team: {
       members: teamMembers,
@@ -318,7 +319,7 @@ export const roundRobinManualReassignment = async ({
   });
 
   const previousHostDestinationCalendar = hasOrganizerChanged
-    ? await prisma.destinationCalendar.findMany({
+    ? await prisma.destinationCalendar.findFirst({
         where: { userId: originalOrganizer.id },
       })
     : null;
@@ -328,7 +329,7 @@ export const roundRobinManualReassignment = async ({
     rescheduleUid: booking.uid,
     newBookingId: undefined,
     changedOrganizer: hasOrganizerChanged,
-    previousHostDestinationCalendar: previousHostDestinationCalendar ?? [],
+    previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
     initParams: {
       user: newUserWithCredentials,
       eventType,
@@ -339,7 +340,7 @@ export const roundRobinManualReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   if (emailsEnabled) {

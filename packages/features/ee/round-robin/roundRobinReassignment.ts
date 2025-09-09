@@ -265,19 +265,17 @@ export const roundRobinReassignment = async ({
     const previousRRHostAttendee = booking.attendees.find(
       (attendee) => attendee.email === previousRRHost.email
     );
-    if (previousRRHostAttendee) {
-      await prisma.attendee.update({
-        where: {
-          id: previousRRHostAttendee.id,
-        },
-        data: {
-          name: reassignedRRHost.name || "",
-          email: reassignedRRHost.email,
-          timeZone: reassignedRRHost.timeZone,
-          locale: reassignedRRHost.locale,
-        },
-      });
-    }
+    await prisma.attendee.update({
+      where: {
+        id: previousRRHostAttendee!.id,
+      },
+      data: {
+        name: reassignedRRHost.name || "",
+        email: reassignedRRHost.email,
+        timeZone: reassignedRRHost.timeZone,
+        locale: reassignedRRHost.locale,
+      },
+    });
   }
 
   roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);
@@ -295,9 +293,9 @@ export const roundRobinReassignment = async ({
     hasOrganizerChanged,
   });
 
-  // If changed owner, also change destination calendars (fetch all to ensure cleanup across all)
+  // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = hasOrganizerChanged
-    ? await prisma.destinationCalendar.findMany({
+    ? await prisma.destinationCalendar.findFirst({
         where: {
           userId: originalOrganizer.id,
         },
@@ -322,6 +320,7 @@ export const roundRobinReassignment = async ({
     description: eventType.description,
     attendees: attendeeList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     destinationCalendar,
     team: {
       members: teamMembers,
@@ -361,7 +360,7 @@ export const roundRobinReassignment = async ({
     rescheduleUid: booking.uid,
     newBookingId: undefined,
     changedOrganizer: hasOrganizerChanged,
-    previousHostDestinationCalendar: previousHostDestinationCalendar ?? [],
+    previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
     initParams: {
       user: organizerWithCredentials,
       eventType,
@@ -372,7 +371,7 @@ export const roundRobinReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
   if (emailsEnabled) {
