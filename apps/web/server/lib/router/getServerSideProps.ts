@@ -11,7 +11,11 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
 ) {
   const verification = await checkBotId();
   if (verification.isBot) {
-    throw new Error("Access denied");
+    return {
+      props: {
+        message: "Access denied",
+      },
+    };
   }
   try {
     return await getRoutedUrl(context);
