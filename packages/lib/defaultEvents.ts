@@ -1,4 +1,4 @@
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import slugify from "@calcom/lib/slugify";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";

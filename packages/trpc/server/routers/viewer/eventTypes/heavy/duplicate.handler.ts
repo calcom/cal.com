@@ -6,8 +6,8 @@ import { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
-import { setDestinationCalendarHandler } from "../../viewer/calendars/setDestinationCalendar.handler";
+import type { TrpcSessionUser } from "../../../../types";
+import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
 
 type DuplicateOptions = {

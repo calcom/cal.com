@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";

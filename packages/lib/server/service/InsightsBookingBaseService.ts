@@ -12,8 +12,8 @@ import {
   isNumberFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
-import type { readonlyPrisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";
@@ -142,7 +142,7 @@ const NOTHING_CONDITION = Prisma.sql`1=0`;
 const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
 export class InsightsBookingBaseService {
-  private prisma: typeof readonlyPrisma;
+  private prisma: PrismaClient;
   private options: InsightsBookingServiceOptions | null;
   private filters: InsightsBookingServiceFilterOptions | null;
   private cachedAuthConditions?: Prisma.Sql;
@@ -153,7 +153,7 @@ export class InsightsBookingBaseService {
     options,
     filters,
   }: {
-    prisma: typeof readonlyPrisma;
+    prisma: PrismaClient;
     options: InsightsBookingServicePublicOptions;
     filters?: InsightsBookingServiceFilterOptions;
   }) {

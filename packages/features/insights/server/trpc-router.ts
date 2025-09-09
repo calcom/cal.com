@@ -11,9 +11,8 @@ import {
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
-import type { readonlyPrisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -27,24 +26,6 @@ const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
   isAll: z.boolean().optional(),
 });
-
-const bookingStatusSchema = z.enum(["NO_BOOKING", ...Object.values(BookingStatus)]).optional();
-
-const buildHashMapForUsers = <
-  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
->(
-  usersFromTeam: T[]
-) => {
-  const userHashMap = new Map<number | null, Omit<T, "avatarUrl"> & { avatarUrl: string }>();
-  usersFromTeam.forEach((user) => {
-    userHashMap.set(user.id, {
-      ...user,
-      // TODO: Use AVATAR_FALLBACK when avatar.png endpoint is fased out
-      avatarUrl: user.avatarUrl || `/${user.username}/avatar.png`,
-    });
-  });
-  return userHashMap;
-};
 
 const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
   const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
@@ -199,7 +180,7 @@ function createInsightsBookingService(
 }
 
 function createInsightsRoutingService(
-  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  ctx: { insightsDb: PrismaClient; user: { id: number; organizationId: number | null } },
   input: z.infer<typeof routingRepositoryBaseInputSchema>
 ) {
   return getInsightsRoutingService({
@@ -895,7 +876,7 @@ export async function getEventTypeList({
   isAll,
   user,
 }: {
-  prisma: typeof readonlyPrisma;
+  prisma: PrismaClient;
   teamId: number | null | undefined;
   userId: number | null | undefined;
   isAll: boolean | undefined;

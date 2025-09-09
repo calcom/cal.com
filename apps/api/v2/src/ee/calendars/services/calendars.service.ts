@@ -1,4 +1,5 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
@@ -36,7 +37,8 @@ export class CalendarsService {
     private readonly appsRepository: AppsRepository,
     private readonly calendarsRepository: CalendarsRepository,
     private readonly dbWrite: PrismaWriteService,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
+    private readonly calendarsCacheService: CalendarsCacheService
   ) {}
 
   private buildNonDelegationCredentials<TCredential>(credentials: TCredential[]) {
@@ -51,11 +53,17 @@ export class CalendarsService {
   }
 
   async getCalendars(userId: number) {
+    const cachedResult = await this.calendarsCacheService.getConnectedAndDestinationCalendarsCache(userId);
+
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
     if (!userWithCalendars) {
       throw new NotFoundException("User not found");
     }
-    return getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+    const result = await getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
       user: {
         ...userWithCalendars,
         allSelectedCalendars: userWithCalendars.selectedCalendars,
@@ -67,6 +75,10 @@ export class CalendarsService {
       eventTypeId: null,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
+    console.log("saving cache", JSON.stringify(result));
+    await this.calendarsCacheService.setConnectedAndDestinationCalendarsCache(userId, result);
+
+    return result;
   }
 
   async getBusyTimes(
@@ -186,6 +198,8 @@ export class CalendarsService {
       userId,
       calendarType
     );
+
+    await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
   }
 
   async checkCalendarCredentialValidity(userId: number, credentialId: number, type: string) {

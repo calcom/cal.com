@@ -178,6 +178,8 @@ export const bookingResponses = z
   })
   .nullable();
 
+export type BookingResponses = z.infer<typeof bookingResponses>;
+
 export const eventTypeLocations = z.array(
   z.object({
     // TODO: Couldn't find a way to make it a union of types from App Store locations

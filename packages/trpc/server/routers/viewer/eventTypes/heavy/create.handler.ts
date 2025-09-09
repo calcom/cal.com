@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaClient } from "@calcom/prisma";
@@ -10,7 +10,7 @@ import type { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
 type EventTypeLocation = z.infer<typeof eventTypeLocations>[number];

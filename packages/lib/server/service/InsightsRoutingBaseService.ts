@@ -11,7 +11,7 @@ import {
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
-import type { readonlyPrisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -136,7 +136,7 @@ type GetConditionsOptions = {
 };
 
 export class InsightsRoutingBaseService {
-  private prisma: typeof readonlyPrisma;
+  private prisma: PrismaClient;
   private options: InsightsRoutingServiceOptions | null;
   private filters: InsightsRoutingServiceFilterOptions;
 
@@ -145,7 +145,7 @@ export class InsightsRoutingBaseService {
     options,
     filters,
   }: {
-    prisma: typeof readonlyPrisma;
+    prisma: PrismaClient;
     options: InsightsRoutingServicePublicOptions;
     filters: InsightsRoutingServiceFilterOptions;
   }) {
