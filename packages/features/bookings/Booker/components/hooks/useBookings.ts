@@ -141,10 +141,11 @@ export const useBookings = ({
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
+  const setBookingData = useBookerStoreContext((state) => state.setBookingData);
+  const setRescheduleUid = useBookerStoreContext((state) => state.setRescheduleUid);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
@@ -348,13 +349,12 @@ export const useBookings = ({
         useBookerStore.setState({
           rescheduleUid: error.data?.rescheduleUid,
         });
-        useBookerStore.setState({
-          bookingData: {
-            uid: error.data?.rescheduleUid,
-            startTime: error.data?.startTime,
-            attendees: error.data?.attendees,
-          } as unknown as GetBookingType,
-        });
+        setRescheduleUid(error.data?.rescheduleUid);
+        setBookingData({
+          uid: error.data?.rescheduleUid,
+          startTime: error.data?.startTime,
+          attendees: error.data?.attendees,
+        } as unknown as GetBookingType);
       }
     },
   });
