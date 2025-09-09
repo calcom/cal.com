@@ -30,6 +30,7 @@ import type {
   EventTypeOutput_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   OutputUnknownBookingField_2024_06_14,
+  OutputBookingField_2024_06_14,
 } from "@calcom/platform-types";
 import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
 
@@ -253,7 +254,7 @@ export class OutputEventTypesService_2024_06_14 {
           type: "unknown",
           slug: "unknown",
           bookingField: JSON.stringify(bookingField),
-        });
+        } satisfies OutputUnknownBookingField_2024_06_14);
       }
     }
 
@@ -343,5 +344,27 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAttendees: !!seatsShowAttendees,
       seatsShowAvailabilityCount: !!seatsShowAvailabilityCount,
     });
+  }
+
+  getResponseEventTypesWithoutHiddenFields(
+    eventTypes: EventTypeOutput_2024_06_14[]
+  ): EventTypeOutput_2024_06_14[] {
+    return eventTypes.map((eventType) => this.getResponseEventTypeWithoutHiddenFields(eventType));
+  }
+
+  getResponseEventTypeWithoutHiddenFields(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
+    if (!Array.isArray(eventType?.bookingFields) || eventType.bookingFields.length === 0) return eventType;
+
+    const visibleBookingFields: OutputBookingField_2024_06_14[] = [];
+    for (const bookingField of eventType.bookingFields) {
+      if ("hidden" in bookingField && bookingField.hidden === true) {
+        continue;
+      }
+      visibleBookingFields.push(bookingField);
+    }
+    return {
+      ...eventType,
+      bookingFields: visibleBookingFields,
+    };
   }
 }

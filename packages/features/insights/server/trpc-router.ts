@@ -18,6 +18,7 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { hasInsightsPermission } from "./hasInsightsPermission";
 import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
@@ -26,6 +27,148 @@ const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
   isAll: z.boolean().optional(),
 });
+
+type BuildBaseWhereConditionCtxType = {
+  userIsOwnerAdminOfParentTeam: boolean;
+  userOrganizationId: number | null;
+  insightsDb: PrismaClient;
+};
+
+interface BuildBaseWhereConditionType {
+  teamId?: number | null;
+  eventTypeId?: number;
+  memberUserId?: number;
+  userId?: number;
+  isAll?: boolean;
+  ctx: BuildBaseWhereConditionCtxType;
+}
+
+export const buildBaseWhereCondition = async ({
+  teamId,
+  eventTypeId,
+  memberUserId,
+  userId,
+  isAll,
+  ctx,
+}: BuildBaseWhereConditionType): Promise<{
+  whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput;
+}> => {
+  const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
+
+  // EventType Filter
+  if (eventTypeId) {
+    conditions.push({
+      OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
+    });
+  }
+
+  // User/Member filter
+  if (memberUserId) {
+    conditions.push({ userId: memberUserId });
+  }
+
+  if (userId) {
+    conditions.push({
+      teamId: null,
+      userId: userId,
+    });
+  }
+
+  // organization-wide queries condition
+  if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
+    const teamsFromOrg = await ctx.insightsDb.team.findMany({
+      where: {
+        parentId: ctx.userOrganizationId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const teamIds = [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)];
+    const usersFromOrg =
+      teamsFromOrg.length > 0
+        ? await ctx.insightsDb.membership.findMany({
+            where: {
+              team: {
+                id: {
+                  in: teamIds,
+                },
+              },
+              accepted: true,
+            },
+            select: {
+              userId: true,
+            },
+          })
+        : [];
+
+    conditions.push({
+      OR: [
+        {
+          teamId: {
+            in: teamIds,
+          },
+          isTeamBooking: true,
+        },
+        ...(usersFromOrg.length > 0
+          ? [
+              {
+                userId: {
+                  in: usersFromOrg.map((u) => u.userId),
+                },
+                isTeamBooking: false,
+              },
+            ]
+          : []),
+      ],
+    });
+  }
+
+  // Team-specific queries condition
+  if (!isAll && teamId) {
+    const usersFromTeam = await ctx.insightsDb.membership.findMany({
+      where: {
+        teamId: teamId,
+        accepted: true,
+      },
+      select: {
+        userId: true,
+      },
+    });
+    const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+
+    conditions.push({
+      OR: [
+        {
+          teamId,
+          isTeamBooking: true,
+        },
+        {
+          userId: {
+            in: userIdsFromTeam,
+          },
+          isTeamBooking: false,
+        },
+      ],
+    });
+  }
+
+  let whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
+
+  if (conditions.length === 1) {
+    whereCondition = conditions[0];
+  } else if (conditions.length > 1) {
+    whereCondition = { AND: conditions };
+  }
+
+  return {
+    whereCondition:
+      Object.keys(whereCondition).length === 0
+        ? { id: -1 } // Ensure no data is returned for invalid parameters
+        : whereCondition,
+  };
+};
 
 const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
   const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
@@ -93,6 +236,21 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
   });
 });
 
+const insightsPbacProcedure = userBelongsToTeamProcedure.use(async ({ ctx, next }) => {
+  const hasPermission = await hasInsightsPermission({
+    userId: ctx.user.id,
+    organizationId: ctx.user.organizationId,
+  });
+
+  if (!hasPermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  return next({
+    ctx,
+  });
+});
+
 const userSelect = {
   id: true,
   name: true,
@@ -150,8 +308,6 @@ export interface IResultTeamList {
   isOrg?: boolean;
 }
 
-const BATCH_SIZE = 1000; // Adjust based on your needs
-
 /**
  * Helper function to create InsightsBookingService with standardized parameters
  */
@@ -199,7 +355,7 @@ function createInsightsRoutingService(
 }
 
 export const insightsRouter = router({
-  bookingKPIStats: userBelongsToTeamProcedure
+  bookingKPIStats: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const currentPeriodService = createInsightsBookingService(ctx, input);
@@ -299,32 +455,30 @@ export const insightsRouter = router({
         },
       };
     }),
-  eventTrends: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { startDate, endDate, timeZone } = input;
+  eventTrends: insightsPbacProcedure.input(bookingRepositoryBaseInputSchema).query(async ({ ctx, input }) => {
+    const { startDate, endDate, timeZone } = input;
 
-      // Calculate timeView and dateRanges
-      const timeView = getTimeView(startDate, endDate);
-      const dateRanges = getDateRanges({
-        startDate,
-        endDate,
-        timeView,
+    // Calculate timeView and dateRanges
+    const timeView = getTimeView(startDate, endDate);
+    const dateRanges = getDateRanges({
+      startDate,
+      endDate,
+      timeView,
+      timeZone,
+      weekStart: ctx.user.weekStart,
+    });
+
+    const insightsBookingService = createInsightsBookingService(ctx, input);
+    try {
+      return await insightsBookingService.getEventTrendsStats({
         timeZone,
-        weekStart: ctx.user.weekStart,
+        dateRanges,
       });
-
-      const insightsBookingService = createInsightsBookingService(ctx, input);
-      try {
-        return await insightsBookingService.getEventTrendsStats({
-          timeZone,
-          dateRanges,
-        });
-      } catch (e) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
-    }),
-  popularEvents: userBelongsToTeamProcedure
+    } catch (e) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
+  popularEvents: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -335,7 +489,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  averageEventDuration: userBelongsToTeamProcedure
+  averageEventDuration: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, timeZone } = input;
@@ -375,7 +529,8 @@ export const insightsRouter = router({
         for (const booking of allBookings) {
           const periodStart = dayjs(booking.createdAt).startOf(startOfEndOf).format("ll");
           if (resultMap.has(periodStart)) {
-            const current = resultMap.get(periodStart)!;
+            const current = resultMap.get(periodStart);
+            if (!current) continue;
             current.totalDuration += booking.eventLength || 0;
             current.count += 1;
           }
@@ -391,7 +546,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithMostCancelledBookings: userBelongsToTeamProcedure
+  membersWithMostCancelledBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -402,7 +557,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithMostCompletedBookings: userBelongsToTeamProcedure
+  membersWithMostCompletedBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
@@ -413,7 +568,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithLeastCompletedBookings: userBelongsToTeamProcedure
+  membersWithLeastCompletedBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
@@ -424,7 +579,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithMostBookings: userBelongsToTeamProcedure
+  membersWithMostBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -435,7 +590,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithLeastBookings: userBelongsToTeamProcedure
+  membersWithLeastBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -599,7 +754,7 @@ export const insightsRouter = router({
 
       return usersInTeam.map((membership) => membership.user);
     }),
-  eventTypeList: userBelongsToTeamProcedure
+  eventTypeList: insightsPbacProcedure
     .input(
       z.object({
         teamId: z.coerce.number().nullish(),
@@ -625,13 +780,13 @@ export const insightsRouter = router({
 
       return eventTypeList;
     }),
-  recentRatings: userBelongsToTeamProcedure
+  recentRatings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
       return await insightsBookingService.getRecentRatingsStats();
     }),
-  membersWithMostNoShow: userBelongsToTeamProcedure
+  membersWithMostNoShow: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -642,19 +797,19 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithHighestRatings: userBelongsToTeamProcedure
+  membersWithHighestRatings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
       return await insightsBookingService.getMembersRatingStats("DESC");
     }),
-  membersWithLowestRatings: userBelongsToTeamProcedure
+  membersWithLowestRatings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
       return await insightsBookingService.getMembersRatingStats("ASC");
     }),
-  rawData: userBelongsToTeamProcedure
+  rawData: insightsPbacProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
         limit: z.number().max(100).optional(),
@@ -676,10 +831,10 @@ export const insightsRouter = router({
       }
     }),
 
-  getRoutingFormsForFilters: userBelongsToTeamProcedure
+  getRoutingFormsForFilters: insightsPbacProcedure
     .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
     .query(async ({ ctx, input }) => {
-      const { userId, teamId, isAll } = input;
+      const { teamId, isAll } = input;
       return await RoutingEventsInsights.getRoutingFormsForFilters({
         userId: ctx.user.id,
         teamId,
@@ -687,13 +842,13 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? undefined,
       });
     }),
-  routingFormsByStatus: userBelongsToTeamProcedure
+  routingFormsByStatus: insightsPbacProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
       return await insightsRoutingService.getRoutingFormStats();
     }),
-  routingFormResponses: userBelongsToTeamProcedure
+  routingFormResponses: insightsPbacProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
@@ -703,7 +858,7 @@ export const insightsRouter = router({
         offset: input.offset,
       });
     }),
-  routingFormResponsesForDownload: userBelongsToTeamProcedure
+  routingFormResponsesForDownload: insightsPbacProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
       const headersPromise = RoutingEventsInsights.getRoutingFormHeaders({
@@ -728,7 +883,7 @@ export const insightsRouter = router({
         dataPromise,
       });
     }),
-  getRoutingFormFieldOptions: userBelongsToTeamProcedure
+  getRoutingFormFieldOptions: insightsPbacProcedure
     .input(
       z.object({
         userId: z.number().optional(),
@@ -745,7 +900,7 @@ export const insightsRouter = router({
       });
       return options;
     }),
-  failedBookingsByField: userBelongsToTeamProcedure
+  failedBookingsByField: insightsPbacProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
@@ -755,7 +910,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  routingFormResponsesHeaders: userBelongsToTeamProcedure
+  routingFormResponsesHeaders: insightsPbacProcedure
     .input(
       z.object({
         userId: z.number().optional(),
@@ -775,7 +930,7 @@ export const insightsRouter = router({
 
       return headers || [];
     }),
-  routedToPerPeriod: userBelongsToTeamProcedure
+  routedToPerPeriod: insightsPbacProcedure
     .input(routedToPerPeriodInputSchema)
     .query(async ({ ctx, input }) => {
       const { period, limit, searchQuery, ...rest } = input;
@@ -791,7 +946,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  routedToPerPeriodCsv: userBelongsToTeamProcedure
+  routedToPerPeriodCsv: insightsPbacProcedure
     .input(routedToPerPeriodCsvInputSchema)
     .query(async ({ ctx, input }) => {
       const { period, searchQuery, ...rest } = input;
@@ -824,7 +979,7 @@ export const insightsRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
-  getRoutingFunnelData: userBelongsToTeamProcedure
+  getRoutingFunnelData: insightsPbacProcedure
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const timeView = getTimeView(input.startDate, input.endDate);
@@ -842,7 +997,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  bookingsByHourStats: userBelongsToTeamProcedure
+  bookingsByHourStats: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { timeZone } = input;
@@ -856,7 +1011,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  recentNoShowGuests: userBelongsToTeamProcedure
+  recentNoShowGuests: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
