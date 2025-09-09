@@ -120,7 +120,7 @@ export interface AIPhoneServiceAgentListItem {
   name: string;
   providerAgentId: string;
   enabled: boolean;
-  userId: number | null;
+  userId: number;
   teamId: number | null;
   createdAt: Date;
   updatedAt: Date;
@@ -138,7 +138,7 @@ export interface AIPhoneServiceAgentListItem {
   user: {
     id: number;
     name: string | null | undefined;
-    email: string | null;
+    email: string | undefined;
   } | null;
 }
 
@@ -191,9 +191,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   /**
    * Create a phone number
    */
-  createPhoneNumber(
-    data: AIPhoneServiceCreatePhoneNumberParams<T>
-  ): Promise<AIPhoneServicePhoneNumber<T> & { provider: string }>;
+  createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams<T>): Promise<AIPhoneServicePhoneNumber<T>>;
 
   /**
    * Delete a phone number
@@ -297,7 +295,6 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   updateAgentConfiguration(params: {
     id: string;
     userId: number;
-    teamId?: number;
     name?: string;
     enabled?: boolean;
     generalPrompt?: string | null;
@@ -319,26 +316,11 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     phoneNumber?: string;
     userId: number;
     teamId?: number;
-    timeZone: string;
-    eventTypeId: number;
   }): Promise<{
     callId: string;
     status: string;
     message: string;
   }>;
-
-  /**
-   * Update tools from event type ID
-   */
-  updateToolsFromAgentId(
-    agentId: string,
-    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
-  ): Promise<void>;
-
-  /**
-   * Remove tools for event types
-   */
-  removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void>;
 }
 
 /**

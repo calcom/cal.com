@@ -9,7 +9,6 @@ const prismaMock = {
   membership: {
     findMany: vi.fn().mockResolvedValue([]),
     count: vi.fn().mockResolvedValue(0),
-    findFirst: vi.fn().mockResolvedValue({ role: "ADMIN" }),
   },
   attributeOption: {
     findMany: vi.fn().mockResolvedValue([
@@ -17,36 +16,17 @@ const prismaMock = {
       { id: "2", value: "value2", isGroup: false },
     ]),
   },
-  attributeToUser: {
-    findMany: vi.fn().mockResolvedValue([]),
-  },
 };
 
 vi.spyOn(prisma.membership, "findMany").mockImplementation(prismaMock.membership.findMany);
 vi.spyOn(prisma.membership, "count").mockImplementation(prismaMock.membership.count);
-vi.spyOn(prisma.membership, "findFirst").mockImplementation(prismaMock.membership.findFirst);
 vi.spyOn(prisma.attributeOption, "findMany").mockImplementation(prismaMock.attributeOption.findMany);
-vi.spyOn(prisma.attributeToUser, "findMany").mockImplementation(prismaMock.attributeToUser.findMany);
 
 // Mock FeaturesRepository
 const mockCheckIfTeamHasFeature = vi.fn();
 vi.mock("@calcom/features/flags/features.repository", () => ({
   FeaturesRepository: vi.fn().mockImplementation(() => ({
     checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
-  })),
-}));
-
-// Mock PBAC permissions
-vi.mock("@calcom/features/pbac/lib/resource-permissions", () => ({
-  getSpecificPermissions: vi.fn().mockResolvedValue({
-    listMembers: true,
-  }),
-}));
-
-// Mock UserRepository
-vi.mock("@calcom/lib/server/repository/user", () => ({
-  UserRepository: vi.fn().mockImplementation(() => ({
-    enrichUserWithItsProfile: vi.fn().mockImplementation(({ user }) => user),
   })),
 }));
 

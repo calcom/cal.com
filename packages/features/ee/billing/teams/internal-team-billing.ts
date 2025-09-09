@@ -10,14 +10,14 @@ import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import prisma from "@calcom/prisma";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import billing from "..";
 import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
-const teamPaymentMetadataSchema = teamMetadataStrictSchema.unwrap();
+const teamPaymentMetadataSchema = teamMetadataSchema.unwrap();
 
 export class InternalTeamBilling implements TeamBilling {
   private _team!: Omit<TeamBillingInput, "metadata"> & {

@@ -1,6 +1,6 @@
-import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
+import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
+import type { Prisma, Membership } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -459,44 +459,5 @@ export class MembershipRepository {
       // this is explicit, and typed in TSelect default typings
       select: select ?? { userId: true },
     })) as unknown as Promise<MembershipDTOFromSelect<TSelect>[]>;
-  }
-
-  static async findAllAcceptedTeamMemberships(userId: number, where?: Prisma.MembershipWhereInput) {
-    const teams = await prisma.team.findMany({
-      where: {
-        members: {
-          some: {
-            userId,
-            accepted: true,
-            ...(where ?? {}),
-          },
-        },
-      },
-    });
-    return teams;
-  }
-
-  async findTeamAdminsByTeamId({ teamId }: { teamId: number }) {
-    return await this.prismaClient.membership.findMany({
-      where: {
-        team: {
-          id: teamId,
-          parentId: {
-            not: null,
-          },
-        },
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-      },
-      select: {
-        user: {
-          select: {
-            email: true,
-            locale: true,
-          },
-        },
-      },
-    });
   }
 }

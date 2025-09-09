@@ -19,83 +19,6 @@ vi.mock("./crypto", () => ({
 
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 
-vi.mock("@calcom/app-store/calendar.services.generated", () => {
-  class MockGoogleCalendarService {
-    constructor(credential: any) {
-      this.credential = credential;
-    }
-
-    getCredentialId() {
-      return this.credential.id;
-    }
-
-    async createEvent() {
-      return {};
-    }
-
-    async updateEvent() {
-      return {};
-    }
-
-    async deleteEvent() {
-      return {};
-    }
-
-    async getAvailability() {
-      return [];
-    }
-
-    async getAvailabilityWithTimeZones() {
-      return [];
-    }
-
-    async listCalendars() {
-      return [];
-    }
-  }
-
-  class MockOfficeCalendarService {
-    constructor(credential: any) {
-      this.credential = credential;
-    }
-
-    getCredentialId() {
-      return this.credential.id;
-    }
-
-    async createEvent() {
-      return {};
-    }
-
-    async updateEvent() {
-      return {};
-    }
-
-    async deleteEvent() {
-      return {};
-    }
-
-    async getAvailability() {
-      return [];
-    }
-
-    async getAvailabilityWithTimeZones() {
-      return [];
-    }
-
-    async listCalendars() {
-      return [];
-    }
-  }
-
-  return {
-    CalendarServiceMap: {
-      googlecalendar: vi.importActual("@calcom/app-store/googlecalendar/lib/CalendarService"),
-      office365calendar: vi.importActual("@calcom/app-store/office365calendar/lib/CalendarService"),
-    },
-  };
-});
-
 function buildDelegationCredential(credential: CredentialPayload): CredentialForCalendarService {
   return {
     ...credential,
@@ -164,12 +87,10 @@ describe("getCalendarsEvents", () => {
       },
       userId: 808,
       teamId: null,
-      user: {
-        email: "test@example.com",
-      },
       appId: "exampleApp",
       invalid: false,
       delegationCredentialId: null,
+      user: null,
     };
   });
 
@@ -418,9 +339,7 @@ describe("getCalendarsEventsWithTimezones", () => {
       },
       userId: 808,
       teamId: null,
-      user: {
-        email: "test@example.com",
-      },
+      user: null,
       appId: "exampleApp",
       invalid: false,
       delegationCredentialId: null,

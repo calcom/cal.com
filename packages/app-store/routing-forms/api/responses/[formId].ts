@@ -7,10 +7,25 @@ import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermis
 import prisma from "@calcom/prisma";
 
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import { getHumanReadableFieldResponseValue } from "../../lib/responseData/getHumanReadableFieldResponseValue";
+import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../../lib/reportingUtils";
 import type { FormResponse, SerializableForm } from "../../types/types";
 
 type Fields = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>;
+
+function getHumanReadableFieldResponseValue({
+  field,
+  value,
+}: {
+  field: Fields[number];
+  value: string | number | string[];
+}) {
+  if (field.options) {
+    const optionIds = ensureStringOrStringArray(value);
+    return getLabelsFromOptionIds({ options: field.options, optionIds });
+  } else {
+    return (value instanceof Array ? value : [value]).map(String);
+  }
+}
 
 async function* getResponses(formId: string, fields: Fields) {
   let responses;
@@ -35,10 +50,7 @@ async function* getResponses(formId: string, fields: Fields) {
       fields.forEach((field) => {
         const fieldResponse = fieldResponses[field.id];
         const value = fieldResponse?.value || "";
-        const humanReadableResponseValue = getHumanReadableFieldResponseValue({ field, value });
-        const readableValues = Array.isArray(humanReadableResponseValue)
-          ? humanReadableResponseValue
-          : [humanReadableResponseValue];
+        const readableValues = getHumanReadableFieldResponseValue({ field, value });
         const serializedValue = readableValues.map((value) => sanitizeValue(value)).join(" | ");
         csvCells.push(serializedValue);
       });

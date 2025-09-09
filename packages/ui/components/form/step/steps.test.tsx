@@ -13,7 +13,7 @@ const mockNavigateToStep = vi.fn();
 const Props = {
   maxSteps: MAX_STEPS,
   currentStep: CURRENT_STEP,
-  navigateToStep: mockNavigateToStep,
+  nextStep: mockNavigateToStep,
   stepLabel: (currentStep: number, totalSteps: number) => `Test Step ${currentStep} of ${totalSteps}`,
   disableNavigation: undefined,
 };

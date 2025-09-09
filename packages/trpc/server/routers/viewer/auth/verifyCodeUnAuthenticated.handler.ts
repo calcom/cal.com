@@ -10,10 +10,6 @@ type VerifyTokenOptions = {
 };
 
 export const verifyCodeUnAuthenticatedHandler = async ({ input }: VerifyTokenOptions) => {
-  return verifyCodeUnAuthenticated(input);
-};
-
-export const verifyCodeUnAuthenticated = async (input: ZVerifyCodeInputSchema) => {
   const { email, code } = input;
 
   if (!email || !code) throw new TRPCError({ code: "BAD_REQUEST" });

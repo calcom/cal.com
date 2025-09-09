@@ -1,13 +1,11 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -18,7 +16,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
-import { showToast } from "@calcom/ui/components/toast";
+import { showToast } from "@calcom/ui/toast";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
@@ -29,6 +27,7 @@ type MonthOption = {
   endDate: string;
 };
 
+// returns the last 12 months starting from May 2025 (when credits were introduced)
 const getMonthOptions = (): MonthOption[] => {
   const options: MonthOption[] = [];
   const minDate = dayjs.utc("2025-05-01");
@@ -54,9 +53,6 @@ const getMonthOptions = (): MonthOption[] => {
 export default function BillingCredits() {
   const { t } = useLocale();
   const router = useRouter();
-  const pathname = usePathname();
-  const session = useSession();
-  const orgBranding = useOrgBranding();
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -70,28 +66,9 @@ export default function BillingCredits() {
   } = useForm<{ quantity: number }>({ defaultValues: { quantity: 50 } });
 
   const params = useParamsWithFallback();
-  const orgId = session.data?.user?.org?.id;
+  const teamId = params.id ? Number(params.id) : undefined;
 
-  const parsedTeamId = Number(params.id);
-  const teamId: number | undefined = Number.isFinite(parsedTeamId)
-    ? parsedTeamId
-    : typeof orgId === "number"
-    ? orgId
-    : undefined;
-
-  const tokens = (pathname ?? "").split("/").filter(Boolean);
-  const settingsIndex = tokens.indexOf("settings");
-  const isOrgScopedPath =
-    settingsIndex >= 0 && ["organizations", "teams"].includes(tokens[settingsIndex + 1]);
-
-  const shouldRender = IS_SMS_CREDITS_ENABLED && !(orgId && !isOrgScopedPath && !orgBranding?.slug);
-
-  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
-    { teamId },
-    { enabled: shouldRender }
-  );
-
-  if (!shouldRender) return null;
+  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
 
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
     onSuccess: (data) => {
@@ -124,6 +101,10 @@ export default function BillingCredits() {
       setIsDownloading(false);
     }
   };
+
+  if (!IS_SMS_CREDITS_ENABLED) {
+    return null;
+  }
 
   if (isLoading && teamId) return <BillingCreditsSkeleton />;
   if (!creditsData) return null;
@@ -225,7 +206,7 @@ export default function BillingCredits() {
             <hr className="border-subtle mb-3 mt-3" />
           </div>
           <div className="flex">
-            <div className="mr-auto">
+            <div className="mr-auto ">
               <Label className="mb-4">{t("download_expense_log")}</Label>
               <div className="mt-2 flex flex-col">
                 <Select

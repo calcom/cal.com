@@ -6,7 +6,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
-import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
@@ -449,7 +448,7 @@ export class OrganizationRepository {
     id: number;
     stripeSubscriptionId: string;
     stripeSubscriptionItemId: string;
-    existingMetadata: z.infer<typeof teamMetadataStrictSchema>;
+    existingMetadata: z.infer<typeof teamMetadataSchema>;
   }) {
     return await prisma.team.update({
       where: { id, isOrganization: true },

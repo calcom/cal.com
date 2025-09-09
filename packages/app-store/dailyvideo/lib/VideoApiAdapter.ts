@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import { fetcher } from "@calcom/lib/dailyApiFetcher";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import {
@@ -15,7 +16,6 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 
 import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
 import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
-import { fetcher } from "./dailyApiFetcher";
 import {
   dailyReturnTypeSchema,
   getTranscripts,

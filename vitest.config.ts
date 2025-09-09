@@ -3,8 +3,6 @@ process.env.INTEGRATION_TEST_MODE = "true";
 
 export default defineConfig({
   test: {
-    setupFiles: ["./setupVitest.ts"],
-    
     coverage: {
       provider: "v8",
     },

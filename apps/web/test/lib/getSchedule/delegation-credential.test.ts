@@ -60,7 +60,7 @@ describe("getSchedule", () => {
 
       await createDelegationCredential(org.id);
 
-      const googleCalendarMock = await mockCalendar("googlecalendar", {
+      const googleCalendarMock = mockCalendar("googlecalendar", {
         create: {
           uid: "MOCK_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -151,7 +151,7 @@ describe("getSchedule", () => {
       // Create Delegation credential for the org user isn't part of
       await createDelegationCredential(org.id);
 
-      const googleCalendarMock = await mockCalendar("googlecalendar", {
+      const googleCalendarMock = mockCalendar("googlecalendar", {
         create: {
           uid: "MOCK_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",

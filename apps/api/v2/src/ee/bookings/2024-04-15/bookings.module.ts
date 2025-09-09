@@ -1,7 +1,6 @@
 import { BookingsController_2024_04_15 } from "@/ee/bookings/2024-04-15/controllers/bookings.controller";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
@@ -42,7 +41,6 @@ import { Module } from "@nestjs/common";
     OAuthClientUsersService,
     PlatformBookingsService,
     CalendarsService,
-    CalendarsCacheService,
     CredentialsRepository,
     AppsRepository,
     CalendarsRepository,

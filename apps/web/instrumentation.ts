@@ -1,22 +1,13 @@
-import { type Instrumentation } from 'next'
-
 import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
-  if (process.env.NODE_ENV === "production") {
-    if (process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NEXT_RUNTIME === "nodejs") {
-      await import("./sentry.server.config");
-    }
-    if (process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NEXT_RUNTIME === "edge") {
-      await import("./sentry.edge.config");
-    }
+  if (process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./sentry.server.config");
+  }
+
+  if (process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NEXT_RUNTIME === "edge") {
+    await import("./sentry.edge.config");
   }
 }
 
-export const onRequestError:  Instrumentation.onRequestError = ( err,
-  request,
-  context) => {
-  if (process.env.NODE_ENV === "production") {
-    Sentry.captureRequestError(err, request, context);
-  }
-};
+export const onRequestError = Sentry.captureRequestError;

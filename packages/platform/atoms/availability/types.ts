@@ -28,13 +28,6 @@ export type scheduleClassNames = {
   timeRangeField?: string;
   labelAndSwitchContainer?: string;
   scheduleContainer?: string;
-  timePicker?: {
-    container?: string;
-    valueContainer?: string;
-    value?: string;
-    input?: string;
-    dropdown?: string;
-  };
 };
 
 export type AvailabilityFormValidationResult = {

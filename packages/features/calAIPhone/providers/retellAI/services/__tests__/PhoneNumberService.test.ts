@@ -40,16 +40,11 @@ describe("PhoneNumberService", () => {
       sip_trunk_auth_password: "pass",
       userId: 1,
       nickname: "Test Number",
-      agentId: "agent-123",
     };
 
-    it("should successfully import phone number with agent", async () => {
+    it("should successfully import phone number without agent", async () => {
       const mockPhoneNumber = createMockPhoneNumber();
-      const mockAgent = createMockDatabaseAgent();
-
       mocks.mockRetellRepository.importPhoneNumber.mockResolvedValue(mockPhoneNumber);
-      mocks.mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
-      mocks.mockRetellRepository.updatePhoneNumber.mockResolvedValue(mockPhoneNumber);
 
       const result = await service.importPhoneNumber(validImportData);
 
@@ -61,10 +56,26 @@ describe("PhoneNumberService", () => {
         sip_trunk_auth_password: "pass",
         nickname: "Test Number",
       });
+      expect(mocks.mockTransactionManager.executeInTransaction).toHaveBeenCalled();
+    });
+
+    it("should successfully import phone number with agent", async () => {
+      const mockPhoneNumber = createMockPhoneNumber();
+      const mockAgent = createMockDatabaseAgent();
+
+      mocks.mockRetellRepository.importPhoneNumber.mockResolvedValue(mockPhoneNumber);
+      mocks.mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
+      mocks.mockRetellRepository.updatePhoneNumber.mockResolvedValue(mockPhoneNumber);
+
+      const result = await service.importPhoneNumber({
+        ...validImportData,
+        agentId: "agent-123",
+      });
+
+      expect(result).toEqual(mockPhoneNumber);
       expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith("+1234567890", {
         outbound_agent_id: mockAgent.providerAgentId,
       });
-      expect(mocks.mockTransactionManager.executeInTransaction).toHaveBeenCalled();
     });
 
     it("should validate team permissions when teamId provided", async () => {
@@ -101,9 +112,6 @@ describe("PhoneNumberService", () => {
 
     it("should handle transaction rollback with successful cleanup", async () => {
       const mockPhoneNumber = createMockPhoneNumber();
-      const mockAgent = createMockDatabaseAgent();
-
-      mocks.mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.importPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
 
@@ -125,9 +133,6 @@ describe("PhoneNumberService", () => {
 
     it("should handle compensation failure and throw critical error", async () => {
       const mockPhoneNumber = createMockPhoneNumber();
-      const mockAgent = createMockDatabaseAgent();
-
-      mocks.mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.importPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
       // Mock both database failure and cleanup failure

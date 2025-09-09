@@ -1,13 +1,12 @@
-import type { Mock } from "vitest";
-import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import prisma from "@calcom/prisma";
-import { RRResetInterval } from "@calcom/prisma/enums";
+import { RRResetInterval } from "@calcom/prisma/client";
 
+import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
 
-const luckyUserService = getLuckyUserService();
+// Import the original Prisma client
 
 // Mocking setup
 const prismaMock = {
@@ -19,19 +18,13 @@ const prismaMock = {
 // Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
 vi.spyOn(prisma.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
 
-// This variable will hold our mock function
-let getOrderedListOfLuckyUsersMock: Mock;
-
-beforeEach(() => {
-  // Clear all mocks and spies before each test
-  vi.clearAllMocks();
-  // Spy on the real method and explicitly cast it as a Mock
-  getOrderedListOfLuckyUsersMock = vi.spyOn(luckyUserService, "getOrderedListOfLuckyUsers") as Mock;
-});
+vi.mock("../server/getLuckyUser", () => ({
+  getOrderedListOfLuckyUsers: vi.fn(),
+}));
 
 afterEach(() => {
-  // Restore all spies to their original implementation
-  vi.restoreAllMocks();
+  // Clear call history before each test to avoid cross-test interference
+  prismaMock.booking.groupBy.mockClear();
 });
 
 describe("filterHostByLeadThreshold", () => {
@@ -107,7 +100,7 @@ describe("filterHostByLeadThreshold", () => {
       },
     ];
 
-    getOrderedListOfLuckyUsersMock.mockResolvedValue({
+    getOrderedListOfLuckyUsers.mockResolvedValue({
       perUserData: {
         bookingsCount: { 1: 10, 2: 6 },
       },
@@ -164,7 +157,7 @@ describe("filterHostByLeadThreshold", () => {
       },
     ];
 
-    getOrderedListOfLuckyUsersMock.mockResolvedValue({
+    getOrderedListOfLuckyUsers.mockResolvedValue({
       perUserData: {
         bookingsCount: { 1: 7, 2: 5, 3: 0 },
         weights: { 1: 100, 2: 50, 3: 20 },

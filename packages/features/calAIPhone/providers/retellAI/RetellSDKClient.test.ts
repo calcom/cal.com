@@ -114,8 +114,8 @@ describe("RetellSDKClient", () => {
     beforeAll(async () => {
       // Reset modules and reimport with mocked env var
       vi.resetModules();
-      const moduleImport = await import("./RetellSDKClient");
-      RetellSDKClient = moduleImport.RetellSDKClient;
+      const module = await import("./RetellSDKClient");
+      RetellSDKClient = module.RetellSDKClient;
     });
 
     it("should create client with default logger when no custom logger provided", () => {
@@ -373,9 +373,9 @@ describe("RetellSDKClient", () => {
     describe("createPhoneCall", () => {
       it("should create phone call", async () => {
         const callData = {
-          fromNumber: "+14155551234",
-          toNumber: "+14155555678",
-          dynamicVariables: {
+          from_number: "+14155551234",
+          to_number: "+14155555678",
+          retell_llm_dynamic_variables: {
             name: "John Doe",
             email: "john@example.com",
           } as RetellDynamicVariables,
@@ -386,22 +386,15 @@ describe("RetellSDKClient", () => {
 
         const result = await client.createPhoneCall(callData);
 
-        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith({
-          from_number: "+14155551234",
-          to_number: "+14155555678",
-          retell_llm_dynamic_variables: {
-            name: "John Doe",
-            email: "john@example.com",
-          },
-        });
+        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith(callData);
         expect(result).toEqual(mockResponse);
       });
 
       it("should handle undefined dynamic variables", async () => {
         const callData = {
-          fromNumber: "+14155551234",
-          toNumber: "+14155555678",
-          dynamicVariables: undefined,
+          from_number: "+14155551234",
+          to_number: "+14155555678",
+          retell_llm_dynamic_variables: undefined,
         };
         const mockResponse = { call_id: "test-call-id" };
 
@@ -409,11 +402,7 @@ describe("RetellSDKClient", () => {
 
         const result = await client.createPhoneCall(callData);
 
-        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith({
-          from_number: "+14155551234",
-          to_number: "+14155555678",
-          retell_llm_dynamic_variables: undefined,
-        });
+        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith(callData);
         expect(result).toEqual(mockResponse);
       });
     });

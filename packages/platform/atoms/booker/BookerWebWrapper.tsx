@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useCallback, useEffect } from "react";
-import React from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -12,11 +11,6 @@ import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
-import {
-  BookerStoreProvider,
-  useInitializeBookerStoreContext,
-  useBookerStoreContext,
-} from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
@@ -24,20 +18,19 @@ import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/
 import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
-import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
-const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
+export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -81,20 +74,10 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     org: props.entity.orgSlug,
     timezone,
   });
-  useInitializeBookerStoreContext({
-    ...props,
-    eventId: props.entity.eventTypeId ?? event?.data?.id,
-    rescheduleUid,
-    rescheduledBy,
-    bookingUid: bookingUid,
-    layout: bookerLayout.isMobile ? "mobile" : bookerLayout.defaultLayout,
-    org: props.entity.orgSlug,
-    timezone,
-  });
 
-  const [bookerState, _] = useBookerStoreContext((state) => [state.state, state.setState], shallow);
-  const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
-  const [month] = useBookerStoreContext((state) => [state.month, state.setMonth], shallow);
+  const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
+  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+  const [month] = useBookerStore((state) => [state.month, state.setMonth], shallow);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -278,13 +261,5 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
       userLocale={session?.user.locale}
       renderCaptcha
     />
-  );
-};
-
-export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
-  return (
-    <BookerStoreProvider>
-      <BookerPlatformWrapperComponent {...props} />
-    </BookerStoreProvider>
   );
 };

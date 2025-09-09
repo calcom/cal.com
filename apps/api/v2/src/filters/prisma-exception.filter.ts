@@ -2,7 +2,13 @@ import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 import { Request } from "express";
 
 import {
@@ -15,18 +21,18 @@ import {
 import { Response } from "@calcom/platform-types";
 
 type PrismaError =
-  | Prisma.PrismaClientInitializationError
-  | Prisma.PrismaClientKnownRequestError
-  | Prisma.PrismaClientRustPanicError
-  | Prisma.PrismaClientUnknownRequestError
-  | Prisma.PrismaClientValidationError;
+  | PrismaClientInitializationError
+  | PrismaClientKnownRequestError
+  | PrismaClientRustPanicError
+  | PrismaClientUnknownRequestError
+  | PrismaClientValidationError;
 
 @Catch(
-  Prisma.PrismaClientInitializationError,
-  Prisma.PrismaClientKnownRequestError,
-  Prisma.PrismaClientRustPanicError,
-  Prisma.PrismaClientUnknownRequestError,
-  Prisma.PrismaClientValidationError
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError
 )
 export class PrismaExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger("PrismaExceptionFilter");
@@ -52,7 +58,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     let message = "There was an error, please try again later.";
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode = INTERNAL_SERVER_ERROR;
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error instanceof PrismaClientKnownRequestError) {
       switch (error.code) {
         case "P2002": // Unique constraint failed
           errorCode = CONFLICT;

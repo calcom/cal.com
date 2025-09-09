@@ -1,18 +1,12 @@
-import type { DestinationCalendarClassNames } from "../../destination-calendar/DestinationCalendar";
 import { DestinationCalendarSettingsPlatformWrapper } from "../../destination-calendar/index";
 import { SelectedCalendarsSettingsPlatformWrapper } from "../../selected-calendars/index";
-import type {
-  CalendarRedirectUrls,
-  SelectedCalendarsClassNames,
-} from "../../selected-calendars/wrappers/SelectedCalendarsSettingsPlatformWrapper";
+import type { CalendarRedirectUrls } from "../../selected-calendars/wrappers/SelectedCalendarsSettingsPlatformWrapper";
 
 type CalendarSettingsPlatformWrapperProps = {
   classNames?: {
     calendarSettingsCustomClassnames?: string;
     destinationCalendarSettingsCustomClassnames?: string;
     selectedCalendarSettingsCustomClassnames?: string;
-    selectedCalendarSettingsClassNames?: SelectedCalendarsClassNames;
-    destinationCalendarSettingsClassNames?: DestinationCalendarClassNames;
   };
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
@@ -30,7 +24,6 @@ export const CalendarSettingsPlatformWrapper = ({
       <DestinationCalendarSettingsPlatformWrapper
         statusLoader={<></>}
         classNames={classNames?.destinationCalendarSettingsCustomClassnames}
-        classNamesObject={classNames?.destinationCalendarSettingsClassNames}
         isDryRun={isDryRun}
       />
       <SelectedCalendarsSettingsPlatformWrapper
@@ -38,7 +31,6 @@ export const CalendarSettingsPlatformWrapper = ({
         calendarRedirectUrls={calendarRedirectUrls}
         allowDelete={allowDelete}
         isDryRun={isDryRun}
-        classNamesObject={classNames?.selectedCalendarSettingsClassNames}
       />
     </div>
   );

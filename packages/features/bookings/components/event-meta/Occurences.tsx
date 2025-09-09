@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
@@ -14,15 +14,16 @@ import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurringEvent"> }) => {
   const maxOccurences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
-  const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] =
-    useBookerStoreContext((state) => [
+  const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] = useBookerStore(
+    (state) => [
       state.setRecurringEventCount,
       state.recurringEventCount,
       state.setOccurenceCount,
       state.occurenceCount,
-    ]);
-  const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
-  const bookerState = useBookerStoreContext((state) => state.state);
+    ]
+  );
+  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
+  const bookerState = useBookerStore((state) => state.state);
   const { timezone, timeFormat } = useBookerTime();
   const [warning, setWarning] = useState(false);
   // Set initial value in booker store.

@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
-import { clearFilters, applySelectFilter } from "./filter-helpers";
+import { addFilter, openFilter, clearFilters } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -202,11 +202,25 @@ test.describe("Insights", async () => {
     await page.locator('[data-testid="org-teams-filter-item"]').nth(1).click();
     await page.keyboard.press("Escape");
 
-    await applySelectFilter(page, "userId", member.username || "");
+    // Choose User filter item from dropdown
+    await addFilter(page, "userId");
+
+    // Wait for the URL to include userId
+    await page.waitForURL((url) => url.toString().includes("userId"));
+
+    // Click User filter to see a user list
+    await openFilter(page, "userId");
+
+    await page.locator('[data-testid="select-filter-options-userId"]').getByRole("option").nth(0).click();
+
+    await page.locator('[data-testid="select-filter-options-userId"]').getByRole("option").nth(1).click();
+
+    // press escape button to close the filter
+    await page.keyboard.press("Escape");
 
     await clearFilters(page);
 
-    await expect(page).not.toHaveURL(/[?&]userId=/);
+    await expect(page.url()).not.toContain("userId");
   });
 
   test("should test download button", async ({ page, users }) => {

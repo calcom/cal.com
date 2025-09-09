@@ -288,6 +288,7 @@ test.describe("Insights > Routing Filters", () => {
     await page.goto(`/insights/routing`);
 
     await addFilter(page, "bookingAttendees");
+    await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("John");
     await page.keyboard.press("Enter");
 
@@ -296,6 +297,7 @@ test.describe("Insights > Routing Filters", () => {
 
     await clearFilters(page);
     await addFilter(page, "bookingAttendees");
+    await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("jane.smith@example");
     await page.keyboard.press("Enter");
 
@@ -304,6 +306,7 @@ test.describe("Insights > Routing Filters", () => {
 
     await clearFilters(page);
     await addFilter(page, "bookingAttendees");
+    await openFilter(page, "bookingAttendees");
     await page.getByPlaceholder("Filter attendees by name or email").fill("JANE");
     await page.keyboard.press("Enter");
 

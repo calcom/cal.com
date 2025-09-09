@@ -10,8 +10,6 @@ import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository"
 import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
-import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
-import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 
@@ -31,13 +29,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     eventTypeRepository: PrismaEventTypeRepository,
     userRepository: PrismaUserRepository,
     redisService: RedisService,
-    featuresRepository: PrismaFeaturesRepository,
-    qualifiedHostsService: QualifiedHostsService,
-    checkBookingLimitsService: CheckBookingLimitsService,
-    cacheService: CacheService,
-    userAvailabilityService: UserAvailabilityService,
-    busyTimesService: BusyTimesService,
-    noSlotsNotificationService: NoSlotsNotificationService
+    featuresRepository: PrismaFeaturesRepository
   ) {
     super({
       oooRepo: oooRepoDependency,
@@ -49,13 +41,15 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       eventTypeRepo: eventTypeRepository,
       userRepo: userRepository,
       redisClient: redisService,
-      checkBookingLimitsService,
-      cacheService,
-      userAvailabilityService,
-      busyTimesService,
-      qualifiedHostsService,
-      featuresRepo: featuresRepository,
-      noSlotsNotificationService,
+      checkBookingLimitsService: new CheckBookingLimitsService(bookingRepository),
+      cacheService: new CacheService(featuresRepository),
+      userAvailabilityService: new UserAvailabilityService(
+        oooRepoDependency,
+        bookingRepository,
+        eventTypeRepository,
+        redisService
+      ),
+      busyTimesService: new BusyTimesService(bookingRepository),
     });
   }
 }

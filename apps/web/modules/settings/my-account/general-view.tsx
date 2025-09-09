@@ -116,7 +116,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       },
       weekStart: {
         value: user.weekStart,
-        label: weekStartOptions.find((option) => option.value === user.weekStart)?.label || "",
+        label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
       travelSchedules:
         travelSchedules.map((schedule) => {

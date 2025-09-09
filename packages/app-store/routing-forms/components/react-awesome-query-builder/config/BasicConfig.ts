@@ -96,12 +96,15 @@ const operators: Operators = {
     labelForFormat: "Not Contains",
     valueSources: ["value"],
   },
-  starts_with: {
-    label: "Starts with",
-    labelForFormat: "Starts with",
-    jsonLogic: "starts_with",
-    valueSources: ["value"],
-  },
+  /**
+   * Not supported with JSONLogic. Implement them and add these back -> https://github.com/jwadhams/json-logic-js/issues/81
+   */
+  //   starts_with: {
+  //     label: "Starts with",
+  //     labelForFormat: "Starts with",
+  //     jsonLogic: undefined, // not supported
+  //     valueSources: ["value"],
+  //   },
   //   ends_with: {
   //     label: "Ends with",
   //     labelForFormat: "Ends with",

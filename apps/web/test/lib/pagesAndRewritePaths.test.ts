@@ -22,6 +22,8 @@ describe("pagesAndRewritePaths", () => {
       "upgrade",
       "video",
       "workflows",
+      "403",
+      "500",
       "bookings",
       "event-types",
       "icons",

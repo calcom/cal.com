@@ -42,7 +42,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
                 return (
                   <div
-                    data-testid="event-type-card"
                     onClick={() => {
                       setEventTypeSlug(event.slug);
                       setEventTypeDuration(event.lengthInMinutes);
@@ -137,8 +136,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 : { username: props.calUsername })}
               hostsLimit={3}
               allowUpdatingUrlParams={true}
-              silentlyHandleCalendarFailures={false}
-              // hideEventMetadata={true}
             />
           </>
         )}

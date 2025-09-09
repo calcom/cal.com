@@ -52,7 +52,6 @@ type EventLocation = {
   hostDefault?: string;
   credentialId?: number;
   teamName?: string;
-  customLabel?: string;
 };
 
 type PhoneCallConfig = {
@@ -146,7 +145,6 @@ export type FormValues = {
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
-  showOptimizedSlots: boolean;
   children: ChildrenEventType[];
   hosts: Host[];
   hostGroups: {
@@ -170,7 +168,15 @@ export type FormValues = {
   restrictionScheduleId: number | null;
   useBookerTimezone: boolean;
   restrictionScheduleName: string | null;
-  calVideoSettings?: CalVideoSettings;
+  calVideoSettings?: {
+    disableRecordingForOrganizer?: boolean;
+    disableRecordingForGuests?: boolean;
+    enableAutomaticTranscription?: boolean;
+    enableAutomaticRecordingForOrganizer?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
+    redirectUrlOnExit?: string;
+  };
   maxActiveBookingPerBookerOfferReschedule: boolean;
 };
 
@@ -178,7 +184,7 @@ export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingF
 
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
-export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypes"]["heavy"]["update"];
+export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypes"]["update"];
 export type TabMap = {
   advanced: React.ReactNode;
   ai?: React.ReactNode;
@@ -236,14 +242,4 @@ export type FormValidationResult = {
 export interface EventTypePlatformWrapperRef {
   validateForm: () => Promise<FormValidationResult>;
   handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
-}
-
-export interface CalVideoSettings {
-  disableRecordingForOrganizer?: boolean;
-  disableRecordingForGuests?: boolean;
-  enableAutomaticTranscription?: boolean;
-  enableAutomaticRecordingForOrganizer?: boolean;
-  disableTranscriptionForGuests?: boolean;
-  disableTranscriptionForOrganizer?: boolean;
-  redirectUrlOnExit?: string;
 }

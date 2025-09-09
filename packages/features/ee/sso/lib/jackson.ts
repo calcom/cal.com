@@ -30,6 +30,10 @@ const opts: JacksonOption = {
   },
   idpEnabled: true,
   clientSecretVerifier,
+  ory: {
+    projectId: undefined,
+    sdkToken: undefined,
+  },
 };
 
 declare global {

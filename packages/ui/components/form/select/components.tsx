@@ -33,7 +33,6 @@ type ExtendedOption = {
   needsTeamsUpgrade?: boolean;
   needsCredits?: boolean;
   creditsTeamId?: number;
-  isOrganization?: boolean;
 };
 
 export const OptionComponent = <
@@ -53,10 +52,7 @@ export const OptionComponent = <
         {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
           <UpgradeTeamsBadge checkForActiveStatus={true} />
         ) : (props.data as unknown as ExtendedOption).needsCredits ? (
-          <CreditsBadge
-            teamId={(props.data as unknown as ExtendedOption).creditsTeamId}
-            isOrganization={(props.data as unknown as ExtendedOption).isOrganization}
-          />
+          <CreditsBadge teamId={(props.data as unknown as ExtendedOption).creditsTeamId} />
         ) : (
           <></>
         )}

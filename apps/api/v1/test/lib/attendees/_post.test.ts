@@ -77,7 +77,7 @@ describe("POST /api/attendees", () => {
 
       const userBooking = { id: 1 };
 
-      prismaMock.booking.findFirst.mockResolvedValue(userBooking as any);
+      prismaMock.booking.findFirst.mockResolvedValue(userBooking);
 
       const attendeeData = {
         id: 1,

@@ -39,9 +39,6 @@ const mockedReturnSuccessCheckPerms = {
   role: MembershipRole.ADMIN,
   userId: 1,
   teamId: 1,
-  createdAt: null,
-  updatedAt: null,
-  customRoleId: null,
   team: {
     id: 1,
     name: "Team A",
@@ -98,11 +95,6 @@ const mockedRegularTeam: TeamWithParent = {
   smsLockState: "LOCKED",
   createdByOAuthClientId: null,
   smsLockReviewedByAdmin: false,
-  hideTeamProfileLink: false,
-  rrResetInterval: null,
-  rrTimestampBasis: "CREATED_AT",
-  bookingLimits: null,
-  includeManagedEventsInLimits: false,
 };
 
 const mockedSubTeam = {
@@ -271,13 +263,9 @@ describe("Invite Member Utils", () => {
           adminGetsNoSlotsNotification: false,
           isAdminReviewed: false,
           isAdminAPIEnabled: false,
-          allowSEOIndexing: false,
-          orgProfileRedirectsToVerifiedDomain: false,
-          disablePhoneOnlySMSNotifications: false,
         },
         slug: "abc",
         parent: null,
-        isOrganization: true,
       };
       const result = getOrgState(true, { ...mockedRegularTeam, ...team });
       expect(result).toEqual({
@@ -305,9 +293,6 @@ describe("Invite Member Utils", () => {
             adminGetsNoSlotsNotification: false,
             isAdminReviewed: false,
             isAdminAPIEnabled: false,
-            allowSEOIndexing: false,
-            orgProfileRedirectsToVerifiedDomain: false,
-            disablePhoneOnlySMSNotifications: false,
           },
         },
       };
@@ -425,7 +410,6 @@ describe("Invite Member Utils", () => {
         ...mockedRegularTeam,
         parentId: null,
         id: inviteeOrgId,
-        isOrganization: true,
       };
       expect(canBeInvited(inviteeWithOrg, organization)).toBe(INVITE_STATUS.USER_ALREADY_INVITED_OR_MEMBER);
     });
@@ -461,31 +445,10 @@ describe("Invite Member Utils", () => {
       const organization = {
         ...mockedRegularTeam,
         id: organizationIdBeingInvitedTo,
-        isOrganization: true,
       };
       expect(canBeInvited(inviteeWithOrg, organization)).toBe(
         INVITE_STATUS.USER_MEMBER_OF_OTHER_ORGANIZATION
       );
-    });
-
-    it("should return CAN_BE_INVITED if the user being invited has a profile with the organization already", () => {
-      const organizationId = 3;
-      const inviteeWithOrg: UserWithMembership = {
-        ...invitee,
-        profiles: [
-          getSampleProfile({
-            organizationId: organizationId,
-          }),
-        ],
-        teams: [],
-      };
-
-      const organization = {
-        ...mockedRegularTeam,
-        id: organizationId,
-        isOrganization: true,
-      };
-      expect(canBeInvited(inviteeWithOrg, organization)).toBe(INVITE_STATUS.CAN_BE_INVITED);
     });
 
     it("should return USER_MEMBER_OF_OTHER_ORGANIZATION if the invitee is being invited to a sub-team in an organization but he belongs to another organization", () => {

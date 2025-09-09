@@ -1,16 +1,17 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
-import type { AppCardApp } from "../types";
+import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
@@ -26,7 +27,9 @@ export default function AppCard({
   hideSettingsIcon = false,
   hideAppCardOptions = false,
 }: {
-  app: AppCardApp;
+  app: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+    credentialOwner?: CredentialOwner;
+  };
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
@@ -39,7 +42,7 @@ export default function AppCard({
   hideSettingsIcon?: boolean;
   hideAppCardOptions?: boolean;
 }) {
-  const { t } = useLocale();
+  const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
   const isPlatform = useIsPlatform();

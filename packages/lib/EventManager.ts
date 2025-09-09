@@ -327,9 +327,7 @@ export default class EventManager {
     }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-    const isMSTeamsWithOutlookCalendar =
-      evt.location === MSTeamsLocationType &&
-      mainHostDestinationCalendar?.integration === "office365_calendar";
+    const isMSTeamsWithOutlookCalendar = evt.location === MSTeamsLocationType && mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
@@ -447,34 +445,12 @@ export default class EventManager {
     }
 
     const referencesToCreate = results.map((result) => {
-      // For update operations, check updatedEvent first, then fall back to createdEvent
-      const updatedEvent = Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
-      const createdEvent = result.createdEvent;
-      let event = updatedEvent;
-      if (!event) {
-        log.warn(
-          "updateLocation: No updatedEvent when doing updateLocation. Falling back to createdEvent but this is probably not what we want",
-          safeStringify({ bookingId: booking.id })
-        );
-        event = createdEvent;
-      }
-
-      const uid = event?.id?.toString() ?? "";
-      const meetingId = event?.id?.toString();
-
-      if (!uid) {
-        log.error(
-          "updateLocation: No uid for booking reference. The corresponding record in third party if created is orphan now",
-          safeStringify({ result })
-        );
-      }
-
       return {
         type: result.type,
-        uid,
-        meetingId,
-        meetingPassword: event?.password,
-        meetingUrl: event?.url,
+        uid: result.createdEvent?.id?.toString() ?? "",
+        meetingId: result.createdEvent?.id?.toString(),
+        meetingPassword: result.createdEvent?.password,
+        meetingUrl: result.createdEvent?.url,
         externalCalendarId: result.externalId,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
@@ -592,8 +568,7 @@ export default class EventManager {
     newBookingId?: number,
     changedOrganizer?: boolean,
     previousHostDestinationCalendar?: DestinationCalendar[] | null,
-    isBookingRequestedReschedule?: boolean,
-    skipDeleteEventsAndMeetings?: boolean
+    isBookingRequestedReschedule?: boolean
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -660,7 +635,7 @@ export default class EventManager {
     const shouldUpdateBookingReferences =
       !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
-    if (evt.requiresConfirmation && !skipDeleteEventsAndMeetings) {
+    if (evt.requiresConfirmation && !changedOrganizer) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
       await this.deleteEventsAndMeetings({
@@ -669,14 +644,6 @@ export default class EventManager {
       });
     } else {
       if (changedOrganizer) {
-        if (!skipDeleteEventsAndMeetings) {
-          log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
-          await this.deleteEventsAndMeetings({
-            event: { ...event, destinationCalendar: previousHostDestinationCalendar },
-            bookingReferences: booking.references,
-          });
-        }
-
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);

@@ -7,7 +7,6 @@ import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
-import { useToggleableLegend } from "../../hooks/useToggleableLegend";
 import { valueFormatter } from "../../lib/valueFormatter";
 import { ChartCard } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
@@ -67,7 +66,6 @@ const CustomTooltip = ({
 export const EventTrendsChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
-  const { enabledLegend, toggleSeries } = useToggleableLegend(legend);
 
   const {
     data: eventTrends,
@@ -86,11 +84,7 @@ export const EventTrendsChart = () => {
   if (!isSuccess) return null;
 
   return (
-    <ChartCard
-      title={t("event_trends")}
-      legend={legend}
-      enabledLegend={enabledLegend}
-      onSeriesToggle={toggleSeries}>
+    <ChartCard title={t("event_trends")} legend={legend}>
       <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={eventTrends ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
@@ -104,7 +98,7 @@ export const EventTrendsChart = () => {
               tickFormatter={valueFormatter}
             />
             <Tooltip content={<CustomTooltip />} />
-            {enabledLegend.map((item) => (
+            {legend.map((item) => (
               <Line
                 key={item.label}
                 type="linear"

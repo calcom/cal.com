@@ -1,13 +1,8 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
 import BookingsList from "~/bookings/views/bookings-listing-view";
@@ -31,11 +26,10 @@ const Page = async ({ params }: PageProps) => {
     redirect("/bookings/upcoming");
   }
   const t = await getTranslate();
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   return (
     <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
-      <BookingsList status={parsed.data.status} userId={session?.user?.id} />
+      <BookingsList status={parsed.data.status} />
     </ShellMainAppDir>
   );
 };

@@ -2,7 +2,6 @@ import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
@@ -25,7 +24,6 @@ export const useInsightsBookingFacetedUniqueValues = ({
   teamId: number | undefined;
   isAll: boolean;
 }) => {
-  const { t } = useLocale();
   const { data: users } = trpc.viewer.insights.userList.useQuery(
     {
       teamId,
@@ -70,14 +68,9 @@ export const useInsightsBookingFacetedUniqueValues = ({
             label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
           })) ?? []
         );
-      } else if (columnId === "paid") {
-        return convertFacetedValuesToMap([
-          { value: "true", label: t("paid") },
-          { value: "false", label: t("free") },
-        ]);
       }
       return new Map<FacetedValue, number>();
     },
-    [users, eventTypes, t]
+    [users, eventTypes]
   );
 };

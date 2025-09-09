@@ -296,7 +296,7 @@ describe("FilterSegmentRepository.get()", () => {
     });
 
     expect(result.segments).toHaveLength(1);
-    expect(result.preferredSegmentId).toEqual({ id: segment.id, type: "user" });
+    expect(result.preferredSegmentId).toBe(segment.id);
     expect(result.segments[0].name).toBe("Important Contacts");
   });
 

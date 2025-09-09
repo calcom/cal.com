@@ -4,13 +4,12 @@ import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
-import { MeetLocationType } from "@calcom/app-store/constants";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
-import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -86,16 +85,10 @@ export default class GoogleCalendarService implements Calendar {
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
       (cal) => cal.credentialId === this.credential.id
     );
-
-    const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
-      .filter((domain) => domain.trim() !== "")
-      .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
-
     const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
-
     const attendees: calendar_v3.Schema$EventAttendee[] = [
       {
         ...event.organizer,
@@ -107,7 +100,7 @@ export default class GoogleCalendarService implements Calendar {
         // We use || instead of ?? here to handle empty strings
         email: hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email,
       },
-      ...(event.hideOrganizerEmail && !isOrganizerExempt ? [] : eventAttendees),
+      ...eventAttendees,
     ];
 
     if (event.team?.members) {

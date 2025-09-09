@@ -4,7 +4,6 @@ import React from "react";
 import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { PeriodType } from "@calcom/prisma/enums";
 
 import { DatePicker } from "../DatePicker";
@@ -17,22 +16,20 @@ describe("Tests for DatePicker Component", () => {
   test("Should render correctly with default date", async () => {
     const testDate = dayjs("2024-02-20");
     const { getByTestId } = render(
-      <BookerStoreProvider>
-        <TooltipProvider>
-          <DatePicker
-            onChange={noop}
-            browsingDate={testDate}
-            locale="en"
-            periodData={{
-              periodType: PeriodType.UNLIMITED,
-              periodDays: null,
-              periodCountCalendarDays: false,
-              periodStartDate: null,
-              periodEndDate: null,
-            }}
-          />
-        </TooltipProvider>
-      </BookerStoreProvider>
+      <TooltipProvider>
+        <DatePicker
+          onChange={noop}
+          browsingDate={testDate}
+          locale="en"
+          periodData={{
+            periodType: PeriodType.UNLIMITED,
+            periodDays: null,
+            periodCountCalendarDays: false,
+            periodStartDate: null,
+            periodEndDate: null,
+          }}
+        />
+      </TooltipProvider>
     );
 
     const selectedMonthLabel = getByTestId("selected-month-label");
@@ -43,11 +40,9 @@ describe("Tests for DatePicker Component", () => {
     const testDate = dayjs("2024-02-20");
     const minDate = dayjs("2025-02-10");
     const { getByTestId } = render(
-      <BookerStoreProvider>
-        <TooltipProvider>
-          <DatePicker onChange={noop} browsingDate={testDate} minDate={minDate.toDate()} locale="en" />
-        </TooltipProvider>
-      </BookerStoreProvider>
+      <TooltipProvider>
+        <DatePicker onChange={noop} browsingDate={testDate} minDate={minDate.toDate()} locale="en" />
+      </TooltipProvider>
     );
 
     const selectedMonthLabel = getByTestId("selected-month-label");
@@ -58,11 +53,9 @@ describe("Tests for DatePicker Component", () => {
     const testDate = dayjs("2025-03-20");
     const minDate = dayjs("2025-02-10");
     const { getByTestId } = render(
-      <BookerStoreProvider>
-        <TooltipProvider>
-          <DatePicker onChange={noop} browsingDate={testDate} minDate={minDate.toDate()} locale="en" />
-        </TooltipProvider>
-      </BookerStoreProvider>
+      <TooltipProvider>
+        <DatePicker onChange={noop} browsingDate={testDate} minDate={minDate.toDate()} locale="en" />
+      </TooltipProvider>
     );
 
     const selectedMonthLabel = getByTestId("selected-month-label");
@@ -92,24 +85,22 @@ describe("Tests for DatePicker Component", () => {
       ]);
 
       const { getAllByTestId } = render(
-        <BookerStoreProvider>
-          <TooltipProvider>
-            <DatePicker
-              onChange={noop}
-              browsingDate={earlyMonthDate}
-              locale="en"
-              slots={slots}
-              isCompact={false}
-              periodData={{
-                periodType: PeriodType.UNLIMITED,
-                periodDays: null,
-                periodCountCalendarDays: false,
-                periodStartDate: null,
-                periodEndDate: null,
-              }}
-            />
-          </TooltipProvider>
-        </BookerStoreProvider>
+        <TooltipProvider>
+          <DatePicker
+            onChange={noop}
+            browsingDate={earlyMonthDate}
+            locale="en"
+            slots={slots}
+            isCompact={false}
+            periodData={{
+              periodType: PeriodType.UNLIMITED,
+              periodDays: null,
+              periodCountCalendarDays: false,
+              periodStartDate: null,
+              periodEndDate: null,
+            }}
+          />
+        </TooltipProvider>
       );
 
       const dayElements = getAllByTestId("day");
@@ -136,24 +127,22 @@ describe("Tests for DatePicker Component", () => {
       ]);
 
       const { getAllByTestId, queryByText } = render(
-        <BookerStoreProvider>
-          <TooltipProvider>
-            <DatePicker
-              onChange={noop}
-              browsingDate={lateMonthDate}
-              locale="en"
-              slots={slots}
-              isCompact={false}
-              periodData={{
-                periodType: PeriodType.UNLIMITED,
-                periodDays: null,
-                periodCountCalendarDays: false,
-                periodStartDate: null,
-                periodEndDate: null,
-              }}
-            />
-          </TooltipProvider>
-        </BookerStoreProvider>
+        <TooltipProvider>
+          <DatePicker
+            onChange={noop}
+            browsingDate={lateMonthDate}
+            locale="en"
+            slots={slots}
+            isCompact={false}
+            periodData={{
+              periodType: PeriodType.UNLIMITED,
+              periodDays: null,
+              periodCountCalendarDays: false,
+              periodStartDate: null,
+              periodEndDate: null,
+            }}
+          />
+        </TooltipProvider>
       );
 
       const dayElements = getAllByTestId("day");
@@ -176,24 +165,22 @@ describe("Tests for DatePicker Component", () => {
       const slots = createMockSlots(["2024-01-25", "2024-02-01"]);
 
       const { getAllByTestId } = render(
-        <BookerStoreProvider>
-          <TooltipProvider>
-            <DatePicker
-              onChange={noop}
-              browsingDate={lateMonthDate}
-              locale="en"
-              slots={slots}
-              isCompact={true} // This should force traditional view
-              periodData={{
-                periodType: PeriodType.UNLIMITED,
-                periodDays: null,
-                periodCountCalendarDays: false,
-                periodStartDate: null,
-                periodEndDate: null,
-              }}
-            />
-          </TooltipProvider>
-        </BookerStoreProvider>
+        <TooltipProvider>
+          <DatePicker
+            onChange={noop}
+            browsingDate={lateMonthDate}
+            locale="en"
+            slots={slots}
+            isCompact={true} // This should force traditional view
+            periodData={{
+              periodType: PeriodType.UNLIMITED,
+              periodDays: null,
+              periodCountCalendarDays: false,
+              periodStartDate: null,
+              periodEndDate: null,
+            }}
+          />
+        </TooltipProvider>
       );
 
       const dayElements = getAllByTestId("day");

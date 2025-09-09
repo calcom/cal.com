@@ -1,4 +1,4 @@
-import { MembershipRole } from "@calcom/platform-libraries";
+import { MembershipRole } from "@prisma/client";
 
 export const SYSTEM_ADMIN_ROLE = "SYSADMIN";
 export const ORG_ROLES = [

@@ -107,9 +107,6 @@ export const BaseScheduledEmail = (
             }
             withSpacer
           />
-          {props.reassigned?.reason && (
-            <Info label={t("reason")} description={props.reassigned.reason} withSpacer />
-          )}
         </>
       )}
       {props.reassigned && props.reassigned.byUser && (

@@ -10,7 +10,7 @@ import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useDataTable } from "../../hooks";
-import type { CombinedFilterSegment } from "../../lib/types";
+import type { FilterSegmentOutput } from "../../lib/types";
 
 type FormValues = {
   name: string;
@@ -20,7 +20,7 @@ export function DuplicateSegmentDialog({
   segment,
   onClose,
 }: {
-  segment: CombinedFilterSegment;
+  segment: FilterSegmentOutput;
   onClose: () => void;
 }) {
   const { t } = useLocale();
@@ -38,7 +38,7 @@ export function DuplicateSegmentDialog({
     onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_duplicated"), "success");
-      setSegmentId({ id, type: "user" });
+      setSegmentId(id);
       onClose();
     },
     onError: () => {
@@ -50,24 +50,16 @@ export function DuplicateSegmentDialog({
     if (!segment) {
       return;
     }
-    if (segment.type === "user") {
-      const { type: _type, id: _id, name: _name, team: _team, teamId, ...rest } = segment;
-      if (segment.scope === "TEAM" && isAdminOrOwner) {
-        createSegment({
-          ...rest,
-          teamId: teamId ?? 0,
-          scope: "TEAM",
-          name: data.name,
-        });
-      } else {
-        createSegment({
-          ...rest,
-          scope: "USER",
-          name: data.name,
-        });
-      }
-    } else if (segment.type === "system") {
-      const { type: _type, ...rest } = segment;
+    const { id: _id, name: _name, team: _team, teamId, ...rest } = segment;
+
+    if (segment.scope === "TEAM" && isAdminOrOwner) {
+      createSegment({
+        ...rest,
+        teamId: teamId ?? 0,
+        scope: "TEAM",
+        name: data.name,
+      });
+    } else {
       createSegment({
         ...rest,
         scope: "USER",
@@ -88,13 +80,7 @@ export function DuplicateSegmentDialog({
         <DialogHeader title={t("duplicate_segment")} />
         <Form form={form} handleSubmit={handleSubmit}>
           <div className="space-y-4">
-            <TextField
-              required
-              data-testid="duplicate-segment-name"
-              type="text"
-              label={t("name")}
-              {...form.register("name")}
-            />
+            <TextField required type="text" label={t("name")} {...form.register("name")} />
             <DialogFooter>
               <Button color="minimal" onClick={onClose}>
                 {t("cancel")}

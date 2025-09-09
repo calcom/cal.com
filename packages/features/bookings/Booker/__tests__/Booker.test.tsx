@@ -10,17 +10,18 @@ import "@calcom/features/bookings/Booker/components/__mocks__/Section";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 import "@calcom/lib/__mocks__/logger";
 
-import React from "react";
+import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import "@calcom/dayjs/__mocks__";
 import "@calcom/features/auth/Turnstile";
 
 import { Booker } from "../Booker";
-import { render, screen } from "./test-utils";
+import { useBookerStore } from "../store";
+import type { BookerState } from "../types";
 
 vi.mock("framer-motion", async (importOriginal) => {
-  const actual = (await importOriginal()) as any;
+  const actual = await importOriginal();
   return {
     ...actual,
   };
@@ -85,6 +86,27 @@ vi.mock("@calcom/atoms/hooks/useIsPlatformBookerEmbed", () => ({
 vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => false,
 }));
+
+// Update mockStoreState to include all required state
+const mockStoreState = {
+  state: "booking" as BookerState,
+  setState: vi.fn(),
+  selectedDate: "2024-01-01",
+  seatedEventData: {},
+  setSeatedEventData: vi.fn(),
+  tentativeSelectedTimeslots: [],
+  setTentativeSelectedTimeslots: vi.fn(),
+  dayCount: 7,
+  setDayCount: vi.fn(),
+  setSelectedTimeslot: vi.fn(),
+  selectedTimeslot: null,
+  formStep: 0,
+  setFormStep: vi.fn(),
+  bookerState: "booking",
+  setBookerState: vi.fn(),
+  layout: "default",
+  setLayout: vi.fn(),
+};
 
 // Update defaultProps to include missing required props
 const defaultProps = {
@@ -166,7 +188,7 @@ const defaultProps = {
 describe("Booker", () => {
   beforeEach(() => {
     constantsScenarios.set({
-      PUBLIC_QUICK_AVAILABILITY_ROLLOUT: "100",
+      PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
       POWERED_BY_URL: "https://go.cal.com/booking",
       APP_NAME: "Cal.com",
     });
@@ -174,13 +196,24 @@ describe("Booker", () => {
   });
 
   it("should render null when in loading state", () => {
-    const { container } = render(<Booker {...defaultProps} />, {
-      mockStore: { state: "loading" },
+    useBookerStore.setState({
+      ...mockStoreState,
+      state: "loading",
     });
+
+    const { container } = render(<Booker {...defaultProps} />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it("should render DryRunMessage when in dry run mode", () => {
+    useBookerStore.setState({
+      ...mockStoreState,
+      state: "selecting_time",
+      selectedDate: "2024-01-01",
+      selectedTimeslot: "2024-01-01T10:00:00Z",
+      tentativeSelectedTimeslots: ["2024-01-01T10:00:00Z"],
+    });
+
     const propsWithDryRun = {
       ...defaultProps,
       isBookingDryRun: true,
@@ -193,14 +226,7 @@ describe("Booker", () => {
       },
     };
 
-    render(<Booker {...propsWithDryRun} />, {
-      mockStore: {
-        state: "selecting_time",
-        selectedDate: "2024-01-01",
-        selectedTimeslot: "2024-01-01T10:00:00Z",
-        tentativeSelectedTimeslots: ["2024-01-01T10:00:00Z"],
-      },
-    });
+    render(<Booker {...propsWithDryRun} />);
     expect(screen.getByTestId("dry-run-message")).toBeInTheDocument();
   });
 
@@ -216,10 +242,12 @@ describe("Booker", () => {
         invalidate: mockInvalidate,
       },
     };
-
-    render(<Booker {...propsWithInvalidate} />, {
-      mockStore: { state: "booking" },
+    useBookerStore.setState({
+      ...mockStoreState,
+      state: "booking",
     });
+
+    render(<Booker {...propsWithInvalidate} />);
     screen.logTestingPlaygroundURL();
     // Trigger form cancel
     const cancelButton = screen.getByRole("button", { name: /cancel/i });
@@ -239,9 +267,12 @@ describe("Booker", () => {
         },
       };
 
-      render(<Booker {...propsWithQuickChecks} />, {
-        mockStore: { state: "booking" },
+      useBookerStore.setState({
+        ...mockStoreState,
+        state: "booking",
       });
+
+      render(<Booker {...propsWithQuickChecks} />);
       const bookEventForm = screen.getByTestId("book-event-form");
       await expect(bookEventForm).toHaveAttribute("data-unavailable", "true");
     });

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
@@ -8,7 +7,6 @@ import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRe
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
 import { RetellAIError } from "./errors";
-import { createMockDatabaseAgent } from "./services/__tests__/test-utils";
 import type { RetellAIRepository } from "./types";
 
 vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
@@ -57,23 +55,14 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   },
 }));
 
-const mockGetAllCredits = vi.fn();
-const mockHasAvailableCredits = vi.fn();
-const mockCreditService = vi.fn().mockImplementation(() => ({
-  getAllCredits: mockGetAllCredits,
-  hasAvailableCredits: mockHasAvailableCredits,
-}));
-
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
-  CreditService: mockCreditService,
+  CreditService: vi.fn().mockImplementation(() => ({
+    getAllCredits: vi.fn(),
+  })),
 }));
 
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
-}));
-
-vi.mock("@calcom/ee/api-keys/lib/apiKeys", () => ({
-  generateUniqueAPIKey: vi.fn().mockReturnValue(["hashed-key", "api-key"]),
 }));
 
 // Mock Prisma client with transaction support
@@ -82,9 +71,6 @@ vi.mock("@calcom/prisma", () => ({
     $transaction: vi.fn(),
     calAiPhoneNumber: {
       create: vi.fn(),
-    },
-    apiKey: {
-      create: vi.fn().mockResolvedValue({ id: "api-key-123" }),
     },
   },
 }));
@@ -367,11 +353,7 @@ describe("RetellAIService", () => {
   describe("importPhoneNumber", () => {
     it("should import phone number and create DB record using transaction", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
-      const mockAgent = createMockDatabaseAgent();
-
-      mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
-      mockRepository.updatePhoneNumber.mockResolvedValue(mockImportedNumber);
 
       const result = await service.importPhoneNumber({
         phone_number: "+1234567890",
@@ -379,7 +361,6 @@ describe("RetellAIService", () => {
         sip_trunk_auth_username: "user",
         sip_trunk_auth_password: "pass",
         userId: 1,
-        agentId: "agent-123",
       });
 
       expect(result).toEqual(mockImportedNumber);
@@ -453,9 +434,6 @@ describe("RetellAIService", () => {
 
     it("should handle transaction rollback when database creation fails with successful cleanup", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
-      const mockAgent = createMockDatabaseAgent();
-
-      mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
       mockRepository.deletePhoneNumber.mockResolvedValue(undefined);
 
@@ -476,7 +454,6 @@ describe("RetellAIService", () => {
           sip_trunk_auth_username: "user",
           sip_trunk_auth_password: "pass",
           userId: 1,
-          agentId: "agent-123",
         })
       ).rejects.toThrow("Database connection failed");
 
@@ -489,9 +466,6 @@ describe("RetellAIService", () => {
 
     it("should handle compensation failure and throw critical error", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
-      const mockAgent = createMockDatabaseAgent();
-
-      mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
 
       // Mock compensation failure
@@ -514,7 +488,6 @@ describe("RetellAIService", () => {
           sip_trunk_auth_username: "user",
           sip_trunk_auth_password: "pass",
           userId: 1,
-          agentId: "agent-123",
         })
       ).rejects.toThrow(
         "Failed to cleanup Retell phone number +1234567890 after transaction failure. Manual cleanup required."
@@ -532,9 +505,9 @@ describe("RetellAIService", () => {
       mockRepository.createPhoneCall.mockResolvedValue(mockCall);
 
       const result = await service.createPhoneCall({
-        fromNumber: "+1234567890",
-        toNumber: "+0987654321",
-        dynamicVariables: {
+        from_number: "+1234567890",
+        to_number: "+0987654321",
+        retell_llm_dynamic_variables: {
           name: "John",
           email: "john@example.com",
         },
@@ -542,9 +515,9 @@ describe("RetellAIService", () => {
 
       expect(result).toEqual(mockCall);
       expect(mockRepository.createPhoneCall).toHaveBeenCalledWith({
-        fromNumber: "+1234567890",
-        toNumber: "+0987654321",
-        dynamicVariables: {
+        from_number: "+1234567890",
+        to_number: "+0987654321",
+        retell_llm_dynamic_variables: {
           name: "John",
           email: "john@example.com",
         },
@@ -623,10 +596,7 @@ describe("RetellAIService", () => {
         nickname: "Test Phone",
       });
 
-      expect(result).toEqual({
-        ...mockPhoneNumber,
-        provider: "retellAI",
-      });
+      expect(result).toEqual(mockPhoneNumber);
       expect(mockRepository.createPhoneNumber).toHaveBeenCalledWith({
         area_code: 415,
         nickname: "Test Phone",
@@ -872,14 +842,18 @@ describe("RetellAIService", () => {
   describe("createTestCall", () => {
     it("should create test call successfully with sufficient credits", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+      const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
-      const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
+      // Mock credit service to return sufficient credits
+      const mockGetAllCredits = vi.fn().mockResolvedValue({
+        totalRemainingMonthlyCredits: 10,
+        additionalCredits: 5,
+      });
       (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
+        getAllCredits: mockGetAllCredits,
       }));
 
-      // Mock rate limiting like the working example
-      vi.mocked(checkRateLimitAndThrowError).mockResolvedValueOnce(undefined as any);
+      (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue({
         id: "1",
         name: "Test Agent",
@@ -896,51 +870,18 @@ describe("RetellAIService", () => {
         call_status: "initiated",
       });
 
-      mockRepository.getAgent.mockResolvedValue({
-        agent_id: "agent-123",
-        agent_name: "Test Agent",
-        voice_id: "test-voice",
-        response_engine: {
-          type: "retell-llm",
-          llm_id: "llm-123",
-        },
-        language: "en",
-        responsiveness: 1,
-        interruption_sensitivity: 1,
-      });
-
-      mockRepository.getLLM.mockResolvedValue({
-        llm_id: "llm-123",
-        general_prompt: "Test prompt",
-        begin_message: "Hello",
-        general_tools: [],
-      });
-
-      mockRepository.updateLLM.mockResolvedValue({
-        llm_id: "llm-123",
-        general_prompt: "Test prompt",
-        begin_message: "Hello",
-        general_tools: [
-          {
-            type: "check_availability_cal",
-            name: "check_availability",
-            event_type_id: 123,
-            cal_api_key: "test-key",
-            timezone: "America/New_York",
-          },
-        ],
-      });
-
       const result = await service.createTestCall({
         agentId: "1",
         phoneNumber: "+14155555678",
         userId: 1,
         teamId: 2,
-        timeZone: "America/New_York",
-        eventTypeId: 123,
       });
 
-      expect(vi.mocked(checkRateLimitAndThrowError)).toHaveBeenCalledWith({
+      expect(mockGetAllCredits).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 2,
+      });
+      expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
         identifier: "test-call:1",
       });
@@ -951,13 +892,16 @@ describe("RetellAIService", () => {
       });
     });
 
-    it("should handle null/undefined credits gracefully", async () => {
+    it("should throw error if insufficient credits", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
-      // Mock credit service to return false (no credits)
-      const mockHasAvailableCredits = vi.fn().mockResolvedValue(false);
+      // Mock credit service to return insufficient credits
+      const mockGetAllCredits = vi.fn().mockResolvedValue({
+        totalRemainingMonthlyCredits: 2,
+        additionalCredits: 1,
+      });
       (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
+        getAllCredits: mockGetAllCredits,
       }));
 
       await expect(
@@ -965,10 +909,35 @@ describe("RetellAIService", () => {
           agentId: "1",
           phoneNumber: "+14155555678",
           userId: 1,
-          timeZone: "America/New_York",
-          eventTypeId: 123,
         })
-      ).rejects.toThrow("Insufficient credits to make test call. Please purchase more credits.");
+      ).rejects.toThrow(
+        "Insufficient credits to make test call. Need 5 credits, have 3. Please purchase more credits."
+      );
+
+      expect(mockGetAllCredits).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: undefined,
+      });
+    });
+
+    it("should handle null/undefined credits gracefully", async () => {
+      const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+
+      // Mock credit service to return null credits
+      const mockGetAllCredits = vi.fn().mockResolvedValue(null);
+      (CreditService as any).mockImplementation(() => ({
+        getAllCredits: mockGetAllCredits,
+      }));
+
+      await expect(
+        service.createTestCall({
+          agentId: "1",
+          phoneNumber: "+14155555678",
+          userId: 1,
+        })
+      ).rejects.toThrow(
+        "Insufficient credits to make test call. Need 5 credits, have 0. Please purchase more credits."
+      );
     });
 
     it("should throw error if no phone number provided", async () => {
@@ -976,9 +945,12 @@ describe("RetellAIService", () => {
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
       // Mock sufficient credits to get past credit check
-      const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
+      const mockGetAllCredits = vi.fn().mockResolvedValue({
+        totalRemainingMonthlyCredits: 10,
+        additionalCredits: 0,
+      });
       (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
+        getAllCredits: mockGetAllCredits,
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
@@ -987,8 +959,6 @@ describe("RetellAIService", () => {
         service.createTestCall({
           agentId: "1",
           userId: 1,
-          timeZone: "America/New_York",
-          eventTypeId: 123,
         })
       ).rejects.toThrow("Phone number is required for test call");
     });
@@ -999,9 +969,12 @@ describe("RetellAIService", () => {
       const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
       // Mock sufficient credits
-      const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
+      const mockGetAllCredits = vi.fn().mockResolvedValue({
+        totalRemainingMonthlyCredits: 10,
+        additionalCredits: 0,
+      });
       (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
+        getAllCredits: mockGetAllCredits,
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
@@ -1012,8 +985,6 @@ describe("RetellAIService", () => {
           agentId: "1",
           phoneNumber: "+14155555678",
           userId: 1,
-          timeZone: "America/New_York",
-          eventTypeId: 123,
         })
       ).rejects.toThrow("Agent not found or you don't have permission to use it.");
     });
@@ -1023,9 +994,12 @@ describe("RetellAIService", () => {
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
       // Mock sufficient credits
-      const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
+      const mockGetAllCredits = vi.fn().mockResolvedValue({
+        totalRemainingMonthlyCredits: 10,
+        additionalCredits: 0,
+      });
       (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
+        getAllCredits: mockGetAllCredits,
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
@@ -1046,8 +1020,6 @@ describe("RetellAIService", () => {
           agentId: "1",
           phoneNumber: "+14155555678",
           userId: 1,
-          timeZone: "America/New_York",
-          eventTypeId: 123,
         })
       ).rejects.toThrow("Agent must have a phone number assigned to make calls.");
     });

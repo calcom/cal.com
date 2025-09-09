@@ -149,13 +149,13 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
   const tabsNavigation: VerticalTabItemProps[] = [];
   tabs.includes("setup") &&
     tabsNavigation.push({
-      name: t("basics"),
+      name: t("event_setup_tab_title"),
       onClick: () => onClick("setup"),
       isActive: currentTab === "setup",
       href: `${url}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
-      "data-testid": `basics`,
+      "data-testid": `event_setup_tab_title`,
     });
   tabs.includes("limits") &&
     tabsNavigation.push({

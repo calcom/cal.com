@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { yyyymmdd } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -137,21 +136,19 @@ const DateOverrideForm = ({
       className="p-6 sm:flex sm:p-0 xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
         <DialogHeader title={t("date_overrides_dialog_title")} />
-        <BookerStoreProvider>
-          <DatePicker
-            excludedDates={excludedDates}
-            weekStart={weekStart}
-            selected={selectedDates}
-            onChange={(day) => {
-              if (day) onDateChange(day);
-            }}
-            onMonthChange={(newMonth) => {
-              setBrowsingDate(newMonth);
-            }}
-            browsingDate={browsingDate}
-            locale={isLocaleReady ? i18n.language : "en"}
-          />
-        </BookerStoreProvider>
+        <DatePicker
+          excludedDates={excludedDates}
+          weekStart={weekStart}
+          selected={selectedDates}
+          onChange={(day) => {
+            if (day) onDateChange(day);
+          }}
+          onMonthChange={(newMonth) => {
+            setBrowsingDate(newMonth);
+          }}
+          browsingDate={browsingDate}
+          locale={isLocaleReady ? i18n.language : "en"}
+        />
       </div>
       <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
         {selectedDates[0] ? (

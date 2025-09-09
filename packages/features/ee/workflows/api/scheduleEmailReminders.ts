@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -343,7 +342,9 @@ export async function handler(req: NextRequest) {
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
-                    content: generateIcsString({ event, status: "CONFIRMED" }) || "",
+                    content: Buffer.from(generateIcsString({ event, status: "CONFIRMED" }) || "").toString(
+                      "base64"
+                    ),
                     filename: "event.ics",
                     type: "text/calendar; method=REQUEST",
                     disposition: "attachment",
@@ -351,9 +352,7 @@ export async function handler(req: NextRequest) {
                   },
                 ]
               : undefined,
-            sender: reminder.booking?.eventType?.hideOrganizerEmail
-              ? SENDER_NAME
-              : reminder.workflowStep.sender,
+            sender: reminder.workflowStep.sender,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
               replyTo:
                 reminder.booking?.eventType?.customReplyToEmail ??
@@ -442,9 +441,7 @@ export async function handler(req: NextRequest) {
             subject: emailContent.emailSubject,
             to: [sendTo],
             html: emailContent.emailBody,
-            sender: reminder.booking?.eventType?.hideOrganizerEmail
-              ? SENDER_NAME
-              : reminder.workflowStep?.sender,
+            sender: reminder.workflowStep?.sender,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
               replyTo:
                 reminder.booking?.eventType?.customReplyToEmail ||

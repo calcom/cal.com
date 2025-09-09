@@ -1,10 +1,12 @@
-import { getSession } from "../../../middlewares/sessionMiddleware";
+import { getUserSession } from "../../../middlewares/sessionMiddleware";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { ZEventInputSchema } from "../event.schema";
 
+const NAMESPACE = "publicViewer";
+const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+
 export const event = publicProcedure.input(ZEventInputSchema).query(async (opts) => {
-  const session = await getSession(opts.ctx);
-  const userId = session?.user?.id;
+  const { user } = await getUserSession(opts.ctx);
   const { default: handler } = await import("../event.handler");
-  return handler({ input: opts.input, userId });
+  return handler({ input: opts.input, userId: user?.id });
 });

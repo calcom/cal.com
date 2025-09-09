@@ -691,7 +691,7 @@ function BookingListItem(booking: BookingItemProps) {
                         type="button"
                         color={cancelEventAction.color}
                         StartIcon={cancelEventAction.icon}
-                        href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
+                        href={cancelEventAction.href}
                         onClick={cancelEventAction.onClick}
                         disabled={cancelEventAction.disabled}
                         data-bookingid={cancelEventAction.bookingId}

@@ -51,7 +51,7 @@ export function useInsightsParameters() {
   }, [createdAtRange?.preset]);
 
   const columnFilters = useColumnFilters({
-    exclude: ["createdAt"],
+    exclude: ["bookingUserId", "formId", "createdAt", "eventTypeId"],
   });
 
   return {

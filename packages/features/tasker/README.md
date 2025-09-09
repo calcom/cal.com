@@ -45,12 +45,11 @@ For simplicity sake will explain how the `InternalTasker` works:
 
   ```ts
   // /app/api/tasks/cron/route.ts
-  import { TaskProcessor } from "@calcom/features/tasker/task-processor";
+  import tasker from "@calcom/features/tasker";
 
   export async function GET() {
     // authenticate the call...
-    const processor = new TaskProcessor();
-    await processor.processQueue();
+    await tasker.processQueue();
     return Response.json({ success: true });
   }
   ```
@@ -63,12 +62,11 @@ For simplicity sake will explain how the `InternalTasker` works:
 
   ```ts
   // /app/api/tasks/cleanup/route.ts
-  import { TaskProcessor } from "@calcom/features/tasker/task-processor";
+  import tasker from "@calcom/features/tasker";
 
   export async function GET() {
     // authenticate the call...
-    const processor = new TaskProcessor();
-    await processor.cleanup();
+    await tasker.cleanup();
     return Response.json({ success: true });
   }
   ```

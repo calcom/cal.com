@@ -6,7 +6,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { SchedulingType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -24,7 +24,6 @@ import {
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
-import { SchedulingType } from "@calcom/platform-libraries";
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
@@ -726,7 +725,6 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               type: "name",
               slug: "name",
-              label: "your_name",
               required: true,
               disableOnPrefill: false,
             },
@@ -824,7 +822,6 @@ describe("Organizations Event Types Endpoints", () => {
               type: "name",
               slug: "name",
               required: true,
-              label: "your_name",
               disableOnPrefill: false,
             },
             {

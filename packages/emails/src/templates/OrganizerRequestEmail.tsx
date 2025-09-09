@@ -5,14 +5,7 @@ import { CallToAction, Separator, CallToActionTable } from "../components";
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
-  const seedData = {
-    bookingUid: props.calEvent.uid,
-    userId: props.calEvent.organizer.id,
-    platformClientId: props.calEvent.platformClientId,
-    platformRescheduleUrl: props.calEvent.platformRescheduleUrl,
-    platformCancelUrl: props.calEvent.platformCancelUrl,
-    platformBookingUrl: props.calEvent.platformBookingUrl,
-  };
+  const seedData = { bookingUid: props.calEvent.uid, userId: props.calEvent.organizer.id };
   const token = symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "");
   //TODO: We should switch to using org domain if available
   const actionHref = `${WEBAPP_URL}/api/link/?token=${encodeURIComponent(token)}`;

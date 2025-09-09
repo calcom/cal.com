@@ -1,7 +1,7 @@
 import type { Booking, User, Webhook } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
-import { DailyLocationType } from "@calcom/app-store/constants";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getMeetingSessionsFromRoomName } from "@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName";
 import { triggerHostNoShow } from "@calcom/features/tasker/tasks/triggerNoShow/triggerHostNoShow";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";

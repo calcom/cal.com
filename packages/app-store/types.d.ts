@@ -1,8 +1,8 @@
 import type React from "react";
 import type { z } from "zod";
 
-import type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 import type { EventTypeFormMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui/components/button";
 
 export type IntegrationOAuthCallbackState = {
@@ -22,11 +22,8 @@ export type CredentialOwner = {
   readOnly?: boolean;
 };
 
-export type AppCardApp = ConnectedApps[number] & {
+export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
-};
-
-export type EventTypeAppCardApp = AppCardApp & {
   credentialIds?: number[];
 };
 

@@ -1,11 +1,17 @@
 import { z } from "zod";
 
+import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
 import {
   ZActiveFilters,
   ZSortingState,
   ZColumnSizing,
   ZColumnVisibility,
 } from "@calcom/features/data-table/lib/types";
+
+export type FilterSegmentsListResponse = {
+  segments: FilterSegmentOutput[];
+  preferredSegmentId: number | null;
+};
 
 export const ZListFilterSegmentsInputSchema = z.object({
   tableIdentifier: z.string(),
@@ -52,14 +58,9 @@ export const ZCreateFilterSegmentInputSchema = z.discriminatedUnion("scope", [
 
 export type TCreateFilterSegmentInputSchema = z.infer<typeof ZCreateFilterSegmentInputSchema>;
 
-const ZSegmentIdentifier = z.discriminatedUnion("type", [
-  z.object({ id: z.string(), type: z.literal("system") }),
-  z.object({ id: z.number(), type: z.literal("user") }),
-]);
-
 export const ZSetFilterSegmentPreferenceInputSchema = z.object({
   tableIdentifier: z.string(),
-  segmentId: ZSegmentIdentifier.nullable(),
+  segmentId: z.number().nullable(),
 });
 
 export type TSetFilterSegmentPreferenceInputSchema = z.infer<typeof ZSetFilterSegmentPreferenceInputSchema>;

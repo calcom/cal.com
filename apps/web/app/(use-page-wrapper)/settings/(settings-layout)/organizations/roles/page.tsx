@@ -1,7 +1,9 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
@@ -11,7 +13,8 @@ import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
 
-import { validateUserHasOrg } from "../actions/validateUserHasOrg";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
 import { RolesList } from "./_components/RolesList";
 import { roleSearchParamsCache } from "./_components/searchParams";
@@ -55,7 +58,7 @@ export const generateMetadata = async () =>
 
 const Page = async ({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) => {
   const t = await getTranslate();
-  const session = await validateUserHasOrg();
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.org?.id || !session.user.id) {
     return notFound();

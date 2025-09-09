@@ -184,7 +184,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookingId: bookingInfo.id,
     },
     select: {
-      appId: true,
       success: true,
       refunded: true,
       currency: true,
@@ -229,20 +228,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
       : previousBooking;
 
-  const isPlatformBooking = eventType.users[0]?.isPlatformManaged || eventType.team?.createdByOAuthClientId;
-
   return {
     props: {
       orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
-      hideBranding: isPlatformBooking
-        ? true
-        : await shouldHideBrandingForEvent({
-            eventTypeId: eventType.id,
-            team: eventType.team,
-            owner: eventType.users[0] ?? null,
-            organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
-          }),
+      hideBranding: await shouldHideBrandingForEvent({
+        eventTypeId: eventType.id,
+        team: eventType.team,
+        owner: eventType.users[0] ?? null,
+        organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+      }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),

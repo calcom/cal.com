@@ -1,9 +1,9 @@
 import { describe, it, vi, expect, afterEach, beforeEach, beforeAll, afterAll } from "vitest";
 
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import prisma from "@calcom/prisma";
 
-const luckyUserService = getLuckyUserService();
+import { getLuckyUser, getOrderedListOfLuckyUsers } from "./getLuckyUser";
+
 let commonEventTypeId: number;
 const userIds: number[] = [];
 
@@ -202,7 +202,7 @@ describe("getLuckyUser Integration tests", () => {
       const organizerThatShowedUp = organizerHostThatShowedUp.user;
       const organizerThatDidntShowUp = organizerHostThatDidntShowUp.user;
 
-      const luckyUser = await luckyUserService.getLuckyUser({
+      const luckyUser = await getLuckyUser({
         availableUsers: [organizerThatShowedUp, organizerThatDidntShowUp],
         eventType: {
           id: commonEventTypeId,
@@ -262,7 +262,7 @@ describe("getLuckyUser Integration tests", () => {
       const organizerWhoseAttendeeDidntShowUp = organizerHostWhoseAttendeeDidntShowUp.user;
 
       expect(
-        luckyUserService.getLuckyUser({
+        getLuckyUser({
           availableUsers: [organizerWhoseAttendeeShowedUp, organizerWhoseAttendeeDidntShowUp],
           eventType: {
             id: commonEventTypeId,
@@ -359,7 +359,7 @@ describe("getLuckyUser Integration tests", () => {
       const organizerWhoWasAttendeeAndDidntShowUp = organizerHostWhoWasAttendeeAndDidntShowUp.user;
 
       expect(
-        luckyUserService.getLuckyUser({
+        getLuckyUser({
           availableUsers: [
             organizerWhoseAttendeeShowedUp,
             fixedHostOrganizerWhoseAttendeeDidNotShowUp,
@@ -426,7 +426,7 @@ describe("getLuckyUser Integration tests", () => {
       const userWithBookingThatHappenedEarlier = hostWithBookingThatHappenedEarlier.user;
 
       expect(
-        luckyUserService.getLuckyUser({
+        getLuckyUser({
           availableUsers: [userWithBookingThatHappenedLater, userWithBookingThatHappenedEarlier],
           eventType: {
             id: commonEventTypeId,
@@ -469,7 +469,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
     const user2 = host2.user;
     const user3 = host3.user;
 
-    const { users: luckyUsers } = await luckyUserService.getOrderedListOfLuckyUsers({
+    const { users: luckyUsers } = await getOrderedListOfLuckyUsers({
       availableUsers: [user2, user1, user3],
       eventType: {
         id: commonEventTypeId,
@@ -482,7 +482,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
 
     expectLuckyUsers(luckyUsers, [user2, user1, user3]);
 
-    const { users: luckyUsers2 } = await luckyUserService.getOrderedListOfLuckyUsers({
+    const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers({
       availableUsers: [user3, user1, user2],
       eventType: {
         id: commonEventTypeId,
@@ -524,7 +524,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       const user2WithWeight100 = host3WithWeight100.user;
 
       const allRRHosts = [host1WithWeight100, host2WithWeight200, host3WithWeight100];
-      const { users: luckyUsers } = await luckyUserService.getOrderedListOfLuckyUsers({
+      const { users: luckyUsers } = await getOrderedListOfLuckyUsers({
         availableUsers: [userWithHighestWeight, user1WithWeight100, user2WithWeight100],
         eventType: {
           id: commonEventTypeId,
@@ -544,7 +544,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         user2WithWeight100,
       ]);
 
-      const { users: luckyUsers2 } = await luckyUserService.getOrderedListOfLuckyUsers({
+      const { users: luckyUsers2 } = await getOrderedListOfLuckyUsers({
         availableUsers: [user2WithWeight100, userWithHighestWeight, user1WithWeight100],
         eventType: {
           id: commonEventTypeId,
@@ -622,7 +622,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         routingFormResponse: null,
       };
 
-      const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
+      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
         ...getLuckUserParams,
         availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
       });
@@ -705,7 +705,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         routingFormResponse: null,
       };
 
-      const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
+      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
         ...getLuckUserParams,
         availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
       });
@@ -781,7 +781,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         routingFormResponse: null,
       };
 
-      const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
+      const { users: luckyUsers, perUserData } = await getOrderedListOfLuckyUsers({
         ...getLuckyUserParams,
         availableUsers: [getLuckyUserParams.availableUsers[0], ...getLuckyUserParams.availableUsers.slice(1)],
       });

@@ -13,7 +13,6 @@ import { getTeamEventType } from "@calcom/features/eventtypes/lib/getTeamEventTy
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -158,15 +157,4 @@ export async function getCRMData(
     crmAppSlug,
     crmRecordId,
   };
-}
-
-export async function getTeamId(teamSlug: string, orgSlug: string | null): Promise<number | null> {
-  const teamRepo = new TeamRepository(prisma);
-  const team = await teamRepo.findFirstBySlugAndParentSlug({
-    slug: teamSlug,
-    parentSlug: orgSlug,
-    select: { id: true },
-  });
-
-  return team?.id ?? null;
 }

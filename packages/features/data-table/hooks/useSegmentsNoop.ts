@@ -6,9 +6,9 @@ import { type UseSegments } from "../lib/types";
 export const useSegmentsNoop: UseSegments = ({}) => {
   return {
     segments: [],
-    preferredSegmentId: null,
-    isSuccess: false,
-    setPreference: noop,
+    selectedSegment: undefined,
+    canSaveSegment: false,
+    setAndPersistSegmentId: noop,
     isSegmentEnabled: false,
   };
 };

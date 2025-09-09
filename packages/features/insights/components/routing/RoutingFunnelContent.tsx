@@ -14,7 +14,6 @@ interface RoutingFunnelData {
 
 interface RoutingFunnelContentProps {
   data: RoutingFunnelData[];
-  enabledLegend?: Array<{ label: string; color: string }>;
 }
 
 const COLOR = {
@@ -29,9 +28,8 @@ export const legend = [
   { label: "Accepted Bookings", color: COLOR.ACCEPTED },
 ];
 
-export function RoutingFunnelContent({ data, enabledLegend }: RoutingFunnelContentProps) {
+export function RoutingFunnelContent({ data }: RoutingFunnelContentProps) {
   const { t } = useLocale();
-  const activeAreas = enabledLegend || legend;
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -40,36 +38,30 @@ export function RoutingFunnelContent({ data, enabledLegend }: RoutingFunnelConte
         <XAxis dataKey="name" className="text-xs" axisLine={false} tickLine={false} />
         <YAxis allowDecimals={false} className="text-xs opacity-50" axisLine={false} tickLine={false} />
         <Tooltip content={<CustomTooltip />} />
-        {activeAreas.some((area) => area.label === "Total Submissions") && (
-          <Area
-            type="linear"
-            name={t("routing_funnel_total_submissions")}
-            dataKey="totalSubmissions"
-            stroke={COLOR.TOTAL}
-            fill={COLOR.TOTAL}
-            fillOpacity={1}
-          />
-        )}
-        {activeAreas.some((area) => area.label === "Successful Routings") && (
-          <Area
-            type="linear"
-            name={t("routing_funnel_successful_routings")}
-            dataKey="successfulRoutings"
-            stroke={COLOR.SUCCESFUL}
-            fill={COLOR.SUCCESFUL}
-            fillOpacity={1}
-          />
-        )}
-        {activeAreas.some((area) => area.label === "Accepted Bookings") && (
-          <Area
-            type="linear"
-            name={t("routing_funnel_accepted_bookings")}
-            dataKey="acceptedBookings"
-            stroke={COLOR.ACCEPTED}
-            fill={COLOR.ACCEPTED}
-            fillOpacity={1}
-          />
-        )}
+        <Area
+          type="linear"
+          name={t("routing_funnel_total_submissions")}
+          dataKey="totalSubmissions"
+          stroke={COLOR.TOTAL}
+          fill={COLOR.TOTAL}
+          fillOpacity={1}
+        />
+        <Area
+          type="linear"
+          name={t("routing_funnel_successful_routings")}
+          dataKey="successfulRoutings"
+          stroke={COLOR.SUCCESFUL}
+          fill={COLOR.SUCCESFUL}
+          fillOpacity={1}
+        />
+        <Area
+          type="linear"
+          name={t("routing_funnel_accepted_bookings")}
+          dataKey="acceptedBookings"
+          stroke={COLOR.ACCEPTED}
+          fill={COLOR.ACCEPTED}
+          fillOpacity={1}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

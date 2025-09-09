@@ -1,5 +1,4 @@
 import { ConnectedCalendar, Calendar } from "@/ee/calendars/outputs/connected-calendars.output";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { DestinationCalendarsRepository } from "@/modules/destination-calendars/destination-calendars.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
@@ -8,7 +7,6 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 export class DestinationCalendarsService {
   constructor(
     private readonly calendarsService: CalendarsService,
-    private readonly calendarsCacheService: CalendarsCacheService,
     private readonly destinationCalendarsRepository: DestinationCalendarsRepository
   ) {}
 
@@ -62,7 +60,6 @@ export class DestinationCalendarsService {
       delegatedCalendar ? delegationCredentialId : undefined
     );
 
-    this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
     return {
       userId: updatedCalendarUserId,
       integration: updatedCalendarIntegration,

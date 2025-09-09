@@ -4,7 +4,7 @@ import { cloneDeep } from "lodash";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinReassignedEmailsAndSMS,
+  sendRoundRobinCancelledEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
@@ -16,16 +16,16 @@ import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBo
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
-import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getEventName } from "@calcom/lib/event";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
+import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -153,8 +153,8 @@ export const roundRobinReassignment = async ({
     },
     roundRobinReassignLogger
   );
-  const luckyUserService = getLuckyUserService();
-  const reassignedRRHost = await luckyUserService.getLuckyUser({
+
+  const reassignedRRHost = await getLuckyUser({
     availableUsers,
     eventType,
     allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
@@ -320,7 +320,6 @@ export const roundRobinReassignment = async ({
     description: eventType.description,
     attendees: attendeeList,
     uid: booking.uid,
-    iCalUID: booking.iCalUID,
     destinationCalendar,
     team: {
       members: teamMembers,
@@ -421,9 +420,9 @@ export const roundRobinReassignment = async ({
     }
 
     if (emailsEnabled) {
-      await sendRoundRobinReassignedEmailsAndSMS({
-        calEvent: cancelledRRHostEvt,
-        members: [
+      await sendRoundRobinCancelledEmailsAndSMS(
+        cancelledRRHostEvt,
+        [
           {
             ...previousRRHost,
             name: previousRRHost.name || "",
@@ -432,9 +431,9 @@ export const roundRobinReassignment = async ({
             language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
           },
         ],
-        reassignedTo: { name: reassignedRRHost.name, email: reassignedRRHost.email },
-        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
-      });
+        eventType?.metadata as EventTypeMetadata,
+        { name: reassignedRRHost.name, email: reassignedRRHost.email }
+      );
     }
   }
 

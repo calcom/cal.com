@@ -8,15 +8,14 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
-import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
+import { getQualifiedHostsService } from "@calcom/lib/di/containers/QualifiedHosts";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import type {
@@ -41,6 +40,7 @@ import {
   BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
@@ -53,14 +53,15 @@ import type { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
+import { PeriodType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import type { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots";
+import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
@@ -105,9 +106,6 @@ export interface IAvailableSlotsService {
   userAvailabilityService: UserAvailabilityService;
   busyTimesService: BusyTimesService;
   redisClient: IRedisService;
-  featuresRepo: FeaturesRepository;
-  qualifiedHostsService: QualifiedHostsService;
-  noSlotsNotificationService: NoSlotsNotificationService;
 }
 
 function withSlotsCache(
@@ -737,7 +735,6 @@ export class AvailableSlotsService {
     startTime,
     endTime,
     bypassBusyCalendarTimes,
-    silentCalendarFailures,
     shouldServeCache,
   }: {
     input: TGetScheduleInputSchema;
@@ -754,7 +751,6 @@ export class AvailableSlotsService {
     startTime: ReturnType<(typeof AvailableSlotsService)["prototype"]["getStartTime"]>;
     endTime: Dayjs;
     bypassBusyCalendarTimes: boolean;
-    silentCalendarFailures: boolean;
     shouldServeCache?: boolean;
   }) {
     const usersWithCredentials = this.getUsersWithCredentials({
@@ -889,7 +885,6 @@ export class AvailableSlotsService {
         duration: input.duration || 0,
         returnDateOverrides: false,
         bypassBusyCalendarTimes,
-        silentlyHandleCalendarFailures: silentCalendarFailures,
         shouldServeCache,
       },
       initialData: {
@@ -929,14 +924,6 @@ export class AvailableSlotsService {
     };
   }
 
-  private async checkRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
-    if (!teamId) {
-      return false;
-    }
-
-    return await this.dependencies.featuresRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
-  }
-
   private async _getRegularOrDynamicEventType(
     input: TGetScheduleInputSchema,
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -961,7 +948,6 @@ export class AvailableSlotsService {
     const {
       _enableTroubleshooter: enableTroubleshooter = false,
       _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
-      _silentCalendarFailures: silentCalendarFailures = false,
       _shouldServeCache,
       routingFormResponseId,
       queuedFormResponseId,
@@ -1040,8 +1026,10 @@ export class AvailableSlotsService {
         queuedFormResponseId,
       });
     }
+
+    const qualifiedHostsService = getQualifiedHostsService();
     const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
-      await this.dependencies.qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
         eventType,
         rescheduleUid: input.rescheduleUid ?? null,
         routedTeamMemberIds,
@@ -1072,7 +1060,6 @@ export class AvailableSlotsService {
             ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
             : endTime,
         bypassBusyCalendarTimes,
-        silentCalendarFailures,
         shouldServeCache,
       });
 
@@ -1099,7 +1086,6 @@ export class AvailableSlotsService {
             startTime: dayjs(),
             endTime: twoWeeksFromNow,
             bypassBusyCalendarTimes,
-            silentCalendarFailures,
             shouldServeCache,
           });
           if (
@@ -1134,7 +1120,6 @@ export class AvailableSlotsService {
             startTime,
             endTime,
             bypassBusyCalendarTimes,
-            silentCalendarFailures,
             shouldServeCache,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -1154,14 +1139,12 @@ export class AvailableSlotsService {
       minimumBookingNotice: eventType.minimumBookingNotice,
       frequency: eventType.slotInterval || input.duration || eventType.length,
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
-      showOptimizedSlots: eventType.showOptimizedSlots,
     });
 
     let availableTimeSlots: typeof timeSlots = [];
     const bookerClientUid = ctx?.req?.cookies?.uid;
-    const isRestrictionScheduleFeatureEnabled = await this.checkRestrictionScheduleEnabled(
-      eventType.team?.id
-    );
+    // TODO: DI isRestrictionScheduleEnabled
+    const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
       const restrictionSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,
@@ -1438,7 +1421,8 @@ export class AvailableSlotsService {
     // We only want to run this on single targeted events and not dynamic
     if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
-        await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
+        // TODO: DI handleNotificationWhenNoSlots
+        await handleNotificationWhenNoSlots({
           eventDetails: {
             username: input.usernameList?.[0],
             startTime: startTime,

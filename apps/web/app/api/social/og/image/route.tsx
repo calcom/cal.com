@@ -87,10 +87,7 @@ async function handler(req: NextRequest) {
 
           return new Response(img.body, {
             status: 200,
-            headers: {
-              "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
-            },
+            headers: { "Content-Type": "image/png", "cache-control": "max-age=0" },
           });
         } catch (error) {
           if (error instanceof ZodError) {
@@ -119,13 +116,7 @@ async function handler(req: NextRequest) {
           });
           const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
 
-          return new Response(img.body, {
-            status: 200,
-            headers: {
-              "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
-            },
-          });
+          return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
         } catch (error) {
           if (error instanceof ZodError) {
             return new Response(
@@ -153,13 +144,7 @@ async function handler(req: NextRequest) {
 
           const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
-          return new Response(img.body, {
-            status: 200,
-            headers: {
-              "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
-            },
-          });
+          return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
         } catch (error) {
           if (error instanceof ZodError) {
             return new Response(

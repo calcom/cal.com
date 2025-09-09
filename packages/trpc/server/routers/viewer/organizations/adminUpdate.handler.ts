@@ -4,7 +4,7 @@ import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminUpdate } from "./adminUpdate.schema";
@@ -34,7 +34,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     });
   }
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataStrictSchema.unwrap(), existingOrg.metadata || {});
+  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), existingOrg.metadata || {});
 
   const data: Prisma.TeamUpdateArgs["data"] = restInput;
 

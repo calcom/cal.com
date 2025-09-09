@@ -12,10 +12,10 @@ import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -33,17 +33,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
+  const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
-  const redirect = await handleOrgRedirect({
-    slugs: [teamSlug],
-    redirectType: RedirectType.Team,
-    eventTypeSlug: meetingSlug,
-    context,
-    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
-  });
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: teamSlug,
+      redirectType: RedirectType.Team,
+      eventTypeSlug: meetingSlug,
+      currentQuery: context.query,
+    });
 
-  if (redirect) {
-    return redirect;
+    if (redirect) {
+      return redirect;
+    }
   }
 
   const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
@@ -53,10 +55,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventData = team.eventTypes[0];
-
-  if (eventData.schedulingType === SchedulingType.MANAGED) {
-    return { notFound: true } as const;
-  }
 
   if (rescheduleUid && eventData.disableRescheduling) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };

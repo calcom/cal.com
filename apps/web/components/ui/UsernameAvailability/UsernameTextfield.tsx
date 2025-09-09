@@ -120,7 +120,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <TextField
             ref={usernameRef}
             name="username"
-            placeholder="john"
             value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"

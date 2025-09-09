@@ -1,5 +1,5 @@
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import { isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -32,7 +32,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
 
   // Check permission to change roles
   try {
-    await roleManager.checkPermissionToChangeRole(ctx.user.id, input.teamId, "team");
+    await roleManager.checkPermissionToChangeRole(ctx.user.id, organizationId);
   } catch (error) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -45,6 +45,8 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     typeof input.role === "string" &&
     Object.values(MembershipRole).includes(input.role as MembershipRole)
   ) {
+    // Traditional role assignment logic
+    if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
     // Only owners can award owner role.
     if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
       throw new TRPCError({ code: "UNAUTHORIZED" });

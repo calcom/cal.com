@@ -194,12 +194,6 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @ApiHideProperty()
   _bypassCalendarBusyTimes?: boolean;
 
-  @Transform(({ value }) => value && value.toLowerCase() === "true")
-  @IsBoolean()
-  @IsOptional()
-  @ApiHideProperty()
-  _silentCalendarFailures?: boolean;
-
   @Transform(({ value }) => (value ? value.toLowerCase() === "true" : false))
   @IsBoolean()
   @IsOptional()

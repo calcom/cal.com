@@ -80,7 +80,7 @@ export async function toggleDelegationCredentialEnabled(
     if (slug === "google") {
       calendarAppName = "Google Calendar";
       conferencingAppName = "Google Meet";
-    } else if (slug === "office365") {
+    } else if (slug === "microsoft") {
       calendarAppName = "Microsoft 365";
       conferencingAppName = "Microsoft Teams";
     } else {

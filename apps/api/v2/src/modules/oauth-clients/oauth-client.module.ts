@@ -1,5 +1,4 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -50,7 +49,6 @@ import { JwtService } from "@nestjs/jwt";
     TokensRepository,
     OAuthFlowService,
     CalendarsService,
-    CalendarsCacheService,
     CredentialsRepository,
     AppsRepository,
     CalendarsRepository,

@@ -9,21 +9,6 @@ function _fireEvent(fullName: string, detail: CustomEventDetail) {
   window.dispatchEvent(event);
 }
 
-type BaseBookingEventPayload = {
-  title: string | undefined;
-  startTime: string | undefined;
-  endTime: string | undefined;
-  eventTypeId: number | null | undefined;
-  status: string | undefined;
-  paymentRequired: boolean;
-  isRecurring: boolean;
-  /**
-   * This is only used for recurring bookings
-   */
-  allBookings?: { startTime: string; endTime: string }[];
-  videoCallUrl?: string;
-};
-
 export type EventDataMap = {
   eventTypeSelected: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,8 +24,20 @@ export type EventDataMap = {
   linkReady: Record<string, never>;
   __connectInitiated: Record<string, never>;
   __connectCompleted: Record<string, never>;
-  bookingSuccessfulV2: BaseBookingEventPayload & {
+  bookingSuccessfulV2: {
     uid: string | undefined;
+    title: string | undefined;
+    startTime: string | undefined;
+    endTime: string | undefined;
+    eventTypeId: number | null | undefined;
+    status: string | undefined;
+    paymentRequired: boolean;
+    isRecurring: boolean;
+    /**
+     * This is only used for recurring bookings
+     */
+    allBookings?: { startTime: string; endTime: string }[];
+    videoCallUrl?: string;
   };
 
   /**
@@ -59,11 +56,20 @@ export type EventDataMap = {
     };
     confirmed: boolean;
   };
-  rescheduleBookingSuccessfulV2: BaseBookingEventPayload & {
+  rescheduleBookingSuccessfulV2: {
     uid: string | undefined;
+    title: string | undefined;
+    startTime: string | undefined;
+    endTime: string | undefined;
+    eventTypeId: number | null | undefined;
+    status: string | undefined;
+    paymentRequired: boolean;
+    isRecurring: boolean;
+    /**
+     * This is only used for recurring bookings
+     */
+    allBookings?: { startTime: string; endTime: string }[];
   };
-  dryRunBookingSuccessfulV2: BaseBookingEventPayload;
-  dryRunRescheduleBookingSuccessfulV2: BaseBookingEventPayload;
   /**
    * @deprecated Use `rescheduleBookingSuccessfulV2` instead. We restrict the data heavily there, only sending what is absolutely needed and keeping it light as well. Plus, more importantly that can be documented well.
    */

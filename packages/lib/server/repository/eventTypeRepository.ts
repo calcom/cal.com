@@ -577,7 +577,6 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
-      showOptimizedSlots: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
       maxActiveBookingPerBookerOfferReschedule: true,
@@ -874,7 +873,6 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
-      showOptimizedSlots: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
       maxActiveBookingPerBookerOfferReschedule: true,
@@ -1200,7 +1198,6 @@ export class EventTypeRepository {
         onlyShowFirstAvailableSlot: true,
         allowReschedulingPastBookings: true,
         hideOrganizerEmail: true,
-        showOptimizedSlots: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,
@@ -1410,17 +1407,5 @@ export class EventTypeRepository {
       ...eventType,
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     };
-  }
-
-  async getFirstEventTypeByUserId({ userId }: { userId: number }) {
-    return await this.prismaClient.eventType.findFirst({
-      where: {
-        userId,
-        teamId: null,
-      },
-      select: {
-        id: true,
-      },
-    });
   }
 }

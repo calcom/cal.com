@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
-import { useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -17,7 +17,6 @@ import {
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
-  type SystemFilterSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -56,45 +55,11 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
 
 type BookingsProps = {
   status: (typeof validStatuses)[number];
-  userId?: number;
 };
 
-function useSystemSegments(userId?: number) {
-  const { t } = useLocale();
-
-  const systemSegments: SystemFilterSegment[] = useMemo(() => {
-    if (!userId) return [];
-
-    return [
-      {
-        id: "my_bookings",
-        name: t("my_bookings"),
-        type: "system",
-        activeFilters: [
-          {
-            f: "userId",
-            v: {
-              type: ColumnFilterType.MULTI_SELECT,
-              data: [userId],
-            },
-          },
-        ],
-        perPage: 10,
-      },
-    ];
-  }, [userId, t]);
-
-  return systemSegments;
-}
-
 export default function Bookings(props: BookingsProps) {
-  const pathname = usePathname();
-  const systemSegments = useSystemSegments(props.userId);
   return (
-    <DataTableProvider
-      useSegments={useSegments}
-      systemSegments={systemSegments}
-      tableIdentifier={pathname || undefined}>
+    <DataTableProvider useSegments={useSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );
@@ -215,7 +180,7 @@ function BookingsContent({ status }: BookingsProps) {
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: user?.isTeamAdminOrOwner ?? false,
+        enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
         meta: {

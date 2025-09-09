@@ -317,7 +317,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isConferencing,
       isOrg,
       // conferencing apps dont support team install
-      installableOnTeams: !!appMetadata?.concurrentMeetings || !isConferencing,
+      installableOnTeams: !isConferencing,
     } as OnboardingPageProps,
   };
 };

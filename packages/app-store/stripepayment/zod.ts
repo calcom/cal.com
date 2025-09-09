@@ -14,8 +14,6 @@ const VALUES: [PaymentOption, ...PaymentOption[]] = [
 ];
 export const paymentOptionEnum = z.enum(VALUES);
 
-export const autoChargeNoShowFeeTimeUnitEnum = z.enum(["minutes", "hours", "days"]);
-
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     price: z.number(),
@@ -25,9 +23,6 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     refundPolicy: z.nativeEnum(RefundPolicy).optional(),
     refundDaysCount: z.number().optional(),
     refundCountCalendarDays: z.boolean().optional(),
-    autoChargeNoShowFeeIfCancelled: z.boolean().optional(),
-    autoChargeNoShowFeeTimeValue: z.number().optional(),
-    autoChargeNoShowFeeTimeUnit: autoChargeNoShowFeeTimeUnitEnum.optional(),
   })
 );
 

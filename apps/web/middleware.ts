@@ -60,6 +60,22 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
   const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
 
+  if (!url.pathname.startsWith("/api")) {
+    //
+    // NOTE: When tRPC hits an error a 500 is returned, when this is received
+    //       by the application the user is automatically redirected to /auth/login.
+    //
+    //     - For this reason our matchers are sufficient for an app-wide maintenance page.
+    //
+    // Check whether the maintenance page should be shown
+    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
+    // If is in maintenance mode, point the url pathname to the maintenance page
+    if (isInMaintenanceMode) {
+      reqWithEnrichedHeaders.nextUrl.pathname = `/maintenance`;
+      return NextResponse.rewrite(reqWithEnrichedHeaders.nextUrl);
+    }
+  }
+
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
   if (routingFormRewriteResponse) {
     return responseWithHeaders({ url, res: routingFormRewriteResponse, req: reqWithEnrichedHeaders });

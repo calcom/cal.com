@@ -12,10 +12,6 @@ type DummyTableRow = {
   userId: number | null;
   eventTypeId: number | null;
   status: BookingStatus;
-  paid: boolean;
-  userEmail: string | null;
-  userName: string | null;
-  rating: number | null;
 };
 
 const emptyData: DummyTableRow[] = [];
@@ -39,7 +35,7 @@ export const useInsightsBookings = () => {
         size: 200,
         meta: {
           filter: {
-            type: ColumnFilterType.MULTI_SELECT,
+            type: ColumnFilterType.SINGLE_SELECT,
           },
         },
         enableColumnFilter: true,
@@ -69,58 +65,6 @@ export const useInsightsBookings = () => {
             type: ColumnFilterType.SINGLE_SELECT,
           },
         },
-        cell: () => null,
-      }),
-      columnHelper.accessor("paid", {
-        id: "paid",
-        header: t("paid"),
-        size: 150,
-        meta: {
-          filter: {
-            type: ColumnFilterType.SINGLE_SELECT,
-          },
-        },
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-      }),
-      columnHelper.accessor("userEmail", {
-        id: "userEmail",
-        header: t("user_email"),
-        size: 200,
-        meta: {
-          filter: {
-            type: ColumnFilterType.TEXT,
-          },
-        },
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-      }),
-      columnHelper.accessor("userName", {
-        id: "userName",
-        header: t("user_name"),
-        size: 200,
-        meta: {
-          filter: {
-            type: ColumnFilterType.TEXT,
-          },
-        },
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-      }),
-      columnHelper.accessor("rating", {
-        id: "rating",
-        header: t("rating"),
-        size: 150,
-        meta: {
-          filter: {
-            type: ColumnFilterType.NUMBER,
-          },
-        },
-        enableColumnFilter: true,
-        enableSorting: false,
         cell: () => null,
       }),
     ];

@@ -3,7 +3,6 @@ import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 // TODO: Move this out of here. Importing from app-store is a circular package dependency.
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
-import { CreationSource } from "@calcom/prisma/enums";
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -48,8 +47,7 @@ export const bookingCreateBodySchema = z.object({
     utm_term: z.string().optional(),
     utm_content: z.string().optional(),
   }).optional(),
-  dub_id: z.string().nullish(),
-  creationSource: z.nativeEnum(CreationSource).optional(),
+  dub_id: z.string().nullish()
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;

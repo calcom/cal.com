@@ -49,9 +49,6 @@ export class RetellAIService {
       phoneNumberRepository,
       transactionManager
     );
-
-    // Inject RetellAIService reference into CallService
-    this.callService.setRetellAIService(this);
   }
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
@@ -77,9 +74,7 @@ export class RetellAIService {
     return this.phoneNumberService.importPhoneNumber(data);
   }
 
-  async createPhoneNumber(
-    data: AIPhoneServiceCreatePhoneNumberParams
-  ): Promise<RetellPhoneNumber & { provider: string }> {
+  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<RetellPhoneNumber> {
     return this.phoneNumberService.createPhoneNumber(data);
   }
 
@@ -165,7 +160,6 @@ export class RetellAIService {
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
-    teamId?: number;
     name?: string;
     generalPrompt?: string | null;
     beginMessage?: string | null;
@@ -181,42 +175,22 @@ export class RetellAIService {
     });
   }
 
-  async updateToolsFromAgentId(
-    agentId: string,
-    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
-  ): Promise<void> {
-    return this.agentService.updateToolsFromAgentId(agentId, data);
-  }
-
-  async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void> {
-    return this.agentService.removeToolsForEventTypes(agentId, eventTypeIds);
-  }
-
   async deleteAgent(params: { id: string; userId: number; teamId?: number }) {
     return this.agentService.deleteAgent({
       ...params,
-      deleteAIConfiguration: async (config) => {
-        await this.deleteAIConfiguration(config);
-      },
+      deleteAIConfiguration: (config) => this.deleteAIConfiguration(config),
     });
   }
 
   async createPhoneCall(data: {
-    fromNumber: string;
-    toNumber: string;
-    dynamicVariables?: RetellDynamicVariables;
+    from_number: string;
+    to_number: string;
+    retell_llm_dynamic_variables?: RetellDynamicVariables;
   }): Promise<RetellCall> {
     return this.callService.createPhoneCall(data);
   }
 
-  async createTestCall(params: {
-    agentId: string;
-    phoneNumber?: string;
-    userId: number;
-    teamId?: number;
-    timeZone: string;
-    eventTypeId: number;
-  }) {
+  async createTestCall(params: { agentId: string; phoneNumber?: string; userId: number; teamId?: number }) {
     return this.callService.createTestCall(params);
   }
 

@@ -1,24 +1,37 @@
 "use client";
 
-import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 import { valueFormatter } from "../../lib";
 import { ChartCard } from "../ChartCard";
 
 export const RoutingKPICards = () => {
   const { t } = useLocale();
-  const insightsRoutingParameters = useInsightsRoutingParameters();
+  const { teamId, startDate, endDate, userId, memberUserIds, isAll, routingFormId, columnFilters } =
+    useInsightsParameters();
 
-  const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(insightsRoutingParameters, {
-    staleTime: 30000,
-    trpc: {
-      context: { skipBatch: true },
+  const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
+    {
+      teamId,
+      startDate,
+      endDate,
+      userId,
+      memberUserIds,
+      isAll,
+      routingFormId,
+      columnFilters,
     },
-  });
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   const categories: {
     title: string;

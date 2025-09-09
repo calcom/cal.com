@@ -33,8 +33,8 @@ RUN set -eux; \
     apt-get clean && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives && \
     yarn config set httpTimeout 1200000 && \
-    npx turbo prune --filter=@calcom/web --docker && \
-    npx turbo prune --filter=@calcom/api --docker && \
+    npx turbo prune --scope=@calcom/web --docker && \
+    npx turbo prune --scope=@calcom/api --docker && \
     yarn install && \
     yarn turbo run build --filter=@calcom/api
 

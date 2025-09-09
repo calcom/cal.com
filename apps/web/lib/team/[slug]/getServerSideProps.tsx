@@ -16,10 +16,10 @@ import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import type { Team, OrganizationSettings } from "@calcom/prisma/client";
-import { RedirectType } from "@calcom/prisma/enums";
+import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 
@@ -67,6 +67,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     context.req,
     context.params?.orgSlug ?? context.query?.orgSlug
   );
+  const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
@@ -88,13 +89,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isOrgView: isValidOrgDomain && isOrgProfile,
   });
 
-  if (slug) {
-    const redirect = await handleOrgRedirect({
-      slugs: [slug],
+  if (!isOrgContext && slug) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: slug,
       redirectType: RedirectType.Team,
       eventTypeSlug: null,
-      context,
-      currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+      currentQuery: context.query,
     });
 
     if (redirect) {

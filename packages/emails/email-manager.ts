@@ -4,8 +4,8 @@ import type { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
-import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
-import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import type { EventNameObjectType } from "@calcom/lib/event";
+import { getEventName } from "@calcom/lib/event";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -237,44 +237,25 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   members: Person[],
   eventTypeMetadata?: EventTypeMetadata,
-  reassignedTo?: { name: string | null; email: string; reason?: string }
+  reassignedTo?: { name: string | null; email: string }
 ) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
   for (const teamMember of members) {
-    emailsAndSMSToSend.push(
-      sendEmail(
-        () => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
-      )
-    );
-
-    if (teamMember.phoneNumber) {
-      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(teamMember));
+    if (!reassignedTo) {
+      emailsAndSMSToSend.push(
+        sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
+      );
+    } else {
+      emailsAndSMSToSend.push(
+        sendEmail(
+          () =>
+            new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
+        )
+      );
     }
-  }
-
-  await Promise.all(emailsAndSMSToSend);
-};
-
-export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
-  calEvent: CalendarEvent;
-  members: Person[];
-  reassignedTo: { name: string | null; email: string };
-  eventTypeMetadata?: EventTypeMetadata;
-}) => {
-  const { calEvent, members, reassignedTo, eventTypeMetadata } = args;
-  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
-  const calendarEvent = formatCalEvent(calEvent);
-  const emailsAndSMSToSend: Promise<unknown>[] = [];
-  const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
-  for (const teamMember of members) {
-    emailsAndSMSToSend.push(
-      sendEmail(
-        () => new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
-      )
-    );
 
     if (teamMember.phoneNumber) {
       emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(teamMember));

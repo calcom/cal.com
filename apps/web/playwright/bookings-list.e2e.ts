@@ -2,9 +2,10 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
-import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/client";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
-import { addFilter } from "./filter-helpers";
+import { addFilter, openFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -77,6 +78,7 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
 
       await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
@@ -242,6 +244,7 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
 
       await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
@@ -351,6 +354,7 @@ test.describe("Bookings", () => {
     await bookingsGetResponse;
 
     await addFilter(page, "userId");
+    await openFilter(page, "userId");
 
     const bookingsGetResponse2 = page.waitForResponse(
       (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
@@ -459,6 +463,7 @@ test.describe("Bookings", () => {
     await bookingsGetResponse1;
 
     await addFilter(page, "userId");
+    await openFilter(page, "userId");
     const bookingsGetResponse2 = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );
@@ -474,6 +479,7 @@ test.describe("Bookings", () => {
     const filterItemsConfig = [
       { key: "eventTypeId", name: "Event Type", testId: "add-filter-item-eventTypeId" },
       { key: "teamId", name: "Team", testId: "add-filter-item-teamId" },
+      { key: "userId", name: "Member", testId: "add-filter-item-userId" },
       { key: "attendeeName", name: "Attendees Name", testId: "add-filter-item-attendeeName" },
       { key: "attendeeEmail", name: "Attendee Email", testId: "add-filter-item-attendeeEmail" },
       { key: "dateRange", name: "Date Range", testId: "add-filter-item-dateRange" },
@@ -482,16 +488,8 @@ test.describe("Bookings", () => {
 
     const getFilterItemLocator = (page: Page, testId: string) => page.locator(`[data-testid="${testId}"]`);
 
-    const setup = async ({
-      isAdmin,
-      page,
-      users,
-    }: {
-      isAdmin: boolean;
-      page: Page;
-      users: Fixtures["users"];
-    }) => {
-      const user = isAdmin ? await users.create(undefined, { hasTeam: true }) : await users.create();
+    test.beforeEach(async ({ page, users }) => {
+      const user = await users.create();
       await user.apiLogin();
       const bookingsGetResponse = page.waitForResponse((response) =>
         /\/api\/trpc\/bookings\/get.*/.test(response.url())
@@ -500,10 +498,9 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
       await page.locator('[data-testid="add-filter-button"]').click();
       await expect(page.locator(searchInputSelector)).toBeVisible();
-    };
+    });
 
-    test("should show all filter items initially and after clearing search", async ({ page, users }) => {
-      await setup({ isAdmin: false, page, users });
+    test("should show all filter items initially and after clearing search", async ({ page }) => {
       const searchInput = page.locator(searchInputSelector);
 
       // Initial check: all defined filter items should be visible
@@ -527,18 +524,7 @@ test.describe("Bookings", () => {
       }
     });
 
-    test("should show admin-only filter", async ({ page, users }) => {
-      await setup({ isAdmin: true, page, users });
-
-      await expect(
-        getFilterItemLocator(page, "add-filter-item-userId"),
-        `Item "Member" should be visible initially`
-      ).toBeVisible();
-    });
-
-    test("search should be case-insensitive", async ({ page, users }) => {
-      await setup({ isAdmin: true, page, users });
-
+    test("search should be case-insensitive", async ({ page }) => {
       const searchInput = page.locator(searchInputSelector);
 
       // Search for "member" (lowercase)
@@ -548,8 +534,7 @@ test.describe("Bookings", () => {
       await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
     });
 
-    test("should individually find each filter item by its full name", async ({ page, users }) => {
-      await setup({ isAdmin: false, page, users });
+    test("should individually find each filter item by its full name", async ({ page }) => {
       const searchInput = page.locator(searchInputSelector);
 
       for (const targetItem of filterItemsConfig) {
@@ -565,8 +550,7 @@ test.describe("Bookings", () => {
       }
     });
 
-    test("should show no items for a non-matching search term", async ({ page, users }) => {
-      await setup({ isAdmin: false, page, users });
+    test("should show no items for a non-matching search term", async ({ page }) => {
       const searchInput = page.locator(searchInputSelector);
       const nonExistentTerm = "NonExistentFilterXYZ123";
       await searchInput.fill(nonExistentTerm);

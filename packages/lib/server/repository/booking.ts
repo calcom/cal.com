@@ -1,23 +1,15 @@
 import type { Prisma } from "@prisma/client";
 
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
+import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
-import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
+import { RRTimestampBasis } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { UserRepository } from "./user";
-
-export type FormResponse = Record<
-  // Field ID
-  string,
-  {
-    value: number | string | string[];
-    label: string;
-    identifier?: string;
-  }
->;
 
 type TeamBookingsParamsBase = {
   user: { id: number; email: string };
@@ -548,10 +540,8 @@ export class BookingRepository {
       },
       data: {
         location,
-        // FIXME: metadata is untyped
-        metadata: metadata as unknown as Prisma.InputJsonValue,
-        // FIXME: responses is untyped
-        ...(responses && { responses: responses as unknown as Prisma.InputJsonValue }),
+        metadata,
+        ...(responses && { responses }),
         ...(iCalSequence !== undefined && { iCalSequence }),
         references: {
           create: referencesToCreate,
@@ -691,13 +681,9 @@ export class BookingRepository {
             },
           },
         },
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         destinationCalendar: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         payment: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         workflowReminders: true,
       },
     });
@@ -839,14 +825,9 @@ export class BookingRepository {
         status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
       },
       include: {
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         attendees: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         user: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
-        payment: true,
       },
     });
   }
@@ -958,52 +939,6 @@ export class BookingRepository {
         attendees: {
           select: {
             email: true,
-          },
-        },
-      },
-    });
-  }
-
-  async getBookingForPaymentProcessing(bookingId: number) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        id: bookingId,
-      },
-      select: {
-        id: true,
-        uid: true,
-        title: true,
-        startTime: true,
-        endTime: true,
-        userPrimaryEmail: true,
-        status: true,
-        eventTypeId: true,
-        userId: true,
-        attendees: {
-          select: {
-            name: true,
-            email: true,
-            timeZone: true,
-            locale: true,
-          },
-        },
-        eventType: {
-          select: {
-            title: true,
-            hideOrganizerEmail: true,
-            teamId: true,
-            metadata: true,
-          },
-        },
-        payment: {
-          select: {
-            id: true,
-            amount: true,
-            currency: true,
-            paymentOption: true,
-            appId: true,
-            success: true,
-            data: true,
           },
         },
       },

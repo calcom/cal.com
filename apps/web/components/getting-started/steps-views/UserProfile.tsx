@@ -10,7 +10,6 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Editor } from "@calcom/ui/components/editor";
@@ -22,11 +21,8 @@ type FormData = {
   bio: string;
 };
 
-interface UserProfileProps {
-  user: RouterOutputs["viewer"]["me"]["get"];
-}
-
-const UserProfile = ({ user }: UserProfileProps) => {
+const UserProfile = () => {
+  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
@@ -37,7 +33,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useUtils();
   const router = useRouter();
-  const createEventType = trpc.viewer.eventTypes.heavy.create.useMutation();
+  const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
 
@@ -164,7 +160,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
         EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
-        {t("finish_and_start")}
+        {t("finish")}
       </Button>
     </form>
   );

@@ -51,7 +51,6 @@ function mockEventTypeRedirectUrlMatchingRoute() {
     action: {
       type: "eventTypeRedirectUrl",
       value: "john/30min",
-      eventTypeId: 123,
     },
   });
 }
@@ -421,63 +420,6 @@ describe("TestFormDialog", () => {
       expect(screen.getByTestId("test-routing-result")).toHaveTextContent("john/30min");
       // When we support showing matching route we can add this back
       // expect(screen.getByTestId("chosen-route")).toHaveTextContent("Route 2");
-    });
-
-    it("should substitute variables in event redirect URL", async () => {
-      // Mock a route with variables using the name field that already exists
-      mockMatchingRoute({
-        action: {
-          type: "eventTypeRedirectUrl",
-          value: "/team/{name}/meeting",
-        },
-      });
-
-      render(
-        <TestFormRenderer
-          isMobile={true}
-          testForm={mockRegularTeamForm}
-          isTestPreviewOpen={true}
-          setIsTestPreviewOpen={() => {
-            return;
-          }}
-        />
-      );
-
-      // Fill in the name field
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "Sales Team" } });
-      fireEvent.click(screen.getByText("submit"));
-
-      // Verify the URL shows the substituted value, not the variable
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("/team/sales-team/meeting");
-      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("{name}");
-    });
-
-    it("should NOT substitute variables in external redirect URL", async () => {
-      // Mock a route with variables for external redirect
-      mockMatchingRoute({
-        action: {
-          type: "externalRedirectUrl",
-          value: "https://example.com/user/{name}",
-        },
-      });
-
-      render(
-        <TestFormRenderer
-          isMobile={true}
-          testForm={mockRegularTeamForm}
-          isTestPreviewOpen={true}
-          setIsTestPreviewOpen={() => {
-            return;
-          }}
-        />
-      );
-
-      fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
-      fireEvent.click(screen.getByText("submit"));
-
-      // Verify the URL shows the variable as-is, without substitution
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("https://example.com/user/{name}");
-      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("john-doe");
     });
   });
 });

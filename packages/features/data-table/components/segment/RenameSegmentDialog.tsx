@@ -71,13 +71,7 @@ export function RenameSegmentDialog({
         <DialogHeader title={t("rename_segment")} />
         <Form form={form} handleSubmit={handleSubmit}>
           <div className="space-y-4">
-            <TextField
-              required
-              data-testid="rename-segment-name"
-              type="text"
-              label={t("name")}
-              {...form.register("name")}
-            />
+            <TextField required type="text" label={t("name")} {...form.register("name")} />
             <DialogFooter>
               <Button type="submit" loading={isPending}>
                 {t("save")}

@@ -11,12 +11,13 @@ import {
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
-import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -26,18 +27,7 @@ export { getBookingForReschedule };
 
 export type { EventBusyDate } from "@calcom/types/Calendar";
 
-export {
-  CreationSource,
-  SchedulingType,
-  PeriodType,
-  AttributeType,
-  MembershipRole,
-  TimeUnit,
-  WebhookTriggerEvents,
-  WorkflowTriggerEvents,
-  WorkflowActions,
-  WorkflowTemplates,
-} from "@calcom/prisma/enums";
+export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
@@ -86,7 +76,7 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
-export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+export { validateCustomEventName } from "@calcom/lib/event";
 
 export type TeamQuery = Prisma.TeamGetPayload<{
   select: {
@@ -105,6 +95,8 @@ export type TeamQuery = Prisma.TeamGetPayload<{
 }>;
 
 export { credentialForCalendarServiceSelect };
+export { MembershipRole };
+
 export { paymentDataSelect };
 export { getClientSecretFromPayment };
 
@@ -120,7 +112,7 @@ export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
-export { getCalendarLinks } from "@calcom/features/bookings/lib/getCalendarLinks";
+export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
 
 export { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/trpc/server/routers/viewer/attributes/findTeamMembersMatchingAttributeLogic.schema";
@@ -128,13 +120,4 @@ export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
-export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/verifyCodeUnAuthenticated.handler";
-
-export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
-
-export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
-
-export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
-
-export { TeamService } from "@calcom/lib/server/service/teamService";
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";

@@ -1,7 +1,5 @@
 import { describe, beforeEach, vi, test, expect } from "vitest";
 
-import { CreditUsageType } from "@calcom/prisma/enums";
-
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
   return {
@@ -80,7 +78,6 @@ describe("Twilio Webhook Handler", () => {
         bookingUid: undefined,
         smsSid: "SM123",
         credits: 0,
-        creditFor: CreditUsageType.SMS,
       });
     });
 
@@ -118,7 +115,6 @@ describe("Twilio Webhook Handler", () => {
         bookingUid: undefined,
         smsSid: "SM123",
         credits: 0,
-        creditFor: CreditUsageType.SMS,
       });
     });
 
@@ -155,9 +151,6 @@ describe("Twilio Webhook Handler", () => {
         bookingUid: undefined,
         smsSid: "SM123",
         credits: null,
-        creditFor: CreditUsageType.SMS,
-        smsSegments: undefined,
-        teamId: undefined,
       });
     });
   });

@@ -1,5 +1,6 @@
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import type { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type {
   PhoneNumberRepositoryInterface,
@@ -40,7 +41,7 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
 
   async createPhoneNumber(params: {
     phoneNumber: string;
-    provider: string;
+    provider?: string;
     userId: number;
     teamId?: number;
     outboundAgentId?: string | null;

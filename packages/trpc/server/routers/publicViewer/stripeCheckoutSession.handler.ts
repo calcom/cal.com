@@ -1,6 +1,5 @@
-import { StripeService } from "@calcom/features/ee/payments/server/stripe-service";
+import { StripeService } from "@calcom/lib/server/service/stripe";
 
-import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 import type { TStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 
 type StripeCheckoutSessionOptions = {
@@ -8,9 +7,7 @@ type StripeCheckoutSessionOptions = {
 };
 
 export const stripeCheckoutSessionHandler = async ({ input }: StripeCheckoutSessionOptions) => {
-  const parsedInput = ZStripeCheckoutSessionInputSchema.parse(input);
-
-  return await StripeService.getCheckoutSession(parsedInput);
+  return await StripeService.getCheckoutSession(input);
 };
 
 export default stripeCheckoutSessionHandler;

@@ -8,7 +8,6 @@ import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
@@ -57,28 +56,6 @@ export interface IUseBookings {
   isBookingDryRun?: boolean;
 }
 
-const getBaseBookingEventPayload = (booking: {
-  title?: string;
-  startTime: string;
-  endTime: string;
-  eventTypeId?: number | null;
-  status?: BookingStatus;
-  paymentRequired: boolean;
-  isRecurring: boolean;
-  videoCallUrl?: string;
-}) => {
-  return {
-    title: booking.title,
-    startTime: booking.startTime,
-    endTime: booking.endTime,
-    eventTypeId: booking.eventTypeId,
-    status: booking.status,
-    paymentRequired: booking.paymentRequired,
-    isRecurring: booking.isRecurring,
-    videoCallUrl: booking.videoCallUrl,
-  };
-};
-
 const getBookingSuccessfulEventPayload = (booking: {
   title?: string;
   startTime: string;
@@ -92,15 +69,18 @@ const getBookingSuccessfulEventPayload = (booking: {
 }) => {
   return {
     uid: booking.uid,
-    ...getBaseBookingEventPayload(booking),
+    title: booking.title,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    eventTypeId: booking.eventTypeId,
+    status: booking.status,
+    paymentRequired: booking.paymentRequired,
+    isRecurring: booking.isRecurring,
+    videoCallUrl: booking.videoCallUrl,
   };
 };
 
 const getRescheduleBookingSuccessfulEventPayload = getBookingSuccessfulEventPayload;
-
-export const getDryRunBookingSuccessfulEventPayload = getBaseBookingEventPayload;
-
-export const getDryRunRescheduleBookingSuccessfulEventPayload = getDryRunBookingSuccessfulEventPayload;
 export interface IUseBookingLoadingStates {
   creatingBooking: boolean;
   creatingRecurringBooking: boolean;
@@ -137,21 +117,21 @@ export const useBookings = ({
   isBookingDryRun,
 }: IUseBookings) => {
   const router = useRouter();
-  const eventSlug = useBookerStoreContext((state) => state.eventSlug);
-  const eventTypeId = useBookerStoreContext((state) => state.eventId);
-  const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
+  const eventSlug = useBookerStore((state) => state.eventSlug);
+  const eventTypeId = useBookerStore((state) => state.eventId);
+  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
-  const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
-  const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
+  const bookingData = useBookerStore((state) => state.bookingData);
+  const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
 
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
-  const duration = useBookerStoreContext((state) => state.selectedDuration);
+  const duration = useBookerStore((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
@@ -215,30 +195,6 @@ export const useBookings = ({
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
-        const validDuration = event.data?.isDynamic
-          ? duration || event.data?.length
-          : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-          ? duration
-          : event.data?.length;
-
-        if (isRescheduling) {
-          sdkActionManager?.fire(
-            "dryRunRescheduleBookingSuccessfulV2",
-            getDryRunRescheduleBookingSuccessfulEventPayload({
-              ...booking,
-              isRecurring: false,
-            })
-          );
-        } else {
-          sdkActionManager?.fire(
-            "dryRunBookingSuccessfulV2",
-            getDryRunBookingSuccessfulEventPayload({
-              ...booking,
-              isRecurring: false,
-            })
-          );
-        }
-
         router.push("/booking/dry-run-successful");
         return;
       }
@@ -386,30 +342,6 @@ export const useBookings = ({
       const booking = bookings[0] || {};
 
       if (booking.isDryRun) {
-        if (isRescheduling) {
-          sdkActionManager?.fire("dryRunRescheduleBookingSuccessfulV2", {
-            ...getDryRunRescheduleBookingSuccessfulEventPayload({
-              ...booking,
-              isRecurring: true,
-            }),
-            allBookings: bookings.map((booking) => ({
-              startTime: booking.startTime,
-              endTime: booking.endTime,
-            })),
-          });
-        } else {
-          sdkActionManager?.fire("dryRunBookingSuccessfulV2", {
-            ...getDryRunBookingSuccessfulEventPayload({
-              ...booking,
-              isRecurring: true,
-            }),
-            allBookings: bookings.map((booking) => ({
-              startTime: booking.startTime,
-              endTime: booking.endTime,
-            })),
-          });
-        }
-
         router.push("/booking/dry-run-successful");
         return;
       }

@@ -8,6 +8,7 @@ import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import PlainChat from "@lib/plain/dynamicProvider";
 
 type ProvidersProps = {
   isEmbed: boolean;
@@ -20,6 +21,7 @@ export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
   return (
     <SessionProvider>
       <TrpcProvider>
+        {!isBookingPage ? <PlainChat nonce={nonce} /> : null}
         {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
         {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
         <CacheProvider>

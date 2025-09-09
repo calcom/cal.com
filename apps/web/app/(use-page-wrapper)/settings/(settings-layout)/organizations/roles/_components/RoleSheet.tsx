@@ -14,10 +14,10 @@ import {
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Form, TextField, Checkbox, Label } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/button";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
+import { Form, TextField, Checkbox, Label } from "@calcom/ui/form";
 
 import { revalidateTeamRoles } from "../actions";
 import { AdvancedPermissionGroup } from "./AdvancedPermissionGroup";
@@ -145,6 +145,10 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
   });
 
   const onSubmit = (values: FormValues) => {
+    // Store the color in localStorage
+    const roleKey = isEditing && role ? role.id : `new_role_${values.name}`;
+    localStorage.setItem(`role_color_${roleKey}`, values.color);
+
     if (isEditing && role) {
       updateMutation.mutate({
         teamId,
@@ -220,7 +224,6 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       selectedPermissions={permissions}
                       onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                       disabled={isSystemRole}
-                      scope={scope}
                     />
                   ))}
                 </div>
@@ -244,7 +247,6 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                         permissions={permissions}
                         onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                         disabled={isSystemRole}
-                        scope={scope}
                       />
                     ))}
                   </div>

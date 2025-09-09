@@ -155,7 +155,6 @@ export const bookTimeSlot = async (
     title?: string;
     attendeePhoneNumber?: string;
     expectedStatusCode?: number;
-    isRecurringEvent?: boolean;
   }
 ) => {
   // --- fill form
@@ -167,9 +166,8 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  const url = opts?.isRecurringEvent ? "/api/book/recurring-event" : "/api/book/event";
-  await submitAndWaitForResponse(page, url, {
-    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
+  await submitAndWaitForResponse(page, "/api/book/event", {
+    action: () => page.locator('[name="email"]').press("Enter"),
     expectedStatusCode: opts?.expectedStatusCode,
   });
 };
@@ -224,7 +222,10 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   const eventTitle = args.eventTitle;
   await createNewUserEventType(page, { eventTitle });
   await page.waitForSelector('[data-testid="event-title"]');
-  await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
@@ -476,7 +477,7 @@ export async function gotoBookingPage(page: Page) {
 }
 
 export async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }

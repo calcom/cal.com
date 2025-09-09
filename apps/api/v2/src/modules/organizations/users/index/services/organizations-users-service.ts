@@ -4,11 +4,10 @@ import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException, ForbiddenException } from "@nestjs/common";
-import { Team } from "@prisma/client";
+import { Team, CreationSource } from "@prisma/client";
 import { plainToInstance } from "class-transformer";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
-import { CreationSource } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationsUsersService {

@@ -30,7 +30,7 @@ import {
   orgOnboardingInvitedMembersSchema,
   orgOnboardingTeamsSchema,
 } from "@calcom/prisma/zod-utils";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
@@ -344,7 +344,7 @@ async function backwardCompatibilityForSubscriptionDetails({
     return organization;
   }
 
-  const existingMetadata = teamMetadataStrictSchema.parse(organization.metadata);
+  const existingMetadata = teamMetadataSchema.parse(organization.metadata);
   const updatedOrganization = await OrganizationRepository.updateStripeSubscriptionDetails({
     id: organization.id,
     stripeSubscriptionId: paymentSubscriptionId,

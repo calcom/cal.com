@@ -6,16 +6,7 @@ import type { TUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVer
 const log = logger.getSubLogger({ prefix: ["checkIfUserEmailVerificationRequired"] });
 
 export const userWithEmailHandler = async ({ input }: { input: TUserEmailVerificationRequiredSchema }) => {
-  return checkEmailVerificationRequired(input);
-};
-
-export const checkEmailVerificationRequired = async ({
-  userSessionEmail,
-  email,
-}: {
-  userSessionEmail?: string;
-  email: string;
-}) => {
+  const { userSessionEmail, email } = input;
   const baseEmail = extractBaseEmail(email);
 
   const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS

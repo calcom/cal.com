@@ -117,7 +117,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
-          isExternalLink: true,
         },
       ],
     },
@@ -182,18 +181,14 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-export interface SettingsPermissions {
-  canViewRoles?: boolean;
-}
-
 const useTabs = ({
   isDelegationCredentialEnabled,
   isPbacEnabled,
-  permissions,
+  canViewRoles,
 }: {
   isDelegationCredentialEnabled: boolean;
   isPbacEnabled: boolean;
-  permissions?: SettingsPermissions;
+  canViewRoles?: boolean;
 }) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
@@ -232,7 +227,7 @@ const useTabs = ({
 
         // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
         // This prevents showing the menu item when user has no organization permissions
-        if (isPbacEnabled && permissions?.canViewRoles) {
+        if (isPbacEnabled && canViewRoles) {
           newArray.push({
             name: "roles_and_permissions",
             href: "/settings/organizations/roles",
@@ -299,7 +294,7 @@ interface SettingsSidebarContainerProps {
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
   teamFeatures?: Record<number, TeamFeatures>;
-  permissions?: SettingsPermissions;
+  canViewRoles?: boolean;
 }
 
 const TeamRolesNavItem = ({
@@ -492,7 +487,7 @@ const SettingsSidebarContainer = ({
   navigationIsOpenedOnMobile,
   bannersHeight,
   teamFeatures,
-  permissions,
+  canViewRoles,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
@@ -522,7 +517,7 @@ const SettingsSidebarContainer = ({
   const tabsWithPermissions = useTabs({
     isDelegationCredentialEnabled,
     isPbacEnabled,
-    permissions,
+    canViewRoles,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
@@ -797,13 +792,13 @@ export type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
   teamFeatures?: Record<number, TeamFeatures>;
-  permissions?: SettingsPermissions;
+  canViewRoles?: boolean;
 } & ComponentProps<typeof Shell>;
 
 export default function SettingsLayoutAppDirClient({
   children,
   teamFeatures,
-  permissions,
+  canViewRoles,
   ...rest
 }: SettingsLayoutProps) {
   const pathname = usePathname();
@@ -838,7 +833,7 @@ export default function SettingsLayoutAppDirClient({
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
           teamFeatures={teamFeatures}
-          permissions={permissions}
+          canViewRoles={canViewRoles}
         />
       }
       drawerState={state}
@@ -861,7 +856,7 @@ type SidebarContainerElementProps = {
   bannersHeight?: number;
   setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   teamFeatures?: Record<number, TeamFeatures>;
-  permissions?: SettingsPermissions;
+  canViewRoles?: boolean;
 };
 
 const SidebarContainerElement = ({
@@ -869,7 +864,7 @@ const SidebarContainerElement = ({
   bannersHeight,
   setSideContainerOpen,
   teamFeatures,
-  permissions,
+  canViewRoles,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -886,7 +881,7 @@ const SidebarContainerElement = ({
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
         teamFeatures={teamFeatures}
-        permissions={permissions}
+        canViewRoles={canViewRoles}
       />
     </>
   );

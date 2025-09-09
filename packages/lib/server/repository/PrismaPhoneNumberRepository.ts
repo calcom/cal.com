@@ -143,19 +143,11 @@ export class PrismaPhoneNumberRepository {
     provider,
     userId,
     teamId,
-    stripeCustomerId,
-    stripeSubscriptionId,
-    subscriptionStatus,
-    providerPhoneNumberId,
   }: {
     phoneNumber: string;
-    provider: string;
+    provider?: string;
     userId: number;
     teamId?: number;
-    stripeCustomerId?: string;
-    stripeSubscriptionId?: string;
-    subscriptionStatus?: PhoneNumberSubscriptionStatus;
-    providerPhoneNumberId?: string;
   }) {
     return await prisma.calAiPhoneNumber.create({
       select: {
@@ -167,21 +159,12 @@ export class PrismaPhoneNumberRepository {
         subscriptionStatus: true,
         createdAt: true,
         updatedAt: true,
-        stripeSubscriptionId: true,
-        stripeCustomerId: true,
-        inboundAgentId: true,
-        outboundAgentId: true,
-        providerPhoneNumberId: true,
       },
       data: {
         provider,
         userId,
         teamId,
         phoneNumber,
-        stripeCustomerId,
-        stripeSubscriptionId,
-        subscriptionStatus,
-        providerPhoneNumberId,
       },
     });
   }
@@ -190,24 +173,6 @@ export class PrismaPhoneNumberRepository {
     return await prisma.calAiPhoneNumber.delete({
       where: {
         phoneNumber,
-      },
-    });
-  }
-
-  static async findByStripeSubscriptionId({ stripeSubscriptionId }: { stripeSubscriptionId: string }) {
-    return await prisma.calAiPhoneNumber.findFirst({
-      where: {
-        stripeSubscriptionId,
-      },
-      select: {
-        id: true,
-        phoneNumber: true,
-        provider: true,
-        userId: true,
-        teamId: true,
-        subscriptionStatus: true,
-        stripeCustomerId: true,
-        stripeSubscriptionId: true,
       },
     });
   }
@@ -298,7 +263,6 @@ export class PrismaPhoneNumberRepository {
         userId: true,
         teamId: true,
         subscriptionStatus: true,
-        stripeSubscriptionId: true,
         stripeCustomerId: true,
         provider: true,
         inboundAgentId: true,
@@ -513,22 +477,6 @@ export class PrismaPhoneNumberRepository {
         id,
       },
       data: updateData,
-    });
-  }
-
-  static async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
-    return await prisma.calAiPhoneNumber.findFirst({
-      where: {
-        phoneNumber,
-      },
-      select: {
-        id: true,
-        phoneNumber: true,
-        userId: true,
-        teamId: true,
-        user: { select: { id: true, email: true, name: true } },
-        team: { select: { id: true, name: true } },
-      },
     });
   }
 }

@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { TFunction } from "i18next";
+import type { TFunction } from "next-i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -266,7 +266,7 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  build(): CalendarEvent | null {
+  build(): CalendarEvent {
     // Validate required fields
     if (
       !this.event.startTime ||
@@ -275,7 +275,7 @@ export class CalendarEventBuilder {
       !this.event.bookerUrl ||
       !this.event.title
     ) {
-      return null;
+      throw new Error("Missing required fields for calendar event");
     }
 
     return this.event as CalendarEvent;

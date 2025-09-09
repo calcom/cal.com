@@ -50,7 +50,7 @@ import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
+import type { UserTableState, UserTableAction, UserTableUser } from "./types";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -122,7 +122,6 @@ export type UserListTableProps = {
       }[];
     }[];
   };
-  permissions?: MemberPermissions;
 };
 
 export function UserListTable(props: UserListTableProps) {
@@ -133,13 +132,7 @@ export function UserListTable(props: UserListTableProps) {
   );
 }
 
-function UserListTableContent({
-  org,
-  attributes,
-  teams,
-  facetedTeamValues,
-  permissions,
-}: UserListTableProps) {
+function UserListTableContent({ org, attributes, teams, facetedTeamValues }: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -176,12 +169,11 @@ function UserListTableContent({
   const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
 
   const memorisedColumns = useMemo(() => {
-    // Use PBAC permissions if available, otherwise fall back to role-based check
-    const tablePermissions = {
-      canEdit: permissions?.canChangeMemberRole ?? adminOrOwner,
-      canRemove: permissions?.canRemove ?? adminOrOwner,
-      canResendInvitation: permissions?.canInvite ?? adminOrOwner,
-      canImpersonate: permissions?.canImpersonate ?? adminOrOwner,
+    const permissions = {
+      canEdit: adminOrOwner,
+      canRemove: adminOrOwner,
+      canResendInvitation: adminOrOwner,
+      canImpersonate: false,
     };
     const generateAttributeColumns = () => {
       if (!attributes?.length) {
@@ -453,18 +445,14 @@ function UserListTableContent({
         size: 80,
         cell: ({ row }) => {
           const user = row.original;
-          const permissionsRaw = tablePermissions;
+          const permissionsRaw = permissions;
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
-              user.accepted &&
-              !user.disableImpersonation &&
-              !isSelf &&
-              !!org?.canAdminImpersonate &&
-              permissionsRaw.canImpersonate,
+              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -482,7 +470,7 @@ function UserListTableContent({
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate, permissions]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate]);
 
   const table = useReactTable({
     data: flatData,
@@ -631,7 +619,7 @@ function UserListTableContent({
             </p>
             {!isPlatformUser ? (
               <>
-                {permissions?.canChangeMemberRole && <TeamListBulkAction table={table} />}
+                {adminOrOwner && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
@@ -640,15 +628,11 @@ function UserListTableContent({
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
-                  <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
-                )}
-                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
-                  <EventTypesList table={table} orgTeams={teams} />
-                )}
+                {adminOrOwner && <MassAssignAttributesBulkAction table={table} filters={columnFilters} />}
+                {adminOrOwner && <EventTypesList table={table} orgTeams={teams} />}
               </>
             ) : null}
-            {(permissions?.canRemove ?? adminOrOwner) && (
+            {adminOrOwner && (
               <DeleteBulkUsers
                 users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
                 onRemove={() => table.toggleAllPageRowsSelected(false)}
@@ -676,7 +660,7 @@ function UserListTableContent({
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            {(permissions?.canInvite ?? adminOrOwner) && (
+            {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"

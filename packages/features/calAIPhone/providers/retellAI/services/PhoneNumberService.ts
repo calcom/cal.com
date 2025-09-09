@@ -2,10 +2,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
-import { AIPhoneServiceProviderType } from "../../../interfaces/AIPhoneService.interface";
 import type {
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParamsExtended,
+  AIPhoneServiceProviderType,
   AIPhoneServicePhoneNumber,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
@@ -39,7 +39,7 @@ export class PhoneNumberService {
     await this.validateTeamPermissions(userId, teamId);
     const agent = await this.validateAgentPermissions(userId, agentId);
 
-    const transactionState = {
+    let transactionState = {
       retellPhoneNumber: null as AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> | null,
       databaseRecordCreated: false,
       agentAssigned: false,
@@ -81,13 +81,9 @@ export class PhoneNumberService {
 
   async createPhoneNumber(
     data: AIPhoneServiceCreatePhoneNumberParams
-  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> & { provider: string }> {
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     try {
-      const phoneNumber = await this.retellRepository.createPhoneNumber(data);
-      return {
-        ...phoneNumber,
-        provider: AIPhoneServiceProviderType.RETELL_AI,
-      };
+      return await this.retellRepository.createPhoneNumber(data);
     } catch (error) {
       this.logger.error("Failed to create phone number in external AI service", {
         data,
@@ -309,14 +305,7 @@ export class PhoneNumberService {
     }
   }
 
-  private async validateAgentPermissions(userId: number, agentId?: string | null) {
-    if (!agentId) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Agent ID is required and cannot be empty",
-      });
-    }
-
+  private async validateAgentPermissions(userId: number, agentId?: string) {
     let agent = null;
     if (agentId) {
       agent = await this.agentRepository.findByIdWithUserAccess({
@@ -369,7 +358,7 @@ export class PhoneNumberService {
       agentAssigned: boolean;
     },
     error: unknown,
-    context: { userId: number; teamId?: number; agentId?: string | null | undefined }
+    context: { userId: number; teamId?: number; agentId?: string }
   ) {
     if (transactionState.retellPhoneNumber?.phone_number) {
       try {

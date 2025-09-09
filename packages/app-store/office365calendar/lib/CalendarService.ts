@@ -1,7 +1,7 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
-import { MSTeamsLocationType } from "@calcom/app-store/constants";
+import { MSTeamsLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
@@ -661,43 +661,32 @@ export default class Office365CalendarService implements Calendar {
     );
   };
 
-  private async handleErrorJsonOffice365Calendar<Type>(response: Response): Promise<Type | string> {
+  private handleErrorJsonOffice365Calendar = <Type>(response: Response): Promise<Type | string> => {
     if (response.headers.get("content-encoding") === "gzip") {
       return response.text();
     }
 
     if (response.status === 204) {
-      return {} as Type;
+      return new Promise((resolve) => resolve({} as Type));
     }
 
-    if (!response.ok) {
-      let errorBody: string | object;
-      try {
-        errorBody = await response.json();
-      } catch (e) {
-        errorBody = await response.text();
-      }
-      this.log.error(
-        `handleErrorJsonOffice365Calendar: Office365 API request failed with status ${response.status}`,
-        errorBody
-      );
+    if (!response.ok && response.status < 200 && response.status >= 300) {
+      response.json().then(console.log);
+      throw Error(response.statusText);
     }
 
     return response.json();
-  }
+  };
 
   async getMainTimeZone(): Promise<string> {
     try {
       const response = await this.fetcher(`${await this.getUserEndpoint()}/mailboxSettings/timeZone`);
       const timezone = await handleErrorsJson<string>(response);
 
-      if (!timezone || typeof timezone !== "string") {
-        this.log.warn("No timezone found in outlook mailbox settings, defaulting to Europe/London", {
-          timezone,
-        });
+      if (!timezone) {
+        this.log.warn("No timezone found in mailbox settings, defaulting to Europe/London");
         return "Europe/London";
       }
-      this.log.info("timezone found in outlook mailbox settings", { timezone });
 
       return timezone;
     } catch (error) {

@@ -153,17 +153,6 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
-    parent: {
-      select: {
-        team: {
-          select: {
-            theme: true,
-            brandColor: true,
-            darkBrandColor: true,
-          },
-        },
-      },
-    },
   } satisfies Prisma.EventTypeSelect;
 };
 
@@ -877,11 +866,10 @@ type GetProfileFromEventInput = Omit<Event, "hosts"> & {
 
 export function getProfileFromEvent(event: GetProfileFromEventInput) {
   const { team, subsetOfHosts: hosts, owner } = event;
-  const nonTeamProfile = hosts?.[0]?.user || owner;
-  const profile = team || nonTeamProfile;
+  const nonTeamprofile = hosts?.[0]?.user || owner;
+  const profile = team || nonTeamprofile;
   if (!profile) throw new Error("Event has no owner");
 
-  const styleProfile = team || event.parent?.team || nonTeamProfile;
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
@@ -894,11 +882,11 @@ export function getProfileFromEvent(event: GetProfileFromEventInput) {
     image: team
       ? getOrgOrTeamAvatar(team)
       : getUserAvatarUrl({
-          avatarUrl: nonTeamProfile?.avatarUrl,
+          avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    brandColor: styleProfile.brandColor,
-    darkBrandColor: styleProfile.darkBrandColor,
-    theme: styleProfile.theme,
+    brandColor: profile.brandColor,
+    darkBrandColor: profile.darkBrandColor,
+    theme: profile.theme,
     bookerLayouts: bookerLayoutsSchema.parse(
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)

@@ -87,7 +87,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
 export type UserFromSession = Awaited<ReturnType<typeof getUserFromSession>>;
 
-export const getSession = async (ctx: TRPCContextInner) => {
+const getSession = async (ctx: TRPCContextInner) => {
   const { req } = ctx;
   const { getServerSession } = await import("@calcom/features/auth/lib/getServerSession");
   return req ? await getServerSession({ req }) : null;
@@ -135,6 +135,16 @@ export const getUserSession = async (ctx: TRPCContextInner) => {
   return { user, session: sessionWithUpId };
 };
 
+const sessionMiddleware = middleware(async ({ ctx, next }) => {
+  const middlewareStart = performance.now();
+  const { user, session } = await getUserSession(ctx);
+  const middlewareEnd = performance.now();
+  logger.debug("Perf:t.sessionMiddleware", middlewareEnd - middlewareStart);
+  return next({
+    ctx: { user, session },
+  });
+});
+
 export const isAuthed = middleware(async ({ ctx, next }) => {
   const middlewareStart = performance.now();
 
@@ -170,3 +180,5 @@ export const isOrgAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   }
   return next({ ctx: { user: user } });
 });
+
+export default sessionMiddleware;

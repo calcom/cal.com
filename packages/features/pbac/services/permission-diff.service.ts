@@ -1,19 +1,17 @@
 import type { RolePermission } from "../domain/models/Role";
-import {
-  parsePermissionString,
-  isValidPermissionString,
-  type PermissionString,
-  type ParsedPermission,
-} from "../domain/types/permission-registry";
+
+export type PermissionString = string;
+export type ParsedPermission = { resource: string; action: string };
 
 export class PermissionDiffService {
+  private parsePermission(permission: PermissionString): ParsedPermission {
+    const [resource, action] = permission.split(".");
+    return { resource, action };
+  }
+
   private filterInternalPermissions(permissions: PermissionString[]): PermissionString[] {
     return permissions.filter((permission) => {
-      // Skip invalid permissions entirely
-      if (!isValidPermissionString(permission)) {
-        return false;
-      }
-      const { action } = parsePermissionString(permission);
+      const { action } = this.parsePermission(permission);
       return action !== "_resource";
     });
   }
@@ -30,14 +28,14 @@ export class PermissionDiffService {
 
     const newSet = new Set(
       filteredPermissions.map((p) => {
-        const parsed = parsePermissionString(p);
+        const parsed = this.parsePermission(p);
         return this.createPermissionKey(parsed);
       })
     );
 
     // Calculate permissions to add and remove
     const toAdd = filteredPermissions
-      .map((p) => parsePermissionString(p))
+      .map((p) => this.parsePermission(p))
       .filter((p) => !existingSet.has(this.createPermissionKey(p)));
 
     const toRemove = existingPermissions.filter((p) => !newSet.has(this.createPermissionKey(p)));

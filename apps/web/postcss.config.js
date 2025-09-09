@@ -1,11 +1,6 @@
-const config = {
+module.exports = {
   plugins: {
     tailwindcss: {},
+    autoprefixer: {},
   },
 };
-
-if (process.env.NODE_ENV === "production") {
-  config.plugins.autoprefixer = {};
-}
-
-module.exports = config;

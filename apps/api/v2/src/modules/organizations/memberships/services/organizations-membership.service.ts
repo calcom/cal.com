@@ -2,8 +2,6 @@ import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inpu
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { TeamService } from "@calcom/platform-libraries";
-
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";
 
@@ -64,24 +62,10 @@ export class OrganizationsMembershipService {
   }
 
   async deleteOrgMembership(organizationId: number, membershipId: number) {
-    // Get the membership first to get the userId
-    const membership = await this.organizationsMembershipRepository.findOrgMembership(
+    const membership = await this.organizationsMembershipRepository.deleteOrgMembership(
       organizationId,
       membershipId
     );
-
-    if (!membership) {
-      throw new NotFoundException(
-        `Membership with id ${membershipId} within organization id ${organizationId} not found`
-      );
-    }
-
-    await TeamService.removeMembers({
-      teamIds: [organizationId],
-      userIds: [membership.userId],
-      isOrg: true,
-    });
-
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 

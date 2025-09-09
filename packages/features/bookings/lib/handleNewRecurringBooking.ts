@@ -1,15 +1,25 @@
-import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-import type { RegularBookingService } from "./handleNewBooking";
-import type { IBookingService } from "./interfaces/IBookingService";
+export type PlatformParams = {
+  platformClientId?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  platformRescheduleUrl?: string;
+  platformBookingLocation?: string;
+  areCalendarEventsEnabled?: boolean;
+};
 
 export type BookingHandlerInput = {
-  bookingData: CreateRecurringBookingData;
-} & CreateBookingMeta;
+  bookingData: Record<string, any>[];
+  userId?: number;
+  // These used to come from headers but now we're passing them as params
+  hostname?: string;
+  forcedSlug?: string;
+  noEmail?: boolean;
+} & PlatformParams;
 
 export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
   const data = input.bookingData;
@@ -105,7 +115,7 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
 
     if (!thirdPartyRecurringEventId) {
       if (eachRecurringBooking.references && eachRecurringBooking.references.length > 0) {
-        for (const reference of eachRecurringBooking.references) {
+        for (const reference of eachRecurringBooking.references!) {
           if (reference.thirdPartyRecurringEventId) {
             thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
             break;
@@ -116,32 +126,3 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
   }
   return createdBookings;
 };
-
-export interface IRecurringBookingServiceDependencies {
-  regularBookingService: RegularBookingService;
-}
-
-/**
- * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
- */
-export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
-
-  async createBooking(input: {
-    bookingData: CreateRecurringBookingData;
-    bookingMeta?: CreateBookingMeta;
-  }): Promise<BookingResponse[]> {
-    const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
-    // FOLLOW-UP: Pass on dependencies to the handler
-    return handleNewRecurringBooking(handlerInput);
-  }
-
-  async rescheduleBooking(input: {
-    bookingData: CreateRecurringBookingData;
-    bookingMeta?: CreateBookingMeta;
-  }): Promise<BookingResponse[]> {
-    const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
-    // FOLLOW-UP: Pass on dependencies to the handler
-    return handleNewRecurringBooking(handlerInput);
-  }
-}

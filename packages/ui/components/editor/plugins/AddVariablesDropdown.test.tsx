@@ -36,7 +36,7 @@ describe("AddVariablesDropdown", () => {
     render(<AddVariablesDropdown addVariable={mockAddVariable} variables={variables} />);
     fireEvent.click(screen.getByText("add_variable"));
     await waitFor(() => {
-      expect(screen.getByText("add_dynamic_variables")).toBeInTheDocument();
+      expect(screen.getByText("add_dynamic_variables".toLocaleUpperCase())).toBeInTheDocument();
     });
   });
 

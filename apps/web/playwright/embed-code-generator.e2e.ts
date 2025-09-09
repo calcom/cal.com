@@ -5,7 +5,7 @@ import { parse } from "node-html-parser";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/client";
 
 import { test } from "./lib/fixtures";
 

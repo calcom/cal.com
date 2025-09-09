@@ -2,17 +2,9 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
-import type {
-  Team,
-  EventType,
-  User,
-  Schedule,
-  Host,
-  DestinationCalendar,
-  CalVideoSettings,
-} from "@prisma/client";
+import type { EventType, User, Schedule, Host, DestinationCalendar, CalVideoSettings } from "@prisma/client";
+import { SchedulingType, Team } from "@prisma/client";
 
-import { SchedulingType } from "@calcom/platform-libraries";
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
 type EventTypeRelations = {
@@ -82,8 +74,6 @@ type Input = Pick<
   | "hideOrganizerEmail"
   | "team"
   | "calVideoSettings"
-  | "hidden"
-  | "bookingRequiresAuthentication"
 >;
 
 @Injectable()

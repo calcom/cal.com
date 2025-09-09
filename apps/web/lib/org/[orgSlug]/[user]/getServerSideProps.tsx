@@ -23,18 +23,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if (team) {
     return GSSTeamPage({
       ...ctx,
-      query: {
-        slug: ctx.query.user,
-        ...(ctx.query.orgRedirection !== undefined && { orgRedirection: ctx.query.orgRedirection }),
-      },
+      query: { slug: ctx.query.user, orgRedirection: ctx.query.orgRedirection },
     });
   }
   return GSSUserPage({
     ...ctx,
     query: {
       user: ctx.query.user,
-      ...(ctx.query.redirect !== undefined && { redirect: ctx.query.redirect }),
-      ...(ctx.query.orgRedirection !== undefined && { orgRedirection: ctx.query.orgRedirection }),
+      redirect: ctx.query.redirect,
+      orgRedirection: ctx.query.orgRedirection,
     },
   });
 };

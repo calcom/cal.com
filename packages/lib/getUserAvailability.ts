@@ -54,7 +54,6 @@ const availabilitySchema = z
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
     bypassBusyCalendarTimes: z.boolean().optional(),
-    silentlyHandleCalendarFailures: z.boolean().optional(),
     shouldServeCache: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
@@ -111,7 +110,6 @@ type GetUserAvailabilityQuery = {
   duration?: number;
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes: boolean;
-  silentlyHandleCalendarFailures?: boolean;
   shouldServeCache?: boolean;
 };
 
@@ -297,7 +295,6 @@ export class UserAvailabilityService {
       duration,
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
-      silentlyHandleCalendarFailures = false,
       shouldServeCache,
     } = availabilitySchema.parse(query);
 
@@ -460,7 +457,6 @@ export class UserAvailabilityService {
         duration,
         currentBookings: initialData?.currentBookings,
         bypassBusyCalendarTimes,
-        silentlyHandleCalendarFailures,
         shouldServeCache,
       });
     } catch (error) {

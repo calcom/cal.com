@@ -6,12 +6,9 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { getPagination } from "@/lib/pagination/pagination";
-import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -21,14 +18,7 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
@@ -105,12 +95,10 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly membershipsRepository: MembershipsRepository,
-    private readonly membershipsService: MembershipsService,
     private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
   ) {}
 
-  async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
+  async createBooking(request: Request, body: CreateBookingInput) {
     let bookingTeamEventType = false;
     try {
       const eventType = await this.getBookedEventType(body);
@@ -120,7 +108,6 @@ export class BookingsService_2024_08_13 {
       if (!eventType) {
         this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
       }
-      await this.checkBookingRequiresAuthenticationSetting(eventType, authUser);
 
       if (eventType.schedulingType === "MANAGED") {
         throw new BadRequestException(
@@ -153,56 +140,6 @@ export class BookingsService_2024_08_13 {
     } catch (error) {
       this.errorsBookingsService.handleBookingError(error, bookingTeamEventType);
     }
-  }
-
-  async checkBookingRequiresAuthenticationSetting(
-    eventType: EventTypeWithOwnerAndTeam,
-    authUser: AuthOptionalUser
-  ) {
-    if (!eventType.bookingRequiresAuthentication) return true;
-    if (!authUser) {
-      throw new UnauthorizedException(
-        "checkBookingRequiresAuthentication - request must be authenticated by passing credentials belonging to event type owner, host or team or org admin or owner."
-      );
-    }
-
-    const authUserId = authUser.id;
-    const authUserRole = authUser.role;
-    const eventTypeId = eventType.id;
-    const teamId = eventType.teamId;
-    const bookingUserId = eventType.owner?.id || null;
-
-    if (authUserRole === "ADMIN") return;
-
-    if (bookingUserId === authUserId) return;
-
-    if (eventTypeId) {
-      const [isUserHost, isUserAssigned] = await Promise.all([
-        this.eventTypesRepository.isUserHostOfEventType(authUserId, eventTypeId),
-        this.eventTypesRepository.isUserAssignedToEventType(authUserId, eventTypeId),
-      ]);
-
-      if (isUserHost || isUserAssigned) return;
-    }
-
-    if (teamId) {
-      const membership = await this.membershipsRepository.getUserAdminOrOwnerTeamMembership(
-        authUserId,
-        teamId
-      );
-      if (membership) return;
-    }
-
-    if (
-      bookingUserId &&
-      (await this.membershipsService.isUserOrgAdminOrOwnerOfAnotherUser(authUserId, bookingUserId))
-    ) {
-      return;
-    }
-
-    throw new ForbiddenException(
-      "checkBookingRequiresAuthentication - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
-    );
   }
 
   async getBookedEventType(body: CreateBookingInput) {
@@ -576,13 +513,10 @@ export class BookingsService_2024_08_13 {
         return this.outputService.getOutputRecurringBooking(booking);
       }
       if (isRecurring && isSeated) {
-        return this.outputService.getOutputRecurringSeatedBooking(
-          booking,
-          !!booking.eventType?.seatsShowAttendees
-        );
+        return this.outputService.getOutputRecurringSeatedBooking(booking);
       }
       if (isSeated) {
-        return this.outputService.getOutputSeatedBooking(booking, !!booking.eventType?.seatsShowAttendees);
+        return this.outputService.getOutputSeatedBooking(booking);
       }
       return this.outputService.getOutputBooking(booking);
     }
@@ -594,10 +528,7 @@ export class BookingsService_2024_08_13 {
     const ids = recurringBooking.map((booking) => booking.id);
     const isRecurringSeated = !!recurringBooking[0].eventType?.seatsPerTimeSlot;
     if (isRecurringSeated) {
-      return this.outputService.getOutputRecurringSeatedBookings(
-        ids,
-        !!recurringBooking[0].eventType?.seatsShowAttendees
-      );
+      return this.outputService.getOutputRecurringSeatedBookings(ids);
     }
 
     return this.outputService.getOutputRecurringBookings(ids);
@@ -663,19 +594,9 @@ export class BookingsService_2024_08_13 {
       if (isRecurring && !isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
       } else if (isRecurring && isSeated) {
-        formattedBookings.push(
-          this.outputService.getOutputRecurringSeatedBooking(
-            formatted,
-            !!formatted.eventType?.seatsShowAttendees
-          )
-        );
+        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
       } else if (isSeated) {
-        formattedBookings.push(
-          await this.outputService.getOutputSeatedBooking(
-            formatted,
-            !!formatted.eventType?.seatsShowAttendees
-          )
-        );
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
       } else {
         formattedBookings.push(await this.outputService.getOutputBooking(formatted));
       }

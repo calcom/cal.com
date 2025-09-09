@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateInputSchema = z.object({
   name: z.string().optional(),
@@ -28,7 +28,7 @@ export const ZUpdateInputSchema = z.object({
   timeZone: timeZoneSchema.optional(),
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
-  metadata: teamMetadataStrictSchema.unwrap().optional(),
+  metadata: teamMetadataSchema.unwrap().optional(),
   lockEventTypeCreation: z.boolean().optional(),
   lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
   adminGetsNoSlotsNotification: z.boolean().optional(),

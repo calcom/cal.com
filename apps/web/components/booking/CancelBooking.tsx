@@ -6,11 +6,10 @@ import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { shouldChargeNoShowCancellationFee } from "@calcom/lib/payment/shouldChargeNoShowCancellationFee";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
-import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
+import { Label, Select, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 interface InternalNotePresetsSelectProps {
@@ -77,12 +76,6 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
-    startTime: Date;
-    payment?: {
-      amount: number;
-      currency: string;
-      appId: string | null;
-    } | null;
   };
   profile: {
     name: string | null;
@@ -107,7 +100,6 @@ type Props = {
   };
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
-  eventTypeMetadata?: Record<string, unknown> | null;
 };
 
 export default function CancelBooking(props: Props) {
@@ -120,48 +112,13 @@ export default function CancelBooking(props: Props) {
     seatReferenceUid,
     bookingCancelledEventProps,
     currentUserEmail,
-    eventTypeMetadata,
+    teamId,
   } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
-  const [acknowledgeCancellationNoShowFee, setAcknowledgeCancellationNoShowFee] = useState(false);
 
-  const getAppMetadata = (appId: string): Record<string, unknown> | null => {
-    if (!eventTypeMetadata?.apps || !appId) return null;
-    const apps = eventTypeMetadata.apps as Record<string, unknown>;
-    return (apps[appId] as Record<string, unknown>) || null;
-  };
-
-  const timeValue = booking?.payment?.appId
-    ? (getAppMetadata(booking.payment.appId) as Record<string, unknown> | null)?.autoChargeNoShowFeeTimeValue
-    : null;
-  const timeUnit = booking?.payment?.appId
-    ? (getAppMetadata(booking.payment.appId) as Record<string, unknown> | null)?.autoChargeNoShowFeeTimeUnit
-    : null;
-
-  const autoChargeNoShowFee = () => {
-    if (props.isHost) return false; // Hosts/organizers are exempt
-
-    if (!booking?.startTime) return false;
-
-    if (!booking?.payment) return false;
-
-    return shouldChargeNoShowCancellationFee({
-      eventTypeMetadata: eventTypeMetadata || null,
-      booking,
-      payment: booking.payment,
-    });
-  };
-
-  const cancellationNoShowFeeWarning = autoChargeNoShowFee();
-
-  const hostMissingCancellationReason =
-    props.isHost &&
-    (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
-  const cancellationNoShowFeeNotAcknowledged =
-    !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
@@ -230,23 +187,6 @@ export default function CancelBooking(props: Props) {
               </p>
             </div>
           ) : null}
-          {cancellationNoShowFeeWarning && booking?.payment && (
-            <div>
-              <div className="bg-attention mb-5 rounded-md p-3">
-                <CheckboxField
-                  description={t("cancel_booking_acknowledge_no_show_fee", {
-                    timeValue,
-                    timeUnit,
-                    amount: booking.payment.amount / 100,
-                    formatParams: { amount: { currency: booking.payment.currency } },
-                  })}
-                  onChange={(e) => setAcknowledgeCancellationNoShowFee(e.target.checked)}
-                  descriptionClassName="text-info font-semibold"
-                />
-                <p className="text-subtle ml-9 mt-2 text-sm">{t("contact_organizer")}</p>
-              </div>
-            </div>
-          )}
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
             <div className="ml-auto flex w-full space-x-4 ">
               <Button
@@ -257,14 +197,14 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={hostMissingCancellationReason || cancellationNoShowFeeNotAcknowledged}
+                disabled={
+                  props.isHost &&
+                  (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id))
+                }
                 onClick={async () => {
                   setLoading(true);
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
-                  const response = await fetch("/api/csrf", { cache: "no-store" });
-                  const { csrfToken } = await response.json();
 
                   const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
@@ -275,7 +215,6 @@ export default function CancelBooking(props: Props) {
                       seatReferenceUid,
                       cancelledBy: currentUserEmail,
                       internalNote: internalNote,
-                      csrfToken,
                     }),
                     headers: {
                       "Content-Type": "application/json",

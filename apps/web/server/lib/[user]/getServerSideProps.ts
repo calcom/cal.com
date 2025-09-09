@@ -14,12 +14,11 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import { type EventType, type User } from "@calcom/prisma/client";
-import { RedirectType } from "@calcom/prisma/enums";
+import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
@@ -74,20 +73,25 @@ type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
+  const isOrgContext = isValidOrgDomain && !!currentOrgDomain;
+
   const dataFetchStart = Date.now();
 
-  const redirect = await handleOrgRedirect({
-    slugs: usernameList,
-    redirectType: RedirectType.User,
-    eventTypeSlug: null,
-    context,
-    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
-  });
+  if (!isOrgContext) {
+    // If there is no org context, see if some redirect is setup due to org migration
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: usernameList,
+      redirectType: RedirectType.User,
+      eventTypeSlug: null,
+      currentQuery: context.query,
+    });
 
-  if (redirect) {
-    return redirect;
+    if (redirect) {
+      return redirect;
+    }
   }
 
   const usersInOrgContext = await getUsersInOrgContext(

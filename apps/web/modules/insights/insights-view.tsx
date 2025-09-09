@@ -7,7 +7,6 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -19,10 +18,7 @@ import {
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
   MostCancelledBookingsTables,
-  MostCompletedTeamMembersTable,
-  LeastCompletedTeamMembersTable,
   PopularEventsTable,
-  RecentNoShowGuestsChart,
   RecentFeedbackTable,
   TimezoneBadge,
 } from "@calcom/features/insights/components/booking";
@@ -35,7 +31,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider useSegments={useSegments} timeZone={timeZone}>
+    <DataTableProvider timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
@@ -85,31 +81,22 @@ function InsightsPageContent() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
+          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
-          <MostCompletedTeamMembersTable />
-          <LeastCompletedTeamMembersTable />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
           <HighestNoShowHostTable />
-          <div className="sm:col-span-2">
-            <RecentNoShowGuestsChart />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
-          <div className="sm:col-span-2">
-            <RecentFeedbackTable />
-          </div>
         </div>
-
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
-            <PopularEventsTable />
+            <RecentFeedbackTable />
           </div>
         </div>
 

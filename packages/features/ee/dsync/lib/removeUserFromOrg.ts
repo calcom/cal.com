@@ -1,7 +1,11 @@
-import { TeamService } from "@calcom/lib/server/service/teamService";
+import removeMember from "@calcom/features/ee/teams/lib/removeMember";
 
 const removeUserFromOrg = async ({ userId, orgId }: { userId: number; orgId: number }) => {
-  return TeamService.removeMembers({ teamIds: [orgId], userIds: [userId], isOrg: true });
+  return removeMember({
+    memberId: userId,
+    teamId: orgId,
+    isOrg: true,
+  });
 };
 
 export default removeUserFromOrg;

@@ -70,7 +70,10 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
-        await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+          "aria-current",
+          "page"
+        );
         await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
 
@@ -114,7 +117,10 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
-        await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+          "aria-current",
+          "page"
+        );
       });
 
       await test.step("Open the 'Name' field dialog", async () => {
@@ -636,8 +642,8 @@ async function toggleQuestionRequireStatusAndSave({
   await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
   await page
     .locator('[data-testid="edit-field-dialog"]')
-    .locator('[data-testid="field-required"]')
-    .first()
+    .locator('[data-testid="field-required"] button')
+    .locator(`text=${required ? "Yes" : "No"}`)
     .click();
   await page.locator('[data-testid="field-add-save"]').click();
   await saveEventType(page);
@@ -677,7 +683,7 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
 }
 
 async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }
@@ -748,8 +754,11 @@ test.describe("Text area min and max characters text", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await createNewUserEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
-    await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics"); //fix the race condition
-    await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     const insertQuestion = async (questionName: string) => {
       const element = page.locator('[data-testid="add-field"]');

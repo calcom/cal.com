@@ -21,16 +21,6 @@ type TaskPayloads = {
   sendWorkflowEmails: z.infer<typeof import("./tasks/sendWorkflowEmails").ZSendWorkflowEmailsSchema>;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
   sendAnalyticsEvent: z.infer<typeof import("./tasks/analytics/schema").sendAnalyticsEventSchema>;
-  executeAIPhoneCall: {
-    workflowReminderId: number;
-    agentId: string;
-    fromNumber: string;
-    toNumber: string;
-    bookingUid: string;
-    userId: number | null;
-    teamId: number | null;
-    providerAgentId: string;
-  };
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;
@@ -42,6 +32,7 @@ export type TaskerCreate = <TaskKey extends keyof TaskPayloads>(
 export interface Tasker {
   /** Create a new task with the given type and payload. */
   create: TaskerCreate;
+  processQueue(): Promise<void>;
   cleanup(): Promise<void>;
   cancel(id: string): Promise<string>;
   cancelWithReference(referenceUid: string, type: TaskTypes): Promise<string | null>;

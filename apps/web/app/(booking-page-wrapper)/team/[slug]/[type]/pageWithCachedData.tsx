@@ -16,7 +16,7 @@ import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
 import { buildLegacyCtx, buildLegacyRequest } from "@lib/buildLegacyCtx";
-import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
 
@@ -41,7 +41,7 @@ const _getTeamMetadataForBooking = (teamData: NonNullable<TeamData>, eventTypeId
   };
 };
 
-export async function getOrgContext(params: Params) {
+async function _getOrgContext(params: Params) {
   const result = paramsSchema.safeParse({
     slug: params?.slug,
     type: params?.type,
@@ -74,7 +74,7 @@ const _getMultipleDurationValue = (
 };
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(await params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await _getOrgContext(await params);
 
   const teamData = await getCachedTeamData(teamSlug, currentOrgDomain);
   if (!teamData) return {}; // should never happen
@@ -123,18 +123,20 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(await params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await _getOrgContext(await params);
+  const isOrgContext = currentOrgDomain && isValidOrgDomain;
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
-  // Handle org redirects
-  const redirectResult = await handleOrgRedirect({
-    slugs: [teamSlug],
-    redirectType: RedirectType.Team,
-    eventTypeSlug: meetingSlug,
-    context: legacyCtx,
-    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
-  });
-  if (redirectResult) return redirect(redirectResult.redirect.destination);
+  // Handle org redirects for non-org contexts
+  if (!isOrgContext) {
+    const redirectResult = await getTemporaryOrgRedirect({
+      slugs: teamSlug,
+      redirectType: RedirectType.Team,
+      eventTypeSlug: meetingSlug,
+      currentQuery: legacyCtx.query,
+    });
+    if (redirectResult) return redirect(redirectResult.redirect.destination);
+  }
 
   const teamData = await getCachedTeamData(teamSlug, currentOrgDomain);
 

@@ -27,7 +27,3 @@ export async function retrieveSubscriptionIdFromStripeCustomerId(
     subscriptionId: subscription.id,
   };
 }
-
-export async function getSubscriptionFromId(subscriptionId: string) {
-  return await stripe.subscriptions.retrieve(subscriptionId);
-}

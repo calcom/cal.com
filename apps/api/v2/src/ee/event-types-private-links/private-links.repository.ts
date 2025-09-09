@@ -25,10 +25,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  async create(
-    eventTypeId: number,
-    link: { link: string; expiresAt: Date | null; maxUsageCount?: number | null }
-  ) {
+  async create(eventTypeId: number, link: { link: string; expiresAt: Date | null; maxUsageCount?: number | null }) {
     return this.dbWrite.prisma.hashedLink.create({
       data: {
         eventTypeId,
@@ -39,10 +36,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  async update(
-    eventTypeId: number,
-    link: { link: string; expiresAt: Date | null; maxUsageCount?: number | null }
-  ) {
+  async update(eventTypeId: number, link: { link: string; expiresAt: Date | null; maxUsageCount?: number | null }) {
     return this.dbWrite.prisma.hashedLink.updateMany({
       where: { eventTypeId, link: link.link },
       data: {
@@ -56,3 +50,5 @@ export class PrivateLinksRepository {
     return this.dbWrite.prisma.hashedLink.deleteMany({ where: { eventTypeId, link: linkId } });
   }
 }
+
+

@@ -39,7 +39,6 @@ import {
   HttpStatus,
   NotFoundException,
   Query,
-  Logger,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -67,8 +66,6 @@ export type EventTypeHandlerResponse = {
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsEventTypesController {
-  private readonly logger = new Logger("OrganizationsEventTypesController");
-
   constructor(
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
     private readonly inputService: InputOrganizationsEventTypesService,
@@ -90,10 +87,6 @@ export class OrganizationsEventTypesController {
       user.id,
       teamId,
       bodyEventType
-    );
-    this.logger.debug(
-      "nl debug - create org team event type - transformedBody",
-      JSON.stringify(transformedBody, null, 2)
     );
 
     const eventType = await this.organizationsEventTypesService.createOrganizationTeamEventType(

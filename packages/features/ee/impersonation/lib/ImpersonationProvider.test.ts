@@ -2,14 +2,12 @@ import type { Session } from "next-auth";
 import { describe, expect, it } from "vitest";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
   parseTeamId,
   checkSelfImpersonation,
   checkUserIdentifier,
   checkGlobalPermission,
-  checkPBACImpersonationPermission,
 } from "./ImpersonationProvider";
 
 const session: Session = {
@@ -79,43 +77,5 @@ describe("checkPermission", () => {
   it("should not throw an error if the user is not an admin but team impersonation is enabled", () => {
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION = "true";
     expect(() => checkGlobalPermission(session)).not.toThrow();
-  });
-});
-
-describe("checkPBACImpersonationPermission", () => {
-  it("should return true for admin users", async () => {
-    const result = await checkPBACImpersonationPermission({
-      userId: 123,
-      teamId: 456,
-      userRole: MembershipRole.ADMIN,
-    });
-    expect(result).toBe(true);
-  });
-
-  it("should return true for owner users", async () => {
-    const result = await checkPBACImpersonationPermission({
-      userId: 123,
-      teamId: 456,
-      userRole: MembershipRole.OWNER,
-    });
-    expect(result).toBe(true);
-  });
-
-  it("should return false for member users", async () => {
-    const result = await checkPBACImpersonationPermission({
-      userId: 123,
-      teamId: 456,
-      userRole: MembershipRole.MEMBER,
-    });
-    expect(result).toBe(false);
-  });
-
-  it("should handle organization context", async () => {
-    const result = await checkPBACImpersonationPermission({
-      userId: 123,
-      organizationId: 789,
-      userRole: MembershipRole.ADMIN,
-    });
-    expect(result).toBe(true);
   });
 });

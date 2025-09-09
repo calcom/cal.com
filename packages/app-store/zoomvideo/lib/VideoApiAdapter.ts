@@ -10,8 +10,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -80,11 +79,23 @@ export const zoomUserSettingsSchema = z.object({
       waiting_room: z.boolean(),
     })
     .nullish(),
+  meeting_security: z
+    .object({
+      waiting_room_settings: z
+        .object({
+          participants_to_place_in_waiting_room: z.number().optional(),
+          users_who_can_admit_participants_from_waiting_room: z.number().optional(),
+          whitelisted_domains_for_waiting_room: z.string().optional(),
+        })
+        .optional(),
+    })
+    .nullish(),
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,waiting_room";
+const settingsApiFilterResp =
+  "default_password_for_scheduled_meetings,auto_recording,waiting_room,waiting_room_settings";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -176,11 +187,17 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
+    const advancedWaitingRoomSettings = userSettings?.meeting_security?.waiting_room_settings;
+    const hasAdvancedWaitingRoomSettings =
+      waitingRoomEnabled &&
+      !!advancedWaitingRoomSettings &&
+      typeof advancedWaitingRoomSettings === "object" &&
+      Object.keys(advancedWaitingRoomSettings).length > 0;
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
       type: 2, // Means that this is a scheduled meeting
-      start_time: dayjs(event.startTime).format("YYYY-MM-DDTHH:mm:ss"),
+      start_time: dayjs(event.startTime).utc().format(),
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
@@ -201,6 +218,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         enforce_login: false,
         registrants_email_notification: true,
         waiting_room: waitingRoomEnabled,
+        ...(hasAdvancedWaitingRoomSettings && {
+          waiting_room_settings: advancedWaitingRoomSettings,
+        }),
       },
       ...recurrence,
     };
@@ -317,8 +337,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
             id: credential.id,
           },
           data: {
-            // z.passthrough() is not allowed in Prisma, but we know this is trusted.
-            key: newTokenObject as unknown as Prisma.InputJsonValue,
+            key: newTokenObject,
           },
         });
       },

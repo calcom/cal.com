@@ -1,6 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -11,7 +10,7 @@ import { RoleService } from "./role.service";
 
 interface IRoleManager {
   isPBACEnabled: boolean;
-  checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void>;
+  checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void>;
   assignRole(
     userId: number,
     organizationId: number,
@@ -30,11 +29,11 @@ class PBACRoleManager implements IRoleManager {
     private readonly permissionCheckService: PermissionCheckService
   ) {}
 
-  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
+  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
       userId,
-      teamId: targetId,
-      permission: scope === "team" ? "team.changeMemberRole" : "organization.changeMemberRole",
+      teamId: organizationId,
+      permission: "organization.changeMemberRole",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
@@ -96,11 +95,9 @@ class PBACRoleManager implements IRoleManager {
 
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
-  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
-    const membership =
-      scope === "team"
-        ? !!(await isTeamAdmin(userId, targetId))
-        : !!(await isOrganisationAdmin(userId, targetId));
+  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
+    const membership = await isOrganisationAdmin(userId, organizationId);
+
     // Only OWNER/ADMIN can update role
     if (!membership) {
       throw new RoleManagementError(

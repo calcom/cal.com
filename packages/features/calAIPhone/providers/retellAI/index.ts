@@ -1,26 +1,3 @@
-import type {
-  RetellAIRepository,
-  CreateLLMRequest,
-  CreateAgentRequest,
-  UpdateLLMRequest,
-  AIConfigurationSetup,
-  AIConfigurationDeletion,
-  DeletionResult,
-  RetellLLM,
-  RetellAgent,
-  RetellCall,
-  CreatePhoneCallParams,
-  RetellPhoneNumber,
-  UpdatePhoneNumberParams,
-  CreatePhoneNumberParams,
-  ImportPhoneNumberParams,
-  UpdateAgentRequest,
-  RetellLLMGeneralTools,
-  RetellAgentWithDetails,
-  Language,
-  RetellDynamicVariables,
-} from "./types";
-
 export { RetellAIService } from "./RetellAIService";
 
 export { AIConfigurationService } from "./services/AIConfigurationService";
@@ -61,7 +38,7 @@ export type {
   RetellAgentWithDetails,
   Language,
   RetellDynamicVariables,
-};
+} from "./types";
 
 export interface RetellAIPhoneServiceProviderTypeMap {
   Configuration: AIConfigurationSetup;
@@ -75,7 +52,7 @@ export interface RetellAIPhoneServiceProviderTypeMap {
   ImportPhoneNumberParams: ImportPhoneNumberParams;
   UpdateAgentParams: UpdateAgentRequest;
   Tools: RetellLLMGeneralTools;
-  CreatePhoneCallParams: { fromNumber: string; toNumber: string; dynamicVariables?: RetellDynamicVariables };
+  CreatePhoneCallParams: CreatePhoneCallParams;
   AgentWithDetails: RetellAgentWithDetails;
 }
 
@@ -89,7 +66,7 @@ import { RetellAIService } from '@calcom/features/calAIPhone/providers/retellAI'
 const service = new RetellAIService(
   repository,
   agentRepository,
-  phoneNumberRepository,
+  phoneNumberRepository, 
   transactionManager
 );
 
@@ -120,17 +97,17 @@ const service = new RetellAIService(
 const result = await service.importPhoneNumber(phoneNumberData);
 
 // 3. INDIVIDUAL SERVICES - Advanced usage for specific needs
-import {
+import { 
   AIConfigurationService,
   PhoneNumberService,
-  BillingService
+  BillingService 
 } from '@calcom/features/calAIPhone/providers/retellAI';
 
 // Use only what you need
 const aiConfigService = new AIConfigurationService(repository);
 const phoneService = new PhoneNumberService(
   repository,
-  agentRepository,
+  agentRepository, 
   phoneNumberRepository,
   transactionManager
 );
@@ -150,7 +127,7 @@ const { modelId, agentId } = await provider.setupConfiguration({
 // Benefits of the refactored architecture:
 // ✅ Single Responsibility - Each service has one clear purpose
 // ✅ Easier Testing - Test services in isolation
-// ✅ Better Maintainability - Changes to billing don't affect phone operations
+// ✅ Better Maintainability - Changes to billing don't affect phone operations  
 // ✅ Reusability - Compose services differently for different use cases
 // ✅ Code Navigation - ~150 lines per service vs 849 lines in god class
 // ✅ Backward Compatibility - All existing code continues to work

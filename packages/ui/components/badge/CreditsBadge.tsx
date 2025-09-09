@@ -5,23 +5,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "../tooltip";
 import { Badge } from "./Badge";
 
-export const CreditsBadge = function CreditsBadge({
-  teamId,
-  isOrganization = false,
-}: {
-  teamId?: number;
-  isOrganization?: boolean;
-}) {
+export const CreditsBadge = function CreditsBadge({ teamId }: { teamId?: number }) {
   const { t } = useLocale();
-
-  const getBillingPath = () => {
-    if (!teamId) return "/settings/billing";
-    return isOrganization ? "/settings/organizations/billing" : `/settings/teams/${teamId}/billing`;
-  };
 
   return (
     <Tooltip content={t("requires_credits_tooltip")}>
-      <Link href={getBillingPath()}>
+      <Link href={teamId ? `/settings/teams/${teamId}/billing` : "/settings/billing"}>
         <Badge variant="gray" className="whitespace-nowrap">
           {t("requires_credits")}
         </Badge>

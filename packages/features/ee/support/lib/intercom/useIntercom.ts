@@ -1,15 +1,12 @@
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect } from "react";
-import type { IntercomBootProps, IntercomProps } from "react-use-intercom";
 import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
@@ -20,18 +17,14 @@ const useIntercomHook = isInterComEnabled
   ? useIntercomLib
   : () => {
       return {
-        // eslint-disable-next-line
-        boot: (_props: IntercomBootProps) => {},
+        boot: noop,
         show: noop,
         shutdown: noop,
-        // eslint-disable-next-line
-        update: (_props: Partial<IntercomProps>) => {},
       };
     };
 
 export const useIntercom = () => {
   const hookData = useIntercomHook();
-  const isMobile = useMediaQuery("(max-width: 768px)");
   const { data } = trpc.viewer.me.get.useQuery();
   const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
     trpc: {
@@ -46,7 +39,8 @@ export const useIntercom = () => {
   const boot = async () => {
     if (!data || !statsData) return;
     let userHash;
-    const req = await fetch(`/api/support/hash`);
+
+    const req = await fetch(`/api/intercom-hash`);
     const res = await req.json();
     if (res?.hash) {
       userHash = res.hash;
@@ -58,7 +52,6 @@ export const useIntercom = () => {
       ...(data && data?.id && { userId: data.id }),
       createdAt: String(dayjs(data?.createdDate).unix()),
       ...(userHash && { userHash }),
-      hideDefaultLauncher: isMobile,
       customAttributes: {
         //keys should be snake cased
         user_name: data?.username,
@@ -90,7 +83,7 @@ export const useIntercom = () => {
   const open = async () => {
     let userHash;
 
-    const req = await fetch(`/api/support/hash`);
+    const req = await fetch(`/api/intercom-hash`);
     const res = await req.json();
     if (res?.hash) {
       userHash = res.hash;
@@ -102,7 +95,6 @@ export const useIntercom = () => {
       ...(data && data?.id && { userId: data.id }),
       createdAt: String(dayjs(data?.createdDate).unix()),
       ...(userHash && { userHash }),
-      hideDefaultLauncher: isMobile,
       customAttributes: {
         //keys should be snake cased
         user_name: data?.username,
@@ -134,22 +126,9 @@ export const useIntercom = () => {
   return { ...hookData, open, boot };
 };
 
-declare global {
-  interface Window {
-    Support?: {
-      open: () => void;
-      shouldShowTriggerButton: (showTrigger: boolean) => void;
-    };
-  }
-}
-
 export const useBootIntercom = () => {
-  const { hasPaidPlan } = useHasPaidPlan();
-  const flagMap = useFlagMap();
-  const { boot, open, update } = useIntercom();
-
+  const { boot } = useIntercom();
   const { data: user } = trpc.viewer.me.get.useQuery();
-  const isTieredSupportEnabled = flagMap["tiered-support-chat"];
   const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
     trpc: {
       context: {
@@ -160,28 +139,12 @@ export const useBootIntercom = () => {
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
-    if (
-      !isInterComEnabled ||
-      showIntercom === "false" ||
-      !user ||
-      !statsData ||
-      (!hasPaidPlan && isTieredSupportEnabled)
-    )
+    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user || !statsData)
       return;
 
     boot();
-    if (typeof window !== "undefined" && !window.Support) {
-      window.Support = {
-        open,
-        shouldShowTriggerButton: (showTrigger: boolean) => {
-          update({
-            hideDefaultLauncher: !showTrigger,
-          });
-        },
-      };
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);
+  }, [user, statsData]);
 };
 
 export default useIntercom;

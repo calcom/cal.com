@@ -1,4 +1,3 @@
-import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
@@ -8,7 +7,6 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -34,20 +32,15 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   }
 
   const userRepo = new UserRepository(prisma);
-  const meCaller = await createRouterCaller(meRouter);
+  const user = await userRepo.findUserTeams({
+    id: session.user.id,
+  });
 
-  const [userTeams, user] = await Promise.all([
-    userRepo.findUserTeams({
-      id: session.user.id,
-    }),
-    meCaller.get(),
-  ]);
-
-  if (!userTeams || !user) {
+  if (!user) {
     return redirect("/auth/login");
   }
 
-  return <Page user={user} hasPendingInvites={!!userTeams.teams.find((team) => team.accepted === false)} />;
+  return <Page hasPendingInvites={!!user.teams.find((team) => team.accepted === false)} />;
 };
 
 export default ServerPage;

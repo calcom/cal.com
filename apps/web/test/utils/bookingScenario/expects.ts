@@ -711,12 +711,10 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
   emails,
   newOrganizer,
   prevOrganizer,
-  bookerReschedule,
 }: {
   emails: Fixtures["emails"];
   newOrganizer: { email: string; name: string };
   prevOrganizer: { email: string; name: string };
-  bookerReschedule?: boolean;
 }) {
   if (newOrganizer !== prevOrganizer) {
     vi.waitFor(() => {
@@ -740,19 +738,6 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
         `${prevOrganizer.email}`
       );
     });
-
-    // if booking is rescheduled by booker, old organizer should recieve reassigned emails
-    if (bookerReschedule) {
-      vi.waitFor(() => {
-        expect(emails).toHaveEmail(
-          {
-            heading: "event_request_reassigned",
-            to: `${prevOrganizer.email}`,
-          },
-          `${prevOrganizer.email}`
-        );
-      });
-    }
   } else {
     vi.waitFor(() => {
       // organizer should receive rescheduled emails

@@ -6,8 +6,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { schemaCredentialPostBody, schemaCredentialPostParams } from "~/lib/validations/credential-sync";
@@ -93,7 +92,7 @@ async function handler(req: NextApiRequest) {
     data: {
       userId,
       appId: appSlug,
-      key: key as unknown as Prisma.InputJsonValue,
+      key,
       type: appMetadata.type,
     },
     select: credentialForCalendarServiceSelect,

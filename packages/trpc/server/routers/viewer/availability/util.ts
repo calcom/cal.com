@@ -1,5 +1,6 @@
 import type { User } from "@prisma/client";
 
+import { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaClient } from "@calcom/prisma";
 
 export const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
@@ -52,4 +53,12 @@ export const setupDefaultSchedule = async (userId: number, scheduleId: number, p
       defaultScheduleId: scheduleId,
     },
   });
+};
+
+export const updateHostsWithNewDefaultSchedule = async (
+  userId: number,
+  defaultScheduleId: number,
+  scheduleId: number
+) => {
+  return await HostRepository.updateHostsSchedule(userId, defaultScheduleId, scheduleId);
 };

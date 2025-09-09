@@ -71,15 +71,7 @@ export function WebPushProvider({ children }: ProviderProps) {
           }
         } catch (error) {
           console.error("Failed to subscribe:", error);
-          if (
-            error instanceof DOMException &&
-            error.name === "InvalidAccessError" &&
-            error.message.includes("applicationServerKey")
-          ) {
-            showToast("Please enable Google services for push messaging and try again", "error");
-          } else {
-            showToast("Failed to enable notifications", "error");
-          }
+          showToast("Failed to enable notifications", "error");
         } finally {
           setIsLoading(false);
         }

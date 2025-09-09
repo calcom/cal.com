@@ -1,7 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import type { IInsightsRoutingService } from "@calcom/lib/server/service/InsightsRoutingDIService";
-import { InsightsRoutingService } from "@calcom/lib/server/service/InsightsRoutingDIService";
+import type { IInsightsRoutingService } from "@calcom/lib/server/service/insightsRoutingDI";
+import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRoutingDI";
 
 import { DI_TOKENS } from "../tokens";
 

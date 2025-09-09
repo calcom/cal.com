@@ -20,9 +20,10 @@ import { CtaRow } from "~/settings/billing/billing-view";
 
 declare global {
   interface Window {
-    Support?: {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
       open: () => void;
-      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }
@@ -34,8 +35,8 @@ export default function PlatformBillingUpgrade() {
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = async () => {
-    if (window.Support) {
-      window.Support.open();
+    if (window.Plain) {
+      window.Plain.open();
     }
   };
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =

@@ -1,5 +1,4 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesController_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/controllers/event-types.controller";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
@@ -12,7 +11,6 @@ import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-calendars.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -20,7 +18,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule, RedisModule],
+  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule],
   providers: [
     EventTypesRepository_2024_06_14,
     EventTypesService_2024_06_14,
@@ -31,7 +29,6 @@ import { Module } from "@nestjs/common";
     SchedulesRepository_2024_06_11,
     EventTypeResponseTransformPipe,
     CalendarsService,
-    CalendarsCacheService,
     CredentialsRepository,
     AppsRepository,
     CalendarsRepository,

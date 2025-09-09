@@ -7,7 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { addFilter } from "./filter-helpers";
+import { addFilter, openFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import { submitAndWaitForResponse } from "./lib/testUtils";
@@ -673,6 +673,7 @@ test.describe("Out of office", () => {
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
       await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible(); //Last 7 Days
@@ -842,6 +843,7 @@ test.describe("Out of office", () => {
         );
         await entriesListRespPromise1;
 
+        await openFilter(page, "dateRange");
         const entriesListRespPromise2 = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );

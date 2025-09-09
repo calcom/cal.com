@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HttpError } from "@calcom/lib/http-error";
 
 import { CallService } from "../CallService";
 import { setupBasicMocks, createMockCall, createMockDatabaseAgent, TestError } from "./test-utils";
@@ -16,7 +17,6 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
 describe("CallService", () => {
   let service: CallService;
   let mocks: ReturnType<typeof setupBasicMocks>;
-  let mockRetellAIService: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -27,17 +27,15 @@ describe("CallService", () => {
     const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
     vi.mocked(CreditService).mockImplementation(() => ({
-      hasAvailableCredits: vi.fn().mockResolvedValue(true),
+      getAllCredits: vi.fn().mockResolvedValue({
+        totalRemainingMonthlyCredits: 100,
+        additionalCredits: 50,
+      }),
     }));
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
-    mockRetellAIService = {
-      updateToolsFromAgentId: vi.fn().mockResolvedValue(undefined),
-    };
-
     service = new CallService(mocks.mockRetellRepository, mocks.mockAgentRepository);
-    service.setRetellAIService(mockRetellAIService);
   });
 
   afterEach(() => {
@@ -46,8 +44,8 @@ describe("CallService", () => {
 
   describe("createPhoneCall", () => {
     const validCallData = {
-      fromNumber: "+1234567890",
-      toNumber: "+0987654321",
+      from_number: "+1234567890",
+      to_number: "+0987654321",
     };
 
     it("should successfully create phone call", async () => {
@@ -57,11 +55,7 @@ describe("CallService", () => {
       const result = await service.createPhoneCall(validCallData);
 
       expect(result).toEqual(mockCall);
-      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
-        fromNumber: "+1234567890",
-        toNumber: "+0987654321",
-        dynamicVariables: undefined,
-      });
+      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith(validCallData);
     });
 
     it("should create phone call with dynamic variables", async () => {
@@ -70,7 +64,7 @@ describe("CallService", () => {
 
       const callDataWithVariables = {
         ...validCallData,
-        dynamicVariables: {
+        retell_llm_dynamic_variables: {
           name: "John Doe",
           company: "Acme Corp",
         },
@@ -78,14 +72,7 @@ describe("CallService", () => {
 
       await service.createPhoneCall(callDataWithVariables);
 
-      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
-        fromNumber: "+1234567890",
-        toNumber: "+0987654321",
-        dynamicVariables: {
-          name: "John Doe",
-          company: "Acme Corp",
-        },
-      });
+      expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith(callDataWithVariables);
     });
 
     it("should handle Retell API errors", async () => {
@@ -102,8 +89,6 @@ describe("CallService", () => {
       agentId: "agent-123",
       phoneNumber: "+0987654321",
       userId: 1,
-      timeZone: "America/New_York",
-      eventTypeId: 123,
     };
 
     const mockAgentWithPhoneNumber = createMockDatabaseAgent({
@@ -129,12 +114,8 @@ describe("CallService", () => {
       });
 
       expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
-        fromNumber: "+1234567890",
-        toNumber: "+0987654321",
-        dynamicVariables: expect.objectContaining({
-          EVENT_NAME: "Test Call with Agent",
-          TIMEZONE: "America/New_York",
-        }),
+        from_number: "+1234567890",
+        to_number: "+0987654321",
       });
     });
 
@@ -154,13 +135,25 @@ describe("CallService", () => {
       });
     });
 
+    it("should throw error if insufficient credits", async () => {
+      const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+      vi.mocked(CreditService).mockImplementation(() => ({
+        getAllCredits: vi.fn().mockResolvedValue({
+          totalRemainingMonthlyCredits: 2,
+          additionalCredits: 1,
+        }),
+      }));
+
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Insufficient credits to make test call. Need 5 credits, have 3"
+      );
+    });
+
     it("should throw error if no phone number provided", async () => {
       await expect(
         service.createTestCall({
           agentId: "agent-123",
           userId: 1,
-          timeZone: "America/New_York",
-          eventTypeId: 123,
         })
       ).rejects.toThrow("Phone number is required for test call");
     });
@@ -245,11 +238,14 @@ describe("CallService", () => {
 
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       vi.mocked(CreditService).mockImplementation(() => ({
-        hasAvailableCredits: vi.fn().mockResolvedValue(false),
+        getAllCredits: vi.fn().mockResolvedValue({
+          totalRemainingMonthlyCredits: 2,
+          additionalCredits: 1,
+        }),
       }));
 
       await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
-        "Insufficient credits to make test call. Please purchase more credits."
+        "Insufficient credits to make test call. Need 5 credits, have 3"
       );
     });
 
@@ -259,11 +255,14 @@ describe("CallService", () => {
 
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       vi.mocked(CreditService).mockImplementation(() => ({
-        hasAvailableCredits: vi.fn().mockResolvedValue(false),
+        getAllCredits: vi.fn().mockResolvedValue({
+          totalRemainingMonthlyCredits: null,
+          additionalCredits: null,
+        }),
       }));
 
       await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
-        "Insufficient credits to make test call. Please purchase more credits."
+        "Insufficient credits to make test call. Need 5 credits, have 0"
       );
     });
   });

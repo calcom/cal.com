@@ -10,7 +10,6 @@ import {
 } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
-import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import {
   getContentSidForTemplate,
   getContentVariablesForTemplate,
@@ -173,7 +172,11 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
   log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, textMessage);
   if (textMessage.length > 0 && reminderPhone && isNumberVerified) {
     //send WHATSAPP when event is booked/cancelled/rescheduled
-    if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
+    if (
+      triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
+      triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
+      triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
+    ) {
       try {
         await sendSmsOrFallbackEmail({
           twilioData: {

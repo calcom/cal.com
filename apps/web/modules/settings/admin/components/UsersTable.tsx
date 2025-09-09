@@ -1,7 +1,7 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SMSLockState } from "@calcom/prisma/enums";
+import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import type { IconName } from "@calcom/ui/components/icon";

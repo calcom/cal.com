@@ -1,4 +1,3 @@
-import { ensureAIPhoneServiceRegistryInitialized } from "./initializeRegistry";
 import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 import type {
   AIPhoneServiceProvider,
@@ -23,7 +22,7 @@ interface RegistryConfiguration {
  */
 export class AIPhoneServiceRegistry {
   private static factories: Map<string, AIPhoneServiceProviderFactory> = new Map();
-  private static defaultProvider: string = AIPhoneServiceProviderType.RETELL_AI;
+  private static defaultProvider: string | null = null;
   private static initialized = false;
 
   /**
@@ -82,7 +81,7 @@ export class AIPhoneServiceRegistry {
         "No default provider set. Please initialize the registry with a default provider or register at least one provider."
       );
     }
-    return this.createProvider(AIPhoneServiceRegistry.defaultProvider, config);
+    return this.createProvider(this.defaultProvider, config);
   }
 
   static setDefaultProvider(type: string): void {
@@ -93,7 +92,7 @@ export class AIPhoneServiceRegistry {
   }
 
   static getDefaultProvider(): string | null {
-    return AIPhoneServiceRegistry.defaultProvider;
+    return this.defaultProvider;
   }
 
   static getAvailableProviders(): string[] {
@@ -109,12 +108,12 @@ export class AIPhoneServiceRegistry {
    */
   static clearProviders(): void {
     this.factories.clear();
-    this.defaultProvider = AIPhoneServiceProviderType.RETELL_AI;
+    this.defaultProvider = null;
     this.initialized = false;
   }
 
   static isInitialized(): boolean {
-    return AIPhoneServiceRegistry.initialized;
+    return this.initialized;
   }
 }
 
@@ -157,8 +156,12 @@ interface CreateProviderOptions {
 }
 
 export function createAIPhoneServiceProvider(options: CreateProviderOptions = {}): AIPhoneServiceProvider {
-  // Ensure the registry is initialized before creating a provider
-  ensureAIPhoneServiceRegistryInitialized();
+  // Require explicit initialization
+  if (!AIPhoneServiceRegistry.isInitialized()) {
+    throw new Error(
+      "AIPhoneServiceRegistry not initialized. Please call initializeAIPhoneServiceRegistry() or AIPhoneServiceRegistry.initialize() during application startup."
+    );
+  }
 
   const { providerType, config } = options;
 

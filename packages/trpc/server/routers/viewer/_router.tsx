@@ -1,15 +1,14 @@
+import app_Basecamp3 from "@calcom/app-store/basecamp3/trpc-router";
+import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
-import { router, mergeRouters } from "../../trpc";
-import app_Basecamp3 from "../apps/basecamp3/_router";
-import app_RoutingForms from "../apps/routing-forms/_router";
+import { router } from "../../trpc";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
 import { timezonesRouter } from "../publicViewer/timezones/_router";
 import { adminRouter } from "./admin/_router";
-import { aiVoiceAgentRouter } from "./aiVoiceAgent/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
 import { attributesRouter } from "./attributes/_router";
@@ -24,9 +23,9 @@ import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
-import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { highPerfRouter } from "./highPerf/_router";
 import { i18nRouter } from "./i18n/_router";
 import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
@@ -34,7 +33,6 @@ import { oooRouter } from "./ooo/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { permissionsRouter } from "./pbac/_router";
-import { phoneNumberRouter } from "./phoneNumber/_router";
 import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
@@ -54,12 +52,7 @@ export const viewerRouter = router({
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
   credentials: credentialsRouter,
-  eventTypes: mergeRouters(
-    eventTypesRouter,
-    router({
-      heavy: heavyEventTypesRouter,
-    })
-  ),
+  eventTypes: eventTypesRouter,
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
   timezones: timezonesRouter,
@@ -86,10 +79,9 @@ export const viewerRouter = router({
   googleWorkspace: googleWorkspaceRouter,
   admin: adminRouter,
   attributes: attributesRouter,
+  highPerf: highPerfRouter,
   routingForms: routingFormsRouter,
   credits: creditsRouter,
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
-  aiVoiceAgent: aiVoiceAgentRouter,
-  phoneNumber: phoneNumberRouter,
 });

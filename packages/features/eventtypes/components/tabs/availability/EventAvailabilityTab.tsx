@@ -35,7 +35,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
 type AvailabilityTableCustomClassNames = {
   tableContainer?: string;

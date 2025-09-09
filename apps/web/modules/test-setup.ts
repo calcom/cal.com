@@ -18,7 +18,7 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn().mockReturnValue({
     replace: vi.fn(),
   }),
-  usePathname: vi.fn().mockReturnValue("/settings/billing"),
+  usePathname: vi.fn(),
 }));
 
 vi.mock("@calcom/app-store/BookingPageTagManager", () => ({
@@ -35,7 +35,7 @@ vi.mock("@calcom/app-store/utils", () => ({
   getEventTypeAppData: vi.fn(),
 }));
 
-vi.mock("@calcom/features/eventtypes/lib/eventNaming", () => ({
+vi.mock("@calcom/lib/event", () => ({
   getEventName: vi.fn(),
 }));
 

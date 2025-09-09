@@ -1,6 +1,7 @@
 "use client";
 
 // eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "sonner";
@@ -57,7 +58,7 @@ export function WizardLayout({
                   </>
                 )}
               </header>
-              <Steps maxSteps={maxSteps} currentStep={currentStep} disableNavigation />
+              <Steps maxSteps={maxSteps} currentStep={currentStep} nextStep={noop} />
             </div>
             <StepCard>{children}</StepCard>
           </div>

@@ -35,22 +35,6 @@ function BasePhoneInput({
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
 
-  // This is to trigger validation on prefill value changes
-  useEffect(() => {
-    if (!value) return;
-
-    const sanitized = value
-      .trim()
-      .replace(/[^\d+]/g, "")
-      .replace(/^\+?/, "+");
-
-    if (sanitized === "+" || sanitized === "") return;
-
-    if (value !== sanitized) {
-      onChange(sanitized);
-    }
-  }, []);
-
   if (!isPlatform) {
     return (
       <BasePhoneInputWeb
@@ -78,12 +62,12 @@ function BasePhoneInput({
       onlyCountries={onlyCountries}
       disableCountryCode={disableCountryCode}
       inputProps={{
-        name,
+        name: name,
         required: rest.required,
         placeholder: rest.placeholder,
       }}
-      onChange={(val: string) => {
-        onChange(`+${val}`);
+      onChange={(value) => {
+        onChange(`+${value}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -132,12 +116,12 @@ function BasePhoneInputWeb({
       onlyCountries={onlyCountries}
       disableCountryCode={disableCountryCode}
       inputProps={{
-        name,
+        name: name,
         required: rest.required,
         placeholder: rest.placeholder,
       }}
-      onChange={(val: string) => {
-        onChange(`+${val}`);
+      onChange={(value) => {
+        onChange(`+${value}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",

@@ -4,7 +4,6 @@ import { shallow } from "zustand/shallow";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -15,6 +14,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
+import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
 
 export function Header({
@@ -36,10 +36,10 @@ export function Header({
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
-  const [layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
-  const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
-  const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
-  const addToSelectedDate = useBookerStoreContext((state) => state.addToSelectedDate);
+  const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
+  const selectedDateString = useBookerStore((state) => state.selectedDate);
+  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
+  const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const today = dayjs();
   const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;

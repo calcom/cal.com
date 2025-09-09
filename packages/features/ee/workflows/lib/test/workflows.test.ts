@@ -36,6 +36,7 @@ import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";
+import * as sendgridProvider from "../reminders/providers/sendgridProvider";
 
 const workflowSelect = {
   id: true,
@@ -708,6 +709,7 @@ describe("scheduleBookingReminders", () => {
       },
     });
 
+    const allVerified = await prismock.verifiedNumber.findMany();
     await scheduleBookingReminders(
       bookings,
       workflow.steps,
@@ -1059,6 +1061,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 });
 
 describe("Workflow SMTP Emails Feature Flag", () => {
+  vi.spyOn(sendgridProvider, "sendSendgridMail");
   vi.spyOn(emailProvider, "sendOrScheduleWorkflowEmails");
 
   const mockEvt = {
@@ -1094,10 +1097,72 @@ describe("Workflow SMTP Emails Feature Flag", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock SendGrid environment variables
+    process.env.SENDGRID_API_KEY = "test-key";
+    process.env.SENDGRID_EMAIL = "test@example.com";
   });
 
-  test("should use SMTP", async () => {
-    await scheduleEmailReminder(baseArgs);
+  test("should use SMTP when team has workflow-smtp-emails feature", async () => {
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(true);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+    });
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+  });
+
+  test("should use SMTP when user has workflow-smtp-emails feature", async () => {
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(true);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      userId: 123,
+    });
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+  });
+
+  test("should use SendGrid when workflow-smtp-emails feature is not enabled for team", async () => {
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+  });
+
+  test("should use SendGrid when workflow-smtp-emails feature is not enabled for user", async () => {
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      userId: 123,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+  });
+
+  test("should use SMTP when SendGrid is not configured", async () => {
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
+
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
+
+    delete process.env.SENDGRID_API_KEY;
+    delete process.env.SENDGRID_EMAIL;
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+      userId: 456,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
     expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
   });
 });

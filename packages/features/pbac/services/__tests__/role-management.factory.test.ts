@@ -110,15 +110,13 @@ describe("RoleManagementFactory", () => {
       it("should allow role change when user has permission", async () => {
         mockPermissionCheckService.checkPermission.mockResolvedValue(true);
         const manager = await factory.createRoleManager(organizationId);
-        await expect(
-          manager.checkPermissionToChangeRole(userId, organizationId, "org")
-        ).resolves.not.toThrow();
+        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).resolves.not.toThrow();
       });
 
       it("should throw UNAUTHORIZED when user lacks permission", async () => {
         mockPermissionCheckService.checkPermission.mockResolvedValue(false);
         const manager = await factory.createRoleManager(organizationId);
-        await expect(manager.checkPermissionToChangeRole(userId, organizationId, "org")).rejects.toThrow(
+        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(
           new RoleManagementError(
             "You do not have permission to change roles",
             RoleManagementErrorCode.UNAUTHORIZED
@@ -195,15 +193,13 @@ describe("RoleManagementFactory", () => {
           customRoleId: null,
         });
         const manager = await factory.createRoleManager(organizationId);
-        await expect(
-          manager.checkPermissionToChangeRole(userId, organizationId, "org")
-        ).resolves.not.toThrow();
+        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).resolves.not.toThrow();
       });
 
       it("should throw UNAUTHORIZED when user is not owner", async () => {
         vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
         const manager = await factory.createRoleManager(organizationId);
-        await expect(manager.checkPermissionToChangeRole(userId, organizationId, "org")).rejects.toThrow(
+        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(
           new RoleManagementError(
             "Only owners or admin can update roles",
             RoleManagementErrorCode.UNAUTHORIZED

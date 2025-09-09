@@ -1,9 +1,7 @@
 import { ICSFeedCalendarApp } from "@/ee/calendars/calendars.interface";
 import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { RedisService } from "@/modules/redis/redis.service";
 import { BadRequestException, UnauthorizedException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
@@ -15,9 +13,7 @@ import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
 export class IcsFeedService implements ICSFeedCalendarApp {
   constructor(
     private readonly calendarsService: CalendarsService,
-    private readonly calendarsCacheService: CalendarsCacheService,
-    private readonly credentialRepository: CredentialsRepository,
-    private readonly redisService: RedisService
+    private readonly credentialRepository: CredentialsRepository
   ) {}
 
   private logger = new Logger("IcsFeedService");
@@ -62,9 +58,6 @@ export class IcsFeedService implements ICSFeedCalendarApp {
         data.key,
         userId
       );
-
-      await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
-
       return {
         status: SUCCESS_STATUS,
         data: {

@@ -106,7 +106,7 @@ export const Select = <
           ),
         indicatorsContainer: (state) =>
           cx(
-            "flex !items-start justify-center mt-0.5 h-full",
+            "flex items-center justify-center mt-0.5",
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"

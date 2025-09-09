@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
+import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 
@@ -10,7 +11,6 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
-import { stripeInvalidRequestErrorSchema } from "../stripe-error";
 
 function hasName(cause: unknown): cause is { name: string } {
   return !!cause && typeof cause === "object" && "name" in cause;

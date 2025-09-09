@@ -6,7 +6,7 @@ import { type ReactNode, useMemo, useRef, useState } from "react";
 
 import { DataTableSkeleton } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -26,26 +26,46 @@ import {
 } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 import { ChartCard } from "../ChartCard";
 
 interface DownloadButtonProps {
-  selectedPeriod: "perDay" | "perWeek" | "perMonth";
+  teamId?: number;
+  userId?: number;
+  isAll?: boolean;
+  routingFormId?: string;
+  startDate: string;
+  endDate: string;
+  selectedPeriod: string;
   searchQuery?: string;
 }
 
-function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
+function DownloadButton({
+  userId,
+  teamId,
+  isAll,
+  routingFormId,
+  startDate,
+  endDate,
+  selectedPeriod,
+  searchQuery,
+}: DownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
-  const routingParams = useInsightsRoutingParameters();
   const utils = trpc.useContext();
+  const { t } = useLocale();
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent default form submission
 
     try {
       const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
-        ...routingParams,
-        period: selectedPeriod,
+        userId,
+        teamId,
+        startDate,
+        endDate,
+        period: selectedPeriod as "perDay" | "perWeek" | "perMonth",
+        isAll,
+        routingFormId,
         searchQuery: searchQuery || undefined,
       });
 
@@ -74,14 +94,32 @@ function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
 }
 
 interface FormCardProps {
-  selectedPeriod: "perDay" | "perWeek" | "perMonth";
-  onPeriodChange: (value: "perDay" | "perWeek" | "perMonth") => void;
+  selectedPeriod: string;
+  onPeriodChange: (value: string) => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   children: ReactNode;
+  teamId?: number;
+  userId?: number;
+  isAll?: boolean;
+  routingFormId?: string;
+  startDate: string;
+  endDate: string;
 }
 
-function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange, children }: FormCardProps) {
+function FormCard({
+  selectedPeriod,
+  onPeriodChange,
+  searchQuery,
+  onSearchChange,
+  children,
+  teamId,
+  userId,
+  isAll,
+  routingFormId,
+  startDate,
+  endDate,
+}: FormCardProps) {
   const { t } = useLocale();
 
   return (
@@ -97,7 +135,7 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
               ]}
               className="w-fit"
               value={selectedPeriod}
-              onValueChange={(value) => value && onPeriodChange(value as "perDay" | "perWeek" | "perMonth")}
+              onValueChange={(value) => value && onPeriodChange(value)}
             />
             <div className="flex gap-2">
               <div className="w-64">
@@ -109,7 +147,16 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
                   className="w-full"
                 />
               </div>
-              <DownloadButton selectedPeriod={selectedPeriod} searchQuery={searchQuery} />
+              <DownloadButton
+                userId={userId}
+                teamId={teamId}
+                isAll={isAll}
+                routingFormId={routingFormId}
+                startDate={startDate}
+                endDate={endDate}
+                selectedPeriod={selectedPeriod}
+                searchQuery={searchQuery}
+              />
             </div>
           </div>
           {children}
@@ -168,56 +215,87 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
 
 export function RoutedToPerPeriod() {
   const { t } = useLocale();
-  const routingParams = useInsightsRoutingParameters();
-  const [selectedPeriod, setSelectedPeriod] = useState<"perDay" | "perWeek" | "perMonth">("perWeek");
+  const { userId, teamId, startDate, endDate, isAll, routingFormId } = useInsightsParameters();
+  const [selectedPeriod, setSelectedPeriod] = useQueryState("selectedPeriod", {
+    defaultValue: "perWeek",
+  });
   const [searchQuery, setSearchQuery] = useQueryState("search", {
     defaultValue: "",
   });
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
-
-  const { data, isLoading } = trpc.viewer.insights.routedToPerPeriod.useQuery(
-    {
-      ...routingParams,
-      period: selectedPeriod,
-      searchQuery: debouncedSearchQuery || undefined,
-    },
-    {
-      staleTime: 30000,
-      refetchOnWindowFocus: false,
-      trpc: {
-        context: { skipBatch: true },
-      },
+  const { ref: loadMoreRef } = useInViewObserver(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  );
+  });
+
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } =
+    trpc.viewer.insights.routedToPerPeriod.useInfiniteQuery(
+      {
+        userId,
+        teamId,
+        startDate,
+        endDate,
+        period: selectedPeriod as "perDay" | "perWeek" | "perMonth",
+        isAll,
+        routingFormId,
+        searchQuery: searchQuery || undefined,
+        limit: 10,
+      },
+      {
+        getNextPageParam: (lastPage) => {
+          if (!lastPage.users.nextCursor && !lastPage.periodStats.nextCursor) {
+            return undefined;
+          }
+
+          return {
+            userCursor: lastPage.users.nextCursor,
+            periodCursor: lastPage.periodStats.nextCursor,
+          };
+        },
+      }
+    );
 
   const flattenedUsers = useMemo(() => {
-    return data?.users.data || [];
-  }, [data?.users.data]);
+    const userMap = new Map();
+    data?.pages.forEach((page) => {
+      page.users.data.forEach((user) => {
+        if (!userMap.has(user.id)) {
+          userMap.set(user.id, user);
+        }
+      });
+    });
+    return Array.from(userMap.values());
+  }, [data?.pages]);
 
   const uniquePeriods = useMemo(() => {
-    if (!data?.periodStats.data) return [];
+    if (!data?.pages) return [];
 
-    // Get all unique periods
+    // Get all unique periods from all pages
     const periods = new Set<string>();
-    data.periodStats.data.forEach((stat) => {
-      periods.add(stat.period_start.toISOString());
+    data.pages.forEach((page) => {
+      page.periodStats.data.forEach((stat) => {
+        periods.add(stat.period_start.toISOString());
+      });
     });
 
     return Array.from(periods)
       .map((dateStr) => new Date(dateStr))
       .sort((a, b) => a.getTime() - b.getTime());
-  }, [data?.periodStats.data]);
+  }, [data?.pages]);
 
   const processedData = useMemo(() => {
-    if (!data?.periodStats.data) return [];
+    if (!data?.pages) return [];
 
     // Create a map for quick lookup of stats
     const statsMap = new Map<string, number>();
-    data.periodStats.data.forEach((stat) => {
-      const key = `${stat.userId}-${stat.period_start.toISOString()}`;
-      statsMap.set(key, stat.total);
+    data.pages.forEach((page) => {
+      page.periodStats.data.forEach((stat) => {
+        const key = `${stat.userId}-${stat.period_start.toISOString()}`;
+        statsMap.set(key, stat.total);
+      });
     });
 
     return flattenedUsers.map((user) => {
@@ -236,7 +314,7 @@ export function RoutedToPerPeriod() {
         totalBookings: user.totalBookings,
       };
     });
-  }, [data?.periodStats.data, flattenedUsers, uniquePeriods]);
+  }, [data?.pages, flattenedUsers, uniquePeriods]);
 
   if (isLoading) {
     return (
@@ -249,7 +327,13 @@ export function RoutedToPerPeriod() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}>
+          onSearchChange={setSearchQuery}
+          userId={userId}
+          teamId={teamId}
+          isAll={isAll}
+          routingFormId={routingFormId}
+          startDate={startDate}
+          endDate={endDate}>
           <div className="mt-6">
             <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
           </div>
@@ -284,7 +368,13 @@ export function RoutedToPerPeriod() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}>
+          onSearchChange={setSearchQuery}
+          userId={userId}
+          teamId={teamId}
+          isAll={isAll}
+          routingFormId={routingFormId}
+          startDate={startDate}
+          endDate={endDate}>
           <div className="mt-6">
             <div
               className="scrollbar-thin border-subtle relative overflow-auto rounded-md border"
@@ -315,7 +405,10 @@ export function RoutedToPerPeriod() {
                 <TableBody className="relative">
                   {processedData.map((row, index) => {
                     return (
-                      <TableRow key={row.id} className="divide-muted divide-x">
+                      <TableRow
+                        key={row.id}
+                        ref={index === processedData.length - 1 ? loadMoreRef : undefined}
+                        className="divide-muted divide-x">
                         <TableCell className="bg-default w-[200px]">
                           <HoverCard>
                             <HoverCardTrigger asChild>
