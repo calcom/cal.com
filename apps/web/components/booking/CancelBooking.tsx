@@ -172,7 +172,7 @@ export default function CancelBooking(props: Props) {
   const cancellationNoShowFeeWarning = autoChargeNoShowFee();
 
   const hostMissingCancellationReason =
-    props.isHost &&
+    props.isHost && isCancellationReasonRequired &&
     (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
@@ -276,8 +276,8 @@ export default function CancelBooking(props: Props) {
               <Button
                 data-testid="confirm_cancel"
                 disabled={
-                  isCancellationReasonRequired ||
-                  hostMissingCancellationReason ||
+                  (isCancellationReasonRequired && !cancellationReason.trim()) ||
+                  // hostMissingCancellationReason ||
                   cancellationNoShowFeeNotAcknowledged
                 }
                 onClick={async () => {

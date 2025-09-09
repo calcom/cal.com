@@ -32,7 +32,9 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
     name,
   });
   const responsePromise = page.waitForResponse(
-    (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+    (response) =>
+      response.url().includes(`/${user.username}/30-min`) &&
+      response.status() === 200
   );
   await page.goto(`/${user.username}/30-min`);
   await page.content();
@@ -41,17 +43,27 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const document = new JSDOM(ssrResponse).window.document;
 
   const titleText = document.querySelector("title")?.textContent;
-  const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
-  const ogUrl = document.querySelector('meta[property="og:url"]')?.getAttribute("content");
-  const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+  const ogImage = document
+    .querySelector('meta[property="og:image"]')
+    ?.getAttribute("content");
+  const ogUrl = document
+    .querySelector('meta[property="og:url"]')
+    ?.getAttribute("content");
+  const canonicalLink = document
+    .querySelector('link[rel="canonical"]')
+    ?.getAttribute("href");
   expect(titleText).toContain(name);
   expect(ogUrl).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
   await page.waitForSelector('[data-testid="avatar-href"]');
-  const avatarLocators = await page.locator('[data-testid="avatar-href"]').all();
+  const avatarLocators = await page
+    .locator('[data-testid="avatar-href"]')
+    .all();
   expect(avatarLocators.length).toBe(1);
 
   for (const avatarLocator of avatarLocators) {
-    expect(await avatarLocator.getAttribute("href")).toEqual(`${WEBAPP_URL}/${user.username}?redirect=false`);
+    expect(await avatarLocator.getAttribute("href")).toEqual(
+      `${WEBAPP_URL}/${user.username}?redirect=false`
+    );
   }
 
   expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
@@ -105,7 +117,11 @@ test.describe("free user", () => {
     await page.goto(`/${free.username}`);
   });
 
-  test("cannot book same slot multiple times", async ({ page, users, emails }) => {
+  test("cannot book same slot multiple times", async ({
+    page,
+    users,
+    emails,
+  }) => {
     const [user] = users.get();
 
     const bookerObj = {
@@ -156,7 +172,10 @@ test.describe("pro user", () => {
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
     // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await page
+      .locator('[data-testid="booking-actions-dropdown"]')
+      .nth(0)
+      .click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
       const bookingId = url.searchParams.get("rescheduleUid");
@@ -177,17 +196,31 @@ test.describe("pro user", () => {
   }) => {
     const [pro] = users.get();
     const [eventType] = pro.eventTypes;
-    const bookingFixture = await bookings.create(pro.id, pro.username, eventType.id);
+    const bookingFixture = await bookings.create(
+      pro.id,
+      pro.username,
+      eventType.id
+    );
 
     // open the wrong eventType (rescheduleUid created for /30min event)
-    await page.goto(`${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
+    await page.goto(
+      `${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`
+    );
 
-    await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
+    await expect(page).toHaveURL(
+      new RegExp(`${pro.username}/${eventType.slug}`)
+    );
   });
 
-  test("it returns a 404 when a requested event type does not exist", async ({ page, users }) => {
+  test("it returns a 404 when a requested event type does not exist", async ({
+    page,
+    users,
+  }) => {
     const [pro] = users.get();
-    const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
+    const unexistingPageUrl = new URL(
+      `${pro.username}/invalid-event-type`,
+      WEBAPP_URL
+    );
     const response = await page.goto(unexistingPageUrl.href);
     expect(response?.status()).toBe(404);
   });
@@ -199,15 +232,22 @@ test.describe("pro user", () => {
     // Because it tests the entire booking flow + the cancellation + rebooking
     test.setTimeout(testInfo.timeout * 3);
     await bookFirstEvent(page);
-    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
-    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+    await expect(
+      page.locator(`[data-testid="attendee-email-${testEmail}"]`)
+    ).toHaveText(testEmail);
+    await expect(
+      page.locator(`[data-testid="attendee-name-${testName}"]`)
+    ).toHaveText(testName);
 
     const [pro] = users.get();
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
     // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await page
+      .locator('[data-testid="booking-actions-dropdown"]')
+      .nth(0)
+      .click();
     // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
@@ -217,11 +257,17 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+    const cancelledHeadline = page.locator(
+      '[data-testid="cancelled-headline"]'
+    );
     await expect(cancelledHeadline).toBeVisible();
 
-    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
-    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+    await expect(
+      page.locator(`[data-testid="attendee-email-${testEmail}"]`)
+    ).toHaveText(testEmail);
+    await expect(
+      page.locator(`[data-testid="attendee-name-${testName}"]`)
+    ).toHaveText(testName);
 
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
@@ -234,15 +280,22 @@ test.describe("pro user", () => {
     // Because it tests the entire booking flow + the cancellation + rebooking
     test.setTimeout(testInfo.timeout * 3);
     await bookFirstEvent(page);
-    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
-    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+    await expect(
+      page.locator(`[data-testid="attendee-email-${testEmail}"]`)
+    ).toHaveText(testEmail);
+    await expect(
+      page.locator(`[data-testid="attendee-name-${testName}"]`)
+    ).toHaveText(testName);
 
     const [pro] = users.get();
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
     // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await page
+      .locator('[data-testid="booking-actions-dropdown"]')
+      .nth(0)
+      .click();
     // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
@@ -251,9 +304,13 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+    const cancelledHeadline = page.locator(
+      '[data-testid="cancelled-headline"]'
+    );
     await expect(cancelledHeadline).toBeVisible();
-    const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
+    const bookingCancelledId = new URL(page.url()).pathname.split(
+      "/booking/"
+    )[1];
 
     const { slug: eventSlug } = await pro.getFirstEventAsOwner();
 
@@ -274,14 +331,21 @@ test.describe("pro user", () => {
     await page.goto("/bookings/unconfirmed");
     await Promise.all([
       page.click('[data-testid="confirm"]'),
-      page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm")),
+      page.waitForResponse((response) =>
+        response.url().includes("/api/trpc/bookings/confirm")
+      ),
     ]);
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
 
-  test("can book an unconfirmed event multiple times", async ({ page, users }) => {
-    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+  test("can book an unconfirmed event multiple times", async ({
+    page,
+    users,
+  }) => {
+    await page
+      .locator('[data-testid="event-type-link"]:has-text("Opt in")')
+      .click();
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     const pageUrl = page.url();
@@ -299,7 +363,9 @@ test.describe("pro user", () => {
     page,
     users,
   }) => {
-    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+    await page
+      .locator('[data-testid="event-type-link"]:has-text("Opt in")')
+      .click();
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     const pageUrl = page.url();
@@ -330,12 +396,18 @@ test.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     const promises = additionalGuests.map(async (email) => {
-      await expect(page.locator(`[data-testid="attendee-email-${email}"]`)).toHaveText(email);
+      await expect(
+        page.locator(`[data-testid="attendee-email-${email}"]`)
+      ).toHaveText(email);
     });
     await Promise.all(promises);
   });
 
-  test("Time slots should be reserved when selected", async ({ context, page, browser }) => {
+  test("Time slots should be reserved when selected", async ({
+    context,
+    page,
+    browser,
+  }) => {
     const initialUrl = page.url();
     await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -343,16 +415,29 @@ test.describe("pro user", () => {
     const pageTwoInNewContext = await newContext.newPage();
     await pageTwoInNewContext.goto(initialUrl);
     await pageTwoInNewContext.waitForURL(initialUrl);
-    await pageTwoInNewContext.locator('[data-testid="event-type-link"]').first().click();
+    await pageTwoInNewContext
+      .locator('[data-testid="event-type-link"]')
+      .first()
+      .click();
 
-    await pageTwoInNewContext.locator('[data-testid="incrementMonth"]').waitFor();
+    await pageTwoInNewContext
+      .locator('[data-testid="incrementMonth"]')
+      .waitFor();
     await pageTwoInNewContext.click('[data-testid="incrementMonth"]');
-    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-    await pageTwoInNewContext.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+    await pageTwoInNewContext
+      .locator('[data-testid="day"][data-disabled="false"]')
+      .nth(0)
+      .waitFor();
+    await pageTwoInNewContext
+      .locator('[data-testid="day"][data-disabled="false"]')
+      .nth(0)
+      .click();
 
     // 9:30 should be the first available time slot
     await pageTwoInNewContext.locator('[data-testid="time"]').nth(0).waitFor();
-    const firstSlotAvailable = pageTwoInNewContext.locator('[data-testid="time"]').nth(0);
+    const firstSlotAvailable = pageTwoInNewContext
+      .locator('[data-testid="time"]')
+      .nth(0);
     // Find text inside the element
     const firstSlotAvailableText = await firstSlotAvailable.innerText();
     expect(firstSlotAvailableText).toContain("9:30");
@@ -364,7 +449,9 @@ test.describe("pro user", () => {
   }) => {
     const initialUrl = page.url();
     await page.waitForSelector('[data-testid="event-type-link"]');
-    const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
+    const eventTypeLink = page
+      .locator('[data-testid="event-type-link"]')
+      .first();
     await eventTypeLink.click();
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -373,7 +460,9 @@ test.describe("pro user", () => {
     await pageTwo.waitForURL(initialUrl);
 
     await pageTwo.waitForSelector('[data-testid="event-type-link"]');
-    const eventTypeLinkTwo = pageTwo.locator('[data-testid="event-type-link"]').first();
+    const eventTypeLinkTwo = pageTwo
+      .locator('[data-testid="event-type-link"]')
+      .first();
     await eventTypeLinkTwo.waitFor();
     await eventTypeLinkTwo.click();
 
@@ -382,8 +471,14 @@ test.describe("pro user", () => {
 
     await pageTwo.locator('[data-testid="incrementMonth"]').waitFor();
     await pageTwo.click('[data-testid="incrementMonth"]');
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-    await pageTwo.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+    await pageTwo
+      .locator('[data-testid="day"][data-disabled="false"]')
+      .nth(0)
+      .waitFor();
+    await pageTwo
+      .locator('[data-testid="day"][data-disabled="false"]')
+      .nth(0)
+      .click();
 
     await pageTwo.locator('[data-testid="time"]').nth(0).waitFor();
     const firstSlotAvailable = pageTwo.locator('[data-testid="time"]').nth(0);
@@ -402,7 +497,9 @@ test.describe("prefill", () => {
 
     await test.step("from session", async () => {
       await selectFirstAvailableTimeSlotNextMonth(page);
-      await expect(page.locator('[name="name"]')).toHaveValue(prefill.name || "");
+      await expect(page.locator('[name="name"]')).toHaveValue(
+        prefill.name || ""
+      );
       await expect(page.locator('[name="email"]')).toHaveValue(prefill.email);
     });
 
@@ -430,7 +527,9 @@ test.describe("prefill", () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
     await expect(page.locator('[name="name"]')).toHaveValue("John Doe");
-    await expect(page.locator('[name="email"]')).toHaveValue("john@example.com");
+    await expect(page.locator('[name="email"]')).toHaveValue(
+      "john@example.com"
+    );
     await expect(page.locator('[name="notes"]')).toHaveValue("Test notes");
   });
 
@@ -450,7 +549,9 @@ test.describe("prefill", () => {
     });
   });
 
-  test("skip confirm step if all fields are prefilled from query params", async ({ page }) => {
+  test("skip confirm step if all fields are prefilled from query params", async ({
+    page,
+  }) => {
     await page.goto("/pro/30min");
     const url = new URL(page.url());
     url.searchParams.set("name", testName);
@@ -461,7 +562,9 @@ test.describe("prefill", () => {
     await page.goto(url.toString());
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await expect(page.locator('[data-testid="skip-confirm-book-button"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="skip-confirm-book-button"]')
+    ).toBeVisible();
     await page.click('[data-testid="skip-confirm-book-button"]');
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -526,7 +629,15 @@ test.describe("Booking round robin event", () => {
       end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
     };
 
-    const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
+    const schedule: Schedule = [
+      [],
+      [dateRanges],
+      [dateRanges],
+      [dateRanges],
+      [dateRanges],
+      [dateRanges],
+      [],
+    ];
 
     const testUser = await users.create(
       { schedule },
@@ -634,12 +745,16 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     bookingId = pathSegments[pathSegments.length - 1];
   });
 
-  test("Reschedule and cancel buttons should be hidden on success page", async ({ page }) => {
+  test("Reschedule and cancel buttons should be hidden on success page", async ({
+    page,
+  }) => {
     await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
     await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 
-  test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
+  test("Direct access to reschedule/{bookingId} should redirect to success page", async ({
+    page,
+  }) => {
     await page.goto(`/reschedule/${bookingId}`);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -647,15 +762,21 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
   });
 
-  test("Using rescheduleUid query parameter should redirect to success page", async ({ page }) => {
-    await page.goto(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
+  test("Using rescheduleUid query parameter should redirect to success page", async ({
+    page,
+  }) => {
+    await page.goto(
+      `/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`
+    );
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     await page.waitForURL((url) => url.pathname === `/booking/${bookingId}`);
   });
 
-  test("Should prevent cancellation and show an error message", async ({ page }) => {
+  test("Should prevent cancellation and show an error message", async ({
+    page,
+  }) => {
     const csrfTokenResponse = await page.request.get("/api/csrf");
     const { csrfToken } = await csrfTokenResponse.json();
     const response = await page.request.post("/api/cancel", {
@@ -670,10 +791,15 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
 
     expect(response.status()).toBe(400);
     const responseBody = await response.json();
-    expect(responseBody.message).toBe("This event type does not allow cancellations");
+    expect(responseBody.message).toBe(
+      "This event type does not allow cancellations"
+    );
   });
 });
-test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({ page, users }) => {
+test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({
+  page,
+  users,
+}) => {
   const user = await users.create({
     name: `Test-user-${randomString(4)}`,
     eventTypes: [
@@ -712,7 +838,12 @@ test.describe("GTM container", () => {
     await users.create();
   });
 
-  test("global GTM should not be loaded on private booking link", async ({ page, users, emails, prisma }) => {
+  test("global GTM should not be loaded on private booking link", async ({
+    page,
+    users,
+    emails,
+    prisma,
+  }) => {
     const [user] = users.get();
     const eventType = await user.getFirstEventAsOwner();
 
@@ -735,9 +866,12 @@ test.describe("GTM container", () => {
     });
 
     const getScheduleRespPromise = page.waitForResponse(
-      (response) => response.url().includes("getSchedule") && response.status() === 200
+      (response) =>
+        response.url().includes("getSchedule") && response.status() === 200
     );
-    await page.goto(`/d/${eventWithPrivateLink.hashedLink[0]?.link}/${eventWithPrivateLink.slug}`);
+    await page.goto(
+      `/d/${eventWithPrivateLink.hashedLink[0]?.link}/${eventWithPrivateLink.slug}`
+    );
     await page.waitForLoadState("domcontentloaded");
     await getScheduleRespPromise;
 
@@ -745,15 +879,23 @@ test.describe("GTM container", () => {
     await expect(injectedScript).not.toBeAttached();
   });
 
-  test("global GTM should be loaded on non-booking pages", async ({ page, users }) => {
-    test.skip(!process.env.NEXT_PUBLIC_BODY_SCRIPTS, "Skipping test as NEXT_PUBLIC_BODY_SCRIPTS is not set");
+  test("global GTM should be loaded on non-booking pages", async ({
+    page,
+    users,
+  }) => {
+    test.skip(
+      !process.env.NEXT_PUBLIC_BODY_SCRIPTS,
+      "Skipping test as NEXT_PUBLIC_BODY_SCRIPTS is not set"
+    );
 
     const [user] = users.get();
     await user.apiLogin();
 
     // Go to /insights page and wait for one of the common API call to complete
     const eventsByStatusRespPromise = page.waitForResponse(
-      (response) => response.url().includes("getEventTypesFromGroup") && response.status() === 200
+      (response) =>
+        response.url().includes("getEventTypesFromGroup") &&
+        response.status() === 200
     );
     await page.goto(`/insights`);
     await page.waitForLoadState("domcontentloaded");
@@ -767,37 +909,83 @@ test.describe("GTM container", () => {
   });
 });
 
-
 test.describe("Team cancellation reason settings", () => {
   // Test data constants
-  const TEST_ATTENDEE = { name: "Test Attendee", email: "attendee@example.com" };
+  const TEST_ATTENDEE = {
+    name: "Test Attendee",
+    email: "attendee@example.com",
+  };
   const TEAMMATE_CONFIG = [{ name: "team-member", username: "team-member" }];
 
-  // Setup helper for creating team with event
-  const createTeamAndBookEvent = async (users: any, username: string, name: string) => {
-    const teamEventUser = await users.create(
-      { username, name },
-      { hasTeam: true, teamEventLength: 30, teammates: TEAMMATE_CONFIG }
+  // Shared test data
+  let teamId: number;
+  let bookingUid: string;
+  let teamOwner: any;
+  let attendeeUser: any;
+
+  // Create fresh test data for each test
+  test.beforeEach(async ({ users, prisma }) => {
+    // Create team owner and attendee
+    teamOwner = await users.create(
+      { username: "team-owner", name: "Team Owner" },
+      { hasTeam: true, teammates: TEAMMATE_CONFIG }
     );
-    return { teamEventUser, team: (await teamEventUser.getFirstTeamMembership()).team };
-  };
+
+    attendeeUser = await users.create({
+      name: TEST_ATTENDEE.name,
+      email: TEST_ATTENDEE.email,
+    });
+
+    const { team } = await teamOwner.getFirstTeamMembership();
+    teamId = team.id;
+
+    // Get the team's event type (not personal event type)
+    const teamEventType = await prisma.eventType.findFirst({
+      where: {
+        teamId: teamId,
+      },
+    });
+
+    if (!teamEventType) {
+      throw new Error("No team event type found");
+    }
+
+    // Create booking directly in database
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // tomorrow
+    const endDate = new Date(futureDate.getTime() + 30 * 60 * 1000); // 30 min later
+
+    const booking = await prisma.booking.create({
+      data: {
+        uid: `test-booking-${Date.now()}`,
+        title: "Test Team Meeting",
+        startTime: futureDate,
+        endTime: endDate,
+        status: "ACCEPTED",
+        user: { connect: { id: teamOwner.id } },
+        eventType: { connect: { id: teamEventType.id } },
+        attendees: {
+          create: [
+            {
+              email: attendeeUser.email,
+              name: attendeeUser.name,
+              timeZone: "America/New_York",
+            },
+          ],
+        },
+      },
+    });
+
+    bookingUid = booking.uid;
+  });
 
   test.describe("Settings Management", () => {
     test("Team admin can change cancellation reason settings via dropdown", async ({
       page,
-      users,
       prisma,
     }) => {
-      // Setup: Create team owner
-      const teamOwner = await users.create(
-        { username: "team-owner", name: "Team Owner" },
-        { hasTeam: true, teammates: TEAMMATE_CONFIG }
-      );
-      const { team } = await teamOwner.getFirstTeamMembership();
-
       // Verify: Initial database state (host=true, attendee=false by default)
       const initialTeam = await prisma.team.findUnique({
-        where: { id: team.id },
+        where: { id: teamId },
         select: {
           mandatoryCancellationReasonForHost: true,
           mandatoryCancellationReasonForAttendee: true,
@@ -808,18 +996,22 @@ test.describe("Team cancellation reason settings", () => {
 
       // Action: Navigate to team settings
       await teamOwner.apiLogin();
-      await page.goto(`/settings/teams/${team.id}/settings`);
+      await page.goto(`/settings/teams/${teamId}/settings`);
 
       // Action: Change to "Mandatory for both"
-      await page.locator('[data-testid="cancellation-reason-dropdown"]').click();
+      await page
+        .locator('[data-testid="cancellation-reason-dropdown"]')
+        .click();
       await Promise.all([
         page.locator('text="Mandatory for both hosts and attendees"').click(),
-        page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
+        page.waitForResponse((res) =>
+          res.url().includes("/api/trpc/teams/update")
+        ),
       ]);
 
       // Verify: Database was updated correctly (host=true, attendee=true)
       const updatedTeam = await prisma.team.findUnique({
-        where: { id: team.id },
+        where: { id: teamId },
         select: {
           mandatoryCancellationReasonForHost: true,
           mandatoryCancellationReasonForAttendee: true,
@@ -831,274 +1023,206 @@ test.describe("Team cancellation reason settings", () => {
   });
 
   test.describe("Host Cancellation Flow", () => {
-    test("Host cancellation requires reason when setting is enabled", async ({ page, users, prisma }) => {
-      // Setup: Create team with event
-      const { teamEventUser, team } = await createTeamAndBookEvent(
-        users,
-        "team-host-req",
-        "Team Host Required"
-      );
-
+    test("Host cancellation requires reason when setting is enabled", async ({
+      page,
+      prisma,
+    }) => {
       // Setup: Configure host cancellation as required
       await prisma.team.update({
-        where: { id: team.id },
+        where: { id: teamId },
         data: { mandatoryCancellationReasonForHost: true },
       });
 
-      // Action: Book event
-      await page.goto(`/team/${team.slug}`);
-      await page.click('[data-testid="event-type-link"]');
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await bookTimeSlot(page, TEST_ATTENDEE);
-
       // Action: Host initiates cancellation
-      await teamEventUser.apiLogin();
-      await page.goto("/bookings/upcoming");
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await teamOwner.apiLogin();
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
       await page.locator('[data-testid="cancel"]').click();
 
       // Verify: Cancellation reason is required
-      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(
+        page.locator('label:has-text("Reason for cancellation")')
+      ).toBeVisible();
       await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+      await expect(
+        page.locator('[data-testid="confirm_cancel"]')
+      ).toBeDisabled();
     });
 
     test("Host cancellation allows optional reason when setting is disabled", async ({
       page,
-      users,
       prisma,
     }) => {
-      // Setup: Create team with event
-      const { teamEventUser, team } = await createTeamAndBookEvent(
-        users,
-        "team-host-opt",
-        "Team Host Optional"
-      );
-
       // Setup: Configure host cancellation as optional
       await prisma.team.update({
-        where: { id: team.id },
+        where: { id: teamId },
         data: { mandatoryCancellationReasonForHost: false },
       });
 
-      // Action: Book event
-      await page.goto(`/team/${team.slug}`);
-      await page.click('[data-testid="event-type-link"]');
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await bookTimeSlot(page, TEST_ATTENDEE);
-
       // Action: Host initiates cancellation
-      await teamEventUser.apiLogin();
-      await page.goto("/bookings/upcoming");
+      await teamOwner.apiLogin();
+      await page.goto(`/booking/${bookingUid}`);
       await page.waitForLoadState("domcontentloaded");
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).waitFor({ state: "visible" });
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
       await page.locator('[data-testid="cancel"]').click();
 
       // Verify: Cancellation reason is optional
-      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+      await expect(
+        page.locator('label:has-text("Reason for cancellation (optional)")')
+      ).toBeVisible();
+      await expect(
+        page.locator('[data-testid="confirm_cancel"]')
+      ).toBeEnabled();
     });
   });
 
   test.describe("Attendee Cancellation Flow", () => {
-    test("Attendee cancellation requires reason when setting is enabled", async ({ page, users, prisma }) => {
-      // Setup: Create team with event
-      const { teamEventUser, team } = await createTeamAndBookEvent(
-        users,
-        "team-attendee-req",
-        "Team Attendee Required"
-      );
-
+    test("Attendee cancellation requires reason when setting is enabled", async ({
+      page,
+      prisma,
+    }) => {
       // Setup: Configure attendee cancellation as required
       await prisma.team.update({
-        where: { id: team.id },
+        where: { id: teamId },
         data: { mandatoryCancellationReasonForAttendee: true },
       });
 
-      // Action: Book event
-      await page.goto(`/team/${team.slug}`);
-      await page.click('[data-testid="event-type-link"]');
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await bookTimeSlot(page, TEST_ATTENDEE);
-
-      // Wait for success page and extract clean booking URL
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
-
-      const bookingUrl = page.url();
-      const url = new URL(bookingUrl);
-      const cleanBookingUrl = `${url.origin}${url.pathname}`;
-
-      // Action: Attendee initiates cancellation
-      await page.goto(`${cleanBookingUrl}?cancel=true`);
+      // Action: Attendee initiates cancellation (no login needed for attendees)
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
 
       // Verify: Cancellation reason is required
-      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(
+        page.locator('label:has-text("Reason for cancellation")')
+      ).toBeVisible();
       await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+      await expect(
+        page.locator('[data-testid="confirm_cancel"]')
+      ).toBeDisabled();
     });
 
     test("Attendee cancellation allows optional reason when setting is disabled", async ({
       page,
-      users,
       prisma,
     }) => {
-      // Setup: Create team with event
-      const { teamEventUser, team } = await createTeamAndBookEvent(
-        users,
-        "team-attendee-opt",
-        "Team Attendee Optional"
-      );
-
       // Setup: Configure attendee cancellation as optional
       await prisma.team.update({
-        where: { id: team.id },
+        where: { id: teamId },
         data: { mandatoryCancellationReasonForAttendee: false },
       });
 
-      // Action: Book event
-      await page.goto(`/team/${team.slug}`);
-      await page.click('[data-testid="event-type-link"]');
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await bookTimeSlot(page, TEST_ATTENDEE);
-
-      // Wait for success page and extract clean booking URL
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
-
-      const bookingUrl = page.url();
-      const url = new URL(bookingUrl);
-      const cleanBookingUrl = `${url.origin}${url.pathname}`;
-
-      // Action: Attendee initiates cancellation
-      await page.goto(`${cleanBookingUrl}?cancel=true`);
+      // Action: Attendee initiates cancellation (no login needed for attendees)
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
 
       // Verify: Cancellation reason is optional
-      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+      await expect(
+        page.locator('label:has-text("Reason for cancellation (optional)")')
+      ).toBeVisible();
+      await expect(
+        page.locator('[data-testid="confirm_cancel"]')
+      ).toBeEnabled();
     });
   });
 
   test.describe("Combined Scenarios", () => {
     test("Both host and attendee require cancellation reason when both settings enabled", async ({
       page,
-      users,
       prisma,
     }) => {
-      // Setup: Create team with event
-      const { teamEventUser, team } = await createTeamAndBookEvent(
-        users,
-        "team-both-req",
-        "Team Both Required"
-      );
-
       // Setup: Configure both cancellation reasons as required
       await prisma.team.update({
-        where: { id: team.id },
+        where: { id: teamId },
         data: {
           mandatoryCancellationReasonForHost: true,
           mandatoryCancellationReasonForAttendee: true,
         },
       });
 
-      // Action: Book event
-      await page.goto(`/team/${team.slug}`);
-      await page.click('[data-testid="event-type-link"]');
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await bookTimeSlot(page, TEST_ATTENDEE);
-
-      // Wait for success page and extract clean booking URL
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
-
-      const bookingUrl = page.url();
-      const url = new URL(bookingUrl);
-      const cleanBookingUrl = `${url.origin}${url.pathname}`;
-
       // Test: Attendee cancellation (should be required)
-      await page.goto(`${cleanBookingUrl}?cancel=true`);
-      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
-      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
-
-      // Navigate back to test host cancellation
-      await page.goBack();
-
-      // Test: Host cancellation (should be required)
-      await teamEventUser.apiLogin();
-      await page.goto("/bookings/upcoming");
+      await page.goto(`/booking/${bookingUid}`);
       await page.waitForLoadState("domcontentloaded");
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).waitFor({ state: "visible" });
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
       await page.locator('[data-testid="cancel"]').click();
+      await expect(
+        page.locator('label:has-text("Reason for cancellation")')
+      ).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(
+        page.locator('[data-testid="confirm_cancel"]')
+      ).toBeDisabled();
+
+      // Test: Host cancellation (should be required) - using new page instance
+      const hostPage = await page.context().newPage();
+      await teamOwner.apiLogin();
+      await hostPage.goto(`/booking/${bookingUid}`);
+      await hostPage.waitForLoadState("domcontentloaded");
+      await hostPage.locator('[data-testid="cancel"]').click();
 
       // Verify: Cancellation reason is required
-      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
-      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+      await expect(
+        hostPage.locator('label:has-text("Reason for cancellation")')
+      ).toBeVisible();
+      await expect(
+        hostPage.locator('label:has-text("(optional)")')
+      ).toBeHidden();
+      await expect(
+        hostPage.locator('[data-testid="confirm_cancel"]')
+      ).toBeDisabled();
+
+      await hostPage.close();
     });
 
     test("Both host and attendee have optional cancellation reason when both settings disabled", async ({
       page,
-      users,
       prisma,
     }) => {
-      // Setup: Create team with event
-      const { teamEventUser, team } = await createTeamAndBookEvent(
-        users,
-        "team-both-opt",
-        "Team Both Optional"
-      );
-
       // Setup: Configure both cancellation reasons as optional
       await prisma.team.update({
-        where: { id: team.id },
+        where: { id: teamId },
         data: {
           mandatoryCancellationReasonForHost: false,
           mandatoryCancellationReasonForAttendee: false,
         },
       });
 
-      // Action: Book event
-      await page.goto(`/team/${team.slug}`);
-      await page.click('[data-testid="event-type-link"]');
-      await selectFirstAvailableTimeSlotNextMonth(page);
-      await bookTimeSlot(page, TEST_ATTENDEE);
-
-      // Wait for success page and extract clean booking URL
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
-
-      const bookingUrl = page.url();
-      const url = new URL(bookingUrl);
-      const cleanBookingUrl = `${url.origin}${url.pathname}`;
-
       // Test: Attendee cancellation (should be optional)
-      await page.goto(`${cleanBookingUrl}?cancel=true`);
-      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
-
-      // Navigate back to test host cancellation
-      await page.goBack();
-
-      // Test: Host cancellation (should be optional)
-      await teamEventUser.apiLogin();
-      await page.goto("/bookings/upcoming");
+      await page.goto(`/booking/${bookingUid}`);
       await page.waitForLoadState("domcontentloaded");
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).waitFor({ state: "visible" });
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
       await page.locator('[data-testid="cancel"]').click();
+      await expect(
+        page.locator('label:has-text("Reason for cancellation (optional)")')
+      ).toBeVisible();
+      await expect(
+        page.locator('[data-testid="confirm_cancel"]')
+      ).toBeEnabled();
+
+      // Test: Host cancellation (should be optional) - using new page instance
+      const hostPage = await page.context().newPage();
+      await teamOwner.apiLogin();
+      await hostPage.goto(`/booking/${bookingUid}`);
+      await hostPage.waitForLoadState("domcontentloaded");
+      await hostPage.locator('[data-testid="cancel"]').click();
 
       // Verify: Cancellation reason is optional
-      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
-      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+      await expect(
+        hostPage.locator('label:has-text("Reason for cancellation (optional)")')
+      ).toBeVisible();
+      await expect(
+        hostPage.locator('[data-testid="confirm_cancel"]')
+      ).toBeEnabled();
+
+      await hostPage.close();
     });
   });
 });
 
 test.describe("Past booking cancellation", () => {
-  test("Cancel button should be hidden for past bookings", async ({ page, users, bookings }) => {
+  test("Cancel button should be hidden for past bookings", async ({
+    page,
+    users,
+    bookings,
+  }) => {
     const user = await users.create({
       name: "Test User",
     });
@@ -1109,15 +1233,23 @@ test.describe("Past booking cancellation", () => {
     pastDate.setDate(pastDate.getDate() - 1);
     const endDate = new Date(pastDate.getTime() + 30 * 60 * 1000);
 
-    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id, {
-      title: "Past Meeting",
-      startTime: pastDate,
-      endTime: endDate,
-      status: "ACCEPTED",
-    });
+    const booking = await bookings.create(
+      user.id,
+      user.username,
+      user.eventTypes[0].id,
+      {
+        title: "Past Meeting",
+        startTime: pastDate,
+        endTime: endDate,
+        status: "ACCEPTED",
+      }
+    );
 
     await page.goto("/bookings/past");
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await page
+      .locator('[data-testid="booking-actions-dropdown"]')
+      .nth(0)
+      .click();
     await expect(page.locator('[data-testid="cancel"]')).toBeDisabled();
 
     await page.goto(`/booking/${booking.uid}`);
