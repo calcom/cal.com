@@ -124,6 +124,7 @@ export class OAuthClientRepository {
       where: {
         organizationId,
       },
+      select: { id: true },
     });
   }
 
