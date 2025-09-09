@@ -167,7 +167,6 @@ export async function _onFormSubmission(
   };
 
   const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
-
   const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
 
   const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {

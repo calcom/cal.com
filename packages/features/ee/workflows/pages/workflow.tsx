@@ -408,12 +408,12 @@ function WorkflowPage({
                     {workflow && workflow.name ? workflow.name : "untitled"}
                   </div>
                   {workflow && workflow.team && (
-                    <Badge className="ml-4 mt-1" variant="gray">
+                    <Badge className="mt-1 ml-4" variant="gray">
                       {workflow.team.name}
                     </Badge>
                   )}
                   {readOnly && (
-                    <Badge className="ml-4 mt-1" variant="gray">
+                    <Badge className="mt-1 ml-4" variant="gray">
                       {t("readonly")}
                     </Badge>
                   )}
