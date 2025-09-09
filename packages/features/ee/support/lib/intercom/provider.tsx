@@ -1,3 +1,4 @@
+"use client";
 import { usePathname } from "next/navigation";
 import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
