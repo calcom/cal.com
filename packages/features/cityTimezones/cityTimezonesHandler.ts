@@ -18,7 +18,13 @@ export async function cityTimezonesHandler(): Promise<TimezoneCityRow[]> {
   const topByName: Record<string, TimezoneCityRow> = {};
 
   for (const raw of allCities) {
-    const { city, timezone } = raw;
+    let { city, timezone } = raw;
+
+    // Replace Londonberry with London
+    if (city === "Londonderry" || city === "London") {
+      city = "London";
+      timezone = "Europe/London";
+    }
 
     const candidate: TimezoneCityRow = { city, timezone, pop: raw.pop };
     const prev = topByName[city];
