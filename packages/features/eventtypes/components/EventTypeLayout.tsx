@@ -276,7 +276,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense fallback={<Icon name="loader" />}>
+      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
