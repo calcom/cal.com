@@ -87,7 +87,6 @@ export const getAIAgentCallPhoneNumberSource = ({
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
-  isOrgTeamEvent = false,
   disableBookingTitle,
   customInputs,
   metadata,
@@ -95,7 +94,6 @@ export const getBookingFieldsWithSystemFields = ({
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
-  isOrgTeamEvent?: boolean;
   disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
@@ -110,7 +108,6 @@ export const getBookingFieldsWithSystemFields = ({
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
-    isOrgTeamEvent,
     disableBookingTitle,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
@@ -121,7 +118,6 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
-  isOrgTeamEvent,
   disableBookingTitle,
   additionalNotesRequired,
   customInputs,
@@ -129,7 +125,6 @@ export const ensureBookingInputsHaveSystemFields = ({
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
-  isOrgTeamEvent: boolean;
   disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
