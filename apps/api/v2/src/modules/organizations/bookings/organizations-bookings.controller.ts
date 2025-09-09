@@ -3,7 +3,6 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
-  OPTIONAL_API_KEY_HEADER,
   OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
@@ -22,7 +21,6 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   GetBookingsCountOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
-  GetOrganizationsBookingsCountInput,
   GetOrganizationsBookingsInput,
   GetOrganizationsBookingsStatisticsInput,
   GetOrganizationsBookingsStatisticsOutput_2024_08_13,
@@ -74,7 +72,7 @@ export class OrganizationsBookingsController {
   @PlatformPlan("ESSENTIALS")
   @HttpCode(HttpStatus.OK)
   async getAllOrgTeamBookingsCount(
-    @Query() queryParams: GetOrganizationsBookingsCountInput,
+    @Query() queryParams: GetOrganizationsBookingsInput,
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() user: UserWithProfile
   ): Promise<GetBookingsCountOutput_2024_08_13> {
