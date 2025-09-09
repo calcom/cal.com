@@ -868,8 +868,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
             expect(stats.cancelled).toEqual(0);
             expect(stats.pending).toEqual(0);
             expect(stats.noShow).toEqual(0);
-            expect(typeof stats.averageRating).toBe("number");
-            expect(typeof stats.csatScore).toBe("number");
+            expect(stats.averageRating).toEqual(0);
+            expect(stats.csatScore).toEqual(0);
           });
       });
 
@@ -887,8 +887,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
             const stats = response.body.data;
             expect(stats.created).toEqual(2);
             expect(stats.accepted).toEqual(2);
-            expect(typeof stats.averageRating).toBe("number");
-            expect(typeof stats.csatScore).toBe("number");
+            expect(stats.averageRating).toEqual(0);
+            expect(stats.csatScore).toEqual(0);
           });
       });
 
@@ -906,8 +906,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
             const stats = response.body.data;
             expect(stats.created).toEqual(1);
             expect(stats.accepted).toEqual(1);
-            expect(typeof stats.averageRating).toBe("number");
-            expect(typeof stats.csatScore).toBe("number");
+            expect(stats.averageRating).toEqual(0);
+            expect(stats.csatScore).toEqual(0);
           });
       });
 
