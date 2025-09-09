@@ -64,8 +64,12 @@ export class MicrosoftCalendarSubscriptionAdapter implements ICalendarSubscripti
 
     // For regular webhook notifications, check the client state
     const clientState = context?.headers?.get("clientState") || context?.body?.clientState;
+    if (!this.MICROSOFT_WEBHOOK_TOKEN) {
+      log.warn("MICROSOFT_WEBHOOK_TOKEN not configured");
+      return false;
+    }
     if (clientState !== this.MICROSOFT_WEBHOOK_TOKEN) {
-      log.warn("Invalid webhook client state", { clientState });
+      log.warn("Invalid webhook client state", { clientState, expected: this.MICROSOFT_WEBHOOK_TOKEN });
       return false;
     }
     return true;
@@ -73,7 +77,8 @@ export class MicrosoftCalendarSubscriptionAdapter implements ICalendarSubscripti
 
   async extractChannelId(context: CalendarSubscriptionWebhookContext): Promise<string | null> {
     // Microsoft Graph uses subscription ID instead of channel ID
-    const subscriptionId = context?.body?.subscriptionId || context?.headers?.get("subscriptionId");
+    const subscriptionId =
+      context?.body?.value?.[0]?.subscriptionId || context?.headers?.get("subscriptionId");
     if (!subscriptionId) {
       log.warn("Missing subscription ID in webhook");
       return null;
@@ -182,7 +187,6 @@ export class MicrosoftCalendarSubscriptionAdapter implements ICalendarSubscripti
   }
 
   private sanitizeEvents(events: MicrosoftGraphEvent[]): CalendarSubscriptionEventItem[] {
-    const now = new Date();
     return events
       .map((event) => {
         const busy = event.showAs === "busy" || event.showAs === "tentative" || event.showAs === "oof";
@@ -203,20 +207,21 @@ export class MicrosoftCalendarSubscriptionAdapter implements ICalendarSubscripti
         };
       })
       .filter((e) => !!e.id) // Remove events with no ID
-      .filter((e) => e.start < now); // Remove old events
+      .filter((e) => e.status !== "cancelled") // Remove cancelled events
+      .filter((e) => !e.iCalUID?.endsWith("@Cal.com")); // Remove Cal.com events
   }
 
-  private async getGraphClient(credential: CalendarCredential): Promise<any> {
+  private async getGraphClient(credential: CalendarCredential): Promise<{ accessToken: string }> {
     return {
-      accessToken: credential.delegatedTo?.serviceAccountKey.private_key,
+      accessToken: credential.key?.access_token || credential.key?.accessToken,
     };
   }
 
-  private async makeGraphRequest<T = any>(
-    client: any,
+  private async makeGraphRequest<T = unknown>(
+    client: { accessToken: string },
     method: string,
     endpoint: string,
-    data?: any
+    data?: unknown
   ): Promise<T> {
     const url = endpoint.startsWith("http") ? endpoint : `${this.GRAPH_API_BASE_URL}${endpoint}`;
 

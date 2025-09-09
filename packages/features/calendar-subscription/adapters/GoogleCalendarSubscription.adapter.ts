@@ -22,8 +22,12 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
 
   async validate(context: CalendarSubscriptionWebhookContext): Promise<boolean> {
     const token = context?.headers?.get("X-Goog-Channel-Token");
+    if (!this.GOOGLE_WEBHOOK_TOKEN) {
+      log.warn("GOOGLE_WEBHOOK_TOKEN not configured");
+      return false;
+    }
     if (token !== this.GOOGLE_WEBHOOK_TOKEN) {
-      log.warn("Invalid webhook token", { token });
+      log.warn("Invalid webhook token", { token, expected: this.GOOGLE_WEBHOOK_TOKEN });
       return false;
     }
     return true;
@@ -152,7 +156,8 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
         };
       })
       .filter((e) => !!e.id) // safely remove events with no ID
-      .filter((e) => e.start < now); // remove old events;
+      .filter((e) => e.start < now) // remove old events
+      .filter((e) => !e.iCalUID?.endsWith("@Cal.com")); // remove Cal.com events
   }
 
   private async getClient(credential: CalendarCredential) {
