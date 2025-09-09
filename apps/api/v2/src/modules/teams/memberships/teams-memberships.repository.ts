@@ -30,11 +30,21 @@ export class TeamsMembershipsRepository {
     });
   }
 
-  async findTeamMembershipsPaginated(teamId: number, skip: number, take: number) {
+  async findTeamMembershipsPaginated(teamId: number, skip: number, take: number, emails?: string[]) {
+    const whereClause: any = {
+      teamId: teamId,
+    };
+
+    if (emails && emails.length > 0) {
+      whereClause.user = {
+        email: {
+          in: emails,
+        },
+      };
+    }
+
     return await this.dbRead.prisma.membership.findMany({
-      where: {
-        teamId: teamId,
-      },
+      where: whereClause,
       include: { user: { select: MembershipUserSelect } },
       skip,
       take,

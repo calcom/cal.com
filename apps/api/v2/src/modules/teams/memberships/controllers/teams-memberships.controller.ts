@@ -12,6 +12,7 @@ import { GetTeamMembershipsOutput } from "@/modules/teams/memberships/outputs/ge
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { UpdateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/update-team-membership.output";
 import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
+import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 import {
   Controller,
   UseGuards,
@@ -32,7 +33,6 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/teams/:teamId/memberships",
@@ -90,13 +90,14 @@ export class TeamsMembershipsController {
   @HttpCode(HttpStatus.OK)
   async getTeamMemberships(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() queryParams: SkipTakePagination
+    @Query() queryParams: GetUsersInput
   ): Promise<GetTeamMembershipsOutput> {
-    const { skip, take } = queryParams;
+    const { skip, take, emails } = queryParams;
     const orgTeamMemberships = await this.teamsMembershipsService.getPaginatedTeamMemberships(
       teamId,
       skip ?? 0,
-      take ?? 250
+      take ?? 250,
+      emails
     );
     return {
       status: SUCCESS_STATUS,

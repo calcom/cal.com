@@ -14,11 +14,12 @@ export class TeamsMembershipsService {
     return teamMembership;
   }
 
-  async getPaginatedTeamMemberships(teamId: number, skip = 0, take = 250) {
+  async getPaginatedTeamMemberships(teamId: number, skip = 0, take = 250, emails?: string[]) {
     const teamMemberships = await this.teamsMembershipsRepository.findTeamMembershipsPaginated(
       teamId,
       skip,
-      take
+      take,
+      emails
     );
     return teamMemberships;
   }
